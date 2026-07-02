@@ -71,6 +71,7 @@
         "mutate:all": "bash bin/mutation-gate.sh",
         "mutate:diff": "MUTATION_GATE_DIFF_SCOPED=1 bash bin/mutation-gate.sh",
         "docs:parity": "bash bin/docs-parity-gate.sh",
+        "docs:php": "bash bin/docs-php-version-gate.sh",
         "check": [
             "@lint:check",
             "@analyse",

@@ -4,7 +4,7 @@ Get from zero to a working permission check in under 5 minutes.
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 11+
 - A database supported by Laravel (MySQL, PostgreSQL, SQLite)
 

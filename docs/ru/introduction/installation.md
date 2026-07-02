@@ -4,7 +4,7 @@
 
 | Зависимость | Версия |
 |---|---|
-| PHP | ≥ 8.2 |
+| PHP | ≥ 8.3 |
 | Laravel | 11.x или 12.x |
 | Laravel Octane | совместим (stateless) |
 

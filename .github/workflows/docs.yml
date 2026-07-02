@@ -11,8 +11,10 @@ on:
   pull_request:
     paths:
       - 'docs/**'
+      - 'composer.json'
       - '.github/workflows/docs.yml'
       - 'bin/docs-parity-gate.sh'
+      - 'bin/docs-php-version-gate.sh'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +36,9 @@ jobs:
 
       - name: Check EN/RU documentation parity
         run: bash bin/docs-parity-gate.sh
+
+      - name: Check docs PHP version matches composer floor
+        run: bash bin/docs-php-version-gate.sh
 
   build:
     if: github.event_name != 'pull_request'

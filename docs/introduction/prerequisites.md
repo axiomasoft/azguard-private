@@ -6,7 +6,7 @@ Before installing AzGuard, make sure your environment meets the following requir
 
 | Requirement | Minimum version |
 |---|---|
-| PHP | 8.2 |
+| PHP | 8.3+ |
 | Laravel | 11.x or 12.x |
 | Database | MySQL 8 / PostgreSQL 14 / SQLite 3.35+ |
 
