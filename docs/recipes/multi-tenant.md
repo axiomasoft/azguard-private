@@ -9,7 +9,7 @@ Use **static roles** for the base role set (every tenant gets them), and **dynam
 ## Setup
 
 ```php
-// app/AzGuard/App/Roles/ViewerRole.php — base role, same for all tenants
+// app/Guards/App/Roles/ViewerRole.php — base role, same for all tenants
 use AzGuard\Roles\BaseRole;
 
 class ViewerRole extends BaseRole

@@ -54,7 +54,7 @@ final class WorkspaceContextResolver implements ResolvesContext
 ```php
 // config/az-guard-context.php
 'resolvers' => [
-    App\AzGuard\WorkspaceContextResolver::class,
+    App\Guards\WorkspaceContextResolver::class,
 ],
 ```
 

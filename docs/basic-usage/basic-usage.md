@@ -25,7 +25,7 @@ See [Prerequisites](/introduction/prerequisites) for important constraints — e
 Permissions in AzGuard are PHP enum cases, not strings in a database. Define one enum per resource:
 
 ```php
-// app/AzGuard/App/Permissions/DocumentsPermission.php
+// app/Guards/App/Documents/Permissions/DocumentsPermission.php
 enum DocumentsPermission: string
 {
     case View   = 'documents.view';
@@ -45,9 +45,9 @@ See [Permissions](/basic-usage/permissions) for the full attribute reference.
 Roles are PHP classes that declare which permissions they grant. Return **enum cases**, not strings — the panel scopes each case automatically (no `"app."` prefix):
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
+// app/Guards/App/Roles/EditorRole.php
 use AzGuard\Roles\BaseRole;
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 class EditorRole extends BaseRole
 {

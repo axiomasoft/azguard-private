@@ -38,7 +38,7 @@ php artisan make:guard-permission App Invoices View
 Then register the enum class in your panel provider via `permissionEnums()`:
 
 ```php
-class AppPanelProvider extends PanelProvider
+class AppGuardPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {

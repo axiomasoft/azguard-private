@@ -23,15 +23,15 @@ Without panels, you'd either put everything in one namespace (collisions, confus
 Every panel is declared as a PHP class:
 
 ```php
-// app/AzGuard/Panels/AppPanelProvider.php
-namespace App\AzGuard\Panels;
+// app/Guards/App/AppGuardPanelProvider.php
+namespace App\Guards\App;
 
 use AzGuard\PanelProvider;
 use AzGuard\Support\Panel;
-use App\AzGuard\App\Permissions\DocumentsPermission;
-use App\AzGuard\App\Permissions\UsersPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
+use App\Guards\App\Users\Permissions\UsersPermission;
 
-class AppPanelProvider extends PanelProvider
+class AppGuardPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
@@ -51,8 +51,8 @@ class AppPanelProvider extends PanelProvider
 ```php
 // config/az-guard.php
 'panels' => [
-    \App\AzGuard\Panels\AppPanelProvider::class,
-    \App\AzGuard\Panels\AdminPanelProvider::class,
+    \App\Guards\App\AppGuardPanelProvider::class,
+    \App\Guards\Admin\AdminGuardPanelProvider::class,
 ],
 ```
 
@@ -97,20 +97,25 @@ php artisan guard:doctor
 
 ```
 app/
-  AzGuard/
-    Panels/
-      AppPanelProvider.php
-      AdminPanelProvider.php
+  Guards/
     App/
-      Permissions/
-        DocumentsPermission.php
-        UsersPermission.php
+      AppGuardPanelProvider.php
       Roles/
         EditorRole.php
         ViewerRole.php
+      Documents/
+        Permissions/
+          DocumentsPermission.php
+        Policies/
+          DocumentsPolicy.php
+      Users/
+        Permissions/
+          UsersPermission.php
     Admin/
-      Permissions/
-        UsersPermission.php
+      AdminGuardPanelProvider.php
       Roles/
         OperatorRole.php
+      Users/
+        Permissions/
+          UsersPermission.php
 ```

@@ -119,7 +119,7 @@ class CustomMergeStrategy implements MergeStrategy
 Подключается через `config/az-guard-context.php`:
 
 ```php
-'merge_strategy' => App\AzGuard\CustomMergeStrategy::class,
+'merge_strategy' => App\Guards\CustomMergeStrategy::class,
 ```
 
 ## Расширение трейта

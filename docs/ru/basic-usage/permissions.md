@@ -170,7 +170,7 @@ $user->permissions('app')->contains('app.documents.view');
 явном виде):
 
 ```php
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 public function permissions(): array
 {

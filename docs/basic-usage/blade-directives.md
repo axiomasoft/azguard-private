@@ -45,16 +45,16 @@ When you must use Gate directives directly in a template (e.g. layouts, shared p
 
 ```blade
 {{-- ✅ FQCN with ->value --}}
-@can(\App\AzGuard\App\Permissions\DocumentsPermission::Edit->value)
+@can(\App\Guards\App\Documents\Permissions\DocumentsPermission::Edit->value)
     <a href="{{ route('documents.edit', $document) }}" class="btn">Edit</a>
 @endcan
 
-@cannot(\App\AzGuard\App\Permissions\DocumentsPermission::Delete->value)
+@cannot(\App\Guards\App\Documents\Permissions\DocumentsPermission::Delete->value)
     <p class="text-muted">You don't have permission to delete documents.</p>
 @endcannot
 
 {{-- With an else branch --}}
-@can(\App\AzGuard\App\Permissions\DocumentsPermission::Create->value)
+@can(\App\Guards\App\Documents\Permissions\DocumentsPermission::Create->value)
     <a href="{{ route('documents.create') }}">New document</a>
 @else
     <span class="text-muted">Read-only access</span>
@@ -67,8 +67,8 @@ Passes if the user has **at least one** of the listed permissions:
 
 ```blade
 @canany([
-    \App\AzGuard\App\Permissions\DocumentsPermission::Create->value,
-    \App\AzGuard\App\Permissions\DocumentsPermission::Edit->value,
+    \App\Guards\App\Documents\Permissions\DocumentsPermission::Create->value,
+    \App\Guards\App\Documents\Permissions\DocumentsPermission::Edit->value,
 ])
     <div class="editor-toolbar">
         {{-- shown to users who can either create or edit --}}
@@ -104,7 +104,7 @@ AzGuard's own permission directive. It calls `$user->hasPermission()` directly, 
 
 ```blade
 {{-- Routes through Laravel's Policy system if a policy exists for Document --}}
-@can(\App\AzGuard\App\Permissions\DocumentsPermission::Edit->value, $document)
+@can(\App\Guards\App\Documents\Permissions\DocumentsPermission::Edit->value, $document)
     <button type="button">Edit</button>
 @endcan
 ```
@@ -113,7 +113,7 @@ AzGuard's own permission directive. It calls `$user->hasPermission()` directly, 
 
 ```blade
 {{-- Useful in multi-guard apps --}}
-@can(\App\AzGuard\Admin\Permissions\UsersPermission::Manage->value, 'admin')
+@can(\App\Guards\Admin\Users\Permissions\UsersPermission::Manage->value, 'admin')
     <a href="/admin/users">Manage users</a>
 @endcan
 ```

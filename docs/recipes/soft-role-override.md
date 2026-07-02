@@ -5,7 +5,7 @@ Sometimes a user needs elevated access for a limited time without being permanen
 ## Pattern
 
 ```php
-use App\Guards\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 // Grant publish access until end of sprint (pass an explicit expiry)
 $user->grant(DocumentsPermission::Publish, 'app', now()->addDays(14));

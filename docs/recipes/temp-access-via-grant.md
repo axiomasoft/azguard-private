@@ -12,7 +12,7 @@ Direct grants let you give a user a single permission for a fixed period without
 
 ```php
 use AzGuard\Facades\AzGuard;
-use App\Guards\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 // Fluent builder — ttl() takes seconds (two weeks)
 AzGuard::forUser($contractor)

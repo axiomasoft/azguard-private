@@ -33,8 +33,8 @@ return [
     | Each panel defines its own permission namespace and catalog builders.
     */
     'panels' => [
-        // \App\AzGuard\Panels\AppPanelProvider::class,
-        // \App\AzGuard\Panels\AdminPanelProvider::class,
+        // \App\Guards\App\AppGuardPanelProvider::class,
+        // \App\Guards\Admin\AdminGuardPanelProvider::class,
     ],
 
     /*

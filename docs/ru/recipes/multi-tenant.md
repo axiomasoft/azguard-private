@@ -39,7 +39,7 @@ $user->hasPermissionIn('tenant', $tenant->id, 'app.posts.edit', 'app');      // 
 ## Resolver контекста тенанта
 
 ```php
-// app/AzGuard/TenantContextResolver.php
+// app/Guards/TenantContextResolver.php
 use AzGuard\Context\AuthorizationContext;
 use AzGuard\Context\Contracts\ResolvesContext;
 use Illuminate\Http\Request;
@@ -67,6 +67,6 @@ class TenantContextResolver implements ResolvesContext
 
 ```php
 'resolvers' => [
-    App\AzGuard\TenantContextResolver::class,
+    App\Guards\TenantContextResolver::class,
 ],
 ```

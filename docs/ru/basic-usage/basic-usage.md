@@ -7,7 +7,7 @@
 ```php
 use AzGuard\Facades\AzGuard;
 use Illuminate\Support\Facades\Gate;
-use App\AzGuard\App\Permissions\PostsPermission;
+use App\Guards\App\Posts\Permissions\PostsPermission;
 
 // Проверка через модель — enum-кейс привязывается к панели автоматически
 $user->hasPermission(PostsPermission::View);         // true / false

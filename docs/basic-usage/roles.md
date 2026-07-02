@@ -7,11 +7,11 @@ In AzGuard, a role is a **PHP class** that declares which permissions it grants.
 Static roles extend `BaseRole` (which implements `RoleInterface`). Their permissions are declared in code and never drift from what's deployed.
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
-namespace App\AzGuard\App\Roles;
+// app/Guards/App/Roles/EditorRole.php
+namespace App\Guards\App\Roles;
 
-use App\AzGuard\App\Permissions\CommentsPermission;
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Comments\Permissions\CommentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 use AzGuard\Roles\BaseRole;
 
 class EditorRole extends BaseRole

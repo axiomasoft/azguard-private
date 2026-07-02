@@ -9,7 +9,7 @@
 Класс-роль возвращает `['*']` из `permissions()` — AzGuard трактует это как «все права»:
 
 ```php
-// app/AzGuard/App/Roles/SuperAdminRole.php
+// app/Guards/App/Roles/SuperAdminRole.php
 use AzGuard\Roles\BaseRole;
 
 class SuperAdminRole extends BaseRole
