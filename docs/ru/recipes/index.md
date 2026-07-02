@@ -8,3 +8,4 @@
 - [Multi-Tenant роли](/ru/recipes/multi-tenant)
 - [Inertia + права](/ru/recipes/inertia-permissions)
 - [Интеграция с Policy](/ru/recipes/policy-integration)
+- [Интеграция и тесты](/ru/recipes/integration)

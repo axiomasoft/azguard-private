@@ -1,10 +1,10 @@
-# Контекстные права (azguard/context)
+# Contextual Permissions (azguard/context)
 
-Пакет `azguard/context` — opt-in расширение для multi-workspace / multi-site сценариев.
-Каждый пользователь может иметь **разные права в разных контекстах** (workspace, project, organisation и т.д.)
-на одной и той же панели.
+The `azguard/context` package is an opt-in extension for multi-workspace /
+multi-site scenarios. A user can hold **different permissions in different
+contexts** (workspace, project, organisation, etc.) on the same panel.
 
-## Установка
+## Installation
 
 ```bash
 composer require axioma-studio/azguard-context
@@ -12,19 +12,19 @@ php artisan vendor:publish --tag=azguard-context-migrations
 php artisan migrate
 ```
 
-## Концепции
+## Concepts
 
-| Термин | Описание |
+| Term | Description |
 |---|---|
 | **AuthorizationContext** | Value object: `panelId` + `contextType` + `contextId` |
-| **AuthorizationContextManager** | Singleton: хранит активный контекст per-panel на время request |
-| **ResolvesContext** | Интерфейс resolver-а — извлекает контекст из `Request` |
-| **MergeStrategy** | Стратегия объединения глобальных и контекстных прав |
-| **ContextualRoleGrantSource** | `GrantSource` с приоритетом 95, читает таблицу `az_guard_context_roles` |
+| **AuthorizationContextManager** | Singleton: holds the active per-panel context for the duration of a request |
+| **ResolvesContext** | Resolver interface — extracts the context from a `Request` |
+| **MergeStrategy** | Strategy for merging global and contextual permissions |
+| **ContextualRoleGrantSource** | A `GrantSource` with priority 95, reads the `az_guard_context_roles` table |
 
-## Быстрый старт
+## Quick start
 
-### 1. Создайте resolver
+### 1. Create a resolver
 
 ```php
 use AzGuard\Context\Contracts\ResolvesContext;
@@ -49,7 +49,7 @@ final class WorkspaceContextResolver implements ResolvesContext
 }
 ```
 
-### 2. Зарегистрируйте в конфиге
+### 2. Register it in the config
 
 ```php
 // config/az-guard-context.php
@@ -58,11 +58,11 @@ final class WorkspaceContextResolver implements ResolvesContext
 ],
 ```
 
-### 3. Примените middleware к маршруту
+### 3. Apply the middleware to a route
 
-Алиас `azguard.context` регистрируется автоматически в
-`AzGuardContextServiceProvider::boot()` — ручного подключения в
-`bootstrap/app.php` не требуется.
+The `azguard.context` alias is registered automatically in
+`AzGuardContextServiceProvider::boot()` — no manual wiring in
+`bootstrap/app.php` is needed.
 
 ```php
 // routes/web.php
@@ -72,28 +72,28 @@ Route::middleware(['auth', 'azguard.context'])
     });
 ```
 
-С этого момента `$user->hasPermission('app.posts.edit')` автоматически
-учитывает права пользователя в текущем workspace.
+From this point, `$user->hasPermission('app.posts.edit')` automatically
+takes the user's permissions in the current workspace into account.
 
-## Проверка прав
+## Checking permissions
 
-### Глобальная (без контекста)
+### Global (no context)
 
 ```php
 $user->hasPermission('app.posts.edit');
 ```
 
-### Одноразовая контекстная проверка
+### One-off contextual check
 
-Не меняет глобальный `AuthorizationContextManager`:
+Does not change the global `AuthorizationContextManager`:
 
 ```php
 use AzGuard\Context\AuthorizationContext;
 
-// Через удобный alias
+// Via the convenience alias
 $user->hasPermissionIn('workspace', $workspaceId, 'app.posts.edit');
 
-// Через основной метод с объектом PermissionContext
+// Via the primary method with a PermissionContext object
 $user->hasPermission('app.posts.edit', 'app', new AuthorizationContext(
     panelId: 'app',
     contextType: 'workspace',
@@ -101,7 +101,7 @@ $user->hasPermission('app.posts.edit', 'app', new AuthorizationContext(
 ));
 ```
 
-### Тихая версия (для Blade / UI)
+### Silent version (for Blade / UI)
 
 ```php
 use AzGuard\Context\AuthorizationContext;
@@ -113,19 +113,19 @@ $user->checkPermission('app.posts.edit', 'app', new AuthorizationContext(
 ));
 ```
 
-### Blade-директива
+### Blade directive
 
 ```blade
 @azcan('app.posts.edit')
-    {{-- права из текущего контекста (если middleware установлен) --}}
+    {{-- permission from the current context (if the middleware is applied) --}}
 @endazcan
 ```
 
-## Выдача контекстных прав
+## Issuing contextual grants
 
-Права хранятся в таблице `az_guard_context_roles`. Пишите их через
-`ContextGrantBuilder` (fluent write-API, аналог `AzGuard\Grants\GrantBuilder`
-для панельных direct grants) либо через CLI:
+Grants are stored in the `az_guard_context_roles` table. Write them via
+`ContextGrantBuilder` (a fluent write-API, the counterpart of
+`AzGuard\Grants\GrantBuilder` for panel-wide direct grants) or via the CLI:
 
 ```php
 use AzGuard\Context\ContextGrantBuilder;
@@ -135,20 +135,20 @@ use AzGuard\Context\ContextGrantBuilder;
     ->inContext('workspace', $workspaceId)
     ->grant('app.posts.edit');
 
-// Отозвать конкретное право
+// Revoke a specific permission
 (new ContextGrantBuilder($user))
     ->on('app')
     ->inContext('workspace', $workspaceId)
     ->revoke('app.posts.edit');
 
-// Отозвать все права пользователя в этом контексте+панели
+// Revoke every permission the user holds in this context+panel
 (new ContextGrantBuilder($user))
     ->on('app')
     ->inContext('workspace', $workspaceId)
     ->revokeAll();
 ```
 
-Wildcard (`*`) — полный доступ в контексте:
+Wildcard (`*`) grants full access within the context:
 
 ```php
 (new ContextGrantBuilder($user))
@@ -160,31 +160,32 @@ Wildcard (`*`) — полный доступ в контексте:
 ### CLI
 
 ```bash
-# выдать контекстное право
+# issue a contextual grant
 php artisan guard:context:grant 42 app.posts.edit app workspace 7
 
-# отозвать конкретное право
+# revoke a specific permission
 php artisan guard:context:revoke 42 app.posts.edit app workspace 7
 
-# отозвать все права пользователя в этом контексте+панели
-php artisan guard:context:revoke 42 -- app workspace 7 --all
+# revoke every permission the user holds in this context+panel
+# (the permission argument is required but ignored with --all)
+php artisan guard:context:revoke 42 ignored app workspace 7 --all
 ```
 
-## Стратегии объединения прав
+## Merge strategies
 
-Настраивается в `config/az-guard-context.php`:
+Configured in `config/az-guard-context.php`:
 
 ```php
 'merge_strategy' => \AzGuard\Context\Strategies\GlobalPlusContextStrategy::class,
 ```
 
-| Класс | Поведение |
+| Class | Behaviour |
 |---|---|
-| `GlobalPlusContextStrategy` | global ∪ context **(дефолт)** |
-| `ContextOnlyStrategy` | только context, global игнорируется |
-| `DenyWithoutContextStrategy` | пустой set без контекста; с контекстом — global ∪ context |
+| `GlobalPlusContextStrategy` | global ∪ context **(default)** |
+| `ContextOnlyStrategy` | context only, global is ignored |
+| `DenyWithoutContextStrategy` | empty set without a context; with a context — global ∪ context |
 
-Можно реализовать свою стратегию:
+You can implement your own strategy:
 
 ```php
 use AzGuard\Context\Contracts\MergeStrategy;
@@ -194,25 +195,25 @@ final class MyStrategy implements MergeStrategy
 {
     public function merge(PermissionSet $global, ?PermissionSet $context): PermissionSet
     {
-        // ваша логика
+        // your logic
     }
 }
 ```
 
-## Приоритеты GrantSource
+## GrantSource priorities
 
-| Source | Приоритет |
+| Source | Priority |
 |---|---|
 | ClassRoleGrantSource | 100 |
 | **ContextualRoleGrantSource** | **95** |
 | DatabaseRoleGrantSource | 90 |
 | DirectGrantSource | 80 |
 
-Все источники объединяются в `EffectivePermissionResolver` — контекстные права
-не «перебивают» class role, а дополняют набор.
+All sources are merged in `EffectivePermissionResolver` — contextual
+permissions do not "override" a class role, they extend the set.
 
-## Обратная совместимость
+## Backward compatibility
 
-- Пакет **opt-in**: если не установлен, `HasAzGuard` работает идентично предыдущей версии.
-- `hasPermissionIn()` возвращает `false` если пакет не установлен.
-- `hasPermission(..., $context)` делает fallback к глобальной проверке если пакет не установлен.
+- The package is **opt-in**: if it is not installed, `HasAzGuard` behaves exactly as before.
+- `hasPermissionIn()` returns `false` if the package is not installed.
+- `hasPermission(..., $context)` falls back to a global check if the package is not installed.
