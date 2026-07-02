@@ -70,6 +70,7 @@
         "mutate:context": "vendor/bin/infection --configuration=infection.context.json5 --threads=4",
         "mutate:all": "bash bin/mutation-gate.sh",
         "mutate:diff": "MUTATION_GATE_DIFF_SCOPED=1 bash bin/mutation-gate.sh",
+        "docs:parity": "bash bin/docs-parity-gate.sh",
         "check": [
             "@lint:check",
             "@analyse",
