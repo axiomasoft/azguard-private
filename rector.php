@@ -20,5 +20,5 @@ return RectorConfig::configure()
     ])
     ->withImportNames()
     ->withSkip([
-        __DIR__.'/packages/core/src/Support/BaseRole.php',
+        __DIR__.'/packages/core/src/Roles/BaseRole.php',
     ]);

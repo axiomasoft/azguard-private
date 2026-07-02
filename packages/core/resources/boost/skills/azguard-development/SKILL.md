@@ -18,6 +18,8 @@ classes**, never magic strings. Authorization is refactor-safe and reviewable.
   returns enum cases.
 - **GrantSource** — resolves a user's permissions (class roles, DB roles, direct
   grants). Pluggable via `AzGuard::registerGrantSource()`.
+- **Catalog builder** — discovers valid permission keys for a panel. Pluggable
+  via `AzGuard::registerCatalogBuilder()` (see *Extending* below).
 
 ## Setup (do this first)
 
@@ -70,10 +72,43 @@ AzGuard::forUser($user)->on('app')->ttl(3600)->grant(DocumentsPermission::Create
 AzGuard::forUser($user)->on('app')->revoke(DocumentsPermission::Create);
 ```
 
+## Frontend abilities (share to JS/Inertia)
+
+Never dump the full catalog. Resolve an explicit allowlist of keys to a
+`ability => bool` map for shared props:
+
+```php
+$abilities = AzGuard::abilitiesFor($user, 'app', [
+    'app.documents.view',
+    'app.documents.create',
+]);
+```
+
+For a typed, reusable projection, generate an `AbilitiesDto` subclass and build
+it once:
+
+```bash
+php artisan make:guard-abilities App Documents   # or make:guard-panel --with-abilities
+```
+
+```php
+$payload = DocumentsAbilities::make($user)->toArray();   // array<string, bool>
+```
+
 ## Super-admin
 
 `php artisan guard:super-admin --user=1` grants the wildcard role that
-short-circuits every check via `Gate::before()`.
+short-circuits every check via `Gate::before()`. Test for it with
+`AzGuard::isSuperAdmin($user)` (optionally scoped: `..., 'admin')`).
+
+## Extending
+
+Register custom resolution/discovery from a service provider's `register()`:
+
+```php
+AzGuard::registerGrantSource(MyGrantSource::class);        // extra permission source
+AzGuard::registerCatalogBuilder(MyCatalogBuilder::class);  // extra key discovery
+```
 
 ## Rules
 
