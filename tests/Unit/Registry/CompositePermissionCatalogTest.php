@@ -7,7 +7,6 @@ use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
 use AzGuard\Registry\Contracts\PermissionDefinition;
 use AzGuard\Registry\Contracts\PermissionMeta;
 use AzGuard\Registry\Definitions\SimplePermissionMeta;
-use AzGuard\Registry\Exceptions\InvalidCatalogException;
 use AzGuard\Registry\Exceptions\InvalidPermissionKeyException;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -15,11 +14,11 @@ use AzGuard\Registry\Exceptions\InvalidPermissionKeyException;
 /**
  * Быстрая заглушка PermissionDefinition.
  */
-function makeDefinition(string $key, string $group = 'General'): PermissionDefinition
+function makeDefinition(string $key, ?string $group = 'General'): PermissionDefinition
 {
     return new class($key, $group) implements PermissionDefinition
     {
-        public function __construct(private string $k, private string $g) {}
+        public function __construct(private string $k, private ?string $g) {}
 
         public function key(): string
         {
@@ -121,17 +120,37 @@ describe('CompositePermissionCatalog', function () {
         expect($catalog->all('app'))->toHaveCount(1);
     });
 
-    it('throws InvalidCatalogException on conflicting groups for same key', function () {
+    it('deduplicates same key from two builders even when groups differ (key is identity)', function () {
+        // Одинаковый ключ из двух источников (напр. Filament-дискавери ресурса +
+        // permission-enum того же ресурса) — идемпотентный дедуп, не конфликт:
+        // ключ есть идентичность пермишена, group()/label() — только отображение.
         $def1 = makeDefinition('app.posts.view', 'Posts');
-        $def2 = makeDefinition('app.posts.view', 'Articles'); // разная группа!
+        $def2 = makeDefinition('app.posts.view', 'Articles');
 
         $catalog = new CompositePermissionCatalog(
             builders: [makeBuilder([$def1]), makeBuilder([$def2])],
             panelIds: ['app'],
         );
 
-        expect(fn () => $catalog->all('app'))
-            ->toThrow(InvalidCatalogException::class);
+        $all = $catalog->all('app');
+
+        expect($all)->toHaveCount(1)
+            ->and($all[0]->group())->toBe('Posts'); // первый выигрывает при обеих непустых
+    });
+
+    it('adopts a non-null group when the first source for a key had none', function () {
+        $def1 = makeDefinition('app.posts.view', null);
+        $def2 = makeDefinition('app.posts.view', 'Posts');
+
+        $catalog = new CompositePermissionCatalog(
+            builders: [makeBuilder([$def1]), makeBuilder([$def2])],
+            panelIds: ['app'],
+        );
+
+        $all = $catalog->all('app');
+
+        expect($all)->toHaveCount(1)
+            ->and($all[0]->group())->toBe('Posts');
     });
 
     it('has() returns true for registered key', function () {

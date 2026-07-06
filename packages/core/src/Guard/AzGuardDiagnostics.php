@@ -9,6 +9,8 @@ use AzGuard\Attributes\RoleOnly;
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Facades\AzGuard;
 use AzGuard\PermissionKey;
+use AzGuard\Registry\Contracts\PermissionCatalog;
+use AzGuard\Registry\Contracts\PermissionDefinition;
 use AzGuard\Support\Panel;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
@@ -79,11 +81,16 @@ class AzGuardDiagnostics
             // Discover permission enums once per panel — shared by three checks below.
             $enumClasses = $this->discoverPermissionEnums(basePath: $basePath, baseNamespace: $baseNamespace);
 
-            $this->checkEnumsAgainstPolicies(
-                enumClasses: $enumClasses,
-                panel: $panel,
-                registeredAbilities: $registeredAbilities,
-            );
+            // Enum↔policy pairing только для панелей на policy-модели. Панель без
+            // policy-классов enforce-ит иначе (Gate/ResourceGate, напр. Filament),
+            // и требовать #[GateAbility]-метод на каждый enum-кейс там некорректно.
+            if ($policyClasses !== []) {
+                $this->checkEnumsAgainstPolicies(
+                    enumClasses: $enumClasses,
+                    panel: $panel,
+                    registeredAbilities: $registeredAbilities,
+                );
+            }
             $this->checkGateAbilityEnumReferences(
                 policyClasses: $policyClasses,
                 enumClasses: $enumClasses,
@@ -98,6 +105,11 @@ class AzGuardDiagnostics
                         enumClasses: $enumClasses,
                         panel: $panel,
                     ),
+                    // Полный каталог пермишенов панели — источник истины по известным
+                    // ability. Включает ключи, объявленные НЕ через policy/#[RoleOnly]:
+                    // Filament-дискавери ресурсов, обычные enum-кейсы и т.п. Без этого
+                    // роли Filament-панели ложно репортились как «unknown permission».
+                    $this->collectCatalogAbilities(panelId: $panelId),
                 ),
             );
             $this->checkOrphanPolicies(policyClasses: $policyClasses, panelId: $panelId);
@@ -239,7 +251,25 @@ class AzGuardDiagnostics
                     continue;
                 }
 
-                if (! str_starts_with(haystack: (string) $permission, needle: $panel->getId().PermissionKey::SEPARATOR)) {
+                // Enum-кейсы — канонная (refactor-safe) форма объявления пермишенов
+                // роли. Их нельзя кастовать в строку/использовать как ключ массива;
+                // скоупим через панель, как это делает ClassRoleGrantSource. Enum
+                // чужой панели (не в permissionEnums) — не ability этой панели, скип.
+                if ($permission instanceof UnitEnum) {
+                    if (! in_array($permission::class, $panel->getPermissionEnums(), strict: true)) {
+                        continue;
+                    }
+
+                    $key = $panel->resolvePermission($permission);
+
+                    if (! isset($abilitiesIndex[$key])) {
+                        $this->errors[] = "Role {$class}: references unknown permission [{$key}].";
+                    }
+
+                    continue;
+                }
+
+                if (! str_starts_with(haystack: $permission, needle: $panel->getId().PermissionKey::SEPARATOR)) {
                     $this->warnings[] = "Role {$class}: permission [{$permission}] is missing the panel prefix [{$panel->getId()}.].";
 
                     continue;
@@ -294,6 +324,20 @@ class AzGuardDiagnostics
         }
 
         return $abilities;
+    }
+
+    /**
+     * Ключи всего каталога пермишенов панели (авторитетный набор известных
+     * ability): enum-каталог, Filament-дискавери ресурсов, policy-ability и т.п.
+     *
+     * @return list<string>
+     */
+    private function collectCatalogAbilities(string $panelId): array
+    {
+        return array_map(
+            static fn (PermissionDefinition $definition): string => $definition->key(),
+            app(PermissionCatalog::class)->all($panelId),
+        );
     }
 
     /** @return list<class-string> */
