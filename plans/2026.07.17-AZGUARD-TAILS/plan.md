@@ -64,7 +64,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
-| P1 | Correctness-critical: panel-isolation & cache race | 0/3 | 🟡 In progress |
+| P1 | Correctness-critical: panel-isolation & cache race | 1/3 | 🟡 In progress |
 | P2 | Дешёвый батч: диагностика/wildcard/rollback | 0/4 | 🟡 In progress |
 
 ## 5. Decision Log
@@ -92,6 +92,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | 2026-07-17 | issue-planner/opus | Правка ТЗ P1 по round-2 аудиту (C1): обход console-guard теста P1.1 спроектирован+ПРОВЕРЕН прогоном; рекурсия eager-load `scopeEntity` вскрыта+забандлена в P1.1 (D9); C2 (Board P2 канон 0/4; «0/3» B7 — ошибка, завершение 3/4+⛔), C3 (entity-scopes.md) — детали phases/P1.md P1.1; v0.4.0→0.5.0 |
 | 2026-07-17 | issue-planner/opus | Design pass 1/1 (§5, k=1≥N=1 — бюджет исполнен): обе фазы детализированы, все Blocker'ы round-1/2 (A1/A3/C1+D9) закрыты с прогонной проверкой; дыр 0; фокус следующего — re-audit round-3, затем exec P1.1 |
 | 2026-07-17 | plan-run/sonnet-high | P1.1 закрыт (🟠): D5+D9 в `bootHasScopedRoles()` — детали см. `phases/P1.md` P1.1 Completion Notes |
+| 2026-07-17 | manual/sonnet-high | P1.2 закрыт (🟢): атомарный epoch bump в `PermissionCache::forgetForUser()` через `Cache::lock()` (T6) — детали см. `phases/P1.md` P1.2 Completion Notes. Item-commit `58ed1c4` |
 
 ## Обсуждение
 
