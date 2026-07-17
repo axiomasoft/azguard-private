@@ -28,14 +28,18 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   `PermissionSchema` so generated enum cases round-trip the exact runtime
   permission key instead of a divergent hardcoded casing.
 - **`AzGuardPlugin` default panel id is read from config (F39).** The fallback
-  panel id now comes from `config('az-guard.default_panel')` instead of a
+  panel id now comes from `config('az-guard-filament.panel')` instead of a
   hardcoded literal, so a plugin registered without an explicit id targets the
-  app's configured default panel.
-- Added the `user_label_column` config key to `az-guard-filament.php` (F41). It
-  controls which user-model column labels users in the DirectGrant and Role UIs
-  (defaults to `name`, override to `email` or any column). The key was
-  previously phantom — read from config with no definition — falling back to
-  `name` in four read sites.
+  configured panel. Note this is the `az-guard-filament` config tree (the
+  Filament package's own), not the core package's `az-guard.default_panel` —
+  the two are unrelated keys; setting the core one has no effect here.
+- Wired the `user_label_column` config key from `az-guard-filament.php` into
+  the four sites that read it (F12). `DirectGrantResource::form()`/`table()`
+  and `RoleUsersRelationManager::form()`/`table()` controls which user-model
+  column labels users in the DirectGrant and Role UIs (defaults to `name`,
+  override to `email` or any column) — previously they read the phantom
+  `az-guard.filament.user_label_column` (an unregistered config tree), so the
+  key silently had no effect and every site fell back to `name`.
 
 ### Performance
 - **DoctorPage no longer recomputes diagnostics per render hook (F29).**
