@@ -7,6 +7,7 @@ namespace AzGuard\Registry\Resolver;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Support\Config;
 use Closure;
+use Illuminate\Contracts\Cache\LockProvider;
 
 /**
  * Per-request (and optional cross-request) cache for PermissionSet.
@@ -92,11 +93,29 @@ class PermissionCache
         // before the expiry and serving a revoked grant until that entry's
         // own TTL runs out. Re-`put()` the resulting value on every call so
         // the epoch key's TTL never lags behind the entries it guards.
+        //
+        // `increment()` is atomic on most stores, but the trailing `put()` is a
+        // separate read-modify-write: two concurrent forgets can interleave so
+        // the LATER increment's `put()` is overwritten by the EARLIER one,
+        // rolling the epoch backward and letting a revoked grant keep being
+        // served under the still-live old epoch key. Serialize the whole
+        // add()/increment()/put() sequence under a lock so concurrent forgets
+        // for the same user+panel cannot interleave.
         $epochStore = cache()->store($store);
         $epochKey = $this->epochKey($userId, $panelId);
-        $epochStore->add($epochKey, 1, Config::cacheTtl());
-        $epoch = $epochStore->increment($epochKey);
-        $epochStore->put($epochKey, $epoch, Config::cacheTtl());
+        $bump = function () use ($epochStore, $epochKey): void {
+            $epochStore->add($epochKey, 1, Config::cacheTtl());
+            $epoch = $epochStore->increment($epochKey);
+            $epochStore->put($epochKey, $epoch, Config::cacheTtl());
+        };
+
+        $lockStore = $epochStore->getStore();
+
+        if ($lockStore instanceof LockProvider) {
+            $lockStore->lock($epochKey.':lock', 5)->block(2, $bump);
+        } else {
+            $bump();
+        }
     }
 
     /**

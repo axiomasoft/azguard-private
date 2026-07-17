@@ -4,6 +4,153 @@ declare(strict_types=1);
 
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Values\PermissionSet;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
+use Illuminate\Contracts\Cache\Lock as LockContract;
+use Illuminate\Contracts\Cache\LockProvider;
+use Illuminate\Contracts\Cache\Store;
+use Illuminate\Support\Facades\Cache;
+
+/**
+ * Records the call order around `forgetForUser`'s epoch bump so the T6 test
+ * below can assert the add()/increment()/put() sequence runs INSIDE a lock's
+ * block() callback, not before/after it. Wraps a real ArrayStore (which
+ * implements LockProvider) rather than faking lock semantics.
+ */
+final class PermissionCacheLockSpyStore implements LockProvider, Store
+{
+    /** @var list<string> */
+    public static array $log = [];
+
+    public function __construct(private readonly ArrayStore $inner) {}
+
+    public function get($key)
+    {
+        return $this->inner->get($key);
+    }
+
+    public function many(array $keys)
+    {
+        return $this->inner->many($keys);
+    }
+
+    public function put($key, $value, $seconds)
+    {
+        self::$log[] = "put:{$key}";
+
+        return $this->inner->put($key, $value, $seconds);
+    }
+
+    public function putMany(array $values, $seconds)
+    {
+        return $this->inner->putMany($values, $seconds);
+    }
+
+    public function increment($key, $value = 1)
+    {
+        self::$log[] = "increment:{$key}";
+
+        return $this->inner->increment($key, $value);
+    }
+
+    public function decrement($key, $value = 1)
+    {
+        return $this->inner->decrement($key, $value);
+    }
+
+    public function forever($key, $value)
+    {
+        return $this->inner->forever($key, $value);
+    }
+
+    public function touch($key, $seconds)
+    {
+        return $this->inner->touch($key, $seconds);
+    }
+
+    public function forget($key)
+    {
+        return $this->inner->forget($key);
+    }
+
+    public function flush()
+    {
+        return $this->inner->flush();
+    }
+
+    public function getPrefix()
+    {
+        return $this->inner->getPrefix();
+    }
+
+    /**
+     * Duck-typed: `Illuminate\Cache\Repository::add()` calls this directly
+     * (via `method_exists`) instead of its own get/put fallback when the
+     * store defines it — mirrors the real add() contract (put iff absent).
+     */
+    public function add($key, $value, $seconds)
+    {
+        self::$log[] = "add:{$key}";
+
+        if (! is_null($this->inner->get($key))) {
+            return false;
+        }
+
+        return $this->inner->put($key, $value, $seconds);
+    }
+
+    public function lock($name, $seconds = 0, $owner = null)
+    {
+        self::$log[] = "lock:{$name}";
+
+        return new PermissionCacheLockSpy($this->inner->lock($name, $seconds, $owner));
+    }
+
+    public function restoreLock($name, $owner)
+    {
+        return new PermissionCacheLockSpy($this->inner->restoreLock($name, $owner));
+    }
+}
+
+final class PermissionCacheLockSpy implements LockContract
+{
+    public function __construct(private readonly LockContract $inner) {}
+
+    public function get($callback = null)
+    {
+        return $this->inner->get($callback);
+    }
+
+    public function block($seconds, $callback = null)
+    {
+        PermissionCacheLockSpyStore::$log[] = 'block:start';
+
+        $result = $this->inner->block($seconds, function () use ($callback) {
+            PermissionCacheLockSpyStore::$log[] = 'block:callback';
+
+            return $callback ? $callback() : null;
+        });
+
+        PermissionCacheLockSpyStore::$log[] = 'block:end';
+
+        return $result;
+    }
+
+    public function release()
+    {
+        return $this->inner->release();
+    }
+
+    public function owner()
+    {
+        return $this->inner->owner();
+    }
+
+    public function forceRelease()
+    {
+        $this->inner->forceRelease();
+    }
+}
 
 /**
  * F30: with a persistent store + infinite TTL, `forgetForUser` must evict every
@@ -137,4 +284,38 @@ it('invalidates every discriminator at once (all contexts) with one forget', fun
     expect((new PermissionCache)->rememberForRequest(9, 'app', $fresh)->keys())->toBe([])
         ->and((new PermissionCache)->rememberForRequest(9, 'app', $fresh, 'ctx-a')->keys())->toBe([])
         ->and((new PermissionCache)->rememberForRequest(9, 'app', $fresh, 'ctx-b')->keys())->toBe([]);
+});
+
+/**
+ * T6: `forgetForUser`'s add()/increment()/put() sequence must run serialized
+ * under a lock, not as three independent read-modify-write calls — otherwise
+ * two concurrent forgets can interleave their trailing `put()`s and roll the
+ * epoch backward (see PermissionCache.php forgetForUser docblock).
+ *
+ * A real cross-process race can't be driven from a single-process test (no
+ * portable mechanism). Instead this proves the LOCK WRAPPING exists: `lock()`
+ * is acquired on the `{epoch}:lock` key before the bump, and all three store
+ * calls happen strictly inside the lock's `block()` callback.
+ */
+it('bumps the epoch under a lock, with add/increment/put inside block()', function () {
+    Cache::extend('spy_array', fn () => new Repository(new PermissionCacheLockSpyStore(new ArrayStore)));
+    config()->set('cache.stores.azguard_spy', ['driver' => 'spy_array']);
+    config()->set('az-guard.cache.store', 'azguard_spy');
+    // Finite TTL so `put()` (not `forever()`) is the call under test — mirrors
+    // the production default (Config::cacheTtl() defaults to 3600).
+    config()->set('az-guard.cache.expiration_time', 3600);
+
+    PermissionCacheLockSpyStore::$log = [];
+
+    (new PermissionCache)->forgetForUser(7, 'app');
+
+    expect(PermissionCacheLockSpyStore::$log)->toBe([
+        'lock:azguard.perms.7.app.epoch:lock',
+        'block:start',
+        'block:callback',
+        'add:azguard.perms.7.app.epoch',
+        'increment:azguard.perms.7.app.epoch',
+        'put:azguard.perms.7.app.epoch',
+        'block:end',
+    ]);
 });

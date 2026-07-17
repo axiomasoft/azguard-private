@@ -73,6 +73,15 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   whenever the scoped entity's own model also used `HasScopedRoles` (e.g. a
   `Project::all()` query outside the console with at least one scope row) —
   the eager-load now loads `scopeEntity` with that global scope removed. (T1)
+- `PermissionCache::forgetForUser()` now serializes its epoch bump
+  (`add()`→`increment()`→`put()`) under a `Cache::lock()` — this is a fix
+  *on top of* the earlier epoch-TTL fix (`e3e33c3`), not a first-time bug:
+  that fix's own trailing `put()` was a non-atomic read-modify-write, so two
+  concurrent `forgetForUser()` calls on the same user+panel could interleave
+  and roll the epoch backward, letting a just-revoked grant keep being served
+  under the stale (rolled-back) epoch key until its own TTL expired. Custom
+  cache drivers that don't implement `LockProvider` degrade to the prior
+  (unlocked) behavior rather than throwing. (T6)
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:
