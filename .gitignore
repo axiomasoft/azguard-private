@@ -26,11 +26,17 @@ storage/*.log
 .env
 tests/temp/
 
-# AI / dev tooling — трекается (видимость правок агентов). Machine-specific конфиги
-# (абсолютные пути) исключены точечно; рядом — синхронный *.example с плейсхолдерами
-# для восстановления (см. project-tooling-runbook → «Гигиена machine-specific конфигов»).
-.claude/settings.local.json
-.claude/settings.local.json.bak
-.claude/.maind-feature-log.last
+# AI / dev tooling — приватная инфраструктура разработки, НЕ в публичный репозиторий
+.claude/
+.serena/
+.swissknifeman/
+.cursorrules
 .mcp.json
+.mcp.json.example
+skills-lock.json
+AI-OPTIMIZATION.md
+docs/05_AI/
+ideas/
+CLAUDE.md
+AGENTS.md
 *.bak

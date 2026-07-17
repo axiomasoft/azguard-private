@@ -1,5 +1,0 @@
-services:
-  app:
-    environment:
-      APP_ENV: local
-      XDEBUG_MODE: debug
