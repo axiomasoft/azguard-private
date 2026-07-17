@@ -59,6 +59,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/RolePermissionValidationTest.php',
         'Feature/ScopedPermissionEnumResolutionTest.php',
         'Feature/ScopedRolePanelIsolationTest.php',
+        'Feature/ScopedRoleQueryScopePanelIsolationTest.php',
         'Feature/SetCurrentPanelMiddlewareTest.php',
         'Feature/SuperAdminCommandTest.php',
         'Feature/SyncRolesCommandTest.php',

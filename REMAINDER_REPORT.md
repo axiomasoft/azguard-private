@@ -6,7 +6,7 @@
 
 | ID | Sev | Статус | Что |
 |---|---|---|---|
-| T1 | 🟠 | **Открыт — приоритет №1** | Eloquent global query-scope (`HasScopedRoles.php`, `bootHasScopedRoles`) не panel-aware: фильтрует по `scope_class` независимо от `panel_id`. Query-**filtering** может течь между панелями (permission-**check** путь уже изолирован F8). Файл байт-идентичен `main` — не тронут в этом PR. Заслуживает отдельного среза. |
+| T1 | 🟢 | **Закрыт** (план `2026.07.17-AZGUARD-TAILS`, P1.1) | Eloquent global query-scope (`HasScopedRoles.php`, `bootHasScopedRoles`) теперь panel-aware — сужение по панели строго аддитивное (D5); заодно исправлена рекурсия eager-load `scopeEntity` (D9). |
 | T2 | 🟡 | Открыт | `removeScopedRole($role, $entity, panelId=null)` сносит строки ВСЕХ панелей — асимметрия с `assignScopedRole` (там `null` = отдельная any-panel строка). Продуктовое решение по семантике не принято, только задокументировано в докблоке. |
 | T3 | ⚪ | Открыт | `EnumPermissionCatalogBuilder` тихо `continue`ит на missing-классе без `Log::warning`, тогда как `PolicyAbilityCatalogBuilder` логирует — несимметрия диагностики подтверждена (см. `Registry/Builders/EnumPermissionCatalogBuilder.php:61,105` vs `PolicyAbilityCatalogBuilder.php:62`). |
 | T4 | ⚪ | Открыт | В wildcard-off ветке `filterAgainstCatalog()` литеральный `*` в грант-ключе (`str_contains($key, WILDCARD)` не проверяется на этом пути) всё ещё матчится против dynamic `{seg}`-определений — докблок обещает «treated as unknown exact key». Подтверждено в `EffectivePermissionResolver.php`. Вред нулевой (ключ инертен при выключенном wildcard), но противоречит документации. |

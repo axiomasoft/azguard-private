@@ -56,15 +56,25 @@ trait HasScopedRoles
                 return;
             }
 
+            $currentPanelId = PanelResolver::resolve(null);
+
             $scopes = app(ScopedRoleCache::class)->remember(
                 $user->getAuthIdentifier().'|'.static::class,
+                // eager-load to avoid a query per scope row below; withoutGlobalScope prevents
+                // infinite recursion when scopeEntity is itself a HasScopedRoles model (this scope).
                 fn () => $user->scopes()
                     ->where('scope_entity_type', static::class)
-                    ->with('scopeEntity') // eager-load to avoid a query per scope row below
+                    ->with(['scopeEntity' => fn ($q) => $q->withoutGlobalScope(self::SCOPE_KEY)])
                     ->get(),
             );
 
             foreach ($scopes as $scope) {
+                // No current panel => apply every scope (back-compat, D5). A panel-scoped
+                // row only drops out when a DIFFERENT panel is active.
+                if ($currentPanelId !== null && $scope->panel_id !== null && $scope->panel_id !== $currentPanelId) {
+                    continue;
+                }
+
                 // A null scope_class indicates a logic-less role (no query-scope behavior).
                 // Only apply the scope filter if a scope_class exists and is instantiable.
                 if ($scope->scope_class !== null && class_exists($scope->scope_class)) {

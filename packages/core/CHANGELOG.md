@@ -61,6 +61,18 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   for panels that actually declare policy classes, so a policy-less
   (Gate/`ResourceGate`) panel is no longer required to have a
   `#[GateAbility]` method per enum case.
+- `HasScopedRoles::bootHasScopedRoles()`'s Eloquent global query-scope is now
+  panel-aware: a scope assigned under one panel no longer filters queries run
+  under a different panel (matching the isolation F8 already gave the
+  permission-check path). A scope with a null `panel_id`, or the case where no
+  panel is currently active at all (the norm for Filament requests), still
+  applies every scope — the panel filter is strictly additive, it only ever
+  narrows, never expands, visibility. (T1)
+- Fixed an infinite-recursion crash in `bootHasScopedRoles()`: eager-loading
+  `scopeEntity` on the scoped-role rows re-entered the same global scope
+  whenever the scoped entity's own model also used `HasScopedRoles` (e.g. a
+  `Project::all()` query outside the console with at least one scope row) —
+  the eager-load now loads `scopeEntity` with that global scope removed. (T1)
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:

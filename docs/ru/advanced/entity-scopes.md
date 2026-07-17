@@ -65,3 +65,9 @@ class OwnedByUserScope implements ScopeInterface
     }
 }
 ```
+
+`apply()` — панель-условно: при АКТИВНОЙ текущей панели scope с явной `panel_id`,
+не совпадающей с ней, не применяется (изоляция между панелями); scope с
+`panel_id === null` применяется под любой панелью (back-compat). Когда текущая
+панель НЕ установлена (норма для Filament-запросов и роутов без middleware
+`azguard.panel`), применяются ВСЕ scopes, как если бы панелей не было вовсе.
