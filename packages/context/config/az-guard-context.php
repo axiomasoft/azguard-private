@@ -36,4 +36,16 @@ return [
     |
     */
     'resolvers' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Table Names
+    |--------------------------------------------------------------------------
+    |
+    | Override if the default table name conflicts with an existing table.
+    |
+    */
+    'table_names' => [
+        'context_roles' => 'az_guard_context_roles',
+    ],
 ];

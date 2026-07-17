@@ -83,9 +83,20 @@ class PermissionCache
         // `currentEpoch()` default of 1. Seed the key first (`add`, so a
         // concurrent forget never clobbers a genuine counter) to guarantee
         // the epoch strictly advances past the default on every forget.
+        //
+        // `increment()` does NOT refresh TTL on most stores, so a key seeded
+        // once by `add()` would expire on its own while later PermissionSet
+        // entries keep getting a fresh TTL every forget. Once the epoch key
+        // expires, `currentEpoch()` falls back to 1 and the next forget
+        // reseeds epoch 2 — colliding with a still-live epoch-2 entry from
+        // before the expiry and serving a revoked grant until that entry's
+        // own TTL runs out. Re-`put()` the resulting value on every call so
+        // the epoch key's TTL never lags behind the entries it guards.
+        $epochStore = cache()->store($store);
         $epochKey = $this->epochKey($userId, $panelId);
-        cache()->store($store)->add($epochKey, 1, Config::cacheTtl());
-        cache()->store($store)->increment($epochKey);
+        $epochStore->add($epochKey, 1, Config::cacheTtl());
+        $epoch = $epochStore->increment($epochKey);
+        $epochStore->put($epochKey, $epoch, Config::cacheTtl());
     }
 
     /**

@@ -19,6 +19,9 @@ final class RequestState
     /** @var array<string, true> */
     private array $seen = [];
 
+    /** @var array<string, mixed> */
+    private array $memo = [];
+
     public function once(string $key, callable $callback): void
     {
         if (isset($this->seen[$key])) {
@@ -28,5 +31,24 @@ final class RequestState
         $this->seen[$key] = true;
 
         $callback();
+    }
+
+    /**
+     * Compute-once-per-request memoization that keeps the callback's return
+     * value (unlike `once()`, which is fire-and-forget). Scoped lifecycle
+     * makes this Octane-safe by construction.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $callback
+     * @return T
+     */
+    public function remember(string $key, callable $callback): mixed
+    {
+        if (array_key_exists($key, $this->memo)) {
+            return $this->memo[$key];
+        }
+
+        return $this->memo[$key] = $callback();
     }
 }

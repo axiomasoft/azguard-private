@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesUserModel;
-use AzGuard\Models\ModelHasScope;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -47,7 +47,9 @@ class ListScopedRolesCommand extends Command
             return self::FAILURE;
         }
 
-        $query = ModelHasScope::query()
+        $scopeModel = Config::scopeModel();
+
+        $query = $scopeModel::query()
             ->where('model_type', $user->getMorphClass())
             ->where('model_id', $user->getKey())
             ->whereNotNull('role_id')

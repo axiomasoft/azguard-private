@@ -30,7 +30,7 @@ final class RoleUsersRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
-        $labelColumn = config('az-guard.filament.user_label_column', 'name');
+        $labelColumn = config('az-guard-filament.user_label_column', 'name');
 
         return $schema->components([
             Select::make('id')
@@ -44,7 +44,7 @@ final class RoleUsersRelationManager extends RelationManager
     #[Override]
     public function table(Table $table): Table
     {
-        $labelColumn = config('az-guard.filament.user_label_column', 'name');
+        $labelColumn = config('az-guard-filament.user_label_column', 'name');
 
         return $table
             ->recordTitleAttribute($labelColumn)

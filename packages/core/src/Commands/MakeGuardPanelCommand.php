@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesGuardNamespaces;
+use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -12,13 +13,15 @@ use Illuminate\Support\Str;
 final class MakeGuardPanelCommand extends Command
 {
     use ResolvesGuardNamespaces;
+    use SupportsForcefulGeneration;
 
     protected $signature = 'make:guard-panel
         {panel : Panel name (e.g. App)}
         {domain=Documents : Domain inside the panel}
         {--path=app/Guards : Base path}
         {--role=Admin : Initial role name}
-        {--with-abilities : Also generate an Abilities DTO}';
+        {--with-abilities : Also generate an Abilities DTO}
+        {--force : Overwrite existing files}';
 
     protected $description = 'Scaffold a guard panel with Permissions/Policies/Abilities domain structure';
 
@@ -35,8 +38,8 @@ final class MakeGuardPanelCommand extends Command
         $panelId = Str::lower(value: $panel);
         $domainKey = $this->domainKey(domain: $domain);
 
-        if (File::isDirectory(directory: $basePath)) {
-            $this->error("Panel already exists: {$basePath}");
+        if (File::isDirectory(directory: $basePath) && ! $this->shouldForce()) {
+            $this->error("Panel already exists: {$basePath}. Use --force to overwrite.");
 
             return self::FAILURE;
         }

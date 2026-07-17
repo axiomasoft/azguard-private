@@ -15,6 +15,7 @@ use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
+use AzGuard\Models\RolePermission;
 use AzGuard\Registry\Matching\WildcardPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
@@ -58,6 +59,15 @@ final class Config
     {
         /** @var class-string<DirectGrant> $model */
         $model = config('az-guard.models.direct_grant', DirectGrant::class);
+
+        return $model;
+    }
+
+    /** @return class-string<RolePermission> */
+    public static function rolePermissionModel(): string
+    {
+        /** @var class-string<RolePermission> $model */
+        $model = config('az-guard.models.role_permission', RolePermission::class);
 
         return $model;
     }

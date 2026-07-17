@@ -28,6 +28,7 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
     public function __construct(
         private array $abilities,
         private string $pageAbility = 'view',
+        private string $widgetAbility = 'view',
         private array $exclude = [],
     ) {}
 
@@ -61,6 +62,15 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
 
             $name = class_basename($pageClass);
             $subjects[] = new PermissionSubject($name, Str::headline($name), [$this->pageAbility]);
+        }
+
+        foreach ($panel->getWidgets() as $widgetClass) {
+            if ($this->excluded('widgets', $widgetClass)) {
+                continue;
+            }
+
+            $name = class_basename($widgetClass);
+            $subjects[] = new PermissionSubject($name, Str::headline($name), [$this->widgetAbility]);
         }
 
         return $subjects;

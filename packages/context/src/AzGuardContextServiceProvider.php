@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace AzGuard\Context;
 
+use AzGuard\Context\Commands\ContextGrantCommand;
+use AzGuard\Context\Commands\ContextRevokeCommand;
 use AzGuard\Context\Contracts\MergeStrategy;
 use AzGuard\Context\Contracts\ResolvesContext;
+use AzGuard\Context\Events\ContextGrantGiven;
+use AzGuard\Context\Events\ContextGrantRevoked;
 use AzGuard\Context\Middleware\SetAuthorizationContext;
 use AzGuard\Context\Strategies\GlobalPlusContextStrategy;
 use AzGuard\Contracts\ContextGuard as ContextGuardContract;
 use AzGuard\Contracts\PermissionLayer;
+use AzGuard\Contracts\PermissionResolverInterface;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Override;
 
@@ -73,6 +80,9 @@ final class AzGuardContextServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerMiddlewareAlias();
+        $this->registerCacheInvalidation();
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/az-guard-context.php' => config_path('az-guard-context.php'),
@@ -81,6 +91,47 @@ final class AzGuardContextServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../database/migrations/' => database_path('migrations'),
             ], 'azguard-context-migrations');
+
+            $this->commands([
+                ContextGrantCommand::class,
+                ContextRevokeCommand::class,
+            ]);
         }
+    }
+
+    /**
+     * Flush the permission cache whenever a context grant is written or revoked
+     * through ANY path — the fluent ContextGrantBuilder, the console commands,
+     * or any code that dispatches these events. ContextRole::booted() covers
+     * only single-row model events; revoke()/revokeAll() use a mass-delete that
+     * fires no model event, so without this listener a revoked context grant
+     * would stay live until TTL on a persistent cache store. Mirrors core's
+     * AzGuardServiceProvider::registerCacheInvalidation().
+     */
+    private function registerCacheInvalidation(): void
+    {
+        Event::listen(
+            [ContextGrantGiven::class, ContextGrantRevoked::class],
+            static function (ContextGrantGiven|ContextGrantRevoked $event): void {
+                app(PermissionResolverInterface::class)->forgetForUser($event->user, $event->panelId);
+            },
+        );
+    }
+
+    /**
+     * Auto-register the 'azguard.context' middleware alias, so a route can
+     * do ->middleware('azguard.context') without the host app hand-wiring
+     * SetAuthorizationContext in bootstrap/app.php — the previous silent
+     * trap (F14): the alias existed only in a docblock example.
+     */
+    private function registerMiddlewareAlias(): void
+    {
+        $router = $this->app->make(Router::class);
+
+        if (! $router instanceof Router) {
+            return;
+        }
+
+        $router->aliasMiddleware('azguard.context', SetAuthorizationContext::class);
     }
 }

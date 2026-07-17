@@ -56,7 +56,7 @@ class User extends Authenticatable implements AzGuardUser, HasDirectGrantsContra
 
 ```php
 use AzGuard\Testing\FakeAzGuardUser;
-use App\Guards\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 $user = (new FakeAzGuardUser)->grant('app', DocumentsPermission::View);
 

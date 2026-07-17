@@ -4,7 +4,7 @@ Get from zero to a working permission check in under 5 minutes.
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 11+
 - A database supported by Laravel (MySQL, PostgreSQL, SQLite)
 
@@ -37,15 +37,15 @@ A **panel** is an isolated permission namespace — `app`, `admin`, `api`, etc.
 Create a panel provider and list it in `config/az-guard.php`:
 
 ```php
-// app/AzGuard/Panels/AppPanelProvider.php
-namespace App\AzGuard\Panels;
+// app/Guards/App/AppGuardPanelProvider.php
+namespace App\Guards\App;
 
 use AzGuard\PanelProvider;
 use AzGuard\Support\Panel;
-use App\AzGuard\App\Permissions\DocumentsPermission;
-use App\AzGuard\App\Permissions\UsersPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
+use App\Guards\App\Users\Permissions\UsersPermission;
 
-class AppPanelProvider extends PanelProvider
+class AppGuardPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
@@ -63,7 +63,7 @@ class AppPanelProvider extends PanelProvider
 ```php
 // config/az-guard.php
 'panels' => [
-    \App\AzGuard\Panels\AppPanelProvider::class,
+    \App\Guards\App\AppGuardPanelProvider::class,
 ],
 ```
 
@@ -74,8 +74,8 @@ php artisan make:guard-permission App Documents
 ```
 
 ```php
-// app/AzGuard/App/Permissions/DocumentsPermission.php
-namespace App\AzGuard\App\Permissions;
+// app/Guards/App/Documents/Permissions/DocumentsPermission.php
+namespace App\Guards\App\Documents\Permissions;
 
 enum DocumentsPermission: string
 {
@@ -95,10 +95,10 @@ php artisan make:guard-role
 ```
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
-namespace App\AzGuard\App\Roles;
+// app/Guards/App/Roles/EditorRole.php
+namespace App\Guards\App\Roles;
 
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 use AzGuard\Roles\BaseRole;
 
 class EditorRole extends BaseRole

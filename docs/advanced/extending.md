@@ -46,25 +46,57 @@ public function register(): void
 
 ## Custom permission catalog builder
 
-The catalog builder is responsible for scanning and returning all valid permission definitions for a panel. You can replace it to source permissions from a database, config file, or remote API:
+The catalog builder is responsible for scanning and returning all valid permission definitions for a panel. You can source permissions from a database, config file, or remote API:
 
 ```php
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
+use AzGuard\Registry\Definitions\SimplePermissionDefinition;
 
 class DatabaseCatalogBuilder implements PermissionCatalogBuilder
 {
     public function build(string $panelId): array
     {
-        return Permission::where('panel', $panelId)
-            ->get()
-            ->map(fn ($p) => new GenericPermissionDefinition($p->key))
-            ->all();
+        // Fetch permissions from your data source (e.g., database, config, remote API)
+        $permissions = $this->fetchPermissions($panelId);
+
+        return array_map(
+            fn ($permission) => new SimplePermissionDefinition(
+                key: $permission['key'],                             // e.g., 'app.documents.view'
+                panelId: $panelId,
+                group: $permission['group'] ?? null,                 // e.g., 'Documents'
+                dynamic: str_contains($permission['key'], '{'),      // e.g., 'app.team.{id}.edit'
+            ),
+            $permissions
+        );
     }
 
     public function supports(string $panelId): bool
     {
+        // Return true if this builder covers the panel
         return true;
     }
+
+    private function fetchPermissions(string $panelId): array
+    {
+        // Example: fetch from database
+        // return DB::table('permissions')->where('panel_id', $panelId)->get()->toArray();
+        
+        // Or from config
+        // return config('my-permissions.'.$panelId, []);
+        
+        return [];
+    }
+}
+```
+
+Register it in a service provider's `boot()` method:
+
+```php
+use AzGuard\Facades\AzGuard;
+
+public function boot(): void
+{
+    AzGuard::registerCatalogBuilder(DatabaseCatalogBuilder::class);
 }
 ```
 

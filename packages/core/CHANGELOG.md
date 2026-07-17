@@ -50,6 +50,17 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   stale under a persistent store with infinite TTL. A transient context switch uses
   the new in-process-only invalidation (below) and no longer busts the durable,
   cross-request cache. (F30)
+- `guard:doctor`'s `checkRoles` no longer casts a backed-enum permission to
+  string / uses it as an array key — the documented `list<UnitEnum>` preferred
+  form for `BaseRole::permissions()` fatally crashed the command. Enum cases
+  are now scoped through the panel, matching `ClassRoleGrantSource`'s own
+  resolution. Diagnostics' known-abilities set also now includes the full
+  panel `PermissionCatalog` (Filament-discovered resources + plain enum
+  cases), so Filament-panel roles are no longer falsely reported as
+  referencing an unknown permission; `checkEnumsAgainstPolicies` now only runs
+  for panels that actually declare policy classes, so a policy-less
+  (Gate/`ResourceGate`) panel is no longer required to have a
+  `#[GateAbility]` method per enum case.
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:
@@ -88,8 +99,58 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   - Opt-in `az-guard.strict_panels` (default off): resolving an explicit,
     unregistered panel throws `PanelNotFoundException` instead of best-effort
     lenient resolution. (F47)
+- **Console role lifecycle (F15).** `guard:role {assign|detach} {user} {role}`
+  is the first CLI writer for arbitrary user↔role links (previously only
+  `guard:super-admin` could attach, and only the super-admin role). It resolves
+  the user by id or email through `ResolvesUserModel`, resolves the role by
+  class-name or name through `Config::roleModel()`, and delegates to the existing
+  idempotent `HasRoles::assignRole()` / `removeRole()` (which still emit
+  `RoleAttached` / `RoleDetached`). Typed against the `HasRoles` contract.
+- **Authorization-inspection commands (F53).** Two off-hot-path opt-in commands
+  built on `Authorizer::explain()` (F16) and the effective-permission resolver;
+  neither touches the hot `check()` path:
+  - `guard:explain {user} {ability} [--panel] [--json]` — re-runs a single
+    decision and prints the `AccessDecision` (panel, allowed, reason code,
+    winning source).
+  - `guard:abilities {user} [--panel] [--json]` — prints the user's fully
+    resolved `PermissionSet` for a panel (wildcard flag + key list).
+- **Structured, CI-parseable command output (F52).** A shared `OutputsStructured`
+  concern adds a `--json` flag and a single `{errors, warnings, abilities}`
+  payload to the CI-gate commands `guard:doctor` and `guard:catalog:validate`,
+  both of which now also return a non-zero exit code on failure.
+- **Non-interactive scaffolding (F33).** `make:guard-role` is now argument-driven
+  (`make:guard-role app Editor` — no prompt), and `make:guard-panel`,
+  `make:guard-permission`, `make:guard-policy` and `make:guard-abilities` accept
+  `--force` for idempotent overwrite via the shared `SupportsForcefulGeneration`
+  trait. All generators return an `int` exit code.
 
 ### Changed
+- **CLI commands honor configured models & validate keys (F32).** Eight commands
+  (`guard:role-permissions`, `guard:role`, `guard:super-admin`, `guard:sync-roles`,
+  `guard:grants`, `guard:prune-grants`, `guard:list-scoped-roles`) hardcoded the
+  Role / RolePermission / DirectGrant / ModelHasScope classes instead of routing
+  through `Config::*Model()`, so custom model subclasses configured via
+  `az-guard.models.*` were silently ignored on the CLI path. A new
+  `Config::rolePermissionModel()` (config key `models.role_permission`) and
+  `Role::dbPermissions()` back the fix. `guard:role-permissions add|sync` now
+  always validates keys against the `PermissionCatalog` and reports an unknown
+  key with a non-zero exit code — CLI input validation independent of the opt-in
+  `features.validate_role_permissions` model guard (F46).
+- **Fixed: `guard:catalog:validate` called the non-existent `AzGuard::getPanel()`
+  (F52).** The facade method is `panel()`; the command fatally errored on every
+  invocation. The corresponding `phpstan-baseline` entry (a honest-baseline record
+  masking the bug) was removed rather than kept.
+- **Breaking: unified CLI prefix to `guard:` (F51).** `azguard:install` and
+  `azguard:super-admin` are renamed to `guard:install` and `guard:super-admin`.
+  The package is pre-1.0 and not yet in production, so the rename ships
+  directly — no deprecated alias is kept. Every runtime command now lives
+  under `guard:`, and every scaffolding generator under `make:guard-`; update
+  any script, scheduler entry, or CI step that calls the old names.
+- **Breaking: dropped dead self-referential `$aliases` (F51).** `guard:catalog`,
+  `guard:catalog:validate` and `guard:doctor` each declared an `$aliases` entry
+  identical to their own primary signature — a no-op that Artisan silently
+  ignored. Removed; behavior is unchanged for anyone calling the commands by
+  their real name.
 - `PermissionCatalog::flush()` is now part of the contract, and panel IDs are
   resolved lazily (no longer frozen at boot) so a panel registered after boot is
   visible via `panels()`. (F40)
@@ -123,11 +184,52 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - Dead `Config::cacheKey()` accessor and the `az-guard.cache.key` config entry — the
   value was never read (the cache-key prefix is a fixed internal constant, and Laravel's
   own `cache.prefix` already isolates entries per app on a shared store). (F38)
+- **Breaking:** `AzGuard\Registry\Exceptions\InvalidCatalogException` was
+  removed. `CompositePermissionCatalog` no longer throws when the same
+  permission key is produced by two builders (e.g. Filament resource
+  discovery and a permission enum for the same resource) — the key is the
+  permission's identity, so it is deduped idempotently instead; a non-null
+  `group()` is adopted when the first source had none, so the Role UI still
+  groups the permission sensibly. A `catch (InvalidCatalogException)` site
+  should remove that arm — the situation it guarded against is no longer an
+  error.
 - **Breaking:** the unregistered, unreachable `guard:revoke` command
   (`RevokeCommand`, a raw-column duplicate) was deleted. Use the
   production-wired `guard:revoke-grant` (`RevokeGrantCommand`), which revokes
   through `GrantBuilder`. Note: `--all` on `guard:revoke-grant` is scoped to a
   single panel (the required `panel` argument), by design.
+- **Dead code — `Guard\PanelManager`, `Grants\PendingGrant`, `Guard\DiscoveryService`
+  (F31).** `PanelManager` had zero references and an unpopulated `$panels` collection;
+  `PendingGrant` documented a `GrantManager::for()->save()` flow that exists nowhere;
+  `DiscoveryService` was exercised only by its own test with a divergent-scanner framing.
+  All three were deleted along with their `phpstan-baseline.neon` entries and the
+  `DiscoveryTest`. No public API used them. (Invariant held: no `ClassScanner` was
+  introduced.)
+
+### Testing & tooling
+- **Per-package mutation testing (F50).** `infection.core.json5`,
+  `infection.filament.json5` and `infection.context.json5` replace the single root
+  config, mirroring the `tests.yml` source layout; `composer mutate:core|filament|context|all|diff`
+  and `.github/workflows/mutation.yml` run Infection per package — a diff-scoped
+  (`--git-diff-lines`) blocking gate on pull requests plus a full advisory run on
+  `main`. Fixed a latent scaffold defect: `testFramework: "pest"` was never a valid
+  Infection value (0.34 ships no Pest adapter — only `phpunit`/`phpspec`/`codeception`/`testo`)
+  and `logs.summary` must be a file path, not a boolean; both silently broken since
+  introduction, now `phpunit` (Pest tests compile to PHPUnit cases) with correct log
+  paths. `composer check` gained `check:coverage` and `mutate:all` steps that
+  honest-skip with a loud warning (`bin/coverage-gate.sh`, `bin/mutation-gate.sh`)
+  when no coverage driver (pcov/xdebug) is present locally — CI always has one, so
+  the gate is real where it matters.
+- **CLI feature-matrix coverage & `AbilitiesDto` unit suite (F19).** A feature test
+  matrix exercises the console command surface end-to-end, closing the previously
+  untested CLI paths; a dedicated unit suite pins `AbilitiesDto` (including the F4
+  non-boolean-property omission).
+- **Contract-parity arch test for the test doubles (F20).** An architecture test
+  pins `Testing\FakeAzGuardUser` and `FakeGrantSource` to their production contracts,
+  so a contract change that the fakes fail to mirror now fails the suite.
+- **Immutability arch ratchets (F49).** Architecture ratchets assert the immutability
+  invariants (value objects / DTOs stay `readonly`), locking the boundary against
+  regression.
 
 ## [0.1.0]
 

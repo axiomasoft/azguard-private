@@ -6,6 +6,7 @@ use AzGuard\AzGuardManager;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
+use AzGuard\Models\RolePermission;
 use AzGuard\Registry\Matching\WildcardPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
@@ -56,6 +57,7 @@ return [
         'role' => Role::class,
         'scope' => ModelHasScope::class,
         'direct_grant' => DirectGrant::class,
+        'role_permission' => RolePermission::class,
     ],
 
     /*

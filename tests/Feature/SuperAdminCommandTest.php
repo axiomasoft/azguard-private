@@ -11,7 +11,7 @@ it('promotes a user to super-admin by id', function () {
         'password' => 'password',
     ]);
 
-    $this->artisan('azguard:super-admin', ['--user' => (string) $user->getKey()])
+    $this->artisan('guard:super-admin', ['--user' => (string) $user->getKey()])
         ->assertSuccessful();
 
     $fresh = $user->fresh();
@@ -21,6 +21,6 @@ it('promotes a user to super-admin by id', function () {
 });
 
 it('fails for an unknown user id', function () {
-    $this->artisan('azguard:super-admin', ['--user' => '999999'])
+    $this->artisan('guard:super-admin', ['--user' => '999999'])
         ->assertFailed();
 });

@@ -20,7 +20,7 @@ use AzGuard\Attributes\GateAbility;
 use AzGuard\Attributes\GuardPolicy;
 use App\Models\Documents\Document;
 use App\Models\User;
-use App\Guards\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 #[GuardPolicy(model: Document::class)]
 class DocumentsPolicy

@@ -51,7 +51,7 @@ final class DirectGrantResource extends Resource
     public static function form(Schema $schema): Schema
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
-        $labelColumn = config('az-guard.filament.user_label_column', 'name');
+        $labelColumn = config('az-guard-filament.user_label_column', 'name');
 
         return $schema->components([
 
@@ -129,9 +129,10 @@ final class DirectGrantResource extends Resource
     public static function table(Table $table): Table
     {
         $userModel = config('auth.providers.users.model', 'App\\Models\\User');
-        $labelColumn = config('az-guard.filament.user_label_column', 'name');
+        $labelColumn = config('az-guard-filament.user_label_column', 'name');
 
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('grantable'))
             ->columns([
                 TextColumn::make('grantable_id')
                     ->label('User')
@@ -140,9 +141,7 @@ final class DirectGrantResource extends Resource
                             return $record->grantable_type.'#'.$state;
                         }
 
-                        $user = $userModel::find($state);
-
-                        return $user?->{$labelColumn} ?? "#{$state}";
+                        return $record->grantable?->{$labelColumn} ?? "#{$state}";
                     })
                     ->searchable(),
 

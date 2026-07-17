@@ -56,7 +56,7 @@ For unit tests that only touch the permission surface, use `FakeAzGuardUser` —
 
 ```php
 use AzGuard\Testing\FakeAzGuardUser;
-use App\Guards\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 $user = (new FakeAzGuardUser)->grant('app', DocumentsPermission::View);
 

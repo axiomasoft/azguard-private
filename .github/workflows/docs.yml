@@ -8,6 +8,13 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'composer.json'
+      - '.github/workflows/docs.yml'
+      - 'bin/docs-parity-gate.sh'
+      - 'bin/docs-php-version-gate.sh'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +27,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  parity:
+    name: EN/RU parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check EN/RU documentation parity
+        run: bash bin/docs-parity-gate.sh
+
+      - name: Check docs PHP version matches composer floor
+        run: bash bin/docs-php-version-gate.sh
+
   build:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

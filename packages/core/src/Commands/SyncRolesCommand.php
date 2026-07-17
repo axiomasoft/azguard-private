@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Models\Role;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -42,8 +42,7 @@ final class SyncRolesCommand extends Command
             return self::SUCCESS;
         }
 
-        /** @var class-string<Role> $roleModel */
-        $roleModel = config('az-guard.models.role');
+        $roleModel = Config::roleModel();
 
         $created = 0;
         $updated = 0;

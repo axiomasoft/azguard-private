@@ -7,9 +7,9 @@ AzGuard поддерживает несколько Laravel-гардов одн�
 ```php
 // config/az-guard.php
 'panels' => [
-    App\AzGuard\App\AppPanelProvider::class,
-    App\AzGuard\Admin\AdminPanelProvider::class,
-    App\AzGuard\Api\ApiPanelProvider::class,
+    App\Guards\App\AppGuardPanelProvider::class,
+    App\Guards\Admin\AdminGuardPanelProvider::class,
+    App\Guards\Api\ApiGuardPanelProvider::class,
 ],
 ```
 

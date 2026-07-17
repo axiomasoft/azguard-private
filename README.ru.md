@@ -29,10 +29,10 @@
 
 ```bash
 composer require axioma-studio/azguard-core
-php artisan azguard:install
+php artisan guard:install
 ```
 
-`azguard:install` публикует конфиг, выполняет миграции и печатает следующие шаги. Добавьте трейт к модели `User`:
+`guard:install` публикует конфиг, выполняет миграции и печатает следующие шаги. Добавьте трейт к модели `User`:
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
@@ -121,7 +121,7 @@ $user->can('app.documents.view');                  // true
 ### 5. Супер-админ одной командой
 
 ```bash
-php artisan azguard:super-admin --user=1
+php artisan guard:super-admin --user=1
 ```
 
 Выдаёт wildcard-роль, которая через `Gate::before()` пропускает любую проверку.
@@ -152,12 +152,12 @@ $user->hasPermission(UpdatePost::class, 'app');    // -> "app.posts.update"
 
 | Команда | Описание |
 |---|---|
-| `azguard:install` | Публикация конфига + миграции (с подсказками) |
+| `guard:install` | Публикация конфига + миграции (с подсказками) |
 | `make:guard-panel {Panel} {Domain}` | Скаффолд панели (авто-регистрация в конфиге) |
 | `make:guard-permission` | Генерация enum прав |
 | `make:guard-role` | Генерация класса роли |
 | `guard:sync-roles` | Зеркалит PHP-роли в таблицу `roles` |
-| `azguard:super-admin --user=` | Сделать пользователя супер-админом |
+| `guard:super-admin --user=` | Сделать пользователя супер-админом |
 | `guard:doctor` | Диагностика конфигурации |
 | `guard:list-permissions {panel?}` | Список зарегистрированных прав |
 | `guard:cache-reset` | Сброс кэша прав |

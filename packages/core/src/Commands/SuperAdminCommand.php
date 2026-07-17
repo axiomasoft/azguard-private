@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Concerns\HasRoles;
-use AzGuard\Models\Role;
 use AzGuard\Roles\SuperAdminRole;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class SuperAdminCommand extends Command
 {
-    protected $signature = 'azguard:super-admin {--user= : ID of the user to promote}';
+    protected $signature = 'guard:super-admin {--user= : ID of the user to promote}';
 
     protected $description = 'Grant a user the super-admin role (wildcard access)';
 
@@ -55,7 +55,9 @@ final class SuperAdminCommand extends Command
 
         $superAdmin = new SuperAdminRole;
 
-        $role = Role::query()->firstOrCreate(
+        $roleModel = Config::roleModel();
+
+        $role = $roleModel::query()->firstOrCreate(
             ['name' => $superAdmin->getName()],
             ['class_name' => SuperAdminRole::class, 'level' => $superAdmin->getLevel()],
         );

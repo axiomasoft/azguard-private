@@ -63,13 +63,23 @@
         "refactor:check": "vendor/bin/rector process --dry-run",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "test:types": "vendor/bin/pest --type-coverage --min=98",
-        "mutate": "vendor/bin/infection --threads=4",
+        "check:coverage": "bash bin/coverage-gate.sh",
+        "mutate": "vendor/bin/infection --configuration=infection.core.json5 --threads=4",
+        "mutate:core": "vendor/bin/infection --configuration=infection.core.json5 --threads=4",
+        "mutate:filament": "vendor/bin/infection --configuration=infection.filament.json5 --threads=4",
+        "mutate:context": "vendor/bin/infection --configuration=infection.context.json5 --threads=4",
+        "mutate:all": "bash bin/mutation-gate.sh",
+        "mutate:diff": "MUTATION_GATE_DIFF_SCOPED=1 bash bin/mutation-gate.sh",
+        "docs:parity": "bash bin/docs-parity-gate.sh",
+        "docs:php": "bash bin/docs-php-version-gate.sh",
         "check": [
             "@lint:check",
             "@analyse",
             "@refactor:check",
             "@test:types",
-            "@test"
+            "@test",
+            "@check:coverage",
+            "@mutate:all"
         ],
         "fix": [
             "@lint",
@@ -77,7 +87,9 @@
         ]
     },
     "scripts-descriptions": {
-        "check": "Run every CI gate locally: code style, static analysis, refactor dry-run and tests.",
-        "fix": "Auto-fix code style (Pint) and apply Rector refactorings."
+        "check": "Run every CI gate locally: code style, static analysis, refactor dry-run, tests, coverage and mutation (both honest-skip without a coverage driver — see bin/*-gate.sh).",
+        "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
+        "mutate:all": "Run per-package Infection (core/filament/context) against fresh coverage.",
+        "mutate:diff": "Diff-scoped Infection (--git-diff-lines) for PR gating."
     }
 }

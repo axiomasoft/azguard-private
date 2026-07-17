@@ -7,6 +7,9 @@ use AzGuard\Contracts\HasDirectGrants;
 use AzGuard\Contracts\HasPermissions;
 use AzGuard\Contracts\HasRoles;
 use AzGuard\Contracts\HasScopedRoles;
+use AzGuard\Registry\Contracts\GrantSource;
+use AzGuard\Testing\FakeAzGuardUser;
+use AzGuard\Testing\FakeGrantSource;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -19,6 +22,9 @@ use ReflectionUnionType;
  * contract is not updated (or vice-versa), a consumer's `implements` would break.
  * We assert every contract method exists on the paired trait with an identical
  * normalized signature.
+ *
+ * Additionally, test doubles (Fakes) are verified to implement their contracts
+ * completely — no method signatures should drift.
  */
 $normalizeType = function (?ReflectionType $type): string {
     if ($type === null) {
@@ -80,4 +86,42 @@ it('AzGuardUser composes the permission and role contracts and Authorizable', fu
         ->toHaveKey(HasPermissions::class)
         ->toHaveKey(HasRoles::class)
         ->toHaveKey(Authorizable::class);
+});
+
+// ─── Fake-Class Contract Parity ────────────────────────────────────────────────
+
+/**
+ * Test doubles (Fakes) must implement their contracts completely.
+ * #[Override] catches method *removal* and *signature* drift, but not
+ * the addition of new methods to the contract. This test ensures that
+ * when a contract gains a new method, the fake is updated accordingly.
+ */
+it('FakeAzGuardUser implements every method of HasPermissions', function () use ($signature) {
+    $fakeReflection = new ReflectionClass(FakeAzGuardUser::class);
+    $contractReflection = new ReflectionClass(HasPermissions::class);
+
+    foreach ($contractReflection->getMethods() as $contractMethod) {
+        expect($fakeReflection->hasMethod($contractMethod->getName()))
+            ->toBeTrue("FakeAzGuardUser is missing contract method {$contractMethod->getName()}()");
+
+        $fakeMethod = $fakeReflection->getMethod($contractMethod->getName());
+
+        expect($signature($fakeMethod))
+            ->toBe($signature($contractMethod), "signature drift on FakeAzGuardUser::{$contractMethod->getName()}()");
+    }
+});
+
+it('FakeGrantSource implements every method of GrantSource', function () use ($signature) {
+    $fakeReflection = new ReflectionClass(FakeGrantSource::class);
+    $contractReflection = new ReflectionClass(GrantSource::class);
+
+    foreach ($contractReflection->getMethods() as $contractMethod) {
+        expect($fakeReflection->hasMethod($contractMethod->getName()))
+            ->toBeTrue("FakeGrantSource is missing contract method {$contractMethod->getName()}()");
+
+        $fakeMethod = $fakeReflection->getMethod($contractMethod->getName());
+
+        expect($signature($fakeMethod))
+            ->toBe($signature($contractMethod), "signature drift on FakeGrantSource::{$contractMethod->getName()}()");
+    }
 });

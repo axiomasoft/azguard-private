@@ -13,7 +13,7 @@ return [
     | пространство имён для прав и ролей.
     */
     'panels' => [
-        // App\AzGuard\App\AppPanelProvider::class,
+        // App\Guards\App\AppGuardPanelProvider::class,
     ],
 
     /*

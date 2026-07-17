@@ -10,13 +10,13 @@
         ]
     },
     "logs": {
-        "text": "infection.log",
-        "html": "infection.html",
-        "summary": true
+        "text": "build/infection/core.log",
+        "html": "build/infection/core.html",
+        "summary": "build/infection/core-summary.log"
     },
     "minMsi": 70,
     "minCoveredMsi": 80,
-    "testFramework": "pest",
+    "testFramework": "phpunit",
     "mutators": {
         "@default": true
     }

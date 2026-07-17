@@ -4,16 +4,23 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
+use AzGuard\Commands\Concerns\OutputsStructured;
 use AzGuard\Guard\AzGuardDiagnostics;
 use Illuminate\Console\Command;
 
+/**
+ * Examples:
+ *   php artisan guard:doctor
+ *   php artisan guard:doctor --panel=app
+ *   php artisan guard:doctor --json
+ */
 final class DoctorCommand extends Command
 {
-    protected $signature = 'guard:doctor {--panel=}';
+    use OutputsStructured;
+
+    protected $signature = 'guard:doctor {--panel=} {--json : Output a machine-readable JSON payload instead of text}';
 
     protected $description = 'Check consistency of AzGuard enums, policies, and roles';
-
-    protected $aliases = ['guard:doctor'];
 
     public function handle(AzGuardDiagnostics $doctor): int
     {
@@ -24,6 +31,16 @@ final class DoctorCommand extends Command
         }
 
         $result = $doctor->diagnose(panelFilter: is_string($panel) ? $panel : null);
+
+        if ($this->wantsJson()) {
+            $this->renderJsonPayload(
+                errors: $result['errors'],
+                warnings: $result['warnings'],
+                abilities: $result['abilities'],
+            );
+
+            return $result['errors'] !== [] ? self::FAILURE : self::SUCCESS;
+        }
 
         if ($result['abilities'] !== []) {
             $this->table(

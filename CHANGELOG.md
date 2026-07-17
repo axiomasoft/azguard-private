@@ -6,6 +6,32 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Added
+
+- **Per-package mutation testing** — `infection.core.json5`, `infection.filament.json5`,
+  `infection.context.json5` replace the single root config; `composer mutate:core|filament|context|all|diff`
+  and `.github/workflows/mutation.yml` now run Infection per package, with a
+  diff-scoped (`--git-diff-lines`) blocking gate on pull requests and a full
+  advisory run on `main`. Fixed a latent config defect from the initial CI
+  scaffold: `testFramework: "pest"` was never a valid Infection value (Infection
+  0.34 has no Pest adapter — only `phpunit`/`phpspec`/`codeception`/`testo`), and
+  `logs.summary` must be a file path, not a boolean; both were silently broken
+  since the config's introduction and are now `phpunit` (Pest tests compile to
+  PHPUnit test cases, so this runs the existing suite unchanged) with correct log
+  paths. `composer check` gained `check:coverage` and `mutate:all` steps that
+  honest-skip with a loud warning (`bin/coverage-gate.sh`, `bin/mutation-gate.sh`)
+  when no coverage driver (pcov/xdebug) is available locally — CI always has one,
+  so the gate is real where it matters. (F50)
+
+### Removed
+
+- **Dead code** — `Guard\PanelManager` (zero references, unpopulated `$panels`
+  collection), `Grants\PendingGrant` (documented a `GrantManager::for()->save()`
+  flow that exists nowhere), and `Guard\DiscoveryService` (exercised only by its
+  own test, divergent-scanner framing) have been deleted along with their
+  `phpstan-baseline.neon` entries and the `DiscoveryTest`. No public API used
+  these classes. (F31)
+
 ## [0.2.0]
 
 Integration-polish & flexibility pass. Sharpens the consumer-facing surface for

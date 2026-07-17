@@ -7,11 +7,11 @@ In AzGuard, a role is a **PHP class** that declares which permissions it grants.
 Static roles extend `BaseRole` (which implements `RoleInterface`). Their permissions are declared in code and never drift from what's deployed.
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
-namespace App\AzGuard\App\Roles;
+// app/Guards/App/Roles/EditorRole.php
+namespace App\Guards\App\Roles;
 
-use App\AzGuard\App\Permissions\CommentsPermission;
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Comments\Permissions\CommentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 use AzGuard\Roles\BaseRole;
 
 class EditorRole extends BaseRole
@@ -81,6 +81,16 @@ $user->syncRoles([]);
 ::: warning syncRoles([]) removes everything
 `syncRoles()` always replaces the complete role list. Pass only the roles you want the user to have after the call. An empty array removes all roles.
 :::
+
+### From the console
+
+`guard:role` mirrors `assignRole()`/`removeRole()` for console-driven workflows (deploy scripts, one-off admin tasks). The user can be identified by ID or email; the user model defaults to `auth.providers.users.model` (override with `--model`).
+
+```bash
+php artisan guard:role assign 1 editor
+php artisan guard:role detach admin@example.com editor
+php artisan guard:role assign 1 editor --model=App\\Models\\Admin
+```
 
 ## Checking roles
 

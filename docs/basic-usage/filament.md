@@ -67,6 +67,52 @@ carrying the `*` wildcard (e.g. a SuperAdmin role) passes every check.
 
 To opt out and manage authorization yourself, set `enforce` to `false`.
 
+### Pages and widgets — enforce, don't just hide
+
+Resource CRUD (above) is enforced through the Gate. Custom **Pages** and
+**Widgets** are not: Filament routes them through their own static
+`canAccess()` / `canView()` checks, which never touch the Gate, so the runtime
+gate structurally cannot see them. AzGuard still catalogues a
+`{panel}.{page}.view` / `{panel}.{widget}.view` permission for every
+discovered page/widget so it appears in the Role UI — but on a bare custom
+page or widget, that permission is a catalog entry only. Overriding
+`shouldRegisterNavigation()` to check it only hides the nav link; the page
+stays reachable at its URL and the widget's markup (and any data it queries)
+stays reachable on any page it's placed on. **Nav-hiding is not access
+control.**
+
+Add the matching trait to any custom page or widget you want the catalogued
+permission to actually enforce:
+
+```php
+use AzGuard\Filament\Concerns\HasAzGuardPage;
+use Filament\Pages\Page;
+
+class Settings extends Page
+{
+    use HasAzGuardPage;
+}
+```
+
+```php
+use AzGuard\Filament\Concerns\HasAzGuardWidget;
+use Filament\Widgets\Widget;
+
+class RevenueChart extends Widget
+{
+    use HasAzGuardWidget;
+}
+```
+
+`HasAzGuardPage` overrides `canAccess()`; `HasAzGuardWidget` overrides
+`canView()`. Both consult the same `{panel}.{page|widget}.view` permission the
+catalog already advertises, resolved against the AzGuard panel linked via
+`AzGuardPlugin::forPanel()`. Because Filament calls `canAccess()` on every
+mount *and* every Livewire round-trip (not only when rendering the nav link),
+this closes the URL-reachability gap, not just the sidebar. Opt in per class —
+this is not automatic, mirroring how resources need `enforce = true` but pages
+and widgets need the trait.
+
 ## Built-in management resources
 
 ### RoleResource

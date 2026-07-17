@@ -26,6 +26,21 @@ it('honours a custom key template and case', function (): void {
     expect($schema->key('admin', 'BlogPost', 'view_any'))->toBe('view_any:blog-post');
 });
 
+it('formats a bare {resource} segment matching the key transform (F11)', function (string $case, string $expected): void {
+    $schema = PermissionSchema::fromConfig(['case' => $case]);
+
+    // formatResource() must equal the {resource} segment key() bakes in, so the
+    // panel-agnostic enum generator stays in parity with the gate.
+    expect($schema->formatResource('BlogPost'))->toBe($expected)
+        ->and($schema->key('admin', 'BlogPost', 'view_any'))
+        ->toBe("admin.{$expected}.view_any");
+})->with([
+    'snake' => ['snake', 'blog_post'],
+    'kebab' => ['kebab', 'blog-post'],
+    'camel' => ['camel', 'blogPost'],
+    'none' => ['none', 'BlogPost'],
+]);
+
 it('builds one key per ability for a subject', function (): void {
     $schema = new PermissionSchema;
     $subject = new PermissionSubject('Post', 'Posts', ['view_any', 'create', 'delete']);

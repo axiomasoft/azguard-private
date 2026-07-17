@@ -32,9 +32,11 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/DiscoveryTest.php',
         'Feature/EnumPermissionArgumentTest.php',
         'Feature/EnumRolePermissionsTest.php',
+        'Feature/ExplainAbilitiesCommandTest.php',
         'Feature/ExtensionSwapTest.php',
         'Feature/FakeGrantSourceTest.php',
         'Feature/DoctorCommandTest.php',
+        'Feature/StructuredOutputCommandsTest.php',
         'Feature/GateIntegrationScopedTest.php',
         'Feature/GrantsCliColumnsTest.php',
         'Feature/GrantsFacadeDefaultPanelTest.php',
@@ -43,6 +45,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/IntegrationPolishTest.php',
         'Feature/ListScopedRolesCommandTest.php',
         'Feature/LoadAzGuardRolesMiddlewareTest.php',
+        'Feature/MakeGuardForceGenerationTest.php',
         'Feature/MakeGuardPanelCommandTest.php',
         'Feature/PanelEnumIdentityTest.php',
         'Feature/PanelPermissionResolverTest.php',
@@ -50,7 +53,9 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/PermissionCacheEpochInvalidationTest.php',
         'Feature/PermissionMapTest.php',
         'Feature/PolicyAttributeRegistrarTest.php',
+        'Feature/RoleAssignmentCommandTest.php',
         'Feature/RoleClassResolutionTest.php',
+        'Feature/RolePermissionsCommandTest.php',
         'Feature/RolePermissionValidationTest.php',
         'Feature/ScopedPermissionEnumResolutionTest.php',
         'Feature/ScopedRolePanelIsolationTest.php',
@@ -71,6 +76,9 @@ uses(FilamentTestCase::class, RefreshDatabase::class)
 
 uses(MorphTypeTestCase::class, RefreshDatabase::class)
     ->in('Feature/MorphTypeTest.php');
+
+uses(TestCase::class, RefreshDatabase::class)
+    ->in('Feature/CliCommandMatrixTest.php');
 
 uses(RefreshDatabase::class)
     ->in('Unit');

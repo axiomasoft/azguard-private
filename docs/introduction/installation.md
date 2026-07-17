@@ -4,7 +4,7 @@
 
 | Requirement | Version |
 |---|---|
-| PHP | 8.2+ |
+| PHP | 8.3+ |
 | Laravel | 11.x or 12.x |
 | Database | MySQL 8+, PostgreSQL 13+, SQLite 3.35+ |
 

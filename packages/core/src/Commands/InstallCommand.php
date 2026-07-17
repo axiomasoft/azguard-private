@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  */
 final class InstallCommand extends Command
 {
-    protected $signature = 'azguard:install';
+    protected $signature = 'guard:install';
 
     protected $description = 'Install AzGuard: publish config and run migrations';
 

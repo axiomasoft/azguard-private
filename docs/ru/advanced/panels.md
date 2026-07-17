@@ -8,22 +8,22 @@
 Метод `panel()` собирает панель через fluent-API.
 
 ```php
-// app/AzGuard/App/AppPanelProvider.php
-namespace App\AzGuard\App;
+// app/Guards/App/AppGuardPanelProvider.php
+namespace App\Guards\App;
 
 use AzGuard\PanelProvider;
 use AzGuard\Support\Panel;
 
-class AppPanelProvider extends PanelProvider
+class AppGuardPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->id('app') // префикс для всех прав: app.posts.view
             ->permissionEnums([
-                Permissions\PostsPermission::class,
-                Permissions\CommentsPermission::class,
-                Permissions\ReportsPermission::class,
+                Posts\Permissions\PostsPermission::class,
+                Comments\Permissions\CommentsPermission::class,
+                Reports\Permissions\ReportsPermission::class,
             ])
             ->roleClasses([
                 Roles\EditorRole::class,
@@ -41,9 +41,9 @@ class AppPanelProvider extends PanelProvider
 ```php
 // config/az-guard.php
 'panels' => [
-    App\AzGuard\App\AppPanelProvider::class,
-    App\AzGuard\Admin\AdminPanelProvider::class,
-    App\AzGuard\Api\ApiPanelProvider::class,
+    App\Guards\App\AppGuardPanelProvider::class,
+    App\Guards\Admin\AdminGuardPanelProvider::class,
+    App\Guards\Api\ApiGuardPanelProvider::class,
 ],
 ```
 

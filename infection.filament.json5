@@ -1,0 +1,24 @@
+{
+    "$schema": "https://infection.github.io/schema.json",
+    "source": {
+        "directories": [
+            "packages/filament/src"
+        ],
+        "excludes": [
+            "Commands",
+            "Resources",
+            "Pages"
+        ]
+    },
+    "logs": {
+        "text": "build/infection/filament.log",
+        "html": "build/infection/filament.html",
+        "summary": "build/infection/filament-summary.log"
+    },
+    "minMsi": 60,
+    "minCoveredMsi": 75,
+    "testFramework": "phpunit",
+    "mutators": {
+        "@default": true
+    }
+}

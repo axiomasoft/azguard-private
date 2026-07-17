@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesGuardNamespaces;
+use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -12,12 +13,14 @@ use Illuminate\Support\Str;
 final class MakeGuardPermissionCommand extends Command
 {
     use ResolvesGuardNamespaces;
+    use SupportsForcefulGeneration;
 
     protected $signature = 'make:guard-permission
         {panel : Panel name (e.g. App)}
         {domain : Domain name (e.g. Documents)}
         {name? : Enum case name (e.g. View)}
-        {--path=app/Guards}';
+        {--path=app/Guards}
+        {--force : Overwrite existing files}';
 
     protected $description = 'Add a case to an existing Permissions enum or create one';
 
@@ -38,6 +41,7 @@ final class MakeGuardPermissionCommand extends Command
                 'panel' => $panel,
                 'domain' => $domain,
                 '--path' => $pathOption,
+                '--force' => $this->shouldForce(),
             ]);
 
             return self::SUCCESS;

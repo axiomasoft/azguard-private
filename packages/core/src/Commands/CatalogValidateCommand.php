@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Attributes\GateAbility;
+use AzGuard\Commands\Concerns\OutputsStructured;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Guard\PolicyDiscovery;
 use AzGuard\Registry\Contracts\PermissionCatalog;
@@ -26,16 +27,18 @@ use UnitEnum;
  *   php artisan guard:catalog:validate
  *   php artisan guard:catalog:validate --panel=app
  *   php artisan guard:catalog:validate --strict
+ *   php artisan guard:catalog:validate --json
  */
 final class CatalogValidateCommand extends Command
 {
+    use OutputsStructured;
+
     protected $signature = 'guard:catalog:validate
         {--panel= : Validate only the given panel}
-        {--strict : Treat warnings as errors}';
+        {--strict : Treat warnings as errors}
+        {--json : Output a machine-readable JSON payload instead of text}';
 
     protected $description = 'Validate consistency between PermissionCatalog, policies, and enums';
-
-    protected $aliases = ['guard:catalog:validate'];
 
     /** @var list<string> */
     private array $errors = [];
@@ -56,6 +59,12 @@ final class CatalogValidateCommand extends Command
             : $catalog->panels();
 
         if ($panelIds === []) {
+            if ($this->wantsJson()) {
+                $this->renderJsonPayload(errors: [], warnings: ['No registered panels found.']);
+
+                return self::SUCCESS;
+            }
+
             $this->warn('No registered panels found.');
 
             return self::SUCCESS;
@@ -65,6 +74,14 @@ final class CatalogValidateCommand extends Command
             $this->validatePanel($catalog, $panelId);
         }
 
+        $hasIssues = $this->errors !== [] || ($strict && $this->warnings !== []);
+
+        if ($this->wantsJson()) {
+            $this->renderJsonPayload(errors: $this->errors, warnings: $this->warnings);
+
+            return $hasIssues ? self::FAILURE : self::SUCCESS;
+        }
+
         foreach ($this->warnings as $warning) {
             $this->warn($warning);
         }
@@ -72,8 +89,6 @@ final class CatalogValidateCommand extends Command
         foreach ($this->errors as $error) {
             $this->error($error);
         }
-
-        $hasIssues = $this->errors !== [] || ($strict && $this->warnings !== []);
 
         if (! $hasIssues) {
             $panelLabel = $panelFilter ?? 'all';
@@ -89,7 +104,7 @@ final class CatalogValidateCommand extends Command
 
     private function validatePanel(PermissionCatalog $catalog, string $panelId): void
     {
-        $panel = AzGuard::getPanel($panelId);
+        $panel = AzGuard::panel(id: $panelId);
 
         if ($panel === null) {
             $this->errors[] = "Panel [{$panelId}] not found in AzGuardManager.";
@@ -126,6 +141,10 @@ final class CatalogValidateCommand extends Command
             panelId: $panelId,
         );
 
+        if ($this->wantsJson()) {
+            return;
+        }
+
         $this->info(
             "Panel [{$panelId}]: {$this->countLabel(count($definitions))} in catalog, {$this->countLabel(count($abilityMap))} in policies.",
         );
@@ -144,7 +163,7 @@ final class CatalogValidateCommand extends Command
             baseNamespace: $baseNamespace,
         );
 
-        $panel = AzGuard::getPanel($panelId);
+        $panel = AzGuard::panel(id: $panelId);
         $map = [];
 
         foreach ($policyClasses as $policyClass) {

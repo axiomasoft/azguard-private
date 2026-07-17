@@ -58,7 +58,7 @@ Attach a runtime context (tenant, team, project) to every permission check. Zero
 ::: code-group
 
 ```php [1. Define]
-// app/AzGuard/App/Permissions/DocumentsPermission.php
+// app/Guards/App/Documents/Permissions/DocumentsPermission.php
 // Values are unscoped; the panel prefixes them to 'app.documents.*'.
 enum DocumentsPermission: string
 {

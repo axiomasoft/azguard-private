@@ -96,3 +96,40 @@ test('every package exception extends AzGuardException', function (): void {
             ->toBeTrue("Exception [{$class}] must extend ".AzGuardException::class.'.');
     }
 });
+
+/**
+ * Architectural ratchets (F49): enforce immutability and structural patterns
+ * across specific subsystems to prevent regression of implementation contracts.
+ *
+ * Matrix (parametrized by namespace arrays):
+ *  - Events: AzGuard\Events, AzGuard\Context\Events (final)
+ *  - Registry\Values: immutable value objects (final readonly)
+ *  - Abilities: concrete resolvers like DefaultAbilitiesResolver (final readonly)
+ *  - Concerns: composition traits across core, commands, filament packages
+ *
+ * @see https://pestphp.com/docs/arch-testing — architecture testing with Pest
+ */
+arch('events are final')
+    ->expect([
+        'AzGuard\\Events',
+        'AzGuard\\Context\\Events',
+    ])
+    ->toBeFinal();
+
+arch('registry values are final and readonly')
+    ->expect('AzGuard\\Registry\\Values')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+arch('concrete ability resolvers are final and readonly')
+    ->expect('AzGuard\\Abilities\\DefaultAbilitiesResolver')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+arch('concerns are traits (core, commands, filament)')
+    ->expect([
+        'AzGuard\\Concerns',
+        'AzGuard\\Commands\\Concerns',
+        'AzGuard\\Filament\\Concerns',
+    ])
+    ->toBeTraits();

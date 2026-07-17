@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesUserModel;
-use AzGuard\Models\DirectGrant;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -40,7 +40,9 @@ class GrantsListCommand extends Command
         $includeAll = (bool) $this->option('all');
         $format = (string) $this->option('format');
 
-        $query = DirectGrant::query()
+        $grantModel = Config::directGrantModel();
+
+        $query = $grantModel::query()
             ->where('grantable_type', $modelClass)
             ->orderBy('panel_id')
             ->orderBy('grantable_id');

@@ -17,8 +17,8 @@ Register one panel provider per area in your `config/az-guard.php`. Each panel's
 
 ```php
 'panels' => [
-    \App\AzGuard\Panels\AppPanelProvider::class,    // id('app')   → app.*
-    \App\AzGuard\Panels\AdminPanelProvider::class,  // id('admin') → admin.*
+    \App\Guards\App\AppGuardPanelProvider::class,    // id('app')   → app.*
+    \App\Guards\Admin\AdminGuardPanelProvider::class,  // id('admin') → admin.*
 ],
 ```
 

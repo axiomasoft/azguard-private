@@ -23,7 +23,7 @@ use Override;
  */
 final class AzGuardPlugin implements Plugin
 {
-    private string $panelId = 'app';
+    private ?string $panelId = null;
 
     public static function make(): static
     {
@@ -49,7 +49,11 @@ final class AzGuardPlugin implements Plugin
 
     public function getPanelId(): string
     {
-        return $this->panelId;
+        if ($this->panelId !== null) {
+            return $this->panelId;
+        }
+
+        return config('az-guard-filament.panel', 'admin');
     }
 
     #[Override]

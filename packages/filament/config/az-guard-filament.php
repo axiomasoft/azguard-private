@@ -70,6 +70,21 @@ return [
         'reorder',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pages and widgets
+    |--------------------------------------------------------------------------
+    |
+    | Discovered custom pages/widgets get a catalogued `{panel}.{page}.view` /
+    | `{panel}.{widget}.view` permission, but — unlike resources — it is NOT
+    | enforced automatically: Filament routes pages/widgets through their own
+    | static canAccess()/canView(), which never touch the Gate. Add
+    | AzGuard\Filament\Concerns\HasAzGuardPage / HasAzGuardWidget to a page or
+    | widget class to make it actually enforce the permission. Hiding the nav
+    | link (e.g. via shouldRegisterNavigation()) is NOT access control — the
+    | URL stays reachable without the trait.
+    |
+    */
     'pages' => [
         'ability' => 'view',
     ],
@@ -106,6 +121,18 @@ return [
         ],
         'widgets' => [],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | User label column
+    |--------------------------------------------------------------------------
+    |
+    | Column name used to display user names in the Direct Grant and Role UIs.
+    | Customize this if your user model uses a different column (e.g., 'email'
+    | instead of 'name').
+    |
+    */
+    'user_label_column' => 'name',
 
     /*
     |--------------------------------------------------------------------------

@@ -16,10 +16,9 @@ use Symfony\Component\HttpFoundation\Response;
  * Iterates over the registered ResolvesContext resolvers,
  * calls resolve($request) and sets the context on the manager.
  *
- * Registration in bootstrap/app.php or a RouteServiceProvider:
- *   ->withMiddleware(function (Middleware $m) {
- *       $m->alias(['azguard.context' => SetAuthorizationContext::class]);
- *   })
+ * The 'azguard.context' alias is auto-registered by
+ * AzGuardContextServiceProvider::boot() — no manual wiring in
+ * bootstrap/app.php is needed.
  *
  * Applying it to a route:
  *   Route::middleware('azguard.context')->group(function () { ... });

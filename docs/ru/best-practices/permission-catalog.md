@@ -5,51 +5,60 @@
 ## Структура каталога
 
 ```
-app/AzGuard/
+app/Guards/
 ├── App/                    ← панель 'app'
-│   ├── AppPanelProvider.php
-│   ├── Permissions/
-│   │   ├── PostsPermission.php
-│   │   ├── CommentsPermission.php
-│   │   └── ReportsPermission.php
-│   └── Roles/
-│       ├── EditorRole.php
-│       └── ViewerRole.php
+│   ├── AppGuardPanelProvider.php
+│   ├── Roles/
+│   │   ├── EditorRole.php
+│   │   └── ViewerRole.php
+│   ├── Posts/
+│   │   └── Permissions/
+│   │       └── PostsPermission.php
+│   ├── Comments/
+│   │   └── Permissions/
+│   │       └── CommentsPermission.php
+│   └── Reports/
+│       └── Permissions/
+│           └── ReportsPermission.php
 ├── Admin/                  ← панель 'admin'
-│   ├── AdminPanelProvider.php
-│   ├── Permissions/
-│   │   └── UsersPermission.php
-│   └── Roles/
-│       └── AdminRole.php
+│   ├── AdminGuardPanelProvider.php
+│   ├── Roles/
+│   │   └── AdminRole.php
+│   └── Users/
+│       └── Permissions/
+│           └── UsersPermission.php
 └── Api/                    ← панель 'api'
-    ├── ApiPanelProvider.php
-    ├── Permissions/
-    │   └── ApiPermission.php
-    └── Roles/
-        └── ApiConsumerRole.php
+    ├── ApiGuardPanelProvider.php
+    ├── Roles/
+    │   └── ApiConsumerRole.php
+    └── Access/
+        └── Permissions/
+            └── AccessPermission.php
 ```
 
 ## Регистрация на панели
 
 ```php
-// app/AzGuard/App/AppPanelProvider.php
+// app/Guards/App/AppGuardPanelProvider.php
+namespace App\Guards\App;
+
 use AzGuard\PanelProvider;
 use AzGuard\Support\Panel;
 
-class AppPanelProvider extends PanelProvider
+class AppGuardPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->id('app')
             ->permissionEnums([
-                PostsPermission::class,
-                CommentsPermission::class,
-                ReportsPermission::class,
+                Posts\Permissions\PostsPermission::class,
+                Comments\Permissions\CommentsPermission::class,
+                Reports\Permissions\ReportsPermission::class,
             ])
             ->roleClasses([
-                EditorRole::class,
-                ViewerRole::class,
+                Roles\EditorRole::class,
+                Roles\ViewerRole::class,
             ]);
     }
 }

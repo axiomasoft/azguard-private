@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
-use AzGuard\Models\DirectGrant;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -30,7 +30,9 @@ final class PruneGrantsCommand extends Command
     {
         $panel = $this->option('panel');
 
-        $query = DirectGrant::query()
+        $grantModel = Config::directGrantModel();
+
+        $query = $grantModel::query()
             ->whereNotNull('expires_at')
             ->where('expires_at', '<', now());
 

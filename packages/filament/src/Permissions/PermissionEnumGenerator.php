@@ -12,9 +12,17 @@ use Illuminate\Support\Str;
  * The enum value is the short key ("{resource}.{ability}"); the owning panel
  * prefixes it with the panel id when resolving, so the generated enum is
  * panel-agnostic and picked up by EnumPermissionCatalogBuilder.
+ *
+ * The {resource} segment is formatted through the injected {@see PermissionSchema}
+ * so the case config ('snake'|'kebab'|'camel'|'none') matches what
+ * `ResourceGate`/`PolicyGenerator` check at runtime — see F11.
  */
 final readonly class PermissionEnumGenerator
 {
+    public function __construct(
+        private PermissionSchema $schema = new PermissionSchema,
+    ) {}
+
     public function className(PermissionSubject $subject): string
     {
         return Str::studly($subject->name).'Permission';
@@ -23,7 +31,13 @@ final readonly class PermissionEnumGenerator
     public function source(PermissionSubject $subject, string $namespace): string
     {
         $class = $this->className($subject);
-        $resource = Str::snake($subject->name);
+
+        // The enum value stays "{resource}.{ability}" — the panel prefix is
+        // applied at runtime by Panel::resolvePermission(), never baked into
+        // the enum. Only the {resource} case follows the schema, mirroring
+        // ResourceGate/PolicyGenerator so the generated keys never drift
+        // from what the gate checks (F11).
+        $resource = $this->schema->formatResource($subject->name);
 
         $cases = array_map(
             fn (string $ability): string => sprintf(

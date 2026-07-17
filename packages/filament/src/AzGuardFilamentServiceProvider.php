@@ -7,6 +7,7 @@ namespace AzGuard\Filament;
 use AzGuard\Filament\Commands\GenerateFilamentPermissionsCommand;
 use AzGuard\Filament\Permissions\FilamentDiscovery;
 use AzGuard\Filament\Permissions\FilamentPermissionCatalogBuilder;
+use AzGuard\Filament\Permissions\PageWidgetAccessEvaluator;
 use AzGuard\Filament\Permissions\PermissionDiscovery;
 use AzGuard\Filament\Permissions\PermissionSchema;
 use AzGuard\Filament\Permissions\ResourceGate;
@@ -23,12 +24,13 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/az-guard-filament.php', 'az-guard-filament');
 
         $this->app->singleton(PermissionDiscovery::class, function (): FilamentDiscovery {
-            /** @var array{abilities?: list<string>, pages?: array{ability?: string}, exclude?: array<string, list<string>>} $config */
+            /** @var array{abilities?: list<string>, pages?: array{ability?: string}, widgets?: array{ability?: string}, exclude?: array<string, list<string>>} $config */
             $config = config('az-guard-filament');
 
             return new FilamentDiscovery(
                 abilities: $config['abilities'] ?? [],
                 pageAbility: $config['pages']['ability'] ?? 'view',
+                widgetAbility: $config['widgets']['ability'] ?? 'view',
                 exclude: $config['exclude'] ?? [],
             );
         });
@@ -52,6 +54,10 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
             panelId: (string) config('az-guard-filament.panel', 'admin'),
             schema: $app->make(PermissionSchema::class),
             discovery: $app->make(PermissionDiscovery::class),
+        ));
+
+        $this->app->singleton(PageWidgetAccessEvaluator::class, fn (Application $app): PageWidgetAccessEvaluator => new PageWidgetAccessEvaluator(
+            schema: $app->make(PermissionSchema::class),
         ));
     }
 

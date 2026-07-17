@@ -44,6 +44,17 @@ final readonly class PermissionSchema
     }
 
     /**
+     * Format a raw subject name into its {resource} key segment, applying the
+     * configured case — the same transform {@see key()} applies internally.
+     * Consumers that build keys outside the {@see keyTemplate} (e.g. the
+     * panel-agnostic enum generator) use this to stay in parity.
+     */
+    public function formatResource(string $subject): string
+    {
+        return $this->formatSubject($subject);
+    }
+
+    /**
      * @return list<string>
      */
     public function keys(string $panelId, PermissionSubject $subject): array

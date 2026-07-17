@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesGuardNamespaces;
+use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
 final class MakeGuardPolicyCommand extends Command
 {
     use ResolvesGuardNamespaces;
+    use SupportsForcefulGeneration;
 
     protected $signature = 'make:guard-policy
         {panel : Panel name (e.g. App)}
         {domain : Domain name (e.g. Documents)}
-        {--path=app/Guards}';
+        {--path=app/Guards}
+        {--force : Overwrite existing files}';
 
     protected $description = 'Create a policy stub with GuardPolicy and GateAbility attributes';
 
@@ -29,9 +32,7 @@ final class MakeGuardPolicyCommand extends Command
         $baseNamespace = $this->guardBaseNamespace(path: $pathOption, panel: $panel);
         $policyPath = $this->domainPath(basePath: $basePath, domain: $domain).'/Policies/'.$domain.'Policy.php';
 
-        if (File::exists(path: $policyPath)) {
-            $this->error("Policy already exists: {$policyPath}");
-
+        if (! $this->checkFileExists(filePath: $policyPath)) {
             return self::FAILURE;
         }
 

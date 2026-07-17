@@ -18,7 +18,7 @@ namespace App\Policies;
 
 use App\Models\Document;
 use App\Models\User;
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 class DocumentPolicy
 {

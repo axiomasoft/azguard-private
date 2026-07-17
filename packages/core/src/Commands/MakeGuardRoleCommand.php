@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
+use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use AzGuard\Facades\AzGuard;
 use AzGuard\PanelProvider;
 use AzGuard\Support\Panel;
@@ -12,13 +13,18 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
 
-class MakeGuardRoleCommand extends Command
+final class MakeGuardRoleCommand extends Command
 {
-    protected $signature = 'make:guard-role';
+    use SupportsForcefulGeneration;
+
+    protected $signature = 'make:guard-role
+        {panel? : Panel name (e.g. app)}
+        {name? : Role name (e.g. Editor)}
+        {--force : Overwrite existing files}';
 
     protected $description = 'Create a new role for a specific panel';
 
-    public function handle(): void
+    public function handle(): int
     {
         $panels = AzGuard::getPanels();
 
@@ -27,21 +33,40 @@ class MakeGuardRoleCommand extends Command
             $this->line('1. Create a panel: <info>php artisan make:guard-panel</info>');
             $this->line('2. Register it in <info>config/az-guard.php</info>');
 
-            return;
+            return self::FAILURE;
         }
 
         $panelIds = array_keys($panels);
-        $selectedId = $this->choice('Which panel should the role belong to?', $panelIds, 0);
+        $panelId = $this->argument(key: 'panel');
 
-        $providerClass = $this->getProviderClassById($selectedId);
+        if ($panelId === null) {
+            $panelId = $this->choice(
+                question: 'Which panel should the role belong to?',
+                choices: $panelIds,
+                default: 0,
+            );
+        } else {
+            $panelId = (string) $panelId;
 
-        if (! $providerClass) {
-            $this->error("Provider for panel [{$selectedId}] not found in the container.");
+            if (! in_array($panelId, $panelIds, true)) {
+                $this->error("Panel [{$panelId}] is not registered.");
 
-            return;
+                return self::FAILURE;
+            }
         }
 
-        $roleName = $this->ask('Role name (e.g. Editor)');
+        $providerClass = $this->getProviderClassById($panelId);
+
+        if (! $providerClass) {
+            $this->error("Provider for panel [{$panelId}] not found in the container.");
+
+            return self::FAILURE;
+        }
+
+        $roleName = $this->argument(key: 'name');
+
+        $roleName = $roleName === null ? $this->ask('Role name (e.g. Editor)') : (string) $roleName;
+
         $roleClass = Str::studly($roleName);
 
         $reflection = new ReflectionClass($providerClass);
@@ -50,10 +75,8 @@ class MakeGuardRoleCommand extends Command
 
         $targetPath = "{$panelPath}/Roles/{$roleClass}Role.php";
 
-        if (File::exists($targetPath)) {
-            $this->error("Role [{$roleClass}] already exists in this panel.");
-
-            return;
+        if (! $this->checkFileExists(filePath: $targetPath)) {
+            return self::FAILURE;
         }
 
         File::ensureDirectoryExists("{$panelPath}/Roles");
@@ -61,10 +84,12 @@ class MakeGuardRoleCommand extends Command
         $this->generateFile($targetPath, [
             'namespace' => $panelNamespace,
             'name' => $roleClass,
-            'resLower' => $selectedId.'.base',
+            'resLower' => $panelId.'.base',
         ]);
 
         $this->info("Role created: {$targetPath}");
+
+        return self::SUCCESS;
     }
 
     protected function getProviderClassById(string $id): ?string
@@ -82,6 +107,9 @@ class MakeGuardRoleCommand extends Command
         return null;
     }
 
+    /**
+     * @param  array<string, string>  $replacements
+     */
     protected function generateFile(string $path, array $replacements): void
     {
         $stubPath = __DIR__.'/../../stubs/panel/role.stub';

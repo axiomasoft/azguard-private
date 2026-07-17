@@ -5,8 +5,8 @@
 ## Определение роли
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
-namespace App\AzGuard\App\Roles;
+// app/Guards/App/Roles/EditorRole.php
+namespace App\Guards\App\Roles;
 
 use AzGuard\Roles\BaseRole;
 

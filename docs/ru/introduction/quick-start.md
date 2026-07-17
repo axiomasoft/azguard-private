@@ -24,8 +24,8 @@ class User extends Authenticatable
 ## 3. Создайте enum прав
 
 ```php
-// app/AzGuard/App/Permissions/PostsPermission.php
-namespace App\AzGuard\App\Permissions;
+// app/Guards/App/Posts/Permissions/PostsPermission.php
+namespace App\Guards\App\Posts\Permissions;
 
 enum PostsPermission: string
 {
@@ -39,8 +39,8 @@ enum PostsPermission: string
 ## 4. Создайте роль
 
 ```php
-// app/AzGuard/App/Roles/EditorRole.php
-namespace App\AzGuard\App\Roles;
+// app/Guards/App/Roles/EditorRole.php
+namespace App\Guards\App\Roles;
 
 use AzGuard\Roles\BaseRole;
 

@@ -87,6 +87,42 @@ it('invalidates the context-discriminated branch on forgetForUser, not just the 
     expect($after->keys())->toBe([]);
 });
 
+it('refreshes the epoch key TTL on every forget, not only the first seed', function () {
+    // Finite TTL so we can observe expiry via time travel.
+    config()->set('az-guard.cache.expiration_time', 100);
+
+    // t0: first revoke seeds+bumps the epoch key (epoch 1 -> 2), TTL starts now
+    // (expiresAt = t0+100).
+    (new PermissionCache)->forgetForUser(7, 'app');
+
+    // t0+60: a request caches a *stale* PermissionSet under epoch 2, with its
+    // own fresh TTL (expiresAt = t0+160) — outliving the epoch key's window.
+    $this->travel(60)->seconds();
+    (new PermissionCache)->rememberForRequest(7, 'app', fn (): PermissionSet => PermissionSet::fromKeys(['app.posts.view']));
+
+    // t0+90: a second revoke. Pre-fix, `increment()` never refreshes the epoch
+    // key's TTL, so it is still on track to expire at t0+100 regardless of this
+    // call. Post-fix, this call re-`put()`s it, pushing expiry to (t0+90)+100.
+    $this->travel(30)->seconds();
+    (new PermissionCache)->forgetForUser(7, 'app');
+
+    // t0+150: past the epoch key's *original* TTL (t0+100). Pre-fix the epoch
+    // key has already expired, so this third revoke's `currentEpoch()` read
+    // falls back to the default (1) and reseeds epoch 2 — colliding with the
+    // still-live stale epoch-2 entry cached above (alive until t0+160).
+    // Post-fix the epoch key was refreshed at t0+90 (now expires t0+190), so
+    // it is still alive: `currentEpoch()` correctly continues from 3.
+    $this->travel(60)->seconds();
+    (new PermissionCache)->forgetForUser(7, 'app');
+
+    $set = (new PermissionCache)->rememberForRequest(7, 'app', fn (): PermissionSet => PermissionSet::fromKeys([]));
+
+    // Post-fix: no epoch collision, so the base key is fresh and the callback
+    // recomputes the revoked (empty) state. Pre-fix this would instead return
+    // the stale ['app.posts.view'] entry served from the collided epoch-2 key.
+    expect($set->keys())->toBe([]);
+});
+
 it('invalidates every discriminator at once (all contexts) with one forget', function () {
     $stale = fn (): PermissionSet => PermissionSet::fromKeys(['app.posts.view']);
     $fresh = fn (): PermissionSet => PermissionSet::fromKeys([]);

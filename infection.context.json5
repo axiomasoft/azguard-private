@@ -1,0 +1,22 @@
+{
+    "$schema": "https://infection.github.io/schema.json",
+    "source": {
+        "directories": [
+            "packages/context/src"
+        ],
+        "excludes": [
+            "Commands"
+        ]
+    },
+    "logs": {
+        "text": "build/infection/context.log",
+        "html": "build/infection/context.html",
+        "summary": "build/infection/context-summary.log"
+    },
+    "minMsi": 65,
+    "minCoveredMsi": 80,
+    "testFramework": "phpunit",
+    "mutators": {
+        "@default": true
+    }
+}

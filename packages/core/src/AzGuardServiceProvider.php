@@ -6,10 +6,12 @@ namespace AzGuard;
 
 use AzGuard\Auth\DirectGrantPolicy;
 use AzGuard\Auth\PolicyAttributeRegistrar;
+use AzGuard\Commands\AbilitiesCommand;
 use AzGuard\Commands\CacheResetCommand;
 use AzGuard\Commands\CatalogListCommand;
 use AzGuard\Commands\CatalogValidateCommand;
 use AzGuard\Commands\DoctorCommand;
+use AzGuard\Commands\ExplainCommand;
 use AzGuard\Commands\GrantCommand;
 use AzGuard\Commands\GrantsListCommand;
 use AzGuard\Commands\InstallCommand;
@@ -22,6 +24,7 @@ use AzGuard\Commands\MakeGuardPolicyCommand;
 use AzGuard\Commands\MakeGuardRoleCommand;
 use AzGuard\Commands\PruneGrantsCommand;
 use AzGuard\Commands\RevokeGrantCommand;
+use AzGuard\Commands\RoleAssignmentCommand;
 use AzGuard\Commands\RolePermissionsCommand;
 use AzGuard\Commands\SuperAdminCommand;
 use AzGuard\Commands\SyncRolesCommand;
@@ -223,6 +226,7 @@ final class AzGuardServiceProvider extends ServiceProvider
                 CatalogListCommand::class,
                 CatalogValidateCommand::class,
                 RolePermissionsCommand::class,
+                RoleAssignmentCommand::class,
                 MakeGuardPanelCommand::class,
                 MakeGuardPermissionCommand::class,
                 MakeGuardPolicyCommand::class,
@@ -237,6 +241,8 @@ final class AzGuardServiceProvider extends ServiceProvider
                 RevokeGrantCommand::class,
                 PruneGrantsCommand::class,
                 SuperAdminCommand::class,
+                ExplainCommand::class,
+                AbilitiesCommand::class,
             ]);
         }
     }

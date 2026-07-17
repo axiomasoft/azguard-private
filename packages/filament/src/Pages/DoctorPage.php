@@ -6,6 +6,7 @@ namespace AzGuard\Filament\Pages;
 
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Guard\AzGuardDiagnostics;
+use AzGuard\Support\RequestState;
 use BackedEnum;
 use Filament\Pages\Page;
 use Override;
@@ -33,6 +34,8 @@ final class DoctorPage extends Page
     protected static ?string $title = 'AzGuard Doctor';
 
     protected string $view = 'az-guard::pages.doctor';
+
+    private const string MEMO_KEY = 'doctor-page.diagnose';
 
     // ─── Badge: number of errors in navigation ────────────────────────────
 
@@ -71,24 +74,32 @@ final class DoctorPage extends Page
     // ─── Internal ───────────────────────────────────────────────────────────
 
     /**
+     * Memoized per request via the scoped RequestState (Octane-safe — a plain
+     * static property would bleed a stale result into the next request on a
+     * reused worker). Filament calls this up to 3× per render (navigation
+     * badge, badge color, view data).
+     *
      * @return array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>}
      */
     private static function runDiagnose(): array
     {
-        /** @var AzGuardDiagnostics $doctor */
-        $doctor = app(AzGuardDiagnostics::class);
+        /** @var array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>} */
+        return app(RequestState::class)->remember(self::MEMO_KEY, static function (): array {
+            /** @var AzGuardDiagnostics $doctor */
+            $doctor = app(AzGuardDiagnostics::class);
 
-        // Filter by the plugin's panelId if it is registered
-        $panelFilter = null;
+            // Filter by the plugin's panelId if it is registered
+            $panelFilter = null;
 
-        try {
-            /** @var AzGuardPlugin $plugin */
-            $plugin = filament()->getCurrentPanel()?->getPlugin('az-guard');
-            $panelFilter = $plugin->getPanelId();
-        } catch (Throwable) {
-            // Plugin unavailable — diagnose all panels
-        }
+            try {
+                /** @var AzGuardPlugin $plugin */
+                $plugin = filament()->getCurrentPanel()?->getPlugin('az-guard');
+                $panelFilter = $plugin->getPanelId();
+            } catch (Throwable) {
+                // Plugin unavailable — diagnose all panels
+            }
 
-        return $doctor->diagnose(panelFilter: $panelFilter);
+            return $doctor->diagnose(panelFilter: $panelFilter);
+        });
     }
 }

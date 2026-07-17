@@ -30,10 +30,10 @@
 
 ```bash
 composer require axioma-studio/azguard-core
-php artisan azguard:install
+php artisan guard:install
 ```
 
-`azguard:install` publishes the config, runs the migrations and prints the next steps. Then add the trait to your `User` model:
+`guard:install` publishes the config, runs the migrations and prints the next steps. Then add the trait to your `User` model:
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
@@ -123,7 +123,7 @@ Gate::allows('app.documents.view');                // true
 ### 5. A super-admin in one command
 
 ```bash
-php artisan azguard:super-admin --user=1
+php artisan guard:super-admin --user=1
 ```
 
 Grants the wildcard role that short-circuits every check via `Gate::before()` — the fastest path to a working login.
@@ -154,12 +154,12 @@ $user->hasPermission(UpdatePost::class, 'app');    // -> "app.posts.update"
 
 | Command | Description |
 |---|---|
-| `azguard:install` | Publish config + run migrations (guided) |
+| `guard:install` | Publish config + run migrations (guided) |
 | `make:guard-panel {Panel} {Domain}` | Scaffold a panel (auto-registers in config) |
 | `make:guard-permission` | Generate a permission enum |
 | `make:guard-role` | Generate a role class |
 | `guard:sync-roles` | Mirror PHP role classes into the `roles` table |
-| `azguard:super-admin --user=` | Promote a user to super-admin |
+| `guard:super-admin --user=` | Promote a user to super-admin |
 | `guard:doctor` | Diagnose the configuration |
 | `guard:list-permissions {panel?}` | List registered permissions |
 | `guard:cache-reset` | Flush the permission cache |

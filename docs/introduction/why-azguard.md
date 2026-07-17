@@ -27,7 +27,7 @@ enum DocumentsPermission: string
 }
 
 // Role — a PHP class. Readable. Testable. Diffable.
-use App\AzGuard\App\Permissions\DocumentsPermission;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
 
 class EditorRole extends BaseRole
 {

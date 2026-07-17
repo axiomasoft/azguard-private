@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Models\Role;
-use AzGuard\Models\RolePermission;
+use AzGuard\Registry\Contracts\PermissionCatalog;
+use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -30,15 +31,17 @@ class RolePermissionsCommand extends Command
 
     protected $description = 'Manage DB-level role permissions (role_permissions)';
 
-    public function handle(): int
+    public function handle(PermissionCatalog $catalog): int
     {
         $action = $this->argument('action');
         $roleArg = $this->argument('role');
         $panelId = (string) $this->option('panel');
 
+        $roleModel = Config::roleModel();
+
         $role = is_numeric($roleArg)
-            ? Role::find((int) $roleArg)
-            : Role::where('name', $roleArg)->first();
+            ? $roleModel::find((int) $roleArg)
+            : $roleModel::where('name', $roleArg)->first();
 
         if ($role === null) {
             $this->error("Role [{$roleArg}] not found in the database.");
@@ -48,9 +51,9 @@ class RolePermissionsCommand extends Command
 
         return match ($action) {
             'list' => $this->actionList($role, $panelId),
-            'add' => $this->actionAdd($role, $panelId),
+            'add' => $this->actionAdd($role, $panelId, $catalog),
             'remove' => $this->actionRemove($role, $panelId),
-            'sync' => $this->actionSync($role, $panelId),
+            'sync' => $this->actionSync($role, $panelId, $catalog),
             default => $this->invalidAction($action),
         };
     }
@@ -85,12 +88,18 @@ class RolePermissionsCommand extends Command
         return self::SUCCESS;
     }
 
-    private function actionAdd(Role $role, string $panelId): int
+    private function actionAdd(Role $role, string $panelId, PermissionCatalog $catalog): int
     {
         $key = $this->argument('permission_key');
 
         if ($key === null) {
             $this->error('Specify a permission_key.');
+
+            return self::FAILURE;
+        }
+
+        if (! $catalog->has($panelId, $key)) {
+            $this->error("Permission key [{$key}] is not registered in the catalog for panel [{$panelId}].");
 
             return self::FAILURE;
         }
@@ -106,7 +115,9 @@ class RolePermissionsCommand extends Command
             return self::SUCCESS;
         }
 
-        RolePermission::create([
+        $rolePermissionModel = Config::rolePermissionModel();
+
+        $rolePermissionModel::create([
             'role_id' => $role->id,
             'permission_key' => $key,
             'panel_id' => $panelId,
@@ -143,7 +154,7 @@ class RolePermissionsCommand extends Command
         return self::SUCCESS;
     }
 
-    private function actionSync(Role $role, string $panelId): int
+    private function actionSync(Role $role, string $panelId, PermissionCatalog $catalog): int
     {
         $keysRaw = (string) $this->option('keys');
 
@@ -154,6 +165,18 @@ class RolePermissionsCommand extends Command
         }
 
         $newKeys = array_filter(array_map(trim(...), explode(',', $keysRaw)));
+
+        $unknownKeys = array_filter($newKeys, fn (string $key): bool => ! $catalog->has($panelId, $key));
+
+        if ($unknownKeys !== []) {
+            $this->error(sprintf(
+                'Unknown permission key(s) for panel [%s]: %s.',
+                $panelId,
+                implode(', ', $unknownKeys),
+            ));
+
+            return self::FAILURE;
+        }
 
         $existing = $role->dbPermissions()
             ->where('panel_id', $panelId)
@@ -186,8 +209,10 @@ class RolePermissionsCommand extends Command
             return self::SUCCESS;
         }
 
+        $rolePermissionModel = Config::rolePermissionModel();
+
         foreach ($toAdd as $key) {
-            RolePermission::create([
+            $rolePermissionModel::create([
                 'role_id' => $role->id,
                 'permission_key' => $key,
                 'panel_id' => $panelId,

@@ -1,83 +1,149 @@
 # Frontend Abilities
 
-Abilities DTOs carry computed boolean flags from your policies to the front end. They are the answer to "what can this user do with *this specific resource right now*?"
+Abilities DTOs carry computed boolean flags from your policies to the front end. They answer: "what can this user do with *this specific resource right now*?"
 
 ## Why DTOs, not raw Gate calls on the front end?
 
 Sending `abilities: { canEdit: true, canDelete: false }` in Inertia props is explicit, cacheable, and testable. The alternative — calling the API on every UI interaction — is slower and harder to reason about.
 
-## Creating an Abilities DTO
+## Generating an Abilities DTO
+
+AzGuard generates a typed Abilities DTO for each panel domain automatically:
+
+```bash
+php artisan make:guard-abilities App Documents
+```
+
+This creates:
 
 ```php
 namespace App\Guards\App\Documents\Abilities;
 
-use AzGuard\Support\ResolvesGateAbilities;
-use App\Models\Documents\Document;
-use Illuminate\Support\Facades\Gate;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
+use AzGuard\Abilities\AbilitiesDto;
+use AzGuard\Facades\AzGuard;
 
-final class DocumentsAbilities
+final readonly class DocumentsAbilities extends AbilitiesDto
 {
-    use ResolvesGateAbilities;
-
     public function __construct(
-        public readonly bool $canView,
-        public readonly bool $canEdit,
-        public readonly bool $canDelete,
+        public bool $viewAny,
+        public bool $view,
+        public bool $create,
+        public bool $update,
+        public bool $delete,
     ) {}
 
-    public static function fromDocument(Document $document): self
-    {
-        return new self(
-            canView:   Gate::allows('app.documents.view',   $document),
-            canEdit:   Gate::allows('app.documents.edit',   $document),
-            canDelete: Gate::allows('app.documents.delete', $document),
-        );
-    }
-
-    public function toArray(): array
+    protected static function abilityMap(): array
     {
         return [
-            'canView'   => $this->canView,
-            'canEdit'   => $this->canEdit,
-            'canDelete' => $this->canDelete,
+            'viewAny' => AzGuard::permission(panelId: 'app', permission: DocumentsPermission::ViewAny),
+            'view' => AzGuard::permission(panelId: 'app', permission: DocumentsPermission::View),
+            'create' => AzGuard::permission(panelId: 'app', permission: DocumentsPermission::Create),
+            'update' => AzGuard::permission(panelId: 'app', permission: DocumentsPermission::Update),
+            'delete' => AzGuard::permission(panelId: 'app', permission: DocumentsPermission::Delete),
         ];
     }
 }
 ```
+
+## Instantiating via `make()`
+
+The `make()` factory resolves all ability flags against the Gate automatically:
+
+```php
+use App\Guards\App\Documents\Abilities\DocumentsAbilities;
+use App\Models\Document;
+
+// Resolve against current user + Gate
+$abilities = DocumentsAbilities::make($document);
+
+// Convert to array for the frontend
+$abilityFlags = $abilities->toArray();
+// => ['viewAny' => true, 'view' => true, 'create' => false, ...]
+```
+
+The `make()` method:
+1. Accepts any arguments your `abilityMap()` permissions check against (e.g., `$document`)
+2. Resolves each ability by calling `Gate::allows(key, $document)`
+3. Returns a DTO instance with all flags computed
+4. **Never leaks non-boolean fields** — `toArray()` filters to boolean properties only
 
 ## Passing to Inertia
 
 Pass abilities at the **page level**, not in global shared data. Abilities are resource-specific.
 
 ```php
-// DocumentController@show
+use App\Guards\App\Documents\Abilities\DocumentsAbilities;
+use Inertia\Inertia;
+use Inertia\Response;
+
 public function show(Document $document): Response
 {
     return Inertia::render('Documents/Show', [
-        'document'  => DocumentResource::make($document),
-        'abilities' => DocumentsAbilities::fromDocument($document)->toArray(),
+        'document'  => $document,
+        'abilities' => DocumentsAbilities::make($document)->toArray(),
     ]);
 }
 ```
 
-## Consuming in Vue / React
+## Consuming in Vue
 
 ```vue
-<script setup>
+<script setup lang="ts">
 const props = defineProps<{
-  document: Document
-  abilities: { canEdit: boolean; canDelete: boolean; canView: boolean }
+  document: {
+    id: number
+    title: string
+  }
+  abilities: {
+    viewAny: boolean
+    view: boolean
+    create: boolean
+    update: boolean
+    delete: boolean
+  }
 }>()
 </script>
 
 <template>
-  <button v-if="abilities.canEdit" @click="edit">Edit</button>
-  <button v-if="abilities.canDelete" @click="destroy">Delete</button>
+  <div>
+    <h1>{{ document.title }}</h1>
+    <button v-if="abilities.update" @click="edit">Edit</button>
+    <button v-if="abilities.delete" @click="destroy">Delete</button>
+  </div>
 </template>
+```
+
+## Consuming in React
+
+```tsx
+interface DocumentAbilities {
+  viewAny: boolean
+  view: boolean
+  create: boolean
+  update: boolean
+  delete: boolean
+}
+
+interface DocumentPageProps {
+  document: { id: number; title: string }
+  abilities: DocumentAbilities
+}
+
+export function DocumentShow({ document, abilities }: DocumentPageProps) {
+  return (
+    <div>
+      <h1>{document.title}</h1>
+      {abilities.update && <button onClick={edit}>Edit</button>}
+      {abilities.delete && <button onClick={destroy}>Delete</button>}
+    </div>
+  )
+}
 ```
 
 ## Rules
 
-- Abilities DTO never duplicates policy logic — all checks go through `Gate::allows()`.
-- Pass abilities per page, not globally. Global shared props grow unbounded.
-- DTO fields are `readonly` — computed once, never mutated.
+- **DTO fields are constructor parameters** — they are resolved exactly once at instantiation via `make()`, then immutable.
+- **Pass per-page, not globally** — abilities are resource/context-specific. Global shared props grow unbounded and leak unrelated permissions.
+- **The DTO never duplicates checks** — all logic routes through your Gate / policies.
+- **`toArray()` always returns boolean-only flags** — other properties are excluded for security and simplicity.
