@@ -96,14 +96,14 @@
 
 **Цель:** «CLI управляет всем» + машиночитаемый вывод для CI. Скетчи: §4.5.
 
-| ID | Sev | Действие | Файлы | AC / тест |
-|---|---|---|---|---|
-| F15 | 🟠 | `guard:role:assign` / `guard:role:detach` (через `ResolvesUserModel` + `Config::roleModel()`) | новые `core/Commands/*`, `core/Commands/Concerns/*` | Feature-тест на назначение/снятие роли |
-| F52 | 🟠 | `--json`/`--format` + осмысленный exit-code для `doctor` и `catalog:validate`; общий concern `OutputsStructured` | `core/Commands/DoctorCommand.php`, `core/Commands/CatalogValidateCommand.php`, новый concern | Тест: `--format=json` даёт валидный payload; провал → ненулевой код |
-| F32 | 🟡 | Все команды через `Config::*Model()` (не хардкод); валидация ключей против каталога на add/sync | `core/Commands/*` | Тест: кастомные модели подхватываются; неизвестный ключ репортится |
-| F33 | 🟡 | `--force` для `make:guard-*`; `make:guard-role` — argument-driven (не только интерактив); общий трейт | `core/Commands/MakeGuard*Command.php` | Тест: неинтерактивная генерация с `--force` |
-| F53 | 🟡 | `guard:explain` / `guard:abilities` поверх resolver/`AbilitiesDto` (инспекция решений) | новые `core/Commands/*` | Тест: `guard:explain user perm` печатает источник вердикта |
-| F51 | 🟡 | Удалить самоссылочные мёртвые `$aliases` (3 команды); **стандартизовать префикс команд на `guard:`** (пакет не в проде — правим сразу) | `core/Commands/*`, регистрация в `AzGuardServiceProvider` | Все команды под единым префиксом; тест на регистрацию; запись в CHANGELOG |
+| ID | Sev | Status | Действие | Файлы | AC / тест |
+|---|---|---|---|---|---|
+| F15 | 🟠 | ✅ | `guard:role:assign` / `guard:role:detach` (через `ResolvesUserModel` + `Config::roleModel()`) | новые `core/Commands/*`, `core/Commands/Concerns/*` | Feature-тест на назначение/снятие роли |
+| F52 | 🟠 | ✅ | `--json`/`--format` + осмысленный exit-code для `doctor` и `catalog:validate`; общий concern `OutputsStructured` | `core/Commands/DoctorCommand.php`, `core/Commands/CatalogValidateCommand.php`, новый concern | Тест: `--format=json` даёт валидный payload; провал → ненулевой код |
+| F32 | 🟡 | ✅ | Все команды через `Config::*Model()` (не хардкод); валидация ключей против каталога на add/sync | `core/Commands/*` | Тест: кастомные модели подхватываются; неизвестный ключ репортится |
+| F33 | 🟡 | ✅ | `--force` для `make:guard-*`; `make:guard-role` — argument-driven (не только интерактив); общий трейт | `core/Commands/MakeGuard*Command.php` | Тест: неинтерактивная генерация с `--force` |
+| F53 | 🟡 | ✅ | `guard:explain` / `guard:abilities` поверх resolver/`AbilitiesDto` (инспекция решений) | новые `core/Commands/*` | Тест: `guard:explain user perm` печатает источник вердикта |
+| F51 | 🟡 | ✅ | Удалить самоссылочные мёртвые `$aliases` (3 команды); **стандартизовать префикс команд на `guard:`** (пакет не в проде — правим сразу) | `core/Commands/*`, регистрация в `AzGuardServiceProvider` | Все команды под единым префиксом; тест на регистрацию; запись в CHANGELOG |
 
 **Commit:** `feat(core): complete CLI surface (role lifecycle, explain/abilities, structured output), unify command prefix`
 
@@ -113,16 +113,18 @@
 
 **Цель:** закрыть неэнфорсимые права и синхронизировать кодоген с рантаймом; довести context до управляемого. Скетчи: §4.10.
 
-| ID | Sev | Действие | Файлы | AC / тест |
-|---|---|---|---|---|
-| F11 | 🟠 | `PermissionEnumGenerator` уважает `case`/`key` конфиг (инжект `PermissionSchema`) — иначе кодоген расходится с рантаймом | `fila/Permissions/PermissionEnumGenerator.php`, `fila/Permissions/PermissionSchema.php` | Round-trip тест на не-snake кейсе: сгенерированный ключ == проверяемый |
-| F13 | 🟠 | Трейты `HasAzGuardPage::canAccess()` / `HasAzGuardWidget::canView()` — закрыть неэнфорсимые page/widget-права (или перестать эмитить + задокументировать, что нав-скрытие ≠ контроль) | новые трейты в `fila/`, каталог-эмиттер | Тест: страница без права не доступна по URL |
-| F14 | 🟠 | Context: авто-alias middleware в `boot()`; write-API `guard:context:grant`/`revoke` + builder | `ctx/AzGuardContextServiceProvider.php`, новые команды/builder в `ctx/` | Тест: middleware работает без ручного alias; гранты контекста ставятся из CLI |
-| F12 | 🟠 | Добавить ключ `filament.user_label_column` в конфиг (сейчас фантом на 4 сайтах чтения) | `packages/filament/config/az-guard-filament.php` | Тест: кастомный лейбл-столбец подхватывается |
-| F26 | 🟡 | `table_names.context_roles` в context-конфиг; читать оттуда (сейчас тянет несуществующий core-ключ) | `packages/context/config/az-guard-context.php` + reader | Тест: имя таблицы берётся из context-конфига |
-| F29 | 🟡 | Мемоизировать `DoctorPage::runDiagnose()` (3×/render); батч-резолв лейблов в `DirectGrantResource` (N+1) | `fila/Pages/DoctorPage.php`, `fila/Resources/DirectGrantResource.php` | Тест/бенч: `diagnose()` зовётся 1×; нет N+1 |
-| F39 | 🟡 | Дефолт `panelId` из конфига в `AzGuardPlugin::getPanelId()` (устранить `'app'`≠`'admin'`) | `fila/AzGuardPlugin.php` | Тест: плагин берёт панель из конфига |
-| F41 | ⚪ | Удалить мёртвое `MissingAuthorizationContextException` + ложный докблок в `DenyWithoutContextStrategy` | `ctx/**` | Мёртвый код удалён; тесты зелёные |
+| ID | Sev | Status | Действие | Файлы | AC / тест |
+|---|---|---|---|---|---|
+| F11 | 🟠 | ✅ | `PermissionEnumGenerator` уважает `case`/`key` конфиг (инжект `PermissionSchema`) — иначе кодоген расходится с рантаймом | `fila/Permissions/PermissionEnumGenerator.php`, `fila/Permissions/PermissionSchema.php` | Round-trip тест на не-snake кейсе: сгенерированный ключ == проверяемый |
+| F13 | 🟠 | ✅ | Трейты `HasAzGuardPage::canAccess()` / `HasAzGuardWidget::canView()` — закрыть неэнфорсимые page/widget-права (или перестать эмитить + задокументировать, что нав-скрытие ≠ контроль) | новые трейты в `fila/`, каталог-эмиттер | Тест: страница без права не доступна по URL |
+| F14 | 🟠 | ✅ | Context: авто-alias middleware в `boot()`; write-API `guard:context:grant`/`revoke` + builder | `ctx/AzGuardContextServiceProvider.php`, новые команды/builder в `ctx/` | Тест: middleware работает без ручного alias; гранты контекста ставятся из CLI |
+| F12 | 🟠 | ✅¹ | Добавить ключ `filament.user_label_column` в конфиг (сейчас фантом на 4 сайтах чтения) | `packages/filament/config/az-guard-filament.php` | Тест: кастомный лейбл-столбец подхватывается |
+| F26 | 🟡 | ✅ | `table_names.context_roles` в context-конфиг; читать оттуда (сейчас тянет несуществующий core-ключ) | `packages/context/config/az-guard-context.php` + reader | Тест: имя таблицы берётся из context-конфига |
+| F29 | 🟡 | ✅ | Мемоизировать `DoctorPage::runDiagnose()` (3×/render); батч-резолв лейблов в `DirectGrantResource` (N+1) | `fila/Pages/DoctorPage.php`, `fila/Resources/DirectGrantResource.php` | Тест/бенч: `diagnose()` зовётся 1×; нет N+1 |
+| F39 | 🟡 | ✅ | Дефолт `panelId` из конфига в `AzGuardPlugin::getPanelId()` (устранить `'app'`≠`'admin'`) | `fila/AzGuardPlugin.php` | Тест: плагин берёт панель из конфига |
+| F41 | ⚪ | ✅ | Удалить мёртвое `MissingAuthorizationContextException` + ложный докблок в `DenyWithoutContextStrategy` | `ctx/**` | Мёртвый код удалён; тесты зелёные |
+
+¹ Реализация 2026-07-02 была silent no-op (читала незарегистрированное дерево конфига `az-guard.filament.*`); баг найден ревью PR #91 и исправлен 2026-07-17 (commit `5d215cb`).
 
 **Commit:** `feat(filament,context): enforce page/widget perms, sync codegen with runtime, context write-API`
 
@@ -132,13 +134,15 @@
 
 **Цель:** снести мёртвый код и закрыть тестовые дыры на дифференциаторах. Скетчи: §4.1, §4.6.
 
-| ID | Sev | Действие | Файлы | AC / тест |
-|---|---|---|---|---|
-| F31 | ✅ | Удалить мёртвый код: `core/Guard/PanelManager.php`, `core/Grants/PendingGrant.php` (ссылается на несуществующий `GrantManager`); решить судьбу `core/Guard/DiscoveryService.php` | core src | Классы удалены; `composer check` зелёный; нет ссылок |
-| F19 | 🟠 | Feature-матрица на непокрытые CLI-команды (~15); юнит-сьют `AbilitiesDto` (после F2) | `tests/Feature/**`, `tests/Unit/Abilities/**` | Каждая команда имеет CLI-тест; abilities покрыт |
-| F20 | 🟡 | Contract-parity arch-тест на `FakeAzGuardUser`/`FakeGrantSource` | `tests/Unit/Contracts/ContractTraitParityTest.php` | Fakes проверяются на паритет с контрактами |
-| F49 | ⚪ | Arch-рэтчеты `toBeFinal()->toBeReadonly()`; параметризовать матрицы датасетами | `tests/ArchTest.php`, `tests/Unit/Filament/FilamentArchTest.php` | Arch-инварианты активны |
-| F50 | 🟡🔸 | Infection per-package + diff-scoped PR-гейт; добавить coverage/mutation в `composer check` — реализовано; фактический прогон **deferred** (окружение без pcov/xdebug), гейт honest-skip локально, реален в CI | `infection.core/filament/context.json5`, `composer.json`, `bin/*-gate.sh`, `.github/workflows/mutation.yml` | `composer check` включает coverage/mutation-шаги (honest-skip без драйвера); CI (`mutation.yml`) реально гейтит PR diff-scoped + main advisory |
+| ID | Sev | Status | Действие | Файлы | AC / тест |
+|---|---|---|---|---|---|
+| F31 | 🟡 | ✅ | Удалить мёртвый код: `core/Guard/PanelManager.php`, `core/Grants/PendingGrant.php` (ссылается на несуществующий `GrantManager`); решить судьбу `core/Guard/DiscoveryService.php` | core src | Классы удалены; `composer check` зелёный; нет ссылок |
+| F19 | 🟠 | ✅ | Feature-матрица на непокрытые CLI-команды (~15); юнит-сьют `AbilitiesDto` (после F2) | `tests/Feature/**`, `tests/Unit/Abilities/**` | Каждая команда имеет CLI-тест; abilities покрыт |
+| F20 | 🟡 | ✅ | Contract-parity arch-тест на `FakeAzGuardUser`/`FakeGrantSource` | `tests/Unit/Contracts/ContractTraitParityTest.php` | Fakes проверяются на паритет с контрактами |
+| F49 | ⚪ | ✅ | Arch-рэтчеты `toBeFinal()->toBeReadonly()`; параметризовать матрицы датасетами | `tests/ArchTest.php`, `tests/Unit/Filament/FilamentArchTest.php` | Arch-инварианты активны |
+| F50 | 🟡 | ✅² | Infection per-package + diff-scoped PR-гейт; добавить coverage/mutation в `composer check` — реализовано; фактический прогон **deferred** (окружение без pcov/xdebug), гейт honest-skip локально, реален в CI | `infection.core/filament/context.json5`, `composer.json`, `bin/*-gate.sh`, `.github/workflows/mutation.yml` | `composer check` включает coverage/mutation-шаги (honest-skip без драйвера); CI (`mutation.yml`) реально гейтит PR diff-scoped + main advisory |
+
+² Локальный прогон честно skip'ается (нет pcov/xdebug в dev-окружении); реальный гейт — только в CI.
 
 **Commit:** `chore(core): remove dead code, close CLI/abilities test gaps, tighten arch & mutation gates`
 
@@ -148,15 +152,15 @@
 
 **Цель:** довести доки до состояния «люди зависят от них». P3 уже приземлил API, на который ссылаются доки. Скетчи: §4.7, §4.11.
 
-| ID | Sev | Действие | Файлы | AC |
-|---|---|---|---|---|
-| F23 | 🟠 | Переписать `basic-usage/abilities-frontend.md` на `AbilitiesDto::make()->toArray()` + `abilitiesFor()` (F2/F37); Inertia-рецепт + типизированный `useCan()` | `docs/**/basic-usage/abilities-frontend.md`, `docs/**/recipes/inertia-permissions.md` | Примеры компилируются против реального API |
-| F24 | 🟠 | Компилируемый пример custom-catalog-builder (`SimplePermissionDefinition` + регистрация через F7) | `docs/**/advanced/extending.md` | Пример собирается; использует публичный `registerCatalogBuilder()` |
-| F44 | 🟡 | Генерировать CLI-референс из зарегистрированного списка команд; CI drift-тест; исправить таксономию префиксов (после F51) | `docs/**/basic-usage/artisan-commands.md`, CI | Референс покрывает все команды; CI ловит расхождение |
-| F42 | 🟡 | Починить RU-в-EN-дереве leak (`docs/recipes/index.md` на русском); добить integration-страницы; CI parity EN↔RU | `docs/`, `docs/ru/`, CI | Нет языковых утечек; parity-гейт зелёный |
-| F45 | 🟡 | Стандартизовать `App\Guards\` (генератор = источник истины) во всех доках | `docs/**` | Единое пространство имён в примерах |
-| F43 | ⚪ | Глобально PHP `8.2` → `8.3+` в доках; CI doc-lint против composer | `docs/**`, CI | Версии согласованы |
-| F54 | 🟡 | `.claude`-тулкит: починить путь rector-skip у `BaseRole`, перенацелить `azguard-reviewer` на существующую arch, обновить Boost-скилл до 0.2 API | `.claude/**`, `packages/core/resources/boost/skills/**` | Тулкит согласован с кодом; reviewer бьёт в реальную цель |
+| ID | Sev | Status | Действие | Файлы | AC |
+|---|---|---|---|---|---|
+| F23 | 🟠 | ✅ | Переписать `basic-usage/abilities-frontend.md` на `AbilitiesDto::make()->toArray()` + `abilitiesFor()` (F2/F37); Inertia-рецепт + типизированный `useCan()` | `docs/**/basic-usage/abilities-frontend.md`, `docs/**/recipes/inertia-permissions.md` | Примеры компилируются против реального API |
+| F24 | 🟠 | ✅ | Компилируемый пример custom-catalog-builder (`SimplePermissionDefinition` + регистрация через F7) | `docs/**/advanced/extending.md` | Пример собирается; использует публичный `registerCatalogBuilder()` |
+| F44 | 🟡 | ✅ | Генерировать CLI-референс из зарегистрированного списка команд; CI drift-тест; исправить таксономию префиксов (после F51) | `docs/**/basic-usage/artisan-commands.md`, CI | Референс покрывает все команды; CI ловит расхождение |
+| F42 | 🟡 | ✅ | Починить RU-в-EN-дереве leak (`docs/recipes/index.md` на русском); добить integration-страницы; CI parity EN↔RU | `docs/`, `docs/ru/`, CI | Нет языковых утечек; parity-гейт зелёный |
+| F45 | 🟡 | ✅ | Стандартизовать `App\Guards\` (генератор = источник истины) во всех доках | `docs/**` | Единое пространство имён в примерах |
+| F43 | ⚪ | ✅ | Глобально PHP `8.2` → `8.3+` в доках; CI doc-lint против composer | `docs/**`, CI | Версии согласованы |
+| F54 | 🟡 | ✅ | `.claude`-тулкит: починить путь rector-skip у `BaseRole`, перенацелить `azguard-reviewer` на существующую arch, обновить Boost-скилл до 0.2 API | `.claude/**`, `packages/core/resources/boost/skills/**` | Тулкит согласован с кодом; reviewer бьёт в реальную цель |
 
 **Commit:** `docs: rebuild abilities/extending guides on real API, CLI reference generator, EN↔RU parity, toolkit sync`
 
