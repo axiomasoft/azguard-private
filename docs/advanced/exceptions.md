@@ -37,7 +37,6 @@ These exceptions are thrown during boot (or first request) if the configuration 
 | `AzGuard\Exceptions\PanelNotSetException` | A permission check runs with no resolvable current panel |
 | `AzGuard\Exceptions\InvalidMorphTypeException` | `az-guard.column_names.morph_type` holds an unsupported value (not `int`/`ulid`/`uuid`) |
 | `AzGuard\Registry\Exceptions\InvalidPermissionKeyException` | A permission key cannot be resolved or is malformed |
-| `AzGuard\Registry\Exceptions\InvalidCatalogException` | The permission catalog is invalid (e.g. two enum cases resolve to the same full key) |
 
 Every one of these extends `AzGuard\Exceptions\AzGuardException`, so a single catch handles any AzGuard domain error regardless of sub-namespace:
 
@@ -48,8 +47,7 @@ try {
     AzGuard::permission('reports', ReportPermission::View);
 } catch (AzGuardException $e) {
     // Catches PanelNotFoundException, PanelNotSetException,
-    // InvalidMorphTypeException, InvalidPermissionKeyException and
-    // InvalidCatalogException alike.
+    // InvalidMorphTypeException and InvalidPermissionKeyException alike.
     report($e);
 }
 ```

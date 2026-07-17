@@ -5,10 +5,9 @@
 Базовый класс доменных исключений AzGuard (наследует `RuntimeException`).
 
 Все исключения пакета — `PanelNotFoundException`, `PanelNotSetException`,
-`InvalidMorphTypeException`, `InvalidPermissionKeyException` и
-`InvalidCatalogException` — наследуют этот класс, поэтому один
-`catch (AzGuardException)` перехватывает любую доменную ошибку AzGuard,
-независимо от под-пространства имён:
+`InvalidMorphTypeException` и `InvalidPermissionKeyException` — наследуют
+этот класс, поэтому один `catch (AzGuardException)` перехватывает любую
+доменную ошибку AzGuard, независимо от под-пространства имён:
 
 ```php
 use AzGuard\Exceptions\AzGuardException;

@@ -50,6 +50,17 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   stale under a persistent store with infinite TTL. A transient context switch uses
   the new in-process-only invalidation (below) and no longer busts the durable,
   cross-request cache. (F30)
+- `guard:doctor`'s `checkRoles` no longer casts a backed-enum permission to
+  string / uses it as an array key — the documented `list<UnitEnum>` preferred
+  form for `BaseRole::permissions()` fatally crashed the command. Enum cases
+  are now scoped through the panel, matching `ClassRoleGrantSource`'s own
+  resolution. Diagnostics' known-abilities set also now includes the full
+  panel `PermissionCatalog` (Filament-discovered resources + plain enum
+  cases), so Filament-panel roles are no longer falsely reported as
+  referencing an unknown permission; `checkEnumsAgainstPolicies` now only runs
+  for panels that actually declare policy classes, so a policy-less
+  (Gate/`ResourceGate`) panel is no longer required to have a
+  `#[GateAbility]` method per enum case.
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:
@@ -173,6 +184,15 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - Dead `Config::cacheKey()` accessor and the `az-guard.cache.key` config entry — the
   value was never read (the cache-key prefix is a fixed internal constant, and Laravel's
   own `cache.prefix` already isolates entries per app on a shared store). (F38)
+- **Breaking:** `AzGuard\Registry\Exceptions\InvalidCatalogException` was
+  removed. `CompositePermissionCatalog` no longer throws when the same
+  permission key is produced by two builders (e.g. Filament resource
+  discovery and a permission enum for the same resource) — the key is the
+  permission's identity, so it is deduped idempotently instead; a non-null
+  `group()` is adopted when the first source had none, so the Role UI still
+  groups the permission sensibly. A `catch (InvalidCatalogException)` site
+  should remove that arm — the situation it guarded against is no longer an
+  error.
 - **Breaking:** the unregistered, unreachable `guard:revoke` command
   (`RevokeCommand`, a raw-column duplicate) was deleted. Use the
   production-wired `guard:revoke-grant` (`RevokeGrantCommand`), which revokes
