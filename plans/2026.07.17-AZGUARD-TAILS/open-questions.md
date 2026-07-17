@@ -2,7 +2,7 @@
 
 ## Q1 — Семантика `removeScopedRole($role, $entity, panelId=null)` (T2)
 
-**Статус:** Decision pending (нужен владелец)
+**Статус:** Resolved — Вариант B, см. `plan.md` `## 5. Decision Log` D10 (2026-07-18)
 
 `removeScopedRole` с `panelId=null` (дефолт) сейчас сносит строки **ВСЕХ панелей** для
 данной пары (role, entity) — асимметрично `assignScopedRole`, где `null` означает

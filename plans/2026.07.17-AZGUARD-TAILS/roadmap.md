@@ -1,6 +1,6 @@
 # Roadmap исполнения — 2026.07.17-AZGUARD-TAILS
 
-**Обновлён:** 2026-07-17 · **Соответствует plan.md:** v0.5.0
+**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.6.0
 
 ## Карта исполнения
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | P1.1 | solo | manual (plan-run) | sonnet/high | — | T1, panel-isolation correctness + co-located фикс рекурсии eager-load (D9); тест на реальном fetch-пути с обходом console-guard; effort high MANDATORY, объединять с P1.2/P1.3 нельзя (§9 «result > economy») |
 | P1.2 | solo | manual (plan-run) | sonnet/high | — | T6, concurrency correctness; effort high MANDATORY |
-| P1.3 | solo | manual (plan-run), ЖДЁТ Q1 | sonnet/medium | ✅ Q1 (`open-questions.md`) — семантика `removeScopedRole(panelId=null)` | Не запускать до `D#`, разрешающего Q1; после разрешения — `/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3` для дозаполнения Code Guidance |
+| P1.3 | solo | manual (plan-run) | sonnet/medium | ✅ Q1 разрешена 2026-07-18 (D10, Вариант B) | Готов к `/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3` для дозаполнения Code Guidance ПЕРЕД экзекуцией |
 | P2.1–P2.3 | W1 | workflow | sonnet/medium | — | независимый scope + детерминированная Validation → `wf-azguard-tails-p2.js` |
 | P2.4 | — | закрыт (D3) | — | — | ⛔ Skipped by decision, экзекуции не было и не будет |
 
@@ -51,11 +51,10 @@ plans/2026.07.17-AZGUARD-TAILS/phases/P1.md (item P1.2, все 16 полей) �
 Required Reads P1.2. Реализовать по Code Guidance P1.2. Закрыть по plan-protocol §8.
 ```
 
-### P1.3 (solo, manual, ОЖИДАНИЕ Q1)
+### P1.3 (solo, manual — Q1 resolved, Вариант B, D10)
 
 ```
-ОЖИДАНИЕ: D# в plan.md разрешает open-questions.md Q1 →
-ЗАПУСК ВРУЧНУЮ: sonnet/medium — P1.3
+ЗАПУСК ВРУЧНУЮ: sonnet/medium — P1.3, ПЕРВЫЙ шаг — детализация Code Guidance
 ```
 
 | Параметр | Значение |
@@ -63,10 +62,9 @@ Required Reads P1.2. Реализовать по Code Guidance P1.2. Закры�
 | Model | sonnet |
 | Thinking | medium |
 | Context | continue (/clear) — ручной item |
-| Суть | Реализовать выбранную владельцем семантику `removeScopedRole` (T2) — целевой шаг, ПОСЛЕ Q1 |
+| Суть | Реализовать Вариант B `removeScopedRole` (T2): `null` → только null-панельная строка + отдельный метод/флаг «снести везде»; breaking change |
 
 ```
-# НЕ раньше: open-questions.md Q1 разрешён владельцем (D# в plan.md ## 5. Decision Log)
 /task:plan-design 2026.07.17-AZGUARD-TAILS P1.3
 ```
 
@@ -87,4 +85,4 @@ Workflow({scriptPath: "plans/2026.07.17-AZGUARD-TAILS/workflows/wf-azguard-tails
 
 | Где | Что утверждает | Блокирует |
 |---|---|---|
-| `open-questions.md` Q1 | Семантика `removeScopedRole(panelId=null)` — Вариант A или B | P1.3 (не блокирует P1.1/P1.2/W1 — независимый scope) |
+| `open-questions.md` Q1 | Семантика `removeScopedRole(panelId=null)` — ✅ Resolved 2026-07-18: Вариант B (D10) | Разблокировал P1.3 (детализация через `/task:plan-design`) |

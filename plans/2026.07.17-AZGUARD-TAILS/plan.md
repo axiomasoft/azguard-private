@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.17-AZGUARD-TAILS |
 | Title | AzGuard: закрыть хвосты T1-T7 (panel-aware query-scope, epoch race, семантика removeScopedRole, диагностика/wildcard/rollback) |
-| Version | 0.5.0 |
+| Version | 0.6.0 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | opus |
-| Last Updated | 2026-07-17 |
+| Last Updated | 2026-07-18 |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core |
 | Execution Mode | phase-first |
@@ -80,6 +80,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | D8 | 2026-07-17 | P2.3 (T5): противоречие «файл миграции только чтение» ↔ «поправить докблок при расхождении» снято разделением — ПОВЕДЕНИЕ `down()` (`nullable(false)`) неприкосновенно (Scope Excluded / эскалация), ДОКБЛОК `down()` — документация, его правка при расхождении эксперимента с ним В СКОУПЕ | Докблок ≠ поведение; исполнитель, упёршийся в собственное ТЗ, иначе либо правит запрещённый файл, либо теряет находку без фикса (аудит B6→B3). Файл добавлен в `Files` P2.3 с явной границей поведение/докблок (RAG:— repo-grounded: `phases/P2.md` P2.3 Files/Scope Included) |
 | D9 | 2026-07-17 | Рекурсия eager-load `scopeEntity` в `bootHasScopedRoles` (строка 63) — реальный прод-краш на первичном пути T1 (`Project::all()` при `runningInConsole()===false` + активный scope-row) — чинится В СОСТАВЕ P1.1 (bundle), фикс `->withoutGlobalScope(self::SCOPE_KEY)` на eager-load; тест P1.1 гоняет РЕАЛЬНЫЙ fetch-путь, а не pre-seed | Баг вскрыт при проектировании обхода console-guard (C1): обход исполним, но без фикса рекурсии Validation P1.1 физически не зелёная (OOM — проверено прогоном EXP B; фикс — EXP D зелёный, phpstan L6+pint чисты). Владелец: «баг править однозначно нужно, структуру решай сам». Bundle (а не отдельный item P1.4) — правка той же строки того же метода, что P1.1 уже трогает; отдельный item потребовал бы reverse-ordering (фикс ПЕРЕД P1.1) и второй коммит в один метод. RAG:— (repo-grounded + прогон: `HasScopedRoles.php:59-65`, EXP A/B/C/D в этом design-заходе) |
 | D7 | 2026-07-17 | P1.3 переклассифицирован `🔴 Blocked` → `⬜ Not started` (форма ожидания — `ОЖИДАНИЕ Q1`, §8), phase P1 → `🟡 In progress` | Ожидание продуктового РЕШЕНИЯ владельца (Q1) — это healthy-gate §8 «ОЖИДАНИЕ», а НЕ §10-эскалация «plan разошёлся с кодом» (код однозначен, спорна лишь целевая семантика); план уже externalized гейт в `open-questions.md`+`## Обсуждение`, а `roadmap.md` уже моделирует P1.3 как `ОЖИДАНИЕ`. `🔴` заставлял `plan-lint` держать всю фазу Blocked и уводил холодный старт от актуальных P1.1/P1.2 (аудит A7). item↔roadmap↔board теперь консистентны |
+| D10 | 2026-07-18 | Q1 (T2) разрешена владельцем — **Вариант B**: `removeScopedRole($role, $entity, panelId=null)` меняет семантику на «`null` = только null-панельная строка» (симметрично `assignScopedRole`); для «снести везде» вводится отдельный явный метод/флаг. Это `### Breaking` change публичного API-метода трейта модели пользователя — деталь diff'а, миграционная заметка и точная форма CHANGELOG-записи заполняются при детализации P1.3 (`/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3`) | Решение владельца (Dmitry Vostrikov, 2026-07-18): симметрия с `assignScopedRole` важнее сохранения текущего (asymметричного, путающего) поведения; пакет `core` публичный, релизы по SemVer — breaking-изменение допустимо со следующим major/минором с явным CHANGELOG-объявлением, владелец готов на это |
 
 ## 6. Update Log
 
@@ -93,6 +94,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | 2026-07-17 | issue-planner/opus | Design pass 1/1 (§5, k=1≥N=1 — бюджет исполнен): обе фазы детализированы, все Blocker'ы round-1/2 (A1/A3/C1+D9) закрыты с прогонной проверкой; дыр 0; фокус следующего — re-audit round-3, затем exec P1.1 |
 | 2026-07-17 | plan-run/sonnet-high | P1.1 закрыт (🟠): D5+D9 в `bootHasScopedRoles()` — детали см. `phases/P1.md` P1.1 Completion Notes |
 | 2026-07-17 | manual/sonnet-high | P1.2 закрыт (🟢): атомарный epoch bump в `PermissionCache::forgetForUser()` через `Cache::lock()` (T6) — детали см. `phases/P1.md` P1.2 Completion Notes. Item-commit `58ed1c4` |
+| 2026-07-18 | owner (Dmitry Vostrikov) | Q1 разрешена — Вариант B (D10). P1.3 разблокирован, ждёт детализации Code Guidance через `/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3` |
 
 ## Обсуждение
 
@@ -111,7 +113,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
   готовности пакета к breaking-изменениям (см. `Related Packages` — пакет `core` уже
   публичный, релизы идут по SemVer) принадлежит владельцу.
 
-**Статус:** Decision pending (нужен владелец) — см. `open-questions.md` Q1.
+**Статус:** Resolved → D10 (Вариант B) — 2026-07-18, см. `open-questions.md` Q1.
 
 ### 2 — Что делает query-scope, когда `AzGuard::currentPanel()` НЕ установлена (T1/P1.1)
 
