@@ -1,25 +1,18 @@
-# HANDOFF — 2026-07-17 — after P1.2
+# HANDOFF — 2026-07-18 — after P1.3
 
-**Next:** Q1 разрешена владельцем 2026-07-18 — **Вариант B** (`plan.md` `## 5. Decision Log`
-D10): `removeScopedRole(panelId=null)` меняет семантику на «`null` = только null-панельная
-строка» (симметрично `assignScopedRole`), снос «везде» — через отдельный явный метод/флаг;
-это `### Breaking` change публичного API. P1.3 разблокирован, но НЕ детализирован до уровня
-реализации (точный diff/CHANGELOG-текст/миграционная заметка) — первый шаг:
-
-```
-/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3
-```
-
-Параллельно (независимый scope) доступен P2 (T3/T4/T5) — через
-`Workflow({scriptPath: "plans/2026.07.17-AZGUARD-TAILS/workflows/wf-azguard-tails-p2.js"})`
-(P2.1-P2.4, `Exec=plan-exec`, sonnet/medium). НЕ гнать P2-workflow параллельно ручной P1.3-сессии
-(scope по коду независим, но обе пишут одни и те же файлы бухгалтерии — `plan.md`/`handoff.md` —
-двумя коммитами каждая; см. аудит A10) — гнать последовательно.
+**Next:** P1 фаза целиком закрыта по items (P1.1/P1.2/P1.3 все 🟢/🟠 Done). Осталось P2
+(T3/T4/T5) — задекларирована оркестрация (D4), workflow-скрипт готов. Первый шаг:
 
 | Параметр | Значение |
 |:--|:--|
-| P1.3 | Разблокирован (D10, Вариант B) — далее `/task:plan-design` для Code Guidance |
-| P2 | Разблокирован — `plan-exec`/sonnet-medium через свой workflow-скрипт |
+| Model | sonnet |
+| Thinking | medium |
+| Context | new session |
+| Суть | P2.1-P2.4 через workflow (T3/T4/T5 — диагностика/wildcard/rollback; T7 уже закрыт решением) |
+
+```
+Workflow({scriptPath: "plans/2026.07.17-AZGUARD-TAILS/workflows/wf-azguard-tails-p2.js"})
+```
 
 **Done:** P1.1 (T1) закрыт — panel-aware query-scope guard (D5) + eager-load recursion fix
 (D9) в `bootHasScopedRoles()`. Item-commit `c166538`. Статус 🟠 Done with deviations (см.
@@ -27,30 +20,28 @@ D10): `removeScopedRole(panelId=null)` меняет семантику на «`n
 P1.2 (T6) закрыт — атомарный epoch bump в `PermissionCache::forgetForUser()`: `add()`→
 `increment()`→`put()` сериализован под `Cache::lock()` (`LockProvider`-guard через
 `getStore()`+`instanceof`, phpstan level 6 чист; graceful degradation без лока для
-кастомных драйверов без `LockProvider`). Новый regression-тест — spy-декоратор над
-`Store`/`Lock` (`PermissionCacheLockSpyStore`/`PermissionCacheLockSpy`), доказывает
-`lock()` → `block()` → `add`/`increment`/`put` внутри колбэка → release, не физическую
-кросс-процессную гонку (за scope, см. Pending Work). CHANGELOG/REMAINDER/IMPROVEMENT
-синхронизированы (D6). Item-commit `58ed1c4`. Статус 🟢 Done (без отклонений — memory_limit
-OOM тот же известный факт локального окружения, что и в P1.1, не отклонение).
-**Remaining:** P1.3 — разблокирован (D10), ждёт `/task:plan-design` для детализации Code
-Guidance перед экзекуцией; P2.1-P2.4 — через
+кастомных драйверов без `LockProvider`). Item-commit `58ed1c4`. Статус 🟢 Done.
+P1.3 (T2) закрыт — Вариант B (D10): `removeScopedRole(panelId=null)` теперь удаляет
+только any-panel строку, новый метод `removeScopedRoleEverywhere()` воспроизводит старое
+поведение «снести везде». `### Breaking` запись в `packages/core/CHANGELOG.md`, заметка в
+`docs/ru/advanced/entity-scopes.md`. Item-commit `b972162`. Статус 🟢 Done.
+**Remaining:** P2.1-P2.4 — через
 `Workflow({scriptPath: "plans/2026.07.17-AZGUARD-TAILS/workflows/wf-azguard-tails-p2.js"})`.
+Фаза P1 не закрыта формально (`## Phase Handoff` в `phases/P1.md` не заполнен) — items
+все закрыты, но phase-close (`/task:plan-close`) ещё не проведён.
 **Sources of truth:** plans/2026.07.17-AZGUARD-TAILS/plan.md ·
 plans/2026.07.17-AZGUARD-TAILS/phases/P1.md ·
 plans/2026.07.17-AZGUARD-TAILS/phases/P2.md ·
-plans/2026.07.17-AZGUARD-TAILS/roadmap.md · `REMAINDER_REPORT.md` (T1/T6 теперь 🟢, T2-T5 актуальны).
-**Open risks:** P1.3 — Q1 разрешена (D10), но реализация Варианта B не детализирована;
-breaking change требует аккуратного CHANGELOG (`### Breaking`) и, возможно, deprecation-пути —
-не импровизировать на экзекуции, сначала `/task:plan-design`. P2.3 (T5) может потребовать
-эскалации, если SQLite не воспроизводит
+plans/2026.07.17-AZGUARD-TAILS/roadmap.md · `REMAINDER_REPORT.md` (T1/T2/T6 — 🟢, T3-T5 актуальны).
+**Open risks:** P2.3 (T5) может потребовать эскалации, если SQLite не воспроизводит
 задокументированный rollback-отказ (см. Escalation Needed P2.3). Голый `composer test`
-OOM-ит на этом локальном окружении (`memory_limit=128M`, подтверждено повторно на P1.2) —
-P2.1-P2.3 столкнутся с тем же, гонять Validation через
-`php -d memory_limit=1G vendor/bin/pest` (эквивалент, не отклонение).
+OOM-ит на этом локальном окружении (`memory_limit=128M`, подтверждено повторно на
+P1.1/P1.2/P1.3) — гонять Validation через `php -d memory_limit=1G vendor/bin/pest`
+(эквивалент, не отклонение).
 **Workarounds/Deferred/Open questions:**
 - workarounds: —
 - deferred: T6 — реальный Redis-интеграционный тест на гонку явно вынесен ЗА scope P1.2
   (array-лок доказывает наличие лок-обёртки, не физическую сериализацию) — если нужен,
   отдельный follow-up.
-- open_questions: — (Q1 разрешена, D10, Вариант B; `open-questions.md` обновлён).
+- open_questions: — (Q1 разрешена, D10, Вариант B, реализована в P1.3; никаких открытых
+  вопросов не осталось).

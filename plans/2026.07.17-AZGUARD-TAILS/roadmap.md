@@ -1,6 +1,6 @@
 # Roadmap исполнения — 2026.07.17-AZGUARD-TAILS
 
-**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.6.0
+**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.7.0
 
 ## Карта исполнения
 
@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | P1.1 | solo | manual (plan-run) | sonnet/high | — | T1, panel-isolation correctness + co-located фикс рекурсии eager-load (D9); тест на реальном fetch-пути с обходом console-guard; effort high MANDATORY, объединять с P1.2/P1.3 нельзя (§9 «result > economy») |
 | P1.2 | solo | manual (plan-run) | sonnet/high | — | T6, concurrency correctness; effort high MANDATORY |
-| P1.3 | solo | manual (plan-run) | sonnet/medium | ✅ Q1 разрешена 2026-07-18 (D10, Вариант B) | Готов к `/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3` для дозаполнения Code Guidance ПЕРЕД экзекуцией |
+| P1.3 | solo | manual (plan-run) | sonnet/medium | ✅ Q1 разрешена 2026-07-18 (D10, Вариант B) | 🟢 Done — item-commit `b972162` |
 | P2.1–P2.3 | W1 | workflow | sonnet/medium | — | независимый scope + детерминированная Validation → `wf-azguard-tails-p2.js` |
 | P2.4 | — | закрыт (D3) | — | — | ⛔ Skipped by decision, экзекуции не было и не будет |
 
@@ -51,21 +51,26 @@ plans/2026.07.17-AZGUARD-TAILS/phases/P1.md (item P1.2, все 16 полей) �
 Required Reads P1.2. Реализовать по Code Guidance P1.2. Закрыть по plan-protocol §8.
 ```
 
-### P1.3 (solo, manual — Q1 resolved, Вариант B, D10)
-
-```
-ЗАПУСК ВРУЧНУЮ: sonnet/medium — P1.3, ПЕРВЫЙ шаг — детализация Code Guidance
-```
+### P1.3 (solo, manual — Q1 resolved D10, детализирован D11)
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet |
 | Thinking | medium |
 | Context | continue (/clear) — ручной item |
-| Суть | Реализовать Вариант B `removeScopedRole` (T2): `null` → только null-панельная строка + отдельный метод/флаг «снести везде»; breaking change |
+| Суть | Вариант B `removeScopedRole` (T2): `null` → только any-panel строка; новый метод `removeScopedRoleEverywhere()`; CHANGELOG `### Breaking` |
 
 ```
-/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3
+ЗАПУСК ВРУЧНУЮ: sonnet/medium — P1.3 (§3 Routing: Exec=manual — breaking-change
+owner-ревью перед коммитом, не Q1-блок; /task:plan-exec пинит sonnet/medium, но
+routing-гейт §9 всё равно требует manual для этого item'а)
+
+Прочитать: plans/2026.07.17-AZGUARD-TAILS/plan.md →
+plans/2026.07.17-AZGUARD-TAILS/phases/P1.md (item P1.3, все 16 полей) → файлы из
+Required Reads P1.3. Применить Code Guidance БУКВАЛЬНО (diff уже проверен прогоном
+design-заходом — composer test/pint/phpstan зелёные на этом же дифе). Закрыть по
+plan-protocol §8 (item commit по Files P1.3 → composer test/pint --test/phpstan analyse
+→ bookkeeping commit plans/**).
 ```
 
 ### W1 — P2.1-P2.3 (workflow, независимый scope)
@@ -85,4 +90,4 @@ Workflow({scriptPath: "plans/2026.07.17-AZGUARD-TAILS/workflows/wf-azguard-tails
 
 | Где | Что утверждает | Блокирует |
 |---|---|---|
-| `open-questions.md` Q1 | Семантика `removeScopedRole(panelId=null)` — ✅ Resolved 2026-07-18: Вариант B (D10) | Разблокировал P1.3 (детализация через `/task:plan-design`) |
+| `open-questions.md` Q1 | Семантика `removeScopedRole(panelId=null)` — ✅ Resolved 2026-07-18: Вариант B (D10) | Разблокировал P1.3; реализован и закрыт (item-commit `b972162`) |

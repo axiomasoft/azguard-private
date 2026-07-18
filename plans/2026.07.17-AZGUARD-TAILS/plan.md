@@ -6,7 +6,7 @@
 |:--|:--|
 | Plan ID | 2026.07.17-AZGUARD-TAILS |
 | Title | AzGuard: закрыть хвосты T1-T7 (panel-aware query-scope, epoch race, семантика removeScopedRole, диагностика/wildcard/rollback) |
-| Version | 0.6.0 |
+| Version | 0.7.0 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | opus |
@@ -54,7 +54,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 |:--|:--|:--|:--|
 | P1.1 | sonnet/high | manual | T1 — tenant/panel-isolation correctness; effort high+ MANDATORY (invariants) |
 | P1.2 | sonnet/high | manual | T6 — concurrency/race correctness; effort high+ MANDATORY (invariants) |
-| P1.3 | sonnet/medium | manual | T2 — design/decision item (семантика публичного метода); Exec=manual пока Q1 не разрешён |
+| P1.3 | sonnet/medium | manual | T2 — публичный API breaking change (`removeScopedRole` семантика); Exec=manual для владельческого ревью перед коммитом breaking-диффа, не из-за Q1 (Q1 уже resolved, D10) |
 | P2.1 | sonnet/medium | plan-exec | T3 — локализованная правка с детерминированным тестом |
 | P2.2 | sonnet/medium | plan-exec | T4 — локализованная правка с детерминированным тестом |
 | P2.3 | sonnet/medium | plan-exec | T5 — миграция + rollback-тест, умеренный риск |
@@ -64,7 +64,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
-| P1 | Correctness-critical: panel-isolation & cache race | 1/3 | 🟡 In progress |
+| P1 | Correctness-critical: panel-isolation & cache race | 2/3 | 🟡 In progress |
 | P2 | Дешёвый батч: диагностика/wildcard/rollback | 0/4 | 🟡 In progress |
 
 ## 5. Decision Log
@@ -81,6 +81,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | D9 | 2026-07-17 | Рекурсия eager-load `scopeEntity` в `bootHasScopedRoles` (строка 63) — реальный прод-краш на первичном пути T1 (`Project::all()` при `runningInConsole()===false` + активный scope-row) — чинится В СОСТАВЕ P1.1 (bundle), фикс `->withoutGlobalScope(self::SCOPE_KEY)` на eager-load; тест P1.1 гоняет РЕАЛЬНЫЙ fetch-путь, а не pre-seed | Баг вскрыт при проектировании обхода console-guard (C1): обход исполним, но без фикса рекурсии Validation P1.1 физически не зелёная (OOM — проверено прогоном EXP B; фикс — EXP D зелёный, phpstan L6+pint чисты). Владелец: «баг править однозначно нужно, структуру решай сам». Bundle (а не отдельный item P1.4) — правка той же строки того же метода, что P1.1 уже трогает; отдельный item потребовал бы reverse-ordering (фикс ПЕРЕД P1.1) и второй коммит в один метод. RAG:— (repo-grounded + прогон: `HasScopedRoles.php:59-65`, EXP A/B/C/D в этом design-заходе) |
 | D7 | 2026-07-17 | P1.3 переклассифицирован `🔴 Blocked` → `⬜ Not started` (форма ожидания — `ОЖИДАНИЕ Q1`, §8), phase P1 → `🟡 In progress` | Ожидание продуктового РЕШЕНИЯ владельца (Q1) — это healthy-gate §8 «ОЖИДАНИЕ», а НЕ §10-эскалация «plan разошёлся с кодом» (код однозначен, спорна лишь целевая семантика); план уже externalized гейт в `open-questions.md`+`## Обсуждение`, а `roadmap.md` уже моделирует P1.3 как `ОЖИДАНИЕ`. `🔴` заставлял `plan-lint` держать всю фазу Blocked и уводил холодный старт от актуальных P1.1/P1.2 (аудит A7). item↔roadmap↔board теперь консистентны |
 | D10 | 2026-07-18 | Q1 (T2) разрешена владельцем — **Вариант B**: `removeScopedRole($role, $entity, panelId=null)` меняет семантику на «`null` = только null-панельная строка» (симметрично `assignScopedRole`); для «снести везде» вводится отдельный явный метод/флаг. Это `### Breaking` change публичного API-метода трейта модели пользователя — деталь diff'а, миграционная заметка и точная форма CHANGELOG-записи заполняются при детализации P1.3 (`/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3`) | Решение владельца (Dmitry Vostrikov, 2026-07-18): симметрия с `assignScopedRole` важнее сохранения текущего (asymметричного, путающего) поведения; пакет `core` публичный, релизы по SemVer — breaking-изменение допустимо со следующим major/минором с явным CHANGELOG-объявлением, владелец готов на это |
+| D11 | 2026-07-18 | P1.3 детализация: (а) «снести везде» реализуется ОТДЕЛЬНЫМ методом `removeScopedRoleEverywhere($role, $entity)`, НЕ флагом на `removeScopedRole()` — флаг допускал бы противоречивую комбинацию `panelId: 'admin', allPanels: true`, отдельный метод без параметра `panelId` делает её невыразимой на уровне сигнатуры; (б) `packages/core/CHANGELOG.md` заводит НОВУЮ секцию `### Breaking`, размещённую ПЕРВОЙ под `## [Unreleased]` (перед существующей `### Security`) — раздела `### Breaking` в файле не было ни разу; (в) диф `removeScopedRole()`/новый метод/два новых теста ПРИМЕНЕНЫ к рабочему дереву и ПРОГНАНЫ этим design-заходом (`composer test`-эквивалент `php -d memory_limit=1G vendor/bin/pest` 551/551, `pint --test` чист, `phpstan analyse` 0 ошибок), затем отменены `git checkout --` перед записью ТЗ — точный diff в `phases/P1.md` Code Guidance проверен, не гадание | (а) SKILL §3 «никаких самовольных допущений» — но выбор ФОРМЫ уже approved breaking-change (не сама breaking-семантика — та решена D10) является рутинным API-дизайном, а не продуктовым решением, требующим повторной эскалации владельцу; (б) в файле нет прецедента места для `### Breaking` — консьюмер должен увидеть breaking-изменения раньше Security/Fixed; (в) прошлые аудиты этого плана (A3/C1) поймали Code Guidance, не проверенный прогоном — тот же класс риска здесь недопустим для публичного API-диффа, RAG:✅ (2026-07-18: прогон на реальном рабочем дереве, не по памяти) |
 
 ## 6. Update Log
 
@@ -95,6 +96,8 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | 2026-07-17 | plan-run/sonnet-high | P1.1 закрыт (🟠): D5+D9 в `bootHasScopedRoles()` — детали см. `phases/P1.md` P1.1 Completion Notes |
 | 2026-07-17 | manual/sonnet-high | P1.2 закрыт (🟢): атомарный epoch bump в `PermissionCache::forgetForUser()` через `Cache::lock()` (T6) — детали см. `phases/P1.md` P1.2 Completion Notes. Item-commit `58ed1c4` |
 | 2026-07-18 | owner (Dmitry Vostrikov) | Q1 разрешена — Вариант B (D10). P1.3 разблокирован, ждёт детализации Code Guidance через `/task:plan-design 2026.07.17-AZGUARD-TAILS P1.3` |
+| 2026-07-18 | issue-planner/opus | P1.3 детализирован (D11), diff проверен прогоном — детали см. `phases/P1.md` P1.3 Code Guidance. `roadmap.md`/`handoff.md`/`brief/01-refinements.md` синхронизированы |
+| 2026-07-18 | manual/sonnet-medium | P1.3 закрыт (🟢): `removeScopedRole(panelId=null)` → только any-panel строка, новый `removeScopedRoleEverywhere()` (Вариант B, D10) — детали см. `phases/P1.md` P1.3 Completion Notes. Item-commit `b972162` |
 
 ## Обсуждение
 
