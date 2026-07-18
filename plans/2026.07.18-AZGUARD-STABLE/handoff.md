@@ -1,92 +1,89 @@
-# HANDOFF — 2026-07-18 — after P3.2
+# HANDOFF — 2026-07-18 — after P3.3
 
-**Next:** ЗАПУСК ВРУЧНУЮ: sonnet/high. P3.2 закрыт (🟢) — snapshot-гейт заморозки
-`@api`-поверхности живёт в `tests/Unit/ApiBoundaryTest.php` + фикстур
-`tests/Fixtures/api-surface.snapshot.php`. Следующий item — **P3.3**
-(SemVer-политика 0.x + каталог ограничений + UPGRADING 0.2→0.3): Routing §3 —
-`sonnet/high manual`, roadmap — solo. Несёт обязательный вход: F2 (Audit P2) +
-Pending Work P3.1/P3.2.
+**Next:** `/task:plan-close 2026.07.18-AZGUARD-STABLE P3` — все 3 items фазы P3 терминальны
+(P3.1 🟠, P3.2 🟢, P3.3 🟢): Phase Handoff synthesis (агрегат Known Deviations/SemVer-breaking
+по трём items, docs-sync check, lint/plan-lint gate), затем — P4 (тест-углубление, 7 items).
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet |
-| Thinking | high — предписано §3 Routing/D28 (контракт-язык SemVer-политики, состав breaking предписан) |
-| Context | continue (/clear) — ручной item |
-| Суть | P3.3: root/semver-policy.md (снапшот-гейт как энфорсер + процедура D#-регенерации) + каталог ограничений (≥6, с адресами) + консолидированная глава 0.2→0.3 в docs/introduction/upgrading.md EN+RU |
+| Thinking | low — предписано SSOT-матрицей роли plan-close (bookkeeping/сверка, не design) |
+| Context | NEW SESSION — шаг-не-item (plan-close читает план с диска заново) |
+| Суть | Закрыть фазу P3: свести Known Deviations P3.1/P3.2/P3.3, подтвердить docs-sync, прогнать plan-lint.py, обновить Phase Index & Status Board |
 
 ```
-/model sonnet
-/effort high
-/task:plan-run 2026.07.18-AZGUARD-STABLE P3.3
+/task:plan-close 2026.07.18-AZGUARD-STABLE P3
 ```
 
-**Done:** P3.2 (Заморозка: snapshot-гейт поверхности) закрыт 🟢. Расширен
-существующий `tests/Unit/ApiBoundaryTest.php` (третий тест, переиспользованы
-`$classesIn`/`$hasTag`): reflection-энумератор всех `@api`-типов core (32 —
-1:1 с реестром `root/api-surface.md`) снимает kind + публичные методы,
-объявленные в самом типе, с нормализованной сигнатурой (static, имя, порядок
-и ИМЕНА параметров — named-arguments-контракт, типы FQCN-строкой, by-ref/
-variadic, дефолт как presence-маркер `= default`, тип возврата); engine-методы
-и метод-уровня `@internal` исключены (внутренности не замораживаются). Сверх
-reflection заморожен docblock-`@method`-состав фасада (14 строк до
-`--- @internal`-маркера) — иначе cut-line P3.1 не был бы защищён (reflection
-видит у фасада только `fake()`). Фикстур пишется детерминированным
-генератором (ksort/sort, pint-стабильный формат, идемпотентность подтверждена
-md5), сверка даёт читаемый lost/gained-diff, регенерация — ТОЛЬКО осознанно:
-env `AZ_UPDATE_API_SNAPSHOT=1` / `composer test:api-snapshot:update`
-(докблок теста и заголовок фикстура требуют D# + bump). Самопроверка: мутация
-имени параметра `PermissionMatcher::matches()` → red с точным diff'ом, откат
-→ green. Гейт бежит в существующем CI (tests/Unit, отдельный workflow не
-нужен). Validation на `27d46b7`: api-snapshot 3 passed/218 · test:unit
-287/790 · analyse 0 errors · lint:check passed · refactor:check 0 · полный
-`composer test` 667/1775.
+**Done:** P3.3 (SemVer-политика 0.x + каталог ограничений + UPGRADING 0.2→0.3) закрыт 🟢.
+`root/semver-policy.md` (создан) — граница `@api`-поверхности (снапшот P3.2 как SSOT), 5
+критериев breaking, deprecate-first дисциплина (legacy-wildcard прецедент), 6-шаговая легальная
+процедура смены поверхности (регенерация фикстура строго с D#+bump в том же коммите),
+roave/bc-check явно отложен (D20) до границы тега 1.0. `root/known-limitations.md` (создан,
+отдельным файлом — под архивную карту D26) — 12 честных ограничений с адресом каждого (→P4.4
+×2 хвоста race/Octane · opt-out-цикл legacy-wildcard · doc-only headless · unscheduled snapshot
+core-only/`Attributes/*`/`AzGuardFake`-passthrough/`removeScopedRoleEverywhere()`/`tests/Unit/
+Support/` · новый пункт — `Event::fake()` подавляет `AzGuard::fake()`-рекордер · →P4.2/P4.7
+MySQL-ветки миграций · CI-side coverage-driver skip); проверено и НЕ внесено ложное ограничение
+(публичный `InvalidCatalogException` — уже удалён ДО этого плана, REMAINDER_REPORT `bfc6813`).
+`docs/introduction/upgrading.md` + RU-зеркало реструктурированы: новая мастер-секция `## 0.2 →
+0.3` с 8 grep-верифицированными подразделами (query-scope fail-closed · единая fluent
+grant-грамматика `expiresAt()`→`until()` · facade cut-line · Filament fluent+`::using()`+
+`panel_check`-арг-флип · 11-строчная таблица неймспейс-переездов · контракт-сигнатуры
+Authorizer/PermissionDefinition · wildcard-флип (перенесён, контент сохранён) · новые
+config-ключи/2 миграции с командами публикации); старая секция переименована в `## 0.1 → 0.2 —
+earlier API cleanup (historical)` с поясняющим blockquote. **F2 (Audit P2) закрыт**: оба
+пропущенных breaking (panel_check-флип, PermissionKey/PanelProvider-переезды) внесены в
+UPGRADING. Item-коммит `b7c39a5`: 4 files, +532/−10 (`git show --stat b7c39a5`). Validation:
+`test -f root/semver-policy.md` ✓ · `grep -c '^| [0-9]' root/known-limitations.md` == 12 (≥6) ·
+`bash bin/docs-parity-gate.sh` OK · `composer lint:check` passed · `composer analyse` 0 errors
+(doc-only diff, страховка).
 
-**Remaining:** P3.3 (SemVer-политика + UPGRADING, sonnet/high — несёт F2
-pending + каталог-заметки P3.2) → Phase Handoff P3 (`/task:plan-close`) →
-штатно P4 (тест-углубление, 7 items) → P5 (шаблон → релиз+тег → миграция
-root/→docs) → post-plan `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
+**Remaining:** Phase Handoff P3 (`/task:plan-close`) → P4 (тест-углубление: docker-стенд ·
+БД-лейн · paratest · race-тесты C-05/C-14 · mutation-ratchet · чистка · collation MySQL, 7
+items) → P5 (шаблонизация дорожки → релиз v0.3.0+тег → миграция root/→docs) → post-plan
+`/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.18,
-D1–D29, §4 P3=🟡 1/3) · phases/P3.md (P3.2 Completion Notes — полный дизайн
-снапшота и границы заморозки) · tests/Fixtures/api-surface.snapshot.php
-(закоммиченный SSOT замороженной поверхности) · root/api-surface.md
-(человекочитаемый реестр, вход P3.3) · root/contracts/facade-cutline.md
-(исполненная спека cut-line, D29) · roadmap.md.
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.19, D1–D29, §4 P3=🟠 2/3,
+все items терминальны) · phases/P3.md (P3.1/P3.2/P3.3 Completion Notes) · root/semver-policy.md
+(SSOT SemVer-политики) · root/known-limitations.md (SSOT каталога ограничений) ·
+docs/introduction/upgrading.md + RU (консолидированная 0.2→0.3-глава) · root/api-surface.md
+(P3.1, вход снапшота/политики) · root/contracts/facade-cutline.md (P2.5, D29) · roadmap.md.
 
 **Open risks:**
-- F2 (Audit P2) не исполнен — P3.3 обязан внести в UPGRADING оба пропущенных
-  breaking (P2.4 `panel_check` арг-флип, P2.1 переезды публичных типов);
-  Required Reads P3.3 указывает на это явно.
-- `AzGuardFake` заморожен целиком, включая passthrough-методы менеджера без
-  метод-`@internal` (`tryPermission`/`panelIdForPermission` и др.) — если это
-  шум, снятие через D# + метод-теги на фейке, НЕ ослаблением гейта (P3.2
-  Pending Work → каталог P3.3).
-- Снапшот покрывает только core; filament/context вне конвенции `@api` —
-  каталогизировать в P3.3 (P3.2 Scope Excluded).
-- `Attributes/*` документированы, но без `@api`-тегов (root/api-surface.md
-  §8) — вне снапшота, кандидат отдельного item'а/каталога P3.3.
-- Регенерация бandled boost-скилла целиком после cut-line — кандидат
-  (facade-cutline.md §5, P2.5/P3.1 Pending Work).
-- `tests/Unit/Support/` (5 файлов) — имя каталога дрейфует от канона (P2.1
-  Pending Work, не тронуто).
-- Удаление legacy `WildcardPermissionMatcher` + флага — deprecate-цикл ПОСЛЕ
-  0.3.0 (P2.9 Pending Work, кандидат known-limitations P3.3).
-- MySQL-ветка миграции 000005 / миграция 000011 (expires_at) не гонялись на
-  MySQL локально — верификация в P4.2/P4.7.
+- Фаза P3 не закрыта командой `plan-close` — Phase Handoff `phases/P3.md` всё ещё «—»,
+  агрегат Known Deviations трёх items (P3.1 material из-за facade-cutline vs буквы ТЗ, P3.2
+  design-надстройка @method-докблока, P3.3 —) не сведён.
+- `Attributes/*` документированы, но без `@api`-тегов (root/api-surface.md §8, каталогизировано
+  в known-limitations.md #6) — вне снапшота, кандидат отдельного item'а/каталога, не
+  запланирован ни в одной фазе явно.
+- `AzGuardFake` заморожен целиком, включая passthrough-методы менеджера без метод-`@internal`
+  (known-limitations.md #7) — снятие через D# + метод-теги на фейке, НЕ ослаблением гейта.
+- Снапшот покрывает только core; filament/context вне конвенции `@api` (known-limitations.md
+  #5) — unscheduled follow-up, не в Routing ни одной будущей фазы.
+- Новый каveat (найден при P3.3): `AzGuard::fake()` + глобальный `Event::fake()` в одном тесте
+  подавляет реальную доставку слушателей fake()-рекордера — известное ограничение
+  (known-limitations.md #8), НЕ ещё задокументировано doc-note в `docs/advanced/testing.md`
+  (doc-only follow-up, не в текущем Files ни одного item'а).
+- `HasScopedRoles::removeScopedRoleEverywhere()` публичен на трейте, но отсутствует в контракте
+  `Contracts\HasScopedRoles` (known-limitations.md #9) — добавление было бы breaking
+  interface-addition, не запланировано ни в одной фазе.
+- `tests/Unit/Support/` (5 файлов) — имя каталога дрейфует от канона (P2.1 Pending Work,
+  known-limitations.md #11).
+- Удаление legacy `WildcardPermissionMatcher` + флага — deprecate-цикл ПОСЛЕ 0.3.0
+  (known-limitations.md #3).
+- MySQL-ветка миграции 000005 / миграция 000011 (expires_at) не гонялись на MySQL локально —
+  верификация в P4.2/P4.7 (known-limitations.md #10).
 - P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен.
-- `plan-lint.py` вызывается по абсолютному пути (swissknifeman/packages/task/
-  scripts/, `${CLAUDE_PLUGIN_ROOT}` пуст в среде).
-- `AzGuard::fake()` + глобальный `Event::fake()`: подавляет реальную доставку
-  слушателей (doc-note в advanced/testing.md).
+- `plan-lint.py` вызывается по абсолютному пути (swissknifeman/packages/task/scripts/,
+  `${CLAUDE_PLUGIN_ROOT}` пуст в среде).
 
 **Workarounds/Deferred/Open questions:**
-- workarounds: `plan-lint.py` по абсолютному пути; докблок-`@see` на импорт,
-  используемый только в PHPDoc, переписывается прозой (rector↔pint, F1 P3.1);
-  дефолты параметров в снапшоте — presence-маркер `= default`, не значение
-  (значение = поведение, вне сигнатурного контракта — D20).
-- deferred: F2 (Audit P2) → P3.3; снапшот filament/context → каталог P3.3;
-  `Attributes/*` тегирование → кандидат; boost-скилл целиком → кандидат;
-  удаление legacy-matcher → post-0.3.0; roave/bc-check → отложен (D20);
-  split/Packagist (D25); rename `tests/Unit/Support/` → отдельный item;
-  `removeScopedRoleEverywhere()` → контракт (P2).
+- workarounds: `plan-lint.py` по абсолютному пути.
+- deferred: `Attributes/*` тегирование → кандидат; boost-скилл целиком → кандидат; удаление
+  legacy-matcher → post-0.3.0 (opt-out-цикл); roave/bc-check → отложен до границы тега 1.0
+  (D20, подтверждено в semver-policy.md §4); split/Packagist (D25); rename `tests/Unit/
+  Support/` → отдельный item; `removeScopedRoleEverywhere()` → контракт-ревью (post-0.3.0);
+  `Event::fake()`-каveat → doc-note в testing.md (новый deferred, найден P3.3); filament/context
+  `@api`-конвенция + сателлитные снапшоты → unscheduled follow-up (новый deferred, найден P3.3).
 - open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.
