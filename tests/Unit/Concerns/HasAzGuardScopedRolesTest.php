@@ -12,6 +12,7 @@ use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 // Stub entity model for scoping
@@ -187,5 +188,32 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
             ->count();
 
         expect($count)->toBe(1);
+    });
+
+    it('assignScopedRole persists scope_class in the same INSERT as the row (P1.4 review, atomicity)', function (): void {
+        $user = User::factory()->create();
+        $project = Project::create(['name' => 'Lambda']);
+
+        createRoleWithClass(['name' => 'editor',
+            'level' => 5,
+        ], ManagerRole::class);
+
+        $table = (new ModelHasScope)->getTable();
+        $inserts = [];
+
+        DB::listen(function ($query) use (&$inserts, $table): void {
+            if (str_contains($query->sql, 'insert') && str_contains($query->sql, $table)) {
+                $inserts[] = $query->sql;
+            }
+        });
+
+        $user->assignScopedRole('editor', $project);
+
+        // A firstOrCreate()-then-save() pair would show an INSERT without
+        // scope_class (+ a later UPDATE): a crash between the two persists a
+        // "logic-less" row whose filter never applies. One INSERT, with the
+        // column, proves the write is atomic.
+        expect($inserts)->toHaveCount(1)
+            ->and($inserts[0])->toContain('scope_class');
     });
 });

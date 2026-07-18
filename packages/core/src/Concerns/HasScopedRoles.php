@@ -18,6 +18,7 @@ use AzGuard\Support\ScopedRoleCache;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use UnitEnum;
@@ -152,7 +153,7 @@ trait HasScopedRoles
 
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
-        $scope = ModelHasScope::firstOrCreate([
+        $scope = ModelHasScope::firstOrNew([
             'model_type' => $this->getMorphClass(),
             'model_id' => $this->getKey(),
             'scope_entity_type' => $entity->getMorphClass(),
@@ -163,13 +164,21 @@ trait HasScopedRoles
 
         // scope_class is guarded (C-11, not mass-assignable) — firstOrCreate()'s
         // second array goes through the SAME fill()/fillable check as create(),
-        // it is NOT a bypass. Set it via a direct property assignment instead,
-        // and only on genuine creation (wasRecentlyCreated) to preserve the
-        // original semantics: an existing row's scope_class is never touched.
-        if ($scope->wasRecentlyCreated) {
+        // it is NOT a bypass. Set it via a direct property assignment on the
+        // yet-unsaved instance instead, so the row is persisted in ONE insert:
+        // a firstOrCreate()-then-save() pair leaves a scope_class=null row
+        // ("logic-less", filter never applies) if interrupted between the two
+        // queries. An existing row's scope_class is never touched.
+        if (! $scope->exists) {
             $roleLogic = $roleModel->getRoleLogic();
             $scope->scope_class = $roleLogic !== null ? $roleLogic::class : null;
-            $scope->save();
+
+            try {
+                $scope->save();
+            } catch (UniqueConstraintViolationException) {
+                // Lost a concurrent insert race — the winner's row (C-16
+                // unique) already carries the same scope; nothing to do.
+            }
         }
 
         $this->flushPermissions();
