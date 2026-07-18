@@ -11,6 +11,7 @@ use AzGuard\Facades\AzGuard;
 use AzGuard\PermissionKey;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
+use AzGuard\Support\Config;
 use AzGuard\Support\Panel;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
@@ -44,6 +45,10 @@ class AzGuardDiagnostics
         $this->errors = [];
         $this->warnings = [];
         $abilityRows = [];
+
+        // Panel-independent (model_has_scopes has no meaningful "per panel"
+        // grouping for this check) — run once regardless of $panelFilter.
+        $this->checkStaleScopeClasses();
 
         foreach (AzGuard::getPanels() as $panelId => $panel) {
             if ($panelFilter !== null && $panelFilter !== $panelId) {
@@ -338,6 +343,28 @@ class AzGuardDiagnostics
             static fn (PermissionDefinition $definition): string => $definition->key(),
             app(PermissionCatalog::class)->all($panelId),
         );
+    }
+
+    /**
+     * C-03 — surface stale scope_class values (the class was renamed/removed
+     * after being persisted in model_has_scopes) as a loud warning, rather
+     * than the silent per-request Log::warning in bootHasScopedRoles() being
+     * the only way to ever notice.
+     */
+    private function checkStaleScopeClasses(): void
+    {
+        $model = Config::scopeModel();
+
+        $classes = $model::query()
+            ->whereNotNull('scope_class')
+            ->distinct()
+            ->pluck('scope_class');
+
+        foreach ($classes as $class) {
+            if (! class_exists($class)) {
+                $this->warnings[] = "model_has_scopes: stale scope_class [{$class}] — class does not exist.";
+            }
+        }
     }
 
     /** @return list<class-string> */

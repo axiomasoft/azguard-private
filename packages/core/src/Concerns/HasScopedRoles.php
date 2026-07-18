@@ -13,10 +13,12 @@ use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Support\Config;
 use AzGuard\Support\PanelResolver;
 use AzGuard\Support\PermissionName;
+use AzGuard\Support\RequestState;
 use AzGuard\Support\ScopedRoleCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use UnitEnum;
 
 /**
@@ -95,10 +97,27 @@ trait HasScopedRoles
                 }
 
                 // A null scope_class indicates a logic-less role (no query-scope behavior).
-                // Only apply the scope filter if a scope_class exists and is instantiable.
-                if ($scope->scope_class !== null && class_exists($scope->scope_class)) {
-                    app($scope->scope_class)->apply($builder, $user, $scope->scopeEntity);
+                if ($scope->scope_class === null) {
+                    continue;
                 }
+
+                // Only apply the scope filter if the class is instantiable. A stale
+                // scope_class (the class was renamed/removed after being persisted)
+                // silently no-ops here — surface it loudly instead (once per request,
+                // C-03) so the gap is diagnosable rather than a quiet loss of isolation.
+                if (! class_exists($scope->scope_class)) {
+                    app(RequestState::class)->once(
+                        'azguard.stale-scope-class.'.$scope->scope_class,
+                        fn () => Log::warning('AzGuard: stale scope_class does not exist', [
+                            'scope_class' => $scope->scope_class,
+                            'model' => static::class,
+                        ]),
+                    );
+
+                    continue;
+                }
+
+                app($scope->scope_class)->apply($builder, $user, $scope->scopeEntity);
             }
         });
     }

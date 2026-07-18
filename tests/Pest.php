@@ -65,6 +65,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/ScopedRoleQueryScopePanelIsolationTest.php',
         'Feature/ScopedRolesConsoleQueueTest.php',
         'Feature/SetCurrentPanelMiddlewareTest.php',
+        'Feature/StaleScopeClassTest.php',
         'Feature/SuperAdminCommandTest.php',
         'Feature/SyncRolesCommandTest.php',
         'Feature/WildcardCatalogFilterTest.php',
