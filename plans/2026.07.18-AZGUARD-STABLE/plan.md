@@ -101,6 +101,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | orchestrator/fable | P0.4 закрыт: ось C — 10 чеков, 16 находок (1 Blocker C-01, 9 Major), F4/F40/F51 сделаны, F22 открыт — детали см. phases/P0.md P0.4 Completion Notes |
 | 2026-07-18 | orchestrator/fable | P0.5 закрыт: ось D — 12 чеков, 9 находок (1 Major D-06 OOM), Support/ 9 файлов классифицированы, baseline 17+6+12=35 — детали см. phases/P0.md P0.5 Completion Notes |
 | 2026-07-18 | plan-run solo/fable (fable/high) | P0.6 закрыт: REGISTER 44 находки + бэклог W0/W1/W2=1/12/14, 9 кластеров P2, гейт владельца утверждён (D9) — детали см. phases/P0.md P0.6 Completion Notes |
+| 2026-07-18 | plan-close/sonnet | Фаза P0 закрыта: 6/6 items 🟢, Phase Handoff сверен, docs-sync не требуется, lint 0/0 — детали см. phases/P0.md Phase Handoff |
 
 ## Обсуждение
 
