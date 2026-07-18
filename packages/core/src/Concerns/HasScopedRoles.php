@@ -145,18 +145,26 @@ trait HasScopedRoles
         }
 
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
-        $roleLogic = $roleModel->getRoleLogic();
 
-        ModelHasScope::firstOrCreate([
+        $scope = ModelHasScope::firstOrCreate([
             'model_type' => $this->getMorphClass(),
             'model_id' => $this->getKey(),
             'scope_entity_type' => $entity->getMorphClass(),
             'scope_entity_id' => $entity->getKey(),
             'role_id' => $roleModel->getKey(),
             'panel_id' => $panelId,
-        ], [
-            'scope_class' => $roleLogic !== null ? $roleLogic::class : null,
         ]);
+
+        // scope_class is guarded (C-11, not mass-assignable) — firstOrCreate()'s
+        // second array goes through the SAME fill()/fillable check as create(),
+        // it is NOT a bypass. Set it via a direct property assignment instead,
+        // and only on genuine creation (wasRecentlyCreated) to preserve the
+        // original semantics: an existing row's scope_class is never touched.
+        if ($scope->wasRecentlyCreated) {
+            $roleLogic = $roleModel->getRoleLogic();
+            $scope->scope_class = $roleLogic !== null ? $roleLogic::class : null;
+            $scope->save();
+        }
 
         $this->flushPermissions();
 

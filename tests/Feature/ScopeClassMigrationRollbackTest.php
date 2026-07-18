@@ -31,12 +31,13 @@ describe('T5 — migration 000004 down() rollback with a null scope_class row', 
 
         // A logic-less scoped-role row: scope_class stored as null. up() already
         // ran (RefreshDatabase), so the column is nullable at this point.
+        // scope_class is guarded (C-11, not mass-assignable) — null is also
+        // the column's own default, so omitting it from create() is enough.
         ModelHasScope::query()->create([
             'model_id' => $user->getKey(),
             'model_type' => $user->getMorphClass(),
             'scope_entity_id' => null,
             'scope_entity_type' => null,
-            'scope_class' => null,
             'role_id' => null,
             'panel_id' => null,
         ]);
@@ -56,15 +57,18 @@ describe('T5 — migration 000004 down() rollback with a null scope_class row', 
     it('does not throw down() when no null scope_class row exists', function (): void {
         $user = User::factory()->create();
 
-        ModelHasScope::query()->create([
+        // scope_class is guarded (C-11, not mass-assignable) — set it via a
+        // direct property assignment after create() instead.
+        $scope = ModelHasScope::query()->create([
             'model_id' => $user->getKey(),
             'model_type' => $user->getMorphClass(),
             'scope_entity_id' => null,
             'scope_entity_type' => null,
-            'scope_class' => 'AzGuard\\Tests\\Stubs\\Roles\\ProjectEditorRole',
             'role_id' => null,
             'panel_id' => null,
         ]);
+        $scope->scope_class = 'AzGuard\\Tests\\Stubs\\Roles\\ProjectEditorRole';
+        $scope->save();
 
         $migrationPath = dirname(__DIR__, 2)
             .'/packages/core/database/migrations/2026_01_01_000004_make_scope_class_nullable_on_model_has_scopes.php';

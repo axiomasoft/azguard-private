@@ -27,7 +27,7 @@ final class DatabaseRoleGrantSource implements GrantSource
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
         $userId = $user->getAuthIdentifier();
-        $userClass = $user::class;
+        $userClass = $user->getMorphClass();
 
         $pivotTable = Config::modelHasRolesTable();
         $permTable = Config::rolePermissionsTable();
