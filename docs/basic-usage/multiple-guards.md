@@ -4,7 +4,13 @@ AzGuard supports applications that use more than one authentication guard — fo
 
 ## How it works
 
-Each guard resolves its own set of panels. The permission namespace (`app.*`, `admin.*`) is bound to a panel, and a panel is bound to one or more guards. This gives you full isolation with zero cross-contamination.
+"Guard" here is a Laravel authentication concept — it decides *who* is logged in. AzGuard's
+isolation unit is the **panel** — it decides *which permission namespace* (`app.*`, `admin.*`)
+applies. The two are not bound together in code: a panel is just a permission namespace, and
+which auth guard fronts a given area of your app is entirely up to your own routing/middleware
+setup.
+
+In practice you typically pair one auth guard with one panel per area of your application:
 
 ```
 web guard   → App panel   → app.documents.view, app.posts.edit …

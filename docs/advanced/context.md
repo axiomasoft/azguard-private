@@ -4,6 +4,24 @@ The `azguard/context` package is an opt-in extension for multi-workspace /
 multi-site scenarios. A user can hold **different permissions in different
 contexts** (workspace, project, organisation, etc.) on the same panel.
 
+## Context or scope?
+
+Context and [entity-scoped roles](/advanced/entity-scopes) both answer a similar question —
+"can this user act here?" — but they are two different mechanisms, on purpose:
+
+| | Context (this page) | [Entity scope](/advanced/entity-scopes) |
+|---|---|---|
+| Lifetime | Runtime — resolved per request, held for its duration | Persisted — stored as a role on the model |
+| What it answers | "Which workspace/tenant am I in right now?" | "Does this user have a role on *this specific record*?" |
+| Package | `azguard/context` (opt-in) | `azguard/core` (built in) |
+| API | `hasPermissionIn($type, $id, $perm)` | `hasScopedPermission($perm, $entity)` |
+
+Pick **context** for a request-scoped "current workspace/tenant" switch that changes which
+permissions apply for the rest of the request. Pick **entity scope** for a persistent
+"this user is an editor on Project A specifically" assignment that survives across requests.
+They are not merged and are not meant to replace each other — use both together if your app
+has both a tenant switch and per-record role assignment.
+
 ## Installation
 
 ```bash
