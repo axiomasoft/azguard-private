@@ -1,103 +1,89 @@
-# HANDOFF — 2026-07-18 — after P2.6
+# HANDOFF — 2026-07-18 — after P2.5
 
 **Next:** ЗАПУСК ВРУЧНУЮ: `fable/high` (manual, Routing построчный D28).
-Следующий item — P2.5 (Локус фасада: cut-line target-спека, вход заморозки
-P3). Порядок §10 канона: P2.4 ✓ → P2.6 ✓ → P2.5 → P2.9 → P2.10. Модельная
-карта остатка (D28): fable — P2.5/P2.9/P3.2/P5.1; sonnet/high — P3.1/P3.3
-(и уже закрытые P2.4/P2.6); sonnet/medium plan-exec — P2.7/P2.8/P2.10/
-P4.1–P4.6/P5.2/P5.3; sonnet/high — P4.7.
+Следующий item — P2.9 (пере-оценка breaking: wildcard-флип на Hierarchical
++ verify F4/F40/F51). Порядок §10 канона: P2.4 ✓ → P2.6 ✓ → P2.5 ✓ → P2.9 →
+P2.7/P2.8 (plan-exec, порядок свободен) → P2.10 последним. Модельная карта
+остатка (D28): fable — P2.9/P3.2/P5.1; sonnet/high — P3.1/P3.3/P4.7;
+sonnet/medium plan-exec — P2.7/P2.8/P2.10/P4.1–P4.6/P5.2/P5.3.
 
 | Параметр | Значение |
 |:--|:--|
 | Model | fable |
-| Thinking | high — design/contract-класс item: cut-line target-спека фасада — открытых решений формально нет (D19 reconcile), но ошибка вердикта замораживается снапшотом P3.2, цена ошибки необратима |
+| Thinking | high — breaking-семантика permission-matcher'а: дефолт грамматики меняет поведение всех потребителей `*`-паттернов; re-baseline тестов требует различать «legacy-намерение vs случайность» (Routing D28) |
 | Context | continue (/clear) — ручной item |
-| Суть | P2.5: cut-line target-спека фасада `AzGuardManagerInterface`/`AzGuard` — что остаётся `@api`, что уходит в `@internal`/удаляется, вход заморозки P3 |
+| Суть | P2.9: дефолт matcher → Hierarchical (legacy opt-out на цикл), PermissionSet вне контейнера выровнять, verify F4/F40/F51, breaking-заметка upgrading.md |
 
 ```
 /model fable
 /effort high
-/task:plan-run 2026.07.18-AZGUARD-STABLE P2.5
+/task:plan-run 2026.07.18-AZGUARD-STABLE P2.9
 ```
 
 (Форма D18: модель/effort сессии должны соответствовать Routing — гейт plan-run сверит.)
 
-**Done:** P2.6 закрыт 🟢 (item-коммит `c07f157`, 6 files, +497/−0):
-`AzGuard::fake()` — Recorder-паттерн (канон RAG:✅ Pdf::fake, findings/
-P0-rag-fluent-dx.md Запрос 3). `AzGuardFake` (`packages/core/src/Testing/
-AzGuardFake.php`) — `final class` реализует `AzGuardManagerInterface` +
-Laravel `Fake`-маркер, делегирует КАЖДЫЙ метод интерфейса реальному
-(уже забутстрапленному) менеджеру — грант/ревок/резолюция идут по-настоящему,
-fake() только наблюдает. Запись grant/revoke — подписка на существующие
-события `GrantGiven`/`GrantRevoked` (`Event::listen`, диспетчатся
-`GrantBuilder` независимо от точки входа — фасадный корень или shorthand);
-запись check — `Gate::after()` (стандартный Laravel-хук, фиксирует любой
-`can()`/Gate-чек). Оба механизма НЕ требуют правок Guard/Authorizer.php,
-Registry/Resolver/EffectivePermissionResolver.php, Concerns/HasPermissions.php,
-Grants/GrantBuilder.php — ни один не входил в Files item'а; `AzGuardManager.php`
-тоже не потребовал правок (swap-поверхность реализована целиком через
-`Facade::swap()` + делегирующий double). `assertGranted`/`assertDenied`/
-`assertChecked` — простая форма (user+key[+panelId]) ИЛИ closure-предикат
-над `Recorded` (user/key/panelId/result); внутри `PHPUnit::assertTrue()`
-(не голый `fail()`) — считается PHPUnit-ассершеном (иначе `failOnRisky=true`
-роняет прогон — поймано и исправлено локально: 6 risky → 0). Validation на
-`c07f157`: targeted `pest --filter='Fake|AzGuardFake'` 15 passed/42 assertions ·
-`composer analyse` 0 errors · `composer lint:check` passed · полный
-`composer test` 657 passed/1755 assertions (было 648 на P2.4, +9 новых
-тестов). Docs EN: новая секция «`AzGuard::fake()` — recording grants and
-checks» в `docs/advanced/testing.md`; RU-зеркало не трогалось (P2.10).
-Known Deviations: нет (диффа вне Files item'а не было).
+**Done:** P2.5 закрыт 🟢 (item-коммит `2a395ef`, 1 file, +122):
+`root/contracts/facade-cutline.md` — замороженная target-спека cut-line
+фасада, вход P3.1/P3.2. Состав: таблица ровно 17 вердиктов C-B4
+(`@method | вердикт | обоснование | SemVer-эффект`) + пост-recon поверхность
+P2.6 (fake() + 3 assert* → остаются @api) + target state докблока (итог: 14
+@api @method + fake(); @internal-секция grant/revoke/grants+isSuperAdmin;
+строки tryPermission/panelIdForPermission удаляются) + заметки
+P3-исполнителю + команды воспроизводимости счётчиков (все числа на
+`9190e8d`). Ключевая находка сверки с кодом (предписана Open risks прошлого
+handoff): premise C-B4 «0 внутренних потребителей» мёртвых резолверов
+опровергнут — `tryPermission` ← `Permissions/PermissionName.php:31` (шов
+всех grant-путей, вошёл 3e9adb1 ДО аудита вне фасадной формы grep'а),
+`panelIdForPermission` ← `Concerns/HasScopedRoles.php:324` (P1-W1 ed64c93,
+ПОСЛЕ аудита) → **D29** (уточняет D19): P3.1 удаляет только 2
+@method-СТРОКИ фасада, методы interface/manager получают `@internal`.
+Согласованность с P2.3 (shorthands @internal) отмечена в спеке явно.
+Validation на `2a395ef`: `test -f` ✓ · 17 строк-вердиктов ✓ · отметка P2.3
+✓ · сверх ТЗ `composer lint:check` passed + `composer analyse` 0 errors
+(кода item не менял). Session: fable/high — соответствует Routing.
 
-**Remaining:** P2.5/P2.9/P2.10 (fable/high и sonnet/medium plan-exec, по
-одному item на сессию; порядок — research/03-p2-canon.md §10: P2.5 → P2.9
-→ P2.10 последним) → P3 заморозка → P4 тест-углубление → P5 (шаблон →
-релиз+тег → миграция docs) → post-plan
+**Remaining:** P2.9 (fable/high) → P2.7/P2.8 (sonnet/medium plan-exec) →
+P2.10 последним (sonnet/medium plan-exec) → P3 cut-line/заморозка (P3.1
+sonnet/high — теперь по спеке P2.5 + D29) → P4 тест-углубление → P5 (шаблон
+→ релиз+тег → миграция docs) → post-plan
 `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.11, D1–D28)
-· phases/P2.md (P2.1–P2.4 🟠, P2.6 🟢, ТЗ P2.5/P2.7–P2.10) ·
-research/03-p2-canon.md (канон структуры и грамматики, §5 cut-line, §10
-порядок) · root/contracts/facade-cutline.md (вход P2.5) ·
-findings/P0-rag-fluent-dx.md (Запрос 1/2/3) · root/architecture.md (ADR
-структуры) · findings/ (REGISTER + оси) · roadmap.md ·
-brief/{00-brief,01-refinements}.md.
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.12,
+D1–D29) · phases/P2.md (P2.1–P2.4 🟠, P2.5/P2.6 🟢, ТЗ P2.7–P2.10) ·
+**root/contracts/facade-cutline.md (замороженная спека cut-line — SSOT
+P3.1)** · research/03-p2-canon.md (канон, §8 wildcard-флип, §10 порядок) ·
+root/architecture.md (ADR структуры) · findings/ (REGISTER + оси) ·
+roadmap.md · brief/{00-brief,01-refinements}.md.
 
 **Open risks:**
 - RU-зеркала context.md/direct-grants.md/filament.md/http-access.md/
   testing.md рассинхронены с EN после P2.3/P2.4/P2.6 — паритет закрывает
   P2.10 (`docs-parity-gate` до тех пор красен по этим страницам).
-- P2.5 (cut-line спека) обязана согласоваться с P2.3+P2.4+P2.6: shorthands
-  уже @internal, middleware ::using() и `AzGuard::fake()`/`assertGranted`/
-  `assertDenied`/`assertChecked` — новая @api-поверхность, добавленная
-  ПОСЛЕ исходного recon P0 — вердикты сверять с фактом кода, не только с
-  C-B4/backlog.
-- Новые FQCN после P2.1 (Panels/Permissions/…) — Required Reads P2.5+ могут
-  ссылаться на старые пути; расхождение путей — следствие P2.1, не дефект.
+- `docs/recipes/temp-access-via-grant.md:33` показывает позиционный
+  `AzGuard::revoke` (@internal с P2.3) — P2.10 doc-sweep (Pending Work P2.5).
+- Bundled boost-скилл (`packages/core/resources/boost/skills/.../SKILL.md:102`)
+  упоминает `AzGuard::isSuperAdmin` — регенерация после cut-line P3.1
+  (кандидат P3.1-свип/P2.10; назван в спеке §5).
+- P2.9 флип — breaking для всех `*`-паттернов потребителей: upgrading.md
+  заметка обязательна (ТЗ); R7 (голый `*` из кастомной MergeStrategy при
+  wildcard.enabled=true) — закрыть там же (D18).
 - tests/Unit/Support/ — имя каталога дрейфует от канона (Pending Work P2.1,
   кандидат P2.10).
 - MySQL-ветка миграции 000005 локально НЕ исполнялась — верификация в
   P4.2/P4.7; миграция 000011 (expires_at) гонялась только на sqlite — та же
   верификация.
-- R7 (голый `*` из кастомной MergeStrategy при wildcard.enabled=true) —
-  закрыть в P2.9 при wildcard-флипе D18.
 - `removeScopedRoleEverywhere()` вне контракта + Policy-авторизация Filament
   RoleResource — кандидаты P2 contract review, НЕ делать без D#.
-- `docs/basic-usage/direct-grants.md` не получил `::using()`-пример
-  (документирует только alias-DSL) — кандидат P2.10 doc-sweep.
 - P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен.
 - `plan-lint.py` вызывается по абсолютному пути (swissknifeman/packages/task/
   scripts/, `${CLAUDE_PLUGIN_ROOT}` пуст в среде).
-- `AzGuard::fake()` записывает grant/revoke через реальные `GrantGiven`/
-  `GrantRevoked` Laravel-события: тест, который ОДНОВРЕМЕННО использует
-  `Event::fake()` (глобальный), подавит реальную доставку слушателей —
-  `AzGuardFake` в этом случае не увидит grant/revoke (assertChecked через
-  `Gate::after()` не страдает, это отдельный механизм). Задокументировать
-  при P2.10 doc-sweep, если станет практической проблемой.
+- `AzGuard::fake()` + глобальный `Event::fake()`: подавляет реальную
+  доставку слушателей → fake не увидит grant/revoke (assertChecked не
+  страдает) — doc-note P2.10, если станет практической проблемой.
 
 **Workarounds/Deferred/Open questions:**
 - workarounds: `plan-lint.py` по абсолютному пути; rmdir заблокирован хуком
-  среды — пустые каталоги удалялись через python os.rmdir (не влияет на
-  git-дерево).
+  среды — пустые каталоги через python os.rmdir (не влияет на git-дерево).
 - deferred: R9 upgrade-нота C-10 → P3.3 (D21); RoleResource Livewire-тест
   (P1.2 Pending Work); split/Packagist (D25); roave/bc-check (D20); снапшот
   filament/context (P3.2); `removeScopedRoleEverywhere()` → контракт (P2);
@@ -105,6 +91,7 @@ brief/{00-brief,01-refinements}.md.
   SimplePermissionDefinition::label() + generics `Contracts\HasRoles::roles()`
   → P2.10 (P2.2 Pending Work); RU-зеркала P2.3+P2.4+P2.6 + дог-фуд корня в
   context-CLI → P2.10 (P2.3/P2.4 Pending Work); `direct-grants.md`
-  `::using()`-пример → P2.10; `Event::fake()`+`AzGuard::fake()` interaction
-  limitation → doc-note P2.10 (см. Open risks).
+  `::using()`-пример → P2.10; `temp-access-via-grant.md` позиционный revoke
+  → P2.10 (P2.5 Pending Work); boost-скилл регенерация → P3.1/P2.10 (P2.5
+  Pending Work); `Event::fake()`+`AzGuard::fake()` doc-note → P2.10.
 - open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.
