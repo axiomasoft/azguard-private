@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.7 |
+| Version | 0.3.8 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P1.2 закрыт) |
+| Last Updated | 2026-07-18 (P1.3 закрыт) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -141,6 +141,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-design/opus (P1.1 re-detail) | Эскалация P1.1 снята владельцем → D27 (supersedes D10-б: default-fallback упразднён, fail-closed); P1.1 сужен до снятия console-bypass, статус 🔴→⬜, C-02/P1.2 реконсилен. v0.3.6 — детали phases/P1.md P1.1 + §5 D27 |
 | 2026-07-18 | plan-run/sonnet-high | P1.1 закрыт (🟠): console-bypass убран из `bootHasScopedRoles` (C-01), новый тест `ScopedRolesConsoleQueueTest`, полный сьют 559 passed без регрессий — детали см. phases/P1.md P1.1 Completion Notes |
 | 2026-07-18 | plan-run/sonnet-high | P1.2 закрыт (🟠): 12 находок W1 закрыты, 13 коммитов — детали см. phases/P1.md P1.2 Completion Notes/Known Deviations |
+| 2026-07-18 | plan-run/sonnet-medium | P1.3 закрыт (🟠): 14 находок W2 закрыты, 15 коммитов, 600 тестов зелёные — детали см. phases/P1.md P1.3 Completion Notes/Known Deviations |
 
 ## Обсуждение
 
