@@ -8,11 +8,12 @@ use AzGuard\Contracts\PermissionMatcher;
 use Override;
 
 /**
- * Default wildcard matcher preserving AzGuard's historical grammar: '*' expands
- * to '.*', so it crosses dot boundaries ('app.*' also matches 'app.a.b'). This
- * is the 0.3.0 default; the stricter {@see HierarchicalPermissionMatcher} is
- * opt-in via config('az-guard.matcher') and becomes the default in 0.4.0 (with
- * this class as the `legacy_wildcard` opt-out).
+ * LEGACY wildcard matcher preserving AzGuard's historical 0.2 grammar: '*'
+ * expands to '.*', so it crosses dot boundaries ('app.*' also matches
+ * 'app.a.b'). Since 0.3.0 the default is {@see HierarchicalPermissionMatcher};
+ * this grammar remains available for ONE deprecation cycle via
+ * config('az-guard.features.wildcard_permission') = true and is scheduled for
+ * removal together with that flag.
  */
 final class WildcardPermissionMatcher implements PermissionMatcher
 {

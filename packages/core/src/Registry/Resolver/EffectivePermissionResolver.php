@@ -109,10 +109,14 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
      * Drop keys the catalog does not know.
      *
      * Exact keys must exist in the catalog. Wildcard patterns ('app.docs.*')
-     * are kept only when the wildcard feature is enabled AND the pattern
-     * actually covers at least one catalog key — so a meaningful grant survives
-     * but a stale 'app.nonsense.*' that matches nothing is dropped. With the
-     * feature off, patterns are treated as unknown exact keys and removed.
+     * are kept only when the pattern actually covers at least one catalog key
+     * under the bound matcher grammar (hierarchical by default; the deprecated
+     * features.wildcard_permission flag restores the legacy grammar) — so a
+     * meaningful grant survives but a stale 'app.nonsense.*' that matches
+     * nothing is dropped. The bare global '*' is always dropped here: a real
+     * superadmin wildcard short-circuits in resolve() before filtering, so one
+     * surfacing at this point came from the layer and must not become a
+     * superadmin grant (C-13/R7 defense-in-depth).
      *
      * After an exact-match miss, a key is also checked against every dynamic
      * definition in the catalog (PermissionDefinition::isDynamic()) — e.g. a
@@ -128,26 +132,16 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
             static fn (PermissionDefinition $d): bool => $d->isDynamic(),
         ));
 
-        if (! Config::wildcardEnabled()) {
-            $filtered = $set->filter(function (string $key) use ($panelId, $dynamicDefinitions): bool {
-                if (str_contains($key, PermissionKey::WILDCARD)) {
-                    return false;
-                }
-
-                return $this->catalog->has($panelId, $key)
-                    || $this->matchesDynamicDefinition($key, $dynamicDefinitions);
-            });
-            $this->logDroppedKeys($set, $filtered, $panelId);
-
-            return $filtered;
-        }
-
         $catalogKeys = array_map(
             static fn (PermissionDefinition $d): string => $d->key(),
             $this->catalog->all($panelId),
         );
 
         $filtered = $set->filter(function (string $key) use ($panelId, $catalogKeys, $dynamicDefinitions): bool {
+            if ($key === PermissionKey::WILDCARD) {
+                return false;
+            }
+
             if (! str_contains($key, PermissionKey::WILDCARD)) {
                 if ($this->catalog->has($panelId, $key)) {
                     return true;

@@ -12,9 +12,9 @@ use Override;
  *   '*'  matches within ONE segment ([^.]*) — 'a.*' matches 'a.b' but NOT 'a.b.c'
  *   '**' matches recursively across segments (.*) — 'a.**' matches 'a.b.c'
  *
- * Opt-in in 0.3.0 via config('az-guard.matcher'); the default remains
- * {@see WildcardPermissionMatcher} so existing behaviour is byte-for-byte
- * unchanged. 0.4.0 flips the default here.
+ * The default grammar since 0.3.0 (F22 flip). The legacy dot-crossing
+ * {@see WildcardPermissionMatcher} remains available for one deprecation cycle
+ * via config('az-guard.features.wildcard_permission') = true.
  */
 final class HierarchicalPermissionMatcher implements PermissionMatcher
 {

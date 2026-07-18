@@ -57,6 +57,23 @@ $user->hasPermission(PostsPermission::Delete); // true
 $user->hasPermission(AdminPermission::Nuke);   // true
 ```
 
+## Посегментные wildcards
+
+Полный superadmin-wildcard `PermissionKey::WILDCARD` выше работает всегда.
+Посегментные wildcards вида `'admin.*'` учитываются по умолчанию с иерархической
+грамматикой: `*` соответствует ровно **одному** сегменту (`admin.*` покрывает
+`admin.users`, но не `admin.users.delete`), `**` — рекурсивно (`admin.**`
+покрывает оба). Паттерны, не покрывающие ни одного ключа каталога, отбрасываются.
+
+Legacy-грамматика 0.2 (`*` пересекает точки) устарела и доступна ещё один цикл:
+
+```php
+// config/az-guard.php
+'features' => [
+    'wildcard_permission' => true,  // УСТАРЕЛО: вернуть legacy-грамматику 0.2
+],
+```
+
 ::: danger
 Назначайте роль супер-администратора только через сидеры или CLI. Никогда не давайте UI для самоназначения.
 :::

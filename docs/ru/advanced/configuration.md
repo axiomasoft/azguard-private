@@ -23,7 +23,7 @@ return [
     */
     'manager' => \AzGuard\AzGuardManager::class,
     'resolver' => \AzGuard\Registry\Resolver\EffectivePermissionResolver::class,
-    'matcher' => \AzGuard\Registry\Matching\WildcardPermissionMatcher::class,
+    'matcher' => \AzGuard\Registry\Matching\HierarchicalPermissionMatcher::class,
     'abilities_resolver' => \AzGuard\Abilities\DefaultAbilitiesResolver::class,
     'role_permission_validator' => \AzGuard\Registry\Validation\CatalogRolePermissionValidator::class,
 
@@ -198,7 +198,7 @@ return [
     | direct_grants) — максимальная обратная совместимость.
     */
     'features' => [
-        'wildcard_permission' => false,        // Wildcard вида 'admin.*'
+        'wildcard_permission' => false,        // УСТАРЕЛО: true возвращает legacy-грамматику 0.2 ('*' пересекает точки)
         'teams'               => false,        // Мульти-тим / изоляция тенантов
         'audit_log'           => false,        // Событие AccessDecision из Authorizer::explain()
         'direct_grants'       => true,          // Прямые гранты (HasDirectGrants + az_direct_grants)

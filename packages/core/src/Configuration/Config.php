@@ -18,6 +18,7 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
 use AzGuard\Models\RolePermission;
+use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
 use AzGuard\Registry\Matching\WildcardPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
@@ -145,7 +146,13 @@ final class Config
         return self::isEnabled('teams');
     }
 
-    public static function wildcardEnabled(): bool
+    /**
+     * DEPRECATED FLAG (one cycle): features.wildcard_permission = true restores
+     * the legacy 0.2 wildcard grammar ('*' crosses dot boundaries). Its former
+     * meaning ("honour wildcard patterns at all") is gone — patterns are always
+     * honoured now, with the segment-aware hierarchical grammar by default.
+     */
+    public static function legacyWildcardEnabled(): bool
     {
         return self::isEnabled('wildcard_permission');
     }
@@ -333,14 +340,21 @@ final class Config
 
     /**
      * Concrete class bound to PermissionMatcher — the wildcard matching grammar.
-     * Swappable seam; the default keeps the historical dot-crossing behaviour.
+     * Swappable seam; the default is the segment-aware hierarchical grammar
+     * ('*' = one segment, '**' = recursive). The deprecated
+     * features.wildcard_permission flag overrides this key for one cycle to
+     * restore the legacy dot-crossing grammar.
      *
      * @return class-string<PermissionMatcher>
      */
     public static function matcherClass(): string
     {
+        if (self::legacyWildcardEnabled()) {
+            return WildcardPermissionMatcher::class;
+        }
+
         /** @var class-string<PermissionMatcher> $class */
-        $class = config('az-guard.matcher', WildcardPermissionMatcher::class);
+        $class = config('az-guard.matcher', HierarchicalPermissionMatcher::class);
 
         return $class;
     }

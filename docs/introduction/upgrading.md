@@ -1,5 +1,33 @@
 # Upgrading
 
+## 0.3.0 — Wildcard grammar flip (breaking)
+
+The default wildcard grammar is now the **hierarchical** one
+(`HierarchicalPermissionMatcher`): `*` matches exactly **one** dotted segment,
+`**` matches recursively. Wildcard patterns in role/grant keys are honoured by
+default — the old `features.wildcard_permission` gate no longer switches
+patterns off.
+
+What changes for you:
+
+- **Patterns you relied on with the old flag enabled** (`'app.*'` covering
+  `app.documents.view`) no longer cross dots. Rewrite them with the grammar in
+  mind: `app.*` = one segment, `app.**` = the whole subtree.
+- **Patterns that previously did nothing** (flag off — the old default) now
+  grant access with segment semantics. Audit your role/grant keys for `*`
+  before upgrading if you kept the flag off.
+- **Legacy opt-out (one deprecation cycle):** set
+  `features.wildcard_permission = true` to restore the 0.2 dot-crossing
+  grammar. The flag's old meaning ("honour wildcards at all") is gone; it now
+  only selects the legacy grammar and will be removed together with
+  `WildcardPermissionMatcher` in the next cycle.
+- **`PermissionSet` used standalone** (outside a booted container) now defaults
+  to the hierarchical grammar too, matching the application default.
+- **Hardening:** a bare `*` surfacing from a custom `MergeStrategy` /
+  `PermissionLayer` is now always dropped by the catalog filter — it never
+  becomes a superadmin grant, in either grammar. Real superadmin wildcards
+  granted by a `GrantSource` are unaffected.
+
 ## Pre-1.0 API cleanup (breaking)
 
 The pre-1.0 cleanup unifies the public API around bare, single-verb names. There

@@ -111,7 +111,7 @@ AzGuard связывает пять швов «единственная акти
 |:--|:--|:--|:--|
 | `manager` | `AzGuardManagerInterface` | `AzGuardManager` | Панели, Grants API, `isSuperAdmin()`, `abilitiesFor()` |
 | `resolver` | `PermissionResolverInterface` | `EffectivePermissionResolver` | Как источники грантов объединяются в `PermissionSet` |
-| `matcher` | `PermissionMatcher` | `WildcardPermissionMatcher` | Грамматика сопоставления wildcard |
+| `matcher` | `PermissionMatcher` | `HierarchicalPermissionMatcher` | Грамматика сопоставления wildcard |
 | `abilities_resolver` | `AbilitiesResolver` | `DefaultAbilitiesResolver` | Проекция ability для фронтенда (`AzGuard::abilitiesFor()`) |
 | `role_permission_validator` | `RolePermissionValidator` | `CatalogRolePermissionValidator` | Опциональная защита `saving()` для ключей прав роли |
 
@@ -158,15 +158,24 @@ class AuditingAzGuardManager extends AzGuardManager
 
 ### `matcher`
 
-Замените грамматику wildcard. AzGuard поставляет две: историческая
-`WildcardPermissionMatcher` (`*` пересекает точки, т.е. `app.*` покрывает
-`app.documents.view`) и `HierarchicalPermissionMatcher` (сегмент-осознанная:
-`*` соответствует ровно одному сегменту, `**` — рекурсивно):
+Замените грамматику wildcard. AzGuard поставляет две: дефолтную
+`HierarchicalPermissionMatcher` (сегмент-осознанная: `*` соответствует ровно
+одному сегменту, `**` — рекурсивно) и legacy `WildcardPermissionMatcher`
+(`*` пересекает точки, т.е. `app.*` покрывает `app.documents.view`). Legacy-грамматика
+объявлена устаревшей и доступна ещё один цикл через feature-флаг, который
+переопределяет этот ключ:
 
 ```php
-use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
+// config/az-guard.php
+'features' => [
+    'wildcard_permission' => true,  // УСТАРЕЛО: вернуть legacy-грамматику 0.2
+],
+```
 
-'matcher' => HierarchicalPermissionMatcher::class,
+Собственная грамматика подключается через ключ `matcher`:
+
+```php
+'matcher' => \App\Guards\MyPermissionMatcher::class,
 ```
 
 ### `abilities_resolver`

@@ -134,23 +134,27 @@ describe('PermissionSet', function () {
             ->and($filtered->isWildcard())->toBeFalse();
     });
 
-    // Pins the documented wildcard semantics: '*' is GREEDY and spans dots, and
-    // the literal prefix is segment-anchored. This is intentional — do not switch
-    // the pattern to a non-greedy [^.]* without a deliberate breaking change.
-    it('wildcard pattern is greedy across dots and prefix-anchored', function () {
+    // Pins the documented wildcard semantics after the F22 flip (D18): '*'
+    // matches exactly ONE segment, '**' recurses across segments, and the
+    // literal prefix is segment-anchored. The legacy dot-crossing grammar
+    // survives for one cycle behind features.wildcard_permission.
+    it('wildcard pattern matches one segment and is prefix-anchored', function () {
         $prefix = PermissionSet::fromKeys(['app.documents.*']);
 
         expect($prefix->matchesWildcard('app.documents.view'))->toBeTrue()
-            // greedy: spans further dot-segments
-            ->and($prefix->matchesWildcard('app.documents.nested.deep'))->toBeTrue()
+            // one segment only: deeper keys need '**'
+            ->and($prefix->matchesWildcard('app.documents.nested.deep'))->toBeFalse()
             // the segment boundary is anchored: 'documentsX' is not 'documents.'
-            ->and($prefix->matchesWildcard('app.documentsX.view'))->toBeFalse()
-            // requires something after the trailing dot
-            ->and($prefix->matchesWildcard('app.documents'))->toBeFalse();
+            ->and($prefix->matchesWildcard('app.documentsX.view'))->toBeFalse();
+
+        $recursive = PermissionSet::fromKeys(['app.documents.**']);
+
+        expect($recursive->matchesWildcard('app.documents.nested.deep'))->toBeTrue();
 
         $top = PermissionSet::fromKeys(['app.*']);
 
-        expect($top->matchesWildcard('app.documents.view'))->toBeTrue()
-            ->and($top->matchesWildcard('admin.documents.view'))->toBeFalse();
+        expect($top->matchesWildcard('app.documents'))->toBeTrue()
+            ->and($top->matchesWildcard('app.documents.view'))->toBeFalse()
+            ->and($top->matchesWildcard('admin.documents'))->toBeFalse();
     });
 });

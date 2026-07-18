@@ -7,7 +7,7 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
 use AzGuard\Models\RolePermission;
-use AzGuard\Registry\Matching\WildcardPermissionMatcher;
+use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
 
@@ -29,9 +29,10 @@ return [
     | PermissionCache request lifecycle — this key only swaps the class used.
     |
     | matcher: bound to AzGuard\Contracts\PermissionMatcher — the wildcard
-    | matching grammar. The default WildcardPermissionMatcher keeps the historical
-    | grammar ('*' crosses dots). Swap to HierarchicalPermissionMatcher for the
-    | stricter segment-aware grammar ('*' = one segment, '**' = recursive).
+    | matching grammar. The default HierarchicalPermissionMatcher is segment-aware
+    | ('*' = one segment, '**' = recursive). The legacy 0.2 grammar ('*' crosses
+    | dots) is available for ONE deprecation cycle via
+    | features.wildcard_permission = true, which overrides this key.
     |
     | abilities_resolver: bound to AzGuard\Contracts\AbilitiesResolver — builds
     | the curated ability => bool projection for the frontend (AzGuard::abilitiesFor).
@@ -40,7 +41,7 @@ return [
 
     'resolver' => EffectivePermissionResolver::class,
 
-    'matcher' => WildcardPermissionMatcher::class,
+    'matcher' => HierarchicalPermissionMatcher::class,
 
     'abilities_resolver' => DefaultAbilitiesResolver::class,
 
@@ -218,7 +219,7 @@ return [
     | backwards compatibility.
     */
     'features' => [
-        'wildcard_permission' => false, // Wildcards like 'admin.*'
+        'wildcard_permission' => false, // DEPRECATED (one cycle): true restores the legacy 0.2 grammar ('*' crosses dots)
         'teams' => false, // Multi-team / tenant isolation
         'audit_log' => false, // Dispatch AzGuard\Events\AccessDecision from Authorizer::explain()
         'direct_grants' => true,  // Direct grants (HasDirectGrants + az_direct_grants table)

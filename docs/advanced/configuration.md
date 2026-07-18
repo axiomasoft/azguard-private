@@ -23,7 +23,7 @@ return [
     */
     'manager' => \AzGuard\AzGuardManager::class,
     'resolver' => \AzGuard\Registry\Resolver\EffectivePermissionResolver::class,
-    'matcher' => \AzGuard\Registry\Matching\WildcardPermissionMatcher::class,
+    'matcher' => \AzGuard\Registry\Matching\HierarchicalPermissionMatcher::class,
     'abilities_resolver' => \AzGuard\Abilities\DefaultAbilitiesResolver::class,
     'role_permission_validator' => \AzGuard\Registry\Validation\CatalogRolePermissionValidator::class,
 
@@ -203,7 +203,7 @@ return [
     | direct_grants) for maximum backwards compatibility.
     */
     'features' => [
-        'wildcard_permission' => false,        // Wildcards like 'admin.*'
+        'wildcard_permission' => false,        // DEPRECATED: true restores the legacy 0.2 grammar ('*' crosses dots)
         'teams' => false,                      // Multi-team / tenant isolation
         'audit_log' => false,                  // Dispatch AccessDecision from Authorizer::explain()
         'direct_grants' => true,                // Direct grants (HasDirectGrants + az_direct_grants)

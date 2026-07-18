@@ -110,7 +110,7 @@ call reach your replacement automatically, no other wiring needed.
 |:--|:--|:--|:--|
 | `manager` | `AzGuardManagerInterface` | `AzGuardManager` | Panels, grants API, `isSuperAdmin()`, `abilitiesFor()` |
 | `resolver` | `PermissionResolverInterface` | `EffectivePermissionResolver` | How GrantSources are unioned into a `PermissionSet` |
-| `matcher` | `PermissionMatcher` | `WildcardPermissionMatcher` | The wildcard matching grammar |
+| `matcher` | `PermissionMatcher` | `HierarchicalPermissionMatcher` | The wildcard matching grammar |
 | `abilities_resolver` | `AbilitiesResolver` | `DefaultAbilitiesResolver` | The frontend ability projection (`AzGuard::abilitiesFor()`) |
 | `role_permission_validator` | `RolePermissionValidator` | `CatalogRolePermissionValidator` | The opt-in `saving()` guard on role permission keys |
 
@@ -157,15 +157,23 @@ per-request cache).
 
 ### `matcher`
 
-Swap the wildcard grammar. AzGuard ships two: the historical
-`WildcardPermissionMatcher` (`*` crosses dots, e.g. `app.*` matches
-`app.documents.view`) and `HierarchicalPermissionMatcher` (segment-aware: `*` matches
-exactly one segment, `**` matches recursively):
+Swap the wildcard grammar. AzGuard ships two: the default
+`HierarchicalPermissionMatcher` (segment-aware: `*` matches exactly one segment,
+`**` matches recursively) and the legacy `WildcardPermissionMatcher` (`*` crosses
+dots, e.g. `app.*` matches `app.documents.view`). The legacy grammar is deprecated
+and available for one more cycle via the feature flag, which overrides this key:
 
 ```php
-use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
+// config/az-guard.php
+'features' => [
+    'wildcard_permission' => true,  // DEPRECATED: restore the legacy 0.2 grammar
+],
+```
 
-'matcher' => HierarchicalPermissionMatcher::class,
+A custom grammar plugs in via the `matcher` key:
+
+```php
+'matcher' => \App\Guards\MyPermissionMatcher::class,
 ```
 
 ### `abilities_resolver`
