@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.1 закрыт 🟠 — Support/ распущен, структурный канон core применён) |
+| Last Updated | 2026-07-18 (P2.2 закрыт 🟠 — 6 контрактных швов разрешены, baseline −6) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -145,6 +145,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P1.4 закрыт (🟢): review диффа P1 — 16 находок, 6 Major+тест-гэп C-11 сняты 10 фикс-коммитами, 610 тестов — детали см. phases/P1.md P1.4 Completion Notes |
 | 2026-07-18 | plan-close/sonnet | Фаза P1 закрыта: 4/4 items терминальны (🟠/🟠/🟠/🟢), Phase Handoff сверен, docs-sync не требуется (фиксы восстанавливают уже задокументированное поведение), lint см. handoff.md — детали см. phases/P1.md Phase Handoff |
 | 2026-07-18 | plan-run/fable-high | P2.1 закрыт (🟠): Support/ распущен — 11 файлов в доменных неймспейсах, канон двух домов контрактов в ADR — детали см. phases/P2.md P2.1 Completion Notes |
+| 2026-07-18 | plan-run/fable-high | P2.2 закрыт (🟠): 6 структурных baseline разрешены уточнением контрактов (label() чинит runtime-баг Filament), analyse 0 errors — детали см. phases/P2.md P2.2 Completion Notes |
 
 ## Обсуждение
 
