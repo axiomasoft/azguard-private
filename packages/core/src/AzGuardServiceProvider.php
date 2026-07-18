@@ -164,6 +164,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         // polymorphic query can silently build the wrong column type.
         Config::morphType();
 
+        // Fail fast (C-04) on an infinite TTL paired with a persistent cache
+        // store — silently grows the store unbounded (see PermissionCache).
+        Config::assertCacheConfigValid();
+
         $this->registerPanelProviders();
 
         $this->loadMigrationsFrom(paths: __DIR__.'/../database/migrations');

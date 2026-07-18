@@ -12,6 +12,7 @@ use AzGuard\Contracts\PermissionMatcher;
 use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Contracts\RolePermissionValidator;
 use AzGuard\Exceptions\AzGuardException;
+use AzGuard\Exceptions\InvalidCacheConfigException;
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
@@ -186,6 +187,22 @@ final class Config
         $value = config('az-guard.cache.expiration_time', 3600);
 
         return $value !== null ? (int) $value : null;
+    }
+
+    /**
+     * Fail fast at boot (C-04) rather than silently growing the cache store
+     * unbounded: an infinite TTL (expiration_time = null) is only safe on the
+     * in-memory-only 'array'/'null' stores, never on a persistent one.
+     *
+     * @throws InvalidCacheConfigException
+     */
+    public static function assertCacheConfigValid(): void
+    {
+        $store = self::cacheStore();
+
+        if (! in_array($store, ['array', 'null'], true) && self::cacheTtl() === null) {
+            throw InvalidCacheConfigException::nullTtlOnPersistentStore($store);
+        }
     }
 
     // ─── Middleware ─────────────────────────────────────────────────────────
