@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.13 |
+| Version | 0.3.14 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.9 закрыт 🟠 — wildcard-флип на Hierarchical, legacy opt-out, R7 закрыт) |
+| Last Updated | 2026-07-18 (P2.7 закрыт 🟢 — глоссарий + docs-маршрутизация context↔scope) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -89,7 +89,7 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
-| P2 | Структурный канон + fluent/DX редизайн API | 2/10 | 🟡 In progress |
+| P2 | Структурный канон + fluent/DX редизайн API | 3/10 | 🟡 In progress |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
@@ -163,6 +163,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/sonnet-high | P2.6 закрыт (🟢): `AzGuard::fake()` — Recorder + assertGranted/assertDenied/assertChecked (простая форма + closure), 657 тестов — детали см. phases/P2.md P2.6 Completion Notes. v0.3.11 |
 | 2026-07-18 | plan-run/fable-high | P2.5 закрыт (🟢): cut-line target-спека фасада `root/contracts/facade-cutline.md` (17 вердиктов + пост-recon fake/assert*) + D29 (резолверы не мёртвые → @internal вместо удаления методов) — детали см. phases/P2.md P2.5 Completion Notes. v0.3.12 |
 | 2026-07-18 | plan-run/fable-high | P2.9 закрыт (🟠): дефолт matcher → Hierarchical, legacy opt-out через инвертированный `features.wildcard_permission`, R7 закрыт, F4/F40/F51 верифицированы, 664 теста — детали см. phases/P2.md P2.9 Completion Notes. v0.3.13 |
+| 2026-07-18 | plan-exec/sonnet-medium | P2.7 закрыт (🟢): `root/glossary.md` (guard=бренд/context=runtime/scope=persist), multiple-guards.md через панели (ложная panel↔guard-декларация убрана), routing-раздел «context или scope?» в context.md+entity-scopes.md, RU-зеркала — детали см. phases/P2.md P2.7 Completion Notes. v0.3.14 |
 
 ## Обсуждение
 
