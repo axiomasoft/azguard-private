@@ -6,7 +6,7 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.2.0 |
+| Version | 0.3.6 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
@@ -16,7 +16,7 @@
 | Execution Mode | phase-first |
 | Target Operator Models | sonnet (exec) · haiku (LOW) · fable/opus (design/audit) |
 | Approval Owner | Dmitry Vostrikov |
-| Design Passes | 2/3 — 6 фаз / ~26 items (→ ≥2 по SKILL §5) + план объявлен эталоном дорожки для флота пакетов (ядро экосистемы → 3) |
+| Design Passes | 3/3 — 6 фаз / 33 items (→ ≥2 по SKILL §5) + план объявлен эталоном дорожки для флота пакетов (ядро экосистемы → 3); `finish` завершён (сквозной reconcile контракт-блоков/coupling/producer→consumer ✓, roadmap верифицирован); план готов к `plan-audit design` |
 | Paused By | — |
 
 ## 1. Context
@@ -57,11 +57,22 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0.1–P0.5 | fable/high | manual | read-only аудит публичных контрактов + RAG несущих фактов (effort high+ MANDATORY); исполняются ОДНОЙ сессией через `workflows/wf-azguard-stable-p0-audit.js` (D8: §7-критерий — 4 оси scope-независимы, Validation детерминирована); закрытие items — оркестратор по §8 |
 | P0.6 | fable/high | manual | синтез REGISTER/бэклог + гейт владельца — контракт-класс, solo |
-| P1.*, P2.* | — | — | волатильные фазы (D3): маршрутизация назначается при детализации по фактам аудита |
-| P3.1–P3.3 | fable/high | manual | cut-line публичной поверхности / SemVer — контракт-класс |
-| P4.1–P4.6 | sonnet/medium | plan-exec | инфраструктура тестов по готовым спецификациям; уточнить при детализации |
-| P5.1 | fable/high | manual | экстракция эталонного шаблона дорожки — канон флота |
-| P5.2–P5.3 | sonnet/medium | plan-exec | механика релиза и архивации по готовым чек-листам |
+| P1.1 (W0) | sonnet/high | manual | Blocker C-01 — снять `runningInConsole`-bypass (D10 а); default-fallback упразднён (D27), панель-резолюция не трогается; solo, один item-commit |
+| P1.2 (W1) | sonnet/high | manual | 12 Major, часть security-sensitive (морф/mass-assign/wildcard/union-only); файлы пересекаются (C-02/C-03 один файл) → последовательно, per-finding коммиты (D11); НЕ workflow |
+| P1.3 (W2) | sonnet/medium | manual | 14 Minor/Nit — механика/доки/тесты; последовательно, per-finding коммиты (D11) |
+| P1.4 (review) | fable/high | manual | сквозной adversarial review диффа фазы через субагентов (security-review + reviewer + blade-review) свежим контекстом |
+| P2.1–P2.10 | fable/high | manual | редизайн публичных контрактов/структуры (SemVer-breaking, effort high+ MANDATORY); design/contract-класс → Exec=manual, Review=full (public-contract/canon-fleet, D6 §9); порядок и связность — phases/P2.md §Phase Context + research/03-p2-canon.md §10; P2.5 — чистый design-item (спека) |
+| P3.1–P3.3 | fable/high | manual | исполнение cut-line фасада (D19) / snapshot-гейт заморозки (D20) / SemVer-политика + UPGRADING (D21) — контракт-класс, SemVer-необратимо; solo, последовательно (P3.1 api-surface.md → P3.2 снапшот → P3.3 политика); Review=full |
+| P4.1 | sonnet/medium | plan-exec | docker-стенд (compose PG/MySQL/Redis), инфра без прикладной логики; Review=light |
+| P4.2 | sonnet/medium | plan-exec | БД-лейн (env-switch+CI services)+генерализация хрупкого теста; DB-корректность → Review=full |
+| P4.3 | sonnet/medium | plan-exec | paratest на sqlite-лейне+hardening shared-state; parallel-изоляция → Review=full |
+| P4.4 | sonnet/medium | plan-exec | кросс-процессные race-тесты (Redis proc_open + Octane); concurrency-корректность → Review=full; жёсткая эскалация §10 при реальном race-баге |
+| P4.5 | sonnet/medium | plan-exec | mutation-ratchet (замер+пороги вверх+excludes); test-quality гейт → Review=full; замер требует coverage-драйвера |
+| P4.6 | sonnet/medium | plan-exec | чистка дыр (UnitFilament, baseline↓, verify D-01/D-06); механика → Review=light |
+| P4.7 | sonnet/high | manual | collation-hardening RBAC-ключей (миграции MySQL); security-корректность+fail-closed → effort high ⇒ manual, Review=full |
+| P5.1 | fable/high | manual | экстракция эталонного шаблона дорожки — канон флота (Review=full); потребляет Completion Notes/Handoff всех закрытых фаз |
+| P5.2 | sonnet/medium | plan-exec | механика релиза по чек-листу item'а; НЕОБРАТИМЫЙ push тега — только после явного approve владельца (гейт в roadmap); split отложен guard'ом (D25); Review=full |
+| P5.3 | sonnet/medium | plan-exec | миграция root/→docs по таблице D26 (EN+RU parity, VitePress-нав) + финальный handoff; сам архив — post-plan `/task:plan-close archive` (D26); Review=light |
 
 ## 4. Phase Index & Status Board
 
@@ -69,9 +80,9 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 0/4 | ⬜ Not started |
-| P2 | Структурный канон + fluent/DX редизайн API | 0/4 | ⬜ Not started |
+| P2 | Структурный канон + fluent/DX редизайн API | 0/10 | ⬜ Not started |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/6 | ⬜ Not started |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -87,6 +98,24 @@ read-only аудит (акцент — интеграционная поверх
 | D7 | 2026-07-18 | Выход-бэклог P0 переименован: `research/01-backlog.md` → `research/02-backlog.md`; контракт-блоки P0/P1/P2 обновлены | Коллизия нумерации слоя 2: NN=01 занял `research/01-fluent-api-priors.md`, добавленный после скелетов; NN — порядок чтения (SKILL §16). RAG:— (repo-grounded: research/) |
 | D8 | 2026-07-18 | P0 объявляет оркестрацию: P0.1–P0.5 исполняет ОДНА fable/high-сессия через `workflows/wf-azguard-stable-p0-audit.js` (стадия RAG → барьер → 4 параллельные оси; агенты пишут только findings-файлы, БЕЗ git); закрытие items P0.1–P0.5 — оркестратор-сессия последовательно по §8; P0.6 — ручной solo (синтез + блокирующий гейт владельца). Альтернатива item-by-item (5 сессий) отклонена | Критерий SKILL §7 сработал: 4 items P0.2–P0.5 scope-независимы (пишут разные файлы, друг друга не ждут; общий предшественник — только P0.1) и несут детерминированную Validation (grep-гейты формата findings-файлов). RAG:— (repo-grounded: phases/P0.md Phase Status, Validation items) |
 | D9 | 2026-07-18 | Гейт P0.6 пройден: владелец утвердил бэклог ремедиации — волны P1 (W0={C-01}, W1=12 Major, W2=14 Minor+Nit), 3 отклонения (D-02 историчен; D-07/D-08 → маршрут P4), 9 кластеров P2 (6 предписанных + 3 добавленных: Testing DX, headless-порог, контрактные швы), спорные B-04/C-02/C-08/C-11 оставлены в P1-W1. REGISTER + 02-backlog — утверждённый вход детализации P1/P2 (D3) | Блокирующий гейт по ТЗ P0.6; ответы владельца — brief/01-refinements.md блок 2026-07-18. RAG:— (repo-grounded: findings/REGISTER.md, research/02-backlog.md) |
+| D10 | 2026-07-18 | Единый контракт query-scope изоляции (C-01+C-02+C-03), принцип владельца «максимальная надёжность, fail-closed, ничего не ослаблять» (brief/01-refinements.md, 2026-07-18): (а) C-01 — убрать `runningInConsole()`-bypass из bootHasScopedRoles; активация scope ключается на `Auth::check()`+`method_exists`, не на SAPI (в Laravel нет `runningInQueue()`), → queue-джобы под авторизованным юзером получают изоляцию; (б) в глобальном scope панель резолвится `PanelResolver::resolve(null) ?? resolveDefault(null)` (детерминизм: приложения с `default_panel` работают штатно); (в) C-02 — новый конфиг `az-guard.scope.on_missing_panel` enum `exception`(дефолт, fail-closed, бросает `PanelNotSetException`)|`empty`(whereRaw 1=0)|`all`(legacy-аддитив) применяется, когда панель null даже после default-fallback; (г) C-03 — stale `scope_class` → `Log::warning` once (RequestState::once) + чек в `guard:doctor`; тихая потеря фильтра становится громкой | Владелец на уточнении выбрал максимальную надёжность; default-fallback не даёт fail-closed ломать штатный HTTP-путь (панель почти всегда резолвится). Спорная партиция C-02 в W1 подтверждена гейтом D9. RAG:— (repo-grounded: packages/core/src/Concerns/HasScopedRoles.php:50-84, packages/core/config/az-guard.php:131, Exceptions/PanelNotSetException.php) |
+| D11 | 2026-07-18 | Внутри волн P1.2/P1.3 фиксы коммитятся per-finding (каждая находка — отдельный Files-scoped коммит с conventional-сообщением `fix(scope): … (C-XX)`), item закрывается после зелёной валидации всей волны + handoff; `git add -A/-a` запрещён (Execution Rules) | Волна из 12/14 находок одним коммитом неревьюабельна, а часть — security-фиксы; per-finding коммиты служат принципу надёжности (D10) и облегчают P1.4/откат. Уточнение канона «волна=item=один item-commit» (VLT-REMED) под security-состав волны. RAG:— (repo-grounded: plan.md §2 Execution Rules) |
+| D12 | 2026-07-18 | Пиновка направлений остальных нагруженных находок P1 (fail-closed/max-reliability): C-13 — ContextGrantBuilder::grant бросает на `*`/wildcard-метасимволы + резолвер не короткоциркуитит catalog-фильтр для layer-wildcard; C-08 — ResourceGate возвращает `true|null`, никогда `false` (union-only §6); C-10 — `getMorphClass()` во всех write/read-путях грантов + тест с `Relation::enforceMorphMap`; C-11 — `class_name`/`scope_class` вон из `$fillable` (guarded + прямые сеттеры, mass-assign закрыт); C-04 — запрет `expiration_time=null` при персистентном сторе (валидация конфига бросает при boot) — TTL становится границей орфанов epoch | Каждая — security- или корректность-находка Major; выбран строгий вариант из «либо/либо» рекомендаций осей. RAG:✅ union-only §6 (ARCHITECT_REVIEW), морф-канон repo-grounded (findings/P0-axis-c-correctness.md C-08/C-10/C-11/C-13). RAG:— (repo-grounded: findings/P0-axis-c-correctness.md) |
+| D13 | 2026-07-18 | Реконсиляция «вход P4» осей с гейтом D9: B-09 (swap-тест MergeStrategy) и B-10 (тест grant_sources) — авторы осей помечали «вход P4», но гейт D9 поместил их в P1-W2 → пишутся ТЕПЕРЬ (P1.3), не откладываются; в P4 уходят ТОЛЬКО кросс-процессный Redis race-тест (хвост C-05) и Octane-тест RequestState (хвост C-14) — как зафиксировано в 02-backlog «Хвосты в P4». Дублирования домов нет | Гейт владельца (утверждённая партиция) старше рекомендации аудитора; 02-backlog §«Хвосты в P4» перечисляет ровно 2 тестовых хвоста, B-09/B-10 в них не входят. RAG:— (repo-grounded: research/02-backlog.md §Хвосты в P4, findings/REGISTER.md судьба B-09/B-10) |
+| D14 | 2026-07-18 | Развилки P2 разрешены в пользу идеала/канона по прямому указанию владельца («идеальная структура, любые breaking разрешены, применять лучшие решения»): grant-грамматика = immutable-with единый корень (D16); TTL-парность context (D16); `AzGuard::fake()` СТРОИМ в 0.3.0 (§6 канона); headless = doc-only minimal-setup, рантайм panel-less НЕ строим (YAGNI, fail-closed сохраняется); wildcard-флип на Hierarchical сейчас (D18); cut-line фасада исполняет P3, P2 даёт спеку (P2.5). Отклонены: мутабельные builders / «context бессрочен by design» / отложить fake() / рантайм-lenient / legacy-wildcard в 1.0 | Владелец снял 4 развилки одним указанием (brief п.7/п.9 + refinements); синтез альтернатив — research/03-p2-canon.md §0. RAG:— (repo-grounded: brief/00-brief.md п.7/п.9, brief/01-refinements.md) |
+| D15 | 2026-07-18 | Целевая структура core (research/03-p2-canon.md §1): `Support/` УПРАЗДНЯЕТСЯ — 9 файлов + PanelProvider + PermissionKey переезжают в Panels/ · Permissions/ · Configuration/ · Runtime/ · Abilities/ · Auth/ · Database\Schema/; `AzGuard\Contracts` и `AzGuard\Registry\Contracts` — ДВА ДОМА сознательно (locality субдомена), не сливать (arch-расширение на оба делает P1-W2 D-04) | Catch-all Support (6 ролей) размывает @api/@internal (D-05); субдоменные контракты рядом со своим субдоменом — глубже модуль, чем плоский общий дом. RAG:— (repo-grounded: findings/P0-axis-d-structure.md §C-D1/§C-D2, tests/ArchTest.php:21) |
+| D16 | 2026-07-18 | Grant-грамматика канон: единый immutable fluent-корень `AzGuard::forUser($u)->on()->inContext()->until()->grant()` для core И context (context = расширение корня, не отдельный `new ContextGrantBuilder`); builders `final readonly` + with-методы (`new self`); TTL-парность context (новая миграция `expires_at`); фасадные позиционные shorthands grant/revoke/grants → `@internal`; арх-ратчет toBeFinal/toBeReadonly расширен на `AzGuard\Grants` + context-builder-неймспейс. Альтернатива (мутабельные builders, унифицировать только вход) отклонена | B-03 (две несведённые грамматики) + B-08 (мутабельные builders вне ратчета); канон F49 (Values уже immutable), «идеальный fluent» (владелец). RAG:— (repo-grounded: findings/P0-axis-b-fluent.md §C-B5/§C-B9, tests/ArchTest.php:120-122) |
+| D17 | 2026-07-18 | Config→fluent канон: Filament-плагин — fluent-сеттеры (enforce/source/abilities/keyTemplate/case) + `make()` через `app(static::class)`, config→fallback; middleware — статические `::using(string|BackedEnum)` на grant/panel/panel_check/check (строковый alias-DSL параллельно, оба в docs); единый порядок аргументов алиасов `что,где` (выровнять PanelCheckAccess под CheckDirectGrant — breaking) | B-06/B-02/A-03; каноны верифицированы первоисточниками P0.1. RAG:✅ 2026-07-18 (findings/P0-rag-fluent-dx.md Запрос 1 Filament v5, Запрос 2 spatie/Laravel ::using + PR #52679) |
+| D18 | 2026-07-18 | Wildcard-флип (F22): дефолтный matcher = `HierarchicalPermissionMatcher` (`*`=сегмент, `**`=рекурсивно) сейчас, legacy `WildcardPermissionMatcher` — opt-out через `features.wildcard_permission` на один deprecate-цикл; `PermissionSet` вне контейнера дефолтит на Hierarchical (C-07), расхождение — @api-докблок; F4/F40/F51 подтверждены сделанными аудитом (C-C4, якоря) — P2.9 только verify-record; C-15 остаётся в P1 (заполнение winningSource, не удаление поля) | Вердикт аудита C-C4 «делать сейчас» + гейт D9 + пре-1.0 свобода (бриф п.3/п.7). RAG:— (repo-grounded: findings/P0-axis-c-correctness.md §C-06/§C-07/§C-C4, research/02-backlog.md W2 C-15) |
+| D19 | 2026-07-18 | Reconcile контракт-блока P3: cut-line фасада ИСПОЛНЯЕТ P3 (не только гейты/доки) — P3.1 удаляет 2 мёртвых метода `AzGuardManager`+их `@method` и проставляет `@internal` по замороженной спеке P2.5; исходная граница блока «код поверхности НЕ меняется» уточнена до «поведенческий редизайн завершён P2; P3 исполняет ТОЛЬКО cut-line (удаление мёртвых + переклассификация @api/@internal), новой функциональности нет». Контракт-блок P3 обновлён | Расхождение скелет-блока P3 с D14/P2.5 (P2.5 Scope Excluded: «правка фасада — исполнение P3»); reconcile при детализации (SKILL §5, дёшево — скелет не терминален). RAG:— (repo-grounded: phases/P2.md P2.5 Scope Excluded, plan.md D14) |
+| D20 | 2026-07-18 | Механизм заморозки P3.2: расширить существующий reflection-тест `tests/Unit/ApiBoundaryTest.php` до snapshot-гейта с закоммиченным фикстуром (`@api`-типы core + сигнатуры публичных методов ВКЛЮЧАЯ имена параметров — named-arguments-контракт); регенерация фикстура — осознанный акт под D#+bump, не авто-обновление; over-sensitivity (краснеет и на BC-safe добавления) — ЖЕЛАЕМОЕ свойство пре-1.0-строгой-заморозки. `roave/backward-compatibility-check` рассмотрен как tag-boundary BC-комплемент и ОТЛОЖЕН (не тащить новый dev-dep; снапшот+D#-дисциплина достаточны для 0.x; зафиксирован в каталоге ограничений как follow-up) | RAG-верификация ландшафта: roave/bc-check — де-факто BC-инструмент, но reflection-снапшот механически надёжен для детекта дрейфа и для 0.x-строгой-заморозки его строгость — плюс; переиспользование ApiBoundaryTest-паттерна дешевле и без supply-chain-риска. RAG:✅ 2026-07-18 (perplexity: roave/bc-check vs reflection-snapshot, packagist roave/backward-compatibility-check) |
+| D21 | 2026-07-18 | Локус UPGRADING: канонический путь апгрейда — `docs/introduction/upgrading.md` (+RU-зеркало, VitePress), НЕ новый repo-root `UPGRADING.md` (не плодить дубль существующей доки); P3.3 консолидирует полную главу «0.2→0.3» (все breaking P1+P2) там. `root/semver-policy.md`+`root/known-limitations.md` живут в plan-root/ (судьба — docs проекта, при архивации переезжают в docs/) | Существует `docs/introduction/upgrading.md` (P2.9 уже дописывает туда wildcard-breaking); второй дом фрагментирует апгрейд-нарратив. RAG:— (repo-grounded: docs/introduction/upgrading.md, phases/P2.md P2.9 Files) |
+| D22 | 2026-07-18 | Финальный тег плана — v0.3.0 (владелец разрешил Q1, 2026-07-18): «stable»-точка после тест-углубления P4, тегается в P5.2; НЕ 0.9.x/1.0-rc (поверхность стабилизируется, но 1.0-обязательства не берутся в этой волне) | Ответ владельца на Q1 (open-questions.md); согласуется с брифом п.8 «там 0,3». Обсуждение §2 → Resolved. RAG:— (repo-grounded: brief/00-brief.md п.8) |
+| D23 | 2026-07-18 | Цель Q2 (владелец, 2026-07-18): пакет ДОЛЖЕН работать под разные СУБД (приоритет Postgres, но MySQL/MariaDB — first-class), Redis ОПЦИОНАЛЕН (shared hosting → database/file cache-драйвер должен нести epoch/scoped-cache без Redis). Матрица P4 и стратегия портируемости (что PG-only, что через воркэраунд) — по фактам recon findings/recon-db-portability-2026-07-18.md; финальный состав матрицы + воркэраунды фиксируются при детализации P4 (переоформить в D-запись состава). Обсуждение §3 остаётся Resolving до recon | Прямой steer владельца сместил Q2 с «минимум PG+Redis» на «мультибаза + опциональный Redis»; выбор состава требует фактуры DB-специфичных конструкций (запущен recon). RAG:— (repo-grounded: ответ владельца Q2, open-questions.md) |
+| D24 | 2026-07-18 | Реоформление D23 «состава матрицы» при детализации P4: (а) матрица P4 = SQLite (:memory:, быстрый дефолт) + Postgres 16 (приоритет) + MySQL 8 (first-class); MariaDB опц.; Redis-путь тестируется И на database cache-драйвере (shared-hosting без Redis); (б) collation-hardening RBAC-ключей — ОТДЕЛЬНЫЙ санкционированный code-change item P4.7 (driver-conditional `utf8mb4_bin` на panel_id/permission_key/model_type/scope_class/context_* под MySQL/MariaDB), НЕ input-канонизация; (в) фаза выросла с 6 до 7 items; (г) контракт-блок P4 обновлён: collation-миграция P4.7 — санкционированное исключение из «прикладной код не меняется» (portability-conformance под уже-корректный case-sensitive контракт, @api-снапшот P3 не задет — миграции не @api); (д) P4.6 НЕ переделывает D-01/D-06 (закрыты P1), только verify | Мандат D23 «финальный состав + воркэраунды фиксируются при детализации P4 (переоформить в D-запись)»; recon-db-portability §3/§7 — case-insensitive collation MySQL схлопывает ключи = security-корректность-баг, binary collation fail-closed (D10); §7-критерий оркестрации не сработал (scope P4 связан по данным) → manual item-by-item. RAG:— (repo-grounded: findings/recon-db-portability-2026-07-18.md §3/§7, plan.md D10/D23) |
+| D25 | 2026-07-18 | Scope релиза P5.2 (выбор владельца, 2026-07-18): тег v0.3.0 + GH Release + CHANGELOG в приватном монорепо; split/Packagist ОТЛОЖЕНЫ как follow-up вне плана — split-репо `axioma-studio/azguard-*` не существуют (404), `MONOREPO_SPLIT_TOKEN` не настроен, монорепо приватный (`axiomasoft/azguard-private`), публикация кода = отдельное решение владельца. split.yml нейтрализуется job-guard'ом `if: vars.SPLIT_ENABLED == 'true'` (repo-переменная не создаётся — дефолт выключено; `vars` доступен в job-if, `secrets` — нет). Санкционированное исключение из «код не меняется» для P5.2: guard split.yml + версия-бампы манифестов (сателлиты `^0.2→^0.3`, versions map `0.3.0`). Контракт-блок P5 обновлён (reconcile) | Без guard'а тег гарантированно роняет split-джоб (шум на первом же релизе, маскирует реальные падения); констрейнт `^0.2` после breaking P1/P2 ложен, а release.yml гейтит только `*`. RAG:✅ 2026-07-18 (gh api: 404/секреты; GitHub Docs Contexts: vars в jobs.<id>.if — findings/P5-rag-release-guard-2026-07-18.md) |
+| D26 | 2026-07-18 | Механика закрытия P5: (а) миграцию root/→docs исполняет item P5.3 (контент-работа: EN-перевод, RU-зеркала, VitePress-навигация) — НЕ команда архивации; шаг «docs из root/» архив-пайплайна §12 при `/task:plan-close archive` становится верификацией по migration-чеклисту handoff; (б) таблица судеб root/: package-hardening-track.md, api-surface.md, glossary.md → `docs/05_AI/` (внутренние, parity-exempt); semver-policy.md → `docs/introduction/versioning.md` (EN+RU); known-limitations → `docs/introduction/known-limitations.md` (EN+RU; если P3.3 оформил разделом — одна страница versioning); contracts/facade-cutline.md — остаётся в архиве (рабочая спека); (в) сам перенос плана в plans/archive/ — post-plan `/task:plan-close archive` после терминальности всех items (item не может архивировать план, в котором сам открыт) | Архив-команда (sonnet/low) не должна нести перевод и навигацию; docs/05_AI исключён из parity-гейта by design — дом внутренних RU-доков. RAG:— (repo-grounded: bin/docs-parity-gate.sh:20-26, скилл plan-protocol §12) |
+| D27 | 2026-07-18 | **supersedes D10 (б)**: default-panel fallback резолюции query-scope (`PanelResolver::resolve(null) ?? resolveDefault(null)`) УПРАЗДНЁН — в `bootHasScopedRoles` панель резолвится только `PanelResolver::resolve(null)` (nullable). Причина: `resolveDefault(null)` = `Config::defaultPanel() ?? 'app'` механически НИКОГДА не возвращает null, поэтому fallback делал ветку D5 «нет панели → аддитивно применить все scope» недостижимой для ЛЮБОГО вызова без активной панели → строки с `scope->panel_id != default_panel` переставали фильтроваться (утечка видимости), падал anti-regression A1 (`ScopedRoleQueryScopePanelIsolationTest`), а premise C-02 «панель null даже после fallback» становился недостижимым. Следствия: (а) P1.1 сужается до ЕДИНСТВЕННОГО изменения — снять `runningInConsole`-bypass; панель-резолюция и аддитив D5 (строки 60/72-84) не трогаются, три isolation-кейса остаются зелёными; (б) вся семантика null-панели переезжает в C-02 (P1.2, `on_missing_panel` enum, дефолт `exception`), где кейс A1 осознанно re-baseline'ится под fail-closed-контракт; (в) утверждённый backlog W0 (C-01 = только console/queue-контракт) fallback не предписывал — D27 возвращает C-01 ровно к его scope | Прямое применение принципа владельца «максимальная надёжность, fail-closed, ничего не ослаблять» (brief/01-refinements.md, D10 преамбула): fallback ослаблял изоляцию — строгий вариант = его удаление. Развилка подтверждена владельцем на детализации P1.1 (2026-07-18). RAG:— (repo-grounded: packages/core/src/Support/PanelResolver.php:33-42/90-93, packages/core/src/Concerns/HasScopedRoles.php:60-84, tests/Feature/ScopedRoleQueryScopePanelIsolationTest.php:84-105) |
 
 ## 6. Update Log
 
@@ -102,6 +131,15 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | orchestrator/fable | P0.5 закрыт: ось D — 12 чеков, 9 находок (1 Major D-06 OOM), Support/ 9 файлов классифицированы, baseline 17+6+12=35 — детали см. phases/P0.md P0.5 Completion Notes |
 | 2026-07-18 | plan-run solo/fable (fable/high) | P0.6 закрыт: REGISTER 44 находки + бэклог W0/W1/W2=1/12/14, 9 кластеров P2, гейт владельца утверждён (D9) — детали см. phases/P0.md P0.6 Completion Notes |
 | 2026-07-18 | plan-close/sonnet | Фаза P0 закрыта: 6/6 items 🟢, Phase Handoff сверен, docs-sync не требуется, lint 0/0 — детали см. phases/P0.md Phase Handoff |
+| 2026-07-18 | plan-design/fable (design pass 3) | P1 детализирована до DoR: 4 items (W0 C-01 · W1 12 Major · W2 14 Minor/Nit · adversarial review), контракт query-scope D10 (fail-closed по решению владельца), D11–D13, Routing P1 уточнён, v0.3.0. Фокус далее: P2 (9 кластеров) |
+| 2026-07-18 | plan-design/fable (design pass 3) | P2 детализирована до DoR: 10 items, 4 развилки разрешены владельцем (D14–D18), синтез research/03-p2-canon.md, Routing P2 (fable/high manual), v0.3.1 — детали см. phases/P2.md. Фокус далее: P3 |
+| 2026-07-18 | plan-design/fable | Владелец разрешил Q1 (тег v0.3.0 — D22) и дал steer по Q2 (мультибаза PG-приоритет + опциональный Redis — D23); recon-db-portability закрыт (findings/): PG-only фич нет, риск — collation RBAC-ключей MySQL; Обсуждение §2/§3 Resolved, open-questions обновлён |
+| 2026-07-18 | plan-design/fable (design pass 3) | P3 детализирована до DoR: 3 items (cut-line фасада → api-surface · snapshot-гейт заморозки · SemVer-политика+UPGRADING), reconcile контракт-блока (D19), D20–D21, v0.3.2 — детали см. phases/P3.md. Фокус далее: P4 |
+| 2026-07-18 | plan-design/fable (design pass 3) | P4 детализирована до DoR: 7 items (стенд·БД-лейн·paratest·race C-05/C-14·mutation-ratchet·чистка·collation MySQL), D24 (состав матрицы+collation P4.7+рост 6→7), RAG P4-paratest, v0.3.3 — детали phases/P4.md. Фокус далее: P5 → finish |
+| 2026-07-18 | plan-design/fable (design pass 3) | P5 детализирована до DoR (3 items: шаблон дорожки · релиз v0.3.0 · миграция root/→docs), scope релиза решён владельцем (split отложен — D25), D26 (механика закрытия/архива), RAG P5-release-guard, roadmap.md собран, Design Passes 3/3, v0.3.4. Фокус далее: `finish` |
+| 2026-07-18 | plan-design/fable (finish) | Сквозной reconcile 6 фаз: контракт-блоки, producer→consumer артефактов, coupling D6, Required Reads — консистентны; 0 скелетов/маркеров, развилки Resolved, roadmap↔Routing сверен. Дыр нет. v0.3.5 → готов к `plan-audit design` — детали handoff.md «Done» |
+| 2026-07-18 | plan-design/opus (P1.1 re-detail) | Эскалация P1.1 снята владельцем → D27 (supersedes D10-б: default-fallback упразднён, fail-closed); P1.1 сужен до снятия console-bypass, статус 🔴→⬜, C-02/P1.2 реконсилен. v0.3.6 — детали phases/P1.md P1.1 + §5 D27 |
+| 2026-07-18 | plan-run/sonnet-high | P1.1 закрыт (🟠): console-bypass убран из `bootHasScopedRoles` (C-01), новый тест `ScopedRolesConsoleQueueTest`, полный сьют 559 passed без регрессий — детали см. phases/P1.md P1.1 Completion Notes |
 
 ## Обсуждение
 
@@ -121,7 +159,7 @@ read-only аудит (акцент — интеграционная поверх
 - **Вариант B — 0.9.x/1.0.0-rc.** Если после заморозки поверхность считается
   кандидатом в 1.0.
 
-**Статус:** Decision pending (нужен владелец)
+**Статус:** Resolved → D22 (владелец: «0.3», 2026-07-18)
 
 ### 3 — Состав docker-матрицы P4
 
@@ -129,4 +167,59 @@ read-only аудит (акцент — интеграционная поверх
   код) и follow-up T6 (кросс-процессный Redis race-тест).
 - **Вариант B — Postgres + MySQL/MariaDB + Redis.** Полная матрица потребителей RBAC.
 
-**Статус:** Decision pending (нужен владелец)
+**Статус:** Resolved → D23 → **финализировано D24** (детализация P4): матрица = SQLite +
+Postgres 16 + MySQL 8 (MariaDB опц.), Redis-путь И на database cache-драйвере; collation-hardening
+RBAC-ключей — санкционированный item **P4.7** (driver-conditional `utf8mb4_bin`, fail-closed).
+Recon findings/recon-db-portability-2026-07-18.md подтвердил: PG-only фич нет, пакет portable;
+единственный содержательный риск — case-insensitive collation MySQL (схлопывает ключи).
+
+### 4 — Grant-грамматика: immutable-with vs мутабельные builders + унификация core↔context
+
+- **(рекоменд.) Вариант A — immutable-with + единый корень.** `final readonly` builders,
+  единый `AzGuard::forUser()->…->grant()` для core И context, shorthands → @internal.
+  Плюсы: консистентно с F49 (Values), одна грамматика, арх-ратчет. Минусы: шире переписывание.
+- **Вариант B — мутабельный, унифицировать только вход.** Плюсы: меньше правок. Минусы:
+  расходится с F49-каноном, builders остаются вне ратчета.
+
+**Статус:** Resolved → D16 (владелец: «лучшие решения», D14)
+
+### 5 — TTL-парность context-грантов
+
+- **(рекоменд.) Вариант A — TTL-парность.** ContextGrantBuilder получает until()/ttl() +
+  active()-фильтр (миграция expires_at). Плюсы: одна грамматика, потребитель не учит две.
+  Минусы: новая колонка/миграция.
+- **Вариант B — «context-грант бессрочен by design».** Плюсы: меньше кода. Минусы:
+  асимметрия грамматики core↔context остаётся.
+
+**Статус:** Resolved → D16 (владелец: идеальный fluent, D14)
+
+### 6 — Headless-порог: doc-only vs рантайм panel-less
+
+- **(рекоменд.) Вариант A — doc-only minimal-setup.** headless quick-start + doctor-hint,
+  рантайм не меняется. Плюсы: fail-closed сохраняется, YAGNI. Минусы: порог снижен только
+  документацией.
+- **Вариант B — рантайм panel-less/lenient путь.** Плюсы: реальный минимальный прод-путь.
+  Минусы: риск ослабить fail-closed, крупнее.
+
+**Статус:** Resolved → D14 (fail-closed приоритетнее, YAGNI)
+
+### 7 — AzGuard::fake(): строить в 0.3.0 vs отложить
+
+- **(рекоменд.) Вариант A — строим.** Recorder + assertGranted/Denied/Checked (+closure).
+  Плюсы: закрывает Testing-DX гэп (акцент брифа), канон RAG:✅. Минусы: новый код.
+- **Вариант B — отложить post-0.3.0.** Плюсы: меньше scope. Минусы: Testing DX остаётся слабым.
+
+**Статус:** Resolved → D14 (подтверждённый гейтом кластер, акцент интеграционной поверхности)
+
+### 8 — Scope релиза P5.2: split/Packagist сейчас vs отложить
+
+- **(рекоменд.) Вариант A — тег + GH Release, split отложить.** Плюсы: не публикует код
+  приватного пакета, ноль новой внешней инфры, релиз-конвейер (release.yml/changelog.yml)
+  работает как есть. Минусы: пакеты пока не ставятся через Packagist.
+- **Вариант B — полный публичный релиз.** One-time setup (3 репо под axioma-studio, PAT →
+  MONOREPO_SPLIT_TOKEN, Packagist). Плюсы: полный конвейер. Минусы: публикация приватного
+  кода — отдельное решение, инфра-работа вне кода.
+- **Вариант C — split в приватные репо без Packagist.** Плюсы: потребители через
+  VCS-repository. Минусы: инфра-работа при недоказанной потребности.
+
+**Статус:** Resolved → D25 (владелец: Вариант A, 2026-07-18)

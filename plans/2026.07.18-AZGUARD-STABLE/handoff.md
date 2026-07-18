@@ -1,51 +1,66 @@
-# HANDOFF — 2026-07-18 — after P0
+# HANDOFF — 2026-07-18 — after P1.1
 
-**Next:** design pass 3 — детализировать фазу P1 (ремедиация, скелет из бэклога W0/W1/W2)
+**Next:** исполнить P1.2 (W1, 12 Major-находок: C-13, C-11, C-10, C-08, C-02, C-03, C-04,
+C-05, B-04, B-01, A-05, D-06) — per-finding коммиты в утверждённом гейтом порядке
+(security→cache→docs/DX), см. phases/P1.md P1.2. C-02/C-03 правят тот же файл
+(`HasScopedRoles.php`), что уже закрытый P1.1 — сверяться с актуальным состоянием файла.
 
 | Параметр | Значение |
 |:--|:--|
-| Model | opus |
-| Thinking | high — детализация items из аудита, риск неверной партиции волн |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Детализировать P1 (ремедиация находок P0, начиная с Blocker C-01/W0) по D3 |
+| Model | sonnet — Routing §3 P1.2 (manual); текущая сессия уже sonnet — `/task:plan-run` продолжает без переключения |
+| Thinking | high — Routing §3 P1.2 (12 Major, часть security-sensitive: морф/mass-assign/wildcard/union-only); текущая сессия уже high |
+| Context | continue (/clear) — ручной item |
+| Суть | Закрыть 12 Major-находок W1 по одной, per-finding коммиты (D11), затем полный сьют + lint/analyse + docs-parity |
 
 ```
-/task:plan-design 2026.07.18-AZGUARD-STABLE P1
+/task:plan-run 2026.07.18-AZGUARD-STABLE P1.2
 ```
 
-**Done:** Фаза P0 закрыта — все 6 items 🟢, фаза 🟢 Done в Phase Index & Status Board.
-P0.1–P0.5 — оркестрация D8 (run wf_1017e781-b09), item-commits
-c6b254b/374134b/46e85ef/6f13af9/c5441b0: RAG-добор (5/5 вердиктов подтверждены) + 4 оси,
-44 находки (A-8, B-11, C-16, D-9). P0.6 — solo fable/high (plan-run, D18), item-commit
-eabd431: findings/REGISTER.md (44 находки, дедуп 0, re-rated 0; Blocker 1 / Major 18 /
-Minor 24 / Nit 1) + research/02-backlog.md (P1: W0={C-01}, W1=12, W2=14; P2: 14 находок
-в 9 кластерах; отклонено 3) + блокирующий гейт владельца ПРОЙДЕН (4/4 утверждены) → D9.
-Phase Handoff записан в phases/P0.md (bookkeeping-коммит 8e96e8e). Docs-sync: не
-требуется (read-only аудит-фаза, артефакты — только plans/). Lint: 0 ERROR / 0 WARN —
-новых от закрытия: 0 (baseline HEAD, дерево уже включает bookkeeping-коммит 8e96e8e).
-Read-only гейт кода чист на каждом закрытии item'а и на закрытии фазы (`git status
---short` пуст).
+**Done:** P1.1 закрыт (🟠 Done with deviations). `HasScopedRoles::bootHasScopedRoles()`
+(packages/core/src/Concerns/HasScopedRoles.php:50) — убран `app()->runningInConsole()` из
+условия раннего выхода; ранний выход теперь ровно `if (! Auth::check()) { return; }`; строки
+60/72-84 (панель-резолюция, аддитив D5) байт-в-байт не тронуты (D27). Новый тест
+`tests/Feature/ScopedRolesConsoleQueueTest.php` (2 кейса: queue-контекст `Auth::login()` без
+HTTP/панели фильтрует по scoped-роли; genuine-console без актора — no-op), зарегистрирован в
+`tests/Pest.php` (манульный uses()-список). Item-коммит `eed9099` — несёт также правку
+`tests/Pest.php` (регистрация нового теста, механически неизбежна: файла нет в директорийном
+автобиндинге) → путь вне декларированных `Files` item'а → status-rule требует 🟠, не 🟢
+(Known Deviations в phases/P1.md P1.1). Validation (на eed9099): `pest --filter=ScopedRoles`
+20 passed/42 assertions; полный сьют `pest` 559 passed/1530 assertions (регрессий нет, 3
+кейса `ScopedRoleQueryScopePanelIsolationTest` зелены без правок); `composer lint:check` —
+pint passed; `composer analyse` — phpstan 0 errors; grep-гейты (`runningInConsole` пуст,
+`resolveDefault` только в `hasScopedPermission`) — оба подтверждены.
 
-**Remaining:** design pass 3 — детализация P1 (из бэклога W0/W1/W2) и P2 (9 кластеров)
-по D3, затем P3–P5 → finish (roadmap) → plan-audit design → exec P1–P5.
+**Remaining:** P1.2 (W1, 12 Major) → P1.3 (W2, 14 Minor/Nit) → P1.4 (adversarial review) →
+P2 канон (10 items) → P3 заморозка → P4 тест-углубление → P5 (шаблон → релиз+тег → миграция
+docs) → post-plan `/task:plan-close archive`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.2.0, D1–D9) ·
-findings/REGISTER.md (реестр 44) · research/02-backlog.md (утверждённый бэклог, D9) ·
-brief/01-refinements.md (гейт 2026-07-18) · findings/P0-axis-{a,b,c,d}-*.md (сырьё осей).
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.6, D1–D27) ·
+phases/P1.md (P1.1 закрыт 🟠; P1.2 — следующий) · roadmap.md ·
+research/{00-user-intent,02-backlog,03-p2-canon}.md · findings/ (REGISTER + оси + recon +
+RAG) · brief/{00-brief,01-refinements}.md · open-questions.md (Q3→D27).
 
 **Open risks:**
-- Blocker C-01 — в W0, обязан стать первым item'ом детализации P1.
-- Q1/Q2 (версия тега; docker-матрица) — Decision pending, нужны до P5.2 / детализации P4.
-- Детализация P4 обязана подобрать хвосты из 02-backlog.md «Хвосты в P4»
-  (race-тест C-05, Octane-тест RequestState C-14, mutation-excludes D-08).
-- recon-файлы содержат устаревшие счётчики (D-02) — при детализации P1/P2 опираться
-  на REGISTER/оси, не на recon.
-- Process-deviations в P0.3 (facade 17 vs 18 @method — дефект recon, не аудита) и P0.6
-  (9 кластеров P2 вместо 6 предписанных, утверждено гейтом D9) не меняют статус items
-  (🟢 сохранён) — учтены в Completion Notes phases/P0.md, отдельного эскалационного
-  действия не требуют.
+- P1.2 C-02 re-baseline: `on_missing_panel=exception`-дефолт заменяет аддитив D5 → кейс
+  `ScopedRoleQueryScopePanelIsolationTest` «A1 — still applies an explicit-panel scope when
+  NO panel is currently set» переписывается под новый fail-closed-контракт — осознанная смена,
+  не ослабление; исполнитель обязан переписать ассерт, не удалить проверку.
+- P1.2/P1.3 правят `HasScopedRoles.php` поверх уже закрытого P1.1 — читать актуальное
+  состояние файла (не исходное из findings-якорей).
+- Полный сьют гоняется как `php -d memory_limit=1G vendor/bin/pest` (bare `composer test`
+  ещё OOM — фикс D-06 внутри самой P1.2, bullet 12).
+- P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен (roadmap B5);
+  red `composer check` → эскалация §10, не тихая починка.
+- Split/Packagist отложены (D25); P4/P5-инфра-items требуют внешней среды → честный skip-note
+  при недоступности, не слепой зелёный.
+- `plan-lint.py` прогнан по прямому пути (найден в swissknifeman/packages/task/scripts/,
+  `${CLAUDE_PLUGIN_ROOT}` не задан в среде) — следующему исполнителю может понадобиться тот же
+  обходной путь, если переменная не восстановлена.
 
 **Workarounds/Deferred/Open questions:**
-- workarounds: —
-- deferred: детализация P1–P5 (pass 3, D3); roadmap.md (finish)
-- open_questions: Q1 (версия тега 0.3.0?), Q2 (Postgres+Redis или +MySQL?) — open-questions.md
+- workarounds: полный сьют P1.1/P1.2 через `php -d memory_limit=1G vendor/bin/pest` (до D-06);
+  `plan-lint.py` вызывается по абсолютному пути (`${CLAUDE_PLUGIN_ROOT}` пуст в этой сессии).
+- deferred: split/Packagist one-time setup (D25); адоптация roave/bc-check (D20); per-token DB
+  resolver для parallel на реальных БД (P4.3 YAGNI); снапшот filament/context-пакетов (P3.2 —
+  пока только core-поверхность).
+- open_questions: Q1→D22, Q2→D23/D24, Q3(D10-б/P1.1)→D27, scope релиза→D25. Открытых нет.
