@@ -7,7 +7,7 @@ A super-admin bypasses all Gate checks. AzGuard implements this via a role whose
 ```php
 namespace App\Guards\Admin\Roles;
 
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Roles\BaseRole;
 
 class SuperAdminRole extends BaseRole

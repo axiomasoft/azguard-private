@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Panels;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Exceptions\PanelNotFoundException;
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use BackedEnum;
 use Illuminate\Support\Facades\Log;
 

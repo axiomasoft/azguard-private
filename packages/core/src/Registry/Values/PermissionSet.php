@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Registry\Values;
 
 use AzGuard\Contracts\PermissionMatcher;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Matching\WildcardPermissionMatcher;
 use Closure;
 

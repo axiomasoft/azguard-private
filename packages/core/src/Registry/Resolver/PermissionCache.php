@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Registry\Resolver;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
-use AzGuard\Support\RequestState;
+use AzGuard\Runtime\RequestState;
 use Closure;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Log;

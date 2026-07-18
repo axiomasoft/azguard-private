@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
-use AzGuard\Support\Config;
+use AzGuard\Configuration\Config;
 use Illuminate\Console\Command;
 
 /**

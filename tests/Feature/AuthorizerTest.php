@@ -1,7 +1,7 @@
 <?php
 
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;

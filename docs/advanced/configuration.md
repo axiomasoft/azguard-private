@@ -78,7 +78,7 @@ return [
     |--------------------------------------------------------------------------
     | Panels
     |--------------------------------------------------------------------------
-    | List every class that extends AzGuard\PanelProvider.
+    | List every class that extends AzGuard\Panels\PanelProvider.
     | Each panel defines its own permission namespace and catalog builders.
     */
     'panels' => [

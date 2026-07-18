@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\AzGuardManager;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Resolver\PermissionCache;
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\ScopedRoleCache;
 
 /**
  * Guards against the Octane state-leak (B1): per-request services must be

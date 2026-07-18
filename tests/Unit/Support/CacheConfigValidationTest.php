@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Exceptions\InvalidCacheConfigException;
-use AzGuard\Support\Config;
 
 /**
  * C-04 — az-guard.cache.expiration_time = null (infinite TTL) is only safe

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Contracts\PermissionCatalog;
-use AzGuard\Support\Panel;
 
 // F40: the catalog resolves panelIds lazily, so a panel registered after boot is
 // visible via panels() without rebuilding/replacing the catalog singleton.

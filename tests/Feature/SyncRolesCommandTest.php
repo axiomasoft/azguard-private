@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
 use AzGuard\Models\Role;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 
 it('creates roles for panel from PHP role classes', function (): void {
     // Ensure roles table is empty

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AzGuard;
+namespace AzGuard\Panels;
 
 use AzGuard\Auth\PolicyAttributeRegistrar;
+use AzGuard\AzGuardManager;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Guard\PolicyDiscovery;
 use AzGuard\Registry\Builders\EnumPermissionCatalogBuilder;
 use AzGuard\Registry\Builders\PolicyAbilityCatalogBuilder;
-use AzGuard\Support\Panel;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Override;

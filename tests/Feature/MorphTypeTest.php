@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Models\Role;
-use AzGuard\Support\Config;
 use AzGuard\Tests\Stubs\UlidUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

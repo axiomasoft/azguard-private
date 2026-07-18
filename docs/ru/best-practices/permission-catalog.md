@@ -42,8 +42,8 @@ app/Guards/
 // app/Guards/App/AppGuardPanelProvider.php
 namespace App\Guards\App;
 
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\PanelProvider;
+use AzGuard\Panels\Panel;
 
 class AppGuardPanelProvider extends PanelProvider
 {

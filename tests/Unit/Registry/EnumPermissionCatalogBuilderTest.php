@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Builders\EnumPermissionCatalogBuilder;
-use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Posts\Permissions\PostPermission;
 use Illuminate\Support\Facades\Log;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Roles\SuperAdminRole;
-use AzGuard\Support\Config;
 use AzGuard\Testing\FakeAzGuardUser;
 use AzGuard\Tests\Stubs\Permissions\TestPermission;
 use AzGuard\Tests\Stubs\User;

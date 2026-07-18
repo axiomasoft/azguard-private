@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support\Schema;
+namespace AzGuard\Database\Schema;
 
-use AzGuard\Support\Config;
+use AzGuard\Configuration\Config;
 use Illuminate\Database\Schema\Blueprint;
 
 /**

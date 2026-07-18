@@ -7,7 +7,7 @@ namespace AzGuard\Filament;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Resources\DirectGrantResource;
 use AzGuard\Filament\Resources\RoleResource;
-use AzGuard\Support\PanelResolver;
+use AzGuard\Panels\PanelResolver;
 use BackedEnum;
 use Filament\Contracts\Plugin;
 use Filament\Panel;

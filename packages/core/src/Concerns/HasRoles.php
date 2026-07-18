@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
 use AzGuard\Models\Role;
-use AzGuard\PermissionKey;
-use AzGuard\Support\Config;
+use AzGuard\Permissions\PermissionKey;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;

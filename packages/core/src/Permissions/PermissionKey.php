@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzGuard;
+namespace AzGuard\Permissions;
 
+use AzGuard\Panels\Panel;
 use BackedEnum;
 use UnitEnum;
 
@@ -19,7 +20,7 @@ use UnitEnum;
  * Reference these constants instead of hardcoding the literals so a future change
  * to the grammar is a single edit, not a silent break across every consumer:
  *
- *   use AzGuard\PermissionKey;
+ *   use AzGuard\Permissions\PermissionKey;
  *
  *   $role->permissions();                 // [PermissionKey::WILDCARD] for super-admin
  *   in_array(PermissionKey::WILDCARD, …); // "is this the wildcard?"

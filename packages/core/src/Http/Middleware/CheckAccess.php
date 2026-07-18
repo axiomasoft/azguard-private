@@ -7,7 +7,7 @@ namespace AzGuard\Http\Middleware;
 use AzGuard\Attributes\CheckPermission as CheckPermissionAttribute;
 use AzGuard\Attributes\SkipGuardCheck;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use BackedEnum;
 use Closure;
 use Illuminate\Http\Request;

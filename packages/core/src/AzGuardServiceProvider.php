@@ -28,6 +28,7 @@ use AzGuard\Commands\RoleAssignmentCommand;
 use AzGuard\Commands\RolePermissionsCommand;
 use AzGuard\Commands\SuperAdminCommand;
 use AzGuard\Commands\SyncRolesCommand;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AbilitiesResolver;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\PermissionLayer;
@@ -52,9 +53,8 @@ use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Registry\Sources\DatabaseRoleGrantSource;
 use AzGuard\Registry\Sources\DirectGrantSource;
-use AzGuard\Support\Config;
-use AzGuard\Support\RequestState;
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\RequestState;
+use AzGuard\Runtime\ScopedRoleCache;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -359,21 +359,21 @@ final class AzGuardServiceProvider extends ServiceProvider
      */
     protected function registerBladeDirectives(): void
     {
-        Blade::directive('azcan', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('azcan', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
 
         Blade::directive('endazcan', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('elseazcan', fn (string $expression): string => "<?php elseif (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('elseazcan', fn (string $expression): string => "<?php elseif (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
 
-        Blade::directive('unlessazcan', fn (string $expression): string => "<?php if (! \\AzGuard\\Support\\BladeHelper::authed() || ! auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('unlessazcan', fn (string $expression): string => "<?php if (! \\AzGuard\\Auth\\BladeHelper::authed() || ! auth()->user()->hasPermission({$expression})): ?>");
 
         Blade::directive('endunlessazcan', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('azrole', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasRole({$expression})): ?>");
+        Blade::directive('azrole', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasRole({$expression})): ?>");
 
         Blade::directive('endazrole', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('azdirect', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && method_exists(auth()->user(), 'hasGrant') && auth()->user()->hasGrant({$expression})): ?>");
+        Blade::directive('azdirect', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && method_exists(auth()->user(), 'hasGrant') && auth()->user()->hasGrant({$expression})): ?>");
 
         Blade::directive('endazdirect', fn (): string => '<?php endif; ?>');
     }

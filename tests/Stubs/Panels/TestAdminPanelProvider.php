@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Stubs\Panels;
 
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelProvider;
 
 final class TestAdminPanelProvider extends PanelProvider
 {

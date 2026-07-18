@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Exceptions\AzGuardException;
-use AzGuard\Support\Config;
 
 /**
  * C-02 — az-guard.scope.on_missing_panel accessor: fail-closed default and a

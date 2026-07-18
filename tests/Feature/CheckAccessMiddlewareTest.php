@@ -6,7 +6,7 @@ use AzGuard\Attributes\CheckPermission;
 use AzGuard\Attributes\SkipGuardCheck;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Http\Middleware\CheckAccess;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Posts\Permissions\PostPermission;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Auth\PolicyAttributeRegistrar;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Posts\Policies\PostPolicy;
 use Illuminate\Support\Facades\Gate;
 

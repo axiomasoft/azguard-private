@@ -6,13 +6,13 @@ namespace AzGuard\Guard;
 
 use AzGuard\Attributes\GateAbility;
 use AzGuard\Attributes\RoleOnly;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Panels\Panel;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
-use AzGuard\Support\Config;
-use AzGuard\Support\Panel;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionEnum;

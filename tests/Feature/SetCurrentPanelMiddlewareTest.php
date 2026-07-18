@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
 use AzGuard\Http\Middleware\SetCurrentPanel;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use Illuminate\Support\Facades\Route;
 
 it('sets and resets current panel around request lifecycle', function (): void {

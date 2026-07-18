@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Registry\Sources\DirectGrantSource;
-use AzGuard\Support\Config;
 use AzGuard\Tests\Stubs\CustomDirectGrant;
 use AzGuard\Tests\Stubs\UserWithDirectGrants;
 use Illuminate\Support\Facades\DB;

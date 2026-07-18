@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**

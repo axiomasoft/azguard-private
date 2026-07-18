@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Registry\Resolver;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Contracts\PermissionResolverInterface;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 use Override;

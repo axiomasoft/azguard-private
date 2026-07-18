@@ -8,7 +8,7 @@ use AzGuard\AzGuardManager;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;

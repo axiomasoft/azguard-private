@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Models\Role;
 use AzGuard\Registry\Contracts\PermissionCatalog;
-use AzGuard\Support\Config;
 use AzGuard\Tests\Stubs\CustomRole;
 use AzGuard\Tests\Stubs\CustomRolePermission;
 

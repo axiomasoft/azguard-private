@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 
 describe('Panel', function () {
     it('returns id set via id()', function () {

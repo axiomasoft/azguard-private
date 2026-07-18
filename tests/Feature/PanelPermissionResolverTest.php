@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 
 test('resolvePermission добавляет префикс панели', function (): void {
     $panel = Panel::make()->id(id: 'app')->scopedByPanelId(condition: true);

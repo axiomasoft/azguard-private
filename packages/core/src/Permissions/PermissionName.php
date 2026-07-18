@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Permissions;
 
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\Permission;
-use AzGuard\PermissionKey;
+use AzGuard\Panels\Panel;
 use UnitEnum;
 
 /**

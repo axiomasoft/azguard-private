@@ -6,8 +6,8 @@ namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelProvider;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;

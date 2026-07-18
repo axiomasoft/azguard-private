@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Project;
 use AzGuard\Tests\Stubs\Roles\ScopedFilterRole;
 use AzGuard\Tests\Stubs\User;

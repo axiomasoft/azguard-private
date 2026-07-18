@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Http\Middleware;
 
-use AzGuard\Support\PanelResolver;
+use AzGuard\Panels\PanelResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

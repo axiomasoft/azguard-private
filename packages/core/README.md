@@ -96,7 +96,7 @@ Gate::before(fn ($user, string $ability) =>
     $user instanceof AzGuardUser && $user->isSuperAdmin() ? true : null);
 ```
 
-The wildcard value lives in one place — `AzGuard\PermissionKey::WILDCARD` — so
+The wildcard value lives in one place — `AzGuard\Permissions\PermissionKey::WILDCARD` — so
 reference it rather than a literal `'*'`.
 
 ### Testing

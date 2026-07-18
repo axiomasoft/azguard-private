@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Configuration;
 
 use AzGuard\Abilities\DefaultAbilitiesResolver;
 use AzGuard\AzGuardManager;

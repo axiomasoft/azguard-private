@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Concerns\HasRoles;
+use AzGuard\Configuration\Config;
 use AzGuard\Roles\SuperAdminRole;
-use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 

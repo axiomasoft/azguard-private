@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Runtime;
 
 /**
  * Per-request scratch state for AzGuard. Registered as a `scoped` binding, so the

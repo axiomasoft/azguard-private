@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 
 enum PermissionKeyStringBacked: string
 {

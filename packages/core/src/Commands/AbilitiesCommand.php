@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesUserModel;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\PermissionResolverInterface;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
-use AzGuard\Support\Panel;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Authenticatable;
 

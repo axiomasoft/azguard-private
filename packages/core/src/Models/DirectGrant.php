@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Models;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Registry\Resolver\PermissionCache;
-use AzGuard\Support\Config;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;

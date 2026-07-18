@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Runtime;
 
 use Closure;
 

@@ -51,7 +51,7 @@ class User extends Authenticatable implements AzGuardUser
 
 ## Конфигурация панелей
 
-В `config/az-guard.php` укажите PanelProvider'ы вашего приложения (FQCN классов, расширяющих `AzGuard\PanelProvider`):
+В `config/az-guard.php` укажите PanelProvider'ы вашего приложения (FQCN классов, расширяющих `AzGuard\Panels\PanelProvider`):
 
 ```php
 return [

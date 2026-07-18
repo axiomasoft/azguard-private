@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Guard\Authorizer;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Contracts\Auth\Access\Authorizable;

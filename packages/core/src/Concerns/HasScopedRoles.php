@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
-use AzGuard\PermissionKey;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionKey;
+use AzGuard\Permissions\PermissionName;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
-use AzGuard\Support\Config;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
-use AzGuard\Support\RequestState;
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\RequestState;
+use AzGuard\Runtime\ScopedRoleCache;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

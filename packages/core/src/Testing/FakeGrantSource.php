@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionName;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Override;

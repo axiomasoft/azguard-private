@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\AzGuardManager;
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 
 describe('AzGuardManagerInterface contract', function () {
     it('AzGuardManager implements AzGuardManagerInterface', function () {

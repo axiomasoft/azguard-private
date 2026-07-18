@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Panels\TestAdminPanelProvider;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;

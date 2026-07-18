@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Stubs;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\PanelProvider;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelProvider;
 use AzGuard\Registry\Builders\EnumPermissionCatalogBuilder;
-use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Permissions\TestPermission;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\Roles\ProjectEditorRole;

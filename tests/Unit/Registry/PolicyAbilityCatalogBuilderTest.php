@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Builders\PolicyAbilityCatalogBuilder;
-use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Posts\Permissions\PostPermission;
 use AzGuard\Tests\Stubs\Posts\Policies\PostPolicy;
 use Illuminate\Support\Facades\Log;

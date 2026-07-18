@@ -37,7 +37,7 @@ Gate::before(function ($user): ?bool {
 ## Через роль с wildcard
 
 ```php
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Roles\BaseRole;
 
 class SuperAdminRole extends BaseRole

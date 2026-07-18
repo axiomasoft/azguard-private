@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Concerns;
 
 use AzGuard\Models\DirectGrant;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionName;
 use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Support;
+namespace AzGuard\Abilities;
 
 use Illuminate\Support\Facades\Gate;
 

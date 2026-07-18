@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Policies;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use RuntimeException;

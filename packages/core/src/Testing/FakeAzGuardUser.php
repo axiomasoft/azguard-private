@@ -6,9 +6,9 @@ namespace AzGuard\Testing;
 
 use AzGuard\Contracts\HasPermissions;
 use AzGuard\Contracts\PermissionContext;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionName;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;

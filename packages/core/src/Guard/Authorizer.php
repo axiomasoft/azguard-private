@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Guard;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Events\AccessDecision;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
-use AzGuard\Support\Config;
-use AzGuard\Support\Panel;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 

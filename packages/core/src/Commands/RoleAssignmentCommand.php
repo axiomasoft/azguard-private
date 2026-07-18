@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesUserModel;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\HasRoles as HasRolesContract;
-use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 
