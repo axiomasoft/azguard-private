@@ -8,6 +8,7 @@ use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
 use AzGuard\Registry\Definitions\EnumPermissionDefinition;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Override;
 use ReflectionClass;
 use ReflectionEnum;
@@ -58,6 +59,10 @@ final readonly class EnumPermissionCatalogBuilder implements PermissionCatalogBu
 
         foreach ($classes as $enumClass) {
             if (! class_exists($enumClass)) {
+                Log::warning("AzGuard: enum class [{$enumClass}] does not exist, skipping catalog entry.", [
+                    'panel' => $panelId,
+                ]);
+
                 continue;
             }
 

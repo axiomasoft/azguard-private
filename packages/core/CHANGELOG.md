@@ -94,6 +94,11 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   under the stale (rolled-back) epoch key until its own TTL expired. Custom
   cache drivers that don't implement `LockProvider` degrade to the prior
   (unlocked) behavior rather than throwing. (T6)
+- `EnumPermissionCatalogBuilder::build()` now logs a warning when an enum
+  class listed in `Panel::permissionEnums()` no longer exists, instead of
+  silently skipping it — matching the diagnostics `PolicyAbilityCatalogBuilder`
+  already gave for a stale policy class, so a renamed/removed `*Permission`
+  enum leaves a signal in the log rather than a silent hole in the catalog. (T3)
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:
