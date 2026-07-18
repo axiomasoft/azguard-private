@@ -80,12 +80,18 @@ trait HasScopedRoles
                 // scope regardless of panel_id (pre-D27 aggregate behaviour).
             }
 
+            // assignScopedRole() persists scope_entity_type via getMorphClass() —
+            // under an enforced morph map that is the ALIAS, not the FQCN. The
+            // read side must resolve the same way, or every scope row is missed
+            // and the isolation filter silently never applies (C-10 tail).
+            $entityMorphClass = $builder->getModel()->getMorphClass();
+
             $scopes = app(ScopedRoleCache::class)->remember(
                 $user->getAuthIdentifier().'|'.static::class,
                 // eager-load to avoid a query per scope row below; withoutGlobalScope prevents
                 // infinite recursion when scopeEntity is itself a HasScopedRoles model (this scope).
                 fn () => $user->scopes()
-                    ->where('scope_entity_type', static::class)
+                    ->where('scope_entity_type', $entityMorphClass)
                     ->with(['scopeEntity' => fn ($q) => $q->withoutGlobalScope(self::SCOPE_KEY)])
                     ->get(),
             );
