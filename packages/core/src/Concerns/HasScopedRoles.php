@@ -47,7 +47,7 @@ trait HasScopedRoles
     public static function bootHasScopedRoles(): void
     {
         static::addGlobalScope(self::SCOPE_KEY, function (Builder $builder): void {
-            if (app()->runningInConsole() || ! Auth::check()) {
+            if (! Auth::check()) {
                 return;
             }
 
