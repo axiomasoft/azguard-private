@@ -1,17 +1,17 @@
-# HANDOFF — 2026-07-18 — after P2.3
+# HANDOFF — 2026-07-18 — after P2
 
-**Next:** все items фазы P2 терминальны (P2.1/P2.2/P2.3 🟢, P2.4 ⛔ Skipped by decision) —
-закрыть фазу.
+**Next:** фаза P2 закрыта. Фаза P1 (P1.1 🟠, P1.2/P1.3 🟢) полностью терминальна по items,
+но её формальный `plan-close` ещё не проведён — закрыть фазу P1.
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet |
 | Thinking | low |
 | Context | NEW SESSION — шаг-не-item |
-| Суть | Закрыть фазу P2 (`plan-close`) — сверка Phase Status/Phase Handoff по факту |
+| Суть | Закрыть фазу P1 (`plan-close`) — сверка Phase Status/Phase Handoff по факту |
 
 ```
-/task:plan-close 2026.07.17-AZGUARD-TAILS P2
+/task:plan-close 2026.07.17-AZGUARD-TAILS P1
 ```
 
 **Done:** P1.1 (T1) закрыт — panel-aware query-scope guard (D5) + eager-load recursion fix
@@ -45,14 +45,15 @@ constraint failed») при существующей null-строке `scope_cl
 Excluded соблюдён, эскалация не потребовалась). `REMAINDER_REPORT.md`/
 `IMPROVEMENT_PLAN.md` (T5 → 🟢) обновлены в item-commit. Item-commit `f75e0ef`. Статус 🟢
 Done.
+**Фаза P2 закрыта** (🟢 Done) — все items терминальны (P2.1-P2.3 🟢, P2.4 ⛔ Skipped by
+decision), docs-sync не требуется (нет пользовательского процесса/фичи для `docs/`),
+известные отклонения — механически собраны в `phases/P2.md` Phase Handoff (OOM-факт
+окружения P2.1/P2.2, CHANGELOG permission-обход P2.2). Процессное отклонение: все три
+item'а исполнены напрямую (`plan-exec`/ручной запуск), а не через задекларированный
+workflow-скрипт `wf-azguard-tails-p2.js` (D4) — не влияет на статус items.
 
-**Remaining:** экзекуции не осталось — P1 (P1.1-P1.3 все 🟢/🟠) и P2 (P2.1-P2.3 🟢,
-P2.4 ⛔) полностью терминальны по items, но ОБЕ фазы не закрыты формально (`## Phase
-Handoff` в `phases/P1.md` и `phases/P2.md` не заполнен, `plan-close` ещё не проведён).
-Оркестрация P2 через workflow (D4, `wf-azguard-tails-p2.js`) была задекларирована на
-этапе дизайна, но все три item'а P2 исполнены напрямую через `/task:plan-exec`/ручной
-запуск по прямому указанию запускающей стороны в каждой сессии — process-отклонение, не
-влияющее на статус items (не входит в enum material-отклонений §6).
+**Remaining:** фаза P1 — items все терминальны (P1.1 🟠, P1.2/P1.3 🟢), но `Phase Handoff`
+в `phases/P1.md` не заполнен и формальный `plan-close` не проведён.
 
 **Sources of truth:** plans/2026.07.17-AZGUARD-TAILS/plan.md ·
 plans/2026.07.17-AZGUARD-TAILS/phases/P1.md ·
@@ -63,8 +64,8 @@ plans/2026.07.17-AZGUARD-TAILS/roadmap.md · `REMAINDER_REPORT.md` (T1-T6 — �
 локальном окружении (`memory_limit=128M`, подтверждено повторно на всех items
 P1.1-P1.3/P2.1-P2.3) — гонять Validation через `php -d memory_limit=1G vendor/bin/pest` /
 `php -d memory_limit=1G vendor/bin/phpstan analyse --memory-limit=1G` (эквивалент, не
-отклонение). Обе фазы (P1/P2) требуют формального `plan-close` перед тем, как план в
-целом можно будет считать готовым к архивации.
+отклонение). Фаза P1 требует формального `plan-close` перед тем, как план в целом можно
+будет считать готовым к архивации.
 
 **Workarounds/Deferred/Open questions:**
 - workarounds: —

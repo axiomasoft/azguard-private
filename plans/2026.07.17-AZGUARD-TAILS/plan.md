@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | opus |
-| Last Updated | 2026-07-18 (P2.3 закрыт) |
+| Last Updated | 2026-07-18 (фаза P2 закрыта) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core |
 | Execution Mode | phase-first |
@@ -65,7 +65,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
 | P1 | Correctness-critical: panel-isolation & cache race | 2/3 | 🟡 In progress |
-| P2 | Дешёвый батч: диагностика/wildcard/rollback | 3/4 | 🟡 In progress |
+| P2 | Дешёвый батч: диагностика/wildcard/rollback | 3/4 | 🟢 Done |
 
 ## 5. Decision Log
 
@@ -101,6 +101,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | 2026-07-18 | plan-exec/sonnet-medium | P2.1 закрыт (🟢): `Log::warning()`-паритет в `EnumPermissionCatalogBuilder::build()` (T3) — детали см. `phases/P2.md` P2.1 Completion Notes. Item-commit `b1de1ac` |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.2 закрыт (🟢): `filterAgainstCatalog()` wildcard-off ветка теперь дропает ключи с `*` до dynamic-сопоставления, паритетно wildcard-ON (T4) — детали см. `phases/P2.md` P2.2 Completion Notes. Item-commit `6bead71` |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.3 закрыт (🟢): rollback-тест миграции 000004 подтвердил ЭКСПЕРИМЕНТОМ, что `down()` падает `QueryException` на SQLite при null-строке `scope_class` (T5), паритетно докблоку — докблок правки не потребовал — детали см. `phases/P2.md` P2.3 Completion Notes. Item-commit `f75e0ef` |
+| 2026-07-18 | plan-close/sonnet-low | Фаза P2 закрыта (🟢 Done): все items терминальны (P2.1-P2.3 🟢, P2.4 ⛔ по решению), docs-sync — не требуется, известные отклонения свёрнуты в `phases/P2.md` Phase Handoff. Следующий шаг — закрыть фазу P1 (items уже терминальны, формальный `plan-close` не проведён) |
 
 ## Обсуждение
 
