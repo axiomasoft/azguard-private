@@ -1,61 +1,63 @@
-# HANDOFF — 2026-07-18 — after P2.7
+# HANDOFF — 2026-07-18 — after P2.8
 
-**Next:** P2.8 (headless-порог: minimal-setup quick-start + doctor-hint) —
-`Exec = plan-exec` (sonnet/medium, D28). Порядок §10 канона: P2.9 ✓ → P2.7 ✓
-→ P2.8 → P2.10 последним. Модельная карта остатка (D28): fable —
-P3.2/P5.1; sonnet/high — P3.1/P3.3/P4.7; sonnet/medium plan-exec —
-P2.8/P2.10/P4.1–P4.6/P5.2/P5.3.
+**Next:** P2.10 (консолидация: docs EN/RU паритет + arch-тесты канона P2) —
+`Exec = plan-exec` (sonnet/medium, D28). P2.10 — последний item фазы P2;
+по его закрытии фаза становится терминальной → `/task:plan-close 2026.07.18-AZGUARD-STABLE P2`.
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet |
-| Thinking | medium — editorial/doc-only item, развилка headless разрешена (D14 doc-only, Routing D28) |
+| Thinking | medium — editorial/консолидационный item, каноны уже применены P2.1–P2.9 (Routing D28) |
 | Context | continue (/clear) — ручной item |
-| Суть | P2.8: docs/introduction/headless-quick-start.md (+RU), guard:doctor onboarding-hint при 0 панелей + тест, без ослабления fail-closed |
+| Суть | P2.10: сквозной docs-свип под новый API (грамматика/config/fake/wildcard/структура), EN↔RU паритет (44↔44), консолидация arch-тестов канона, финальный `composer check` |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P2.8
+/task:plan-exec 2026.07.18-AZGUARD-STABLE P2.10
 ```
 
-(После P2.8 — P2.10 строго последним в фазе.)
+**Done:** P2.8 закрыт 🟢 (item-коммит `c9edfc2`, 7 files, +272/−3):
+`docs/introduction/headless-quick-start.md` + RU-зеркало — doc-only
+minimal-setup путь (install→`implements AzGuardUser`→одна минимальная
+панель→`AzGuard::forUser($user)->on('api')->grant(...)`/
+`$user->hasPermission(...)`/`AzGuard::abilitiesFor(...)` без Filament-глав),
+рантайм panel-less НЕ строился (D14, fail-closed сохранён).
+`AzGuardDiagnostics::diagnose()` — при 0 зарегистрированных панелях
+добавляет один `warnings[]`-хинт «No panels registered — see
+docs/introduction/headless-quick-start.md…» (не error, команда остаётся
+successful); `DoctorCommand.php` правки не потребовал. 2 новых теста
+(hint при 0 панелей / нет hint при ≥1). Навигация: `docs/.vitepress/
+config.ts` (EN/RU intro-sidebar + page-map), `quick-start.md`+RU-зеркало
+(cross-link). Validation на `c9edfc2`: `test -f` EN+RU passed ·
+`php vendor/bin/pest --filter='Doctor'` 13 passed/39 ·
+`bash bin/docs-parity-gate.sh` OK · `composer lint:check` passed ·
+`composer analyse` 0 errors · `composer test` 666 passed/1772 (было 664
+на P2.9, +2). Session: sonnet/medium — соответствует Routing (plan-exec).
+Material-отклонение: нет — дифф строго по Files item'а (config.ts трактован
+как «навигация», предписанная Files-строкой). Pending Work: RU
+`quick-start.md` полный Next-steps-паритет с EN — предсуществующий дрейф,
+P2.10 doc-sweep.
 
-**Done:** P2.7 закрыт 🟢 (item-коммит `f589663`, 7 files, +99/−1):
-глоссарий `plans/2026.07.18-AZGUARD-STABLE/root/glossary.md` (таблица
-термин→сущность→видимость + вердикты guard=бренд/panel=изоляция/
-context=runtime/scope=persist, C-A10). `docs/basic-usage/multiple-guards.md`
-переформулирован через панели — ложная строка «a panel is bound to one or
-more guards» убрана (A-07; носителя в коде нет, Panel.php: 0 вхождений
-guard), RU-зеркало синхронно. Маршрутизирующий раздел «Context or scope?»
-добавлен в `docs/advanced/context.md` (таблица runtime vs persist) + tip-
-обратка в `docs/advanced/entity-scopes.md` (A-08); RU-зеркала обоих файлов
-синхронны. Validation на `f589663`: `test -f root/glossary.md` passed ·
-`bash bin/docs-parity-gate.sh` OK (no Cyrillic leaks, structural parity) ·
-`grep -c 'bound to.*guard' multiple-guards.md` == 0 · `composer lint:check`
-passed (docs-only diff). Session: sonnet/medium — соответствует Routing
-(plan-exec). Material-отклонение: нет — дифф строго по Files item'а.
-
-**Remaining:** P2.8 (sonnet/medium plan-exec) → P2.10 последним (sonnet/
-medium plan-exec) → P3 cut-line/заморозка (P3.1 sonnet/high по спеке
-P2.5+D29 · P3.2 fable/high · P3.3 sonnet/high) → P4 тест-углубление
-(P4.1–P4.6 plan-exec, P4.7 sonnet/high) → P5 (шаблон fable → релиз+тег →
-миграция docs) → post-plan
+**Remaining:** P2.10 (sonnet/medium plan-exec, последний item P2) →
+`/task:plan-close 2026.07.18-AZGUARD-STABLE P2` → P3 cut-line/заморозка
+(P3.1 sonnet/high по спеке P2.5+D29 · P3.2 fable/high · P3.3 sonnet/high) →
+P4 тест-углубление (P4.1–P4.6 plan-exec, P4.7 sonnet/high) → P5 (шаблон
+fable → релиз+тег → миграция docs) → post-plan
 `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.14,
-D1–D29) · phases/P2.md (P2.1–P2.4/P2.9 🟠, P2.5/P2.6/P2.7 🟢, ТЗ P2.8/P2.10)
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.15,
+D1–D29) · phases/P2.md (P2.1–P2.4/P2.9 🟠, P2.5/P2.6/P2.7/P2.8 🟢, ТЗ P2.10)
 · root/contracts/facade-cutline.md (замороженная спека cut-line — SSOT P3.1)
 · root/glossary.md (словарь терминов — SSOT для docs-нарратива P2.10) ·
-research/03-p2-canon.md (канон, §8 wildcard-флип, §9 словарь, §10 порядок)
-· root/architecture.md (ADR структуры) · findings/ (REGISTER + оси) ·
-roadmap.md (строка P2 — историческая блочная, супersedeна построчным D28) ·
-brief/{00-brief,01-refinements}.md.
+research/03-p2-canon.md (канон, §7 headless, §8 wildcard-флип, §9 словарь,
+§10 порядок) · root/architecture.md (ADR структуры) · findings/ (REGISTER +
+оси) · roadmap.md (строка P2 — историческая блочная, супersedeна построчным
+D28) · brief/{00-brief,01-refinements}.md.
 
 **Open risks:**
 - RU-зеркала context.md/direct-grants.md/filament.md/http-access.md/
   testing.md рассинхронены с EN после P2.3/P2.4/P2.6; RU-страницы
-  upgrading.md/super-admin-wildcard.md имели предсуществующий контент-дрейф —
-  P2.7 синхронизировал только свои новые секции (multiple-guards.md,
-  context.md, entity-scopes.md), полный паритет закрывает P2.10
+  upgrading.md/super-admin-wildcard.md/quick-start.md (Next steps-раздел)
+  имели предсуществующий контент-дрейф — полный паритет закрывает P2.10
   (структурный parity-gate при этом зелёный — он не сверяет контент).
 - `docs/recipes/temp-access-via-grant.md:33` показывает позиционный
   `AzGuard::revoke` (@internal с P2.3) — P2.10 doc-sweep (Pending Work P2.5).
@@ -91,5 +93,6 @@ brief/{00-brief,01-refinements}.md.
   корня в context-CLI → P2.10; `direct-grants.md` `::using()`-пример → P2.10;
   `temp-access-via-grant.md` позиционный revoke → P2.10 (P2.5 Pending Work);
   boost-скилл регенерация → P3.1/P2.10 (P2.5 Pending Work);
-  `Event::fake()`+`AzGuard::fake()` doc-note → P2.10.
+  `Event::fake()`+`AzGuard::fake()` doc-note → P2.10; RU quick-start.md
+  Next-steps-паритет → P2.10 (P2.8 Pending Work).
 - open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.
