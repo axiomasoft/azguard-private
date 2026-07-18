@@ -49,6 +49,11 @@ class DirectGrant extends Model
      * changed (C-09): moving a grant from panel A to B, or reassigning it to a
      * different grantable, otherwise leaves panel A's stale cached permission
      * set alive until TTL — the new-value flush above never touches it.
+     *
+     * Known gap (P1.4 review): a mass update/delete through the query builder
+     * (DirectGrant::query()->update(...)) fires NO model events, so neither
+     * the old nor the new key is flushed — inherent to every model-event hook.
+     * Use guard:cache-reset (or per-model writes) after bulk mutations.
      */
     #[Override]
     protected static function booted(): void
