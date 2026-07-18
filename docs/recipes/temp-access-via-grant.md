@@ -30,11 +30,10 @@ $contractor->grant(DocumentsPermission::View, 'app', now()->addWeeks(2));
 use AzGuard\Facades\AzGuard;
 
 // Revoke a specific grant (deletes the row, flushes the user's cache)
-AzGuard::revoke($contractor, DocumentsPermission::View, 'app');
-
-// Or via the model / builder:
-$contractor->revoke(DocumentsPermission::View, 'app');
 AzGuard::forUser($contractor)->on('app')->revoke(DocumentsPermission::View);
+
+// Or directly on the model:
+$contractor->revoke(DocumentsPermission::View, 'app');
 ```
 
 ## Via Filament

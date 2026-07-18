@@ -1,60 +1,63 @@
 # Несколько Guards
 
-AzGuard поддерживает несколько Laravel-гардов одновременно, каждый со своими панелями AzGuard.
+AzGuard поддерживает приложения, использующие более одного guard'а аутентификации — например, guard `web` для обычных пользователей и `api` для мобильных клиентов, или отдельный guard `admin` для панели бэк-офиса.
 
 ## Как это работает
 
-«Guard» здесь — концепция аутентификации Laravel: она решает, *кто* залогинен. Единица
-изоляции AzGuard — **panel** (панель): она решает, *какое пространство разрешений*
-(`app.*`, `admin.*`) применяется. В коде эти два понятия не связаны: панель — это просто
-пространство разрешений, а какой auth guard стоит перед конкретным участком приложения —
-решение вашей маршрутизации/middleware.
+«Guard» здесь — это концепция аутентификации Laravel: она решает, *кто* залогинен. Единица
+изоляции AzGuard — **панель** (panel): она решает, *какое пространство разрешений*
+(`app.*`, `admin.*`) применяется. Эти два понятия не связаны в коде: панель — это просто
+пространство разрешений, а то, какой auth guard стоит перед конкретным участком вашего
+приложения, целиком определяется вашей собственной маршрутизацией и middleware.
+
+На практике обычно один auth guard сочетается с одной панелью на каждую область приложения:
+
+```
+web guard   → App panel   → app.documents.view, app.posts.edit …
+admin guard → Admin panel → admin.users.ban, admin.roles.manage …
+```
 
 ## Конфигурация
 
+Зарегистрируйте по одному panel provider на каждую область приложения в `config/az-guard.php`. `id()` каждой панели становится префиксом её разрешений:
+
 ```php
-// config/az-guard.php
 'panels' => [
-    App\Guards\App\AppGuardPanelProvider::class,
-    App\Guards\Admin\AdminGuardPanelProvider::class,
-    App\Guards\Api\ApiGuardPanelProvider::class,
+    \App\Guards\App\AppGuardPanelProvider::class,    // id('app')   → app.*
+    \App\Guards\Admin\AdminGuardPanelProvider::class,  // id('admin') → admin.*
 ],
 ```
 
-Каждый provider панели объявляет свои роли и разрешения через `permissionEnums()` и `roleClasses()`.
-
-## Проверка в рамках панели
+## Проверка разрешений для конкретной панели
 
 ```php
-// Текущая панель запроса (устанавливается middleware azguard.panel)
-$user->hasPermission(AdminPermission::ManageUsers);
+// По умолчанию: резолвится относительно текущей панели (её задаёт middleware azguard.panel)
+$user->hasPermission(DocumentsPermission::View);
 
-// Явное указание панели вторым аргументом
-$user->hasPermission(AdminPermission::ManageUsers, 'admin');
+// Явное указание другой панели — передайте её id вторым аргументом
+$user->hasPermission(AdminUsersPermission::Ban, 'admin');
 ```
 
-## Middleware для разных guard
+## Middleware с guards
 
 ```php
-// routes/admin.php
-Route::middleware(['auth:admin', 'azguard.panel:admin'])
+// Проверка разрешения, привязанного к конкретному guard'у, прямо в роутах
+Route::middleware(['auth:admin', 'can:admin.users.ban'])
     ->group(function () {
-        Route::get('/users', [UserController::class, 'index']);
-    });
-
-// routes/api.php
-Route::middleware(['auth:api', 'azguard.panel:api'])
-    ->group(function () {
-        Route::get('/me/permissions', [ProfileController::class, 'permissions']);
+        Route::post('/admin/users/{user}/ban', BanUserController::class);
     });
 ```
 
-## Filament с несколькими панелями
+## Blade-директивы с guards
 
-```php
-// app/Providers/Filament/AdminPanelProvider.php
-->authGuard('admin')
-->plugin(AzGuardPlugin::make()->forPanel('admin'))
+```blade
+@can('admin.users.ban')
+    <button>Забанить пользователя</button>
+@endcan
 ```
 
-→ [Панели](/ru/advanced/panels) · [HTTP и Middleware](/ru/basic-usage/http-access)
+`@can` в Blade автоматически резолвится относительно текущей панели. Чтобы проверить другую панель, вычислите булево значение в контроллере через `$user->hasPermission($permission, $panelId)` и передайте его во view.
+
+::: tip
+Полный референс по конфигурации панелей — в разделе [Панели](/ru/advanced/panels).
+:::

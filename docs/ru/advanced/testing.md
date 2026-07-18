@@ -217,6 +217,43 @@ $user->hasPermission(DocumentsPermission::View); // true
 $user->hasPermission('app.documents.view'); // работает без зарегистрированной панели
 ```
 
+## `AzGuard::fake()` — запись грантов и проверок
+
+`AzGuard::fake()` подменяет фасад записывающим дублёром (паттерн `Event::fake()`/
+`Pdf::fake()`): гранты и проверки по-прежнему выполняются по-настоящему —
+fake() наблюдает, а не подменяет поведение — поэтому
+`assertGranted()`/`assertDenied()`/`assertChecked()` читают то, что реально
+произошло в ходе теста:
+
+```php
+use AzGuard\Facades\AzGuard;
+
+public function test_it_records_grants_and_checks(): void
+{
+    AzGuard::fake();
+
+    $user = User::factory()->create();
+
+    AzGuard::forUser($user)->on('app')->grant(DocumentsPermission::View);
+
+    $this->assertTrue($user->can('app.documents.view'));
+
+    AzGuard::assertGranted($user, DocumentsPermission::View, 'app');
+    AzGuard::assertChecked('app.documents.view');
+}
+```
+
+Каждый assert также принимает предикат-замыкание над `Recorded` (`user`,
+`key`, `panelId`, `result`) вместо простой формы — метода «получить лог» нет,
+есть только assert'ы:
+
+```php
+use AzGuard\Testing\Recorded;
+
+AzGuard::assertGranted(fn (Recorded $r) => $r->key === 'app.documents.view');
+AzGuard::assertChecked(fn (Recorded $r) => $r->key === 'app.documents.view' && $r->result === true);
+```
+
 См. [Интеграция и тестирование](/ru/recipes/integration) — паттерн
 сегрегированных контрактов (`HasScopedRoles`/`HasDirectGrants` как опциональные
 пары контракт+трейт) и проверка видимости опционального context guard.

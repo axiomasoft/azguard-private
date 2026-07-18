@@ -1,86 +1,76 @@
-# Entity Scopes
+# Entity-scoped роли
 
-Entity Scopes позволяют ограничивать права конкретными экземплярами модели — например, пользователь может редактировать только посты **своего** проекта.
+Entity-scoped роли позволяют назначить роль пользователю **для конкретного экземпляра модели**. Пользователь может быть `editor` в проекте A и не иметь никакой роли в проекте B.
+
+Это дополняет глобальные роли, а не заменяет их.
 
 ::: tip
-Нужен request-scoped переключатель «текущий workspace/tenant», а не персистентная роль
-на записи? См. раздел «Context или scope?» в [доках `azguard/context`](/ru/advanced/context).
+Нужен request-scoped переключатель «текущий workspace/tenant», а не персистентная
+роль на записи? См. [Context или scope?](/ru/advanced/context#context-or-scope) в
+доках `azguard/context`.
 :::
 
 ## Подключение
 
-Добавьте трейт `HasScopedRoles` к модели пользователя (в дополнение к `HasAzGuard`):
+Добавьте `HasScopedRoles` к любой Eloquent-модели, которая должна поддерживать назначение scoped-ролей:
 
 ```php
-use AzGuard\Concerns\HasAzGuard;
 use AzGuard\Concerns\HasScopedRoles;
 
-class User extends Authenticatable
+class Project extends Model
 {
-    use HasAzGuard;
     use HasScopedRoles;
 }
 ```
 
-## Назначение роли в рамках сущности
+Модель `User` должна уже использовать `HasAzGuard`.
+
+## Назначение и снятие scoped-ролей
 
 ```php
-// Роль editor только в пределах конкретного проекта
-$user->assignScopedRole('editor', $project);
+// Назначить
+$user->assignScopedRole(EditorRole::class, $project);
 
-$user->hasScopedRole('editor', $project);   // true
-$user->removeScopedRole('editor', $project);
+// Снять
+$user->removeScopedRole(EditorRole::class, $project);
+
+// Проверить
+$user->hasScopedRole(EditorRole::class, $project); // bool
 ```
 
-`removeScopedRole(..., panelId: null)` (по умолчанию) удаляет только
-any-panel-строку (симметрично `assignScopedRole`). Чтобы снести роль сразу во
-всех панелях:
+## Проверка scoped-права
+
+`hasScopedPermission()` резолвит права в таком порядке:
+
+1. **Wildcard** — если у любой глобальной роли есть `['*']`, вернуть `true`.
+2. **Глобальные роли** — сначала проверяются права из `assignRole()`.
+3. **Scoped-роли** — затем права из `assignScopedRole($entity)` для данной сущности.
 
 ```php
-$user->removeScopedRoleEverywhere('editor', $project);
-```
-
-## Проверка права в рамках сущности
-
-```php
-class PostPolicy
-{
-    public function update(User $user, Post $post): bool
-    {
-        // Право, выданное scoped-ролью в пределах проекта поста
-        return $user->hasScopedPermission(PostsPermission::Edit, $post->project);
-    }
+if ($user->hasScopedPermission(DocumentsPermission::Edit, $project)) {
+    // пользователь может редактировать именно этот проект
 }
 ```
 
-Со строковым ключом панель берётся из первого сегмента (`app.posts.edit` → `app`).
-Для enum-прав передавайте панель явно:
+Интеграция с Gate автоматически использует scoped-резолюцию, если вторым аргументом передана сущность:
 
 ```php
-$user->hasScopedPermission(PostsPermission::Edit, $project, 'app');
+Gate::allows('app.documents.edit', $project); // использует scoped-резолюцию
 ```
 
-## Кастомный scope для фильтрации запросов
+## Сценарии использования
 
-`ScopeInterface` применяется к Eloquent-запросу и ограничивает выборку
-сущностями, к которым у пользователя есть доступ:
+| Сценарий | Scoped-роль |
+|---|---|
+| Мультитенантные проекты | `editor`, привязанный к `Project` |
+| Управление командой | `team-admin`, привязанный к `Team` |
+| Ревью документов | `reviewer`, привязанный к `Document` |
+| Владение ресурсом | `owner`, привязанный к любой Eloquent-модели |
 
-```php
-use AzGuard\Contracts\ScopeInterface;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+## Кеш
 
-class OwnedByUserScope implements ScopeInterface
-{
-    public function apply(Builder $builder, Model $user, ?Model $entity): void
-    {
-        $builder->where('user_id', $user->getKey());
-    }
-}
+Кеш scoped-прав сбрасывается автоматически при вызове `assignScopedRole()` и `removeScopedRole()`. Для ручного сброса:
+
+```bash
+php artisan guard:cache-reset
 ```
-
-`apply()` — панель-условно: при АКТИВНОЙ текущей панели scope с явной `panel_id`,
-не совпадающей с ней, не применяется (изоляция между панелями); scope с
-`panel_id === null` применяется под любой панелью (back-compat). Когда текущая
-панель НЕ установлена (норма для Filament-запросов и роутов без middleware
-`azguard.panel`), применяются ВСЕ scopes, как если бы панелей не было вовсе.

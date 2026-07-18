@@ -28,64 +28,92 @@
   становится superadmin-грантом ни в одной из грамматик. Настоящие
   superadmin-wildcards из `GrantSource` не затронуты.
 
-## С версии 0.x до 1.0
+## Чистка публичного API перед 1.0 (breaking)
 
-::: warning
-Версия 1.0 содержит breaking changes в структуре конфигурации и именовании.
-:::
+Чистка перед 1.0 приводит публичный API к единому набору голых
+односложных имён. Совместимых алиасов нет — обновите места вызова
+напрямую. Общепроектный search-and-replace покрывает почти всё.
 
-### 1. Обновите Composer-зависимость
+### Трейт пользователя (`HasAzGuard`)
 
-```bash
-composer require axioma-studio/azguard-core:^1.0
-```
+Префикс `Az` убран; трейт теперь просто выставляет голые методы из
+`HasPermissions` и `HasRoles`.
 
-### 2. Обновите конфигурацию
-
-Опубликуйте новую версию конфига:
-
-```bash
-php artisan vendor:publish --tag=az-guard-config --force
-```
-
-Сравните `config/az-guard.php` с предыдущей версией. Ключевые изменения:
-
-| Старый ключ | Новый ключ |
+| Было | Стало |
 |---|---|
-| `cache.driver` | `cache.store` |
-| `cache.ttl` | `cache.expiration_time` |
-| `role_namespace` | *(удалён, теперь из конфига панели)* |
+| `hasAzPermission()` | `hasPermission()` |
+| `hasAzPermissionIn()` | `hasPermissionIn()` |
+| `hasAzRole()` | `hasRole()` |
+| `getAzPermissions()` | `permissions()` |
+| `clearAzPermissionsCache()` | `flushPermissions()` |
 
-### 3. Обновите миграции
+### Прямые гранты — единый набор глаголов везде
 
-Миграции AzGuard загружаются автоматически (`loadMigrationsFrom`), публиковать их не нужно:
+| Было | Стало |
+|---|---|
+| `GrantBuilder::give()` | `grant()` |
+| `GrantBuilder::list()` | `grants()` |
+| `AzGuardManager::grantDirect()` | `grant()` |
+| `AzGuardManager::revokeDirect()` | `revoke()` |
+| `AzGuardManager::activeGrants()` | `grants()` |
+| `HasDirectGrants::grantDirect()` | `grant()` |
+| `HasDirectGrants::revokeGrant()` | `revoke()` |
+| `HasDirectGrants::hasDirectGrant()` | `hasGrant()` |
+| `HasDirectGrants::activeDirectGrants()` | `grants()` |
+
+### Panel builder
+
+| Было | Стало |
+|---|---|
+| `Panel::id()` (геттер) | `getId()` (`id()` теперь только сеттер) |
+| `Panel::setNamespace()` | `namespace()` |
+| `Panel::setBasePath()` | `basePath()` |
+| `Panel::getPermissionName()` | используйте `resolvePermission()` |
+
+### Переименованные / удалённые классы
+
+| Было | Стало |
+|---|---|
+| `HasScopes`, `InteractsWithAzScopes` | `HasScopedRoles` |
+| `GuardDoctor`, `DiagnosticsService` | `AzGuardDiagnostics` |
+| `PermissionResolverCache` | `PermissionCache` |
+| `Support\BaseRole` | `Roles\BaseRole` |
+| `PermissionSet::toArray()` | `keys()` |
+| `Context\Contracts\ContextMergeStrategy` | `Context\Contracts\MergeStrategy` (теперь `merge($global, $context)`) |
+| `ResolvesContext::panel()` | `panelId()` |
+| Filament `AzGuardResource` / `GuardResource` | удалены — см. руководство по Filament |
+
+### Search and replace
 
 ```bash
-php artisan migrate
+grep -rE 'hasAz(Permission|Role)|getAzPermissions|clearAzPermissionsCache' . --include='*.php'
+grep -rE '->give\(|grantDirect|revokeDirect|revokeGrant|hasDirectGrant|activeDirectGrants' . --include='*.php'
+grep -rE 'GuardDoctor|InteractsWithAzScopes|PermissionResolverCache' . --include='*.php'
 ```
 
-### 4. Обновите базовый класс ролей
+### Имя Composer-пакета
 
-Если вы использовали `AzGuard\Role` как базовый класс — замените на
-`AzGuard\Roles\BaseRole`:
-
-```php
-// До
-class EditorRole extends \AzGuard\Role { ... }
-
-// После
-class EditorRole extends \AzGuard\Roles\BaseRole { ... }
-```
-
-### 5. Сбросьте кэш
+Core-пакет теперь публикуется как `axioma-studio/azguard-core` (старое имя
+`azguard/azguard` упразднено):
 
 ```bash
-php artisan cache:clear
-php artisan guard:cache-reset
+composer remove azguard/azguard
+composer require axioma-studio/azguard-core
 ```
 
-## Совместимость между патч-версиями
+### Filament
 
-Внутри одной мажорной версии (1.x) AzGuard следует SemVer. Обновления патч-версий (1.0.x → 1.0.y) не требуют изменений кода.
+Пакет Filament теперь требует Filament 5 и заменяет старые базовые классы
+`AzGuardResource` / `GuardResource` на конфиг-ориентированную модель без
+шаблонного кода. См. [руководство по Filament](/ru/basic-usage/filament).
 
-→ [Список изменений](/ru/introduction/changelog)
+### Конфиг и миграции
+
+Ключи конфига и миграции не менялись. Существующий `config/az-guard.php` и
+уже опубликованные миграции остаются валидными.
+
+## Переход со Spatie Permission
+
+Если вы переходите с `laravel-permission` от Spatie, см.
+[страницу сравнения](/ru/introduction/comparison) — там есть таблица
+соответствия возможностей и раздел с рецептами миграции.
