@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.10 |
+| Version | 0.3.11 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.4 закрыт 🟠 — config→fluent Filament-плагин + middleware ::using() + единый порядок аргументов) |
+| Last Updated | 2026-07-18 (P2.6 закрыт 🟢 — AzGuard::fake() Testing DX: Recorder + assertGranted/assertDenied/assertChecked) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -89,7 +89,7 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
-| P2 | Структурный канон + fluent/DX редизайн API | 0/10 | 🟡 In progress |
+| P2 | Структурный канон + fluent/DX редизайн API | 1/10 | 🟡 In progress |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
@@ -159,6 +159,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P2.3 закрыт (🟠): единый immutable fluent-корень forUser()→inContext() (registered-extension шов) + TTL-парность context (миграция expires_at), 623 теста — детали см. phases/P2.md P2.3 Completion Notes |
 | 2026-07-18 | plan-run/fable-high | Routing актуализирован построчно (D28): P2.4/P2.6/P3.1/P3.3 → sonnet/high, P2.7/P2.8/P2.10 → sonnet/medium plan-exec; fable остаётся на P2.5/P2.9/P3.2/P5.1. v0.3.9 |
 | 2026-07-18 | plan-run/sonnet-high | P2.4 закрыт (🟠): AzGuardPlugin fluent enforce/source/abilities/keyTemplate/case (config→fallback) + `make()` container-swap; middleware `::using()` на 4 классах; PanelCheckAccess breaking arg-order permission,panel — детали см. phases/P2.md P2.4 Completion Notes/Known Deviations. v0.3.10 |
+| 2026-07-18 | plan-run/sonnet-high | P2.6 закрыт (🟢): `AzGuard::fake()` — Recorder + assertGranted/assertDenied/assertChecked (простая форма + closure), 657 тестов — детали см. phases/P2.md P2.6 Completion Notes. v0.3.11 |
 
 ## Обсуждение
 
