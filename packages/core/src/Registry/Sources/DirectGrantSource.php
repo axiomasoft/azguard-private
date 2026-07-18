@@ -35,7 +35,7 @@ final class DirectGrantSource implements GrantSource
         $model = Config::directGrantModel();
 
         $keys = $model::query()
-            ->where('grantable_type', $user::class)
+            ->where('grantable_type', $user->getMorphClass())
             ->where('grantable_id', $user->getAuthIdentifier())
             ->where('panel_id', $panelId)
             ->active()

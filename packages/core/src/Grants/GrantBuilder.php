@@ -91,7 +91,7 @@ final class GrantBuilder
         /** @var DirectGrant $grant */
         $grant = DirectGrant::query()->updateOrCreate(
             [
-                'grantable_type' => $this->user::class,
+                'grantable_type' => $this->user->getMorphClass(),
                 'grantable_id' => $this->user->getAuthIdentifier(),
                 'panel_id' => $panel,
                 'permission_key' => $permissionKey,
@@ -183,7 +183,7 @@ final class GrantBuilder
     private function baseQuery(string $panel): Builder
     {
         return DirectGrant::query()
-            ->where('grantable_type', $this->user::class)
+            ->where('grantable_type', $this->user->getMorphClass())
             ->where('grantable_id', $this->user->getAuthIdentifier())
             ->where('panel_id', $panel);
     }

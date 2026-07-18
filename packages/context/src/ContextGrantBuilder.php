@@ -95,7 +95,7 @@ final class ContextGrantBuilder
 
         /** @var ContextRole $contextRole */
         $contextRole = ContextRole::query()->firstOrCreate([
-            'model_type' => $this->user::class,
+            'model_type' => $this->user->getMorphClass(),
             'model_id' => $this->user->getAuthIdentifier(),
             'context_type' => $contextType,
             'context_id' => $contextId,
@@ -212,7 +212,7 @@ final class ContextGrantBuilder
     private function baseQuery(string $panel, string $contextType, int|string $contextId): Builder
     {
         return ContextRole::query()
-            ->where('model_type', $this->user::class)
+            ->where('model_type', $this->user->getMorphClass())
             ->where('model_id', $this->user->getAuthIdentifier())
             ->where('panel_id', $panel)
             ->where('context_type', $contextType)

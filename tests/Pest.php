@@ -30,6 +30,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/CustomGrantSourceTest.php',
         'Feature/DatabaseRoleGrantSourceTest.php',
         'Feature/DirectGrantSourceTest.php',
+        'Feature/DirectGrantMorphMapTest.php',
         'Feature/DiscoveryTest.php',
         'Feature/EnumPermissionArgumentTest.php',
         'Feature/EnumRolePermissionsTest.php',

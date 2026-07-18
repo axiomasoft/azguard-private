@@ -59,7 +59,7 @@ final readonly class ContextPermissionLayer implements PermissionLayer
         $table = config('az-guard-context.table_names.context_roles', 'az_guard_context_roles');
 
         $keys = DB::table($table)
-            ->where('model_type', $user::class)
+            ->where('model_type', $user->getMorphClass())
             ->where('model_id', $user->getAuthIdentifier())
             ->where('context_type', $context->contextType)
             ->where('context_id', $context->contextId)
