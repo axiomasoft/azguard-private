@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.8 |
+| Version | 0.3.9 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.3 закрыт 🟠 — единый immutable grant-корень core↔context, TTL-парность) |
+| Last Updated | 2026-07-18 (D28 — Routing P2.4+/P3 актуализирован построчно: fable только где оправдан) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -61,8 +61,17 @@ read-only аудит (акцент — интеграционная поверх
 | P1.2 (W1) | sonnet/high | manual | 12 Major, часть security-sensitive (морф/mass-assign/wildcard/union-only); файлы пересекаются (C-02/C-03 один файл) → последовательно, per-finding коммиты (D11); НЕ workflow |
 | P1.3 (W2) | sonnet/medium | manual | 14 Minor/Nit — механика/доки/тесты; последовательно, per-finding коммиты (D11) |
 | P1.4 (review) | fable/high | manual | сквозной adversarial review диффа фазы через субагентов (security-review + reviewer + blade-review) свежим контекстом |
-| P2.1–P2.10 | fable/high | manual | редизайн публичных контрактов/структуры (SemVer-breaking, effort high+ MANDATORY); design/contract-класс → Exec=manual, Review=full (public-contract/canon-fleet, D6 §9); порядок и связность — phases/P2.md §Phase Context + research/03-p2-canon.md §10; P2.5 — чистый design-item (спека) |
-| P3.1–P3.3 | fable/high | manual | исполнение cut-line фасада (D19) / snapshot-гейт заморозки (D20) / SemVer-политика + UPGRADING (D21) — контракт-класс, SemVer-необратимо; solo, последовательно (P3.1 api-surface.md → P3.2 снапшот → P3.3 политика); Review=full |
+| P2.1–P2.3 | fable/high | manual | исполнены (историческая блочная маршрутизация D14: design/contract-класс, Review=full); с P2.4 routing построчный — D28 |
+| P2.4 | sonnet/high | manual | каноны решены и запинены RAG'ом (D17: Filament fluent, `::using()`, порядок `что,где`) — предписанная реализация публичного API, открытых design-решений нет; breaking легален (D14); Review=full |
+| P2.5 | fable/high | manual | cut-line target-спека — чистый design-item, вход заморозки P3 (ошибка вердикта замораживается снапшотом); Review=full |
+| P2.6 | sonnet/high | manual | канон fake() запинён RAG (Pdf::fake, Запрос 3) — форма Recorder/ассерций предписана; новая @api-поверхность → Review=full |
+| P2.7 | sonnet/medium | plan-exec | editorial: вердикты словаря готовы (таблица C-A10 + §9 канона), кода нет; Review=light |
+| P2.8 | sonnet/medium | plan-exec | doc-only quick-start + одна информативная hint-ветка doctor (fail-closed не трогается); Review=light |
+| P2.9 | fable/high | manual | breaking-семантика permission-matcher'а (дефолт грамматики меняет поведение всех потребителей) + re-baseline тестов требует различать «legacy-намерение vs случайность»; Review=full |
+| P2.10 | sonnet/medium | plan-exec | механический свип docs-паритета + консолидация arch-тестов; гейты детерминированы (parity-gate, composer check); Review=light |
+| P3.1 | sonnet/high | manual | исполнение выреза ПО ЗАМОРОЖЕННОЙ спеке P2.5 (fable) — предписанная механика, но SemVer-необратимо; Review=full |
+| P3.2 | fable/high | manual | snapshot-гейт заморозки (D20) — несущий механизм всего остатка плана, ошибка = тихий дрейф @api; Review=full |
+| P3.3 | sonnet/high | manual | SemVer-политика + UPGRADING по D21/D22 — контракт-язык, но состав предписан (все breaking P1+P2 уже зафиксированы в Completion Notes); Review=full |
 | P4.1 | sonnet/medium | plan-exec | docker-стенд (compose PG/MySQL/Redis), инфра без прикладной логики; Review=light |
 | P4.2 | sonnet/medium | plan-exec | БД-лейн (env-switch+CI services)+генерализация хрупкого теста; DB-корректность → Review=full |
 | P4.3 | sonnet/medium | plan-exec | paratest на sqlite-лейне+hardening shared-state; parallel-изоляция → Review=full |
@@ -116,6 +125,7 @@ read-only аудит (акцент — интеграционная поверх
 | D25 | 2026-07-18 | Scope релиза P5.2 (выбор владельца, 2026-07-18): тег v0.3.0 + GH Release + CHANGELOG в приватном монорепо; split/Packagist ОТЛОЖЕНЫ как follow-up вне плана — split-репо `axioma-studio/azguard-*` не существуют (404), `MONOREPO_SPLIT_TOKEN` не настроен, монорепо приватный (`axiomasoft/azguard-private`), публикация кода = отдельное решение владельца. split.yml нейтрализуется job-guard'ом `if: vars.SPLIT_ENABLED == 'true'` (repo-переменная не создаётся — дефолт выключено; `vars` доступен в job-if, `secrets` — нет). Санкционированное исключение из «код не меняется» для P5.2: guard split.yml + версия-бампы манифестов (сателлиты `^0.2→^0.3`, versions map `0.3.0`). Контракт-блок P5 обновлён (reconcile) | Без guard'а тег гарантированно роняет split-джоб (шум на первом же релизе, маскирует реальные падения); констрейнт `^0.2` после breaking P1/P2 ложен, а release.yml гейтит только `*`. RAG:✅ 2026-07-18 (gh api: 404/секреты; GitHub Docs Contexts: vars в jobs.<id>.if — findings/P5-rag-release-guard-2026-07-18.md) |
 | D26 | 2026-07-18 | Механика закрытия P5: (а) миграцию root/→docs исполняет item P5.3 (контент-работа: EN-перевод, RU-зеркала, VitePress-навигация) — НЕ команда архивации; шаг «docs из root/» архив-пайплайна §12 при `/task:plan-close archive` становится верификацией по migration-чеклисту handoff; (б) таблица судеб root/: package-hardening-track.md, api-surface.md, glossary.md → `docs/05_AI/` (внутренние, parity-exempt); semver-policy.md → `docs/introduction/versioning.md` (EN+RU); known-limitations → `docs/introduction/known-limitations.md` (EN+RU; если P3.3 оформил разделом — одна страница versioning); contracts/facade-cutline.md — остаётся в архиве (рабочая спека); (в) сам перенос плана в plans/archive/ — post-plan `/task:plan-close archive` после терминальности всех items (item не может архивировать план, в котором сам открыт) | Архив-команда (sonnet/low) не должна нести перевод и навигацию; docs/05_AI исключён из parity-гейта by design — дом внутренних RU-доков. RAG:— (repo-grounded: bin/docs-parity-gate.sh:20-26, скилл plan-protocol §12) |
 | D27 | 2026-07-18 | **supersedes D10 (б)**: default-panel fallback резолюции query-scope (`PanelResolver::resolve(null) ?? resolveDefault(null)`) УПРАЗДНЁН — в `bootHasScopedRoles` панель резолвится только `PanelResolver::resolve(null)` (nullable). Причина: `resolveDefault(null)` = `Config::defaultPanel() ?? 'app'` механически НИКОГДА не возвращает null, поэтому fallback делал ветку D5 «нет панели → аддитивно применить все scope» недостижимой для ЛЮБОГО вызова без активной панели → строки с `scope->panel_id != default_panel` переставали фильтроваться (утечка видимости), падал anti-regression A1 (`ScopedRoleQueryScopePanelIsolationTest`), а premise C-02 «панель null даже после fallback» становился недостижимым. Следствия: (а) P1.1 сужается до ЕДИНСТВЕННОГО изменения — снять `runningInConsole`-bypass; панель-резолюция и аддитив D5 (строки 60/72-84) не трогаются, три isolation-кейса остаются зелёными; (б) вся семантика null-панели переезжает в C-02 (P1.2, `on_missing_panel` enum, дефолт `exception`), где кейс A1 осознанно re-baseline'ится под fail-closed-контракт; (в) утверждённый backlog W0 (C-01 = только console/queue-контракт) fallback не предписывал — D27 возвращает C-01 ровно к его scope | Прямое применение принципа владельца «максимальная надёжность, fail-closed, ничего не ослаблять» (brief/01-refinements.md, D10 преамбула): fallback ослаблял изоляцию — строгий вариант = его удаление. Развилка подтверждена владельцем на детализации P1.1 (2026-07-18). RAG:— (repo-grounded: packages/core/src/Support/PanelResolver.php:33-42/90-93, packages/core/src/Concerns/HasScopedRoles.php:60-84, tests/Feature/ScopedRoleQueryScopePanelIsolationTest.php:84-105) |
+| D28 | 2026-07-18 | Routing актуализирован построчно по прямому указанию владельца («fable — только где оправдан»): критерий — fable/high остаётся там, где есть ОТКРЫТЫЕ design-решения либо цена семантической ошибки необратима (P2.5 спека-вход заморозки, P2.9 флип семантики matcher, P3.2 механизм заморозки, P5.1 канон флота); предписанная реализация по уже запинённым канонам — sonnet/high manual (P2.4, P2.6, P3.1, P3.3); editorial/механика без открытых решений — sonnet/medium plan-exec (P2.7, P2.8, P2.10). Блочная строка P2.1–P2.10 сохранена как историческая для исполненных P2.1–P2.3 | Указание владельца в сессии P2.3 (2026-07-18): ресурсы fable тратить только оправданно; блочная маршрутизация D14 не различала разнородные items внутри фазы (docs-items не трогают @api-поверхность — аргумент «всё замораживается P3» к ним не применяется). RAG:— (repo-grounded: plan.md §3, phases/P2.md P2.4–P2.10, D17/D18/D20/D21) |
 
 ## 6. Update Log
 
@@ -147,6 +157,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P2.1 закрыт (🟠): Support/ распущен — 11 файлов в доменных неймспейсах, канон двух домов контрактов в ADR — детали см. phases/P2.md P2.1 Completion Notes |
 | 2026-07-18 | plan-run/fable-high | P2.2 закрыт (🟠): 6 структурных baseline разрешены уточнением контрактов (label() чинит runtime-баг Filament), analyse 0 errors — детали см. phases/P2.md P2.2 Completion Notes |
 | 2026-07-18 | plan-run/fable-high | P2.3 закрыт (🟠): единый immutable fluent-корень forUser()→inContext() (registered-extension шов) + TTL-парность context (миграция expires_at), 623 теста — детали см. phases/P2.md P2.3 Completion Notes |
+| 2026-07-18 | plan-run/fable-high | Routing актуализирован построчно (D28): P2.4/P2.6/P3.1/P3.3 → sonnet/high, P2.7/P2.8/P2.10 → sonnet/medium plan-exec; fable остаётся на P2.5/P2.9/P3.2/P5.1. v0.3.9 |
 
 ## Обсуждение
 

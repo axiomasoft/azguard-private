@@ -1,22 +1,26 @@
 # HANDOFF — 2026-07-18 — after P2.3
 
-**Next:** ЗАПУСК ВРУЧНУЮ: `fable/high` (manual, Routing P2.1–P2.10; roadmap — каждый
-item отдельной fable/high-сессией). Следующий item — P2.4 (config→fluent: Filament-плагин
-fluent-сеттеры + middleware `::using()` + единый порядок аргументов, D17). Порядок §10
-канона: P2.3 ✓ → P2.4/P2.6…/P2.5 → P2.9 → P2.10.
+**Next:** ЗАПУСК ВРУЧНУЮ: `sonnet/high` (manual, Routing построчный после D28).
+Следующий item — P2.4 (config→fluent: Filament-плагин fluent-сеттеры + middleware
+`::using()` + единый порядок аргументов; каноны запинены D17). Порядок §10 канона:
+P2.3 ✓ → P2.4/P2.6…/P2.5 → P2.9 → P2.10. Модельная карта остатка (D28): fable —
+P2.5/P2.9/P3.2/P5.1; sonnet/high — P2.4/P2.6/P3.1/P3.3; sonnet/medium plan-exec —
+P2.7/P2.8/P2.10/P4.1–P4.6/P5.2/P5.3; sonnet/high — P4.7.
 
 | Параметр | Значение |
 |:--|:--|
-| Model | fable |
-| Thinking | high — контракт-класс, редизайн публичного config→fluent API (RAG-каноны D17, breaking порядка аргументов легален D14) |
+| Model | sonnet |
+| Thinking | high — предписанная реализация публичного API по запинённым RAG-канонам (D17), открытых design-решений нет |
 | Context | continue (/clear) — ручной item |
 | Суть | P2.4: Filament-плагин fluent + `app(static::class)`, middleware `::using(string\|BackedEnum)`, выравнивание порядка аргументов `что,где` |
 
 ```
+/model sonnet
+/effort high
 /task:plan-run 2026.07.18-AZGUARD-STABLE P2.4
 ```
 
-(Если сессия не fable/high — сначала `/model fable` + `/effort high`, D18.)
+(Форма D18: модель/effort сессии должны соответствовать Routing — гейт plan-run сверит.)
 
 **Done:** P2.3 закрыт 🟠 (item-коммит `278cdfc`, 19 files, +673/−84): единый immutable
 fluent-корень грантов core↔context (D16). `AzGuard::forUser($u)->on()->inContext()->until()
