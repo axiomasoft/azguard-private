@@ -77,3 +77,6 @@ Gate::allows('app.posts.view');               // true
 ::: tip
 Полный список конфигурации — в разделе [Установка](/ru/introduction/installation).
 :::
+
+Встраиваемому/headless-потребителю (без Filament) — см.
+[Быстрый старт (headless)](/ru/introduction/headless-quick-start).

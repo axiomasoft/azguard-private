@@ -50,7 +50,16 @@ class AzGuardDiagnostics
         // grouping for this check) — run once regardless of $panelFilter.
         $this->checkStaleScopeClasses();
 
-        foreach (AzGuard::getPanels() as $panelId => $panel) {
+        $panels = AzGuard::getPanels();
+
+        // A-06: 0 registered panels is a valid (headless/embedded) setup, not
+        // an error — surface it as an onboarding hint rather than staying
+        // silent, so a fresh install is distinguishable from a broken one.
+        if ($panels === []) {
+            $this->warnings[] = 'No panels registered — see docs/introduction/headless-quick-start.md for a minimal setup.';
+        }
+
+        foreach ($panels as $panelId => $panel) {
             if ($panelFilter !== null && $panelFilter !== $panelId) {
                 continue;
             }

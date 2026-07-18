@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\AzGuardManager;
+use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Facades\AzGuard;
 use AzGuard\Tests\Stubs\Project;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +65,21 @@ it('guard:doctor warns (but does not fail) on a stale scope_class (C-03)', funct
 
     $this->artisan(command: 'guard:doctor', parameters: ['--panel' => 'test'])
         ->expectsOutputToContain('stale scope_class')
+        ->assertSuccessful();
+});
+
+it('guard:doctor подсказывает headless-quick-start при 0 панелей (A-06)', function (): void {
+    app()->instance(AzGuardManagerInterface::class, new AzGuardManager);
+    AzGuard::clearResolvedInstance(AzGuardManagerInterface::class);
+
+    $this->artisan(command: 'guard:doctor')
+        ->expectsOutputToContain('No panels registered — see docs/introduction/headless-quick-start.md')
+        ->assertSuccessful();
+});
+
+it('guard:doctor не подсказывает headless-quick-start, когда панель зарегистрирована', function (): void {
+    $this->artisan(command: 'guard:doctor', parameters: ['--panel' => 'test'])
+        ->doesntExpectOutputToContain('No panels registered')
         ->assertSuccessful();
 });
 

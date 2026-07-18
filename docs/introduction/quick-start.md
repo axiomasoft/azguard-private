@@ -153,6 +153,7 @@ The doctor checks:
 
 ## Next steps
 
+- [Headless Quick Start](/introduction/headless-quick-start) — the minimal path for an embedded/headless consumer (no Filament)
 - [Panels](/advanced/panels) — understand `app` vs `admin` isolation
 - [Permissions](/basic-usage/permissions) — naming conventions, `#[RoleOnly]`, frontend abilities
 - [Roles](/basic-usage/roles) — static and dynamic (DB-backed) roles
