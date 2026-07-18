@@ -5,7 +5,7 @@ Get from zero to a working permission check in under 5 minutes.
 ## Requirements
 
 - PHP 8.3+
-- Laravel 11+
+- Laravel 11.x, 12.x, or 13.x
 - A database supported by Laravel (MySQL, PostgreSQL, SQLite)
 
 ## 1. Install
@@ -144,15 +144,16 @@ php artisan guard:doctor
 ```
 
 The doctor checks:
-- All panel providers are registered and resolvable
-- Every role class implements `RoleInterface`
-- No orphan permission keys in the database
-- Migrations are up to date
+- No duplicate Gate abilities across policy classes
+- Every enum permission case has a matching `#[GateAbility]` policy method
+- Roles reference only known permissions
+- No orphan policies (classes with no `#[GateAbility]` methods)
+- No stale `scope_class` values left over in `model_has_scopes`
 
 ## Next steps
 
 - [Panels](/advanced/panels) — understand `app` vs `admin` isolation
-- [Permissions](/basic-usage/permissions) — naming conventions, `#[RoleOnly]`, TypeScript export
+- [Permissions](/basic-usage/permissions) — naming conventions, `#[RoleOnly]`, frontend abilities
 - [Roles](/basic-usage/roles) — static and dynamic (DB-backed) roles
 - [HTTP Access](/basic-usage/http-access) — `#[CheckPermission]` on controllers and middleware
 - [Direct Grants](/basic-usage/direct-grants) — per-user permissions without a role
