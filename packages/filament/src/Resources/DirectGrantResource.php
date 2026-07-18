@@ -61,10 +61,19 @@ final class DirectGrantResource extends Resource
                 ->required()
                 ->searchable()
                 ->getSearchResultsUsing(
-                    fn (string $search) => $userModel::where($labelColumn, 'like', "%{$search}%")
-                        ->limit(50)
-                        ->pluck($labelColumn, 'id')
-                        ->toArray(),
+                    function (string $search) use ($userModel, $labelColumn): array {
+                        $query = $userModel::query();
+                        $column = $query->getQuery()->getGrammar()->wrap($labelColumn);
+
+                        return $query
+                            // SQLite's LIKE has no default escape character — without
+                            // an explicit ESCAPE clause a `%`/`_` in the search string
+                            // stays a wildcard even after addcslashes() (C-12).
+                            ->whereRaw("{$column} LIKE ? ESCAPE '\\'", ['%'.self::escapeLikeValue($search).'%'])
+                            ->limit(50)
+                            ->pluck($labelColumn, 'id')
+                            ->toArray();
+                    },
                 )
                 ->getOptionLabelUsing(
                     fn ($value) => $userModel::find($value)?->{$labelColumn} ?? "#{$value}",
@@ -184,6 +193,17 @@ final class DirectGrantResource extends Resource
                 DeleteBulkAction::make()->label('Revoke selected'),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * Escape LIKE metacharacters (`%`, `_`) and the backslash escape character
+     * itself, so a raw search string cannot widen the match beyond a literal
+     * substring (C-12) — e.g. a user searching for "a_b" would otherwise match
+     * any single character in place of the underscore.
+     */
+    private static function escapeLikeValue(string $value): string
+    {
+        return addcslashes($value, '\\%_');
     }
 
     // ─── Pages ────────────────────────────────────────────────────────────────
