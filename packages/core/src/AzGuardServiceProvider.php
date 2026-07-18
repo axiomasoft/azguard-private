@@ -59,6 +59,7 @@ use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Console\AboutCommand;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -202,6 +203,17 @@ final class AzGuardServiceProvider extends ServiceProvider
         // but currentPanel is per-request state. Reset it between Octane requests
         // so a stale panel from a previous request cannot leak. No-op without Octane.
         Event::listen('Laravel\Octane\Events\RequestReceived', function (): void {
+            if ($this->app->resolved(AzGuardManagerInterface::class)) {
+                $this->app->make(AzGuardManagerInterface::class)->setCurrentPanel(null);
+            }
+        });
+
+        // Symmetric with the Octane listener above, for a different long-lived
+        // process: a queue worker keeps the same PHP process (and singleton
+        // AzGuardManager) across many jobs. Reset currentPanel BEFORE each job
+        // runs (C-14) — fail-closed, so a panel set by job N cannot leak into
+        // job N+1 on the same worker.
+        Event::listen(JobProcessing::class, function (): void {
             if ($this->app->resolved(AzGuardManagerInterface::class)) {
                 $this->app->make(AzGuardManagerInterface::class)->setCurrentPanel(null);
             }

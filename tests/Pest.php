@@ -47,6 +47,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/HasDirectGrantsTest.php',
         'Feature/InstallCommandTest.php',
         'Feature/IntegrationPolishTest.php',
+        'Feature/JobProcessingPanelResetTest.php',
         'Feature/ListScopedRolesCommandTest.php',
         'Feature/LoadAzGuardRolesMiddlewareTest.php',
         'Feature/MakeGuardForceGenerationTest.php',
