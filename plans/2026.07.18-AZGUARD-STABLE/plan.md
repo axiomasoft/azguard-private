@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.10 закрыт 🟢 — docs EN/RU свип; фаза P2 терминальна) |
+| Last Updated | 2026-07-18 (фаза P2 закрыта — Phase Handoff заполнен, docs-sync подтверждён) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -166,6 +166,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-exec/sonnet-medium | P2.7 закрыт (🟢): `root/glossary.md` (guard=бренд/context=runtime/scope=persist), multiple-guards.md через панели (ложная panel↔guard-декларация убрана), routing-раздел «context или scope?» в context.md+entity-scopes.md, RU-зеркала — детали см. phases/P2.md P2.7 Completion Notes. v0.3.14 |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.8 закрыт (🟢): `docs/introduction/headless-quick-start.md`+RU (doc-only minimal-setup), `AzGuardDiagnostics` — onboarding-hint при 0 панелей (warnings-канал, не error) + тест, EN/RU intro-навигация, 666 тестов — детали см. phases/P2.md P2.8 Completion Notes. v0.3.15 |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.10 закрыт (🟢), фаза P2 терминальна (5🟢+5🟠/10): сквозной EN/RU docs-свип под новый API (10 RU-страниц ресинхронизированы параллельными агентами) + убраны @internal-shorthand'ы grant/revoke/grants из публичных примеров; arch-тесты канона и architecture.md уже консистентны; `composer check` зелёный кроме предсуществующего `refactor:check` (rector, 6 src-файлов вне Files, воспроизведён на baseline) — детали см. phases/P2.md P2.10 Completion Notes. v0.3.16 |
+| 2026-07-18 | plan-close/sonnet | Фаза P2 закрыта: 10/10 items терминальны (5🟢/5🟠), Phase Handoff phases/P2.md заполнен (агрегат Known Deviations по 10 items + SemVer-breaking список), docs-sync подтверждён (P2.10 сквозной свип + root/architecture.md/glossary.md), lint см. handoff.md — детали см. phases/P2.md Phase Handoff |
 
 ## Обсуждение
 

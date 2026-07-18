@@ -1,59 +1,67 @@
-# HANDOFF — 2026-07-18 — after P2.10
+# HANDOFF — 2026-07-18 — after P2
 
-**Next:** Фаза P2 терминальна (все 10 items 🟢/🟠) — закрыть фазу:
-`/task:plan-close 2026.07.18-AZGUARD-STABLE P2`.
+**Next:** Фаза P2 закрыта (10/10 items терминальны: 5🟢/5🟠) — 5 items несут
+`🟠 Done with deviations` (P2.1–P2.4, P2.9), material-отклонения включают
+множественные легальные пре-1.0 SemVer-breaking правки публичного API.
+Перед P3 (замораживает поверхность по следам P2) — adversarial-аудит фазы.
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet |
-| Thinking | low — механическая сверка таблиц/handoff по git-фактам, шаг-не-item |
+| Model | opus |
+| Thinking | xhigh — adversarial-аудит закрытой фазы с 🟠-вердиктами/breaking-списком, цена ошибки — заморозка P3 неверной поверхности |
 | Context | NEW SESSION — шаг-не-item |
-| Суть | Закрыть фазу P2: свести таблицы Phase Status/Phase Index, заполнить Phase Handoff phases/P2.md, прогнать plan-lint, обновить roadmap-статус |
+| Суть | Аудит фазы P2: сверить 🟠-вердикты (P2.1–P2.4, P2.9) с git-фактами, проверить агрегат Known Deviations Phase Handoff, no-op/scope-drift, консистентность перед cut-line P3 |
 
 ```
-/task:plan-close 2026.07.18-AZGUARD-STABLE P2
+/task:plan-audit 2026.07.18-AZGUARD-STABLE P2
 ```
 
-**Done:** P2.10 закрыт 🟢 (item-коммит `0de35b0`, 13 files, +849/−399):
-сквозной свип docs EN/RU под API, зафиксированный P2.1–P2.9. Recon-grep по
-всему docs-дереву (старые FQCN `AzGuard\Support\`, config-центричный
-Filament, позиционный `azguard.panel_check:{panel},{permission}`) — 0
-совпадений (уже вычищено предыдущими items). Найдено и убрано:
-`@internal`-shorthand'ы `AzGuard::grant()`/`revoke()`/`grants()` как
-публичные примеры в `docs/ru/basic-usage/direct-grants.md` (3 места) и
-`docs/recipes/temp-access-via-grant.md` (EN, 1 место) — заменены на fluent
-`AzGuard::forUser($u)->on($p)->…`. 10 RU-страниц ресинхронизированы
-секция-в-секцию с EN десятью параллельными агентами (каждый: EN + текущий
-RU + эталон стиля `direct-grants.md` → переписал файл целиком):
-`advanced/{context,testing,entity-scopes}.md`,
-`basic-usage/{filament,http-access,multiple-guards,super-admin}.md`,
-`introduction/{quick-start,upgrading}.md`,
-`recipes/super-admin-wildcard.md` — детали (что именно было стейл в каждом
-файле) см. phases/P2.md P2.10 Completion Notes. `tests/ArchTest.php` (17
-тестов) и `root/architecture.md` сверены с текущим каноном — правок не
-потребовали. Validation: `docs-parity-gate.sh` OK · `ArchTest.php` 17
-passed/35 · `composer lint:check`/`analyse` чисто · `composer test` 666
-passed/1772 (без изменений от P2.9-baseline, docs-only) ·
-`composer test:types` 99.7% · `check:coverage` honest-skip (нет
-драйвера, предсуществующий инфра-гэп). `composer refactor:check` (rector)
-КРАСНЫЙ на 6 src-файлах ВНЕ Files item'а — подтверждено `git stash`:
-краснеет идентично на baseline до диффа P2.10 → предсуществующий
-остаток, не наш дефект (см. Pending Work ниже).
+**Done:** Фаза P2 (Структурный канон + fluent/DX редизайн API) закрыта
+целиком. Все 10 items реализовали 4 развилки владельца D14–D18: структурный
+канон core (Support/ упразднён, 11 файлов в доменных неймспейсах,
+двух-домовый канон контрактов — P2.1); 6 phpstan-структурных baseline
+разрешены уточнением контрактов, не подавлением (P2.2); единый immutable
+fluent-корень `AzGuard::forUser()->inContext()` + TTL-парность context,
+миграция `expires_at` (P2.3); Filament-плагин fluent + middleware
+`::using()` + единый порядок аргументов `что,где` (P2.4); cut-line
+target-спека фасада `root/contracts/facade-cutline.md` — SSOT входа P3,
+с уточнением D29 (резолверы tryPermission/panelIdForPermission не мёртвые →
+@internal, не удаление) (P2.5); `AzGuard::fake()` Recorder + assertGranted/
+assertDenied/assertChecked (простая форма + closure) (P2.6); глоссарий
+`root/glossary.md` + doc-routing context↔scope, multiple-guards.md
+переформулирован через панели (P2.7); headless-quick-start EN/RU +
+guard:doctor 0-панелей hint, fail-closed не ослаблен (P2.8); wildcard-флип
+дефолта на Hierarchical + verify F4/F40/F51 + R7-фикс (голый `*` больше не
+проходит фильтр) (P2.9); сквозной EN/RU docs-свип (10 RU-страниц
+ресинхронизированы, @internal-shorthand'ы убраны из публичных примеров) +
+arch-тесты канона консолидированы (P2.10). Phase Handoff phases/P2.md
+заполнен: агрегат Known Deviations по всем 10 items (механически, из полей
+item'ов) + перечень легальных SemVer-breaking изменений; docs-sync
+подтверждён (P2.10 сквозной свип + root/architecture.md ADR +
+root/glossary.md, оба созданы по ходу фазы).
 
-**Remaining:** `/task:plan-close 2026.07.18-AZGUARD-STABLE P2` → P3
-cut-line/заморозка (P3.1 sonnet/high по спеке P2.5+D29 · P3.2 fable/high ·
-P3.3 sonnet/high) → P4 тест-углубление (P4.1–P4.6 plan-exec, P4.7
-sonnet/high) → P5 (шаблон fable → релиз+тег → миграция docs) → post-plan
+**Remaining:** `/task:plan-audit … P2` → по результату аудита
+либо прямой переход к P3 (cut-line по facade-cutline.md+D29 → snapshot-гейт
+заморозки → SemVer-политика/UPGRADING), либо `/task:plan-design … P2.m`
+на re-design конкретного item'а, если аудит найдёт material-разрыв. Далее
+штатно: P3 (P3.1 sonnet/high · P3.2 fable/high · P3.3 sonnet/high) → P4
+тест-углубление (P4.1–P4.6 plan-exec, P4.7 sonnet/high) → P5 (шаблон fable →
+релиз+тег → миграция root/→docs) → post-plan
 `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
 **Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.16,
-D1–D29) · phases/P2.md (все 10 items терминальны — P2.5/P2.6/P2.7/P2.8/P2.10
-🟢, P2.1–P2.4/P2.9 🟠) · root/contracts/facade-cutline.md (замороженная
-спека cut-line — SSOT P3.1) · root/glossary.md · root/architecture.md ·
-research/03-p2-canon.md · findings/ (REGISTER + оси) · roadmap.md (строка P2
-историческая, супersedeна построчным D28) · brief/{00-brief,01-refinements}.md.
+D1–D29, § 4 Phase Index P2=🟠 Done with deviations 5/10🟢) · phases/P2.md
+(Phase Handoff заполнен — агрегат Known Deviations + docs-sync + next step) ·
+root/contracts/facade-cutline.md (замороженная спека cut-line — SSOT P3.1) ·
+root/glossary.md · root/architecture.md · research/03-p2-canon.md ·
+findings/ (REGISTER + оси) · roadmap.md (строка P2 историческая, супersedeна
+построчным D28) · brief/{00-brief,01-refinements}.md.
 
 **Open risks:**
+- 5 items P2 несут `🟠 Done with deviations` (P2.1–P2.4, P2.9) — material
+  material-отклонения (дифф вне заявленных Files + легальные SemVer-breaking
+  правки публичного API); НЕ сверены adversarial-аудитом — риск, что P3
+  заморозит поверхность по невыявленной ошибке одного из вердиктов.
 - `composer refactor:check` (rector dry-run) красный на 6 src-файлах вне
   всех Files P2-items (`packages/core/src/{Permissions/PermissionKey,
   Permissions/PermissionName,AzGuardManager,Testing/AzGuardFake,
