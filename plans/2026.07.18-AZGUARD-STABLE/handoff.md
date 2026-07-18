@@ -1,89 +1,72 @@
-# HANDOFF — 2026-07-18 — after P1.3
+# HANDOFF — 2026-07-18 — after P1.4
 
-**Next:** исполнить P1.4 (сквозной adversarial review диффа фазы P1 свежим контекстом:
-security-review + reviewer + blade-review субагенты; см. phases/P1.md P1.4). Design/contract
-review-класс → Exec=manual, Routing fable/high (эффорт high+ ОБЯЗАТЕЛЕН по Routing §3) —
-`/task:plan-exec`/`/task:plan-run` пин sonnet/medium, гейт п.2 их отклонит.
+**Next:** закрыть фазу P1 (`plan-close`): все 4 items терминальны (P1.1/P1.2/P1.3 🟠,
+P1.4 🟢) — сверка таблиц/борда, финализация Phase Handoff, lint. Шаг-не-item → новая
+сессия (plan-close читает план с диска заново).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | fable — Routing §3 P1.4 (manual, fable/high) |
-| Thinking | high — предписано Routing §3 P1.4 (adversarial review — effort high+ обязателен) |
-| Context | continue (/clear) — ручной item |
-| Суть | Сквозной read-only adversarial review всего диффа P1.1–P1.3: security/корректность/docs-парность, снять находки до закрытия фазы |
-
-**ЗАПУСК ВРУЧНУЮ: fable/high**
+| Model | sonnet — пин команды plan-close (sonnet/low) |
+| Thinking | low — механика сверки/закрытия, не дизайн |
+| Context | NEW SESSION — шаг-не-item |
+| Суть | Закрыть фазу P1 по git-фактам: борд, Phase Handoff, lint; следом P2 (fable/high, manual) |
 
 ```
-Исполни P1.4 (2026.07.18-AZGUARD-STABLE) — сквозной adversarial review диффа фазы P1
-(P1.1+P1.2+P1.3) свежим контекстом: прогони azguard-security-review, azguard-reviewer,
-azguard-blade-review (если задеты resources/views) на `git diff <база P1>..HEAD`; синтезируй
-находки с вердиктами в findings/P1-review-2026-07-DD.md; проверь, что каждая security-находка
-W0/W1 несёт доказывающий регрессионный тест; проверь отсутствие scope drift за пределы 27
-находок бэклога. См. plans/2026.07.18-AZGUARD-STABLE/phases/P1.md раздел P1.4 (Scope
-Included/Excluded, Validation, формат отчёта) — читать целиком перед началом.
+/task:plan-close 2026.07.18-AZGUARD-STABLE P1
 ```
 
-**Done:** P1.3 закрыт (🟠 Done with deviations). 14 находок волны W2 закрыты, 15 item-коммитов
-(A-01 разбит на 2 — EN-хаб + RU-парность), на дереве `cc067fc`:
-`42e6dce`/`3d49729` A-01 (Laravel-версии `^11|^12|^13`, реальный вывод `guard:doctor`, снят
-ложный TS-export) · `501c8ef` A-02 (`implements AzGuardUser` в golden-path сниппетах) ·
-`ee8f15f` B-07 (сужен докблок `PermissionCatalog::flush()`) · `03d2330` B-09 (swap-тест
-`merge_strategy`) · `8fc1cf6` B-10 (allowlist-тест `grant_sources` + починка ложного
-«reorder» в комментарии конфига) · `01bd42f` B-11 (синхронизация `@method`-типов фасада
-с интерфейсом после B-04) · `8cdc33e` C-09 (флаш кэша СТАРОЙ панели/грантуемого при смене
-в `DirectGrant`) · `a7e713e` C-12 (экранирование LIKE-метасимволов + `ESCAPE`-клоза,
-портируемо на SQLite) · `b3948cd` C-14 (`JobProcessing`-листенер сброса `currentPanel`,
-симметрично Octane) · `f9c744b` C-15 (`AccessDecision::winningSource` заполняется через
-новый `EffectivePermissionResolver::sources()`) · `f6643f3` C-16 (новая миграция:
-unique на `model_has_roles`/`model_has_scopes`, MySQL-ветка с префиксом 191 символ на
-morph-`*_type` — иначе превышает лимит InnoDB 3072 байт) · `1f6e458` D-01 (снята мёртвая
-ссылка `DiscoveryTest.php`) · `d93ced5` D-03 (обратная parity-проверка trait⊆contract,
-явный allowlist) · `cc067fc` D-04 (arch-правило `toBeInterfaces()` расширено на
-`AzGuard\Registry\Contracts`). Полные детали — phases/P1.md P1.3 Completion
-Notes/Pending Work/Known Deviations.
+**Done:** P1.4 закрыт (🟢 Done). Сквозной adversarial review диффа P1
+(`bdf9416..HEAD`, 94 файла, 29 item-коммитов волн): субагенты
+azguard-security-review (0 Blocker/Major, 10 векторов подтверждены) +
+azguard-reviewer (15 находок) + 2 находки оркестратора; blade-review пропущен по ТЗ
+(вьюхи не задеты). Итог — 16 находок с вердиктами в
+`findings/P1-review-2026-07-18.md`; сняты 10 фикс-коммитами:
+`5c555f1` R4/C-10 (morph-алиас в read-path query-scope — был fail-open изоляции под
+enforceMorphMap) · `69d9e1a` R6/C-11 (атомарная запись scope_class одним INSERT) ·
+`4bd209e` R2+R3/C-16 (NULL-safe COALESCE-unique + дедуп предсуществующих дублей в
+миграции 000005, правлена in-place — не выпускалась) · `c681ee9` R1/C-14 (sync-джобы
+больше не сбрасывают панель запроса — была регрессия) · `07ccbfe` R5/B-04
+(hasRole принимает BackedEnum — был TypeError) · `cb8c819` R8/C-04 (валидация по
+драйверу store, fail-closed для неизвестного) · `f0055ae` R0 (доказывающий
+mass-assign тест C-11 — отсутствовал вопреки ТЗ P1.2) · `8d91611`/`0701d03` докблоки
+C-15/C-09 · `49238d9` тест-гигиена. Принято-как-риск: R7 (wildcard-enabled ветка
+C-13) → P2/D18; R9 (upgrade-нота C-10) → P3.3; R12 (reverse-parity сигнатуры) → P2.
+Scope drift не найден (29 коммитов ↔ 27 находок). Item-коммит (отчёт): `398985f`.
 
-Validation на финальном дереве (`cc067fc`): `composer test` — 600 passed / 1619 assertions;
-`composer lint:check` — pint passed; `composer analyse` — phpstan 0 errors, baseline не
-менялся; `bash bin/docs-parity-gate.sh` — OK; grep-гейт `grep -n DiscoveryTest tests/Pest.php`
-— пуст.
+Validation на финальном дереве кода (`49238d9`): `composer test` — 610 passed /
+1639 assertions; `composer lint:check` — pint passed; `composer analyse` — phpstan
+0 errors, baseline не менялся; `bash bin/docs-parity-gate.sh` — OK.
 
-**Remaining:** P1.4 (adversarial review) → P2 канон (10 items) → P3 заморозка → P4
-тест-углубление → P5 (шаблон → релиз+тег → миграция docs) → post-plan
+**Remaining:** plan-close P1 → P2 канон (10 items, fable/high manual) → P3 заморозка →
+P4 тест-углубление → P5 (шаблон → релиз+тег → миграция docs) → post-plan
 `/task:plan-close archive`.
 
 **Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.8, D1–D27) ·
-phases/P1.md (P1.1/P1.2/P1.3 закрыты 🟠; P1.4 — следующий) · roadmap.md ·
-research/{00-user-intent,02-backlog,03-p2-canon}.md · findings/ (REGISTER + оси + recon +
-RAG) · brief/{00-brief,01-refinements}.md · open-questions.md (Q3→D27).
+phases/P1.md (4/4 терминальны, Phase Handoff заполнен) ·
+findings/P1-review-2026-07-18.md (16 находок, вердикты) · roadmap.md ·
+research/{00-user-intent,02-backlog,03-p2-canon}.md · findings/ (REGISTER + оси) ·
+brief/{00-brief,01-refinements}.md.
 
 **Open risks:**
-- P1.4 review должен покрыть ВЕСЬ дифф P1.1–P1.3, включая внe-Files дрейф трёх items
-  (P1.1: `tests/Pest.php`; P1.2: `ResolvesRole.php`+4 контракта+`FakeAzGuardUser.php`+
-  `SwapTestManager.php`+`DatabaseRoleGrantSource.php`; P1.3:
-  `EffectivePermissionResolver.php` — новый `sources()`) — все зафиксированы как Known
-  Deviations в соответствующих items, но review — независимая проверка, не переспрос автора.
-- `HasScopedRoles::removeScopedRoleEverywhere()` публичен на трейте, но отсутствует в
-  контракте `AzGuard\Contracts\HasScopedRoles` (найдено D-03/P1.3) — занесено в allowlist
-  reverse-parity теста, кандидат для P2 contract review (НЕ добавлять в интерфейс без D#:
-  breaking public-contract изменение).
-- Премис-дефект бэклога, найденный в P1.2 (см. phases/P1.md P1.2 Known Deviations):
-  формулировки находок про «firstOrCreate второй аргумент = safe path от fillable» —
-  ФАКТИЧЕСКИ НЕВЕРНЫ. Если в P2 встретится похожая формулировка — перепроверить сигнатуру.
-- P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен
-  (roadmap B5); red `composer check` → эскалация §10, не тихая починка.
-- Split/Packagist отложены (D25); P4/P5-инфра-items требуют внешней среды →
-  честный skip-note при недоступности, не слепой зелёный.
-- `plan-lint.py` прогоняется по прямому пути (найден в
-  swissknifeman/packages/task/scripts/, `${CLAUDE_PLUGIN_ROOT}` не задан в
-  среде) — следующему исполнителю может понадобиться тот же обходной путь.
+- MySQL-ветка миграции 000005 (functional key parts + SUBSTRING 191, COALESCE-unique)
+  локально НЕ исполнялась (SQLite-лейн) — обязательная верификация в P4.2/P4.7
+  (БД-матрица); упасть может только там, не тихо.
+- R7: при `wildcard.enabled=true` голый `*` из кастомной MergeStrategy всё ещё
+  проходит catalog-фильтр — закрыть в P2 при wildcard-флипе D18, не забыть.
+- Premис-дефект бэклога «firstOrCreate второй аргумент = safe path» (P1.2 Known
+  Deviations) теперь запинён тестом (`f0055ae`) — но формулировка в REGISTER не
+  исправлена; при P2-опоре на REGISTER перепроверять сигнатуры.
+- `HasScopedRoles::removeScopedRoleEverywhere()` вне контракта (allowlist D-03) +
+  Policy-авторизация Filament RoleResource (side-note security-агента) — кандидаты
+  P2 contract/Filament review, НЕ делать без D#.
+- P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен.
+- `plan-lint.py` вызывается по абсолютному пути
+  (swissknifeman/packages/task/scripts/, `${CLAUDE_PLUGIN_ROOT}` пуст в среде).
 
 **Workarounds/Deferred/Open questions:**
-- workarounds: `plan-lint.py` вызывается по абсолютному пути
-  (`${CLAUDE_PLUGIN_ROOT}` пуст в этой сессии).
-- deferred: RoleResource Livewire-тест (P1.2 Pending Work); split/Packagist one-time setup
-  (D25); адоптация roave/bc-check (D20); per-token DB resolver для parallel на реальных БД
-  (P4.3 YAGNI); снапшот filament/context-пакетов (P3.2); `removeScopedRoleEverywhere()` →
-  контракт (P1.3 Pending Work, кандидат P2).
-- open_questions: Q1→D22, Q2→D23/D24, Q3(D10-б/P1.1)→D27, scope релиза→D25.
-  Открытых нет.
+- workarounds: `plan-lint.py` по абсолютному пути (`${CLAUDE_PLUGIN_ROOT}` пуст).
+- deferred: R9 upgrade-нота C-10 → P3.3 (D21); R12 reverse-parity сигнатуры → P2;
+  RoleResource Livewire-тест (P1.2 Pending Work); split/Packagist (D25);
+  roave/bc-check (D20); снапшот filament/context (P3.2);
+  `removeScopedRoleEverywhere()` → контракт (P2).
+- open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.
