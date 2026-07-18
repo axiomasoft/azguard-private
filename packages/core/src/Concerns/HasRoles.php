@@ -8,6 +8,7 @@ use AzGuard\Contracts\RoleInterface;
 use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
 use AzGuard\Models\Role;
+use AzGuard\PermissionKey;
 use AzGuard\Support\Config;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -36,25 +37,30 @@ trait HasRoles
      * Check whether the user has a role.
      *
      * Accepts a role class-string (preferred — refactor-safe), a RoleInterface
-     * instance, or a plain role name.
+     * instance, a backed enum (unwrapped via its ->value, B-04), or a plain
+     * role name.
      *
-     * @param  string|RoleInterface|class-string<RoleInterface>  $role
+     * @param  string|BackedEnum|RoleInterface|class-string<RoleInterface>  $role
      */
-    public function hasRole(string|RoleInterface $role): bool
+    public function hasRole(string|BackedEnum|RoleInterface $role): bool
     {
         return $this->roles->contains('name', $this->roleNameFor($role));
     }
 
     /**
-     * Resolve a role name from a class-string, a RoleInterface instance, or a
-     * plain name string.
+     * Resolve a role name from a class-string, a RoleInterface instance, a
+     * backed enum, or a plain name string.
      *
-     * @param  string|RoleInterface|class-string<RoleInterface>  $role
+     * @param  string|BackedEnum|RoleInterface|class-string<RoleInterface>  $role
      */
-    private function roleNameFor(string|RoleInterface $role): string
+    private function roleNameFor(string|BackedEnum|RoleInterface $role): string
     {
         if ($role instanceof RoleInterface) {
             return $role->getName();
+        }
+
+        if ($role instanceof BackedEnum) {
+            return PermissionKey::normalize($role);
         }
 
         if (is_subclass_of($role, RoleInterface::class)) {

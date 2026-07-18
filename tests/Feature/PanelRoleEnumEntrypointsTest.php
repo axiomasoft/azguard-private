@@ -94,6 +94,10 @@ it('assignRole()/removeRole() accept an enum role name', function (): void {
 
     expect($user->hasRole('manager'))->toBeTrue();
 
+    // hasRole() must be symmetric with the mutators (B-04 map row, P1.4
+    // review): the enum that assigned the role also checks it.
+    expect($user->hasRole(TestRoleNameEnum::Manager))->toBeTrue();
+
     $user->removeRole(TestRoleNameEnum::Manager);
     $user->load('roles');
 

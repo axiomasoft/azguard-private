@@ -27,9 +27,9 @@ interface HasRoles
     public function scopes(): MorphMany;
 
     /**
-     * @param  string|RoleInterface|class-string<RoleInterface>  $role
+     * @param  string|BackedEnum|RoleInterface|class-string<RoleInterface>  $role
      */
-    public function hasRole(string|RoleInterface $role): bool;
+    public function hasRole(string|BackedEnum|RoleInterface $role): bool;
 
     public function assignRole(string|BackedEnum|Role ...$roles): static;
 
