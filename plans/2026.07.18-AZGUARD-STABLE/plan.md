@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.19 |
+| Version | 0.3.20 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (фаза P3 закрыта — cut-line+заморозка+SemVer-политика) |
+| Last Updated | 2026-07-18 (P4.1 закрыт — docker-стенд PG16/MySQL8/Redis7) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -91,7 +91,7 @@ read-only аудит (акцент — интеграционная поверх
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 1/7 | 🟡 In progress |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -172,6 +172,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P3.2 закрыт (🟢): snapshot-гейт заморозки @api-поверхности (32 типа, сигнатуры+имена параметров, фикстур+регенерация под D#), самопроверка «мутация→red» ✓ — детали см. phases/P3.md P3.2 Completion Notes. v0.3.18 |
 | 2026-07-18 | plan-run/sonnet-high | P3.3 закрыт (🟢): semver-policy.md+known-limitations.md созданы, UPGRADING 0.2→0.3 консолидирован EN+RU, F2 (Audit P2) закрыт — детали см. phases/P3.md P3.3 Completion Notes. v0.3.19 |
 | 2026-07-18 | plan-close/sonnet | Фаза P3 закрыта: 3/3 items терминальны (🟠/🟢/🟢), Phase Handoff phases/P3.md заполнен (агрегат Known Deviations, docs-sync подтверждён), lint см. handoff.md — детали см. phases/P3.md Phase Handoff |
+| 2026-07-18 | plan-exec/sonnet-medium | P4.1 закрыт (🟢): docker-compose.yml + Makefile + DEVELOPMENT.md «Local database matrix» — все три сервиса healthy — детали см. phases/P4.md P4.1 Completion Notes |
 
 ## Обсуждение
 
