@@ -7,6 +7,8 @@ namespace AzGuard\Filament;
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Filament\Resources\DirectGrantResource;
 use AzGuard\Filament\Resources\RoleResource;
+use AzGuard\Support\PanelResolver;
+use BackedEnum;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Filament\Resources\Resource;
@@ -40,9 +42,9 @@ final class AzGuardPlugin implements Plugin
      * Specify which AzGuard panel the management UI is shown for.
      * Allows filtering permissions and roles to that panel only.
      */
-    public function forPanel(string $panelId): static
+    public function forPanel(string|BackedEnum $panelId): static
     {
-        $this->panelId = $panelId;
+        $this->panelId = PanelResolver::normalizeId($panelId);
 
         return $this;
     }

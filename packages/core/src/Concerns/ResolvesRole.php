@@ -6,7 +6,9 @@ namespace AzGuard\Concerns;
 
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Models\Role;
+use AzGuard\PermissionKey;
 use AzGuard\Support\Config;
+use BackedEnum;
 
 /**
  * Shared helper: resolve a Role model from a role class-string, a name string
@@ -19,16 +21,21 @@ trait ResolvesRole
 {
     /**
      * Resolve a Role model from a role class-string (preferred — unambiguous),
-     * a name string, or a Role instance.
+     * a name string, a backed enum (unwrapped via its ->value, B-04), or a
+     * Role instance.
      *
      * Returns null when the role cannot be found in the database.
      *
-     * @param  string|Role|class-string<RoleInterface>  $role
+     * @param  string|BackedEnum|Role|class-string<RoleInterface>  $role
      */
-    protected function resolveRole(string|Role $role): ?Role
+    protected function resolveRole(string|BackedEnum|Role $role): ?Role
     {
         if ($role instanceof Role) {
             return $role;
+        }
+
+        if ($role instanceof BackedEnum) {
+            $role = PermissionKey::normalize($role);
         }
 
         /** @var class-string<Role> $roleClass */

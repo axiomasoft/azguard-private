@@ -15,6 +15,7 @@ use AzGuard\Support\PanelResolver;
 use AzGuard\Support\PermissionName;
 use AzGuard\Support\RequestState;
 use AzGuard\Support\ScopedRoleCache;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -135,7 +136,7 @@ trait HasScopedRoles
      * For logic-less roles (where getRoleLogic() returns null), scope_class
      * is stored as null to avoid the fragile anonymous-class sentinel pattern.
      */
-    public function assignScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static
+    public function assignScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static
     {
         $roleModel = $this->resolveRole($role);
 
@@ -143,6 +144,7 @@ trait HasScopedRoles
             return $this;
         }
 
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
         $roleLogic = $roleModel->getRoleLogic();
 
         ModelHasScope::firstOrCreate([
@@ -175,13 +177,15 @@ trait HasScopedRoles
      *
      * @see removeScopedRoleEverywhere()
      */
-    public function removeScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static
+    public function removeScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static
     {
         $roleModel = $this->resolveRole($role);
 
         if ($roleModel === null) {
             return $this;
         }
+
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
         ModelHasScope::query()
             ->where('model_type', $this->getMorphClass())
@@ -211,7 +215,7 @@ trait HasScopedRoles
      * out into its own explicit method now that removeScopedRole(panelId:
      * null) targets only the any-panel row.
      */
-    public function removeScopedRoleEverywhere(string|Role $role, Model $entity): static
+    public function removeScopedRoleEverywhere(string|BackedEnum|Role $role, Model $entity): static
     {
         $roleModel = $this->resolveRole($role);
 
@@ -241,13 +245,15 @@ trait HasScopedRoles
      * their panel_id. Pass an explicit $panelId to require that panel — a
      * scope with a null panel_id still matches (any-panel back-compat).
      */
-    public function hasScopedRole(string|Role $role, Model $entity, ?string $panelId = null): bool
+    public function hasScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): bool
     {
         $roleModel = $this->resolveRole($role);
 
         if ($roleModel === null) {
             return false;
         }
+
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
         return ModelHasScope::query()
             ->where('model_type', $this->getMorphClass())
@@ -285,8 +291,10 @@ trait HasScopedRoles
      * isolation was added, or intentionally left unscoped) is honoured for ANY
      * panel — back-compat.
      */
-    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, ?string $panelId = null): bool
+    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, string|BackedEnum|null $panelId = null): bool
     {
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
+
         if ($panelId === null) {
             $panelId = match (true) {
                 is_string($permission) && str_contains($permission, PermissionKey::SEPARATOR) => explode(PermissionKey::SEPARATOR, $permission)[0],

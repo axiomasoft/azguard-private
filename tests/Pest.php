@@ -51,6 +51,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/MakeGuardPanelCommandTest.php',
         'Feature/PanelEnumIdentityTest.php',
         'Feature/PanelPermissionResolverTest.php',
+        'Feature/PanelRoleEnumEntrypointsTest.php',
         'Feature/PermissionAccessTest.php',
         'Feature/PermissionCacheEpochInvalidationTest.php',
         'Feature/PermissionCacheEpochLockWarningTest.php',

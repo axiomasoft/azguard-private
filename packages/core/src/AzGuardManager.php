@@ -114,11 +114,13 @@ final class AzGuardManager implements AzGuardManagerInterface
     // ─── Actor ─────────────────────────────────────────────────────────────────
 
     #[Override]
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool
     {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $resolvedPanelId = PanelResolver::resolveDefault(
+            $panelId === null ? null : PanelResolver::normalizeId($panelId),
+        );
 
-        return app(PermissionResolverInterface::class)->forUser($user, $panelId)->isWildcard();
+        return app(PermissionResolverInterface::class)->forUser($user, $resolvedPanelId)->isWildcard();
     }
 
     #[Override]

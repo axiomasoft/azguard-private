@@ -9,6 +9,7 @@ use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
 use AzGuard\Models\Role;
 use AzGuard\Support\Config;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Collection;
@@ -63,7 +64,7 @@ trait HasRoles
         return $role;
     }
 
-    public function assignRole(string|Role ...$roles): static
+    public function assignRole(string|BackedEnum|Role ...$roles): static
     {
         foreach ($roles as $role) {
             $roleModel = $this->resolveRole($role);
@@ -82,7 +83,7 @@ trait HasRoles
         return $this;
     }
 
-    public function removeRole(string|Role ...$roles): static
+    public function removeRole(string|BackedEnum|Role ...$roles): static
     {
         foreach ($roles as $role) {
             $roleModel = $this->resolveRole($role);
@@ -101,7 +102,7 @@ trait HasRoles
         return $this;
     }
 
-    /** @param array<string|Role> $roles */
+    /** @param array<string|BackedEnum|Role> $roles */
     public function syncRoles(array $roles): static
     {
         $roleIds = [];

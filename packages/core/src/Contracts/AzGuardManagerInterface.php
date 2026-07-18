@@ -77,7 +77,7 @@ interface AzGuardManagerInterface
      * Whether the user is a super-admin on the panel — i.e. holds the global
      * wildcard, bypassing every ability via Gate::before.
      */
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool;
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool;
 
     /**
      * Curated ability projection for the frontend: resolves ONLY the requested

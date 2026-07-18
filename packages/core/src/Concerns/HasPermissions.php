@@ -12,6 +12,7 @@ use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Support\PanelResolver;
 use AzGuard\Support\PermissionName;
 use AzGuard\Support\RequestState;
+use BackedEnum;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -28,9 +29,9 @@ trait HasPermissions
      * Optional $context allows a one-off contextual check without changing
      * global state. Use hasPermissionIn() as a more readable alternative.
      */
-    public function hasPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool
+    public function hasPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool
     {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $panelId = PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId));
         $key = PermissionName::resolve($permission, $panelId);
 
         if ($context instanceof PermissionContext) {
@@ -55,9 +56,9 @@ trait HasPermissions
         string $contextType,
         int|string $contextId,
         string|UnitEnum $permission,
-        ?string $panelId = null,
+        string|BackedEnum|null $panelId = null,
     ): bool {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $panelId = PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId));
         $guard = $this->contextGuard();
 
         if ($guard === null) {
@@ -111,7 +112,7 @@ trait HasPermissions
     /**
      * Silent version: never throws. Use in Blade / UI.
      */
-    public function checkPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool
+    public function checkPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool
     {
         try {
             return $this->hasPermission($permission, $panelId, $context);
@@ -124,9 +125,12 @@ trait HasPermissions
      * Get the PermissionSet for a panel.
      * All caching is delegated to EffectivePermissionResolver.
      */
-    public function permissionSet(?string $panelId = null): PermissionSet
+    public function permissionSet(string|BackedEnum|null $panelId = null): PermissionSet
     {
-        return $this->permissionResolver()->forUser($this, PanelResolver::resolveDefault($panelId));
+        return $this->permissionResolver()->forUser(
+            $this,
+            PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId)),
+        );
     }
 
     /**
@@ -134,7 +138,7 @@ trait HasPermissions
      *
      * @return Collection<int, string>
      */
-    public function permissions(?string $panelId = null): Collection
+    public function permissions(string|BackedEnum|null $panelId = null): Collection
     {
         return collect($this->permissionSet($panelId)->keys());
     }
@@ -146,7 +150,7 @@ trait HasPermissions
      * Reuses the request-scoped permission cache (no extra queries). Wire
      * absolute-allow in a Gate::before hook off this method — see the docs.
      */
-    public function isSuperAdmin(?string $panelId = null): bool
+    public function isSuperAdmin(string|BackedEnum|null $panelId = null): bool
     {
         return $this->permissionSet($panelId)->isWildcard();
     }
@@ -156,12 +160,12 @@ trait HasPermissions
      * If $panelId is null, flushes all panels.
      * Called automatically by assignRole / removeRole / syncRoles.
      */
-    public function flushPermissions(?string $panelId = null): void
+    public function flushPermissions(string|BackedEnum|null $panelId = null): void
     {
         $resolver = $this->permissionResolver();
 
         if ($panelId !== null) {
-            $resolver->forgetForUser($this, $panelId);
+            $resolver->forgetForUser($this, PanelResolver::normalizeId($panelId));
 
             return;
         }

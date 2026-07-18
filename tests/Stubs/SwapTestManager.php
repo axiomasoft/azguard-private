@@ -69,7 +69,7 @@ final class SwapTestManager implements AzGuardManagerInterface
         return $this->inner->panelIdForPermission($permission);
     }
 
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool
     {
         return $this->inner->isSuperAdmin($user, $panelId);
     }
