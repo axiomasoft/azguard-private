@@ -32,7 +32,6 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/DirectGrantSourceTest.php',
         'Feature/DirectGrantMorphMapTest.php',
         'Feature/DirectGrantPanelChangeCacheTest.php',
-        'Feature/DiscoveryTest.php',
         'Feature/EnumPermissionArgumentTest.php',
         'Feature/EnumRolePermissionsTest.php',
         'Feature/ExplainAbilitiesCommandTest.php',
