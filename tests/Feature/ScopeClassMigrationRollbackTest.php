@@ -51,7 +51,7 @@ describe('T5 — migration 000004 down() rollback with a null scope_class row', 
         $migration = require $migrationPath;
 
         expect(fn () => $migration->down())
-            ->toThrow(QueryException::class, 'NOT NULL constraint failed');
+            ->toThrow(QueryException::class);
     });
 
     it('does not throw down() when no null scope_class row exists', function (): void {

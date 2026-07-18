@@ -57,10 +57,14 @@ hardcoded in the compose file. The database names default to `azguard_test`
 (`.env.example`), keeping the invariant that test databases carry the `test`
 substring.
 
-Wiring the test suite to run against these services (env-driven connection
-switch, `composer test:pgsql`/`test:mysql`, CI matrix jobs) is a separate,
-later step of the DB-matrix test-hardening track — the stand above only
-brings the services up.
+With the stand up, run the suite against a real engine via `composer
+test:pgsql` / `composer test:mysql` — these switch `DB_CONNECTION` and
+otherwise share `tests/TestCase.php`'s env-driven connection config with the
+sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job) and
+the PG/MySQL matrix (`test-db-matrix` job) on every push/PR; **both lanes are
+required for merge** — the sqlite lane alone self-skips database-specific
+code (collation, cross-process locking), so a PG/MySQL regression is only
+visible in the real-database lane.
 
 ## Conventions
 

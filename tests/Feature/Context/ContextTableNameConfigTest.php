@@ -42,6 +42,7 @@ function createContextRolesTable(string $name): void
         $table->string('context_id');
         $table->string('panel_id');
         $table->string('permission_key');
+        $table->timestamp('expires_at')->nullable();
         $table->timestamps();
     });
 }

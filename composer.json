@@ -62,6 +62,14 @@
             "@putenv AZ_UPDATE_API_SNAPSHOT=1",
             "vendor/bin/pest tests/Unit/ApiBoundaryTest.php"
         ],
+        "test:pgsql": [
+            "@putenv DB_CONNECTION=pgsql",
+            "php -d memory_limit=1G vendor/bin/pest"
+        ],
+        "test:mysql": [
+            "@putenv DB_CONNECTION=mysql",
+            "php -d memory_limit=1G vendor/bin/pest"
+        ],
         "lint": "vendor/bin/pint",
         "lint:check": "vendor/bin/pint --test",
         "refactor": "vendor/bin/rector process",
