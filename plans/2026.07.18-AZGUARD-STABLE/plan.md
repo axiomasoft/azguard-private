@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.17 |
+| Version | 0.3.18 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P3.1 закрыт — cut-line фасада исполнен, root/api-surface.md) |
+| Last Updated | 2026-07-18 (P3.2 закрыт — snapshot-гейт заморозки @api-поверхности в CI) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -90,7 +90,7 @@ read-only аудит (акцент — интеграционная поверх
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
-| P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | 🟡 In progress |
+| P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 1/3 | 🟡 In progress |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
@@ -169,6 +169,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-close/sonnet | Фаза P2 закрыта: 10/10 items терминальны (5🟢/5🟠), Phase Handoff phases/P2.md заполнен (агрегат Known Deviations по 10 items + SemVer-breaking список), docs-sync подтверждён (P2.10 сквозной свип + root/architecture.md/glossary.md), lint см. handoff.md — детали см. phases/P2.md Phase Handoff |
 | 2026-07-18 | plan-audit/opus-xhigh | Аудит фазы P2 (вердикт ATTENTION, движение вперёд): 10/10 коммитов сверены, F1–F7 — дефекты бухгалтерии/полноты, НЕ реопен — детали см. phases/P2.md `## Audit P2 — 2026-07-18` |
 | 2026-07-18 | plan-run/sonnet-high | P3.1 закрыт (🟢): cut-line фасада по facade-cutline.md/D29 (tryPermission/panelIdForPermission/isSuperAdmin → @internal, 2 @method-строки убраны), root/api-surface.md создан + свёрнуты follow-up находки Audit P2 F1/F3/F4/F6 — детали см. phases/P3.md P3.1 Completion Notes |
+| 2026-07-18 | plan-run/fable-high | P3.2 закрыт (🟢): snapshot-гейт заморозки @api-поверхности (32 типа, сигнатуры+имена параметров, фикстур+регенерация под D#), самопроверка «мутация→red» ✓ — детали см. phases/P3.md P3.2 Completion Notes. v0.3.18 |
 
 ## Обсуждение
 
