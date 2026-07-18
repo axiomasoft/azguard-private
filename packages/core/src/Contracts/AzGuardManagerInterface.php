@@ -126,6 +126,9 @@ interface AzGuardManagerInterface
      * Shorthand: issue a direct grant.
      *
      * @param  int|null  $ttl  TTL in seconds. null = permanent.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grant().
      */
     public function grant(
         Authenticatable $user,
@@ -138,6 +141,9 @@ interface AzGuardManagerInterface
      * Shorthand: revoke a direct grant.
      *
      * @return int Number of deleted records.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->revoke().
      */
     public function revoke(
         Authenticatable $user,
@@ -149,6 +155,9 @@ interface AzGuardManagerInterface
      * Shorthand: list a user's active direct grants in a panel.
      *
      * @return Collection<int, DirectGrant>
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grants().
      */
     public function grants(
         Authenticatable $user,

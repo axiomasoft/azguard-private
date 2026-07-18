@@ -210,6 +210,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: issue a direct grant.
      *
      * @param  int|null  $ttl  TTL in seconds. null = permanent.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grant().
      */
     #[Override]
     public function grant(
@@ -229,6 +232,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: revoke a direct grant.
      *
      * @return int Number of deleted records.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->revoke().
      */
     #[Override]
     public function revoke(
@@ -247,6 +253,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: list active direct grants for a user in a panel.
      *
      * @return Collection<int, DirectGrant>
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grants().
      */
     #[Override]
     public function grants(

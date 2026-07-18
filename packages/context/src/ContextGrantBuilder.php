@@ -7,69 +7,118 @@ namespace AzGuard\Context;
 use AzGuard\Context\Events\ContextGrantGiven;
 use AzGuard\Context\Events\ContextGrantRevoked;
 use AzGuard\Context\Models\ContextRole;
+use AzGuard\Contracts\ContextGrantBuilder as ContextGrantBuilderContract;
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Permissions\PermissionName;
 use BackedEnum;
+use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 use InvalidArgumentException;
+use Override;
 use UnitEnum;
 
 /**
- * Fluent write-API for context-scoped grants (az_guard_context_roles).
+ * The context branch of the unified grant grammar (az_guard_context_roles).
  *
- * The context-package counterpart to AzGuard\Grants\GrantBuilder: that
- * builder writes panel-wide direct grants, this one writes grants scoped
- * to an (contextType, contextId) pair — e.g. "workspace #42".
+ * Immutable counterpart to AzGuard\Grants\GrantBuilder: that builder writes
+ * panel-wide direct grants, this one writes grants scoped to a
+ * (contextType, contextId) pair — e.g. "workspace #42". Every scope setter
+ * returns a NEW instance.
  *
- * Usage:
- *   (new ContextGrantBuilder($user))
+ * Usage (via the unified fluent root):
+ *   AzGuard::forUser($user)
  *       ->on('app')
  *       ->inContext('workspace', 42)
+ *       ->until($expiry)
  *       ->grant('app.documents.export');
- *
- *   (new ContextGrantBuilder($user))
- *       ->on('app')
- *       ->inContext('workspace', 42)
- *       ->revoke('app.documents.export');
  */
-final class ContextGrantBuilder
+final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
 {
-    private ?string $panelId = null;
-
-    private ?string $contextType = null;
-
-    private int|string|null $contextId = null;
-
+    /**
+     * @internal Direct construction is package wiring — obtain the builder
+     *           through the unified root: AzGuard::forUser($user)->inContext(...).
+     */
     public function __construct(
-        private readonly Authenticatable $user,
+        private Authenticatable $user,
+        private ?string $panelId = null,
+        private ?string $contextType = null,
+        private int|string|null $contextId = null,
+        private ?int $ttlSeconds = null,
+        private ?DateTimeInterface $expiresAt = null,
     ) {}
 
-    // ─── Fluent setters ───────────────────────────────────────────────────────
+    // ─── Fluent setters (immutable-with) ─────────────────────────────────────
 
+    #[Override]
     public function on(string|BackedEnum $panelId): static
     {
-        $this->panelId = PanelResolver::normalizeId($panelId);
-
-        return $this;
+        return new self(
+            user: $this->user,
+            panelId: PanelResolver::normalizeId($panelId),
+            contextType: $this->contextType,
+            contextId: $this->contextId,
+            ttlSeconds: $this->ttlSeconds,
+            expiresAt: $this->expiresAt,
+        );
     }
 
+    #[Override]
     public function inContext(string $contextType, int|string $contextId): static
     {
-        $this->contextType = $contextType;
-        $this->contextId = $contextId;
+        return new self(
+            user: $this->user,
+            panelId: $this->panelId,
+            contextType: $contextType,
+            contextId: $contextId,
+            ttlSeconds: $this->ttlSeconds,
+            expiresAt: $this->expiresAt,
+        );
+    }
 
-        return $this;
+    /**
+     * Set TTL in seconds. null = no expiry. Clears any until() (last wins).
+     */
+    #[Override]
+    public function ttl(?int $seconds): static
+    {
+        return new self(
+            user: $this->user,
+            panelId: $this->panelId,
+            contextType: $this->contextType,
+            contextId: $this->contextId,
+            ttlSeconds: $seconds,
+            expiresAt: null,
+        );
+    }
+
+    /**
+     * Set an absolute expiry timestamp. null = no expiry. Clears any ttl()
+     * (last wins).
+     */
+    #[Override]
+    public function until(?DateTimeInterface $at): static
+    {
+        return new self(
+            user: $this->user,
+            panelId: $this->panelId,
+            contextType: $this->contextType,
+            contextId: $this->contextId,
+            ttlSeconds: null,
+            expiresAt: $at,
+        );
     }
 
     // ─── Actions ──────────────────────────────────────────────────────────────
 
     /**
-     * Grant a permission in the current context.
-     * Idempotent: repeated calls are a no-op (unique index on the row).
+     * Grant a permission in the current context (or update expires_at on an
+     * existing one). Idempotent: repeated calls update expires_at only —
+     * parity with the core GrantBuilder.
      *
      * @throws PanelNotSetException
      * @throws ContextNotSetException
@@ -78,6 +127,7 @@ final class ContextGrantBuilder
      *                                  context grant is scoped by design and
      *                                  must never carry superadmin/broad reach.
      */
+    #[Override]
     public function grant(string|UnitEnum $permission): ContextRole
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
@@ -93,15 +143,21 @@ final class ContextGrantBuilder
             ));
         }
 
+        $expiresAt = $this->expiresAt
+            ?? ($this->ttlSeconds !== null ? Carbon::now()->addSeconds($this->ttlSeconds) : null);
+
         /** @var ContextRole $contextRole */
-        $contextRole = ContextRole::query()->firstOrCreate([
-            'model_type' => $this->user->getMorphClass(),
-            'model_id' => $this->user->getAuthIdentifier(),
-            'context_type' => $contextType,
-            'context_id' => $contextId,
-            'panel_id' => $panel,
-            'permission_key' => $permissionKey,
-        ]);
+        $contextRole = ContextRole::query()->updateOrCreate(
+            [
+                'model_type' => $this->user->getMorphClass(),
+                'model_id' => $this->user->getAuthIdentifier(),
+                'context_type' => $contextType,
+                'context_id' => $contextId,
+                'panel_id' => $panel,
+                'permission_key' => $permissionKey,
+            ],
+            ['expires_at' => $expiresAt],
+        );
 
         event(new ContextGrantGiven(
             user: $this->user,
@@ -123,6 +179,7 @@ final class ContextGrantBuilder
      * @throws PanelNotSetException
      * @throws ContextNotSetException
      */
+    #[Override]
     public function revoke(string|UnitEnum $permission): int
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
@@ -154,6 +211,7 @@ final class ContextGrantBuilder
      * @throws PanelNotSetException
      * @throws ContextNotSetException
      */
+    #[Override]
     public function revokeAll(): int
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
@@ -175,19 +233,23 @@ final class ContextGrantBuilder
     }
 
     /**
-     * Return all context grants for the user in the current context+panel.
+     * Return all active (non-expired) context grants for the user in the
+     * current context+panel — parity with the core GrantBuilder::grants().
      *
      * @return Collection<int, ContextRole>
      *
      * @throws PanelNotSetException
      * @throws ContextNotSetException
      */
+    #[Override]
     public function grants(): Collection
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
         [$contextType, $contextId] = $this->resolveContextOrFail();
 
-        return $this->baseQuery($panel, $contextType, $contextId)->get();
+        return $this->baseQuery($panel, $contextType, $contextId)
+            ->active()
+            ->get();
     }
 
     // ─── Internal ─────────────────────────────────────────────────────────────

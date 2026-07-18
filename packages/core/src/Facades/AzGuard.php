@@ -36,6 +36,9 @@ use UnitEnum;
  * @method static bool hasContextGuard()
  *
  * --- Grants API ---
+ * The public grant path is the fluent root: AzGuard::forUser($user)->on(...)->grant(...).
+ * The positional shorthands below (grant/revoke/grants) are @internal twins kept for
+ * internal orchestration — see AzGuardManagerInterface.
  * @method static GrantBuilder forUser(Authenticatable $user)
  * @method static DirectGrant grant(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null, ?int $ttl = null)
  * @method static int revoke(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null)

@@ -104,11 +104,11 @@ it('FakeAzGuardUser wildcard is a super-admin', function () {
 
 // ─── GrantBuilder TTL parity (C5) ────────────────────────────────────────────
 
-it('GrantBuilder::expiresAt() sets an absolute expiry', function () {
+it('GrantBuilder::until() sets an absolute expiry', function () {
     $user = UserWithDirectGrants::factory()->create();
     $at = now()->addDays(3);
 
-    $grant = AzGuard::forUser($user)->on('app')->expiresAt($at)->grant('app.x.view');
+    $grant = AzGuard::forUser($user)->on('app')->until($at)->grant('app.x.view');
 
     expect($grant->expires_at->timestamp)->toBe($at->timestamp);
 });

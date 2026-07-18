@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Grants;
 
+use AzGuard\Contracts\ContextGrantBuilder;
+use AzGuard\Contracts\ContextGrantBuilderFactory;
 use AzGuard\Events\GrantGiven;
 use AzGuard\Events\GrantRevoked;
+use AzGuard\Exceptions\ContextPackageNotInstalledException;
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\PanelResolver;
@@ -20,43 +23,51 @@ use Illuminate\Support\Carbon;
 use UnitEnum;
 
 /**
- * Fluent builder for working with Direct Grants.
+ * Immutable fluent builder for working with Direct Grants — the single
+ * grant root shared by core and the optional context package.
+ *
+ * Every scope setter (on/until/ttl) returns a NEW instance; branches from
+ * one builder never see each other's state. inContext() hands the chain
+ * over to the context branch ({@see ContextGrantBuilder}).
  *
  * Usage:
  *   AzGuard::forUser($user)->on('app')->ttl(3600)->grant('app.documents.export');
  *   AzGuard::forUser($user)->on('app')->revoke('app.documents.export');
  *   AzGuard::forUser($user)->on('app')->grants();
+ *   AzGuard::forUser($user)->on('app')->inContext('workspace', 42)->grant('app.posts.edit');
  */
-final class GrantBuilder
+final readonly class GrantBuilder
 {
-    private ?string $panelId = null;
-
-    private ?int $ttlSeconds = null;
-
-    private ?DateTimeInterface $expiresAt = null;
-
     public function __construct(
-        private readonly Authenticatable $user,
+        private Authenticatable $user,
+        private ?string $panelId = null,
+        private ?int $ttlSeconds = null,
+        private ?DateTimeInterface $expiresAt = null,
     ) {}
 
-    // ─── Fluent setters ───────────────────────────────────────────────────────
+    // ─── Fluent setters (immutable-with) ─────────────────────────────────────
 
-    public function on(string|BackedEnum $panelId): static
+    public function on(string|BackedEnum $panelId): self
     {
-        $this->panelId = PanelResolver::normalizeId($panelId);
-
-        return $this;
+        return new self(
+            user: $this->user,
+            panelId: PanelResolver::normalizeId($panelId),
+            ttlSeconds: $this->ttlSeconds,
+            expiresAt: $this->expiresAt,
+        );
     }
 
     /**
-     * Set TTL in seconds. null = no expiry. Clears any expiresAt() (last wins).
+     * Set TTL in seconds. null = no expiry. Clears any until() (last wins).
      */
-    public function ttl(?int $seconds): static
+    public function ttl(?int $seconds): self
     {
-        $this->ttlSeconds = $seconds;
-        $this->expiresAt = null;
-
-        return $this;
+        return new self(
+            user: $this->user,
+            panelId: $this->panelId,
+            ttlSeconds: $seconds,
+            expiresAt: null,
+        );
     }
 
     /**
@@ -64,12 +75,44 @@ final class GrantBuilder
      * counterpart to ttl() — for parity with HasDirectGrants::grant($expiresAt).
      * Clears any ttl() (last wins).
      */
-    public function expiresAt(?DateTimeInterface $at): static
+    public function until(?DateTimeInterface $at): self
     {
-        $this->expiresAt = $at;
-        $this->ttlSeconds = null;
+        return new self(
+            user: $this->user,
+            panelId: $this->panelId,
+            ttlSeconds: null,
+            expiresAt: $at,
+        );
+    }
 
-        return $this;
+    /**
+     * Extend the chain into a context: hand accumulated scope (user, panel,
+     * expiry) over to the context branch of the grammar, provided by the
+     * optional azguard/context package.
+     *
+     * @throws ContextPackageNotInstalledException When azguard/context is absent.
+     */
+    public function inContext(string $contextType, int|string $contextId): ContextGrantBuilder
+    {
+        if (! app()->bound(ContextGrantBuilderFactory::class)) {
+            throw new ContextPackageNotInstalledException;
+        }
+
+        $builder = app(ContextGrantBuilderFactory::class)->forUser($this->user);
+
+        if ($this->panelId !== null) {
+            $builder = $builder->on($this->panelId);
+        }
+
+        if ($this->ttlSeconds !== null) {
+            $builder = $builder->ttl($this->ttlSeconds);
+        }
+
+        if ($this->expiresAt !== null) {
+            $builder = $builder->until($this->expiresAt);
+        }
+
+        return $builder->inContext($contextType, $contextId);
     }
 
     // ─── Actions ──────────────────────────────────────────────────────────────

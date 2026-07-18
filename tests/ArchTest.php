@@ -129,6 +129,15 @@ arch('registry values are final and readonly')
     ->toBeFinal()
     ->toBeReadonly();
 
+arch('grant builders are final and readonly (immutable grammar, D16)')
+    ->expect([
+        'AzGuard\\Grants',
+        'AzGuard\\Context\\ContextGrantBuilder',
+        'AzGuard\\Context\\ContextGrantBuilderFactory',
+    ])
+    ->toBeFinal()
+    ->toBeReadonly();
+
 arch('concrete ability resolvers are final and readonly')
     ->expect('AzGuard\\Abilities\\DefaultAbilitiesResolver')
     ->toBeFinal()

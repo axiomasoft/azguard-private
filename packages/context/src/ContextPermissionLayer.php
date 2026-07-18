@@ -64,6 +64,12 @@ final readonly class ContextPermissionLayer implements PermissionLayer
             ->where('context_type', $context->contextType)
             ->where('context_id', $context->contextId)
             ->where('panel_id', $panelId)
+            // TTL parity: an expired context grant must not confer permissions
+            // (mirrors ContextRole::scopeActive / DirectGrant::scopeActive).
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->pluck('permission_key')
             ->all();
 
