@@ -67,7 +67,7 @@ read-only аудит (акцент — интеграционная поверх
 
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
-| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 5/6 | 🟡 In progress |
+| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 0/4 | ⬜ Not started |
 | P2 | Структурный канон + fluent/DX редизайн API | 0/4 | ⬜ Not started |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
@@ -86,6 +86,7 @@ read-only аудит (акцент — интеграционная поверх
 | D6 | 2026-07-18 | Coupling-поверхность плана: `packages/*/src` публичные типы (P1·P2·P3), `tests/**` (P0-чтение·P1·P2·P4), `.github/workflows/**` (P3·P4·P5), `composer.json` scripts (P2·P4), `docs/**` EN+RU (P1·P2·P3·P5), `phpunit.xml` (P2·P4), `ARCHITECT_REVIEW.md`-инварианты §6 (все фазы) | Превентивное перечисление по SKILL §5: автор поздней фазы видит, что заденет раннюю. RAG:— (repo-grounded: findings/recon-api-surface-2026-07-18.md §5) |
 | D7 | 2026-07-18 | Выход-бэклог P0 переименован: `research/01-backlog.md` → `research/02-backlog.md`; контракт-блоки P0/P1/P2 обновлены | Коллизия нумерации слоя 2: NN=01 занял `research/01-fluent-api-priors.md`, добавленный после скелетов; NN — порядок чтения (SKILL §16). RAG:— (repo-grounded: research/) |
 | D8 | 2026-07-18 | P0 объявляет оркестрацию: P0.1–P0.5 исполняет ОДНА fable/high-сессия через `workflows/wf-azguard-stable-p0-audit.js` (стадия RAG → барьер → 4 параллельные оси; агенты пишут только findings-файлы, БЕЗ git); закрытие items P0.1–P0.5 — оркестратор-сессия последовательно по §8; P0.6 — ручной solo (синтез + блокирующий гейт владельца). Альтернатива item-by-item (5 сессий) отклонена | Критерий SKILL §7 сработал: 4 items P0.2–P0.5 scope-независимы (пишут разные файлы, друг друга не ждут; общий предшественник — только P0.1) и несут детерминированную Validation (grep-гейты формата findings-файлов). RAG:— (repo-grounded: phases/P0.md Phase Status, Validation items) |
+| D9 | 2026-07-18 | Гейт P0.6 пройден: владелец утвердил бэклог ремедиации — волны P1 (W0={C-01}, W1=12 Major, W2=14 Minor+Nit), 3 отклонения (D-02 историчен; D-07/D-08 → маршрут P4), 9 кластеров P2 (6 предписанных + 3 добавленных: Testing DX, headless-порог, контрактные швы), спорные B-04/C-02/C-08/C-11 оставлены в P1-W1. REGISTER + 02-backlog — утверждённый вход детализации P1/P2 (D3) | Блокирующий гейт по ТЗ P0.6; ответы владельца — brief/01-refinements.md блок 2026-07-18. RAG:— (repo-grounded: findings/REGISTER.md, research/02-backlog.md) |
 
 ## 6. Update Log
 
@@ -99,6 +100,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | orchestrator/fable | P0.3 закрыт: ось B — 10 чеков, 11 находок (5 Major), фасад 17 @method (recon завышал) — детали см. phases/P0.md P0.3 Completion Notes |
 | 2026-07-18 | orchestrator/fable | P0.4 закрыт: ось C — 10 чеков, 16 находок (1 Blocker C-01, 9 Major), F4/F40/F51 сделаны, F22 открыт — детали см. phases/P0.md P0.4 Completion Notes |
 | 2026-07-18 | orchestrator/fable | P0.5 закрыт: ось D — 12 чеков, 9 находок (1 Major D-06 OOM), Support/ 9 файлов классифицированы, baseline 17+6+12=35 — детали см. phases/P0.md P0.5 Completion Notes |
+| 2026-07-18 | plan-run solo/fable (fable/high) | P0.6 закрыт: REGISTER 44 находки + бэклог W0/W1/W2=1/12/14, 9 кластеров P2, гейт владельца утверждён (D9) — детали см. phases/P0.md P0.6 Completion Notes |
 
 ## Обсуждение
 
