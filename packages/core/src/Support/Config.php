@@ -198,9 +198,19 @@ final class Config
      */
     public static function assertCacheConfigValid(): void
     {
+        if (self::cacheTtl() !== null) {
+            return;
+        }
+
         $store = self::cacheStore();
 
-        if (! in_array($store, ['array', 'null'], true) && self::cacheTtl() === null) {
+        // The DRIVER decides persistence, not the store's NAME (P1.4 review):
+        // a custom store may run on the in-memory array driver, and a store
+        // named "array" may be re-pointed at a persistent driver. A store
+        // with no cache.stores entry is treated as persistent — fail-closed.
+        $driver = config(sprintf('cache.stores.%s.driver', $store));
+
+        if (! in_array($driver, ['array', 'null'], true)) {
             throw InvalidCacheConfigException::nullTtlOnPersistentStore($store);
         }
     }

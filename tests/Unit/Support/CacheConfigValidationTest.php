@@ -41,3 +41,34 @@ it('is fine with a persistent store and an explicit TTL', function (): void {
 
     expect(true)->toBeTrue();
 });
+
+it('judges by the store DRIVER, not its name: a custom array-driver store passes (P1.4 review)', function (): void {
+    config([
+        'cache.stores.memory' => ['driver' => 'array'],
+        'az-guard.cache.store' => 'memory',
+        'az-guard.cache.expiration_time' => null,
+    ]);
+
+    Config::assertCacheConfigValid();
+
+    expect(true)->toBeTrue();
+});
+
+it('judges by the store DRIVER, not its name: a store named "array" on a persistent driver throws (P1.4 review)', function (): void {
+    config([
+        'cache.stores.array' => ['driver' => 'redis'],
+        'az-guard.cache.store' => 'array',
+        'az-guard.cache.expiration_time' => null,
+    ]);
+
+    expect(fn () => Config::assertCacheConfigValid())->toThrow(InvalidCacheConfigException::class);
+});
+
+it('treats an unknown store as persistent — fail-closed (P1.4 review)', function (): void {
+    config([
+        'az-guard.cache.store' => 'not-configured-anywhere',
+        'az-guard.cache.expiration_time' => null,
+    ]);
+
+    expect(fn () => Config::assertCacheConfigValid())->toThrow(InvalidCacheConfigException::class);
+});
