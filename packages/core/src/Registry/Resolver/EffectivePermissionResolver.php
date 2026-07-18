@@ -127,8 +127,14 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
         ));
 
         if (! Config::wildcardEnabled()) {
-            $filtered = $set->filter(fn (string $key): bool => $this->catalog->has($panelId, $key)
-                || $this->matchesDynamicDefinition($key, $dynamicDefinitions));
+            $filtered = $set->filter(function (string $key) use ($panelId, $dynamicDefinitions): bool {
+                if (str_contains($key, PermissionKey::WILDCARD)) {
+                    return false;
+                }
+
+                return $this->catalog->has($panelId, $key)
+                    || $this->matchesDynamicDefinition($key, $dynamicDefinitions);
+            });
             $this->logDroppedKeys($set, $filtered, $panelId);
 
             return $filtered;

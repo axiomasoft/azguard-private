@@ -99,6 +99,14 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   silently skipping it — matching the diagnostics `PolicyAbilityCatalogBuilder`
   already gave for a stale policy class, so a renamed/removed `*Permission`
   enum leaves a signal in the log rather than a silent hole in the catalog. (T3)
+- `EffectivePermissionResolver::filterAgainstCatalog()`'s wildcard-disabled branch
+  now excludes any key containing the wildcard character (`*`) before checking it
+  against dynamic catalog definitions, matching the guard the wildcard-enabled
+  branch already had. Previously a literal `*` in a grant key (e.g. `app.docs.*`)
+  could accidentally match a dynamic definition's `{seg}` placeholder segment
+  (which matches any non-empty segment, including a literal `*`), contradicting
+  the method's own docblock, which promises patterns are "treated as unknown
+  exact keys and removed" when the feature is off. (T4)
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:
