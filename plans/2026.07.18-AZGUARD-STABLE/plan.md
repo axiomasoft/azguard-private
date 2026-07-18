@@ -67,7 +67,7 @@ read-only аудит (акцент — интеграционная поверх
 
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
-| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 2/6 | 🟡 In progress |
+| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 3/6 | 🟡 In progress |
 | P1 | Ремедиация находок аудита (волны по severity) | 0/4 | ⬜ Not started |
 | P2 | Структурный канон + fluent/DX редизайн API | 0/4 | ⬜ Not started |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
@@ -96,6 +96,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | issue-planner/fable | Design pass 2/3: P0 детализирована до DoR (6 items, чеклисты C-A/B/C/D, finding-template), workflow wf-azguard-stable-p0-audit.js создан, Routing P0 уточнён, D7–D8, v0.2.0. Фокус pass 3: детализация P1–P5 по фактам аудита P0 |
 | 2026-07-18 | orchestrator/fable | P0.1 закрыт: RAG-добор — 5/5 вердиктов preseed подтверждены первоисточниками, 2 [UNVERIFIED] — детали см. phases/P0.md P0.1 Completion Notes |
 | 2026-07-18 | orchestrator/fable | P0.2 закрыт: ось A — 11 чеков, 8 находок (3 Major) — детали см. phases/P0.md P0.2 Completion Notes |
+| 2026-07-18 | orchestrator/fable | P0.3 закрыт: ось B — 10 чеков, 11 находок (5 Major), фасад 17 @method (recon завышал) — детали см. phases/P0.md P0.3 Completion Notes |
 
 ## Обсуждение
 
