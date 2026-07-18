@@ -173,9 +173,11 @@ return [
     |--------------------------------------------------------------------------
     | Grant Sources
     |--------------------------------------------------------------------------
-    | Control which GrantSources are active and their priority order.
+    | Control which GrantSources are active.
     | null (default) = all built-in sources active, sorted by GrantPriority enum.
-    | Provide an explicit list to restrict or reorder:
+    | Provide an explicit list to restrict which sources run — resolution order
+    | is always GrantPriority DESC (EffectivePermissionResolver), regardless of
+    | this array's order, so this cannot be used to reorder sources:
     |
     |   'grant_sources' => [
     |       \AzGuard\Registry\Sources\ClassRoleGrantSource::class,

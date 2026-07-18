@@ -40,6 +40,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/DoctorCommandTest.php',
         'Feature/StructuredOutputCommandsTest.php',
         'Feature/GateIntegrationScopedTest.php',
+        'Feature/GrantSourcesAllowlistTest.php',
         'Feature/GrantsCliColumnsTest.php',
         'Feature/GrantsFacadeDefaultPanelTest.php',
         'Feature/HasDirectGrantsTest.php',
