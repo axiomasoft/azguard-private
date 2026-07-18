@@ -12,17 +12,37 @@ use Illuminate\Support\Facades\Event;
  * AzGuardManager) across many jobs — without a reset, a panel set while
  * processing job N would leak into job N+1 on the same worker. Symmetric
  * with the existing Octane RequestReceived listener.
+ *
+ * The sync driver is exempt (P1.4 review): a sync job runs inline inside the
+ * current request/process, so there is no cross-job leak to prevent — and
+ * resetting would wipe the active request's panel for the remainder of that
+ * request (deny / PanelNotSetException under the fail-closed C-02 default).
  */
-it('resets currentPanel before each job runs', function () {
+function dispatchJobProcessing(string $connection): void
+{
+    $job = Mockery::mock(Job::class);
+    $job->shouldReceive('payload')->andReturn([]);
+
+    Event::dispatch(new JobProcessing($connection, $job));
+}
+
+it('resets currentPanel before each job on a real queue connection', function () {
     $panel = AzGuard::panel('test');
     AzGuard::setCurrentPanel($panel);
 
     expect(AzGuard::currentPanel())->not->toBeNull();
 
-    $job = Mockery::mock(Job::class);
-    $job->shouldReceive('payload')->andReturn([]);
-
-    Event::dispatch(new JobProcessing('sync', $job));
+    dispatchJobProcessing('database');
 
     expect(AzGuard::currentPanel())->toBeNull();
+});
+
+it('preserves currentPanel when a sync job runs inline in the current request', function () {
+    $panel = AzGuard::panel('test');
+    AzGuard::setCurrentPanel($panel);
+
+    dispatchJobProcessing('sync');
+
+    expect(AzGuard::currentPanel())->not->toBeNull()
+        ->and(AzGuard::currentPanel()?->getId())->toBe('test');
 });

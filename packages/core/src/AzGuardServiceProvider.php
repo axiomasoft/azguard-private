@@ -212,8 +212,15 @@ final class AzGuardServiceProvider extends ServiceProvider
         // process: a queue worker keeps the same PHP process (and singleton
         // AzGuardManager) across many jobs. Reset currentPanel BEFORE each job
         // runs (C-14) — fail-closed, so a panel set by job N cannot leak into
-        // job N+1 on the same worker.
-        Event::listen(JobProcessing::class, function (): void {
+        // job N+1 on the same worker. The sync driver is exempt (P1.4 review):
+        // a sync job runs INLINE inside the current request/process — there is
+        // no cross-job leak to prevent, and resetting would wipe the active
+        // request's panel for the remainder of that request.
+        Event::listen(JobProcessing::class, function (JobProcessing $event): void {
+            if ($event->connectionName === 'sync') {
+                return;
+            }
+
             if ($this->app->resolved(AzGuardManagerInterface::class)) {
                 $this->app->make(AzGuardManagerInterface::class)->setCurrentPanel(null);
             }
