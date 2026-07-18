@@ -36,6 +36,32 @@ Mount or symlink the package directory into the app, then `composer update`.
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
 
+## Local database matrix
+
+`composer test` runs against SQLite `:memory:` by default. To exercise the
+package against real database engines (Postgres 16, MySQL 8) and Redis, bring
+up the local stand:
+
+```bash
+cp .env.example .env   # adjust credentials if needed
+make up                # docker compose up -d, waits for services to report healthy
+make ps                # check status
+make down               # stop and remove the stand
+```
+
+`docker-compose.yml` defines three services — `pgsql` (Postgres 16), `mysql`
+(MySQL 8), `redis` (Redis 7) — each with a healthcheck (`pg_isready` /
+`mysqladmin ping` / `redis-cli ping`) and a named volume for its data. Ports
+are published on `127.0.0.1` only; credentials come from `.env`, never
+hardcoded in the compose file. The database names default to `azguard_test`
+(`.env.example`), keeping the invariant that test databases carry the `test`
+substring.
+
+Wiring the test suite to run against these services (env-driven connection
+switch, `composer test:pgsql`/`test:mysql`, CI matrix jobs) is a separate,
+later step of the DB-matrix test-hardening track — the stand above only
+brings the services up.
+
 ## Conventions
 
 - `declare(strict_types=1)` in every PHP file; PHPStan level 6; Pest 4.

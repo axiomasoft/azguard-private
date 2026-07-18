@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PGSQL_PORT:-5432}:5432"
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${PGSQL_DATABASE:-azguard_test}
+      POSTGRES_USER: ${PGSQL_USERNAME:-azguard}
+      POSTGRES_PASSWORD: ${PGSQL_PASSWORD:-azguard}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-azguard_test}
+      MYSQL_USER: ${MYSQL_USERNAME:-azguard}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-azguard}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-azguard}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgsql_data:
+  mysql_data:
+  redis_data:
