@@ -29,6 +29,15 @@ final readonly class AccessDecision
     /** No panel could be resolved, so the decision was a pass-through deny. */
     public const string NO_ACTIVE_PANEL = 'NO_ACTIVE_PANEL';
 
+    /**
+     * $winningSource is best-effort diagnostics (C-15), not part of the
+     * authorization result: it is attributed by re-querying each GrantSource
+     * in priority order, so an ability granted exclusively by a context
+     * PermissionLayer (no GrantSource produced it) yields null even when
+     * $allowed is true, and a higher-priority source whose pattern textually
+     * matches the ability may be named although the effective set filtered
+     * that pattern out (P1.4 review).
+     */
     public function __construct(
         public int|string $userId,
         public string $panelId,
