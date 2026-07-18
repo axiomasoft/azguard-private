@@ -21,6 +21,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/AuthorizerExtendedTest.php',
         'Feature/AuthorizerPanelResolutionTest.php',
         'Feature/AuthorizerTest.php',
+        'Feature/AzGuardFakeTest.php',
         'Feature/CacheResetCommandTest.php',
         'Feature/CatalogLazyPanelsTest.php',
         'Feature/CheckAccessMiddlewareTest.php',

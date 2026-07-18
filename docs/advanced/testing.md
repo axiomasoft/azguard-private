@@ -213,6 +213,42 @@ no panel provider is required just to assert a permission:
 $user->hasPermission('app.documents.view'); // works with no panel registered
 ```
 
+## `AzGuard::fake()` — recording grants and checks
+
+`AzGuard::fake()` swaps the facade for a recording double (the `Event::fake()`/
+`Pdf::fake()` pattern): grants and checks still run for real — fake() observes,
+it does not replace behavior — so `assertGranted()`/`assertDenied()`/
+`assertChecked()` read from what actually happened during the test:
+
+```php
+use AzGuard\Facades\AzGuard;
+
+public function test_it_records_grants_and_checks(): void
+{
+    AzGuard::fake();
+
+    $user = User::factory()->create();
+
+    AzGuard::forUser($user)->on('app')->grant(DocumentsPermission::View);
+
+    $this->assertTrue($user->can('app.documents.view'));
+
+    AzGuard::assertGranted($user, DocumentsPermission::View, 'app');
+    AzGuard::assertChecked('app.documents.view');
+}
+```
+
+Each assertion also accepts a closure predicate over a `Recorded` (`user`,
+`key`, `panelId`, `result`) instead of the simple form — there is no "get log"
+method, only assertions:
+
+```php
+use AzGuard\Testing\Recorded;
+
+AzGuard::assertGranted(fn (Recorded $r) => $r->key === 'app.documents.view');
+AzGuard::assertChecked(fn (Recorded $r) => $r->key === 'app.documents.view' && $r->result === true);
+```
+
 See [Integration & Testing](/recipes/integration) for the segregated-contracts
 pattern (`HasScopedRoles`/`HasDirectGrants` as opt-in contract+trait pairs) and
 the optional context-guard visibility check.

@@ -11,7 +11,9 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\Panel;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
+use AzGuard\Testing\AzGuardFake;
 use BackedEnum;
+use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Facade;
@@ -44,6 +46,11 @@ use UnitEnum;
  * @method static int revoke(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null)
  * @method static Collection<int, DirectGrant> grants(Authenticatable $user, (string | BackedEnum | null) $panelId = null)
  *
+ * --- Testing ---
+ * @method static void assertGranted((Authenticatable | Closure) $user, (string | UnitEnum | null) $key = null, (string | BackedEnum | null) $panelId = null)
+ * @method static void assertDenied((Authenticatable | Closure) $user, (string | UnitEnum | null) $key = null, (string | BackedEnum | null) $panelId = null)
+ * @method static void assertChecked((string | UnitEnum | Closure) $key)
+ *
  * @see AzGuardManager
  *
  * @api
@@ -54,5 +61,19 @@ final class AzGuard extends Facade
     protected static function getFacadeAccessor(): string
     {
         return AzGuardManagerInterface::class;
+    }
+
+    /**
+     * Swap the manager for a recording double: grants/checks still run for
+     * real — fake() observes, it does not replace behavior. Read what was
+     * recorded via assertGranted()/assertDenied()/assertChecked().
+     */
+    public static function fake(): AzGuardFake
+    {
+        $fake = new AzGuardFake(app(AzGuardManagerInterface::class));
+
+        self::swap($fake);
+
+        return $fake;
     }
 }
