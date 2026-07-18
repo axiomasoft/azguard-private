@@ -57,6 +57,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/RoleClassResolutionTest.php',
         'Feature/RolePermissionsCommandTest.php',
         'Feature/RolePermissionValidationTest.php',
+        'Feature/ScopeClassMigrationRollbackTest.php',
         'Feature/ScopedPermissionEnumResolutionTest.php',
         'Feature/ScopedRolePanelIsolationTest.php',
         'Feature/ScopedRoleQueryScopePanelIsolationTest.php',
