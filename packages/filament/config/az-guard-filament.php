@@ -28,6 +28,8 @@ return [
     | from the user's AzGuard permissions. Set false to manage authorization
     | yourself (e.g. with generated policies).
     |
+    | Fallback for AzGuardPlugin::enforce() — a fluent call wins when set.
+    |
     */
     'enforce' => true,
 
@@ -46,6 +48,8 @@ return [
     |                resource; Filament's native authorization enforces them and
     |                the runtime gate steps aside.
     |
+    | Fallback for AzGuardPlugin::source() — a fluent call wins when set.
+    |
     */
     'source' => 'database',
 
@@ -56,6 +60,8 @@ return [
     |
     | Each ability becomes its own permission key. Trim this list to scope
     | down, or add custom abilities.
+    |
+    | Fallback for AzGuardPlugin::abilities() — a fluent call wins when set.
     |
     */
     'abilities' => [
@@ -100,6 +106,9 @@ return [
     |
     | Template for a resolved permission key. Placeholders: {panel}, {resource},
     | {ability}. `case` formats the {resource} segment (snake|kebab|camel|none).
+    |
+    | Fallback for AzGuardPlugin::keyTemplate()/case() — a fluent call wins
+    | when set.
     |
     */
     'key' => '{panel}.{resource}.{ability}',

@@ -27,9 +27,24 @@ final class AzGuardPlugin implements Plugin
 {
     private ?string $panelId = null;
 
+    private ?bool $enforce = null;
+
+    private ?string $source = null;
+
+    /** @var list<string>|null */
+    private ?array $abilities = null;
+
+    private ?string $keyTemplate = null;
+
+    private ?string $case = null;
+
+    /**
+     * Resolved through the container (not `new self`) so tests and consuming
+     * apps can swap in a bound alternative via `app()->bind(self::class, ...)`.
+     */
     public static function make(): static
     {
-        return new self;
+        return app(self::class);
     }
 
     #[Override]
@@ -58,9 +73,89 @@ final class AzGuardPlugin implements Plugin
         return config('az-guard-filament.panel', 'admin');
     }
 
+    /** Enable/disable zero-boilerplate Gate enforcement for discovered resources. */
+    public function enforce(bool $enforce = true): static
+    {
+        $this->enforce = $enforce;
+
+        return $this;
+    }
+
+    public function isEnforcing(): bool
+    {
+        return $this->enforce ?? (bool) config('az-guard-filament.enforce', true);
+    }
+
+    /** @param  'database'|'enum'|'policy'  $source */
+    public function source(string $source): static
+    {
+        $this->source = $source;
+
+        return $this;
+    }
+
+    public function getSource(): string
+    {
+        return $this->source ?? (string) config('az-guard-filament.source', 'database');
+    }
+
+    /** @param  list<string>  $abilities */
+    public function abilities(array $abilities): static
+    {
+        $this->abilities = $abilities;
+
+        return $this;
+    }
+
+    /** @return list<string> */
+    public function getAbilities(): array
+    {
+        /** @var list<string> $abilities */
+        $abilities = $this->abilities ?? config('az-guard-filament.abilities', []);
+
+        return $abilities;
+    }
+
+    /** Permission-key template. Placeholders: {panel}, {resource}, {ability}. */
+    public function keyTemplate(string $template): static
+    {
+        $this->keyTemplate = $template;
+
+        return $this;
+    }
+
+    public function getKeyTemplate(): string
+    {
+        return $this->keyTemplate ?? (string) config('az-guard-filament.key', '{panel}.{resource}.{ability}');
+    }
+
+    /** @param  'snake'|'kebab'|'camel'|'none'  $case */
+    public function case(string $case): static
+    {
+        $this->case = $case;
+
+        return $this;
+    }
+
+    public function getCase(): string
+    {
+        return $this->case ?? (string) config('az-guard-filament.case', 'snake');
+    }
+
     #[Override]
     public function register(Panel $panel): void
     {
+        // Fluent options, when set, are the effective value; config remains the
+        // fallback for consumers (PermissionSchema/discovery/gate) that resolve
+        // it independently of this plugin instance — keep them in sync here.
+        config([
+            'az-guard-filament.enforce' => $this->isEnforcing(),
+            'az-guard-filament.source' => $this->getSource(),
+            'az-guard-filament.abilities' => $this->getAbilities(),
+            'az-guard-filament.key' => $this->getKeyTemplate(),
+            'az-guard-filament.case' => $this->getCase(),
+        ]);
+
         $panel
             ->resources([
                 RoleResource::class,
@@ -76,7 +171,7 @@ final class AzGuardPlugin implements Plugin
     {
         // For the "policy" source, generated policies enforce via Filament's
         // native authorization, so leave the policy-existence check in place.
-        if (! config('az-guard-filament.enforce', true) || config('az-guard-filament.source', 'database') === 'policy') {
+        if (! $this->isEnforcing() || $this->getSource() === 'policy') {
             return;
         }
 

@@ -71,14 +71,20 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
 
         // The runtime gate enforces every source EXCEPT "policy", where the
         // generated Laravel policies (and Filament's native authorization)
-        // do the checking instead.
-        if (config('az-guard-filament.enforce', true) && config('az-guard-filament.source', 'database') !== 'policy') {
-            $gate = $this->app->make(ResourceGate::class);
+        // do the checking instead. Both flags and ResourceGate itself are
+        // resolved lazily inside the closure (not captured eagerly here) so a
+        // plugin's fluent `enforce()`/`source()` — applied in its own
+        // register(Panel) at Filament's panel-registration time, which is not
+        // guaranteed to run before this boot() — still take effect.
+        Gate::before(function ($user, string $ability, array $arguments = []): ?bool {
+            if (! config('az-guard-filament.enforce', true) || config('az-guard-filament.source', 'database') === 'policy') {
+                return null;
+            }
 
-            Gate::before(fn ($user, string $ability, array $arguments = []): ?bool => is_object($user)
-                ? $gate->check($user, $ability, $arguments)
-                : null);
-        }
+            return is_object($user)
+                ? $this->app->make(ResourceGate::class)->check($user, $ability, $arguments)
+                : null;
+        });
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

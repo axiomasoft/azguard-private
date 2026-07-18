@@ -80,6 +80,26 @@ it('propagates the configured status and message on denial', function (): void {
         ->assertStatus(419);
 });
 
+it('using() returns the bare class name — no arguments to encode', function (): void {
+    expect(CheckAccess::using())->toBe(CheckAccess::class);
+});
+
+it('enforces #[CheckPermission] on a route built with ::using()', function (): void {
+    AzGuard::setCurrentPanel(panel: Panel::make()->id(id: 'test'));
+
+    Gate::define('test.post.view', fn (User $user): bool => true);
+
+    Route::middleware(['web', CheckAccess::using()])
+        ->get('/azguard-invoke-using-test', InvokablePostController::class);
+
+    $user = new User;
+    $user->id = 1;
+
+    $this->actingAs(user: $user)
+        ->get(uri: '/azguard-invoke-using-test')
+        ->assertSuccessful();
+});
+
 final class InvokablePostController
 {
     #[CheckPermission(permission: PostPermission::View)]

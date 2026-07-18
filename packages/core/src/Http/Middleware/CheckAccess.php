@@ -20,6 +20,16 @@ use UnitEnum;
 final class CheckAccess
 {
     /**
+     * Build the `azguard.check` middleware definition string. Takes no
+     * arguments — checks are driven by `#[CheckPermission]` on the action —
+     * provided for DX symmetry with the other AzGuard middleware.
+     */
+    public static function using(): string
+    {
+        return self::class;
+    }
+
+    /**
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
