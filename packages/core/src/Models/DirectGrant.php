@@ -44,6 +44,11 @@ class DirectGrant extends Model
      * deleted — covers the Filament resource, raw model saves/deletes, and any
      * other model-event path. The grantable_id is the cache user id, so no model
      * load is needed. (GrantBuilder's bulk revoke fires GrantRevoked instead.)
+     *
+     * On update, also flush the ORIGINAL (panel_id, grantable) pair when either
+     * changed (C-09): moving a grant from panel A to B, or reassigning it to a
+     * different grantable, otherwise leaves panel A's stale cached permission
+     * set alive until TTL — the new-value flush above never touches it.
      */
     #[Override]
     protected static function booted(): void
@@ -53,7 +58,18 @@ class DirectGrant extends Model
         };
 
         static::created($flush);
-        static::updated($flush);
+
+        static::updated(static function (self $grant) use ($flush): void {
+            $originalPanelId = $grant->getOriginal('panel_id');
+            $originalGrantableId = $grant->getOriginal('grantable_id');
+
+            if ($originalPanelId !== $grant->panel_id || $originalGrantableId !== $grant->grantable_id) {
+                app(PermissionCache::class)->forgetForUser($originalGrantableId, $originalPanelId);
+            }
+
+            $flush($grant);
+        });
+
         static::deleted($flush);
     }
 
