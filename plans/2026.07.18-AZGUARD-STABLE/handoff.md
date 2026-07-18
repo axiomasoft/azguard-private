@@ -1,56 +1,64 @@
-# HANDOFF — 2026-07-18 — after P1.4
+# HANDOFF — 2026-07-18 — after P1
 
-**Next:** закрыть фазу P1 (`plan-close`): все 4 items терминальны (P1.1/P1.2/P1.3 🟠,
-P1.4 🟢) — сверка таблиц/борда, финализация Phase Handoff, lint. Шаг-не-item → новая
-сессия (plan-close читает план с диска заново).
+**Next:** ЗАПУСК ВРУЧНУЮ: `fable/high` (manual, Routing P2.1–P2.10). Первый item —
+P2.1 (структурный канон + fluent/DX редизайн, SemVer-breaking, effort high+
+MANDATORY). Команды plan-exec/plan-run нет — план запрещает автозапуск для
+контракт-класса P2 (Execution Rules: Exec=manual). Промпт item'а — из
+`phases/P2.md` P2.1 (детализирован до DoR, research/03-p2-canon.md §10).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet — пин команды plan-close (sonnet/low) |
-| Thinking | low — механика сверки/закрытия, не дизайн |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Закрыть фазу P1 по git-фактам: борд, Phase Handoff, lint; следом P2 (fable/high, manual) |
+| Model | fable (opus-класс) |
+| Thinking | high — MANDATORY для контракт-класса (SemVer-breaking редизайн) |
+| Context | continue (/clear) — ручной item |
+| Суть | P2.1: первый item структурного канона/fluent-DX редизайна публичных контрактов |
 
 ```
-/task:plan-close 2026.07.18-AZGUARD-STABLE P1
+ЗАПУСК ВРУЧНУЮ: fable/high — /clear, затем выполнить P2.1 по ТЗ phases/P2.md
+(plans/2026.07.18-AZGUARD-STABLE/phases/P2.md, item P2.1), Sources of truth —
+research/03-p2-canon.md §10, план v0.3.8, D14–D18.
 ```
 
-**Done:** P1.4 закрыт (🟢 Done). Сквозной adversarial review диффа P1
-(`bdf9416..HEAD`, 94 файла, 29 item-коммитов волн): субагенты
-azguard-security-review (0 Blocker/Major, 10 векторов подтверждены) +
-azguard-reviewer (15 находок) + 2 находки оркестратора; blade-review пропущен по ТЗ
-(вьюхи не задеты). Итог — 16 находок с вердиктами в
-`findings/P1-review-2026-07-18.md`; сняты 10 фикс-коммитами:
-`5c555f1` R4/C-10 (morph-алиас в read-path query-scope — был fail-open изоляции под
-enforceMorphMap) · `69d9e1a` R6/C-11 (атомарная запись scope_class одним INSERT) ·
-`4bd209e` R2+R3/C-16 (NULL-safe COALESCE-unique + дедуп предсуществующих дублей в
-миграции 000005, правлена in-place — не выпускалась) · `c681ee9` R1/C-14 (sync-джобы
-больше не сбрасывают панель запроса — была регрессия) · `07ccbfe` R5/B-04
-(hasRole принимает BackedEnum — был TypeError) · `cb8c819` R8/C-04 (валидация по
-драйверу store, fail-closed для неизвестного) · `f0055ae` R0 (доказывающий
-mass-assign тест C-11 — отсутствовал вопреки ТЗ P1.2) · `8d91611`/`0701d03` докблоки
-C-15/C-09 · `49238d9` тест-гигиена. Принято-как-риск: R7 (wildcard-enabled ветка
-C-13) → P2/D18; R9 (upgrade-нота C-10) → P3.3; R12 (reverse-parity сигнатуры) → P2.
-Scope drift не найден (29 коммитов ↔ 27 находок). Item-коммит (отчёт): `398985f`.
+**Done:** Фаза P1 закрыта (`plan-close Pn`). Все 4 items терминальны: P1.1/P1.2/P1.3
+🟠 Done with deviations, P1.4 🟢 Done. Status Board (plan.md §4) синхронизирован:
+P1 → 4/4, 🟠 Done with deviations. Phase Handoff в `phases/P1.md` финализирован
+(снят черновой маркер «ещё не закрыта»), Docs-sync проверен — не требуется (все
+27 находок + 10 review-фиксов P1.4 — коррекции уже задокументированного поведения:
+fail-closed изоляция scope, morph-канон, mass-assign, NULL-safe unique; `docs/` не
+затронуты). Известные отклонения (агрегат из Known Deviations items, механически):
+- P1.1: default-fallback панели упразднён владельцем (D27, supersedes D10-б) —
+  process-отклонение, зафиксировано в переопределении D10 до закрытия item'а.
+- P1.2: 12 находок закрыты, но премис-дефект бэклога «firstOrCreate второй
+  аргумент = safe path» обнаружен и запинён тестом `f0055ae` (P1.4), формулировка
+  в REGISTER не исправлена.
+- P1.3: `HasScopedRoles::removeScopedRoleEverywhere()` вне контракта (allowlist
+  D-03) — вынесено как кандидат в P2 contract review, не устранено здесь.
+- P1.4: 3 находки (R7, R9, R12) приняты-как-риск с явным маршрутом (R7→P2/D18,
+  R9→P3.3, R12→P2), а не устранены в фазе.
+Ни одно из вышеперечисленного не устранено ПОЗЖЕ соседним коммитом внутри фазы —
+маршруты остаются открытыми в P2/P3.3, актуальны на момент закрытия.
+Item-коммит закрытия фазы — следующим шагом этого прогона (см. ниже).
 
-Validation на финальном дереве кода (`49238d9`): `composer test` — 610 passed /
-1639 assertions; `composer lint:check` — pint passed; `composer analyse` — phpstan
-0 errors, baseline не менялся; `bash bin/docs-parity-gate.sh` — OK.
+Validation на финальном дереве P1 (`49238d9`, отчёт P1.4 `398985f`): `composer test`
+— 610 passed / 1639 assertions; `composer lint:check` — pint passed; `composer
+analyse` — phpstan 0 errors, baseline не менялся; `bash bin/docs-parity-gate.sh`
+— OK. `git status --short` на момент plan-close — чисто, посторонних/грязных
+файлов в дереве фазы не найдено.
 
-**Remaining:** plan-close P1 → P2 канон (10 items, fable/high manual) → P3 заморозка →
-P4 тест-углубление → P5 (шаблон → релиз+тег → миграция docs) → post-plan
-`/task:plan-close archive`.
+**Remaining:** P2 канон (10 items, fable/high manual) → P3 заморозка → P4
+тест-углубление → P5 (шаблон → релиз+тег → миграция docs) → post-plan
+`/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.8, D1–D27) ·
-phases/P1.md (4/4 терминальны, Phase Handoff заполнен) ·
-findings/P1-review-2026-07-18.md (16 находок, вердикты) · roadmap.md ·
-research/{00-user-intent,02-backlog,03-p2-canon}.md · findings/ (REGISTER + оси) ·
-brief/{00-brief,01-refinements}.md.
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.8, D1–D27,
+§4 Status Board синхронизирован) · phases/P1.md (4/4 терминальны, Phase Handoff
+финализирован) · phases/P2.md (DoR, 10 items) · findings/P1-review-2026-07-18.md
+(16 находок, вердикты) · roadmap.md · research/{00-user-intent,02-backlog,
+03-p2-canon}.md · findings/ (REGISTER + оси) · brief/{00-brief,01-refinements}.md.
 
 **Open risks:**
-- MySQL-ветка миграции 000005 (functional key parts + SUBSTRING 191, COALESCE-unique)
-  локально НЕ исполнялась (SQLite-лейн) — обязательная верификация в P4.2/P4.7
-  (БД-матрица); упасть может только там, не тихо.
+- MySQL-ветка миграции 000005 (functional key parts + SUBSTRING 191,
+  COALESCE-unique) локально НЕ исполнялась (SQLite-лейн) — обязательная
+  верификация в P4.2/P4.7 (БД-матрица); упасть может только там, не тихо.
 - R7: при `wildcard.enabled=true` голый `*` из кастомной MergeStrategy всё ещё
   проходит catalog-фильтр — закрыть в P2 при wildcard-флипе D18, не забыть.
 - Premис-дефект бэклога «firstOrCreate второй аргумент = safe path» (P1.2 Known
