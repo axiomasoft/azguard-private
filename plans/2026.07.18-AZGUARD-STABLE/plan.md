@@ -6,7 +6,7 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.1.0 |
+| Version | 0.2.0 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
@@ -16,7 +16,7 @@
 | Execution Mode | phase-first |
 | Target Operator Models | sonnet (exec) · haiku (LOW) · fable/opus (design/audit) |
 | Approval Owner | Dmitry Vostrikov |
-| Design Passes | 1/3 — 6 фаз / ~26 items (→ ≥2 по SKILL §5) + план объявлен эталоном дорожки для флота пакетов (ядро экосистемы → 3) |
+| Design Passes | 2/3 — 6 фаз / ~26 items (→ ≥2 по SKILL §5) + план объявлен эталоном дорожки для флота пакетов (ядро экосистемы → 3) |
 | Paused By | — |
 
 ## 1. Context
@@ -55,7 +55,8 @@ read-only аудит (акцент — интеграционная поверх
 
 | Items | Model/effort | Exec | Почему |
 |:--|:--|:--|:--|
-| P0.1–P0.6 | fable/high | manual | аудит публичных контрактов и RAG-верификация несущих фактов: effort high+ MANDATORY |
+| P0.1–P0.5 | fable/high | manual | read-only аудит публичных контрактов + RAG несущих фактов (effort high+ MANDATORY); исполняются ОДНОЙ сессией через `workflows/wf-azguard-stable-p0-audit.js` (D8: §7-критерий — 4 оси scope-независимы, Validation детерминирована); закрытие items — оркестратор по §8 |
+| P0.6 | fable/high | manual | синтез REGISTER/бэклог + гейт владельца — контракт-класс, solo |
 | P1.*, P2.* | — | — | волатильные фазы (D3): маршрутизация назначается при детализации по фактам аудита |
 | P3.1–P3.3 | fable/high | manual | cut-line публичной поверхности / SemVer — контракт-класс |
 | P4.1–P4.6 | sonnet/medium | plan-exec | инфраструктура тестов по готовым спецификациям; уточнить при детализации |
@@ -83,6 +84,8 @@ read-only аудит (акцент — интеграционная поверх
 | D4 | 2026-07-18 | Ось «нагрузка» vaulter (k6/SLO/load-стенд) в дорожку azguard НЕ переносится; углубление P4 идёт по оси корректности: docker БД-матрица (реальная БД вместо только sqlite :memory:), кросс-процессные race-тесты, параллельные прогоны, mutation-ratchet; perf hot-path (resolver/cache) — микробенчмарк внутри P4 без k6 | azguard — библиотека без собственного HTTP-рантайма; на sqlite самоскипается БД-специфичный код (урок vaulter VLT-MUT D3/D6). RAG:— (repo-grounded: findings/recon-test-ci-2026-07-18.md §1, §4) |
 | D5 | 2026-07-18 | Тег v0.3.0 — финал плана (P5), после тест-углубления; «stable»-точка фиксируется заморозкой поверхности в P3 (arch/snapshot-гейт), не тегом | Бриф п.8 («в конце тегнуть»); vaulter тегал до углубления — осознанное отличие, см. `research/00-user-intent.md`. RAG:— (repo-grounded: brief/00-brief.md п.8) |
 | D6 | 2026-07-18 | Coupling-поверхность плана: `packages/*/src` публичные типы (P1·P2·P3), `tests/**` (P0-чтение·P1·P2·P4), `.github/workflows/**` (P3·P4·P5), `composer.json` scripts (P2·P4), `docs/**` EN+RU (P1·P2·P3·P5), `phpunit.xml` (P2·P4), `ARCHITECT_REVIEW.md`-инварианты §6 (все фазы) | Превентивное перечисление по SKILL §5: автор поздней фазы видит, что заденет раннюю. RAG:— (repo-grounded: findings/recon-api-surface-2026-07-18.md §5) |
+| D7 | 2026-07-18 | Выход-бэклог P0 переименован: `research/01-backlog.md` → `research/02-backlog.md`; контракт-блоки P0/P1/P2 обновлены | Коллизия нумерации слоя 2: NN=01 занял `research/01-fluent-api-priors.md`, добавленный после скелетов; NN — порядок чтения (SKILL §16). RAG:— (repo-grounded: research/) |
+| D8 | 2026-07-18 | P0 объявляет оркестрацию: P0.1–P0.5 исполняет ОДНА fable/high-сессия через `workflows/wf-azguard-stable-p0-audit.js` (стадия RAG → барьер → 4 параллельные оси; агенты пишут только findings-файлы, БЕЗ git); закрытие items P0.1–P0.5 — оркестратор-сессия последовательно по §8; P0.6 — ручной solo (синтез + блокирующий гейт владельца). Альтернатива item-by-item (5 сессий) отклонена | Критерий SKILL §7 сработал: 4 items P0.2–P0.5 scope-независимы (пишут разные файлы, друг друга не ждут; общий предшественник — только P0.1) и несут детерминированную Validation (grep-гейты формата findings-файлов). RAG:— (repo-grounded: phases/P0.md Phase Status, Validation items) |
 
 ## 6. Update Log
 
@@ -90,6 +93,7 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|
 | 2026-07-18 | issue-planner/fable | План создан (design pass 1/3: recon×3 → findings/, синтез research/00, скелеты P0–P5 с контракт-блоками, D1–D6). ACTIVE: — → 2026.07.18-AZGUARD-STABLE. Фокус pass 2: детализация P0 |
 | 2026-07-18 | issue-planner/fable | Заложены приоры research/01-fluent-api-priors.md + RAG-preseed findings/P0-rag-fluent-dx-preseed.md (5 тезисов верифицированы, приор B.7 скорректирован); P0.1 сужен до добора первоисточников (Filament/context7) |
+| 2026-07-18 | issue-planner/fable | Design pass 2/3: P0 детализирована до DoR (6 items, чеклисты C-A/B/C/D, finding-template), workflow wf-azguard-stable-p0-audit.js создан, Routing P0 уточнён, D7–D8, v0.2.0. Фокус pass 3: детализация P1–P5 по фактам аудита P0 |
 
 ## Обсуждение
 
