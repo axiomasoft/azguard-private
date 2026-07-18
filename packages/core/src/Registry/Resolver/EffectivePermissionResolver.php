@@ -245,4 +245,16 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     {
         $this->cache->forgetRequestCache($user->getAuthIdentifier(), $panelId);
     }
+
+    /**
+     * Sources in priority order (highest first), as sorted at construction.
+     * Used by Authorizer::explain() (C-15) to attribute the winning source —
+     * an off-hot-path diagnostic concern, not part of resolve().
+     *
+     * @return list<GrantSource>
+     */
+    public function sources(): array
+    {
+        return $this->sources;
+    }
 }

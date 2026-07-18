@@ -83,14 +83,17 @@ final readonly class Authorizer
             $set->isWildcard() => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::WILDCARD,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::WILDCARD),
             ),
             $set->has($ability) => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::SOURCE_GRANT,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::SOURCE_GRANT),
             ),
             $set->matchesWildcard($ability) => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::PATTERN_MATCH,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::PATTERN_MATCH),
             ),
             default => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
@@ -99,6 +102,32 @@ final readonly class Authorizer
         };
 
         return $this->record($decision);
+    }
+
+    /**
+     * Off-hot-path: re-queries each GrantSource individually, highest priority
+     * first, to attribute which one produced the winning grant (C-15). Mirrors
+     * EffectivePermissionResolver::resolve()'s short-circuit order — the first
+     * source whose own set already satisfies $reasonCode is the winner.
+     */
+    private function resolveWinningSource(Authenticatable $user, string $panelId, string $ability, string $reasonCode): ?string
+    {
+        foreach ($this->resolver->sources() as $source) {
+            $sourceSet = $source->permissionsFor($user, $panelId);
+
+            $satisfied = match ($reasonCode) {
+                AccessDecision::WILDCARD => $sourceSet->isWildcard(),
+                AccessDecision::SOURCE_GRANT => $sourceSet->has($ability),
+                AccessDecision::PATTERN_MATCH => $sourceSet->matchesWildcard($ability),
+                default => false,
+            };
+
+            if ($satisfied) {
+                return $source::class;
+            }
+        }
+
+        return null;
     }
 
     /**

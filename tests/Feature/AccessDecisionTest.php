@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Events\AccessDecision;
 use AzGuard\Guard\Authorizer;
+use AzGuard\Registry\Sources\DirectGrantSource;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -39,6 +40,24 @@ it('dispatches AccessDecision with the verdict when audit_log is on', function (
         && $e->ability === 'test.post.view'
         && $e->panelId === 'test'
         && $e->userId === $user->getKey());
+});
+
+// C-15: winningSource was always null — explain() computed the decision but
+// never attributed WHICH GrantSource produced it.
+it('attributes the winning source on a granted ability', function () {
+    $user = $this->createUserWithDirectGrant('test.post.view', 'test');
+
+    $decision = app(Authorizer::class)->explain($user, 'test.post.view');
+
+    expect($decision->winningSource)->toBe(DirectGrantSource::class);
+});
+
+it('leaves winningSource null on NO_GRANT', function () {
+    $user = User::factory()->create();
+
+    $decision = app(Authorizer::class)->explain($user, 'test.post.view');
+
+    expect($decision->winningSource)->toBeNull();
 });
 
 it('explains an ungranted ability as NO_GRANT', function () {
