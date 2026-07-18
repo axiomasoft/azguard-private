@@ -53,7 +53,7 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/pest",
+        "test": "php -d memory_limit=1G vendor/bin/pest",
         "test:coverage": "vendor/bin/pest --coverage --min=50",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature",
