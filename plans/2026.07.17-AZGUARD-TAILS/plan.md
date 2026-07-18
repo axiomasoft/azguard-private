@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | opus |
-| Last Updated | 2026-07-18 |
+| Last Updated | 2026-07-18 (P2.2 закрыт) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core |
 | Execution Mode | phase-first |
@@ -65,7 +65,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
 | P1 | Correctness-critical: panel-isolation & cache race | 2/3 | 🟡 In progress |
-| P2 | Дешёвый батч: диагностика/wildcard/rollback | 1/4 | 🟡 In progress |
+| P2 | Дешёвый батч: диагностика/wildcard/rollback | 2/4 | 🟡 In progress |
 
 ## 5. Decision Log
 
@@ -99,6 +99,7 @@ PR #91 (2026-07-17) закрыл Фазы 5-8 `IMPROVEMENT_PLAN.md` (F15-F54) и
 | 2026-07-18 | issue-planner/opus | P1.3 детализирован (D11), diff проверен прогоном — детали см. `phases/P1.md` P1.3 Code Guidance. `roadmap.md`/`handoff.md`/`brief/01-refinements.md` синхронизированы |
 | 2026-07-18 | manual/sonnet-medium | P1.3 закрыт (🟢): `removeScopedRole(panelId=null)` → только any-panel строка, новый `removeScopedRoleEverywhere()` (Вариант B, D10) — детали см. `phases/P1.md` P1.3 Completion Notes. Item-commit `b972162` |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.1 закрыт (🟢): `Log::warning()`-паритет в `EnumPermissionCatalogBuilder::build()` (T3) — детали см. `phases/P2.md` P2.1 Completion Notes. Item-commit `b1de1ac` |
+| 2026-07-18 | plan-exec/sonnet-medium | P2.2 закрыт (🟢): `filterAgainstCatalog()` wildcard-off ветка теперь дропает ключи с `*` до dynamic-сопоставления, паритетно wildcard-ON (T4) — детали см. `phases/P2.md` P2.2 Completion Notes. Item-commit `6bead71` |
 
 ## Обсуждение
 
