@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.9 |
+| Version | 0.3.10 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (D28 — Routing P2.4+/P3 актуализирован построчно: fable только где оправдан) |
+| Last Updated | 2026-07-18 (P2.4 закрыт 🟠 — config→fluent Filament-плагин + middleware ::using() + единый порядок аргументов) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -158,6 +158,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P2.2 закрыт (🟠): 6 структурных baseline разрешены уточнением контрактов (label() чинит runtime-баг Filament), analyse 0 errors — детали см. phases/P2.md P2.2 Completion Notes |
 | 2026-07-18 | plan-run/fable-high | P2.3 закрыт (🟠): единый immutable fluent-корень forUser()→inContext() (registered-extension шов) + TTL-парность context (миграция expires_at), 623 теста — детали см. phases/P2.md P2.3 Completion Notes |
 | 2026-07-18 | plan-run/fable-high | Routing актуализирован построчно (D28): P2.4/P2.6/P3.1/P3.3 → sonnet/high, P2.7/P2.8/P2.10 → sonnet/medium plan-exec; fable остаётся на P2.5/P2.9/P3.2/P5.1. v0.3.9 |
+| 2026-07-18 | plan-run/sonnet-high | P2.4 закрыт (🟠): AzGuardPlugin fluent enforce/source/abilities/keyTemplate/case (config→fallback) + `make()` container-swap; middleware `::using()` на 4 классах; PanelCheckAccess breaking arg-order permission,panel — детали см. phases/P2.md P2.4 Completion Notes/Known Deviations. v0.3.10 |
 
 ## Обсуждение
 
