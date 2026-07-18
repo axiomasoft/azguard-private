@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.12 |
+| Version | 0.3.13 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.5 закрыт 🟢 — cut-line target-спека фасада root/contracts/facade-cutline.md, D29) |
+| Last Updated | 2026-07-18 (P2.9 закрыт 🟠 — wildcard-флип на Hierarchical, legacy opt-out, R7 закрыт) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -162,6 +162,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/sonnet-high | P2.4 закрыт (🟠): AzGuardPlugin fluent enforce/source/abilities/keyTemplate/case (config→fallback) + `make()` container-swap; middleware `::using()` на 4 классах; PanelCheckAccess breaking arg-order permission,panel — детали см. phases/P2.md P2.4 Completion Notes/Known Deviations. v0.3.10 |
 | 2026-07-18 | plan-run/sonnet-high | P2.6 закрыт (🟢): `AzGuard::fake()` — Recorder + assertGranted/assertDenied/assertChecked (простая форма + closure), 657 тестов — детали см. phases/P2.md P2.6 Completion Notes. v0.3.11 |
 | 2026-07-18 | plan-run/fable-high | P2.5 закрыт (🟢): cut-line target-спека фасада `root/contracts/facade-cutline.md` (17 вердиктов + пост-recon fake/assert*) + D29 (резолверы не мёртвые → @internal вместо удаления методов) — детали см. phases/P2.md P2.5 Completion Notes. v0.3.12 |
+| 2026-07-18 | plan-run/fable-high | P2.9 закрыт (🟠): дефолт matcher → Hierarchical, legacy opt-out через инвертированный `features.wildcard_permission`, R7 закрыт, F4/F40/F51 верифицированы, 664 теста — детали см. phases/P2.md P2.9 Completion Notes. v0.3.13 |
 
 ## Обсуждение
 
