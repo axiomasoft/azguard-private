@@ -78,6 +78,13 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
         // Authenticate so the HasScopedRoles global scope actually runs its body.
         Auth::login($user);
 
+        // This test is about null-scope_class handling, not panel isolation
+        // (C-02): no panel is set here, so opt into the aggregate branch
+        // rather than the fail-closed default, which would throw
+        // PanelNotSetException before the scope_class handling under test
+        // even runs.
+        config(['az-guard.scope.on_missing_panel' => 'all']);
+
         // A read query on the scoped entity triggers the global scope, which must
         // treat a null scope_class as logic-less and NOT instantiate anything.
         $result = null;

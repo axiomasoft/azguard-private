@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Concerns;
 
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
 use AzGuard\PermissionKey;
@@ -58,6 +59,23 @@ trait HasScopedRoles
             }
 
             $currentPanelId = PanelResolver::resolve(null);
+
+            if ($currentPanelId === null) {
+                $mode = Config::onMissingPanel();
+
+                if ($mode === 'exception') {
+                    throw new PanelNotSetException;
+                }
+
+                if ($mode === 'empty') {
+                    $builder->whereRaw('1 = 0');
+
+                    return;
+                }
+
+                // 'all' falls through to the loop below, which applies every
+                // scope regardless of panel_id (pre-D27 aggregate behaviour).
+            }
 
             $scopes = app(ScopedRoleCache::class)->remember(
                 $user->getAuthIdentifier().'|'.static::class,

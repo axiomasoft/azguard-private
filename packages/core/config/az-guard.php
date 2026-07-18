@@ -132,6 +132,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scope (query-scope isolation)
+    |--------------------------------------------------------------------------
+    | on_missing_panel controls what the HasScopedRoles query-scope global
+    | scope does when NO panel is currently active:
+    |   'exception' (default) — throw PanelNotSetException (fail-closed).
+    |   'empty'               — the query returns no rows.
+    |   'all'                 — apply every scope regardless of panel_id
+    |                           (pre-0.3 aggregate behaviour) — explicit opt-out.
+    */
+    'scope' => [
+        'on_missing_panel' => 'exception',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Middleware
     |--------------------------------------------------------------------------
     */

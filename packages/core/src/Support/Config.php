@@ -11,6 +11,7 @@ use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\PermissionMatcher;
 use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Contracts\RolePermissionValidator;
+use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
@@ -220,6 +221,33 @@ final class Config
     public static function strictPanelsEnabled(): bool
     {
         return (bool) config('az-guard.strict_panels', false);
+    }
+
+    // ─── Scope (query-scope isolation, C-02) ──────────────────────────────
+
+    /**
+     * Behaviour of the HasScopedRoles query-scope global scope when NO panel
+     * is currently active (D27 removed the default-panel fallback, so this
+     * branch is reachable for any request/console/queue context without an
+     * active panel). Fail-closed default: refuse rather than silently apply
+     * or skip scope filtering.
+     *
+     * - 'exception' (default): throw PanelNotSetException.
+     * - 'empty': the query returns no rows (whereRaw('1 = 0')).
+     * - 'all': apply every scope regardless of panel_id (pre-D27 aggregate
+     *   behaviour) — explicit opt-out, not the default.
+     *
+     * @return 'exception'|'empty'|'all'
+     */
+    public static function onMissingPanel(): string
+    {
+        return match ($value = (string) config('az-guard.scope.on_missing_panel', 'exception')) {
+            'exception', 'empty', 'all' => $value,
+            default => throw new AzGuardException(sprintf(
+                'Invalid az-guard.scope.on_missing_panel [%s]. Expected one of: exception, empty, all.',
+                $value,
+            )),
+        };
     }
 
     // ─── Grant Sources ────────────────────────────────────────────────────
