@@ -57,6 +57,7 @@ use AzGuard\Runtime\RequestState;
 use AzGuard\Runtime\ScopedRoleCache;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Queue\Events\JobProcessing;
@@ -189,8 +190,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         });
 
         // Use instanceof instead of method_exists for a precise type check.
+        // Both contracts are required by Authorizer::check() — pass through
+        // (null) for anything else instead of guarding inside the hot path.
         Gate::before(function ($user, string $ability): ?bool {
-            if (! $user instanceof Authenticatable) {
+            if (! $user instanceof Authenticatable || ! $user instanceof Authorizable) {
                 return null;
             }
 

@@ -19,7 +19,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
  * 1) Delegates permission resolution to EffectivePermissionResolver.
  * 2) Returns true for superadmin (wildcard '*').
  * 3) Checks the specific $ability via PermissionSet::grants() (exact + wildcard).
- * 4) Returns null (pass-through) if the user does not implement Authenticatable.
+ *
+ * The actor must be both Authorizable (the Gate contract) and Authenticatable
+ * (what the resolver consumes) — enforced by the parameter type, so callers
+ * (the Gate::before closure) pass through (null) before calling instead of
+ * this method guarding at runtime.
  *
  * Panel resolution order: the current request panel (SetCurrentPanel
  * middleware), else az-guard.default_panel, else the sole registered panel.
@@ -33,12 +37,8 @@ final readonly class Authorizer
         private AzGuardManagerInterface $manager,
     ) {}
 
-    public function check(Authorizable $user, string $ability): ?bool
+    public function check(Authorizable&Authenticatable $user, string $ability): ?bool
     {
-        if (! $user instanceof Authenticatable) {
-            return null;
-        }
-
         $panelId = $this->resolvePanelId();
 
         if ($panelId === null) {

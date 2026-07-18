@@ -37,7 +37,7 @@ final class RolePermissionsRelationManager extends RelationManager
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
         // For PHP class roles the class defines the permissions — hide the tab.
-        return $ownerRecord->class_name === null;
+        return $ownerRecord instanceof Role && $ownerRecord->class_name === null;
     }
 
     #[Override]
@@ -137,7 +137,7 @@ final class RolePermissionsRelationManager extends RelationManager
         /** @var AzGuardManager $manager */
         $manager = app(AzGuardManager::class);
 
-        $role = $this->getOwnerRecord();
+        $role = $this->ownerRole();
         $existing = $role->dbPermissions()->get()->groupBy('panel_id');
 
         $data = ['permissions' => []];
@@ -167,7 +167,7 @@ final class RolePermissionsRelationManager extends RelationManager
      */
     private function syncPermissions(array $data): void
     {
-        $role = $this->getOwnerRecord();
+        $role = $this->ownerRole();
         $permissionsData = $data['permissions'] ?? [];
 
         $desired = [];
@@ -204,12 +204,22 @@ final class RolePermissionsRelationManager extends RelationManager
         // Raw delete()/insert() bypasses model events, and editing a role's
         // permissions affects every holder — flush each user's cached set so the
         // change is effective immediately even with a persistent cache store.
-        if ($role instanceof Role) {
-            $role->users()->cursor()->each(static function (Model $user): void {
-                if (method_exists($user, 'flushPermissions')) {
-                    $user->flushPermissions();
-                }
-            });
-        }
+        $role->users()->cursor()->each(static function (Model $user): void {
+            if (method_exists($user, 'flushPermissions')) {
+                $user->flushPermissions();
+            }
+        });
+    }
+
+    /**
+     * This relation manager is registered on RoleResource only, so the owner
+     * record is always the (possibly extended) Role model.
+     */
+    private function ownerRole(): Role
+    {
+        $role = $this->getOwnerRecord();
+        assert($role instanceof Role);
+
+        return $role;
     }
 }

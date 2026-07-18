@@ -62,6 +62,19 @@ final class EnumPermissionDefinitionTest extends TestCase
         $this->assertSame('View Any', $def->meta()->label());
     }
 
+    public function test_label_on_definition_mirrors_meta_label(): void
+    {
+        // P2.2: label() is part of the PermissionDefinition contract — the
+        // Filament catalog UIs call it directly on the definition.
+        $def = EnumPermissionDefinition::fromCase(
+            case: DocumentsPermission::ViewAny,
+            panelId: 'app',
+            resolvedKey: 'app.documents.view-any',
+        );
+
+        $this->assertSame('View Any', $def->label());
+    }
+
     public function test_is_not_dynamic(): void
     {
         $def = EnumPermissionDefinition::fromCase(

@@ -40,6 +40,11 @@ function makeDefinition(string $key, ?string $group = 'General'): PermissionDefi
             return $this->g;
         }
 
+        public function label(): ?string
+        {
+            return $this->meta()->label();
+        }
+
         public function meta(): PermissionMeta
         {
             return new SimplePermissionMeta($this->k);
@@ -222,6 +227,11 @@ describe('CompositePermissionCatalog', function () {
             public function group(): ?string
             {
                 return null;
+            }
+
+            public function label(): ?string
+            {
+                return $this->meta()->label();
             }
 
             public function meta(): PermissionMeta

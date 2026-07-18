@@ -98,7 +98,7 @@ final class MakeGuardRoleCommand extends Command
             if (is_subclass_of($providerClass, PanelProvider::class)) {
                 $instance = app()->getProvider($providerClass);
 
-                if ($instance->panel(Panel::make())->getId() === $id) {
+                if ($instance instanceof PanelProvider && $instance->panel(Panel::make())->getId() === $id) {
                     return $providerClass;
                 }
             }

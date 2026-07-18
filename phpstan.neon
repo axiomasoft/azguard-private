@@ -15,11 +15,3 @@ parameters:
   checkModelProperties: true
   checkPhpDocMissingReturn: true
   reportUnmatchedIgnoredErrors: true
-
-  ignoreErrors:
-    # Filament relation manager receives the owner record as a generic Eloquent
-    # Model (Filament's contract), so accessing the concrete Role's columns reads
-    # as magic-property access. Scoped to this one file — core stays fully checked.
-    -
-      message: '#Access to an undefined property Illuminate\\Database\\Eloquent\\Model::\$(class_name|id)\.#'
-      path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php

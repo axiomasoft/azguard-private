@@ -19,7 +19,9 @@ beforeEach(function () {
 });
 
 describe('Authorizer', function () {
-    it('returns null for user without Authenticatable', function () {
+    it('rejects a user without Authenticatable at the type level', function () {
+        // P2.2: the runtime pass-through moved to the Gate::before closure;
+        // check() now demands Authorizable&Authenticatable in its signature.
         $user = new class implements Authorizable
         {
             public function can($abilities, $arguments = []) {}
@@ -31,7 +33,7 @@ describe('Authorizer', function () {
 
         $authorizer = app(Authorizer::class);
 
-        expect($authorizer->check($user, 'some.ability'))->toBeNull();
+        expect(fn () => $authorizer->check($user, 'some.ability'))->toThrow(TypeError::class);
     });
 
     it('returns null when panel not set', function () {

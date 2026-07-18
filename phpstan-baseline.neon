@@ -19,12 +19,6 @@ parameters:
 			path: packages/core/src/AzGuardServiceProvider.php
 
 		-
-			message: '#^Parameter \$user of method AzGuard\\Guard\\Authorizer\:\:check\(\) expects Illuminate\\Contracts\\Auth\\Access\\Authorizable, Illuminate\\Contracts\\Auth\\Authenticatable given\.$#'
-			identifier: argument.type
-			count: 1
-			path: packages/core/src/AzGuardServiceProvider.php
-
-		-
 			message: '#^Instanceof between UnitEnum and UnitEnum will always evaluate to true\.$#'
 			identifier: instanceof.alwaysTrue
 			count: 1
@@ -47,12 +41,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: packages/core/src/Commands/ListScopedRolesCommand.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Support\\ServiceProvider\:\:panel\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: packages/core/src/Commands/MakeGuardRoleCommand.php
 
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasAzGuard is used zero times and is not analysed\.$#'
@@ -145,12 +133,6 @@ parameters:
 			path: packages/core/src/Registry/Builders/PolicyAbilityCatalogBuilder.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$roles\.$#'
-			identifier: property.notFound
-			count: 1
-			path: packages/core/src/Registry/Sources/ClassRoleGrantSource.php
-
-		-
 			message: '#^Trait AzGuard\\Filament\\Concerns\\HasAzGuardPage is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
@@ -169,28 +151,10 @@ parameters:
 			path: packages/filament/src/Pages/DoctorPage.php
 
 		-
-			message: '#^Call to an undefined method AzGuard\\Registry\\Contracts\\PermissionDefinition\:\:label\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: packages/filament/src/Resources/DirectGrantResource.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>\(Expression\)" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
 			path: packages/filament/src/Resources/DirectGrantResource.php
-
-		-
-			message: '#^Call to an undefined method AzGuard\\Registry\\Contracts\\PermissionDefinition\:\:label\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:dbPermissions\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php
 
 		-
 			message: '#^Method AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RolePermissionsRelationManager\:\:buildPermissionsForm\(\) return type has no value type specified in iterable type array\.$#'

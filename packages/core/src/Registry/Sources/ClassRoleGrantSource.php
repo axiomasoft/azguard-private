@@ -7,12 +7,15 @@ namespace AzGuard\Registry\Sources;
 use AzGuard\Concerns\HasRoles;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\RoleInterface;
+use AzGuard\Models\Role;
 use AzGuard\Panels\Panel;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Override;
 use UnitEnum;
 
@@ -39,12 +42,20 @@ final readonly class ClassRoleGrantSource implements GrantSource
     {
         // Gate on HasRoles (the trait that actually provides $user->roles), so
         // a user that uses HasRoles directly — not only the HasAzGuard composite
-        // — still resolves its class roles.
-        if (! in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
+        // — still resolves its class roles. The Model gate is fail-closed: the
+        // trait's relation cannot exist outside an Eloquent model.
+        if (! $user instanceof Model
+            || ! in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
             return PermissionSet::empty();
         }
 
-        $keys = $user->roles
+        // Same runtime path as $user->roles (relation-cache included) — the
+        // trait guarantees the relation, mirrored 1:1 by the
+        // AzGuard\Contracts\HasRoles contract (parity-tested).
+        /** @var Collection<int, Role> $roles */
+        $roles = $user->getAttribute('roles');
+
+        $keys = $roles
             ->filter(fn ($role): bool => $role->class_name !== null)
             ->map(fn ($role) => $role->getRoleLogic())
             ->filter()

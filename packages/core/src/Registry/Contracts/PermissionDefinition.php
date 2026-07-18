@@ -33,6 +33,12 @@ interface PermissionDefinition
     public function group(): ?string;
 
     /**
+     * Human-readable label for UI/CLI: "View Documents".
+     * Null when the source provides none — consumers fall back to key().
+     */
+    public function label(): ?string;
+
+    /**
      * Metadata for Filament / TypeScript generation.
      */
     public function meta(): PermissionMeta;
