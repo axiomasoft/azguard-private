@@ -1,0 +1,1 @@
+{"actor": "opus/high", "attempt": 1, "command": "plan-design", "cost_usd": null, "duration_ms": null, "friction": [], "item_id": "P4.2", "note": "P4.2 re-design: portability escalation resolved (D30-D32), P4 7->10 items", "num_turns": null, "plan_id": "2026.07.18-AZGUARD-STABLE", "result": "in-progress", "run_id": null, "session_id": null, "ts": "2026-07-18T19:31:52Z"}

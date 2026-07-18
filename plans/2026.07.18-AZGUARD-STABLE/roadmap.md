@@ -5,7 +5,7 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.3.5 (сверен `finish` — карта без изменений, контракты фаз не менялись)
+**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.3.21 (P4.2 ре-дизайн — ремедиация portability D30–D32; карта P4 пересобрана)
 
 ## Карта исполнения
 
@@ -21,12 +21,15 @@
 | P3.1 | solo | plan-run (manual) | sonnet/high | — | cut-line фасада (D19) — необратимо, solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
 | P3.2 | solo | plan-run (manual) | fable/high | — | snapshot-заморозка (D20) — гейт, включающий запрет дрейфа; solo |
 | P3.3 | solo | plan-run (manual) | sonnet/high | — | SemVer-политика + UPGRADING (D21); solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
-| P4.1–P4.2 | B4 | plan-exec серия | sonnet/medium | — | стенд+БД-лейн одной сессией (P4.2 потребляет P4.1; ревью батча — full по максимуму участников) |
+| P4.1 | — | ✅ закрыт | sonnet/medium | — | docker-стенд PG16/MySQL8/Redis7 |
+| P4.2 | — | ✅ закрыт | sonnet/medium | — | **re-scope D31**: коммит БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI/green отложены в P4.10 |
+| P4.8 | solo | plan-run (manual) | sonnet/high | — | **ремедиация** миграции 000005 (COALESCE morph-aware + MySQL down-order, D30) — raw-SQL, снятие каскадов; Exec=manual; ПЕРВЫМ (MySQL-каскад маскирует нижележащее) |
+| P4.7 | solo | plan-run (manual) | sonnet/high | — | key-length + collation-миграции 000002/000010 (D24+D32) — security-корректность; Exec=manual |
+| P4.9–P4.10 | B6 | plan-exec серия | sonnet/medium | — | LIKE-escape (P4.9) → green-proof+CI-джоб (P4.10) одной сессией; P4.10 потребляет P4.8/P4.7/P4.9; ревью full |
 | P4.3 | solo | plan-exec | sonnet/medium | — | paratest — отдельный риск-профиль (parallel-изоляция), solo |
 | P4.4 | solo | plan-exec | sonnet/medium | — | race-тесты C-05/C-14 — жёсткая эскалация §10 при реальном race-баге, solo |
 | P4.5 | solo | plan-exec | sonnet/medium | — | mutation-ratchet — требует coverage-среды, честный замер; solo |
 | P4.6 | solo | plan-exec | sonnet/medium | — | чистка дыр (light) — solo: не сцеплять с ratchet'ом, чтобы красный замер не блокировал механику |
-| P4.7 | solo | plan-run (manual) | sonnet/high | — | collation-миграции MySQL (D24) — security-корректность, Exec=manual |
 | P5.1 | solo | plan-run (manual) | fable/high | — | шаблон дорожки — канон флота, пишется от фактов ВСЕХ закрытых фаз; solo |
 | P5.2–P5.3 | B5 | plan-exec серия | sonnet/medium | ✅ approve перед `git push origin v0.3.0` (внутри P5.2) | релиз + миграция root/→docs одной сессией; тег НЕ пушится без явного approve владельца (D25) |
 
@@ -61,17 +64,36 @@
 /task:plan-run 2026.07.18-AZGUARD-STABLE P2.1
 ```
 
-### B4 — тест-инфраструктура (plan-exec серия)
+### P4.2 → P4.8 → P4.7 → B6 — portability-ремедиация (последовательно)
+
+Порядок жёсткий (research/04 §3): P4.2 (харнесс) → **P4.8** (миграция 000005, ПЕРВЫМ — MySQL-каскад
+маскирует нижележащее) → **P4.7** (000002/000010 key-length+collation) → **B6** = P4.9→P4.10.
+P4.2 — `plan-exec` (sonnet/medium); P4.8 и P4.7 — `plan-run` manual (sonnet/high, ритуал `/model
+sonnet`+`/effort high` перед каждым); B6 — `plan-exec` серия. Стенд P4.1 должен быть поднят
+(`PGSQL_PORT=25432`/`MYSQL_PORT=23306` — handoff).
+
+| Параметр | Значение |
+|:--|:--|
+| Model | sonnet (P4.2/B6 — пин команды) · sonnet/high (P4.8/P4.7 — manual, ритуал) |
+| Thinking | medium (P4.2/B6) · high (P4.8/P4.7) |
+| Context | Холодный старт: plan.md D30–D32 → phases/P4.md → research/04-p4.2-remediation.md → handoff.md |
+| Суть | P4.2 (коммит харнесса) → P4.8 (000005) → P4.7 (000002/000010) → P4.9→P4.10 (LIKE + green+CI) |
+
+```
+/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.2
+```
+
+### B6 — LIKE-фикс + green-proof (plan-exec серия, после P4.8/P4.7)
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet (пин команды) |
 | Thinking | medium (пин команды) |
-| Context | Холодный старт: plan.md → phases/P4.md → handoff.md |
-| Суть | Серия P4.1–P4.2 одной сессией (стенд → БД-лейн), полный §8-цикл на каждом |
+| Context | Холодный старт: plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
+| Суть | P4.9 (filament LIKE-escape) → P4.10 (green оба лейна + коммит CI-джоба + baseline→resolved) |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.1 P4.2
+/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
 ```
 
 ### B5 — релиз + закрытие (plan-exec серия, гейт владельца внутри)

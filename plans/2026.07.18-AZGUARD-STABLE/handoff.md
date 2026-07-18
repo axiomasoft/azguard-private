@@ -1,55 +1,63 @@
-# HANDOFF — 2026-07-18 — after P4.1
+# HANDOFF — 2026-07-18 — after P4.2
 
-**Next:** `/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.2` — P4.1 (docker-стенд) закрыт;
-Routing указывает P4.2 → sonnet/medium, `Exec = plan-exec` (БД-лейн CI+генерализация
-хрупкого теста, каноны предписаны, открытых design-решений нет).
+**Next:** `/task:plan-run 2026.07.18-AZGUARD-STABLE P4.8` — P4.8 = `Exec: manual` (sonnet/high),
+ремедиация миграции 000005 (COALESCE morph-type-aware + down()-порядок MySQL, D30). ОБЯЗАН идти
+первым из фиксов — MySQL-каскад «table already exists» маскирует нижележащие сбои (research/04 §3).
 
 | Параметр | Значение |
 |:--|:--|
 | Model | sonnet |
-| Thinking | medium — предписано Routing P4.2 (БД-лейн, механика без открытых решений) |
+| Thinking | high — предписано Routing §3 (raw-SQL cross-driver корректность + снятие каскадов) |
 | Context | continue (/clear) — ручной item |
-| Суть | Env-driven TestCase + composer test:pgsql/test:mysql + CI PG/MySQL-джобы + генерализация ScopeClassMigrationRollbackTest |
+| Суть | P4.8: COALESCE-fallback в 000005 сделать morph-type-aware (не хардкод `0`), починить порядок `down()` под MySQL FK-covering-index, продиагностировать ULID-truncation `model_id`; verify снятия PG-каскада (boolean-суперадмин + transaction-abort) и MySQL «table exists» |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.2
+/model sonnet
+/effort high
+/task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
 ```
 
-**Done:** P4.1 (Docker-стенд: compose с реальными сервисами, D24) закрыт 🟢.
+**Done:** P4.1 (Docker-стенд) 🟢. **P4.2 закрыт (🟢)** — БД-лейн-харнесс закоммичен (env-TestCase +
+composer test:pgsql/test:mysql + union-doc + generalized rollback-тест) + фикстура
+`ContextTableNameConfigTest` дополнена `expires_at` (R4, findings-anchors §5).
 
-- `docker-compose.yml` — сервисы `postgres` (postgres:16-alpine), `mysql` (mysql:8),
-  `redis` (redis:7-alpine), каждый с healthcheck (`pg_isready`/`mysqladmin ping`/
-  `redis-cli ping`) и named volume; порты только `127.0.0.1`, конфигурируемы через
-  `.env` (`PGSQL_PORT`/`MYSQL_PORT`/`REDIS_PORT`).
-- `Makefile` — таргеты `up`/`down`/`logs`/`ps`.
-- `.env.example` — креды/порты по умолчанию (5432/3306/6379); `.env` уже в `.gitignore`.
-- `DEVELOPMENT.md` — раздел «Local database matrix».
-- Валидация на хосте: все три сервиса `healthy` (порты переопределены через env — хост
-  уже держит дефолтные 5432/3306/6379 под другими локальными проектами); health-команды
-  `exit=0` для всех трёх; `make down` чисто убирает контейнеры/сеть (named volumes
-  намеренно переживают down — данные, не мусор).
+**Что сделано в P4.2:**
+- Item-коммит `208943e` — 5 файлов (`tests/TestCase.php`, `composer.json`, `DEVELOPMENT.md`,
+  `tests/Feature/ScopeClassMigrationRollbackTest.php`, `tests/Feature/Context/ContextTableNameConfigTest.php`),
+  54 insertions/10 deletions.
+- Харнесс: `TestCase::databaseConnectionConfig()` env-driven (sqlite дефолт, pgsql/mysql через
+  `DB_CONNECTION`), composer-scripts `test:pgsql`/`test:mysql`, union-правило DEVELOPMENT.md,
+  driver-agnostic assert в `ScopeClassMigrationRollbackTest` (`toThrow(QueryException::class)` без текста).
+- Фикс R4: `createContextRolesTable()` получил `$table->timestamp('expires_at')->nullable()` —
+  фикстура отставала от канона миграции 000011; `ContextPermissionLayer::apply` фильтрует по
+  `expires_at`, custom-таблица без колонки ломала запрос.
+- `.github/workflows/tests.yml` (CI-джоб `test-db-matrix`) НЕ закоммичен — остаётся в дереве до P4.10.
+- Validation: `composer test` (sqlite) 667 passed/1774 assertions (HEAD 208943e); фильтры
+  ScopeClassMigrationRollback (2 passed) и ContextTableNameConfig (3 passed) зелёные;
+  `composer test:pgsql` — 660/667, 2 failed + 5 errors (документированный PG-каскад COALESCE/000005);
+  `composer test:mysql` (запущен напрямую через `vendor/bin/pest`, composer-обёртка упирается в свой
+  300s process-timeout на этом объёме) — воспроизводит документированный MySQL «table already exists»-
+  каскад. Оба лейна ЗАПУСКАЮТСЯ и красны по ожиданию (baseline, не форсировались) — acceptance D31
+  выполнен.
 
-**Known Deviations:** — (P4.1 закрыт без material-отклонений; сервис назван `postgres`,
-не `pgsql` из шаблона скилла `docker-postgres` — process-выбор для буквального
-соответствия тексту Validation item'а, задокументирован в Completion Notes, статуса не
-меняет).
+**Docker-стенд:** поднят на `PGSQL_PORT=25432`/`MYSQL_PORT=23306`/`REDIS_PORT=26379` (дефолтные заняты
+локально). Для прогона лейнов исполнитель поднимает стенд (`make up`) и передаёт порты через env.
 
-**Remaining:** P4.2–P4.7 (БД-лейн · paratest · race-тесты C-05/C-14 · mutation-ratchet ·
-чистка · collation MySQL) → P5 (шаблонизация дорожки → релиз v0.3.0+тег → миграция
-root/→docs) → post-plan `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
+**Remaining:** P4.8 → P4.7 → P4.9 → P4.10 (portability) → P4.3–P4.6 → P5 → post-plan archive.
 
-**Docs-sync:** обновлено — `DEVELOPMENT.md` (раздел «Local database matrix»).
+**Порядок исполнения (жёсткий, research/04 §3):** P4.8 ОБЯЗАН идти первым из фиксов — MySQL-каскад
+«table exists» маскирует нижележащие сбои, чистая валидация R2/R3 на MySQL невозможна до фикса teardown
+(R1). Оркестрация НЕ объявляется (общий docker-стенд, данные-сцепка).
 
-**Lint:** `plan-lint.py plans/2026.07.18-AZGUARD-STABLE --baseline HEAD` → 0 ERROR / 1 WARN
-(Update Log-запись P4.1 превышала 300 символов — укорочена) — новых от закрытия: 0 (на
-bookkeeping-коммите).
+**Sources of truth:** plan.md (v0.3.21, §4 P4=🟡 2/10, D30–D32, §3 Routing P4.7/P4.8/P4.9/P4.10) ·
+phases/P4.md (P4.2 Completion Notes; P4.7 expand, P4.8/P4.9/P4.10 new; Phase Context — порядок+контракт) ·
+research/04-p4.2-remediation.md (синтез) · findings/P4.2-remediation-anchors-2026-07-18.md (якоря) ·
+findings/P4.2-db-portability-failures.md (исходный baseline сбоев) · roadmap.md (карта P4).
 
-**Sources of truth:** plan.md (v0.3.20, §4 P4=🟡 1/7) · phases/P4.md (P4.1 Completion
-Notes) · docker-compose.yml · Makefile · .env.example · DEVELOPMENT.md · roadmap.md.
+**Open risks:** utf8mb4_bin (P4.7) делает прод-MySQL case-sensitive — breaking для инсталов,
+полагавшихся на схлопывание регистра (намеренно, fail-closed D10) → строка в UPGRADING (P4.10 deliverable).
+Если после фиксов лейн всё ещё красный на реальном баге — §10, не continue-on-error.
+`root/known-limitations.md` (12 пунктов) без изменений.
 
-**Open risks:** без изменений от P3 — см. `root/known-limitations.md` (12 пунктов,
-включая #10 «MySQL-ветки миграций не гонялись локально, верификация в P4.2/P4.7» — теперь
-локальный MySQL-стенд для этого доступен через `make up`).
-
-**Workarounds/Deferred/Open questions:** без изменений — `root/known-limitations.md` SSOT.
-open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.
+**Workarounds/Deferred/Open questions:** open_questions без изменений (Q1→D22, Q2→D23/D24, Q3→D27).
+Deferred: коммит CI-джоба + полный green → P4.10; UPGRADING utf8mb4_bin-заметка → P4.10.
