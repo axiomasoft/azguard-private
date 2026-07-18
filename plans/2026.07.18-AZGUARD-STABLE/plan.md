@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (фаза P1 закрыта — 4/4 items терминальны, Phase Handoff финализирован) |
+| Last Updated | 2026-07-18 (P2.1 закрыт 🟠 — Support/ распущен, структурный канон core применён) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -80,7 +80,7 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
-| P2 | Структурный канон + fluent/DX редизайн API | 0/10 | ⬜ Not started |
+| P2 | Структурный канон + fluent/DX редизайн API | 0/10 | 🟡 In progress |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
@@ -144,6 +144,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/sonnet-medium | P1.3 закрыт (🟠): 14 находок W2 закрыты, 15 коммитов, 600 тестов зелёные — детали см. phases/P1.md P1.3 Completion Notes/Known Deviations |
 | 2026-07-18 | plan-run/fable-high | P1.4 закрыт (🟢): review диффа P1 — 16 находок, 6 Major+тест-гэп C-11 сняты 10 фикс-коммитами, 610 тестов — детали см. phases/P1.md P1.4 Completion Notes |
 | 2026-07-18 | plan-close/sonnet | Фаза P1 закрыта: 4/4 items терминальны (🟠/🟠/🟠/🟢), Phase Handoff сверен, docs-sync не требуется (фиксы восстанавливают уже задокументированное поведение), lint см. handoff.md — детали см. phases/P1.md Phase Handoff |
+| 2026-07-18 | plan-run/fable-high | P2.1 закрыт (🟠): Support/ распущен — 11 файлов в доменных неймспейсах, канон двух домов контрактов в ADR — детали см. phases/P2.md P2.1 Completion Notes |
 
 ## Обсуждение
 
