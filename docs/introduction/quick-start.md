@@ -22,8 +22,9 @@ The migration creates these tables: `roles`, `model_has_roles`, `model_has_scope
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
+use AzGuard\Contracts\AzGuardUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AzGuardUser
 {
     use HasAzGuard;
 }
