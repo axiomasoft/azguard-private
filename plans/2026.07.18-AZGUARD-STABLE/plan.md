@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.15 |
+| Version | 0.3.16 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P2.8 закрыт 🟢 — headless quick-start + doctor 0-панелей hint) |
+| Last Updated | 2026-07-18 (P2.10 закрыт 🟢 — docs EN/RU свип; фаза P2 терминальна) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -89,7 +89,7 @@ read-only аудит (акцент — интеграционная поверх
 |:--|:--|:--|:--|
 | P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 6/6 | 🟢 Done |
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
-| P2 | Структурный канон + fluent/DX редизайн API | 4/10 | 🟡 In progress |
+| P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, race, паралл. прогоны, mutation-ratchet | 0/7 | ⬜ Not started |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
@@ -165,6 +165,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-run/fable-high | P2.9 закрыт (🟠): дефолт matcher → Hierarchical, legacy opt-out через инвертированный `features.wildcard_permission`, R7 закрыт, F4/F40/F51 верифицированы, 664 теста — детали см. phases/P2.md P2.9 Completion Notes. v0.3.13 |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.7 закрыт (🟢): `root/glossary.md` (guard=бренд/context=runtime/scope=persist), multiple-guards.md через панели (ложная panel↔guard-декларация убрана), routing-раздел «context или scope?» в context.md+entity-scopes.md, RU-зеркала — детали см. phases/P2.md P2.7 Completion Notes. v0.3.14 |
 | 2026-07-18 | plan-exec/sonnet-medium | P2.8 закрыт (🟢): `docs/introduction/headless-quick-start.md`+RU (doc-only minimal-setup), `AzGuardDiagnostics` — onboarding-hint при 0 панелей (warnings-канал, не error) + тест, EN/RU intro-навигация, 666 тестов — детали см. phases/P2.md P2.8 Completion Notes. v0.3.15 |
+| 2026-07-18 | plan-exec/sonnet-medium | P2.10 закрыт (🟢), фаза P2 терминальна (5🟢+5🟠/10): сквозной EN/RU docs-свип под новый API (10 RU-страниц ресинхронизированы параллельными агентами) + убраны @internal-shorthand'ы grant/revoke/grants из публичных примеров; arch-тесты канона и architecture.md уже консистентны; `composer check` зелёный кроме предсуществующего `refactor:check` (rector, 6 src-файлов вне Files, воспроизведён на baseline) — детали см. phases/P2.md P2.10 Completion Notes. v0.3.16 |
 
 ## Обсуждение
 
