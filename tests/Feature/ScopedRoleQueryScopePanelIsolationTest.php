@@ -13,24 +13,13 @@ use AzGuard\Tests\Stubs\User;
  * T1 — panel-aware Eloquent global query-scope (bootHasScopedRoles, D5/D9).
  *
  * Exercises the REAL fetch path (assign -> query -> ScopeInterface::apply()),
- * not a pre-seeded cache — the console-guard is forced off (bootHasScopedRoles
- * no-ops under app()->runningInConsole(), true in every Pest run) so the
- * global scope closure actually executes, the same way it does on a real
- * HTTP request. Without the D9 eager-load fix this recurses infinitely,
- * since Project (the scoped entity) itself uses HasScopedRoles.
+ * not a pre-seeded cache. Since C-01 removed the runningInConsole() bypass,
+ * the scope keys on Auth::check() alone — actingAs() is enough for the global
+ * scope closure to execute, the same way it does on a real HTTP request.
+ * Without the D9 eager-load fix this recurses infinitely, since Project (the
+ * scoped entity) itself uses HasScopedRoles.
  */
-function bypassScopedRolesConsoleGuard(): void
-{
-    (function (): void {
-        $this->isRunningInConsole = false;
-    })->call(app());
-}
-
 describe('T1 — panel-aware query-scope filtering (bootHasScopedRoles)', function (): void {
-    beforeEach(function (): void {
-        bypassScopedRolesConsoleGuard();
-    });
-
     afterEach(function (): void {
         AzGuard::setCurrentPanel(panel: null);
     });
