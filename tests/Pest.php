@@ -52,6 +52,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/LoadAzGuardRolesMiddlewareTest.php',
         'Feature/MakeGuardForceGenerationTest.php',
         'Feature/MakeGuardPanelCommandTest.php',
+        'Feature/ModelHasRolesScopesUniqueConstraintTest.php',
         'Feature/PanelEnumIdentityTest.php',
         'Feature/PanelPermissionResolverTest.php',
         'Feature/PanelRoleEnumEntrypointsTest.php',
