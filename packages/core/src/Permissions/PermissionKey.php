@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AzGuard\Permissions;
 
-use AzGuard\Panels\Panel;
 use BackedEnum;
 use UnitEnum;
 
@@ -12,8 +11,8 @@ use UnitEnum;
  * Public constants defining the AzGuard permission-key grammar.
  *
  * A permission key is a dotted string "{panel}.{resource}.{action}", where the
- * first segment is always the panel id (see {@see PermissionName}
- * and {@see Panel}). The single wildcard "*" is the global
+ * first segment is always the panel id (see PermissionName
+ * and Panel). The single wildcard "*" is the global
  * super-admin permission — it matches every ability on a panel and short-circuits
  * resolution.
  *

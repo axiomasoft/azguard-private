@@ -27,29 +27,28 @@ use UnitEnum;
  * @method static Panel|null currentPanel()
  * @method static void setCurrentPanel(?Panel $panel)
  * @method static string permission(string|BackedEnum $panelId, (string | UnitEnum) $permission)
- * @method static string|null tryPermission(string|BackedEnum $panelId, (string | UnitEnum) $permission)
- * @method static string|null panelIdForPermission(UnitEnum $permission)
  * @method static void registerGrantSource(class-string<GrantSource> $sourceClass)
  * @method static void registerCatalogBuilder(class-string<PermissionCatalogBuilder> $builderClass)
  *
  * --- Actor API ---
- * @method static bool isSuperAdmin(Authenticatable $user, (string | BackedEnum | null) $panelId = null)
  * @method static array<string, bool> abilitiesFor(Authenticatable $user, (string | BackedEnum | null) $panelId, array<int, string> $keys)
- * @method static bool hasContextGuard()
+ * @method static bool hasContextGuard() Container-level check, usable without a user —
+ *                                       the per-user equivalent is $user->hasContextGuard() (HasPermissions).
  *
  * --- Grants API ---
  * The public grant path is the fluent root: AzGuard::forUser($user)->on(...)->grant(...).
- * The positional shorthands below (grant/revoke/grants) are @internal twins kept for
- * internal orchestration — see AzGuardManagerInterface.
  * @method static GrantBuilder forUser(Authenticatable $user)
- * @method static DirectGrant grant(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null, ?int $ttl = null)
- * @method static int revoke(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null)
- * @method static Collection<int, DirectGrant> grants(Authenticatable $user, (string | BackedEnum | null) $panelId = null)
  *
  * --- Testing ---
  * @method static void assertGranted((Authenticatable | Closure) $user, (string | UnitEnum | null) $key = null, (string | BackedEnum | null) $panelId = null)
  * @method static void assertDenied((Authenticatable | Closure) $user, (string | UnitEnum | null) $key = null, (string | BackedEnum | null) $panelId = null)
  * @method static void assertChecked((string | UnitEnum | Closure) $key)
+ *
+ * --- @internal (kept for internal orchestration; not part of the public contract) ---
+ * @method static DirectGrant grant(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null, ?int $ttl = null)
+ * @method static int revoke(Authenticatable $user, (string | UnitEnum) $permissionKey, (string | BackedEnum | null) $panelId = null)
+ * @method static Collection<int, DirectGrant> grants(Authenticatable $user, (string | BackedEnum | null) $panelId = null)
+ * @method static bool isSuperAdmin(Authenticatable $user, (string | BackedEnum | null) $panelId = null) Positional twin of $user->isSuperAdmin() (HasPermissions).
  *
  * @see AzGuardManager
  *

@@ -92,7 +92,6 @@ final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
             contextType: $this->contextType,
             contextId: $this->contextId,
             ttlSeconds: $seconds,
-            expiresAt: null,
         );
     }
 
@@ -108,7 +107,6 @@ final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
             panelId: $this->panelId,
             contextType: $this->contextType,
             contextId: $this->contextId,
-            ttlSeconds: null,
             expiresAt: $at,
         );
     }

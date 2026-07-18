@@ -99,7 +99,7 @@ $payload = DocumentsAbilities::make($user)->toArray();   // array<string, bool>
 
 `php artisan guard:super-admin --user=1` grants the wildcard role that
 short-circuits every check via `Gate::before()`. Test for it with
-`AzGuard::isSuperAdmin($user)` (optionally scoped: `..., 'admin')`).
+`$user->isSuperAdmin()` (optionally scoped: `$user->isSuperAdmin('admin')`).
 
 ## Extending
 

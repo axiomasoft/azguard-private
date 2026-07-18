@@ -6,7 +6,6 @@ namespace AzGuard\Permissions;
 
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\Permission;
-use AzGuard\Panels\Panel;
 use UnitEnum;
 
 /**
@@ -14,7 +13,7 @@ use UnitEnum;
  *
  * A string is treated as an already-resolved full key and returned unchanged.
  * An enum is scoped to the panel exactly like the catalog
- * ({@see Panel::resolvePermission} via the registered panel), so an enum case
+ * (via Panel::resolvePermission on the registered panel), so an enum case
  * `DocumentsPermission::View = 'documents.view'` resolves to "app.documents.view".
  * When the panel is not registered, the enum falls back to its raw value/name.
  */

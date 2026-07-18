@@ -62,12 +62,18 @@ interface AzGuardManagerInterface
     /**
      * Soft-resolve: returns null when the panel is not registered.
      * Safe in Blade / UI without try-catch.
+     *
+     * @internal Cut-line P3.1 (facade-cutline.md #7): kept for
+     *           Permissions\PermissionName's internal resolution seam.
      */
     public function tryPermission(string|BackedEnum $panelId, string|UnitEnum $permission): ?string;
 
     /**
      * Find the id of the panel that owns a permission enum (i.e. lists the enum
      * class in its permission enums), or null when no registered panel owns it.
+     *
+     * @internal Cut-line P3.1 (facade-cutline.md #8): kept for
+     *           HasScopedRoles's internal panel-derivation seam.
      */
     public function panelIdForPermission(UnitEnum $permission): ?string;
 
@@ -76,6 +82,9 @@ interface AzGuardManagerInterface
     /**
      * Whether the user is a super-admin on the panel — i.e. holds the global
      * wildcard, bypassing every ability via Gate::before.
+     *
+     * @internal Positional twin of the canonical $user->isSuperAdmin() from
+     *           HasPermissions — the facade form is de-published (facade-cutline.md #11).
      */
     public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool;
 

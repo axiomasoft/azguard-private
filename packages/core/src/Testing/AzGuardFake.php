@@ -7,7 +7,6 @@ namespace AzGuard\Testing;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Events\GrantGiven;
 use AzGuard\Events\GrantRevoked;
-use AzGuard\Facades\AzGuard;
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\Panel;
@@ -29,7 +28,7 @@ use UnitEnum;
 
 /**
  * Recording double of {@see AzGuardManagerInterface}, installed by
- * {@see AzGuard::fake()}.
+ * AzGuard::fake().
  *
  * Every manager method is delegated to the real, already-booted manager —
  * grants still persist and checks still run through the real resolver;

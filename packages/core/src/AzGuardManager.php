@@ -11,7 +11,6 @@ use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
@@ -92,6 +91,11 @@ final class AzGuardManager implements AzGuardManagerInterface
         return $panel->resolvePermission(permission: $permission);
     }
 
+    /**
+     * @internal Cut-line P3.1 (facade-cutline.md #7): no docs-facing consumer,
+     *           but still a real seam for PermissionName::resolve() — kept
+     *           reachable via AzGuardManagerInterface, hidden from the facade.
+     */
     #[Override]
     public function tryPermission(string|BackedEnum $panelId, string|UnitEnum $permission): ?string
     {
@@ -100,6 +104,11 @@ final class AzGuardManager implements AzGuardManagerInterface
         return $panel?->resolvePermission(permission: $permission);
     }
 
+    /**
+     * @internal Cut-line P3.1 (facade-cutline.md #8): no docs-facing consumer,
+     *           but still a real seam for HasScopedRoles panel derivation — kept
+     *           reachable via AzGuardManagerInterface, hidden from the facade.
+     */
     #[Override]
     public function panelIdForPermission(UnitEnum $permission): ?string
     {
@@ -114,6 +123,10 @@ final class AzGuardManager implements AzGuardManagerInterface
 
     // ─── Actor ─────────────────────────────────────────────────────────────────
 
+    /**
+     * @internal Positional twin of the canonical $user->isSuperAdmin() from
+     *           HasPermissions — the facade form is de-published (facade-cutline.md #11).
+     */
     #[Override]
     public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool
     {
@@ -174,7 +187,7 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Register a custom PermissionCatalogBuilder. Bind it (singleton) if it is
      * not already bound, then tag it so CompositePermissionCatalog picks it up.
      * The public, symmetric counterpart of {@see registerGrantSource()} — the
-     * panel-scoped {@see PanelProvider::registerCustomCatalogBuilders()} remains
+     * panel-scoped PanelProvider::registerCustomCatalogBuilders() remains
      * available for per-panel builders.
      *
      * Call this from a service provider's register()/boot() method:

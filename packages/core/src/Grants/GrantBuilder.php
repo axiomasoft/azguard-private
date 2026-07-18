@@ -66,7 +66,6 @@ final readonly class GrantBuilder
             user: $this->user,
             panelId: $this->panelId,
             ttlSeconds: $seconds,
-            expiresAt: null,
         );
     }
 
@@ -80,7 +79,6 @@ final readonly class GrantBuilder
         return new self(
             user: $this->user,
             panelId: $this->panelId,
-            ttlSeconds: null,
             expiresAt: $at,
         );
     }
@@ -108,7 +106,7 @@ final readonly class GrantBuilder
             $builder = $builder->ttl($this->ttlSeconds);
         }
 
-        if ($this->expiresAt !== null) {
+        if ($this->expiresAt instanceof DateTimeInterface) {
             $builder = $builder->until($this->expiresAt);
         }
 
