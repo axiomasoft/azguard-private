@@ -6,8 +6,10 @@ namespace AzGuard\Registry\Resolver;
 
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Support\Config;
+use AzGuard\Support\RequestState;
 use Closure;
 use Illuminate\Contracts\Cache\LockProvider;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Per-request (and optional cross-request) cache for PermissionSet.
@@ -32,6 +34,10 @@ class PermissionCache
      * AzGuard's entries per app on a shared store, so this is not a config knob.
      */
     private const string KEY_PREFIX = 'azguard.perms';
+
+    public function __construct(
+        private readonly RequestState $requestState = new RequestState,
+    ) {}
 
     /**
      * @var array<string, array<string, array<string, PermissionSet>>>
@@ -114,6 +120,16 @@ class PermissionCache
         if ($lockStore instanceof LockProvider) {
             $lockStore->lock($epochKey.':lock', 5)->block(2, $bump);
         } else {
+            // C-05: the concurrent-forget race documented above is only closed
+            // when the store supports locking. Without one, the degradation is
+            // silent — surface it once per request so it is diagnosable.
+            $this->requestState->once(
+                'azguard.epoch-bump-without-lock.'.$store,
+                fn () => Log::warning('AzGuard: bumping the permission cache epoch without a lock — store does not implement LockProvider', [
+                    'store' => $store,
+                ]),
+            );
+
             $bump();
         }
     }
