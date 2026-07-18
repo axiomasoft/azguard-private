@@ -1,108 +1,105 @@
-# HANDOFF — 2026-07-18 — after P2
+# HANDOFF — 2026-07-18 — after P3.1
 
-**Next:** Фаза P2 закрыта (10/10 items терминальны: 5🟢/5🟠) — 5 items несут
-`🟠 Done with deviations` (P2.1–P2.4, P2.9), material-отклонения включают
-множественные легальные пре-1.0 SemVer-breaking правки публичного API.
-Перед P3 (замораживает поверхность по следам P2) — adversarial-аудит фазы.
+**Next:** P3.1 закрыт (🟠 Done with deviations) — cut-line фасада исполнен по
+`root/contracts/facade-cutline.md`/D29. Следующий item — **P3.2** (snapshot-гейт
+заморозки поверхности): предписанный Routing — `fable/high manual` (D28 не
+трогает P3.2 — единственный оставшийся fable-item фазы, механизм заморозки
+несёт необратимую цену ошибки).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | opus |
-| Thinking | xhigh — adversarial-аудит закрытой фазы с 🟠-вердиктами/breaking-списком, цена ошибки — заморозка P3 неверной поверхности |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Аудит фазы P2: сверить 🟠-вердикты (P2.1–P2.4, P2.9) с git-фактами, проверить агрегат Known Deviations Phase Handoff, no-op/scope-drift, консистентность перед cut-line P3 |
+| Model | fable |
+| Thinking | high — предписано §3 Routing/D28 (снапшот-гейт: механизм заморозки поверхности, ошибка = тихий дрейф @api) |
+| Context | continue (/clear) — ручной item |
+| Суть | P3.2: расширить `tests/Unit/ApiBoundaryTest.php` (или sibling) до snapshot-гейта — закоммиченный фикстур `@api`-поверхности core (типы+сигнатуры+имена параметров) из `root/api-surface.md` (P3.1), самопроверка «мутация→red» |
 
 ```
-/task:plan-audit 2026.07.18-AZGUARD-STABLE P2
+/task:plan-exec 2026.07.18-AZGUARD-STABLE P3.2
 ```
 
-**Done:** Фаза P2 (Структурный канон + fluent/DX редизайн API) закрыта
-целиком. Все 10 items реализовали 4 развилки владельца D14–D18: структурный
-канон core (Support/ упразднён, 11 файлов в доменных неймспейсах,
-двух-домовый канон контрактов — P2.1); 6 phpstan-структурных baseline
-разрешены уточнением контрактов, не подавлением (P2.2); единый immutable
-fluent-корень `AzGuard::forUser()->inContext()` + TTL-парность context,
-миграция `expires_at` (P2.3); Filament-плагин fluent + middleware
-`::using()` + единый порядок аргументов `что,где` (P2.4); cut-line
-target-спека фасада `root/contracts/facade-cutline.md` — SSOT входа P3,
-с уточнением D29 (резолверы tryPermission/panelIdForPermission не мёртвые →
-@internal, не удаление) (P2.5); `AzGuard::fake()` Recorder + assertGranted/
-assertDenied/assertChecked (простая форма + closure) (P2.6); глоссарий
-`root/glossary.md` + doc-routing context↔scope, multiple-guards.md
-переформулирован через панели (P2.7); headless-quick-start EN/RU +
-guard:doctor 0-панелей hint, fail-closed не ослаблен (P2.8); wildcard-флип
-дефолта на Hierarchical + verify F4/F40/F51 + R7-фикс (голый `*` больше не
-проходит фильтр) (P2.9); сквозной EN/RU docs-свип (10 RU-страниц
-ресинхронизированы, @internal-shorthand'ы убраны из публичных примеров) +
-arch-тесты канона консолидированы (P2.10). Phase Handoff phases/P2.md
-заполнен: агрегат Known Deviations по всем 10 items (механически, из полей
-item'ов) + перечень легальных SemVer-breaking изменений; docs-sync
-подтверждён (P2.10 сквозной свип + root/architecture.md ADR +
-root/glossary.md, оба созданы по ходу фазы).
+**Done:** P3.1 (Исполнение cut-line фасада + ревизия @api/@internal →
+root/api-surface.md) закрыт. Cut-line по `root/contracts/facade-cutline.md`
+(P2.5, D29) — НЕ по устаревшей букве Scope Included этого item'а (которая
+предшествовала D29 и всё ещё несёт опровергнутую посылку «0 потребителей»):
+2 `@method`-строки (`tryPermission`, `panelIdForPermission`) убраны из
+докблока фасада `AzGuard.php`; сами методы на `AzGuardManager`/
+`AzGuardManagerInterface` СОХРАНЕНЫ и помечены `@internal` (реальные швы —
+`Permissions/PermissionName.php:31`, `Concerns/HasScopedRoles.php:324`);
+`isSuperAdmin` перенесён в `@internal`-секцию докблока рядом с `grant`/
+`revoke`/`grants` (уже проставлены P2.3); `hasContextGuard` остался `@api` с
+локус-нотой. Сквозная ревизия P2.1-переездов (Panels/Permissions/
+Configuration/Runtime/Abilities/Auth/Database\Schema) не выявила ни одной
+потери `@api`-тега. `root/api-surface.md` создан — реестр факта: 32
+`@api`-типа core (18 Contracts/ + 6 Registry/Contracts/ + Facade + Panel +
+PermissionKey + PermissionSet + 4 Testing), финальный `@method`-состав
+фасада, middleware `::using()`, Blade-директивы, config-ключи core+filament;
+явно называет вне-скоупа (context/filament без конвенции тегирования,
+`Attributes/*` untagged — пред-P2.1 гэп).
 
-**Remaining:** `/task:plan-audit … P2` → по результату аудита
-либо прямой переход к P3 (cut-line по facade-cutline.md+D29 → snapshot-гейт
-заморозки → SemVer-политика/UPGRADING), либо `/task:plan-design … P2.m`
-на re-design конкретного item'а, если аудит найдёт material-разрыв. Далее
-штатно: P3 (P3.1 sonnet/high · P3.2 fable/high · P3.3 sonnet/high) → P4
-тест-углубление (P4.1–P4.6 plan-exec, P4.7 sonnet/high) → P5 (шаблон fable →
-релиз+тег → миграция root/→docs) → post-plan
+Follow-up находки `## Audit P2 — 2026-07-18` (phases/P2.md) свёрнуты этой же
+сессией (НЕ реопен P2): **F1** — `composer refactor` прогнан по всем 6
+файлам; попутно обнаружен и устранён скрытый конфликт rector↔pint (докблок
+`{@see Class}`, где `Class` используется ТОЛЬКО в PHPDoc — rector считает
+импорт мёртвым, pint хочет его вернуть; переписано прозой без `{@see}` — оба
+гейта теперь сходятся к нулю ОДНОВРЕМЕННО); формулировка «предсуществующий/не
+задет» была ложной и теперь неактуальна (долг устранён, не просто
+переквалифицирован). **F3/F4/F6** — `roadmap.md` P3.1/P3.3 ресинхронизированы
+под D28 (sonnet/high); `plan.md:168` Update Log сокращён (458→~150 символов);
+D28/D29 переставлены в хронологический порядок. **F2** — сознательно НЕ
+исполнен здесь (по прямому указанию launch-команды: адрес — P3.3); зафиксирован
+в P3.1 Pending Work и продублирован в Required Reads P3.3, чтобы не потеряться.
+
+**Remaining:** P3.2 (snapshot-гейт, fable/high) → P3.3 (SemVer-политика +
+UPGRADING, sonnet/high — несёт F2 pending) → Phase Handoff P3 → штатно P4
+(тест-углубление) → P5 (шаблон → релиз+тег → миграция root/→docs) → post-plan
 `/task:plan-close archive 2026.07.18-AZGUARD-STABLE`.
 
-**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.16,
-D1–D29, § 4 Phase Index P2=🟠 Done with deviations 5/10🟢) · phases/P2.md
-(Phase Handoff заполнен — агрегат Known Deviations + docs-sync + next step) ·
-root/contracts/facade-cutline.md (замороженная спека cut-line — SSOT P3.1) ·
-root/glossary.md · root/architecture.md · research/03-p2-canon.md ·
-findings/ (REGISTER + оси) · roadmap.md (строка P2 историческая, супersedeна
-построчным D28) · brief/{00-brief,01-refinements}.md.
+**Sources of truth:** plans/2026.07.18-AZGUARD-STABLE/plan.md (v0.3.17, D1–D29,
+§4 Phase Index P3=🟡 In progress 1/3) · phases/P3.md (P3.1 Completion Notes —
+полная сверка cut-line с фактом кода) · phases/P2.md `## Audit P2 —
+2026-07-18` (F1–F7, здесь свёрнуты F1/F3/F4/F6; F2 передан P3.3) ·
+root/contracts/facade-cutline.md (замороженная спека, D29 — исполнена) ·
+root/api-surface.md (НОВЫЙ — SSOT входа P3.2/P3.3) · roadmap.md (P3.1/P3.3
+ресинхронизированы под D28).
 
 **Open risks:**
-- 5 items P2 несут `🟠 Done with deviations` (P2.1–P2.4, P2.9) — material
-  material-отклонения (дифф вне заявленных Files + легальные SemVer-breaking
-  правки публичного API); НЕ сверены adversarial-аудитом — риск, что P3
-  заморозит поверхность по невыявленной ошибке одного из вердиктов.
-- `composer refactor:check` (rector dry-run) красный на 6 src-файлах вне
-  всех Files P2-items (`packages/core/src/{Permissions/PermissionKey,
-  Permissions/PermissionName,AzGuardManager,Testing/AzGuardFake,
-  Grants/GrantBuilder}.php`, `packages/context/src/ContextGrantBuilder.php`
-  — dead-code named-args + type-flip suggestions); предсуществует на
-  baseline (до P2.10), не задет ни одним P2-item'ом; нужен отдельный
-  code-touch item (кандидат перед P3 либо внутри P3.1–P3.3 code-touch) или
-  явное решение владельца отложить в known-limitations.
-- `tests/Unit/Support/` (5 файлов) — имя каталога дрейфует от канона;
-  `tests/**` НЕ входил в Files ни одного P2-item (только `tests/ArchTest.php`
-  в P2.10) — переименование остаётся вне текущего ТЗ, кандидат в отдельный
-  item.
-- Прямой unit-тест `SimplePermissionDefinition::label()` и уточнение
-  generics `Contracts\HasRoles::roles()` (P2.2 Pending Work) — src-правки,
-  вне Files всех P2-items.
-- Bundled boost-скилл (`packages/core/resources/boost/skills/.../SKILL.md`)
-  — регенерация после cut-line P3.1 (спека §5, P2.5 Pending Work).
+- F2 (Audit P2) не исполнен — P3.3 обязан внести в UPGRADING оба пропущенных
+  breaking (P2.4 `panel_check` арг-флип, P2.1 переезды публичных типов);
+  Required Reads P3.3 уже указывает на это явно (см. phases/P3.md).
+- `Attributes/*` (`CheckPermission`, `GuardPolicy`, `GateAbility`,
+  `SkipGuardCheck`, `RoleOnly`) документированы, но не несут `@api`-тег —
+  пред-P2.1 гэп тегирования, вне скоупа cut-line; кандидат отдельного item'а
+  (root/api-surface.md §8).
+- Регенерация bundled boost-скилла (`packages/core/resources/boost/skills/
+  azguard-development/SKILL.md`) целиком — эта сессия поправила ТОЛЬКО одну
+  устаревшую строку примера (`isSuperAdmin`); полный прогон
+  `laravel-package-generate-skill` после cut-line остаётся кандидатом
+  (facade-cutline.md §5, P2.5 Pending Work).
+- `tests/Unit/Support/` (5 файлов) — имя каталога дрейфует от канона (P2.1
+  Pending Work, не тронуто).
+- Прямой unit-тест `SimplePermissionDefinition::label()` и уточнение generics
+  `Contracts\HasRoles::roles()` (P2.2 Pending Work) — вне Files всех items.
 - Удаление legacy `WildcardPermissionMatcher` + флага — следующий
   deprecate-цикл ПОСЛЕ 0.3.0 (P2.9 Pending Work, кандидат
   known-limitations/semver-policy P3.3).
-- MySQL-ветка миграции 000005 локально НЕ исполнялась — верификация в
-  P4.2/P4.7; миграция 000011 (expires_at) гонялась только на sqlite — та же
-  верификация.
+- MySQL-ветка миграции 000005 / миграция 000011 (expires_at) не гонялись на
+  MySQL локально — верификация в P4.2/P4.7.
 - `removeScopedRoleEverywhere()` вне контракта + Policy-авторизация Filament
   RoleResource — кандидаты P2 contract review, НЕ делать без D#.
 - P5.2 push тега — необратимая внешняя операция: гейт владельца обязателен.
 - `plan-lint.py` вызывается по абсолютному пути (swissknifeman/packages/task/
   scripts/, `${CLAUDE_PLUGIN_ROOT}` пуст в среде).
-- `AzGuard::fake()` + глобальный `Event::fake()`: подавляет реальную
-  доставку слушателей (doc-note уже добавлена в advanced/testing.md P2.10;
-  если станет практической проблемой — рассмотреть отдельно).
+- `AzGuard::fake()` + глобальный `Event::fake()`: подавляет реальную доставку
+  слушателей (doc-note уже в advanced/testing.md).
 
 **Workarounds/Deferred/Open questions:**
-- workarounds: `plan-lint.py` по абсолютному пути; rmdir заблокирован хуком
-  среды — пустые каталоги через python os.rmdir.
-- deferred: удаление legacy-matcher+флага → post-0.3.0 цикл (P2.9); R9
-  upgrade-нота C-10 → P3.3 (D21); RoleResource Livewire-тест (P1.2 Pending
-  Work); split/Packagist (D25); roave/bc-check (D20); снапшот
-  filament/context (P3.2); `removeScopedRoleEverywhere()` → контракт (P2);
-  rename `tests/Unit/Support/` → вне Files, отдельный item; прямой unit-тест
-  `SimplePermissionDefinition::label()` + generics `HasRoles::roles()` → вне
-  Files, отдельный item; `composer refactor:check` (rector) 6 src-файлов →
-  отдельный code-touch item или known-limitations.
+- workarounds: `plan-lint.py` по абсолютному пути; докблок `{@see Class}` на
+  импорт, используемый ТОЛЬКО в PHPDoc, переписывается прозой (rector↔pint
+  конфликт — F1 remediation, см. P3.1 Completion Notes).
+- deferred: F2 (Audit P2) → P3.3; регенерация bundled boost-скилла целиком →
+  кандидат; `Attributes/*` тегирование → кандидат; удаление legacy-matcher →
+  post-0.3.0 (P2.9); RoleResource Livewire-тест (P1.2); split/Packagist
+  (D25); roave/bc-check (D20); снапшот filament/context (P3.2 Scope Excluded,
+  каталогизировать P3.3); `removeScopedRoleEverywhere()` → контракт (P2);
+  rename `tests/Unit/Support/` → отдельный item.
 - open_questions: Q1→D22, Q2→D23/D24, Q3→D27. Открытых нет.

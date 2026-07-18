@@ -18,9 +18,9 @@
 | P1.3 | solo | plan-run (manual) | sonnet/medium | — | 14 Minor/Nit per-finding (D11) — solo: Exec=manual (строгость D11), сессия sonnet/medium |
 | P1.4 | solo | plan-run (manual) | fable/high | — | adversarial review диффа фазы свежим контекстом — solo by design |
 | P2.1–P2.10 | solo ×10 | plan-run (manual) | fable/high | — (развилки сняты D14–D18) | каждый item — отдельная fable/high-сессия: contract-класс, SemVer-breaking; порядок — phases/P2.md §Phase Context; объединять нельзя — каждый меняет публичные контракты, ревью full между items |
-| P3.1 | solo | plan-run (manual) | fable/high | — | cut-line фасада (D19) — необратимо, solo |
+| P3.1 | solo | plan-run (manual) | sonnet/high | — | cut-line фасада (D19) — необратимо, solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
 | P3.2 | solo | plan-run (manual) | fable/high | — | snapshot-заморозка (D20) — гейт, включающий запрет дрейфа; solo |
-| P3.3 | solo | plan-run (manual) | fable/high | — | SemVer-политика + UPGRADING (D21); solo |
+| P3.3 | solo | plan-run (manual) | sonnet/high | — | SemVer-политика + UPGRADING (D21); solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
 | P4.1–P4.2 | B4 | plan-exec серия | sonnet/medium | — | стенд+БД-лейн одной сессией (P4.2 потребляет P4.1; ревью батча — full по максимуму участников) |
 | P4.3 | solo | plan-exec | sonnet/medium | — | paratest — отдельный риск-профиль (parallel-изоляция), solo |
 | P4.4 | solo | plan-exec | sonnet/medium | — | race-тесты C-05/C-14 — жёсткая эскалация §10 при реальном race-баге, solo |
