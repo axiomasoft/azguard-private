@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
-use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,11 +17,9 @@ describe('HasAzGuard — role management API', function (): void {
         Event::fake([RoleAttached::class]);
 
         $user = User::factory()->create();
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole('manager');
         $user->load('roles');
@@ -37,11 +34,9 @@ describe('HasAzGuard — role management API', function (): void {
         Event::fake([RoleAttached::class]);
 
         $user = User::factory()->create();
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole($role);
         $user->load('roles');
@@ -64,11 +59,9 @@ describe('HasAzGuard — role management API', function (): void {
         Event::fake([RoleDetached::class]);
 
         $user = User::factory()->create();
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -87,17 +80,13 @@ describe('HasAzGuard — role management API', function (): void {
 
         $user = User::factory()->create();
 
-        $oldRole = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $oldRole = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
-        $newRole = Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        $newRole = createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($oldRole);
         $user->load('roles');
@@ -114,11 +103,9 @@ describe('HasAzGuard — role management API', function (): void {
 
     it('getRoleNames returns collection of role name strings', function (): void {
         $user = User::factory()->create();
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -129,11 +116,9 @@ describe('HasAzGuard — role management API', function (): void {
     it('assignRole clears permissions cache', function (): void {
         $user = User::factory()->create();
 
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
         // Populate cache
         $user->load('roles');

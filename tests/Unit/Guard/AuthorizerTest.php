@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Guard\Authorizer;
-use AzGuard\Models\Role;
 use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
@@ -54,11 +53,9 @@ describe('Authorizer', function () {
     it('returns true when user has permission via class role', function () {
         $user = User::factory()->create();
 
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole('manager');
 
@@ -71,11 +68,9 @@ describe('Authorizer', function () {
     it('returns null when user does not have ability', function () {
         $user = User::factory()->create();
 
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole('manager');
 

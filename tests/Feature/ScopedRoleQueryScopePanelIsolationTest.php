@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Models\Role;
 use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Project;
 use AzGuard\Tests\Stubs\Roles\ScopedFilterRole;
@@ -42,11 +41,9 @@ describe('T1 — panel-aware query-scope filtering (bootHasScopedRoles)', functi
         $scopedUnderA = Project::factory()->create();
         $independent = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-filter-panel-a',
-            'class_name' => ScopedFilterRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-filter-panel-a',
             'level' => 1,
-        ]);
+        ], ScopedFilterRole::class);
 
         $user->assignScopedRole($role, $scopedUnderA, panelId: 'panel-a');
 
@@ -64,11 +61,9 @@ describe('T1 — panel-aware query-scope filtering (bootHasScopedRoles)', functi
         $scoped = Project::factory()->create();
         $other = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-filter-null-panel',
-            'class_name' => ScopedFilterRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-filter-null-panel',
             'level' => 1,
-        ]);
+        ], ScopedFilterRole::class);
 
         // No panelId => persisted panel_id is null => "any panel" back-compat.
         $user->assignScopedRole($role, $scoped);
@@ -88,11 +83,9 @@ describe('T1 — panel-aware query-scope filtering (bootHasScopedRoles)', functi
         $scoped = Project::factory()->create();
         $other = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-filter-no-panel-set',
-            'class_name' => ScopedFilterRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-filter-no-panel-set',
             'level' => 1,
-        ]);
+        ], ScopedFilterRole::class);
 
         $user->assignScopedRole($role, $scoped, panelId: 'panel-a');
 

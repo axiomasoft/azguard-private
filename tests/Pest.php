@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Models\Role;
 use AzGuard\Tests\ContextTestCase;
 use AzGuard\Tests\FilamentTestCase;
 use AzGuard\Tests\ManagerSwapTestCase;
@@ -94,4 +95,18 @@ function createUserWithRole(string $roleName): User
     $user->assignRole($roleName);
 
     return $user;
+}
+
+/**
+ * class_name is guarded (C-11, not mass-assignable via Role::create()/fill())
+ * so tests need a helper that sets it via direct property assignment (bypasses
+ * fillable, unlike fill()/create()) instead of passing it through $attributes.
+ */
+function createRoleWithClass(array $attributes, string $className): Role
+{
+    $role = Role::query()->create($attributes);
+    $role->class_name = $className;
+    $role->save();
+
+    return $role;
 }

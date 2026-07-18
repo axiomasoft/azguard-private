@@ -117,11 +117,11 @@ final class SyncRolesCommand extends Command
                     $created++;
 
                     if (! $isDryRun) {
-                        $roleModel::query()->create([
-                            'name' => $name,
-                            'level' => $level,
-                            'class_name' => $className,
-                        ]);
+                        // class_name is guarded (C-11) — not mass-assignable via
+                        // create(); set it via direct property assignment instead.
+                        $role = $roleModel::query()->create(['name' => $name, 'level' => $level]);
+                        $role->class_name = $className;
+                        $role->save();
                     }
                 }
             }

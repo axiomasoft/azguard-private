@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\Project;
 use AzGuard\Tests\Stubs\Roles\ScopedFilterRole;
 use AzGuard\Tests\Stubs\User;
@@ -30,11 +29,9 @@ describe('C-01 — bootHasScopedRoles applies in console/queue contexts (Auth::c
         $scoped = Project::factory()->create();
         $other = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-filter-queue',
-            'class_name' => ScopedFilterRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-filter-queue',
             'level' => 1,
-        ]);
+        ], ScopedFilterRole::class);
 
         $user->assignScopedRole($role, $scoped, panelId: 'panel-a');
 
@@ -55,11 +52,9 @@ describe('C-01 — bootHasScopedRoles applies in console/queue contexts (Auth::c
         $scoped = Project::factory()->create();
         $other = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-filter-console',
-            'class_name' => ScopedFilterRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-filter-console',
             'level' => 1,
-        ]);
+        ], ScopedFilterRole::class);
 
         $user->assignScopedRole($role, $scoped, panelId: 'panel-a');
 

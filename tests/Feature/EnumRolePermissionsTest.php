@@ -23,10 +23,8 @@ class EnumEditorRole extends BaseRole
 
 function makeEnumRoleUser(): User
 {
-    $role = Role::create([
-        'name' => 'EnumEditor',
-        'class_name' => EnumEditorRole::class,
-    ]);
+    $role = createRoleWithClass(['name' => 'EnumEditor',
+    ], EnumEditorRole::class);
 
     $user = User::create([
         'name' => 'Enum User',
@@ -61,10 +59,8 @@ it('resolves enum-case role permissions to the same full string key', function (
 
 it('still supports roles that declare full string permission keys (back-compat)', function () {
     // ManagerRole returns ['test.post.view'] as a plain string key.
-    $role = Role::create([
-        'name' => 'StringManager',
-        'class_name' => ManagerRole::class,
-    ]);
+    $role = createRoleWithClass(['name' => 'StringManager',
+    ], ManagerRole::class);
 
     $user = User::create([
         'name' => 'String User',

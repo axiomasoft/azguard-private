@@ -1,6 +1,5 @@
 <?php
 
-use AzGuard\Models\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;
@@ -29,10 +28,8 @@ it('grants access when user has a role with the required permission', function (
     Gate::policy(FakePost::class, FakePostPolicy::class);
 
     // 2. Создаем роль в БД и указываем путь к классу логики
-    $role = Role::create([
-        'name' => 'Administrator',
-        'class_name' => FakeAdminRole::class,
-    ]);
+    $role = createRoleWithClass(['name' => 'Administrator',
+    ], FakeAdminRole::class);
 
     // 3. Создаем пользователя и привязываем роль (используя твой трейт HasAzGuard)
     $user = User::create([

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Models\Role;
 use AzGuard\PermissionKey;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Roles\SuperAdminRole;
@@ -18,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 // ─── isSuperAdmin (A4) ───────────────────────────────────────────────────────
 
 it('isSuperAdmin() is true only when the user holds the wildcard', function () {
-    $superRole = Role::create(['name' => 'super', 'class_name' => SuperAdminRole::class]);
+    $superRole = createRoleWithClass(['name' => 'super'], SuperAdminRole::class);
     $super = User::create(['name' => 'Super', 'email' => 'super@example.com', 'password' => 'password']);
     $super->assignRole($superRole);
 

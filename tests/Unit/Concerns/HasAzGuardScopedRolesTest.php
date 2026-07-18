@@ -47,11 +47,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Alpha']);
 
-        $role = Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -70,11 +68,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Beta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -86,11 +82,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $project1 = Project::create(['name' => 'Gamma']);
         $project2 = Project::create(['name' => 'Delta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project1);
 
@@ -101,11 +95,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Epsilon']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
         expect($user->hasScopedRole('editor', $project))->toBeTrue();
@@ -118,11 +110,10 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Zeta']);
 
-        Role::create([
+        createRoleWithClass([
             'name' => 'editor',
-            'class_name' => ManagerRole::class, // ManagerRole has test.post.view
             'level' => 5,
-        ]);
+        ], ManagerRole::class); // ManagerRole has test.post.view
 
         $user->assignScopedRole('editor', $project);
 
@@ -133,11 +124,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Eta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -149,20 +138,16 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $project = Project::create(['name' => 'Theta']);
 
         // Give user a global wildcard role
-        $superRole = Role::create([
-            'name' => 'superadmin',
-            'class_name' => ManagerRole::class,
+        $superRole = createRoleWithClass(['name' => 'superadmin',
             'level' => 1000,
-        ]);
+        ], ManagerRole::class);
 
         // Patch ManagerRole to return ['*'] by adding superadmin globally
         // Instead we test via hasPermission fallback path:
         // assign scoped role that has the perm
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole('superadmin');
         $user->load('roles');
@@ -189,11 +174,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Kappa']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
         $user->assignScopedRole('editor', $project);

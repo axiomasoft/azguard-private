@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Models\Role;
 use AzGuard\Support\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
@@ -23,7 +22,7 @@ beforeEach(function () {
         'password' => 'password',
     ]);
 
-    $role = Role::create(['name' => 'manager', 'class_name' => ManagerRole::class, 'level' => 0]);
+    $role = createRoleWithClass(['name' => 'manager', 'level' => 0], ManagerRole::class);
     $this->user->roles()->attach($role);
     $this->user->load('roles');
 
