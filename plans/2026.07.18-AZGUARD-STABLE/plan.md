@@ -89,6 +89,7 @@ read-only аудит (акцент — интеграционная поверх
 | Дата | Кто (role/model) | Что |
 |:--|:--|:--|
 | 2026-07-18 | issue-planner/fable | План создан (design pass 1/3: recon×3 → findings/, синтез research/00, скелеты P0–P5 с контракт-блоками, D1–D6). ACTIVE: — → 2026.07.18-AZGUARD-STABLE. Фокус pass 2: детализация P0 |
+| 2026-07-18 | issue-planner/fable | Заложены приоры research/01-fluent-api-priors.md + RAG-preseed findings/P0-rag-fluent-dx-preseed.md (5 тезисов верифицированы, приор B.7 скорректирован); P0.1 сужен до добора первоисточников (Filament/context7) |
 
 ## Обсуждение
 
