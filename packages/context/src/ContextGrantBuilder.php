@@ -15,6 +15,7 @@ use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use InvalidArgumentException;
 use UnitEnum;
 
 /**
@@ -72,12 +73,25 @@ final class ContextGrantBuilder
      *
      * @throws PanelNotSetException
      * @throws ContextNotSetException
+     * @throws InvalidArgumentException When $permission is the wildcard key or
+     *                                  contains a wildcard metacharacter — a
+     *                                  context grant is scoped by design and
+     *                                  must never carry superadmin/broad reach.
      */
     public function grant(string|UnitEnum $permission): ContextRole
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
         [$contextType, $contextId] = $this->resolveContextOrFail();
         $permissionKey = PermissionName::resolve($permission, $panel);
+
+        if (str_contains($permissionKey, PermissionKey::WILDCARD)) {
+            throw new InvalidArgumentException(sprintf(
+                'Cannot grant wildcard permission key [%s] in a context grant — context grants are '
+                .'scoped by design. Grant superadmin/broad permissions panel-wide via '
+                .'AzGuard::forUser()->grant() instead.',
+                $permissionKey,
+            ));
+        }
 
         /** @var ContextRole $contextRole */
         $contextRole = ContextRole::query()->firstOrCreate([

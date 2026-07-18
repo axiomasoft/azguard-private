@@ -87,13 +87,15 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
 
         // Optional post-aggregation layer (e.g. the context package applying its
         // merge strategy to the global set). Skipped on a global wildcard above —
-        // a superadmin transcends contextual narrowing.
+        // a superadmin transcends contextual narrowing. Unlike the global-source
+        // wildcard above, a wildcard surfacing HERE (from the layer) is NOT
+        // trusted with an early return: it still passes through the catalog
+        // filter below (defense-in-depth, C-13) — a context grant can never
+        // legitimately carry '*' (ContextGrantBuilder::grant() rejects it at
+        // write time), so a wildcard reaching this point is unexpected and must
+        // not bypass catalog validation.
         if ($this->layer instanceof PermissionLayer) {
             $set = $this->layer->apply($set, $user, $panelId);
-
-            if ($set->isWildcard()) {
-                return $set;
-            }
         }
 
         if (! in_array($panelId, $this->catalog->panels(), true)) {

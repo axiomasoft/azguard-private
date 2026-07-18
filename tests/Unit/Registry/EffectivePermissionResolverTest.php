@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalog;
@@ -266,6 +267,41 @@ describe('EffectivePermissionResolver', function () {
         $set = $resolver->forUser(makeUser(1), 'app');
 
         expect($set->isWildcard())->toBeTrue();
+    });
+
+    it('a wildcard produced by the layer (not a global source) IS filtered through the catalog (C-13 defense-in-depth)', function () {
+        $source = makeGrantSource(PermissionSet::fromKeys(['app.posts.view']));
+
+        $layer = new class implements PermissionLayer
+        {
+            public function apply(PermissionSet $global, Authenticatable $user, string $panelId): PermissionSet
+            {
+                // Simulates a context layer that (erroneously, or via a bug in a
+                // custom MergeStrategy) surfaces a wildcard key — this must NOT
+                // be trusted as a real superadmin grant.
+                return PermissionSet::wildcard();
+            }
+
+            public function cacheDiscriminator(string $panelId): string
+            {
+                return '';
+            }
+        };
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeCatalog(['app.posts.view']),
+            sources: [$source],
+            cache: new PermissionCache,
+            layer: $layer,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        // The wildcard is stripped by filterAgainstCatalog (wildcard feature off
+        // by default: any key containing '*' is dropped outright) — NOT expanded
+        // into a true superadmin grant.
+        expect($set->isWildcard())->toBeFalse()
+            ->and($set->isEmpty())->toBeTrue();
     });
 
     it('caches result and does not call sources twice for same user+panel', function () {
