@@ -5,7 +5,7 @@
 | Зависимость | Версия |
 |---|---|
 | PHP | ≥ 8.3 |
-| Laravel | 11.x или 12.x |
+| Laravel | 11.x, 12.x или 13.x |
 | Laravel Octane | совместим (stateless) |
 
 ## Установка через Composer
