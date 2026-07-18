@@ -27,6 +27,14 @@ $user->hasScopedRole('editor', $project);   // true
 $user->removeScopedRole('editor', $project);
 ```
 
+`removeScopedRole(..., panelId: null)` (по умолчанию) удаляет только
+any-panel-строку (симметрично `assignScopedRole`). Чтобы снести роль сразу во
+всех панелях:
+
+```php
+$user->removeScopedRoleEverywhere('editor', $project);
+```
+
 ## Проверка права в рамках сущности
 
 ```php

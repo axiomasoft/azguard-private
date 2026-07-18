@@ -147,4 +147,53 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
                 ->exists(),
         )->toBeTrue();
     });
+
+    it('removeScopedRole with panelId=null removes only the any-panel row (Variant B, D10)', function (): void {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $role = Role::create([
+            'name' => 'scoped-remove-null-only',
+            'class_name' => SuperAdminRole::class,
+            'level' => 5,
+        ]);
+
+        $user->assignScopedRole($role, $project); // any-panel row (panel_id === null)
+        $user->assignScopedRole($role, $project, panelId: 'test');
+        $user->assignScopedRole($role, $project, panelId: 'other');
+
+        $user->removeScopedRole($role, $project); // panelId defaults to null
+
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->whereNull('panel_id')->exists(),
+        )->toBeFalse();
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->where('panel_id', 'test')->exists(),
+        )->toBeTrue();
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->where('panel_id', 'other')->exists(),
+        )->toBeTrue();
+    });
+
+    it('removeScopedRoleEverywhere removes the assignment across every panel', function (): void {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $role = Role::create([
+            'name' => 'scoped-remove-everywhere',
+            'class_name' => SuperAdminRole::class,
+            'level' => 5,
+        ]);
+
+        $user->assignScopedRole($role, $project); // any-panel row
+        $user->assignScopedRole($role, $project, panelId: 'test');
+        $user->assignScopedRole($role, $project, panelId: 'other');
+
+        expect(ModelHasScope::query()->where('model_id', $user->getKey())->count())->toBe(3);
+
+        $user->removeScopedRoleEverywhere($role, $project);
+
+        expect(ModelHasScope::query()->where('model_id', $user->getKey())->count())->toBe(0);
+        expect($user->hasScopedRole($role, $project))->toBeFalse();
+    });
 });

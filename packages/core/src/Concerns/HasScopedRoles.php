@@ -25,10 +25,11 @@ use UnitEnum;
  * Laravel's own "scope" terminology for Eloquent query scopes.
  *
  * Provides:
- * - assignScopedRole()    — assign a role scoped to a specific entity
- * - removeScopedRole()    — remove a scoped role assignment
- * - hasScopedRole()       — check if user has a role for a specific entity
- * - hasScopedPermission() — check permission within a specific entity scope
+ * - assignScopedRole()          — assign a role scoped to a specific entity
+ * - removeScopedRole()          — remove a scoped role assignment (its own panel, or the any-panel row)
+ * - removeScopedRoleEverywhere() — remove a scoped role assignment across every panel at once
+ * - hasScopedRole()             — check if user has a role for a specific entity
+ * - hasScopedPermission()       — check permission within a specific entity scope
  *
  * Depends on HasAzGuard::resolveRole() being available on the same model.
  */
@@ -127,10 +128,15 @@ trait HasScopedRoles
      * Remove a scoped role for a specific entity.
      *
      *   $user->removeScopedRole('editor', $project);
+     *   $user->removeScopedRole('editor', $project, panelId: 'admin');
      *
-     * When $panelId is null (the default), removes assignments regardless of
-     * their panel_id. Pass an explicit $panelId to remove only the assignment
-     * scoped to that panel.
+     * A null $panelId (the default) removes ONLY the any-panel row
+     * (panel_id IS NULL) — symmetric with assignScopedRole(), where a null
+     * $panelId also targets the any-panel row. Pass an explicit $panelId to
+     * remove only the assignment scoped to that panel. To remove the role
+     * across EVERY panel in one call, use removeScopedRoleEverywhere().
+     *
+     * @see removeScopedRoleEverywhere()
      */
     public function removeScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static
     {
@@ -146,7 +152,42 @@ trait HasScopedRoles
             ->where('scope_entity_type', $entity->getMorphClass())
             ->where('scope_entity_id', $entity->getKey())
             ->where('role_id', $roleModel->getKey())
-            ->when($panelId !== null, fn (Builder $query): Builder => $query->where('panel_id', $panelId))
+            ->when(
+                $panelId !== null,
+                fn (Builder $query): Builder => $query->where('panel_id', $panelId),
+                fn (Builder $query): Builder => $query->whereNull('panel_id'),
+            )
+            ->delete();
+
+        $this->flushPermissions();
+
+        return $this;
+    }
+
+    /**
+     * Remove a scoped role for a specific entity across EVERY panel,
+     * regardless of panel_id.
+     *
+     *   $user->removeScopedRoleEverywhere('editor', $project);
+     *
+     * This is the pre-D10 removeScopedRole(panelId: null) behavior, split
+     * out into its own explicit method now that removeScopedRole(panelId:
+     * null) targets only the any-panel row.
+     */
+    public function removeScopedRoleEverywhere(string|Role $role, Model $entity): static
+    {
+        $roleModel = $this->resolveRole($role);
+
+        if ($roleModel === null) {
+            return $this;
+        }
+
+        ModelHasScope::query()
+            ->where('model_type', $this->getMorphClass())
+            ->where('model_id', $this->getKey())
+            ->where('scope_entity_type', $entity->getMorphClass())
+            ->where('scope_entity_id', $entity->getKey())
+            ->where('role_id', $roleModel->getKey())
             ->delete();
 
         $this->flushPermissions();

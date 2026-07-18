@@ -6,6 +6,18 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Breaking
+- `removeScopedRole($role, $entity, panelId: null)` now removes ONLY the
+  any-panel assignment (`panel_id IS NULL`) instead of every panel's
+  assignment for that role+entity — symmetric with `assignScopedRole()`,
+  where a null `$panelId` has always meant "the any-panel row", not "every
+  panel". If your code relied on the old "wipe every panel" behavior, switch
+  to the new `removeScopedRoleEverywhere($role, $entity)` method, which
+  reproduces it explicitly. Calls that never scoped the assignment by panel
+  in the first place (the common case — `assignScopedRole` and
+  `removeScopedRole` both called with no `panelId`) are unaffected: both
+  ends of the pair already target the same any-panel row. (T2)
+
 ### Security
 - **Entity-scoped roles are now isolated per panel (F8).** A new migration adds a
   nullable `panel_id` to `model_has_scopes`; assignments persist it and permission
