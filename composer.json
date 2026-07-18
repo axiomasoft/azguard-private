@@ -57,6 +57,11 @@
         "test:coverage": "vendor/bin/pest --coverage --min=50",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature",
+        "test:api-snapshot": "vendor/bin/pest tests/Unit/ApiBoundaryTest.php",
+        "test:api-snapshot:update": [
+            "@putenv AZ_UPDATE_API_SNAPSHOT=1",
+            "vendor/bin/pest tests/Unit/ApiBoundaryTest.php"
+        ],
         "lint": "vendor/bin/pint",
         "lint:check": "vendor/bin/pint --test",
         "refactor": "vendor/bin/rector process",
