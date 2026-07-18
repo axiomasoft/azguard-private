@@ -50,10 +50,14 @@ final class ResourceGate
             return null;
         }
 
-        return (bool) $user->hasPermission(
+        // Union-only (§6): never return false from a Gate::before hook — that
+        // would short-circuit the ENTIRE gate and deny even abilities a later
+        // policy/before callback would otherwise grant. Absence of a grant here
+        // defers (null), it does not assert a denial.
+        return $user->hasPermission(
             $this->schema->key($this->panelId, $resource, $slug),
             $this->panelId,
-        );
+        ) ? true : null;
     }
 
     /**
