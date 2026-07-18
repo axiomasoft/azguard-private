@@ -51,3 +51,12 @@ analyse --memory-limit=1G` (эквивалент, не отклонение).
   отдельный follow-up.
 - open_questions: — (Q1 разрешена, D10, Вариант B, реализована в P1.3; никаких открытых
   вопросов не осталось).
+
+## Migration checklist (archive)
+
+- `root/` в плане отсутствовал — миграция в `docs/` не требовалась, шаг пропущен.
+- Остаётся в архиве целиком: `plan.md`, `phases/P1.md`, `phases/P2.md`, `roadmap.md`,
+  `open-questions.md`, `brief/`, `workflows/wf-azguard-tails-p2.js`, этот `handoff.md`.
+- `plans/ACTIVE.md` уже указывал `—` (план не был активным на момент архивации).
+- Внешних ссылок на `plans/2026.07.17-AZGUARD-TAILS` в живых доках/реестрах не найдено
+  (`grep -rn` по репо — пусто).
