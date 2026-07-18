@@ -1,18 +1,6 @@
-# HANDOFF — 2026-07-18 — after P2
+# HANDOFF — 2026-07-18 — after P1
 
-**Next:** фаза P2 закрыта. Фаза P1 (P1.1 🟠, P1.2/P1.3 🟢) полностью терминальна по items,
-но её формальный `plan-close` ещё не проведён — закрыть фазу P1.
-
-| Параметр | Значение |
-|:--|:--|
-| Model | sonnet |
-| Thinking | low |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Закрыть фазу P1 (`plan-close`) — сверка Phase Status/Phase Handoff по факту |
-
-```
-/task:plan-close 2026.07.17-AZGUARD-TAILS P1
-```
+**Next:** план закрыт.
 
 **Done:** P1.1 (T1) закрыт — panel-aware query-scope guard (D5) + eager-load recursion fix
 (D9) в `bootHasScopedRoles()`. Item-commit `c166538`. Статус 🟠 Done with deviations (см.
@@ -25,35 +13,26 @@ P1.3 (T2) закрыт — Вариант B (D10): `removeScopedRole(panelId=nul
 только any-panel строку, новый метод `removeScopedRoleEverywhere()` воспроизводит старое
 поведение «снести везде». `### Breaking` запись в `packages/core/CHANGELOG.md`, заметка в
 `docs/ru/advanced/entity-scopes.md`. Item-commit `b972162`. Статус 🟢 Done.
-P2.1 (T3) закрыт — `Log::warning("AzGuard: enum class [{$enumClass}] does not exist,
-skipping catalog entry.", ['panel' => $panelId])` добавлен в
-`EnumPermissionCatalogBuilder::build()`, паритетно `PolicyAbilityCatalogBuilder`; новый
-`tests/Unit/Registry/EnumPermissionCatalogBuilderTest.php` (2 теста, `Log::spy()` +
-`Log::shouldHaveReceived`). `CHANGELOG.md`/`REMAINDER_REPORT.md`/`IMPROVEMENT_PLAN.md`
-обновлены в item-commit. Item-commit `b1de1ac`. Статус 🟢 Done.
-P2.2 (T4) закрыт — `filterAgainstCatalog()` wildcard-off ветка теперь дропает ключи с `*`
-до dynamic-сопоставления (`str_contains($key, PermissionKey::WILDCARD)`-гвард, зеркалит
-wildcard-ON ветку строки 143), паритетно wildcard-ON. Два новых теста (позитив+негатив) в
-`tests/Unit/Registry/EffectivePermissionResolverTest.php`. Item-commit `6bead71`. Статус
-🟢 Done.
-P2.3 (T5) закрыт — Feature-тест `tests/Feature/ScopeClassMigrationRollbackTest.php`
-экспериментально подтвердил (throwaway-прогон, не копия докблока): на SQLite (тестовая БД
-проекта) `down()` миграции 000004 падает `Illuminate\Database\QueryException` («NOT NULL
-constraint failed») при существующей null-строке `scope_class` — то же документированное
-поведение, что и для MySQL/PostgreSQL, докблок не потребовал правки. Второй тест —
-негативный контроль (без null-строк `down()` не бросает). `down()` не изменён (Scope
-Excluded соблюдён, эскалация не потребовалась). `REMAINDER_REPORT.md`/
-`IMPROVEMENT_PLAN.md` (T5 → 🟢) обновлены в item-commit. Item-commit `f75e0ef`. Статус 🟢
-Done.
-**Фаза P2 закрыта** (🟢 Done) — все items терминальны (P2.1-P2.3 🟢, P2.4 ⛔ Skipped by
-decision), docs-sync не требуется (нет пользовательского процесса/фичи для `docs/`),
-известные отклонения — механически собраны в `phases/P2.md` Phase Handoff (OOM-факт
-окружения P2.1/P2.2, CHANGELOG permission-обход P2.2). Процессное отклонение: все три
-item'а исполнены напрямую (`plan-exec`/ручной запуск), а не через задекларированный
-workflow-скрипт `wf-azguard-tails-p2.js` (D4) — не влияет на статус items.
+P2.1 (T3) закрыт — `Log::warning(...)` паритет в `EnumPermissionCatalogBuilder::build()`.
+Item-commit `b1de1ac`. Статус 🟢 Done.
+P2.2 (T4) закрыт — `filterAgainstCatalog()` wildcard-off ветка дропает ключи с `*` до
+dynamic-сопоставления, паритетно wildcard-ON. Item-commit `6bead71`. Статус 🟢 Done.
+P2.3 (T5) закрыт — rollback-тест миграции 000004 подтвердил докблок экспериментально,
+`down()` не изменён. Item-commit `f75e0ef`. Статус 🟢 Done.
 
-**Remaining:** фаза P1 — items все терминальны (P1.1 🟠, P1.2/P1.3 🟢), но `Phase Handoff`
-в `phases/P1.md` не заполнен и формальный `plan-close` не проведён.
+**Фаза P1 закрыта** (🟠 Done with deviations) — все items терминальны (P1.1 🟠, P1.2/P1.3
+🟢), docs-sync не требуется (доки уже обновлены в item-коммитах P1.1/P1.3), известные
+отклонения — механически собраны в `phases/P1.md` Phase Handoff (OOM голого
+`composer test` на локальном окружении, `IMPROVEMENT_PLAN.md` без колонки `Status`,
+временный CHANGELOG.md permission-обход).
+**Фаза P2 закрыта** (🟢 Done) — все items терминальны (P2.1-P2.3 🟢, P2.4 ⛔ Skipped by
+decision).
+
+Обе фазы плана терминальны → **план `2026.07.17-AZGUARD-TAILS` закрыт целиком**. Все семь
+хвостов T1-T7 из `REMAINDER_REPORT.md` закрыты (T1-T6 — 🟢/🟠, T7 — ⛔ Skipped by decision,
+D3).
+
+**Remaining:** —
 
 **Sources of truth:** plans/2026.07.17-AZGUARD-TAILS/plan.md ·
 plans/2026.07.17-AZGUARD-TAILS/phases/P1.md ·
@@ -61,11 +40,9 @@ plans/2026.07.17-AZGUARD-TAILS/phases/P2.md ·
 plans/2026.07.17-AZGUARD-TAILS/roadmap.md · `REMAINDER_REPORT.md` (T1-T6 — 🟢, T7 — ⛔).
 
 **Open risks:** Голый `composer test`/`vendor/bin/phpstan analyse` OOM-ят на этом
-локальном окружении (`memory_limit=128M`, подтверждено повторно на всех items
-P1.1-P1.3/P2.1-P2.3) — гонять Validation через `php -d memory_limit=1G vendor/bin/pest` /
-`php -d memory_limit=1G vendor/bin/phpstan analyse --memory-limit=1G` (эквивалент, не
-отклонение). Фаза P1 требует формального `plan-close` перед тем, как план в целом можно
-будет считать готовым к архивации.
+локальном окружении (`memory_limit=128M`) — гонять Validation через
+`php -d memory_limit=1G vendor/bin/pest` / `php -d memory_limit=1G vendor/bin/phpstan
+analyse --memory-limit=1G` (эквивалент, не отклонение).
 
 **Workarounds/Deferred/Open questions:**
 - workarounds: —

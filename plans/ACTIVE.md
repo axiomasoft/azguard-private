@@ -1,4 +1,4 @@
 # ACTIVE
 
-**Active:** 2026.07.17-AZGUARD-TAILS
-**Updated:** 2026-07-17
+**Active:** —
+**Updated:** 2026-07-18
