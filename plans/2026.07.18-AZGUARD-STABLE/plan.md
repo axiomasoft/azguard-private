@@ -67,7 +67,7 @@ read-only аудит (акцент — интеграционная поверх
 
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
-| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 0/6 | ⬜ Not started |
+| P0 | Read-only аудит: 4 оси + RAG fluent/DX → REGISTER + бэклог | 1/6 | 🟡 In progress |
 | P1 | Ремедиация находок аудита (волны по severity) | 0/4 | ⬜ Not started |
 | P2 | Структурный канон + fluent/DX редизайн API | 0/4 | ⬜ Not started |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 0/3 | ⬜ Not started |
@@ -94,6 +94,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | issue-planner/fable | План создан (design pass 1/3: recon×3 → findings/, синтез research/00, скелеты P0–P5 с контракт-блоками, D1–D6). ACTIVE: — → 2026.07.18-AZGUARD-STABLE. Фокус pass 2: детализация P0 |
 | 2026-07-18 | issue-planner/fable | Заложены приоры research/01-fluent-api-priors.md + RAG-preseed findings/P0-rag-fluent-dx-preseed.md (5 тезисов верифицированы, приор B.7 скорректирован); P0.1 сужен до добора первоисточников (Filament/context7) |
 | 2026-07-18 | issue-planner/fable | Design pass 2/3: P0 детализирована до DoR (6 items, чеклисты C-A/B/C/D, finding-template), workflow wf-azguard-stable-p0-audit.js создан, Routing P0 уточнён, D7–D8, v0.2.0. Фокус pass 3: детализация P1–P5 по фактам аудита P0 |
+| 2026-07-18 | orchestrator/fable | P0.1 закрыт: RAG-добор — 5/5 вердиктов preseed подтверждены первоисточниками, 2 [UNVERIFIED] — детали см. phases/P0.md P0.1 Completion Notes |
 
 ## Обсуждение
 
