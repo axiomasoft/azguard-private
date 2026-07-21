@@ -10,6 +10,9 @@
   `/home/vostrikov/projects/packages/swissknifeman/packages/task/docs/reference/provider-commands.md`
   (read 2026-07-21).
 - Project-native Codex agents: `.codex/agents/*.toml` (read 2026-07-21).
+- Installed plugin manifest and adapters:
+  `/home/vostrikov/.codex/plugins/cache/swissknifeman/task/0.3.0/`
+  (verified installed/enabled 2026-07-21).
 
 ## Verified facts
 
@@ -22,6 +25,11 @@
   `frontier/* → gpt-5.6-sol/*`, `implementation/* → gpt-5.6-terra/*`; the project's
   read-only/exploration agents already use `gpt-5.6-luna`. RAG:— (repo-grounded:
   provider-commands.md; `.codex/agents/*.toml`).
+- `task@swissknifeman` 0.3.0 exports Codex adapters for `task:plan-run`,
+  `task:plan-exec`, `task:plan-close`, `task:plan-audit` and `task:plan-design`.
+  A session started before plugin installation/update must be restarted because its
+  available skill set is already fixed. RAG:— (repo-grounded: installed plugin manifest
+  and adapter `SKILL.md` files).
 
 ## Routing verdict for the remaining plan
 

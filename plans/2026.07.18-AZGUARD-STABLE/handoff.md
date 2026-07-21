@@ -1,4 +1,4 @@
-# HANDOFF — 2026-07-21 — after P4
+# HANDOFF — 2026-07-21 — after P4.2
 
 **Next:** run-items: task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
 
@@ -14,18 +14,25 @@
 $ task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
 
 РЕЖИМ: remediation — продолжение уже начатого 🟡 P4.8, не реализация с нуля
-ВХОД: handoff.md → plan.md D30–D33 → phases/P4.md P4.8 → research/04-p4.2-remediation.md → findings/P4.2-remediation-anchors-2026-07-18.md; затем git status/diff
+ВХОД: handoff.md → research/05-codex-execution-contract.md → plan.md D30–D34 → phases/P4.md P4.8 → research/04-p4.2-remediation.md → findings/P4.2-remediation-anchors-2026-07-18.md; затем git status/diff
 СКОУП: 1) сохранить и проверить существующий migration-diff 000005; 2) отделить временную DebugPgAbort-диагностику от deliverable-тестов; 3) прогнать P4.8 Validation на sqlite/PG/MySQL; 4) заказать read-only Sol/high review diff; 5) исправить findings на Terra/high; 6) закрыть item по двухкоммитной топологии
 НЕ ТРОГАТЬ: P4.7 (000002/000010), P4.9 (Filament LIKE), P4.10 deliverables; `.github/workflows/tests.yml` не коммитить до P4.10; не переписывать/не стирать чужой dirty diff без инвентаризации
 ```
 
-**Provider fallback (если `task`-plugin не установлен):** запустить новую Codex-сессию на
-GPT-5.6 Terra/high и вставить code block выше как обычный prompt; затем потребовать следовать
-`plan-protocol` и полной спецификации P4.8.
+**Prerequisite:** `task@swissknifeman` 0.3.0+ установлен и включён. После фикса plugin
+обязательна новая Codex-сессия; если `$ task:plan-run` в ней не распознаётся, разработку не
+начинать — сначала исправить загрузку plugin. Ручной prompt не является штатным fallback.
+
+```bash
+codex -C /home/vostrikov/projects/packages/azguard \
+  -m gpt-5.6-terra \
+  -c 'model_reasoning_effort="high"'
+```
 
 **Done:** P4.1 🟢 (Docker-стенд) и P4.2 🟢 (DB-lane harness + `expires_at` fixture). План
-адаптирован под Codex в D33: provider-neutral routing, Luna/Terra/Sol projection и review
-checkpoints. `plan-lint` зелёный; остаётся только optional warning об отсутствующем `index.md`.
+адаптирован под Codex в D33/D34: provider-neutral routing, Luna/Terra/Sol projection,
+явный execution contract и review checkpoints. `plan-lint` зелёный; остаётся только
+optional warning об отсутствующем `index.md`.
 
 **Current dirty tree — считать входом P4.8, не мусором:**
 
@@ -51,7 +58,8 @@ review P4.8/P4.7/P4.4, общего B6 checkpoint и phase audits; Luna — то
 `PGSQL_PORT=25432`, `MYSQL_PORT=23306`, `REDIS_PORT=26379`. Перед реальными lane-runs проверить
 `docker compose ps`; не предполагать, что контейнеры пережили предыдущую сессию.
 
-**Sources of truth:** `plan.md` v0.3.22 (§3, D30–D33) · `phases/P4.md` P4.8 ·
+**Sources of truth:** `plan.md` v0.3.23 (§3, D30–D34) ·
+`research/05-codex-execution-contract.md` · `phases/P4.md` P4.8 ·
 `roadmap.md` review checkpoints · `findings/codex-model-routing-2026-07-21.md` ·
 `research/04-p4.2-remediation.md` · `findings/P4.2-remediation-anchors-2026-07-18.md` ·
 `findings/P4.2-db-portability-failures.md` · current `git status`/`git diff`.

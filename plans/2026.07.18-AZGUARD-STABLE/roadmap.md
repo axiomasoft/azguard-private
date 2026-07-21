@@ -5,11 +5,13 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.22 (D33 — Codex-проекция
-Luna/Terra/Sol, checkpoints ревью, продолжение незавершённого P4.8)
+**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.23 (D33/D34 — Codex-only
+execution contract, Luna/Terra/Sol, checkpoints ревью, повторная приёмка dirty P4.8)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
+Обязательный вход каждого незавершённого item: `research/05-codex-execution-contract.md`.
+Требование запуска: `task@swissknifeman` 0.3.0+ и новая Codex-сессия после его обновления.
 
 ## Карта исполнения
 
@@ -45,7 +47,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | Model class | frontier |
 | Codex | GPT-5.6 Sol |
 | Effort | high — канон флота |
-| Context | same-session — item; cold-start reads: plan.md → phases/P5.md → handoff.md → Completion Notes всех фаз |
+| Context | same-session — item; cold-start reads: research/05 → plan.md → phases/P5.md → handoff.md → Completion Notes всех фаз |
 | Суть | P5.1 только после GREEN-аудита P4; отдельная Sol/high-сессия |
 
 ```
@@ -65,7 +67,7 @@ P4.8/P4.7 — `plan-run` manual на Terra/high; B6 — `plan-exec` на Terra/m
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
 | Effort | high (P4.8/P4.7) · medium (B6) |
-| Context | same-session — item; cold-start reads: handoff.md → plan.md D30–D33 → phases/P4.md P4.8 → research/04 → findings anchors |
+| Context | same-session — item; cold-start reads: handoff.md → research/05 → plan.md D30–D34 → phases/P4.md P4.8 → research/04 → findings anchors |
 | Суть | продолжить P4.8 dirty diff → review → P4.7 → review → P4.9/P4.10 → review |
 
 ```
@@ -79,7 +81,7 @@ $ task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
 | Effort | medium |
-| Context | same-session — item: plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
+| Context | same-session — item: research/05 → plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
 | Суть | P4.9 (filament LIKE-escape) → P4.10 (green оба лейна + коммит CI-джоба + baseline→resolved) |
 
 ```
@@ -93,7 +95,7 @@ $ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
 | Effort | medium |
-| Context | same-session — item: plan.md D22/D25/D26/D33 → phases/P5.md → findings/P5-rag-release-guard-2026-07-18.md |
+| Context | same-session — item: research/05 → plan.md D22/D25/D26/D34 → phases/P5.md → findings/P5-rag-release-guard-2026-07-18.md |
 | Суть | P5.2 (релиз: тег ТОЛЬКО после approve владельца) → P5.3 (миграция root/→docs, финальный handoff) |
 
 ```
@@ -101,6 +103,10 @@ $ task:plan-exec 2026.07.18-AZGUARD-STABLE P5.2 P5.3
 ```
 
 ## Review checkpoints
+
+Один writer за раз. Reviewer только читает diff/логи и возвращает findings; fixes делает
+writer-route. После двух неуспешных review/fix циклов — §10/`task:plan-design`, не третий
+автоматический круг.
 
 | После | Reviewer | Что проверяет | Дальше |
 |:--|:--|:--|:--|
