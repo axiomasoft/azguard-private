@@ -40,13 +40,20 @@ return new class extends Migration
 
         // scope_entity_id's SQL type follows Config::morphType(): an integer
         // column (default morph) needs an integer COALESCE fallback, a
-        // ulid/uuid morph (char column) needs a string one — a hardcoded `0`
+        // ULID and UUID morphs need a string fallback. The all-zero UUID is
+        // valid for Postgres' native uuid type; scope_entity_type remains the
+        // paired discriminator, so it cannot collide with a real morph row.
         // fallback against a char column is a Postgres COALESCE type error
         // ("character and integer cannot be matched") and a silent type
         // coercion footgun everywhere else.
-        $scopeEntityIdFallback = Config::morphType() === 'int' ? '0' : "''";
+        $driver = Schema::getConnection()->getDriverName();
+        $scopeEntityIdFallback = match (Config::morphType()) {
+            'int' => '0',
+            'uuid' => "'00000000-0000-0000-0000-000000000000'",
+            default => "''",
+        };
 
-        if (Schema::getConnection()->getDriverName() === 'mysql') {
+        if ($driver === 'mysql') {
             // Functional key parts (MySQL >= 8.0.13). The *_type columns are
             // capped at 191 chars (prefix / SUBSTRING) to stay under InnoDB's
             // 3072-byte key length limit (ROW_FORMAT=DYNAMIC, the default) —
