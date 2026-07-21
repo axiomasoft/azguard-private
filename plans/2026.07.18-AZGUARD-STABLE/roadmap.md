@@ -5,8 +5,8 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.25 (D36 — P4.11 отделяет
-anonymous-class fixture portability от P4.8 migration/P3 freeze)
+**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.26 (D37 — P4.12 отделяет
+production `MorphColumns` index-name repair от closed P4.8 и P4.10 CI gate)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
@@ -28,6 +28,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P4.11 | solo | plan-exec | implementation/medium → Terra/medium | — | два existing anonymous wildcard fixtures → named SuperAdminRole; PG proof, затем Sol/high classification review |
 | P4.7 | — | 🟠 закрыт | implementation/high → Terra/high | — | `4c4970f`: key-length+collation 000002/000010 и Sol/high APPROVE; MySQL RefreshDatabase red передан P4.10 |
 | P4.9–P4.10 | B6 | plan-exec серия | implementation/medium → Terra/medium | — | LIKE-escape → green-proof+CI; один Sol/high review checkpoint на итог B6 |
+| P4.12 | solo | plan-run (manual) | implementation/high → Terra/high | — | short table-aware MorphColumns index names; Sol/high full review; затем P4.10 |
 | P4.3 | solo | plan-exec | implementation/medium → Terra/medium | — | paratest, отдельный риск-профиль; full review |
 | P4.4 | solo | plan-exec | implementation/medium → Terra/medium | — | race C-05/C-14; независимый Sol/high concurrency-review; реальный race → §10 |
 | P4.5 | solo | plan-exec | implementation/medium → Terra/medium | — | mutation-ratchet по честному baseline; full review |
@@ -76,18 +77,18 @@ B6 — `plan-exec` на Terra/medium. Стенд должен быть подн�
 $ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.11
 ```
 
-### B6 — LIKE-фикс + green-proof (plan-exec серия, после P4.8/P4.7)
+### P4.12 → B6 — morph-index repair, затем green-proof
 
 | Параметр | Значение |
 |:--|:--|
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
-| Effort | medium |
-| Context | same-session — item: research/05 → plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
-| Суть | P4.9 (filament LIKE-escape) → P4.10 (green оба лейна + коммит CI-джоба + baseline→resolved) |
+| Effort | high (P4.12) · medium (P4.10) |
+| Context | same-session — item: research/05 → research/07 → findings/P4.10-uuid-morph-index-name-2026-07-22.md → plan.md D37 → phases/P4.md P4.12/P4.10 → handoff.md |
+| Суть | P4.12 (portable morph-index names + Sol review) → P4.10 (full green, CI, baseline) |
 
 ```
-$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
+$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.12
 ```
 
 ### B5 — релиз + закрытие (plan-exec серия, гейт владельца внутри)
@@ -115,6 +116,7 @@ writer-route. После двух неуспешных review/fix циклов �
 | P4.8 | GPT-5.6 Sol/high, read-only | raw SQL, morph-type fallback, MySQL FK/index down-order, тест-доказательства | findings → Terra/high fix; clean → закрыть item |
 | P4.11 | GPT-5.6 Sol/high, read-only | named fixture сохраняет persistent role path и test-only fix не маскирует runtime/P3 regression | findings → Terra/medium fix; clean → `plan-close P4.8` |
 | P4.7 | GPT-5.6 Sol/high, read-only | key-byte calculation, collision semantics, driver guards, case-sensitive security invariant | findings → Terra/high fix; clean → закрыть item |
+| P4.12 | GPT-5.6 Sol/high, read-only | deterministic short table-aware names, no fixture shortening, identical semantics across morph paths and three-driver proof | findings → Terra/high fix; clean → P4.10 |
 | B6 | GPT-5.6 Sol/high, read-only | LIKE portability + честность full green/CI wiring | findings → Terra/medium fix |
 | P4.4 | GPT-5.6 Sol/high, read-only | race validity, false-green/false-negative risks, process isolation | findings → Terra/high fix или §10 |
 | Фаза P4 | GPT-5.6 Sol/xhigh, новая сессия | adversarial `plan-audit P4` по всем deliverables/commits | только GREEN разрешает P5.1 |

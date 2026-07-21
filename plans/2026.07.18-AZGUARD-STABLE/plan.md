@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.25 |
+| Version | 0.3.26 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (P4.9 завершён 🟢: переносимый LIKE-escape подтверждён на SQLite, PostgreSQL и MySQL; MySQL RefreshDatabase harness остаётся red-риском P4.10) |
+| Last Updated | 2026-07-22 (P4.10 UUID index-name эскалация классифицирована: P4.12 владеет portable morph-index repair; P4.10 остаётся blocked до full MySQL proof) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -51,7 +51,7 @@ read-only аудит (акцент — интеграционная поверх
 - Один writer за раз; независимый reviewer read-only. Не более двух циклов review/fix,
   затем эскалация §10/`task:plan-design`. Dirty diff прежнего агента — недоверенный вход:
   принимается только после scoped-инвентаризации и воспроизводимой валидации.
-- Review=full для P4.8/P4.7/P4.4 включает независимый read-only diff-review на frontier/high ДО
+- Review=full для P4.8/P4.7/P4.12/P4.4 включает независимый read-only diff-review на frontier/high ДО
   закрытия item'а; исправления выполняет implementation/high. После каждой терминальной фазы —
   обязательный `plan-close`, затем свежая frontier/xhigh-сессия `plan-audit`.
 - Волатильные фазы P1/P2 детализируются ПОСЛЕ закрытия P0 (D3) — exec по их скелетам
@@ -91,6 +91,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P4.11 | implementation/medium | plan-exec | предписанная fixture-portability: два existing wildcard assertions сохраняются, production/API не меняются; PG-подтверждение обязательно, Review=full из-за классификации закрытого P4.8/P3-freeze |
 | P4.7 | implementation/high | manual | frozen D24+D32; GPT-5.6 Terra/high исполняет, GPT-5.6 Sol/high независимо ревьюит diff до закрытия; миграции/security fail-closed → Review=full |
 | P4.9 | implementation/medium | plan-exec | точечный query-фикс по D30, детерминированный тест; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
+| P4.12 | implementation/high | manual | предписанный internal schema-helper repair по D37: cross-driver migration correctness, deterministic short identifiers; GPT-5.6 Terra/high, отдельный GPT-5.6 Sol/high read-only review; Review=full |
 | P4.10 | implementation/medium | plan-exec | green-proof+CI+baseline по D30; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
 | P4.3 | implementation/medium | plan-exec | paratest+shared-state hardening; GPT-5.6 Terra/medium; Review=full |
 | P4.4 | implementation/medium | plan-exec | race Redis/Octane; GPT-5.6 Terra/medium исполняет, GPT-5.6 Sol/high независимо ревьюит concurrency-diff; Review=full; реальный race → §10 |
@@ -108,7 +109,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 5/11 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 5/12 | 🔴 Blocked |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -151,6 +152,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D34 | 2026-07-21 | Уточнение владельца: все будущие запуски плана — только ChatGPT/Codex; неявный контекст Claude заменён обязательным `research/05-codex-execution-contract.md`. Контракт пинит `task@swissknifeman` 0.3.0+, fresh-session gate, точные Terra/Sol/Luna роли и effort по каждому открытому item, one-writer/read-only-review, максимум два review/fix цикла и повторную приёмку dirty P4.8 по воспроизводимым доказательствам. Ручной prompt без task-harness запрещён как штатный fallback | Передача плана между агентными harness'ами требует явной context architecture и validation boundary: модель предлагает, репозиторий/тесты/plan-protocol подтверждают. Экономия достигается Terra на frozen-spec, Sol только на несущих verdicts, Luna только на детерминированном read-only support; координационные накладные расходы не должны превышать экономию. RAG:— (repo-grounded: brief/01-refinements.md 2026-07-21; research/05-codex-execution-contract.md; task plugin 0.3.0 adapters) |
 | D35 | 2026-07-21 | P4.8 эскалирован после двухкоммитного migration-fix и независимого Sol-review: `MorphType` и `ModelHasRolesScopes` зелёны, но PG `Authorizer|HasAzGuard` остаётся 35/37 с двумя false wildcard assertions без SQLSTATE/transaction-abort. Нельзя закрыть P4.8 зелёным или расширить его Files: нужен минимальный follow-up item, который классифицирует и исправляет/обосновывает wildcard-дефект; только затем вернуть P4.8 к закрытию | Acceptance P4.8 требует снятия cascade; evidence отделяет закрытый migration-defect от нового поведения wildcard. Scope expansion нарушил бы file ownership и freeze P3. RAG:— (repo-grounded: commits 1179b7c/91a67d7; P4.8 review; `composer test:pgsql -- --filter='Authorizer|HasAzGuard'`) |
 | D36 | 2026-07-21 | Добавлен отдельный **P4.11**: два PG wildcard failures классифицированы как portability test fixtures, хранящие `get_class()` анонимных `BaseRole` с NUL-байтом в persistent `roles.class_name`; P4.11 заменяет только эти fixtures на существующий именованный `SuperAdminRole`, сохраняет обе assertions и не меняет P4.8 migration, RBAC runtime или P3 snapshot. Если именованный fixture не докажет wildcard на PG, P4.11 эскалирует как runtime/P3-вопрос, а не ослабляет тест | Повторяемый PG `35/37` не имеет SQLSTATE/transaction-abort; контроль с именованными SuperAdminRole tests — PG `22/22`. Следовательно, минимальный честный путь — отделить невалидный persistent class-string fixture от продукта; SemVer = no-change при подтверждении. RAG:— (repo-grounded: findings/P4.8-wildcard-follow-up-2026-07-21.md; research/06-p4.8-wildcard-classification.md; root/semver-policy.md §1–4) |
+| D37 | 2026-07-22 | P4.10 UUID `SQLSTATE 1059` получает отдельный **P4.12**, а P4.8 не реопенится: defect находится не в closed migration 000005, а в production-helper `MorphColumns`, который вызывает Laravel UUID morph helpers без explicit index name. P4.12 задаёт короткие deterministic table-aware names и сохраняет длинные configurable-table fixtures; P4.10 остаётся blocked и только после P4.12 повторяет full MySQL proof с `COMPOSER_PROCESS_TIMEOUT=900` | Сокращение test fixture скрыло бы реальный installability defect: migration 000000 также использует `MorphColumns::add()`, Laravel строит default name из table+columns. New item сохраняет P4.8 committed evidence/file ownership, P3/API freeze и SemVer no-change. RAG:— (repo-grounded: findings/P4.10-uuid-morph-index-name-2026-07-22.md; research/07-p4.12-morph-index-portability.md; packages/core/database/migrations/2026_01_01_000000_create_az_guard_tables.php:20-30; root/semver-policy.md §1–4) |
 
 ## 6. Update Log
 
@@ -207,6 +209,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-run/implementation-high | P4.8 закрыт: после P4.11 повторная PG/MySQL/SQLite validation подтвердила committed migration remediation — детали см. phases/P4.md P4.8 Completion Notes. |
 | 2026-07-21 | plan-run/implementation-high | P4.7 закрыт (🟠): key-length+binary collation 000002/000010 и Sol review готовы; MySQL RefreshDatabase bootstrap red перед тестом передан P4.10 — детали см. phases/P4.md P4.7 Completion Notes/Known Deviations. |
 | 2026-07-21 | plan-exec/implementation-medium | P4.9 закрыт: нейтральный LIKE escape сохраняет литеральные `%`/`_` на SQLite, PostgreSQL и MySQL — детали см. phases/P4.md P4.9 Completion Notes. |
+| 2026-07-22 | plan-design/frontier-high | P4.12 детализирован до DoR: explicit table-aware short morph-index names вместо fixture shortening, D37; P4.10 остаётся blocked до repair и timeout-900 full MySQL proof — детали см. phases/P4.md P4.12. |
 
 ## Обсуждение
 

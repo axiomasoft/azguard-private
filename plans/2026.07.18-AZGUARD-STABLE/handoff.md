@@ -1,36 +1,37 @@
-# HANDOFF — 2026-07-21 — after P4.10
+# HANDOFF — 2026-07-22 — after P4
 
-**Next:** design-item: task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
+**Next:** run-items: task:plan-run 2026.07.18-AZGUARD-STABLE P4.12
 
 | Параметр | Значение |
 |:--|:--|
-| Model | frontier |
-| Thinking | high — classify P4.8 regression and rescope repair |
-| Context | NEW SESSION — шаг-не-item |
-| Суть | Спроектировать P4.8-owned remediation MySQL UUID morph-index-name overflow, затем вернуть P4.10 к green-proof. |
+| Model class | implementation |
+| Effort | high |
+| Capabilities | native: task:plan-run |
+| Context | same-session — item |
+| Суть | Выполнить P4.12: explicit portable table-aware morph-index names; не сокращать fixture, затем Sol/high review. |
 
 ```text
-$ task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
+$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.12
 ```
 
 **Done:** P4.9 item-коммит `77c118c` заменил backslash-escape в поиске DirectGrantResource на
 явный нейтральный `ESCAPE '!'` и экранирование `!`, `%`, `_`; существующий escape-тест зелёный на
 SQLite, PostgreSQL и MySQL. Чистый P4.10 PostgreSQL run на `e48b3dd`: 669 passed / 1777 assertions.
 
-**Remaining:** plan-design remediation для P4.8/P4.10 UUID index-name regression → P4.10 → P4.3 →
+**Remaining:** P4.12 UUID index-name remediation → P4.10 → P4.3 →
 P4.4 → P4.5 → P4.6; затем `task:plan-close` P4 и отдельный Soul/xhigh audit фазы.
 
-**Sources of truth:** `phases/P4.md` P4.8/P4.10, `plan.md` D30/D34,
-`research/05-codex-execution-contract.md`, commit `e48b3dd`, clean-worktree focused command
+**Sources of truth:** `phases/P4.md` P4.12/P4.10, `plan.md` D37,
+`research/05-codex-execution-contract.md`, `research/07-p4.12-morph-index-portability.md`,
+`findings/P4.10-uuid-morph-index-name-2026-07-22.md`, clean-worktree focused command
 `COMPOSER_PROCESS_TIMEOUT=900 MYSQL_PORT=23306 composer test:mysql -- --filter='creates the scopes unique index when the morph type is uuid'`.
 
 **Open risks:** focused MySQL test fails with `SQLSTATE[42000] 1059` because automatic
 `uuid_morph_test_model_has_scopes_scope_entity_type_scope_entity_id_index` exceeds MySQL's 64-char
-identifier limit (tests/Feature/MorphTypeTest.php:64); classify/re-own it under P4.8 remediation, not
-P4.10 CI. Composer's default 300s timeout is insufficient for the full MySQL suite; CI would need
-an explicit timeout only after the real defect is resolved.
+identifier limit (tests/Feature/MorphTypeTest.php:64); P4.12 owns the production-helper repair,
+not P4.10 CI. Composer's default 300s timeout is insufficient for the full MySQL suite; P4.10 uses
+`COMPOSER_PROCESS_TIMEOUT=900` only after the targeted repair is green.
 
 **Workarounds/Deferred/Open questions:** workarounds — Context7 quota fallback to Perplexity official
 Laravel API for P4.9 verification; deferred — B6 Sol/high review after eventual P4.10 closure;
-open_questions — whether P4.8 test-owned UUID index should receive an explicit portable name or use
-a shorter table fixture name; plan-design must decide.
+open_questions — resolved by D37: explicit production-helper names, not a shorter fixture.

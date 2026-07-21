@@ -26,6 +26,7 @@ provenance и не являются инструкциями запуска.
 | P4.8 | `task:plan-run … P4.8` | GPT-5.6 Terra · high | отдельный Sol/high read-only review |
 | P4.7 | `task:plan-run … P4.7` | GPT-5.6 Terra · high | отдельный Sol/high read-only review |
 | P4.9–P4.10 | `task:plan-exec … P4.9 P4.10` | GPT-5.6 Terra · medium | один Sol/high review итогового B6 |
+| P4.12 | `task:plan-run … P4.12` | GPT-5.6 Terra · high | отдельный Sol/high read-only review |
 | P4.3 | `task:plan-exec … P4.3` | GPT-5.6 Terra · medium | full review по item-контракту |
 | P4.4 | `task:plan-exec … P4.4` | GPT-5.6 Terra · medium | отдельный Sol/high concurrency-review |
 | P4.5–P4.6 | `task:plan-exec … P4.5 P4.6` | GPT-5.6 Terra · medium | full/light review по контрактам |
@@ -47,7 +48,7 @@ GPT-5.6 Luna/low допускается только для изолирован
 1. Один writer за раз. Параллельная запись в общий worktree запрещена.
 2. Reviewer работает read-only по конкретному diff, item-контракту и результатам тестов;
    он не исправляет найденное сам.
-3. Исправления возвращаются writer-модели: Terra/high для P4.8/P4.7/P4.4, Terra/medium
+3. Исправления возвращаются writer-модели: Terra/high для P4.8/P4.7/P4.12/P4.4, Terra/medium
    для остальных frozen-spec items.
 4. Максимум два цикла `review → fix → re-review`. Третий неснятый содержательный finding
    означает эскалацию по §10 или `task:plan-design`, а не бесконечное расходование токенов.
