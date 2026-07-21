@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (P4.11 спроектирован: PG wildcard = portability двух test fixtures, P3/SemVer не затрагиваются при подтверждении, D36) |
+| Last Updated | 2026-07-21 (P4.11 закрыт: named role fixtures подтвердили PG wildcard portability без изменения P3/SemVer/API) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -108,7 +108,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 2/11 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 3/11 | 🔴 Blocked |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -203,6 +203,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-design/GPT-5.6 | Полная Codex-only подготовка (D34): добавлен обязательный execution contract, fresh-session/task-plugin gate, точные модели/effort/команды, контур handoff/review и приёмка недоверенного P4.8 diff; активные P4/P5 переведены на доступные Codex skills. v0.3.23 |
 | 2026-07-21 | plan-run/GPT-5.6 Terra/high | P4.8 эскалирован: migration 000005 исправлена и независимо одобрена, но отдельный PG wildcard-defect оставил обязательную validation красной — причина и follow-up см. phases/P4.md P4.8 и D35. |
 | 2026-07-21 | plan-design/frontier-high | P4.11 детализирован до DoR: PG wildcard classified as anonymous-class fixture portability; P4.8 Files/P3 freeze не расширены, D36, findings/research добавлены, roadmap пересобран — детали см. phases/P4.md P4.11. |
+| 2026-07-21 | plan-exec/implementation-medium | P4.11 закрыт: named `SuperAdminRole` fixtures подтвердили PG wildcard без изменения runtime/P3 — детали см. phases/P4.md P4.11 Completion Notes. |
 
 ## Обсуждение
 
