@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (P4.7 завершён 🟠: migration key-length+binary collation готовы, но MySQL RefreshDatabase harness остаётся red-риском P4.10) |
+| Last Updated | 2026-07-21 (P4.9 завершён 🟢: переносимый LIKE-escape подтверждён на SQLite, PostgreSQL и MySQL; MySQL RefreshDatabase harness остаётся red-риском P4.10) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -108,7 +108,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 4/11 | 🟡 In progress |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 5/11 | 🟡 In progress |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -206,6 +206,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-exec/implementation-medium | P4.11 закрыт: named `SuperAdminRole` fixtures подтвердили PG wildcard без изменения runtime/P3 — детали см. phases/P4.md P4.11 Completion Notes. |
 | 2026-07-21 | plan-run/implementation-high | P4.8 закрыт: после P4.11 повторная PG/MySQL/SQLite validation подтвердила committed migration remediation — детали см. phases/P4.md P4.8 Completion Notes. |
 | 2026-07-21 | plan-run/implementation-high | P4.7 закрыт (🟠): key-length+binary collation 000002/000010 и Sol review готовы; MySQL RefreshDatabase bootstrap red перед тестом передан P4.10 — детали см. phases/P4.md P4.7 Completion Notes/Known Deviations. |
+| 2026-07-21 | plan-exec/implementation-medium | P4.9 закрыт: нейтральный LIKE escape сохраняет литеральные `%`/`_` на SQLite, PostgreSQL и MySQL — детали см. phases/P4.md P4.9 Completion Notes. |
 
 ## Обсуждение
 
