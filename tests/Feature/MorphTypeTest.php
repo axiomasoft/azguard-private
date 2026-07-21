@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Configuration\Config;
+use AzGuard\Database\Schema\MorphColumns;
 use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\UlidUser;
 use Illuminate\Database\Schema\Blueprint;
@@ -59,12 +60,12 @@ it('creates the scopes unique index when the morph type is uuid', function (): v
         });
         Schema::create($tables['model_has_roles'], function (Blueprint $table): void {
             $table->unsignedBigInteger('role_id');
-            $table->uuidMorphs('model');
+            MorphColumns::add($table, 'model');
         });
         Schema::create($tables['model_has_scopes'], function (Blueprint $table): void {
             $table->id();
-            $table->uuidMorphs('model');
-            $table->nullableUuidMorphs('scope_entity');
+            MorphColumns::add($table, 'model');
+            MorphColumns::add($table, 'scope_entity', nullable: true);
             $table->string('scope_class')->nullable();
             $table->unsignedBigInteger('role_id')->nullable();
             $table->string('panel_id')->nullable();

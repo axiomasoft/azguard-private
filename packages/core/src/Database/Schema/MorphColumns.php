@@ -38,9 +38,9 @@ final class MorphColumns
 
         if ($type === 'ulid') {
             if ($nullable) {
-                $table->nullableUlidMorphs($name);
+                $table->nullableUlidMorphs($name, self::morphIndexName($table, $name));
             } else {
-                $table->ulidMorphs($name);
+                $table->ulidMorphs($name, self::morphIndexName($table, $name));
             }
 
             return;
@@ -48,18 +48,18 @@ final class MorphColumns
 
         if ($type === 'uuid') {
             if ($nullable) {
-                $table->nullableUuidMorphs($name);
+                $table->nullableUuidMorphs($name, self::morphIndexName($table, $name));
             } else {
-                $table->uuidMorphs($name);
+                $table->uuidMorphs($name, self::morphIndexName($table, $name));
             }
 
             return;
         }
 
         if ($nullable) {
-            $table->nullableMorphs($name);
+            $table->nullableMorphs($name, self::morphIndexName($table, $name));
         } else {
-            $table->morphs($name);
+            $table->morphs($name, self::morphIndexName($table, $name));
         }
     }
 
@@ -90,6 +90,11 @@ final class MorphColumns
             $idColumn->nullable();
         }
 
-        $table->index(["{$name}_type", "{$name}_id"]);
+        $table->index(["{$name}_type", "{$name}_id"], self::morphIndexName($table, $name));
+    }
+
+    private static function morphIndexName(Blueprint $table, string $name): string
+    {
+        return 'azg_'.sha1($table->getTable().'_'.$name).'_idx';
     }
 }
