@@ -1,24 +1,38 @@
-# HANDOFF — 2026-07-21 — after P4.8
+# HANDOFF — 2026-07-21 — after P4.7
 
-**Next:** ЗАПУСК ВРУЧНУЮ: implementation/high — P4.7
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
 
 | Параметр | Значение |
 |:--|:--|
 | Model | implementation |
-| Thinking | high — migration security and MySQL correctness |
-| Context | continue (reset the session context) — ручной item |
-| Суть | Выполнить P4.7 по frozen D24+D32; затем независимый Sol/high review до закрытия. |
+| Thinking | medium — frozen LIKE fix, then DB-lane proof/CI |
+| Context | новая сессия; batch B6, строго P4.9 → P4.10 |
+| Суть | P4.9 чинит MySQL LIKE-escape; P4.10 принимает чужой workflow/Pest diff, восстанавливает MySQL RefreshDatabase bootstrap после reset, доказывает green оба DB-лейна и добавляет CI job. |
 
 ```text
-В отдельной implementation/high Codex-сессии выполни P4.7 плана 2026.07.18-AZGUARD-STABLE через task:plan-run. Сначала прочитай plan.md, handoff.md, phases/P4.md P4.7 и Required Reads; не трогай P4.8, P4.9 или P4.10. Реализуй только key-length+MySQL collation для миграций 000002/000010, пройди required validation и перед закрытием получи независимый Sol/high read-only review.
+В отдельной implementation/medium Codex-сессии выполни P4.9 и P4.10 плана
+2026.07.18-AZGUARD-STABLE через task:plan-exec. Прочитай research/05-codex-execution-contract.md,
+plan.md, phases/P4.md P4.9/P4.10 и этот handoff. Строго сначала P4.9, затем P4.10. P4.10 владеет
+незакоммиченными .github/workflows/tests.yml и tests/Pest.php только после scoped-инвентаризации.
+На пустом disposable azguard_test воспроизведи MySQL RefreshDatabase bootstrap: P4.7 и существующий
+ModelHasRolesScopes падают до test body с missing/already-existing model_has_roles/roles/migrations.
+Не трогай P4.7 migrations 000002/000010; сначала классифицируй/fix harness в Scope P4.10, затем
+повтори composer test:mysql включая CollationCaseSensitivityTest и получи общий Sol/high review B6.
 ```
 
-**Done:** P4.8 закрыт по committed evidence: `1179b7c`/`91a67d7` реализуют migration 000005 и UUID proof; P4.11 `cda13a8` устранил отдельную portability fixture без изменения runtime. Повторные PG MorphType, PG ModelHasRolesScopes, PG `Authorizer|HasAzGuard`, MySQL ModelHasRolesScopes, SQLite full suite, lint и analyse зелёные.
+**Done:** P4.7 item-коммит `4c4970f` ограничил ключи 000002/000010 и применил MySQL/MariaDB-only
+`utf8mb4_bin`; key math 2560 B/3068 B < 3072 B, SQLite/PG и initial MySQL regression proof зелёные,
+Sol/high read-only review — APPROVE.
 
-**Remaining:** P4.7 → B6 (P4.9–P4.10) → P4.3 → P4.4 → P4.5 → P4.6; затем `task:plan-close` P4 и отдельный SoulXHigh phase review.
+**Remaining:** P4.9 → P4.10 → P4.3 → P4.4 → P4.5 → P4.6; затем `task:plan-close` P4 и отдельный
+SoulXHigh phase review.
 
-**Sources of truth:** `plan.md` (D30, D35–D36, Status Board), `phases/P4.md` (P4.8/P4.11), `research/06-p4.8-wildcard-classification.md`, commits `1179b7c`, `91a67d7`, `cda13a8`.
+**Sources of truth:** `phases/P4.md` P4.7/P4.9/P4.10, `plan.md` D24/D30/D32/D34, commit `4c4970f`,
+`research/04-p4.2-remediation.md`, `research/05-codex-execution-contract.md`.
 
-**Open risks:** Чужой незакоммиченный diff `.github/workflows/tests.yml` принадлежит P4.10, а `tests/Pest.php` не принадлежит P4.8; не включать их в P4.7 без scoped-приёмки. Полный green-proof обоих лейнов и CI matrix остаются P4.10.
+**Open risks:** После разрешённого reset только `azguard_test` повторяемый MySQL `RefreshDatabase`
+bootstrap падает до body P4.7 и существующего `ModelHasRolesScopes` (missing/already-existing
+`model_has_roles`/`roles`/`migrations`). Это P4.10 green-proof/harness риск; не расширять P4.7.
 
-**Workarounds/Deferred/Open questions:** workarounds — · deferred — P4.9/P4.10 и остальной P4 порядок roadmap.md · open_questions —
+**Workarounds/Deferred/Open questions:** workarounds — · deferred — P4.9/P4.10 и остальной P4 порядок
+roadmap.md · open_questions —

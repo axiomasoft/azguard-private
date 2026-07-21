@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (P4.8 закрыт: P4.11 fixture-portability proof снял отдельный wildcard blocker; PG/MySQL/SQLite validation повторно зелёная) |
+| Last Updated | 2026-07-21 (P4.7 завершён 🟠: migration key-length+binary collation готовы, но MySQL RefreshDatabase harness остаётся red-риском P4.10) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -205,6 +205,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-design/frontier-high | P4.11 детализирован до DoR: PG wildcard classified as anonymous-class fixture portability; P4.8 Files/P3 freeze не расширены, D36, findings/research добавлены, roadmap пересобран — детали см. phases/P4.md P4.11. |
 | 2026-07-21 | plan-exec/implementation-medium | P4.11 закрыт: named `SuperAdminRole` fixtures подтвердили PG wildcard без изменения runtime/P3 — детали см. phases/P4.md P4.11 Completion Notes. |
 | 2026-07-21 | plan-run/implementation-high | P4.8 закрыт: после P4.11 повторная PG/MySQL/SQLite validation подтвердила committed migration remediation — детали см. phases/P4.md P4.8 Completion Notes. |
+| 2026-07-21 | plan-run/implementation-high | P4.7 закрыт (🟠): key-length+binary collation 000002/000010 и Sol review готовы; MySQL RefreshDatabase bootstrap red перед тестом передан P4.10 — детали см. phases/P4.md P4.7 Completion Notes/Known Deviations. |
 
 ## Обсуждение
 
