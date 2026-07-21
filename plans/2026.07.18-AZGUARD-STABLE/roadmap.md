@@ -5,8 +5,8 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.23 (D33/D34 — Codex-only
-execution contract, Luna/Terra/Sol, checkpoints ревью, повторная приёмка dirty P4.8)
+**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.25 (D36 — P4.11 отделяет
+anonymous-class fixture portability от P4.8 migration/P3 freeze)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
@@ -24,7 +24,8 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P3.1–P3.3 | — | ✅ фаза закрыта | historical Claude routes | — | поверхность заморожена; не перезапускать |
 | P4.1 | — | ✅ закрыт | sonnet/medium | — | docker-стенд PG16/MySQL8/Redis7 |
 | P4.2 | — | ✅ закрыт | sonnet/medium | — | **re-scope D31**: коммит БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI/green отложены в P4.10 |
-| P4.8 | solo | plan-run (manual) | implementation/high → Terra/high | — | **ПРОДОЛЖИТЬ существующий dirty diff**, не начинать заново; затем независимый Sol/high review до закрытия |
+| P4.8 | solo | blocked pending P4.11 | implementation/high → Terra/high | — | migration commits+Sol review complete; item closure waits only for P4.11 PG classification |
+| P4.11 | solo | plan-exec | implementation/medium → Terra/medium | — | два existing anonymous wildcard fixtures → named SuperAdminRole; PG proof, затем Sol/high classification review |
 | P4.7 | solo | plan-run (manual) | implementation/high → Terra/high | — | key-length+collation 000002/000010; затем независимый Sol/high review до закрытия |
 | P4.9–P4.10 | B6 | plan-exec серия | implementation/medium → Terra/medium | — | LIKE-escape → green-proof+CI; один Sol/high review checkpoint на итог B6 |
 | P4.3 | solo | plan-exec | implementation/medium → Terra/medium | — | paratest, отдельный риск-профиль; full review |
@@ -54,24 +55,25 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 $ task:plan-run 2026.07.18-AZGUARD-STABLE P5.1
 ```
 
-### P4.8 → P4.7 → B6 — portability-ремедиация (последовательно)
+### P4.8 → P4.11 → P4.7 → B6 — portability-ремедиация (последовательно)
 
-Порядок жёсткий (research/04 §3): **P4.8** (миграция 000005, ПЕРВЫМ — MySQL-каскад
-маскирует нижележащее) → **P4.7** (000002/000010 key-length+collation) → **B6** = P4.9→P4.10.
-P4.8 уже `🟡 In progress`: сначала инвентаризировать и продолжить имеющийся dirty diff.
-P4.8/P4.7 — `plan-run` manual на Terra/high; B6 — `plan-exec` на Terra/medium. Стенд должен быть поднят
+Порядок жёсткий (research/04 §3, D36): **P4.8** migration уже закоммичен, но остаётся blocked
+до **P4.11** — узкого proof/classification двух PG wildcard fixtures — затем сверка P4.8 →
+**P4.7** (000002/000010 key-length+collation) → **B6** = P4.9→P4.10. P4.11 — `plan-exec`
+на Terra/medium и Sol/high full review классификации; P4.8/P4.7 — `plan-run` manual на Terra/high;
+B6 — `plan-exec` на Terra/medium. Стенд должен быть поднят
 (`PGSQL_PORT=25432`/`MYSQL_PORT=23306` — handoff).
 
 | Параметр | Значение |
 |:--|:--|
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
-| Effort | high (P4.8/P4.7) · medium (B6) |
-| Context | same-session — item; cold-start reads: handoff.md → research/05 → plan.md D30–D34 → phases/P4.md P4.8 → research/04 → findings anchors |
-| Суть | продолжить P4.8 dirty diff → review → P4.7 → review → P4.9/P4.10 → review |
+| Effort | medium (P4.11/B6) · high (P4.7) |
+| Context | same-session — item; cold-start reads: handoff.md → research/05 → research/06 → findings/P4.8-wildcard-follow-up → plan.md D35–D36 → phases/P4.md P4.8/P4.11 |
+| Суть | P4.11 PG fixture proof → Sol review → close P4.8 evidence → P4.7 → review → P4.9/P4.10 → review |
 
 ```
-$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.11
 ```
 
 ### B6 — LIKE-фикс + green-proof (plan-exec серия, после P4.8/P4.7)
@@ -111,6 +113,7 @@ writer-route. После двух неуспешных review/fix циклов �
 | После | Reviewer | Что проверяет | Дальше |
 |:--|:--|:--|:--|
 | P4.8 | GPT-5.6 Sol/high, read-only | raw SQL, morph-type fallback, MySQL FK/index down-order, тест-доказательства | findings → Terra/high fix; clean → закрыть item |
+| P4.11 | GPT-5.6 Sol/high, read-only | named fixture сохраняет persistent role path и test-only fix не маскирует runtime/P3 regression | findings → Terra/medium fix; clean → `plan-close P4.8` |
 | P4.7 | GPT-5.6 Sol/high, read-only | key-byte calculation, collision semantics, driver guards, case-sensitive security invariant | findings → Terra/high fix; clean → закрыть item |
 | B6 | GPT-5.6 Sol/high, read-only | LIKE portability + честность full green/CI wiring | findings → Terra/medium fix |
 | P4.4 | GPT-5.6 Sol/high, read-only | race validity, false-green/false-negative risks, process isolation | findings → Terra/high fix или §10 |

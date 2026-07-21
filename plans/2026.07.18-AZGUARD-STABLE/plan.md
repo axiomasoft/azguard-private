@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.24 |
+| Version | 0.3.25 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (P4.8 эскалирован: migration-fix одобрен, независимый PG wildcard-defect требует минимального follow-up design, D35) |
+| Last Updated | 2026-07-21 (P4.11 спроектирован: PG wildcard = portability двух test fixtures, P3/SemVer не затрагиваются при подтверждении, D36) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -88,6 +88,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P4.1 | sonnet/medium | plan-exec | docker-стенд (compose PG/MySQL/Redis), инфра без прикладной логики; Review=light |
 | P4.2 | sonnet/medium | plan-exec | re-scope (D31): коммит написанного БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI-джоб/green отложены в P4.10; DB-корректность → Review=full |
 | P4.8 | implementation/high | manual | frozen D30 remediation; GPT-5.6 Terra/high исполняет, GPT-5.6 Sol/high независимо ревьюит diff до закрытия; raw-SQL cross-driver data integrity → Review=full |
+| P4.11 | implementation/medium | plan-exec | предписанная fixture-portability: два existing wildcard assertions сохраняются, production/API не меняются; PG-подтверждение обязательно, Review=full из-за классификации закрытого P4.8/P3-freeze |
 | P4.7 | implementation/high | manual | frozen D24+D32; GPT-5.6 Terra/high исполняет, GPT-5.6 Sol/high независимо ревьюит diff до закрытия; миграции/security fail-closed → Review=full |
 | P4.9 | implementation/medium | plan-exec | точечный query-фикс по D30, детерминированный тест; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
 | P4.10 | implementation/medium | plan-exec | green-proof+CI+baseline по D30; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
@@ -107,7 +108,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 2/10 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 2/11 | 🔴 Blocked |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -149,6 +150,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D33 | 2026-07-21 | Остаток P4/P5 переведён с Claude-селекторов на provider-neutral routing с Codex-проекцией: economy→GPT-5.6 Luna, implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Sol не тратится на frozen-spec implementation; он обязателен для P5.1, phase-audit и независимого review P4.8/P4.7/P4.4. Исторические строки/логи моделей не переписываются. Незакоммиченный P4.8 diff признан входом продолжения, а не новой реализацией | Качество/стоимость: официальная линейка позиционирует Sol как frontier, Terra как balance, Luna как cost-sensitive; локальный Codex adapter даёт тот же neutral mapping. Read-only supporting work можно дешево изолировать, но final correctness verdict остаётся у Sol. RAG:✅ 2026-07-21 (findings/codex-model-routing-2026-07-21.md); RAG:— (repo-grounded: git status/diff, provider-commands.md, .codex/agents/*.toml) |
 | D34 | 2026-07-21 | Уточнение владельца: все будущие запуски плана — только ChatGPT/Codex; неявный контекст Claude заменён обязательным `research/05-codex-execution-contract.md`. Контракт пинит `task@swissknifeman` 0.3.0+, fresh-session gate, точные Terra/Sol/Luna роли и effort по каждому открытому item, one-writer/read-only-review, максимум два review/fix цикла и повторную приёмку dirty P4.8 по воспроизводимым доказательствам. Ручной prompt без task-harness запрещён как штатный fallback | Передача плана между агентными harness'ами требует явной context architecture и validation boundary: модель предлагает, репозиторий/тесты/plan-protocol подтверждают. Экономия достигается Terra на frozen-spec, Sol только на несущих verdicts, Luna только на детерминированном read-only support; координационные накладные расходы не должны превышать экономию. RAG:— (repo-grounded: brief/01-refinements.md 2026-07-21; research/05-codex-execution-contract.md; task plugin 0.3.0 adapters) |
 | D35 | 2026-07-21 | P4.8 эскалирован после двухкоммитного migration-fix и независимого Sol-review: `MorphType` и `ModelHasRolesScopes` зелёны, но PG `Authorizer|HasAzGuard` остаётся 35/37 с двумя false wildcard assertions без SQLSTATE/transaction-abort. Нельзя закрыть P4.8 зелёным или расширить его Files: нужен минимальный follow-up item, который классифицирует и исправляет/обосновывает wildcard-дефект; только затем вернуть P4.8 к закрытию | Acceptance P4.8 требует снятия cascade; evidence отделяет закрытый migration-defect от нового поведения wildcard. Scope expansion нарушил бы file ownership и freeze P3. RAG:— (repo-grounded: commits 1179b7c/91a67d7; P4.8 review; `composer test:pgsql -- --filter='Authorizer|HasAzGuard'`) |
+| D36 | 2026-07-21 | Добавлен отдельный **P4.11**: два PG wildcard failures классифицированы как portability test fixtures, хранящие `get_class()` анонимных `BaseRole` с NUL-байтом в persistent `roles.class_name`; P4.11 заменяет только эти fixtures на существующий именованный `SuperAdminRole`, сохраняет обе assertions и не меняет P4.8 migration, RBAC runtime или P3 snapshot. Если именованный fixture не докажет wildcard на PG, P4.11 эскалирует как runtime/P3-вопрос, а не ослабляет тест | Повторяемый PG `35/37` не имеет SQLSTATE/transaction-abort; контроль с именованными SuperAdminRole tests — PG `22/22`. Следовательно, минимальный честный путь — отделить невалидный persistent class-string fixture от продукта; SemVer = no-change при подтверждении. RAG:— (repo-grounded: findings/P4.8-wildcard-follow-up-2026-07-21.md; research/06-p4.8-wildcard-classification.md; root/semver-policy.md §1–4) |
 
 ## 6. Update Log
 
@@ -200,6 +202,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-design/GPT-5.6 | Codex-проекция остатка плана (D33): открытые items маршрутизированы через Luna/Terra/Sol, добавлены независимые review checkpoints и cold-start продолжения незакоммиченного P4.8 — детали roadmap.md и handoff.md. v0.3.22 |
 | 2026-07-21 | plan-design/GPT-5.6 | Полная Codex-only подготовка (D34): добавлен обязательный execution contract, fresh-session/task-plugin gate, точные модели/effort/команды, контур handoff/review и приёмка недоверенного P4.8 diff; активные P4/P5 переведены на доступные Codex skills. v0.3.23 |
 | 2026-07-21 | plan-run/GPT-5.6 Terra/high | P4.8 эскалирован: migration 000005 исправлена и независимо одобрена, но отдельный PG wildcard-defect оставил обязательную validation красной — причина и follow-up см. phases/P4.md P4.8 и D35. |
+| 2026-07-21 | plan-design/frontier-high | P4.11 детализирован до DoR: PG wildcard classified as anonymous-class fixture portability; P4.8 Files/P3 freeze не расширены, D36, findings/research добавлены, roadmap пересобран — детали см. phases/P4.md P4.11. |
 
 ## Обсуждение
 
