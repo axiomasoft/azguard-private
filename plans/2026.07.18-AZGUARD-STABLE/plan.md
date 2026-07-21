@@ -6,15 +6,15 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.21 |
+| Version | 0.3.22 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-18 (P4.2 закрыт — коммит БД-лейн-харнесса + фикс фикстуры expires_at, R4) |
+| Last Updated | 2026-07-21 (Codex-проекция и review checkpoints для остатка P4/P5, D33; незавершённый diff P4.8 сохранён) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
-| Target Operator Models | sonnet (exec) · haiku (LOW) · fable/opus (design/audit) |
+| Target Operator Models | GPT-5.6 Terra (implementation) · GPT-5.6 Luna (economy/read-only) · GPT-5.6 Sol (design/audit) — D33 |
 | Approval Owner | Dmitry Vostrikov |
 | Design Passes | 3/3 — 6 фаз / 33 items (→ ≥2 по SKILL §5) + план объявлен эталоном дорожки для флота пакетов (ядро экосистемы → 3); `finish` завершён (сквозной reconcile контракт-блоков/coupling/producer→consumer ✓, roadmap верифицирован); план готов к `plan-audit design` |
 | Paused By | — |
@@ -42,6 +42,12 @@ read-only аудит (акцент — интеграционная поверх
 - P0 — строго read-only по коду: аудит НЕ чинит (правки — только файлы плана/findings).
 - План разошёлся с кодом → не импровизировать, эскалировать (§10).
 - После закрытия item/фазы — перезаписать `plans/2026.07.18-AZGUARD-STABLE/handoff.md`.
+- Для открытых items маршрутизация provider-neutral: implementation/frontier/economy; Codex-проекция
+  и checkpoints ревью закреплены D33/findings/codex-model-routing-2026-07-21.md. Исторические строки
+  с sonnet/fable/opus не переписываются.
+- Review=full для P4.8/P4.7/P4.4 включает независимый read-only diff-review на frontier/high ДО
+  закрытия item'а; исправления выполняет implementation/high. После каждой терминальной фазы —
+  обязательный `plan-close`, затем свежая frontier/xhigh-сессия `plan-audit`.
 - Волатильные фазы P1/P2 детализируются ПОСЛЕ закрытия P0 (D3) — exec по их скелетам
   запрещён.
 - Инварианты ARCHITECT_REVIEW.md §6 «What NOT to Do» (12 анти-паттернов) обязательны
@@ -50,10 +56,11 @@ read-only аудит (акцент — интеграционная поверх
 
 ## 3. Routing
 
-Черновая маршрутизация уровня фаз; уточняется при детализации каждой фазы
-(`/task:plan-design <ID> Pn`). Пусто = дефолты SSOT-матрицы §9.
+Закрытые строки сохраняют фактически использованные Claude-селекторы как историю. Все ОТКРЫТЫЕ
+строки provider-neutral и проецируются в Codex по D33: economy→GPT-5.6 Luna,
+implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефолты SSOT-матрицы §9.
 
-| Items | Model/effort | Exec | Почему |
+| Items | Model class/effort | Exec | Почему |
 |:--|:--|:--|:--|
 | P0.1–P0.5 | fable/high | manual | read-only аудит публичных контрактов + RAG несущих фактов (effort high+ MANDATORY); исполняются ОДНОЙ сессией через `workflows/wf-azguard-stable-p0-audit.js` (D8: §7-критерий — 4 оси scope-независимы, Validation детерминирована); закрытие items — оркестратор по §8 |
 | P0.6 | fable/high | manual | синтез REGISTER/бэклог + гейт владельца — контракт-класс, solo |
@@ -74,17 +81,17 @@ read-only аудит (акцент — интеграционная поверх
 | P3.3 | sonnet/high | manual | SemVer-политика + UPGRADING по D21/D22 — контракт-язык, но состав предписан (все breaking P1+P2 уже зафиксированы в Completion Notes); Review=full |
 | P4.1 | sonnet/medium | plan-exec | docker-стенд (compose PG/MySQL/Redis), инфра без прикладной логики; Review=light |
 | P4.2 | sonnet/medium | plan-exec | re-scope (D31): коммит написанного БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI-джоб/green отложены в P4.10; DB-корректность → Review=full |
-| P4.8 | sonnet/high | manual | ремедиация миграции 000005 (COALESCE morph-aware + MySQL down-order, D30): raw-SQL cross-driver корректность + снятие каскадов → effort high ⇒ manual, Review=full |
-| P4.7 | sonnet/high | manual | key-length + collation-hardening RBAC-ключей 000002/000010 (D24+D32, миграции MySQL); security-корректность+fail-closed → effort high ⇒ manual, Review=full |
-| P4.9 | sonnet/medium | plan-exec | ремедиация filament LIKE-escape под MySQL-грамматику (D30); точечный query-фикс, детерминированный тест → Review=full |
-| P4.10 | sonnet/medium | plan-exec | green-proof обоих лейнов + коммит зелёного CI-джоба + baseline→resolved (D30); интеграция/проводка, green-гейт корректность-критичен → Review=full |
-| P4.3 | sonnet/medium | plan-exec | paratest на sqlite-лейне+hardening shared-state; parallel-изоляция → Review=full |
-| P4.4 | sonnet/medium | plan-exec | кросс-процессные race-тесты (Redis proc_open + Octane); concurrency-корректность → Review=full; жёсткая эскалация §10 при реальном race-баге |
-| P4.5 | sonnet/medium | plan-exec | mutation-ratchet (замер+пороги вверх+excludes); test-quality гейт → Review=full; замер требует coverage-драйвера |
-| P4.6 | sonnet/medium | plan-exec | чистка дыр (UnitFilament, baseline↓, verify D-01/D-06); механика → Review=light |
-| P5.1 | fable/high | manual | экстракция эталонного шаблона дорожки — канон флота (Review=full); потребляет Completion Notes/Handoff всех закрытых фаз |
-| P5.2 | sonnet/medium | plan-exec | механика релиза по чек-листу item'а; НЕОБРАТИМЫЙ push тега — только после явного approve владельца (гейт в roadmap); split отложен guard'ом (D25); Review=full |
-| P5.3 | sonnet/medium | plan-exec | миграция root/→docs по таблице D26 (EN+RU parity, VitePress-нав) + финальный handoff; сам архив — post-plan `/task:plan-close archive` (D26); Review=light |
+| P4.8 | implementation/high | manual | frozen D30 remediation; GPT-5.6 Terra/high исполняет, GPT-5.6 Sol/high независимо ревьюит diff до закрытия; raw-SQL cross-driver data integrity → Review=full |
+| P4.7 | implementation/high | manual | frozen D24+D32; GPT-5.6 Terra/high исполняет, GPT-5.6 Sol/high независимо ревьюит diff до закрытия; миграции/security fail-closed → Review=full |
+| P4.9 | implementation/medium | plan-exec | точечный query-фикс по D30, детерминированный тест; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
+| P4.10 | implementation/medium | plan-exec | green-proof+CI+baseline по D30; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
+| P4.3 | implementation/medium | plan-exec | paratest+shared-state hardening; GPT-5.6 Terra/medium; Review=full |
+| P4.4 | implementation/medium | plan-exec | race Redis/Octane; GPT-5.6 Terra/medium исполняет, GPT-5.6 Sol/high независимо ревьюит concurrency-diff; Review=full; реальный race → §10 |
+| P4.5 | implementation/medium | plan-exec | mutation-ratchet по измеренному baseline; GPT-5.6 Terra/medium; Review=full |
+| P4.6 | implementation/medium | plan-exec | механическая чистка дыр; GPT-5.6 Terra/medium; Review=light |
+| P5.1 | frontier/high | manual | открытый синтез канона флота; GPT-5.6 Sol/high; Review=full |
+| P5.2 | implementation/medium | plan-exec | механика релиза по frozen D25; GPT-5.6 Terra/medium; push тега только после approve владельца; Review=full |
+| P5.3 | implementation/medium | plan-exec | docs migration по frozen D26; GPT-5.6 Terra/medium; архив post-plan; Review=light |
 
 ## 4. Phase Index & Status Board
 
@@ -133,6 +140,7 @@ read-only аудит (акцент — интеграционная поверх
 | D30 | 2026-07-18 | Ре-дизайн эскалации P4.2 (§10): реальный прогон лейна вскрыл portability-баги вне Scope P4.2 → ремедиация как санкционированные контракт-блоком фазы багфиксы. Recon якорей (findings/P4.2-remediation-anchors) свёл 8 симптомов к 4 корням: 2 «класса» — КАСКАДЫ (PG boolean-суперадмин + PG transaction-abort + MySQL «table exists» — следствия сбоя миграции 000005), отдельных items под них НЕТ (verify после фикса). Структура — file-ownership split (каждая миграция правится одним item'ом): P4.2 re-scope (харнесс+тест-фикстура R4), новый **P4.8** (миграция 000005: COALESCE morph-aware + MySQL down-order), P4.7 расширен (000002/000010: +key-length), новый **P4.9** (filament LIKE-escape), новый **P4.10** (green-proof+CI-джоб). Фаза P4: 7→10 items. Порядок последователен (общий docker-стенд + MySQL-каскад маскирует нижележащее → R1 первым; оркестрация НЕ объявляется). @api-снапшот P3.2 не задет (миграции/query не @api); фиксы едут в v0.3.0 | Эскалация P4.2 (handoff after P4.2); recon-консолидация каскадов экономит 2+ ложных items; file-ownership минимизирует coupling (research/04 §2/§3). RAG:— (repo-grounded: findings/P4.2-db-portability-failures.md, findings/P4.2-remediation-anchors-2026-07-18.md, research/04-p4.2-remediation.md) |
 | D31 | 2026-07-18 | **re-scope P4.2** (снимает 🔴 эскалацию): P4.2 сужен до КОММИТА уже написанного локального БД-лейн-харнесса (env-TestCase + composer test:pgsql/test:mysql + union-doc + генерализованный rollback-тест) + фикс тест-фикстуры R4 (`ContextTableNameConfigTest` строит кастом-таблицу без `expires_at`, который штатная миграция 000011 добавляет — тест-баг, не app). CI-джоб `test-db-matrix` и полный green PG/MySQL ОТЛОЖЕНЫ в P4.10 (добавляются зелёными после ремедиации). Acceptance P4.2 = sqlite green + лейны ЗАПУСКАЮТСЯ и воспроизводят baseline (харнесс-инструмент готов), НЕ полный green. Статус 🔴→⬜ | Инфраструктура лейна валидирована в части, не зависящей от багов (sqlite 667/667); блокировать коммит рабочего инструмента нельзя; R4 — тест-scope, разблокирует чистую диагностику (findings-anchors §5). RAG:— (repo-grounded: findings/P4.2-remediation-anchors-2026-07-18.md §5) |
 | D32 | 2026-07-18 | **расширяет D24 (P4.7)**: MySQL-лейн упал `Specified key too long (3072 bytes)` на `az_direct_grant_unique` (000002) и `az_ctx_roles_unique` (000010) — 6× varchar(255) под utf8mb4 > лимит ключа InnoDB. Key-length-bounding сливается в P4.7 (те же ключевые колонки тех же файлов, что и collation → один проход, без двойного редактирования миграций). P4.7: (а) подобрать длины расчётом «сумма байт < 3072» (НЕ резать `model_type` вслепую до 191 — FQCN длиннее, pre-mortem: коллизия ключей; префикс-индекс/сузить прочие); (б) driver-conditional utf8mb4_bin (как D24). scopes-индекс `model_has_scopes_unique` уже несёт 191-префикс (P4.8-владение) — P4.7 его не трогает | Length и collation — одни колонки одних файлов; раздельные items = двойная правка 000002/000010 (P4.7 обязан не откатить длины). RAG:— (repo-grounded: findings/P4.2-remediation-anchors-2026-07-18.md §2, research/04 §2) |
+| D33 | 2026-07-21 | Остаток P4/P5 переведён с Claude-селекторов на provider-neutral routing с Codex-проекцией: economy→GPT-5.6 Luna, implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Sol не тратится на frozen-spec implementation; он обязателен для P5.1, phase-audit и независимого review P4.8/P4.7/P4.4. Исторические строки/логи моделей не переписываются. Незакоммиченный P4.8 diff признан входом продолжения, а не новой реализацией | Качество/стоимость: официальная линейка позиционирует Sol как frontier, Terra как balance, Luna как cost-sensitive; локальный Codex adapter даёт тот же neutral mapping. Read-only supporting work можно дешево изолировать, но final correctness verdict остаётся у Sol. RAG:✅ 2026-07-21 (findings/codex-model-routing-2026-07-21.md); RAG:— (repo-grounded: git status/diff, provider-commands.md, .codex/agents/*.toml) |
 
 ## 6. Update Log
 
@@ -181,6 +189,7 @@ read-only аудит (акцент — интеграционная поверх
 | 2026-07-18 | plan-exec/sonnet-medium | P4.1 закрыт (🟢): docker-compose.yml + Makefile + DEVELOPMENT.md «Local database matrix» — все три сервиса healthy — детали см. phases/P4.md P4.1 Completion Notes |
 | 2026-07-18 | plan-design/opus (P4.2 ре-дизайн) | Эскалация P4.2 снята: ремедиация portability-багов (D30–D32), P4 7→10 items, roadmap пересобран, v0.3.21 — детали phases/P4.md, research/04-p4.2-remediation.md |
 | 2026-07-18 | plan-exec/sonnet-medium | P4.2 закрыт (🟢): БД-лейн-харнесс закоммичен, фикстура ContextTableNameConfigTest дополнена expires_at (R4), PG/MySQL-лейны запущены и воспроизводят baseline — детали см. phases/P4.md P4.2 Completion Notes |
+| 2026-07-21 | plan-design/GPT-5.6 | Codex-проекция остатка плана (D33): открытые items маршрутизированы через Luna/Terra/Sol, добавлены независимые review checkpoints и cold-start продолжения незакоммиченного P4.8 — детали roadmap.md и handoff.md. v0.3.22 |
 
 ## Обсуждение
 

@@ -5,7 +5,11 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-18 · **Соответствует plan.md:** v0.3.21 (P4.2 ре-дизайн — ремедиация portability D30–D32; карта P4 пересобрана)
+**Обновлён:** 2026-07-21 · **Соответствует plan.md:** v0.3.22 (D33 — Codex-проекция
+Luna/Terra/Sol, checkpoints ревью, продолжение незавершённого P4.8)
+
+**Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
+frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
 
 ## Карта исполнения
 
@@ -13,101 +17,99 @@
 |---|---|---|---|---|---|
 | P0.1–P0.5 | — | ✅ закрыты | fable/high | — | исполнены workflow wf-azguard-stable-p0-audit.js (D8) |
 | P0.6 | — | ✅ закрыт | fable/high | ✅ пройден (D9) | бэклог ремедиации утверждён |
-| P1.1 | solo | plan-run (manual) | sonnet/high | — | Blocker C-01, security-контракт D10 а (default-fallback упразднён D27) — solo: смена контракта изоляции не смешивается с волной; перед запуском `/model sonnet` + `/effort high` |
-| P1.2 | solo | plan-run (manual) | sonnet/high | — | 12 Major per-finding коммитами (D11) — solo: объём волны + security-состав |
-| P1.3 | solo | plan-run (manual) | sonnet/medium | — | 14 Minor/Nit per-finding (D11) — solo: Exec=manual (строгость D11), сессия sonnet/medium |
-| P1.4 | solo | plan-run (manual) | fable/high | — | adversarial review диффа фазы свежим контекстом — solo by design |
-| P2.1–P2.10 | solo ×10 | plan-run (manual) | fable/high | — (развилки сняты D14–D18) | каждый item — отдельная fable/high-сессия: contract-класс, SemVer-breaking; порядок — phases/P2.md §Phase Context; объединять нельзя — каждый меняет публичные контракты, ревью full между items |
-| P3.1 | solo | plan-run (manual) | sonnet/high | — | cut-line фасада (D19) — необратимо, solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
-| P3.2 | solo | plan-run (manual) | fable/high | — | snapshot-заморозка (D20) — гейт, включающий запрет дрейфа; solo |
-| P3.3 | solo | plan-run (manual) | sonnet/high | — | SemVer-политика + UPGRADING (D21); solo; ресинк под D28 (roadmap-«fable» протухла — Audit P2 F3) |
+| P1.1–P1.4 | — | ✅ фаза закрыта | historical Claude routes | — | терминальность и deviations — phases/P1.md; не перезапускать |
+| P2.1–P2.10 | — | ✅ фаза закрыта | historical Claude routes | — | терминальность и deviations — phases/P2.md; не перезапускать |
+| P3.1–P3.3 | — | ✅ фаза закрыта | historical Claude routes | — | поверхность заморожена; не перезапускать |
 | P4.1 | — | ✅ закрыт | sonnet/medium | — | docker-стенд PG16/MySQL8/Redis7 |
 | P4.2 | — | ✅ закрыт | sonnet/medium | — | **re-scope D31**: коммит БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI/green отложены в P4.10 |
-| P4.8 | solo | plan-run (manual) | sonnet/high | — | **ремедиация** миграции 000005 (COALESCE morph-aware + MySQL down-order, D30) — raw-SQL, снятие каскадов; Exec=manual; ПЕРВЫМ (MySQL-каскад маскирует нижележащее) |
-| P4.7 | solo | plan-run (manual) | sonnet/high | — | key-length + collation-миграции 000002/000010 (D24+D32) — security-корректность; Exec=manual |
-| P4.9–P4.10 | B6 | plan-exec серия | sonnet/medium | — | LIKE-escape (P4.9) → green-proof+CI-джоб (P4.10) одной сессией; P4.10 потребляет P4.8/P4.7/P4.9; ревью full |
-| P4.3 | solo | plan-exec | sonnet/medium | — | paratest — отдельный риск-профиль (parallel-изоляция), solo |
-| P4.4 | solo | plan-exec | sonnet/medium | — | race-тесты C-05/C-14 — жёсткая эскалация §10 при реальном race-баге, solo |
-| P4.5 | solo | plan-exec | sonnet/medium | — | mutation-ratchet — требует coverage-среды, честный замер; solo |
-| P4.6 | solo | plan-exec | sonnet/medium | — | чистка дыр (light) — solo: не сцеплять с ratchet'ом, чтобы красный замер не блокировал механику |
-| P5.1 | solo | plan-run (manual) | fable/high | — | шаблон дорожки — канон флота, пишется от фактов ВСЕХ закрытых фаз; solo |
-| P5.2–P5.3 | B5 | plan-exec серия | sonnet/medium | ✅ approve перед `git push origin v0.3.0` (внутри P5.2) | релиз + миграция root/→docs одной сессией; тег НЕ пушится без явного approve владельца (D25) |
+| P4.8 | solo | plan-run (manual) | implementation/high → Terra/high | — | **ПРОДОЛЖИТЬ существующий dirty diff**, не начинать заново; затем независимый Sol/high review до закрытия |
+| P4.7 | solo | plan-run (manual) | implementation/high → Terra/high | — | key-length+collation 000002/000010; затем независимый Sol/high review до закрытия |
+| P4.9–P4.10 | B6 | plan-exec серия | implementation/medium → Terra/medium | — | LIKE-escape → green-proof+CI; один Sol/high review checkpoint на итог B6 |
+| P4.3 | solo | plan-exec | implementation/medium → Terra/medium | — | paratest, отдельный риск-профиль; full review |
+| P4.4 | solo | plan-exec | implementation/medium → Terra/medium | — | race C-05/C-14; независимый Sol/high concurrency-review; реальный race → §10 |
+| P4.5 | solo | plan-exec | implementation/medium → Terra/medium | — | mutation-ratchet по честному baseline; full review |
+| P4.6 | solo | plan-exec | implementation/medium → Terra/medium | — | механическая чистка дыр; light review |
+| P5.1 | solo | plan-run (manual) | frontier/high → Sol/high | — | канон флота от фактов всех закрытых фаз; solo |
+| P5.2–P5.3 | B5 | plan-exec серия | implementation/medium → Terra/medium | ✅ approve перед `git push origin v0.3.0` (внутри P5.2) | релиз+docs; тег не пушится без approve D25 |
 
-После P5.3: `/task:plan-close archive 2026.07.18-AZGUARD-STABLE` (post-plan, D26).
-Между фазами: `/task:plan-close <ID> Pn` + `/task:plan-audit <ID> Pn` по протоколу.
+После P5.3: `$ task:plan-close archive 2026.07.18-AZGUARD-STABLE` (post-plan, D26).
+Между фазами: `$ task:plan-close <ID> Pn`, затем **новая Sol/xhigh-сессия**
+`$ task:plan-audit <ID> Pn` по протоколу.
 
 ## Готовые launch-block'и групп
 
-### P1 — ремедиация (manual-сессии, по одной волне)
+### P5.1 — канон флота (manual, frontier/high)
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet |
-| Thinking | high (P1.1/P1.2) · medium (P1.3) — по Routing §3 |
-| Context | Холодный старт: plan.md → phases/P1.md → handoff.md |
-| Суть | Волны W0→W1→W2 последовательно, per-finding коммиты (D11); P1.4 — fable/high |
+| Model class | frontier |
+| Codex | GPT-5.6 Sol |
+| Effort | high — канон флота |
+| Context | same-session — item; cold-start reads: plan.md → phases/P5.md → handoff.md → Completion Notes всех фаз |
+| Суть | P5.1 только после GREEN-аудита P4; отдельная Sol/high-сессия |
 
 ```
-/task:plan-run 2026.07.18-AZGUARD-STABLE P1.1
+$ task:plan-run 2026.07.18-AZGUARD-STABLE P5.1
 ```
 
-### P2/P3/P5.1 — contract-items (manual, fable/high)
+### P4.8 → P4.7 → B6 — portability-ремедиация (последовательно)
 
-| Параметр | Значение |
-|:--|:--|
-| Model | fable (opus-класс) |
-| Thinking | high — public-contract/canon-класс |
-| Context | Холодный старт: plan.md → phases/Pn.md → research/03-p2-canon.md (для P2) |
-| Суть | Каждый item — отдельная сессия `/task:plan-run`; ритуал `/model` + `/effort` перед запуском |
-
-```
-/task:plan-run 2026.07.18-AZGUARD-STABLE P2.1
-```
-
-### P4.2 → P4.8 → P4.7 → B6 — portability-ремедиация (последовательно)
-
-Порядок жёсткий (research/04 §3): P4.2 (харнесс) → **P4.8** (миграция 000005, ПЕРВЫМ — MySQL-каскад
+Порядок жёсткий (research/04 §3): **P4.8** (миграция 000005, ПЕРВЫМ — MySQL-каскад
 маскирует нижележащее) → **P4.7** (000002/000010 key-length+collation) → **B6** = P4.9→P4.10.
-P4.2 — `plan-exec` (sonnet/medium); P4.8 и P4.7 — `plan-run` manual (sonnet/high, ритуал `/model
-sonnet`+`/effort high` перед каждым); B6 — `plan-exec` серия. Стенд P4.1 должен быть поднят
+P4.8 уже `🟡 In progress`: сначала инвентаризировать и продолжить имеющийся dirty diff.
+P4.8/P4.7 — `plan-run` manual на Terra/high; B6 — `plan-exec` на Terra/medium. Стенд должен быть поднят
 (`PGSQL_PORT=25432`/`MYSQL_PORT=23306` — handoff).
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet (P4.2/B6 — пин команды) · sonnet/high (P4.8/P4.7 — manual, ритуал) |
-| Thinking | medium (P4.2/B6) · high (P4.8/P4.7) |
-| Context | Холодный старт: plan.md D30–D32 → phases/P4.md → research/04-p4.2-remediation.md → handoff.md |
-| Суть | P4.2 (коммит харнесса) → P4.8 (000005) → P4.7 (000002/000010) → P4.9→P4.10 (LIKE + green+CI) |
+| Model class | implementation |
+| Codex | GPT-5.6 Terra |
+| Effort | high (P4.8/P4.7) · medium (B6) |
+| Context | same-session — item; cold-start reads: handoff.md → plan.md D30–D33 → phases/P4.md P4.8 → research/04 → findings anchors |
+| Суть | продолжить P4.8 dirty diff → review → P4.7 → review → P4.9/P4.10 → review |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.2
+$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.8
 ```
 
 ### B6 — LIKE-фикс + green-proof (plan-exec серия, после P4.8/P4.7)
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet (пин команды) |
-| Thinking | medium (пин команды) |
-| Context | Холодный старт: plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
+| Model class | implementation |
+| Codex | GPT-5.6 Terra |
+| Effort | medium |
+| Context | same-session — item: plan.md → phases/P4.md P4.9/P4.10 → handoff.md |
 | Суть | P4.9 (filament LIKE-escape) → P4.10 (green оба лейна + коммит CI-джоба + baseline→resolved) |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.9 P4.10
 ```
 
 ### B5 — релиз + закрытие (plan-exec серия, гейт владельца внутри)
 
 | Параметр | Значение |
 |:--|:--|
-| Model | sonnet (пин команды) |
-| Thinking | medium (пин команды) |
-| Context | Холодный старт: plan.md D22/D25/D26 → phases/P5.md → findings/P5-rag-release-guard-2026-07-18.md |
+| Model class | implementation |
+| Codex | GPT-5.6 Terra |
+| Effort | medium |
+| Context | same-session — item: plan.md D22/D25/D26/D33 → phases/P5.md → findings/P5-rag-release-guard-2026-07-18.md |
 | Суть | P5.2 (релиз: тег ТОЛЬКО после approve владельца) → P5.3 (миграция root/→docs, финальный handoff) |
 
 ```
-/task:plan-exec 2026.07.18-AZGUARD-STABLE P5.2 P5.3
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P5.2 P5.3
 ```
+
+## Review checkpoints
+
+| После | Reviewer | Что проверяет | Дальше |
+|:--|:--|:--|:--|
+| P4.8 | GPT-5.6 Sol/high, read-only | raw SQL, morph-type fallback, MySQL FK/index down-order, тест-доказательства | findings → Terra/high fix; clean → закрыть item |
+| P4.7 | GPT-5.6 Sol/high, read-only | key-byte calculation, collision semantics, driver guards, case-sensitive security invariant | findings → Terra/high fix; clean → закрыть item |
+| B6 | GPT-5.6 Sol/high, read-only | LIKE portability + честность full green/CI wiring | findings → Terra/medium fix |
+| P4.4 | GPT-5.6 Sol/high, read-only | race validity, false-green/false-negative risks, process isolation | findings → Terra/high fix или §10 |
+| Фаза P4 | GPT-5.6 Sol/xhigh, новая сессия | adversarial `plan-audit P4` по всем deliverables/commits | только GREEN разрешает P5.1 |
+| Фаза P5 | GPT-5.6 Sol/xhigh, новая сессия | release/docs/tag evidence и archive readiness | только GREEN разрешает archive |
 
 ## Гейты владельца (сводно)
 
