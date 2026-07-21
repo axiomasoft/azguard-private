@@ -1,0 +1,10 @@
+{
+  "skill": "session-observer",
+  "snippets": [
+    {
+      "file": "analyze-session.md",
+      "description": "jq/grep-рецепты разбора сессии: toggle-гейт, поиск лога, 3-осевая аналитика (агенты/скиллы/настройки), запись learnings через memory-хук",
+      "tags": ["observer", "jsonl", "jq", "analysis"]
+    }
+  ]
+}

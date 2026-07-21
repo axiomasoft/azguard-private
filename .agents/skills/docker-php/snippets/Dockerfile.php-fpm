@@ -1,0 +1,14 @@
+# Source: academici/swissknifeman (anonymized)
+FROM php:8.3-fpm-alpine
+
+RUN apk add --no-cache icu-dev libzip-dev \
+    && docker-php-ext-install intl opcache pdo_mysql zip
+
+COPY snippets/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY snippets/php.ini.production /usr/local/etc/php/php.ini
+
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -D app
+USER app
+
+HEALTHCHECK --interval=30s --timeout=3s CMD php-fpm-healthcheck || exit 1
+WORKDIR /var/www/html

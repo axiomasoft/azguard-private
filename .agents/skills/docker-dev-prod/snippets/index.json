@@ -1,0 +1,40 @@
+{
+  "skill": "docker-dev-prod",
+  "snippets": [
+    {
+      "file": "docker-compose.yml",
+      "description": "Минимальный каркас compose (базовая версия)",
+      "tags": ["compose"]
+    },
+    {
+      "file": "docker-compose.dev.yml",
+      "description": "Полный dev-compose: build из контекста, bind-mount исходников, якорь &app_env, healthcheck /up",
+      "tags": ["compose", "dev", "laravel", "anchor"]
+    },
+    {
+      "file": "docker-compose.prod.yml",
+      "description": "Prod-compose: image <app>/app:latest + named volumes для public/build, public/filament, vendor",
+      "tags": ["compose", "prod", "laravel", "volumes"]
+    },
+    {
+      "file": "docker-compose.override.yml",
+      "description": "Минимальный локальный оверрайд (базовая версия)",
+      "tags": ["compose", "dev"]
+    },
+    {
+      "file": "docker-compose.override.example.yml",
+      "description": "Шаблон локального оверрайда: WSL2/Linux user 1000:1000 для vite",
+      "tags": ["compose", "override", "wsl2", "permissions"]
+    },
+    {
+      "file": ".env.example",
+      "description": "Env example",
+      "tags": ["env"]
+    },
+    {
+      "file": "Makefile",
+      "description": "Базовые make-цели up/down/build",
+      "tags": ["make"]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "skill": "repositories",
+  "snippets": [
+    {
+      "file": "read-repository.php",
+      "description": "Read-side репозиторий: queryForUser через VisibilityService, findByIdOrFail, пагинация, компоновка scopes + eager load",
+      "tags": ["repository", "read", "visibility"]
+    },
+    {
+      "file": "store-repository.php",
+      "description": "Write-side репозиторий: persistFromForm(Form, User) с updateOrCreate, sync приватного отношения; без истории/событий/транзакций",
+      "tags": ["repository", "write", "dto"]
+    },
+    {
+      "file": "member-store-repository.php",
+      "description": "Sync-операция write-side, возвращающая delta-DTO: syncRoleMembers -> MembersDelta",
+      "tags": ["repository", "write", "sync", "delta"]
+    },
+    {
+      "file": "members-delta.php",
+      "description": "Delta-DTO результата sync-операции: final readonly, added/removed, isEmpty",
+      "tags": ["dto", "delta"]
+    },
+    {
+      "file": "repository-facade.php",
+      "description": "Опциональный фасад-агрегатор read-методов: чистое делегирование в read-репозиторий",
+      "tags": ["repository", "facade"]
+    },
+    {
+      "file": "model-scopes.php",
+      "description": "Доменные scopes модели: scopeWithListRelations, scopeWithStatus(es), scopeForUser; именованные срезы отношений",
+      "tags": ["model", "scope", "eloquent"]
+    },
+    {
+      "file": "visibility-service.php",
+      "description": "VisibilityService::apply(Builder, ?User, bool $ignorePermissions): единственное место правил видимости в SQL",
+      "tags": ["visibility", "authorization", "service"]
+    }
+  ]
+}

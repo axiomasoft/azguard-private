@@ -1,0 +1,10 @@
+{
+  "skill": "anti-drift",
+  "snippets": [
+    {
+      "file": "claude-md-anti-drift.md",
+      "description": "Готовый блок anti-drift правил для CLAUDE.md/AGENTS.md целевого проекта",
+      "tags": ["claude-md", "discipline"]
+    }
+  ]
+}

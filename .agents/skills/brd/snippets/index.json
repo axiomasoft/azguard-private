@@ -1,0 +1,10 @@
+{
+  "skill": "brd",
+  "snippets": [
+    {
+      "file": "brd-template.md",
+      "description": "brd template",
+      "tags": []
+    }
+  ]
+}

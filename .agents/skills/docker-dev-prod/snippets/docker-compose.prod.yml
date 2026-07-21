@@ -1,0 +1,121 @@
+# Source: anonymized production Laravel project
+# Prod-compose: заранее собранный образ (make image) вместо build,
+# named volumes для артефактов сборки (public/build, public/filament, vendor),
+# чтобы bind-mount исходников не затирал их.
+services:
+  app:
+    image: <app>/app:latest
+    container_name: app_app
+    user: "0:0"
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - frontend_build:/var/www/html/public/build
+      # frontend_filament — только если есть отдельная admin-сборка (pnpm run build:admin)
+      - frontend_filament:/var/www/html/public/filament
+      - vendor_data:/var/www/html/vendor
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment: &prod_env
+      APP_ENV: production
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL}
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      CACHE_STORE: ${CACHE_STORE:-file}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      LOG_CHANNEL: stack
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+    depends_on:
+      pgsql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app_network
+
+  queue:
+    image: <app>/app:latest
+    container_name: app_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    volumes:
+      - ./:/var/www/html
+      - vendor_data:/var/www/html/vendor
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -af 'artisan queue:work' >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    environment: *prod_env
+    depends_on:
+      app: { condition: service_healthy }
+      pgsql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app_network
+
+  pgsql:
+    image: postgres:16-alpine
+    container_name: app_pgsql
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PGSQL_PORT:-5432}:5432"
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: app_redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  pgsql_data:
+  redis_data:
+  frontend_build:
+  frontend_filament:
+  vendor_data:

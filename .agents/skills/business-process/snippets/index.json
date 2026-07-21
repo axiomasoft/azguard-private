@@ -1,0 +1,10 @@
+{
+  "skill": "business-process",
+  "snippets": [
+    {
+      "file": "fsm-mermaid.md",
+      "description": "fsm mermaid",
+      "tags": []
+    }
+  ]
+}

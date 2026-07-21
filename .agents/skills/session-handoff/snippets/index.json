@@ -1,0 +1,10 @@
+{
+  "skill": "session-handoff",
+  "snippets": [
+    {
+      "file": "handoff-template.md",
+      "description": "Шаблон handoff-документа: состояние, решения, незакрытые вопросы, следующие шаги",
+      "tags": ["handoff", "context"]
+    }
+  ]
+}

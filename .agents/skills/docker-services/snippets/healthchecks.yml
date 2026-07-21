@@ -1,0 +1,72 @@
+# Source: anonymized production Laravel project
+# Паттерны healthcheck + depends_on для Laravel-стека в compose.
+
+# 1) Веб-приложение: Laravel health-эндпоинт /up (Laravel 11+).
+#    start_period даёт время на прогрев фреймворка перед первым отсчётом retries.
+app:
+  healthcheck:
+    test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up >/dev/null || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 40s
+
+# 2) Воркер без порта: проверка живости процесса по pgrep (prod).
+queue:
+  healthcheck:
+    test: ["CMD-SHELL", "pgrep -af 'artisan queue:work' >/dev/null || exit 1"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+scheduler:
+  healthcheck:
+    test: ["CMD-SHELL", "pgrep -af 'artisan schedule:work' >/dev/null || exit 1"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+# 3) Websocket-сервер: TCP-проба порта средствами php (curl не нужен).
+reverb:
+  healthcheck:
+    test:
+      [
+        "CMD-SHELL",
+        "php -r '$$port=intval(getenv(\"REVERB_SERVER_PORT\")?:8000);$$sock=@stream_socket_client(\"tcp://127.0.0.1:\".$$port,$$errno,$$errstr,1);exit($$sock?0:1);'",
+      ]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 30s
+
+# 4) Инфраструктура: pg_isready / redis-cli ping.
+pgsql:
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+    interval: 5s
+    timeout: 5s
+    retries: 10
+
+redis:
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 5s
+    timeout: 5s
+    retries: 10
+
+# --- depends_on-паттерны ---
+
+# Ждать ГОТОВНОСТИ зависимости, а не просто запуска:
+worker_depends_on:
+  depends_on:
+    app: { condition: service_healthy }
+    pgsql: { condition: service_healthy }
+    redis: { condition: service_healthy }
+
+# Ждать УСПЕШНОГО ЗАВЕРШЕНИЯ init-контейнера (сборка статики, миграции):
+static_depends_on:
+  depends_on:
+    docs-init:
+      condition: service_completed_successfully

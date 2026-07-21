@@ -1,0 +1,71 @@
+# Source: generalized from a Laravel + Postgres pipeline (anonymized)
+# Отдельный coverage-job: не блокирует быстрый прогон lint/tests, но гейтит merge.
+# Парсер/конфиг порога — в скилле php/laravel-testing (coverage.php + check-coverage-gate.php).
+name: coverage-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: app_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: app_test
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      # Пороги читаются gate-скриптом; hard => exit 1 ниже порога.
+      COVERAGE_GATE_MODE: hard
+      COVERAGE_GLOBAL_MIN: '70.0'
+      COVERAGE_CRITICAL_MIN: '55.0'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP (pcov)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: pcov            # pcov быстрее xdebug для line-coverage
+          extensions: pdo_pgsql, intl, zip
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare app
+        run: |
+          cp .env.example .env || touch .env
+          php artisan key:generate --force
+          php artisan migrate --force --no-interaction
+
+      - name: Tests with coverage
+        run: php -d memory_limit=512M artisan test --coverage --coverage-clover=coverage/clover.xml
+
+      - name: Coverage gate
+        # composer test:coverage:gate тоже подойдёт — это та же связка из php/laravel-testing
+        run: php scripts/check-php-coverage-gate.php
+
+      - name: Upload clover
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover
+          path: coverage/clover.xml
+          retention-days: 7

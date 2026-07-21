@@ -1,0 +1,15 @@
+{
+  "skill": "release-engineering",
+  "snippets": [
+    {
+      "file": "changelog-template.md",
+      "description": "changelog template",
+      "tags": []
+    },
+    {
+      "file": "semver-decision-tree.md",
+      "description": "semver decision tree",
+      "tags": []
+    }
+  ]
+}

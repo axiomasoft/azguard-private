@@ -1,0 +1,15 @@
+{
+  "skill": "naming-conventions",
+  "snippets": [
+    {
+      "file": "naming-antipatterns.php",
+      "description": "Сводная галерея «плохо → хорошо» по типам Laravel-сущностей: репозитории, Action, DTO/VO, Enum, Event/Job",
+      "tags": ["naming", "laravel", "antipatterns", "review"]
+    },
+    {
+      "file": "repository-method-naming.php",
+      "description": "Рефакторинг репозитория: россыпь findByX...OrFail → model scopes по намерению + route binding + один канонический lookup",
+      "tags": ["repository", "scope", "naming", "refactoring"]
+    }
+  ]
+}

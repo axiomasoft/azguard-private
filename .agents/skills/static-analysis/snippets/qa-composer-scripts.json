@@ -1,0 +1,36 @@
+{
+    "scripts": {
+        "lint": [
+            "pint --parallel"
+        ],
+        "lint:check": [
+            "pint --parallel --test"
+        ],
+        "analyse": [
+            "phpstan analyse --memory-limit=1G"
+        ],
+        "refactor": [
+            "rector process"
+        ],
+        "refactor:dry": [
+            "rector process --dry-run"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@lint:check",
+            "@php artisan test"
+        ],
+        "qa": [
+            "@refactor",
+            "@lint",
+            "@analyse",
+            "@test"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
+            "@lint:check",
+            "@analyse",
+            "@php artisan test"
+        ]
+    }
+}

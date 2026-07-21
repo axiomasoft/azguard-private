@@ -1,0 +1,15 @@
+{
+  "skill": "oss-governance",
+  "snippets": [
+    {
+      "file": "contributing-template.md",
+      "description": "contributing template",
+      "tags": []
+    },
+    {
+      "file": "security-policy.md",
+      "description": "security policy",
+      "tags": []
+    }
+  ]
+}

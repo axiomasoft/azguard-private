@@ -1,0 +1,15 @@
+{
+  "skill": "oss-development",
+  "snippets": [
+    {
+      "file": "readme-template.md",
+      "description": "readme template",
+      "tags": []
+    },
+    {
+      "file": "architecture-template.md",
+      "description": "architecture template",
+      "tags": []
+    }
+  ]
+}

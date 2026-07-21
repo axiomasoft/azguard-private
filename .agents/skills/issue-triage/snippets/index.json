@@ -1,0 +1,15 @@
+{
+  "skill": "issue-triage",
+  "snippets": [
+    {
+      "file": "AGENT-BRIEF.md",
+      "description": "Как писать долговечные agent-brief для issue/PR, помеченных ready-for-agent (что должен знать AFK-агент, чтобы взять задачу)",
+      "tags": ["triage", "agent-brief", "ready-for-agent"]
+    },
+    {
+      "file": "OUT-OF-SCOPE.md",
+      "description": "Как устроена база знаний .out-of-scope/ — журнал отклонённых enhancement-заявок с причинами, чтобы не разбирать повторно",
+      "tags": ["triage", "out-of-scope", "wontfix", "knowledge-base"]
+    }
+  ]
+}

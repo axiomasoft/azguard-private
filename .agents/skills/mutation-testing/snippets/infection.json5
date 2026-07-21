@@ -1,0 +1,50 @@
+// Source: anonymized production project
+{
+    "$schema": "https://infection.github.io/schema.json",
+
+    // Каталоги исходников для мутирования.
+    // В пакете/монорепо перечисляются все src; в простом приложении — один "src".
+    "source": {
+        "directories": [
+            "packages/core/src",
+            "packages/api/src"
+        ],
+        // Исключаем точки входа и декларативный/сгенерированный код:
+        // мутации там дают шум, а не сигнал о качестве тестов.
+        "excludes": [
+            "Commands",        // CLI-команды: логика тестируется в сервисах
+            "Facades",         // тонкие статические прокси
+            "*/Database/Migrations/*",
+            "*/Filament/*"     // декларативный UI админки
+        ]
+    },
+
+    "testFramework": "pest",
+    // Генерируем XML-покрытие, нужное Infection (Xdebug/PCOV должны быть включены).
+    "testFrameworkOptions": "--coverage-xml=build/coverage/coverage-xml --log-junit=build/coverage/junit.xml",
+
+    "timeout": 10,   // секунд на одного мутанта — защита от зацикливания мутаций
+    "threads": 4,    // параллелизм по умолчанию; флаг --threads перекрывает
+
+    // Гейты качества тестов. CI падает, если MSI ниже.
+    // Covered MSI строже общего: от покрытого кода ждём качественных ассертов.
+    "minMsi": 70,
+    "minCoveredMsi": 80,
+
+    // Отчёты: text — список escaped mutants для разбора, html — навигация,
+    // summary — агрегаты, json — машинная обработка.
+    "logs": {
+        "text": "build/infection.log",
+        "html": "build/infection.html",
+        "summary": "build/infection-summary.log",
+        "json": "build/infection.json"
+    },
+
+    // Профиль мутаторов: стартуем с @default, точечно добавляем специфичные.
+    // Лишние/эквивалентные мутаторы выключаем как "Name": false, а не включаем всё.
+    "mutators": {
+        "@default": true,
+        "UnwrapArrayFilter": true,
+        "MethodCallRemoval": true
+    }
+}

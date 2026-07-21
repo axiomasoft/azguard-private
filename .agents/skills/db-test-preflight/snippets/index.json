@@ -1,0 +1,20 @@
+{
+  "skill": "db-test-preflight",
+  "snippets": [
+    {
+      "file": "preflight.sh",
+      "description": "Пре-флайт shell-скрипт: cont., compose ps -> pg_isready -> гейт имени *_test -> существование/идемпотентное создание БД -> миграции; режимы docker и host",
+      "tags": ["preflight", "shell", "pg_isready", "postgres", "docker"]
+    },
+    {
+      "file": "Makefile.test",
+      "description": "Фрагмент Makefile: цель test-preflight (ps, гейт *_test, pg_isready, делегирование в preflight.sh) как зависимость цели test",
+      "tags": ["makefile", "preflight", "docker", "testing"]
+    },
+    {
+      "file": "composer-scripts.json",
+      "description": "Фрагмент composer.json: пре-флайт встроен в скрипт test и в git-хук pre-push; провал скрипта прерывает запуск suite",
+      "tags": ["composer", "git-hook", "pre-push", "testing"]
+    }
+  ]
+}

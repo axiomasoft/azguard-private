@@ -1,0 +1,20 @@
+{
+  "skill": "test-isolation-guard",
+  "snippets": [
+    {
+      "file": "bootstrap.php",
+      "description": "tests/bootstrap.php: выставляет APP_ENV=testing, DB_DATABASE=*_test, MEDIA_DISK=media-test через $_SERVER/$_ENV/putenv ДО vendor/autoload",
+      "tags": ["bootstrap", "phpunit", "isolation", "env"]
+    },
+    {
+      "file": "TestEnvironmentGuard.php",
+      "description": "Класс-страж: через config проверяет, что имя активной БД заканчивается на _test и медиа-диск тестовый, иначе бросает RuntimeException с инструкцией по починке",
+      "tags": ["guard", "database", "media-disk", "safety"]
+    },
+    {
+      "file": "TestCase.php",
+      "description": "Базовый TestCase: createApplication() прогоняет страж до первого запроса; комментарий про безопасное RefreshDatabase и порядок гарантий",
+      "tags": ["testcase", "createapplication", "refreshdatabase"]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "skill": "ci-cd",
+  "snippets": [
+    {
+      "file": "github-actions-laravel.yml",
+      "description": "Laravel CI",
+      "tags": [
+        "ci",
+        "laravel"
+      ]
+    },
+    {
+      "file": "github-actions-release.yml",
+      "description": "Release workflow",
+      "tags": [
+        "release"
+      ]
+    },
+    {
+      "file": "github-actions-docker.yml",
+      "description": "Docker build",
+      "tags": [
+        "docker",
+        "ci"
+      ]
+    },
+    {
+      "file": "gitlab-ci-practices.md",
+      "description": "Стандарты и лучшие практики написания .gitlab-ci.yml пайплайнов",
+      "tags": [
+        "gitlab",
+        "ci"
+      ]
+    },
+    {
+      "file": "github-actions-security.yml",
+      "description": "Security-job для GitHub Actions: composer audit + npm audit + Trivy скан образа, блок только на HIGH/CRITICAL",
+      "tags": [
+        "ci",
+        "security",
+        "trivy",
+        "audit"
+      ]
+    },
+    {
+      "file": "github-actions-coverage-gate.yml",
+      "description": "Coverage-job для GitHub Actions: pcov + artisan test --coverage + gate-скрипт из php/laravel-testing, глобальный и critical-dir пороги",
+      "tags": [
+        "ci",
+        "coverage",
+        "github-actions",
+        "pcov"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Source: anonymized production Laravel project
+# Корневой делегирующий Makefile: вся docker-логика в docker/Makefile,
+# но любая команда (make up, make migrate, make test) запускается из корня репо.
+MAKEFLAGS += --no-print-directory
+
+.PHONY: help
+help:
+	@echo "Docker: цели из docker/Makefile (make up, make migrate, ...)."
+	@$(MAKE) -f docker/Makefile help
+
+# Catch-all: любая неизвестная цель делегируется в docker/Makefile
+%:
+	@$(MAKE) -f docker/Makefile $@

@@ -1,0 +1,15 @@
+{
+  "skill": "domain-modeling",
+  "snippets": [
+    {
+      "file": "CONTEXT-FORMAT.md",
+      "description": "Формат CONTEXT.md — глоссарий предметной области (только язык, без деталей реализации): как описывать термин, связи, границы понятий",
+      "tags": ["domain", "glossary", "context", "ubiquitous-language"]
+    },
+    {
+      "file": "ADR-FORMAT.md",
+      "description": "Формат Architecture Decision Record: контекст, решение, последствия — для трудно-обратимых решений с реальным trade-off",
+      "tags": ["adr", "architecture", "decisions"]
+    }
+  ]
+}

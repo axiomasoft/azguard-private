@@ -1,0 +1,35 @@
+# Source: anonymized production Laravel project
+# Vite dev server отдельным сервисом compose. Используется тот же образ, что и app
+# (PHP-образ с Node.js + pnpm), поэтому env-якорь *app_env переиспользуется как есть.
+services:
+  vite:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: app_vite
+    restart: unless-stopped
+    working_dir: /var/www/html
+    # pnpm install при каждом старте: node_modules живёт в named volume;
+    # --host=0.0.0.0 обязателен — иначе dev-server слушает только loopback контейнера.
+    command: ["sh", "-lc", "pnpm install && pnpm run dev --host=0.0.0.0 --port=${VITE_PORT:-5173}"]
+    volumes:
+      - ./:/var/www/html
+      # node_modules — named volume, НЕ bind-mount: скорость I/O и изоляция
+      # бинарных зависимостей от хоста (WSL2/macOS).
+      - vite_node_modules:/var/www/html/node_modules
+    ports:
+      - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
+    environment: *app_env
+    depends_on:
+      app: { condition: service_healthy }
+    networks:
+      - app_network
+
+# В корневой секции volumes compose-файла:
+volumes:
+  vite_node_modules:
+
+# WSL2/Linux при Permission denied на node_modules — в docker-compose.override.yml:
+#   services:
+#     vite:
+#       user: "1000:1000"

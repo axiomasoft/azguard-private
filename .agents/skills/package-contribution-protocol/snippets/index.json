@@ -1,0 +1,25 @@
+{
+  "skill": "package-contribution-protocol",
+  "snippets": [
+    {
+      "file": "proposal-issue.md",
+      "description": "Шаблон [PROPOSAL] issue для добавления функциональности в зависимый пакет",
+      "tags": ["governance", "issue", "proposal"]
+    },
+    {
+      "file": "adr-template.md",
+      "description": "ADR для изменения публичного контракта пакета (альтернативы, последствия, версия)",
+      "tags": ["adr", "architecture", "semver"]
+    },
+    {
+      "file": "claude-md-priority.md",
+      "description": "Generic-блок «первый приоритет» для корневого CLAUDE.md проекта-потребителя пакета",
+      "tags": ["claude-md", "boundary", "priority"]
+    },
+    {
+      "file": "permissions-deny.md",
+      "description": "Фрагмент permissions.deny для блокировки записи в зависимый пакет (vendor/path-репо)",
+      "tags": ["permissions", "boundary", "claude-code"]
+    }
+  ]
+}

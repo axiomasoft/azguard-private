@@ -1,0 +1,10 @@
+{
+  "skill": "code-simplifier",
+  "snippets": [
+    {
+      "file": "simplify-on-push.yml",
+      "description": "Шаблон GitHub Actions: фоновый агент-упроститель по диффу PR, предложения комментарием",
+      "tags": ["github-actions", "background-agent"]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "skill": "architecture",
+  "snippets": [
+    {
+      "file": "c4-context.md",
+      "description": "c4 context",
+      "tags": []
+    },
+    {
+      "file": "c4-container.md",
+      "description": "c4 container",
+      "tags": []
+    },
+    {
+      "file": "adr-template.md",
+      "description": "adr template",
+      "tags": []
+    }
+  ]
+}

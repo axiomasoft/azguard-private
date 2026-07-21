@@ -1,0 +1,25 @@
+{
+  "skill": "laravel-dusk",
+  "snippets": [
+    {
+      "file": "phpunit.dusk.xml",
+      "description": "Отдельный конфиг Dusk: testsuite Browser, форс тестовой БД app_test, SESSION_DRIVER=file, QUEUE_CONNECTION=sync",
+      "tags": ["dusk", "phpunit", "config", "isolation"]
+    },
+    {
+      "file": "browser-test.php",
+      "description": "DuskTestCase с guard-проверкой БД и migrate:fresh --seed + пример браузерного теста (waitFor/waitUsing)",
+      "tags": ["dusk", "testcase", "browser-test"]
+    },
+    {
+      "file": "dusk-makefile.mk",
+      "description": "Make-цели для Dusk из Docker: host ChromeDriver + DUSK_DRIVER_URL=host.docker.internal:9515",
+      "tags": ["dusk", "docker", "makefile", "chromedriver"]
+    },
+    {
+      "file": "page-object.php",
+      "description": "Page Objects: базовый Page с siteElements, страница с url/assert/elements и методами-действиями",
+      "tags": ["dusk", "page-object", "patterns"]
+    }
+  ]
+}

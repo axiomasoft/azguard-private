@@ -1,0 +1,43 @@
+{
+  "skill": "laravel-packages",
+  "snippets": [
+    {
+      "file": "composer.json.stub",
+      "description": "composer.json stub",
+      "tags": [
+        "package"
+      ]
+    },
+    {
+      "file": "ServiceProvider.stub.php",
+      "description": "ServiceProvider stub",
+      "tags": [
+        "package"
+      ]
+    },
+    {
+      "file": "config.stub.php",
+      "description": "Config stub",
+      "tags": [
+        "package"
+      ]
+    },
+    {
+      "file": "boost-skill-publisher.php",
+      "description": "Публикация скиллов пакета потребителю через vendor:publish (агент-нейтральная и Claude Code раскладки)",
+      "tags": [
+        "boost",
+        "laravel",
+        "vendor-skills"
+      ]
+    },
+    {
+      "file": "TestCase.stub.php",
+      "description": "TestCase stub",
+      "tags": [
+        "package",
+        "testing"
+      ]
+    }
+  ]
+}

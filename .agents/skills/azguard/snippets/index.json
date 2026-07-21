@@ -1,0 +1,50 @@
+{
+  "skill": "azguard",
+  "snippets": [
+    {
+      "file": "role-class.php",
+      "description": "Статическая роль RoleInterface (getName/getLevel/permissions), wildcard super-admin, назначение и query scopes",
+      "tags": ["azguard", "rbac", "roles"]
+    },
+    {
+      "file": "permission-enum.php",
+      "description": "Permission backed enum с #[GateAbility]/#[RoleOnly], проверки hasPermission/Gate::allows enum-кейсами",
+      "tags": ["azguard", "rbac", "permissions", "enum"]
+    },
+    {
+      "file": "panel-provider.php",
+      "description": "PanelProvider: изолированный namespace прав (id/path/permissionEnums/roleClasses) + регистрация в config/az-guard.php",
+      "tags": ["azguard", "panels", "config"]
+    },
+    {
+      "file": "policy-gateability.php",
+      "description": "Policy с #[GuardPolicy(model:)] и #[GateAbility(permission:)] — авторегистрация в Gate, вызовы через enum",
+      "tags": ["azguard", "policy", "gate", "attributes"]
+    },
+    {
+      "file": "scoped-roles.php",
+      "description": "Entity-scoped роли: InteractsWithAzScopes, assignScopedRole/hasScopedPermission, порядок резолва, Gate с сущностью",
+      "tags": ["azguard", "scoped-roles", "multi-tenant"]
+    },
+    {
+      "file": "direct-grants.php",
+      "description": "Direct grants: AzGuard::forUser()->on()->ttl()->give(), отзыв, middleware az.grant, prune-grants, события",
+      "tags": ["azguard", "direct-grants", "ttl"]
+    },
+    {
+      "file": "abilities-dto.php",
+      "description": "Abilities DTO (ResolvesGateAbilities): readonly-флаги из Gate::allows() + передача в Inertia::render на уровне страницы",
+      "tags": ["azguard", "abilities", "inertia", "frontend"]
+    },
+    {
+      "file": "inertia-share.php",
+      "description": "Глобальная карта прав через HandleInertiaRequests::share + azguard:export-ts + потребление в Vue (computed по page.props)",
+      "tags": ["azguard", "inertia", "vue", "typescript", "frontend"]
+    },
+    {
+      "file": "testing.php",
+      "description": "Pest-паттерны: factory states с ролями, проверки hasPermission, Gate через политику, direct grant и TTL в тестах, AzGuardFake",
+      "tags": ["azguard", "testing", "pest"]
+    }
+  ]
+}

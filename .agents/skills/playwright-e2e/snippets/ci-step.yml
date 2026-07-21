@@ -1,0 +1,68 @@
+# Source: anonymized production project
+# CI-шаг E2E: установка браузеров, изолированная тестовая БД как service,
+# миграции, прогон Playwright с env-изоляцией, публикация отчёта/трейсов при падении.
+# Фрагмент для GitHub Actions (job в .github/workflows/e2e.yml).
+name: e2e
+
+on: [push, pull_request]
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:16            # или mysql:8 — под стек проекта
+        env:
+          POSTGRES_DB: app_e2e        # отдельная тестовая база, НЕ боевая
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app" --health-interval 5s
+          --health-timeout 5s --health-retries 10
+
+    env:
+      CI: 'true'
+      E2E_BASE_URL: http://127.0.0.1:8000
+      # Изоляция данных/медиа — webServer передаст это поднятому приложению.
+      DB_DATABASE: app_e2e
+      DB_HOST: 127.0.0.1
+      MEDIA_DISK: media-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      # Кэш браузеров между прогонами + установка только нужного движка.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      # Готовим тестовую БД (миграции/сидинг). Команда — под стек проекта.
+      - name: Prepare test database
+        run: npm run migrate:e2e
+
+      # webServer из playwright.config поднимет приложение сам.
+      - name: Run E2E
+        run: npx playwright test
+
+      # Артефакты для разбора падений: HTML-отчёт, трейсы, скриншоты, видео.
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

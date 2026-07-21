@@ -1,0 +1,15 @@
+{
+  "skill": "docker-services",
+  "snippets": [
+    {
+      "file": "services.yml",
+      "description": "Стек целиком: app (fpm-nginx, 8080), queue, scheduler, reverb (8000), опционально docs-init+docs; один образ, якорь &app_env",
+      "tags": ["compose", "laravel", "queue", "scheduler", "reverb", "docs"]
+    },
+    {
+      "file": "healthchecks.yml",
+      "description": "Паттерны healthcheck (curl /up, pgrep, TCP-проба, pg_isready) и depends_on (service_healthy, service_completed_successfully)",
+      "tags": ["compose", "healthcheck", "depends_on"]
+    }
+  ]
+}

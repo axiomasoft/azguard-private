@@ -1,0 +1,20 @@
+{
+  "skill": "codebase-design",
+  "snippets": [
+    {
+      "file": "DEEPENING.md",
+      "description": "Углубление кластера модулей с учётом зависимостей: категории зависимостей, дисциплина seam'а, тестирование «заменяй, не наслаивай»",
+      "tags": ["deep-modules", "dependencies", "seam", "testing"]
+    },
+    {
+      "file": "DESIGN-IT-TWICE.md",
+      "description": "Проектируй дважды: параллельные суб-агенты проектируют интерфейс несколькими радикально разными способами, затем сравнение по depth/locality/seam",
+      "tags": ["design", "alternatives", "interface", "subagents"]
+    },
+    {
+      "file": "HTML-REPORT.md",
+      "description": "Визуальный HTML-отчёт о deepening-возможностях (before/after, Tailwind+Mermaid CDN) из improve-codebase-architecture; опционально, зависит от xdg-open/браузера",
+      "tags": ["architecture", "report", "html", "deepening", "optional"]
+    }
+  ]
+}

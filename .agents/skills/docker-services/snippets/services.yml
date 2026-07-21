@@ -1,0 +1,150 @@
+# Source: anonymized production Laravel project
+# Полный сервисный стек Laravel из ОДНОГО образа: app/queue/scheduler/reverb (+docs).
+# Каждый процесс — свой контейнер, различается только command.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile # prod: image: <app>/app:latest
+    container_name: app_app
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment: &app_env
+      APP_NAME: ${APP_NAME}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
+      DB_CONNECTION: pgsql
+      DB_HOST: pgsql
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      REVERB_SERVER_PORT: ${REVERB_SERVER_PORT:-8000}
+    depends_on:
+      pgsql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks:
+      - app_network
+
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: app_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    # --max-time: воркер сам завершается раз в час и подхватывает новый код после рестарта
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    volumes:
+      - ./:/var/www/html
+    environment: *app_env
+    depends_on:
+      app: { condition: service_healthy }
+      pgsql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app_network
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: app_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    # serversideup-образ: для CLI-команды вместо FPM+Nginx используем базовый entrypoint
+    entrypoint: ["/usr/local/bin/docker-php-serversideup-entrypoint"]
+    command: ["php", "artisan", "schedule:work"]
+    environment: *app_env
+    depends_on:
+      app: { condition: service_healthy }
+      pgsql: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app_network
+
+  reverb:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: app_reverb
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    entrypoint: ["/usr/local/bin/docker-php-serversideup-entrypoint"]
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=${REVERB_SERVER_PORT:-8000}"]
+    ports:
+      - "${REVERB_SERVER_PORT:-8000}:${REVERB_SERVER_PORT:-8000}"
+    environment: *app_env
+    depends_on:
+      app: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app_network
+
+  # --- Опционально: статическая документация (VitePress и т.п.) ---
+  # init-контейнер: собирает статику и завершается
+  docs-init:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: app_docs_init
+    user: "0:0"
+    restart: "no"
+    working_dir: /var/www/html
+    command: ["sh", "/var/www/html/docker/docs/build-if-needed.sh"]
+    volumes:
+      - ./:/var/www/html
+      - docs_node_modules:/var/www/html/node_modules
+    environment: *app_env
+    networks:
+      - app_network
+
+  # nginx раздаёт собранную статику read-only, стартует после успешного init
+  docs:
+    image: nginx:alpine
+    container_name: app_docs
+    restart: unless-stopped
+    depends_on:
+      docs-init:
+        condition: service_completed_successfully
+    ports:
+      - "${DOCS_PORT:-4173}:80"
+    volumes:
+      - ./docs/.vitepress/dist:/usr/share/nginx/html:ro
+      - ./docker/docs/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  docs_node_modules:
+# pgsql/redis — см. скиллы docker-postgres и docker-dev-prod

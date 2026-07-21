@@ -1,0 +1,21 @@
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+
+[mcp_servers.maind]
+command = "maind"
+args = ["mcp", "--scope", "project:azguard"]
+
+[mcp_servers.serena]
+command = "uvx"
+args = [
+    "--from",
+    "git+https://github.com/oraios/serena",
+    "serena",
+    "start-mcp-server",
+    "--context",
+    "ide-assistant",
+    "--project",
+    ".",
+    "--enable-web-dashboard",
+    "false",
+]

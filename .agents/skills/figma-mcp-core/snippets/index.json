@@ -1,0 +1,15 @@
+{
+  "skill": "figma-mcp-core",
+  "snippets": [
+    {
+      "file": "tokens.json",
+      "description": "Пример design tokens в W3C Design Token Format: color (вложенные surface), spacing, typography (composite), border-radius; multi-mode (light/dark) через отдельные значения; $description хранит исходное имя Figma-переменной",
+      "tags": ["design-tokens", "w3c", "figma", "multi-mode"]
+    },
+    {
+      "file": "design-system-checklist.md",
+      "description": "Чеклист готовности Figma design-system перед разработкой: цвета в Variables, типографика стилями, spacing по сетке, полные Variants интерактивных компонентов, dark mode как Variable Mode, семантика имён слоёв, публикация в Team Library",
+      "tags": ["design-system", "audit", "checklist", "figma"]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "skill": "observability-design",
+  "snippets": [
+    {
+      "file": "slo-sli-template.md",
+      "description": "slo sli template",
+      "tags": []
+    }
+  ]
+}
