@@ -18,6 +18,19 @@ function migrationPath(): string
         .'/packages/core/database/migrations/2026_01_01_000005_add_unique_constraints_to_model_has_roles_and_scopes.php';
 }
 
+function expectUniqueConstraintViolation(Closure $operation): void
+{
+    // PostgreSQL marks the outer RefreshDatabase transaction as aborted after
+    // a constraint violation. A savepoint isolates that expected failure;
+    // MySQL's transaction wrapper unwraps it to PDOException, so leave its
+    // normal query path intact.
+    $operation = DB::getDriverName() === 'pgsql'
+        ? fn (): mixed => DB::transaction($operation)
+        : $operation;
+
+    expect($operation)->toThrow(QueryException::class);
+}
+
 it('rejects a duplicate (role, model) row in model_has_roles', function () {
     $t = config('az-guard.table_names');
     $user = User::factory()->create();
@@ -31,8 +44,7 @@ it('rejects a duplicate (role, model) row in model_has_roles', function () {
 
     DB::table($t['model_has_roles'])->insert($row);
 
-    expect(fn () => DB::table($t['model_has_roles'])->insert($row))
-        ->toThrow(QueryException::class);
+    expectUniqueConstraintViolation(fn () => DB::table($t['model_has_roles'])->insert($row));
 });
 
 it('rejects a duplicate (model, scope entity, role, panel) row in model_has_scopes', function () {
@@ -54,8 +66,7 @@ it('rejects a duplicate (model, scope entity, role, panel) row in model_has_scop
 
     DB::table($t['model_has_scopes'])->insert($row);
 
-    expect(fn () => DB::table($t['model_has_scopes'])->insert($row))
-        ->toThrow(QueryException::class);
+    expectUniqueConstraintViolation(fn () => DB::table($t['model_has_scopes'])->insert($row));
 });
 
 it('rejects a duplicate NULL-panel scope row — the default assignScopedRole() shape (P1.4 review)', function () {
@@ -80,8 +91,7 @@ it('rejects a duplicate NULL-panel scope row — the default assignScopedRole() 
 
     DB::table($t['model_has_scopes'])->insert($row);
 
-    expect(fn () => DB::table($t['model_has_scopes'])->insert($row))
-        ->toThrow(QueryException::class);
+    expectUniqueConstraintViolation(fn () => DB::table($t['model_has_scopes'])->insert($row));
 });
 
 it('deduplicates pre-existing rows before adding the constraints (P1.4 review)', function () {
@@ -141,6 +151,5 @@ it('is reversible — down() then up() runs without error and the constraint is 
 
     DB::table($t['model_has_roles'])->insert($row);
 
-    expect(fn () => DB::table($t['model_has_roles'])->insert($row))
-        ->toThrow(QueryException::class);
+    expectUniqueConstraintViolation(fn () => DB::table($t['model_has_roles'])->insert($row));
 });

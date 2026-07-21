@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,14 @@ return new class extends Migration
             $table->unique(['role_id', 'model_type', 'model_id'], 'model_has_roles_unique');
         });
 
+        // scope_entity_id's SQL type follows Config::morphType(): an integer
+        // column (default morph) needs an integer COALESCE fallback, a
+        // ulid/uuid morph (char column) needs a string one — a hardcoded `0`
+        // fallback against a char column is a Postgres COALESCE type error
+        // ("character and integer cannot be matched") and a silent type
+        // coercion footgun everywhere else.
+        $scopeEntityIdFallback = Config::morphType() === 'int' ? '0' : "''";
+
         if (Schema::getConnection()->getDriverName() === 'mysql') {
             // Functional key parts (MySQL >= 8.0.13). The *_type columns are
             // capped at 191 chars (prefix / SUBSTRING) to stay under InnoDB's
@@ -46,8 +55,9 @@ return new class extends Migration
             DB::statement(sprintf(
                 'ALTER TABLE %s ADD UNIQUE INDEX model_has_scopes_unique '
                 ."(model_type(191), model_id, (COALESCE(SUBSTRING(scope_entity_type, 1, 191), '')), "
-                ."(COALESCE(scope_entity_id, 0)), (COALESCE(role_id, 0)), (COALESCE(panel_id, '')))",
+                .'(COALESCE(scope_entity_id, %s)), (COALESCE(role_id, 0)), (COALESCE(panel_id, \'\')))',
                 $t['model_has_scopes'],
+                $scopeEntityIdFallback,
             ));
 
             return;
@@ -56,23 +66,37 @@ return new class extends Migration
         DB::statement(sprintf(
             'CREATE UNIQUE INDEX model_has_scopes_unique ON %s '
             ."(model_type, model_id, COALESCE(scope_entity_type, ''), "
-            ."COALESCE(scope_entity_id, 0), COALESCE(role_id, 0), COALESCE(panel_id, ''))",
+            .'COALESCE(scope_entity_id, %s), COALESCE(role_id, 0), COALESCE(panel_id, \'\'))',
             $t['model_has_scopes'],
+            $scopeEntityIdFallback,
         ));
     }
 
     public function down(): void
     {
         $t = config('az-guard.table_names');
+        $isMysql = Schema::getConnection()->getDriverName() === 'mysql';
 
-        Schema::table($t['model_has_roles'], function (Blueprint $table): void {
+        Schema::table($t['model_has_roles'], function (Blueprint $table) use ($t, $isMysql): void {
+            // model_has_roles_unique leads with role_id, so on MySQL it is
+            // the only index covering the role_id foreign key — MySQL
+            // refuses to drop it while the FK depends on it. Drop the FK
+            // first and recreate it once the unique index is gone.
+            if ($isMysql) {
+                $table->dropForeign(['role_id']);
+            }
+
             $table->dropUnique('model_has_roles_unique');
+
+            if ($isMysql) {
+                $table->foreign('role_id')->references('id')->on($t['roles'])->cascadeOnDelete();
+            }
         });
 
         // The scopes index is created with raw SQL (expression index), so it
         // is dropped with raw SQL too: Blueprint::dropUnique() compiles to
         // DROP CONSTRAINT on Postgres, which does not match a plain index.
-        if (Schema::getConnection()->getDriverName() === 'mysql') {
+        if ($isMysql) {
             DB::statement(sprintf('ALTER TABLE %s DROP INDEX model_has_scopes_unique', $t['model_has_scopes']));
 
             return;
