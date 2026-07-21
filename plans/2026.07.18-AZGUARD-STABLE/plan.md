@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4.10 UUID index-name эскалация классифицирована: P4.12 владеет portable morph-index repair; P4.10 остаётся blocked до full MySQL proof) |
+| Last Updated | 2026-07-22 (P4.12 closed: portable morph-index repair passed SQLite/PostgreSQL/MySQL focused proof; P4.10 re-opened for its full-lane/CI scope) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -109,7 +109,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 5/12 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 6/12 | 🟡 In progress |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -210,6 +210,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-21 | plan-run/implementation-high | P4.7 закрыт (🟠): key-length+binary collation 000002/000010 и Sol review готовы; MySQL RefreshDatabase bootstrap red перед тестом передан P4.10 — детали см. phases/P4.md P4.7 Completion Notes/Known Deviations. |
 | 2026-07-21 | plan-exec/implementation-medium | P4.9 закрыт: нейтральный LIKE escape сохраняет литеральные `%`/`_` на SQLite, PostgreSQL и MySQL — детали см. phases/P4.md P4.9 Completion Notes. |
 | 2026-07-22 | plan-design/frontier-high | P4.12 детализирован до DoR: explicit table-aware short morph-index names вместо fixture shortening, D37; P4.10 остаётся blocked до repair и timeout-900 full MySQL proof — детали см. phases/P4.md P4.12. |
+| 2026-07-22 | plan-run/implementation-high | P4.12 закрыт: `7ce4934` добавил deterministic short table-aware morph-index names; focused SQLite/PostgreSQL/MySQL proof и Sol/high APPROVE зелёные, P4.10 re-opened для full-lane/CI — детали см. phases/P4.md P4.12 Completion Notes. |
 
 ## Обсуждение
 

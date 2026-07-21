@@ -1,37 +1,34 @@
-# HANDOFF — 2026-07-22 — after P4
+# HANDOFF — 2026-07-22 — after P4.12
 
-**Next:** run-items: task:plan-run 2026.07.18-AZGUARD-STABLE P4.12
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
 
 | Параметр | Значение |
 |:--|:--|
-| Model class | implementation |
-| Effort | high |
-| Capabilities | native: task:plan-run |
-| Context | same-session — item |
-| Суть | Выполнить P4.12: explicit portable table-aware morph-index names; не сокращать fixture, затем Sol/high review. |
+| Model | implementation |
+| Thinking | medium |
+| Context | новая сессия; прочитать `plan.md`, этот handoff, P4.10 и Required Reads |
+| Суть | Выполнить только full real-DB proof, зелёный CI/db-matrix и docs/finding scope P4.10; новый production fix не добавлять. |
 
 ```text
-$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.12
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
 ```
 
-**Done:** P4.9 item-коммит `77c118c` заменил backslash-escape в поиске DirectGrantResource на
-явный нейтральный `ESCAPE '!'` и экранирование `!`, `%`, `_`; существующий escape-тест зелёный на
-SQLite, PostgreSQL и MySQL. Чистый P4.10 PostgreSQL run на `e48b3dd`: 669 passed / 1777 assertions.
+**Done:** P4.12 item-коммит `7ce4934` добавил private deterministic table-aware short morph-index
+names в `MorphColumns`; long UUID fixture теперь вызывает production helper. Focused SQLite,
+PostgreSQL и MySQL proof, Pint и PHPStan зелёные; отдельный Sol/high read-only review — APPROVE.
 
-**Remaining:** P4.12 UUID index-name remediation → P4.10 → P4.3 →
-P4.4 → P4.5 → P4.6; затем `task:plan-close` P4 и отдельный Soul/xhigh audit фазы.
+**Remaining:** P4.10 → P4.3 → P4.4 → P4.5 → P4.6; затем `task:plan-close` P4 и отдельный
+Sol/xhigh audit фазы.
 
-**Sources of truth:** `phases/P4.md` P4.12/P4.10, `plan.md` D37,
-`research/05-codex-execution-contract.md`, `research/07-p4.12-morph-index-portability.md`,
-`findings/P4.10-uuid-morph-index-name-2026-07-22.md`, clean-worktree focused command
-`COMPOSER_PROCESS_TIMEOUT=900 MYSQL_PORT=23306 composer test:mysql -- --filter='creates the scopes unique index when the morph type is uuid'`.
+**Sources of truth:** `phases/P4.md` P4.10/P4.12, `plan.md` D30/D37,
+`research/05-codex-execution-contract.md`, `research/04-p4.2-remediation.md`,
+`findings/P4.2-db-portability-failures.md`, `findings/P4.10-uuid-morph-index-name-2026-07-22.md`.
 
-**Open risks:** focused MySQL test fails with `SQLSTATE[42000] 1059` because automatic
-`uuid_morph_test_model_has_scopes_scope_entity_type_scope_entity_id_index` exceeds MySQL's 64-char
-identifier limit (tests/Feature/MorphTypeTest.php:64); P4.12 owns the production-helper repair,
-not P4.10 CI. Composer's default 300s timeout is insufficient for the full MySQL suite; P4.10 uses
-`COMPOSER_PROCESS_TIMEOUT=900` only after the targeted repair is green.
+**Open risks:** P4.10 должен воспроизвести full PostgreSQL/MySQL suites; только при обоих зелёных
+можно принимать уже существующий dirty CI hunk. Full MySQL proof запускается с
+`COMPOSER_PROCESS_TIMEOUT=900`. Shared worktree всё ещё содержит чужие незакоммиченные
+`.github/workflows/tests.yml` и `tests/Pest.php`; P4.10 должен инвентаризировать и коммитить лишь
+свои declared Files.
 
-**Workarounds/Deferred/Open questions:** workarounds — Context7 quota fallback to Perplexity official
-Laravel API for P4.9 verification; deferred — B6 Sol/high review after eventual P4.10 closure;
-open_questions — resolved by D37: explicit production-helper names, not a shorter fixture.
+**Workarounds/Deferred/Open questions:** deferred — P4 phase Sol/xhigh audit только после
+терминальности всех P4 items; open_questions — нет.
