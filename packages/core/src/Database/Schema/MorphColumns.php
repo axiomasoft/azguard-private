@@ -15,8 +15,25 @@ use Illuminate\Database\Schema\Blueprint;
  */
 final class MorphColumns
 {
-    public static function add(Blueprint $table, string $name, bool $nullable = false): void
-    {
+    public static function add(
+        Blueprint $table,
+        string $name,
+        bool $nullable = false,
+        ?int $keyTypeLength = null,
+        ?string $keyTypeCollation = null,
+    ): void {
+        if ($keyTypeLength !== null || $keyTypeCollation !== null) {
+            self::addWithKeyTypeOptions(
+                table: $table,
+                name: $name,
+                nullable: $nullable,
+                keyTypeLength: $keyTypeLength ?? 255,
+                keyTypeCollation: $keyTypeCollation,
+            );
+
+            return;
+        }
+
         $type = Config::morphType();
 
         if ($type === 'ulid') {
@@ -44,5 +61,35 @@ final class MorphColumns
         } else {
             $table->morphs($name);
         }
+    }
+
+    private static function addWithKeyTypeOptions(
+        Blueprint $table,
+        string $name,
+        bool $nullable,
+        int $keyTypeLength,
+        ?string $keyTypeCollation,
+    ): void {
+        $typeColumn = $table->string("{$name}_type", $keyTypeLength);
+
+        if ($nullable) {
+            $typeColumn->nullable();
+        }
+
+        if ($keyTypeCollation !== null) {
+            $typeColumn->collation($keyTypeCollation);
+        }
+
+        $idColumn = match (Config::morphType()) {
+            'ulid' => $table->ulid("{$name}_id"),
+            'uuid' => $table->uuid("{$name}_id"),
+            default => $table->unsignedBigInteger("{$name}_id"),
+        };
+
+        if ($nullable) {
+            $idColumn->nullable();
+        }
+
+        $table->index(["{$name}_type", "{$name}_id"]);
     }
 }
