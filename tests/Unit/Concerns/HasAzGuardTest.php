@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Roles\BaseRole;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
+use AzGuard\Tests\Stubs\Roles\SuperAdminRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -120,15 +120,6 @@ describe('HasAzGuard trait', function () {
     });
 
     it('wildcard * grants all permissions when present', function () {
-        // Создаём роль с wildcard через анонимный класс
-        $wildcardRole = new class extends BaseRole
-        {
-            public function permissions(): array
-            {
-                return ['*'];
-            }
-        };
-
         $user = User::create([
             'name' => 'Super',
             'email' => 'super@example.com',
@@ -137,7 +128,7 @@ describe('HasAzGuard trait', function () {
 
         $role = createRoleWithClass(['name' => 'superadmin',
             'level' => 100,
-        ], get_class($wildcardRole));
+        ], SuperAdminRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
