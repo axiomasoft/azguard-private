@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.23 |
+| Version | 0.3.24 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-21 (полный Codex-only execution contract для остатка P4/P5, D34; незавершённый diff P4.8 сохранён как недоверенный вход) |
+| Last Updated | 2026-07-21 (P4.8 эскалирован: migration-fix одобрен, независимый PG wildcard-defect требует минимального follow-up design, D35) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -148,6 +148,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D32 | 2026-07-18 | **расширяет D24 (P4.7)**: MySQL-лейн упал `Specified key too long (3072 bytes)` на `az_direct_grant_unique` (000002) и `az_ctx_roles_unique` (000010) — 6× varchar(255) под utf8mb4 > лимит ключа InnoDB. Key-length-bounding сливается в P4.7 (те же ключевые колонки тех же файлов, что и collation → один проход, без двойного редактирования миграций). P4.7: (а) подобрать длины расчётом «сумма байт < 3072» (НЕ резать `model_type` вслепую до 191 — FQCN длиннее, pre-mortem: коллизия ключей; префикс-индекс/сузить прочие); (б) driver-conditional utf8mb4_bin (как D24). scopes-индекс `model_has_scopes_unique` уже несёт 191-префикс (P4.8-владение) — P4.7 его не трогает | Length и collation — одни колонки одних файлов; раздельные items = двойная правка 000002/000010 (P4.7 обязан не откатить длины). RAG:— (repo-grounded: findings/P4.2-remediation-anchors-2026-07-18.md §2, research/04 §2) |
 | D33 | 2026-07-21 | Остаток P4/P5 переведён с Claude-селекторов на provider-neutral routing с Codex-проекцией: economy→GPT-5.6 Luna, implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Sol не тратится на frozen-spec implementation; он обязателен для P5.1, phase-audit и независимого review P4.8/P4.7/P4.4. Исторические строки/логи моделей не переписываются. Незакоммиченный P4.8 diff признан входом продолжения, а не новой реализацией | Качество/стоимость: официальная линейка позиционирует Sol как frontier, Terra как balance, Luna как cost-sensitive; локальный Codex adapter даёт тот же neutral mapping. Read-only supporting work можно дешево изолировать, но final correctness verdict остаётся у Sol. RAG:✅ 2026-07-21 (findings/codex-model-routing-2026-07-21.md); RAG:— (repo-grounded: git status/diff, provider-commands.md, .codex/agents/*.toml) |
 | D34 | 2026-07-21 | Уточнение владельца: все будущие запуски плана — только ChatGPT/Codex; неявный контекст Claude заменён обязательным `research/05-codex-execution-contract.md`. Контракт пинит `task@swissknifeman` 0.3.0+, fresh-session gate, точные Terra/Sol/Luna роли и effort по каждому открытому item, one-writer/read-only-review, максимум два review/fix цикла и повторную приёмку dirty P4.8 по воспроизводимым доказательствам. Ручной prompt без task-harness запрещён как штатный fallback | Передача плана между агентными harness'ами требует явной context architecture и validation boundary: модель предлагает, репозиторий/тесты/plan-protocol подтверждают. Экономия достигается Terra на frozen-spec, Sol только на несущих verdicts, Luna только на детерминированном read-only support; координационные накладные расходы не должны превышать экономию. RAG:— (repo-grounded: brief/01-refinements.md 2026-07-21; research/05-codex-execution-contract.md; task plugin 0.3.0 adapters) |
+| D35 | 2026-07-21 | P4.8 эскалирован после двухкоммитного migration-fix и независимого Sol-review: `MorphType` и `ModelHasRolesScopes` зелёны, но PG `Authorizer|HasAzGuard` остаётся 35/37 с двумя false wildcard assertions без SQLSTATE/transaction-abort. Нельзя закрыть P4.8 зелёным или расширить его Files: нужен минимальный follow-up item, который классифицирует и исправляет/обосновывает wildcard-дефект; только затем вернуть P4.8 к закрытию | Acceptance P4.8 требует снятия cascade; evidence отделяет закрытый migration-defect от нового поведения wildcard. Scope expansion нарушил бы file ownership и freeze P3. RAG:— (repo-grounded: commits 1179b7c/91a67d7; P4.8 review; `composer test:pgsql -- --filter='Authorizer|HasAzGuard'`) |
 
 ## 6. Update Log
 
@@ -198,6 +199,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-18 | plan-exec/sonnet-medium | P4.2 закрыт (🟢): БД-лейн-харнесс закоммичен, фикстура ContextTableNameConfigTest дополнена expires_at (R4), PG/MySQL-лейны запущены и воспроизводят baseline — детали см. phases/P4.md P4.2 Completion Notes |
 | 2026-07-21 | plan-design/GPT-5.6 | Codex-проекция остатка плана (D33): открытые items маршрутизированы через Luna/Terra/Sol, добавлены независимые review checkpoints и cold-start продолжения незакоммиченного P4.8 — детали roadmap.md и handoff.md. v0.3.22 |
 | 2026-07-21 | plan-design/GPT-5.6 | Полная Codex-only подготовка (D34): добавлен обязательный execution contract, fresh-session/task-plugin gate, точные модели/effort/команды, контур handoff/review и приёмка недоверенного P4.8 diff; активные P4/P5 переведены на доступные Codex skills. v0.3.23 |
+| 2026-07-21 | plan-run/GPT-5.6 Terra/high | P4.8 эскалирован: migration 000005 исправлена и независимо одобрена, но отдельный PG wildcard-defect оставил обязательную validation красной — причина и follow-up см. phases/P4.md P4.8 и D35. |
 
 ## Обсуждение
 
