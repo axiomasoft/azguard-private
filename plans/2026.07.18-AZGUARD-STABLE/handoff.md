@@ -1,6 +1,6 @@
 # HANDOFF — 2026-07-21 — after P4.8
 
-**Next:** `$ task:plan-design 2026.07.18-AZGUARD-STABLE P4.8`
+**Next:** design-item: task:plan-design 2026.07.18-AZGUARD-STABLE P4.8
 
 | Параметр | Значение |
 |:--|:--|
