@@ -24,7 +24,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P3.1–P3.3 | — | ✅ фаза закрыта | historical Claude routes | — | поверхность заморожена; не перезапускать |
 | P4.1 | — | ✅ закрыт | sonnet/medium | — | docker-стенд PG16/MySQL8/Redis7 |
 | P4.2 | — | ✅ закрыт | sonnet/medium | — | **re-scope D31**: коммит БД-лейн-харнесса + фикс тест-фикстуры expires_at; CI/green отложены в P4.10 |
-| P4.8 | solo | blocked pending P4.11 | implementation/high → Terra/high | — | migration commits+Sol review complete; item closure waits only for P4.11 PG classification |
+| P4.8 | — | ✅ закрыт | implementation/high → Terra/high | — | migration commits `1179b7c`/`91a67d7`, Sol/high review и повторная validation после P4.11 зелёные |
 | P4.11 | solo | plan-exec | implementation/medium → Terra/medium | — | два existing anonymous wildcard fixtures → named SuperAdminRole; PG proof, затем Sol/high classification review |
 | P4.7 | solo | plan-run (manual) | implementation/high → Terra/high | — | key-length+collation 000002/000010; затем независимый Sol/high review до закрытия |
 | P4.9–P4.10 | B6 | plan-exec серия | implementation/medium → Terra/medium | — | LIKE-escape → green-proof+CI; один Sol/high review checkpoint на итог B6 |
