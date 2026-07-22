@@ -95,6 +95,6 @@ final class MorphColumns
 
     private static function morphIndexName(Blueprint $table, string $name): string
     {
-        return 'azg_'.sha1($table->getTable().'_'.$name).'_idx';
+        return 'azg_'.substr(hash('sha256', $table->getTable().'_'.$name), 0, 40).'_idx';
     }
 }
