@@ -9,6 +9,19 @@ function guardPanelTestPath(string $suffix): string
     return 'app/Guards/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'/'.$suffix;
 }
 
+function guardPanelTestRoot(): string
+{
+    return base_path('app/Guards/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential'));
+}
+
+beforeEach(function (): void {
+    File::deleteDirectory(guardPanelTestRoot());
+});
+
+afterEach(function (): void {
+    File::deleteDirectory(guardPanelTestRoot());
+});
+
 it('создаёт guard-панель с доменной структурой', function (): void {
     $path = guardPanelTestPath(suffix: 'Structure');
 

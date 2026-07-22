@@ -10,7 +10,7 @@
         ]
     },
     "phpUnit": {
-        "customPath": "vendor/bin/pest"
+        "customPath": "bin/infection-pest"
     },
     "logs": {
         "text": "build/infection/context.log",
