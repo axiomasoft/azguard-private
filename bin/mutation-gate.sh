@@ -4,8 +4,6 @@
 # Pest 4 bundles pest-plugin-mutate, whose runner keeps the coverage test IDs
 # consistent with Pest. Infection 0.34 cannot resolve those IDs (P4.5).
 # Each package starts from fresh coverage; scores are enforced independently.
-# Do not pass Pest --parallel: its initial coverage suite races generator fixtures
-# shared by MakeGuardPanelCommandTest before mutation execution begins.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -60,6 +58,8 @@ run_package() {
     echo "[mutation-gate] === $package (minimum ${min_score}%) ==="
     XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/pest \
         --mutate \
+        --parallel \
+        --processes=4 \
         --path="$path" \
         --ignore="$ignored" \
         --covered-only \

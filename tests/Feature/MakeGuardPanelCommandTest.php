@@ -6,12 +6,19 @@ use Illuminate\Support\Facades\File;
 
 function guardPanelTestPath(string $suffix): string
 {
-    return 'app/Guards/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'/'.$suffix;
+    return 'app/Guards/P4Parallel'.guardPanelTestToken().'/'.$suffix;
 }
 
 function guardPanelTestRoot(): string
 {
-    return base_path('app/Guards/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential'));
+    return base_path('app/Guards/P4Parallel'.guardPanelTestToken());
+}
+
+function guardPanelTestToken(): string
+{
+    $token = getenv('TEST_TOKEN');
+
+    return is_string($token) && $token !== '' ? $token : (string) getmypid();
 }
 
 beforeEach(function (): void {
@@ -43,7 +50,7 @@ it('создаёт guard-панель с доменной структурой',
         ->and($basePath.'/Documents/Policies/DocumentsPolicy.php')->toBeFile();
 
     $policyContent = File::get(path: $basePath.'/Documents/Policies/DocumentsPolicy.php');
-    expect($policyContent)->toContain('namespace App\Guards\P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'\Structure\Admin\Documents\Policies;')
+    expect($policyContent)->toContain('namespace App\Guards\P4Parallel'.guardPanelTestToken().'\Structure\Admin\Documents\Policies;')
         ->and($policyContent)->toContain('use AuthorizesPermission;')
         ->and($policyContent)->toContain('#[GuardPolicy');
 
@@ -74,7 +81,7 @@ it('auto-registers the generated panel provider in config/az-guard.php', functio
     $path = guardPanelTestPath(suffix: 'Registration');
     $application = app();
     $originalConfigPath = $application->configPath();
-    $isolatedConfigPath = base_path('storage/framework/testing/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'/config');
+    $isolatedConfigPath = base_path('storage/framework/testing/P4Parallel'.guardPanelTestToken().'/config');
     $application->useConfigPath($isolatedConfigPath);
     $configPath = config_path('az-guard.php');
 
@@ -88,7 +95,7 @@ it('auto-registers the generated panel provider in config/az-guard.php', functio
         )->assertSuccessful();
 
         expect(File::get($configPath))
-            ->toContain('App\Guards\P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'\Registration\Admin\AdminGuardPanelProvider::class');
+            ->toContain('App\Guards\P4Parallel'.guardPanelTestToken().'\Registration\Admin\AdminGuardPanelProvider::class');
     } finally {
         $application->useConfigPath($originalConfigPath);
         File::deleteDirectory($isolatedConfigPath);
