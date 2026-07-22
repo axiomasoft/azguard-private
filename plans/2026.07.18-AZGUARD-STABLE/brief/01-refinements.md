@@ -75,3 +75,12 @@ Codex и `task@swissknifeman`; обязательный контракт —
 fixture-классификацию или эскалирует runtime/P3-вопрос. Следствие — P4.11 меняет лишь
 два test fixtures при строгих PG assertions; никакой production/API/SemVer правки без
 нового D-решения.
+
+## 2026-07-22 — P4.10: минимальное восстановление валидаторов
+
+Полный clean proof P4.10 обнаружил два новых, независимых блокера после P4.12: security
+architecture запрещает `sha1()` в private index-name helper, а ожидаемое исключение rollback
+теста отравляет PostgreSQL transaction `RefreshDatabase`. Владелецский принцип остаётся
+неизменным: не ослаблять architecture/test gates, не переписывать provenance закрытых items и
+не принимать CI/docs до честного full green. Следствие — два минимальных follow-up items
+P4.13/P4.14 (D38), затем только повтор P4.10.
