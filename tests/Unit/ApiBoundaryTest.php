@@ -117,6 +117,10 @@ $docblockMethodSignatures = function (string $fqcn): array {
  * docblock stay outside the frozen surface. Parameter NAMES are part of the
  * signature — the project treats named arguments as contract.
  *
+ * PHP 8.5 resolves a same-class `self` reflection type to the declaring FQCN,
+ * while older supported engines render `self`. The snapshot freezes the source
+ * contract, so canonicalize that engine-only representation before comparing it.
+ *
  * @return list<string>
  */
 $publicMethodSignatures = function (string $fqcn): array {
@@ -133,10 +137,20 @@ $publicMethodSignatures = function (string $fqcn): array {
             continue;
         }
 
+        $renderType = static function (ReflectionType $type) use ($method): string {
+            if ($type instanceof ReflectionNamedType
+                && ! $type->isBuiltin()
+                && $type->getName() === $method->getDeclaringClass()->getName()) {
+                return ($type->allowsNull() ? '?' : '').'self';
+            }
+
+            return (string) $type;
+        };
+
         $params = [];
 
         foreach ($method->getParameters() as $param) {
-            $rendered = $param->getType() instanceof ReflectionType ? $param->getType().' ' : '';
+            $rendered = $param->getType() instanceof ReflectionType ? $renderType($param->getType()).' ' : '';
             $rendered .= $param->isPassedByReference() ? '&' : '';
             $rendered .= $param->isVariadic() ? '...' : '';
             $rendered .= '$'.$param->getName();
@@ -149,7 +163,7 @@ $publicMethodSignatures = function (string $fqcn): array {
         $signature = ($method->isStatic() ? 'static ' : '').$method->getName().'('.implode(', ', $params).')';
 
         if ($method->getReturnType() instanceof ReflectionType) {
-            $signature .= ': '.$method->getReturnType();
+            $signature .= ': '.$renderType($method->getReturnType());
         }
 
         $out[] = $signature;
