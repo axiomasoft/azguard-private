@@ -23,9 +23,8 @@ Sol/high review зелёные.
 **Sources of truth:** `phases/P4.md` P4.4; commit `07cac2b`; independent P4.4 review.
 
 **Open risks:** root ignored `vendor/` malformed; package validation выполнять только в fresh isolated
-worktree. P4.10 item record остаётся `⬜ Not started` при зелёной Phase Status строке, поэтому
-plan-lint имеет 2 existing ERROR до его reconciliation. P4.4 raw epoch starts at 1, поэтому 24 real
-bump завершаются на 25 — это записано как material deviation item-а, production-код не менялся.
+worktree. P4.4 raw epoch starts at 1, поэтому 24 real bump завершаются на 25 — это записано как
+material deviation item-а, production-код не менялся.
 
 **Workarounds/Deferred/Open questions:** workarounds — не использовать copied/symlinked root vendor;
 deferred — P4.5 mutation measurement; open_questions — stale `tests/Pest.php` DebugPgAbort registration
