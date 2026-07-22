@@ -1,21 +1,21 @@
 # HANDOFF — 2026-07-22 — after P5
 
-**Next:** /task:plan-close 2026.07.18-AZGUARD-STABLE P5.3
+**Next:** /task:plan-audit 2026.07.18-AZGUARD-STABLE P5
 
 | Параметр | Значение |
 |:--|:--|
-| Model | implementation |
-| Thinking | low — закрыть repair P5.3 |
+| Model | frontier |
+| Thinking | xhigh — независимый финальный вердикт |
 | Context | NEW SESSION — шаг-не-item |
-| Суть | Сверить и закрыть control-plane repair P5.3. |
+| Суть | Проверить P5 release/docs/control-plane перед archive. |
 
 ```text
-$ task:plan-close 2026.07.18-AZGUARD-STABLE P5.3
+$ task:plan-audit 2026.07.18-AZGUARD-STABLE P5
 ```
 
-**Done:** P5.1–P5.3 delivery завершены; D44 устранил stale roadmap, противоречивый Next и пустой Phase Handoff.
+**Done:** Фаза P5 закрыта 🟢: P5.1–P5.3 delivery завершены; D44 устранил stale roadmap, противоречивый Next и пустой Phase Handoff.
 
-**Remaining:** закрыть P5.3, затем P5; после независимого GREEN audit — archive.
+**Remaining:** независимый GREEN audit P5; затем archive.
 
 **Sources of truth:** `phases/P5.md` Completion Notes и Audit P5; tag `v0.3.0`; commits `d26db85`, `2378029`, `c734634`.
 

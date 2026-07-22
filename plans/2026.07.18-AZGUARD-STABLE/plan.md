@@ -7,10 +7,10 @@
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
 | Version | 0.3.36 |
-| Status | 🟡 In progress |
+| Status | 🟠 Done with deviations |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P5 control-plane repaired after audit: one route to final audit) |
+| Last Updated | 2026-07-22 (P5 closed: release, docs and control-plane reconciled) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -113,7 +113,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 11/15 | 🟠 Done with deviations |
-| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 2/3 | 🟡 In progress |
+| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 3/3 | 🟢 Done |
 
 ## 5. Decision Log
 
@@ -236,6 +236,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-close/implementation-low | Фаза P4 закрыта: 15/15 items terminal (11🟢/4🟠); clean vendor, GitHub Tests `29897276221` и Mutation Testing `29897276175` зелёные; P4 Phase Handoff и roadmap сверены. |
 | 2026-07-22 | plan-run/GPT-5.6 Sol/high | P5.1 закрыт: самодостаточный канон усиления пакета принят после full-review — детали см. phases/P5.md P5.1 Completion Notes. |
 | 2026-07-22 | plan-design/frontier-high | P5 реопенена по D44: устранены stale execution routes и восстановлен единый переход к final audit P5 — детали см. phases/P5.md Audit P5. |
+| 2026-07-22 | plan-close/implementation-low | Фаза P5 закрыта: 3/3 items 🟢; release/docs/control-plane сверены, final audit P5 остаётся гейтом archive — детали см. phases/P5.md Phase Handoff. |
 
 ## Обсуждение
 
