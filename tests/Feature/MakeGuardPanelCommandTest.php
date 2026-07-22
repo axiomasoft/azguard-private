@@ -9,11 +9,6 @@ function guardPanelTestPath(string $suffix): string
     return 'app/Guards/P4Parallel'.guardPanelTestToken().'/'.$suffix;
 }
 
-function guardPanelTestRoot(): string
-{
-    return base_path('app/Guards/P4Parallel'.guardPanelTestToken());
-}
-
 function guardPanelTestToken(): string
 {
     $token = getenv('TEST_TOKEN');
@@ -21,16 +16,9 @@ function guardPanelTestToken(): string
     return is_string($token) && $token !== '' ? $token : (string) getmypid();
 }
 
-beforeEach(function (): void {
-    File::deleteDirectory(guardPanelTestRoot());
-});
-
-afterEach(function (): void {
-    File::deleteDirectory(guardPanelTestRoot());
-});
-
 it('создаёт guard-панель с доменной структурой', function (): void {
     $path = guardPanelTestPath(suffix: 'Structure');
+    File::deleteDirectory(base_path($path));
 
     $this->artisan(
         command: 'make:guard-panel',
@@ -63,6 +51,7 @@ it('создаёт guard-панель с доменной структурой',
 
 it('создаёт Abilities при флаге --with-abilities', function (): void {
     $path = guardPanelTestPath(suffix: 'Abilities');
+    File::deleteDirectory(base_path($path));
 
     $this->artisan(
         command: 'make:guard-panel',
@@ -79,6 +68,7 @@ it('создаёт Abilities при флаге --with-abilities', function (): v
 
 it('auto-registers the generated panel provider in config/az-guard.php', function (): void {
     $path = guardPanelTestPath(suffix: 'Registration');
+    File::deleteDirectory(base_path($path));
     $application = app();
     $originalConfigPath = $application->configPath();
     $isolatedConfigPath = base_path('storage/framework/testing/P4Parallel'.guardPanelTestToken().'/config');
@@ -104,6 +94,7 @@ it('auto-registers the generated panel provider in config/az-guard.php', functio
 
 it('отказывается если панель уже существует', function (): void {
     $path = guardPanelTestPath(suffix: 'Existing');
+    File::deleteDirectory(base_path($path));
     File::makeDirectory(path: base_path($path.'/ExistingPanel'), mode: 0755, recursive: true);
 
     $this->artisan(
