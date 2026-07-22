@@ -12,6 +12,7 @@ use AzGuard\Context\Events\ContextGrantGiven;
 use AzGuard\Context\Events\ContextGrantRevoked;
 use AzGuard\Context\Middleware\SetAuthorizationContext;
 use AzGuard\Context\Strategies\GlobalPlusContextStrategy;
+use AzGuard\Contracts\ContextGrantBuilderFactory as ContextGrantBuilderFactoryContract;
 use AzGuard\Contracts\ContextGuard as ContextGuardContract;
 use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Contracts\PermissionResolverInterface;
@@ -76,6 +77,11 @@ final class AzGuardContextServiceProvider extends ServiceProvider
         // ($user->hasPermissionIn(...) / hasPermission(..., $context)).
         // Scoped — injects the scoped manager and resolver, must share their instances.
         $this->app->scoped(ContextGuardContract::class, ContextGuard::class);
+
+        // Context branch of the unified grant root: core's GrantBuilder::inContext()
+        // resolves this factory; without the binding it fails loudly
+        // (ContextPackageNotInstalledException).
+        $this->app->bind(ContextGrantBuilderFactoryContract::class, ContextGrantBuilderFactory::class);
     }
 
     public function boot(): void
@@ -127,10 +133,6 @@ final class AzGuardContextServiceProvider extends ServiceProvider
     private function registerMiddlewareAlias(): void
     {
         $router = $this->app->make(Router::class);
-
-        if (! $router instanceof Router) {
-            return;
-        }
 
         $router->aliasMiddleware('azguard.context', SetAuthorizationContext::class);
     }

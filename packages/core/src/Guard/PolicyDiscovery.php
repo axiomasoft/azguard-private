@@ -69,7 +69,7 @@ final class PolicyDiscovery
         $relativeToBase = Str::after(subject: $policyPath, search: $basePath.DIRECTORY_SEPARATOR);
         $segments = explode(separator: DIRECTORY_SEPARATOR, string: dirname(path: $relativeToBase));
 
-        if ($segments === [] || $segments[0] === '.' || $segments[0] === '') {
+        if ($segments[0] === '.' || $segments[0] === '') {
             $modelName = Str::replaceLast(search: 'Policy', replace: '', subject: class_basename(class: $policyClass));
 
             return class_exists("{$modelsNamespace}\\{$modelName}")

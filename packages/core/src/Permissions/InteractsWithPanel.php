@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Permissions;
 
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use BackedEnum;
 
 trait InteractsWithPanel

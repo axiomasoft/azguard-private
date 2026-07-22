@@ -8,7 +8,7 @@ use AzGuard\AzGuardManager;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
@@ -69,7 +69,7 @@ final class SwapTestManager implements AzGuardManagerInterface
         return $this->inner->panelIdForPermission($permission);
     }
 
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool
     {
         return $this->inner->isSuperAdmin($user, $panelId);
     }

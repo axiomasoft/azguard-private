@@ -6,6 +6,18 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased]
 
+### Breaking
+- `removeScopedRole($role, $entity, panelId: null)` now removes ONLY the
+  any-panel assignment (`panel_id IS NULL`) instead of every panel's
+  assignment for that role+entity — symmetric with `assignScopedRole()`,
+  where a null `$panelId` has always meant "the any-panel row", not "every
+  panel". If your code relied on the old "wipe every panel" behavior, switch
+  to the new `removeScopedRoleEverywhere($role, $entity)` method, which
+  reproduces it explicitly. Calls that never scoped the assignment by panel
+  in the first place (the common case — `assignScopedRole` and
+  `removeScopedRole` both called with no `panelId`) are unaffected: both
+  ends of the pair already target the same any-panel row. (T2)
+
 ### Security
 - **Entity-scoped roles are now isolated per panel (F8).** A new migration adds a
   nullable `panel_id` to `model_has_scopes`; assignments persist it and permission
@@ -61,6 +73,40 @@ the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
   for panels that actually declare policy classes, so a policy-less
   (Gate/`ResourceGate`) panel is no longer required to have a
   `#[GateAbility]` method per enum case.
+- `HasScopedRoles::bootHasScopedRoles()`'s Eloquent global query-scope is now
+  panel-aware: a scope assigned under one panel no longer filters queries run
+  under a different panel (matching the isolation F8 already gave the
+  permission-check path). A scope with a null `panel_id`, or the case where no
+  panel is currently active at all (the norm for Filament requests), still
+  applies every scope — the panel filter is strictly additive, it only ever
+  narrows, never expands, visibility. (T1)
+- Fixed an infinite-recursion crash in `bootHasScopedRoles()`: eager-loading
+  `scopeEntity` on the scoped-role rows re-entered the same global scope
+  whenever the scoped entity's own model also used `HasScopedRoles` (e.g. a
+  `Project::all()` query outside the console with at least one scope row) —
+  the eager-load now loads `scopeEntity` with that global scope removed. (T1)
+- `PermissionCache::forgetForUser()` now serializes its epoch bump
+  (`add()`→`increment()`→`put()`) under a `Cache::lock()` — this is a fix
+  *on top of* the earlier epoch-TTL fix (`e3e33c3`), not a first-time bug:
+  that fix's own trailing `put()` was a non-atomic read-modify-write, so two
+  concurrent `forgetForUser()` calls on the same user+panel could interleave
+  and roll the epoch backward, letting a just-revoked grant keep being served
+  under the stale (rolled-back) epoch key until its own TTL expired. Custom
+  cache drivers that don't implement `LockProvider` degrade to the prior
+  (unlocked) behavior rather than throwing. (T6)
+- `EnumPermissionCatalogBuilder::build()` now logs a warning when an enum
+  class listed in `Panel::permissionEnums()` no longer exists, instead of
+  silently skipping it — matching the diagnostics `PolicyAbilityCatalogBuilder`
+  already gave for a stale policy class, so a renamed/removed `*Permission`
+  enum leaves a signal in the log rather than a silent hole in the catalog. (T3)
+- `EffectivePermissionResolver::filterAgainstCatalog()`'s wildcard-disabled branch
+  now excludes any key containing the wildcard character (`*`) before checking it
+  against dynamic catalog definitions, matching the guard the wildcard-enabled
+  branch already had. Previously a literal `*` in a grant key (e.g. `app.docs.*`)
+  could accidentally match a dynamic definition's `{seg}` placeholder segment
+  (which matches any non-empty segment, including a literal `*`), contradicting
+  the method's own docblock, which promises patterns are "treated as unknown
+  exact keys and removed" when the feature is off. (T4)
 
 ### Added
 - `AbilitiesDto::make(...)` — the supported way to instantiate an abilities DTO:

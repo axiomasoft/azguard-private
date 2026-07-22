@@ -21,11 +21,9 @@ describe('guard:list-scoped-roles command', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'project-editor',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'project-editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -39,11 +37,9 @@ describe('guard:list-scoped-roles command', function (): void {
         $user = User::factory()->create(['email' => 'editor@example.com']);
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'project-editor-email',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'project-editor-email',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -62,11 +58,9 @@ describe('guard:list-scoped-roles command', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'filtered-editor',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'filtered-editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
 

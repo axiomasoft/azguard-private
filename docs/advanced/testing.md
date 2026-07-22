@@ -137,9 +137,9 @@ public function test_gate_with_model(): void
 
 ## Testing services that check permissions
 
-AzGuard has no fake/mock layer — test against the real resolver. Keep the cache
-store on `'array'` (the default) so nothing leaks between tests, then assign roles
-or grants and assert through `hasPermission()` / `Gate::allows()`:
+Testing a service against the real resolver — assign roles or grants and assert
+through `hasPermission()` / `Gate::allows()` — works out of the box; keep the
+cache store on `'array'` (the default) so nothing leaks between tests:
 
 ```php
 public function test_service_checks_permission(): void
@@ -164,6 +164,94 @@ public function test_service_denies_without_permission(): void
     );
 }
 ```
+
+## Fakes: testing without a database
+
+For unit tests that only touch the permission surface, AzGuard also ships a
+dependency-free test double: `FakeAzGuardUser`. No migrations, panels or catalog
+required:
+
+```php
+use AzGuard\Testing\FakeAzGuardUser;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
+
+$user = (new FakeAzGuardUser)->grant('app', DocumentsPermission::View);
+
+$user->hasPermission(DocumentsPermission::View); // true
+$user->isSuperAdmin();                           // false
+
+(new FakeAzGuardUser)->wildcard()->isSuperAdmin(); // true
+```
+
+Type-hint `HasPermissions` (or `Authenticatable`) where you accept the fake in the
+adapter under test. It intentionally provides no roles/relations — use a real
+Eloquent user with `HasAzGuard` when you need role behavior.
+
+To grant a fixed set to **real** users without touching roles or DB rows, register
+a `FakeGrantSource`. It sits above the built-in sources, so its grants win during
+tests:
+
+```php
+use AzGuard\Facades\AzGuard;
+use AzGuard\Testing\FakeGrantSource;
+
+$fake = (new FakeGrantSource)->grant('app', DocumentsPermission::View);
+app()->instance(FakeGrantSource::class, $fake);
+
+AzGuard::registerGrantSource(FakeGrantSource::class);
+
+// now any user passes:
+$user->hasPermission(DocumentsPermission::View); // true
+
+// (new FakeGrantSource)->wildcard() grants everything, like a super-admin
+```
+
+For a catalog-free setup, pair `FakeGrantSource` with a plain string key check —
+no panel provider is required just to assert a permission:
+
+```php
+$user->hasPermission('app.documents.view'); // works with no panel registered
+```
+
+## `AzGuard::fake()` — recording grants and checks
+
+`AzGuard::fake()` swaps the facade for a recording double (the `Event::fake()`/
+`Pdf::fake()` pattern): grants and checks still run for real — fake() observes,
+it does not replace behavior — so `assertGranted()`/`assertDenied()`/
+`assertChecked()` read from what actually happened during the test:
+
+```php
+use AzGuard\Facades\AzGuard;
+
+public function test_it_records_grants_and_checks(): void
+{
+    AzGuard::fake();
+
+    $user = User::factory()->create();
+
+    AzGuard::forUser($user)->on('app')->grant(DocumentsPermission::View);
+
+    $this->assertTrue($user->can('app.documents.view'));
+
+    AzGuard::assertGranted($user, DocumentsPermission::View, 'app');
+    AzGuard::assertChecked('app.documents.view');
+}
+```
+
+Each assertion also accepts a closure predicate over a `Recorded` (`user`,
+`key`, `panelId`, `result`) instead of the simple form — there is no "get log"
+method, only assertions:
+
+```php
+use AzGuard\Testing\Recorded;
+
+AzGuard::assertGranted(fn (Recorded $r) => $r->key === 'app.documents.view');
+AzGuard::assertChecked(fn (Recorded $r) => $r->key === 'app.documents.view' && $r->result === true);
+```
+
+See [Integration & Testing](/recipes/integration) for the segregated-contracts
+pattern (`HasScopedRoles`/`HasDirectGrants` as opt-in contract+trait pairs) and
+the optional context-guard visibility check.
 
 ## Pest syntax
 
@@ -241,3 +329,4 @@ $this->actingAs(User::factory()->editor()->create())
 - **Use `assertForbidden()` not `assertStatus(403)`** for readable test output.
 - **Test both sides.** For every permission you assert as `true`, also test what a user *without* it sees.
 - **Keep the array cache store in tests** — leave `cache.store` as `'array'` (the default) in `config/az-guard.php` so resolved permissions never cross request/test boundaries.
+- **Reach for a fake first** for unit tests that only need a permission surface — `FakeAzGuardUser`/`FakeGrantSource` skip the database, panels and catalog entirely.

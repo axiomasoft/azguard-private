@@ -7,7 +7,7 @@ namespace AzGuard\Http\Middleware;
 use AzGuard\Attributes\CheckPermission as CheckPermissionAttribute;
 use AzGuard\Attributes\SkipGuardCheck;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use BackedEnum;
 use Closure;
 use Illuminate\Http\Request;
@@ -19,6 +19,16 @@ use UnitEnum;
 
 final class CheckAccess
 {
+    /**
+     * Build the `azguard.check` middleware definition string. Takes no
+     * arguments — checks are driven by `#[CheckPermission]` on the action —
+     * provided for DX symmetry with the other AzGuard middleware.
+     */
+    public static function using(): string
+    {
+        return self::class;
+    }
+
     /**
      * @param  Closure(Request): (Response)  $next
      */
@@ -50,10 +60,6 @@ final class CheckAccess
         }
 
         $actionName = $route->getActionName();
-
-        if (! is_string($actionName)) {
-            return [];
-        }
 
         if (str_contains(haystack: $actionName, needle: '@')) {
             [$controllerClass, $methodName] = explode(separator: '@', string: $actionName, limit: 2);
@@ -88,10 +94,10 @@ final class CheckAccess
      */
     private function resolveArguments(Request $request, array $parameterNames): array
     {
-        return array_values(array: array_map(
+        return array_map(
             callback: static fn (string $parameterName): mixed => $request->route($parameterName),
             array: $parameterNames,
-        ));
+        );
     }
 
     private function resolveAbility(UnitEnum $permission): string

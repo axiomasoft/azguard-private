@@ -1,0 +1,14 @@
+# Source: anonymized production Laravel project
+# Уровень max уже включён. Дальнейшая работа — сужать array в публичных API:
+# @return array{...}, @phpstan-type, типизированные DTO.
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    phpVersion: 80300
+    level: max
+    paths:
+        - app
+    bootstrapFiles:
+        - vendor/autoload.php
+    inferPrivatePropertyTypeFromConstructor: true

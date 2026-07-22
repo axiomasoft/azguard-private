@@ -57,11 +57,9 @@ describe('guard:role command', function (): void {
 
     it('resolves the role by class_name', function (): void {
         $user = User::factory()->create();
-        Role::create([
-            'name' => 'project-editor',
-            'class_name' => ProjectEditorRole::class,
+        createRoleWithClass(['name' => 'project-editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $this->artisan('guard:role', [
             'action' => 'assign',

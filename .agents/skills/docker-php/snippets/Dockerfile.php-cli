@@ -1,0 +1,4 @@
+FROM php:8.3-cli-alpine
+RUN apk add --no-cache icu-dev libzip-dev \
+    && docker-php-ext-install intl pdo_mysql zip
+WORKDIR /var/www/html

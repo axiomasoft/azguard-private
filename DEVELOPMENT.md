@@ -25,16 +25,66 @@ Mount or symlink the package directory into the app, then `composer update`.
 | Command | Tool | Description |
 |---|---|---|
 | `composer test` | Pest | Run the test suite |
+| `composer test:parallel` | Pest / ParaTest | Run the SQLite suite in parallel with random order intact |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 6) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
-| `composer mutate` | Infection | Mutation testing |
+| `composer mutate` | Pest mutate | Per-package mutation testing |
 | `composer check` | — | Run every CI gate (style + analysis + refactor + types + tests) |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
+
+`composer test:parallel` keeps Pest's random execution order and passes the
+same 1G memory limit to every ParaTest worker. It is intentionally limited to
+the SQLite lane; run PostgreSQL and MySQL lanes sequentially with their
+dedicated commands below.
+
+## Mutation-ratchet policy
+
+Pest's native mutator reports one covered mutation score per package. Raise a
+blocking threshold only from a fresh, successful Xdebug measurement: each new
+threshold is `floor(measured score) - 2` and must never be below the previous
+threshold. Do not lower a threshold to make a red gate pass. Exclusions live
+next to the package settings in `bin/mutation-gate.sh`, carry an inline
+rationale, and are reviewed as code.
+
+P4.5 measured 100.00% for core, filament, and context, so all three native
+Pest gates enforce 98%. Local runs honestly skip when no pcov/Xdebug driver is
+installed; CI supplies Xdebug and remains blocking. Evidence is in
+`plans/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
+
+## Local database matrix
+
+`composer test` runs against SQLite `:memory:` by default. To exercise the
+package against real database engines (Postgres 16, MySQL 8) and Redis, bring
+up the local stand:
+
+```bash
+cp .env.example .env   # adjust credentials if needed
+make up                # docker compose up -d, waits for services to report healthy
+make ps                # check status
+make down               # stop and remove the stand
+```
+
+`docker-compose.yml` defines three services — `pgsql` (Postgres 16), `mysql`
+(MySQL 8), `redis` (Redis 7) — each with a healthcheck (`pg_isready` /
+`mysqladmin ping` / `redis-cli ping`) and a named volume for its data. Ports
+are published on `127.0.0.1` only; credentials come from `.env`, never
+hardcoded in the compose file. The database names default to `azguard_test`
+(`.env.example`), keeping the invariant that test databases carry the `test`
+substring.
+
+With the stand up, run the suite against a real engine via `composer
+test:pgsql` / `composer test:mysql` — these switch `DB_CONNECTION` and
+otherwise share `tests/TestCase.php`'s env-driven connection config with the
+sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job) and
+the PG/MySQL matrix (`test-db-matrix` job) on every push/PR; **both lanes are
+required for merge** — the sqlite lane alone self-skips database-specific
+code (collation, cross-process locking), so a PG/MySQL regression is only
+visible in the real-database lane.
 
 ## Conventions
 

@@ -1,0 +1,35 @@
+# Source: anonymized production Laravel project
+# Сервис PostgreSQL: healthcheck pg_isready, named volume данных,
+# init-скрипты в /docker-entrypoint-initdb.d (работают ТОЛЬКО при первом создании volume).
+services:
+  pgsql:
+    image: postgres:16-alpine
+    container_name: app_pgsql
+    restart: unless-stopped
+    ports:
+      # Только loopback хоста — не публиковать БД наружу
+      - "127.0.0.1:${PGSQL_PORT:-5432}:5432"
+    volumes:
+      - pgsql_data:/var/lib/postgresql/data
+      # init-скрипты (создание <app>_test и т.п.) выполняются один раз,
+      # при первой инициализации пустого volume
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      # $$ — экранирование для compose: переменная раскрывается внутри контейнера
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+# Потребители БД:
+#   depends_on:
+#     pgsql: { condition: service_healthy }
+
+volumes:
+  pgsql_data:

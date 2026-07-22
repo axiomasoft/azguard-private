@@ -1,0 +1,35 @@
+{
+  "skill": "docker-php",
+  "snippets": [
+    {
+      "file": "Dockerfile.php-fpm",
+      "description": "Production PHP-FPM образ (alpine, nginx отдельно)",
+      "tags": ["dockerfile", "php", "production"]
+    },
+    {
+      "file": "Dockerfile.php-cli",
+      "description": "PHP CLI образ для artisan/queue",
+      "tags": ["dockerfile", "php", "cli"]
+    },
+    {
+      "file": "Dockerfile.serversideup",
+      "description": "Всё-в-одном FPM+Nginx образ (serversideup/php:8.3-fpm-nginx) с entrypoint.d-хуком",
+      "tags": ["dockerfile", "php", "nginx", "serversideup", "production"]
+    },
+    {
+      "file": "entrypoint-hook.sh",
+      "description": "Хук /etc/entrypoint.d/: автозапуск при старте контейнера, пример — права на public/media",
+      "tags": ["entrypoint", "permissions", "serversideup"]
+    },
+    {
+      "file": "php.ini.production",
+      "description": "Production php.ini",
+      "tags": ["config", "performance"]
+    },
+    {
+      "file": "opcache.ini",
+      "description": "OPcache production config",
+      "tags": ["config", "opcache"]
+    }
+  ]
+}

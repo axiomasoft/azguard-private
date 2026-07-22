@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Contracts;
 
 use AzGuard\Models\Role;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
@@ -23,11 +24,11 @@ use UnitEnum;
  */
 interface HasScopedRoles
 {
-    public function assignScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static;
+    public function assignScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static;
 
-    public function removeScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static;
+    public function removeScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static;
 
-    public function hasScopedRole(string|Role $role, Model $entity, ?string $panelId = null): bool;
+    public function hasScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): bool;
 
-    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, ?string $panelId = null): bool;
+    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, string|BackedEnum|null $panelId = null): bool;
 }

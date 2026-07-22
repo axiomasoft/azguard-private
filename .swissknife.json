@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/academici/swissknifeman/main/packages/skiller/schema/swissknife.schema.json",
+  "providers": {
+    "contract_version": "1.0.0",
+    "selection": {
+      "claude-code": {
+        "enabled": true
+      },
+      "codex": {
+        "enabled": true
+      }
+    }
+  }
+}

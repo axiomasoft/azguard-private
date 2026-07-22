@@ -11,10 +11,6 @@ use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Testing\FakeAzGuardUser;
 use AzGuard\Testing\FakeGrantSource;
 use Illuminate\Contracts\Auth\Access\Authorizable;
-use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionType;
-use ReflectionUnionType;
 
 /**
  * The public contracts in AzGuard\Contracts mirror the AzGuard\Concerns traits
@@ -75,6 +71,47 @@ foreach ($pairs as $contract => $trait) {
 
             expect($signature($traitMethod))
                 ->toBe($signature($contractMethod), "signature drift on {$contractMethod->getName()}()");
+        }
+    });
+}
+
+// ─── Reverse Parity: trait public methods ⊆ contract (D-03) ───────────────────
+
+/**
+ * The forward direction above (contract methods ⊆ trait) does not catch a
+ * trait method the contract never declared — a consumer type-hinting the
+ * contract could never call it, silently narrowing the trait's real surface.
+ * Explicit allowlist for genuinely trait-only public helpers, with the reason
+ * each is NOT promoted to the contract.
+ */
+$traitOnlyPublicMethods = [
+    AzGuard\Concerns\HasScopedRoles::class => [
+        // Public on the trait, but promoting it to HasScopedRoles would be a
+        // breaking interface change (a required method every manual
+        // implementer must add) — out of scope for a Minor-severity fix.
+        // Flagged as Pending Work for a P2 contract review, not silently added.
+        'removeScopedRoleEverywhere',
+        // Laravel's Eloquent trait-boot convention (bootX()) requires the
+        // method to be public so the framework can find and call it — it is
+        // not part of the consumer-facing API and was never meant to be
+        // callable via the contract.
+        'bootHasScopedRoles',
+    ],
+];
+
+foreach ($pairs as $contract => $trait) {
+    it("contract {$contract} declares every public method of trait {$trait} (except allowlisted helpers)", function () use ($contract, $trait, $traitOnlyPublicMethods) {
+        $contractReflection = new ReflectionClass($contract);
+        $traitReflection = new ReflectionClass($trait);
+        $allowlist = $traitOnlyPublicMethods[$trait] ?? [];
+
+        foreach ($traitReflection->getMethods(ReflectionMethod::IS_PUBLIC) as $traitMethod) {
+            if (in_array($traitMethod->getName(), $allowlist, strict: true)) {
+                continue;
+            }
+
+            expect($contractReflection->hasMethod($traitMethod->getName()))
+                ->toBeTrue("trait {$trait} exposes public method {$traitMethod->getName()}() that contract {$contract} does not declare — add it to the contract or the allowlist");
         }
     });
 }

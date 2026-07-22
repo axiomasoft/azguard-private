@@ -1,0 +1,12 @@
+{
+  "skill": "docker",
+  "snippets": [
+    {
+      "file": "docker-expert.md",
+      "description": "Docker expert: optimization, security hardening, multi-stage builds, orchestration, production deployment",
+      "tags": [
+        "docker"
+      ]
+    }
+  ]
+}

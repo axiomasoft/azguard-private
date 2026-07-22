@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalog;
@@ -268,6 +269,72 @@ describe('EffectivePermissionResolver', function () {
         expect($set->isWildcard())->toBeTrue();
     });
 
+    it('a wildcard produced by the layer (not a global source) IS filtered through the catalog (C-13 defense-in-depth)', function () {
+        $source = makeGrantSource(PermissionSet::fromKeys(['app.posts.view']));
+
+        $layer = new class implements PermissionLayer
+        {
+            public function apply(PermissionSet $global, Authenticatable $user, string $panelId): PermissionSet
+            {
+                // Simulates a context layer that (erroneously, or via a bug in a
+                // custom MergeStrategy) surfaces a wildcard key — this must NOT
+                // be trusted as a real superadmin grant.
+                return PermissionSet::wildcard();
+            }
+
+            public function cacheDiscriminator(string $panelId): string
+            {
+                return '';
+            }
+        };
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeCatalog(['app.posts.view']),
+            sources: [$source],
+            cache: new PermissionCache,
+            layer: $layer,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        // The bare '*' is stripped by filterAgainstCatalog unconditionally
+        // (R7): a real superadmin wildcard short-circuits in resolve() before
+        // filtering, so one surfacing here is never trusted.
+        expect($set->isWildcard())->toBeFalse()
+            ->and($set->isEmpty())->toBeTrue();
+    });
+
+    it('strips a layer-produced wildcard in legacy grammar mode as well (R7)', function () {
+        config()->set('az-guard.features.wildcard_permission', true);
+
+        $source = makeGrantSource(PermissionSet::fromKeys(['app.posts.view']));
+
+        $layer = new class implements PermissionLayer
+        {
+            public function apply(PermissionSet $global, Authenticatable $user, string $panelId): PermissionSet
+            {
+                return PermissionSet::wildcard();
+            }
+
+            public function cacheDiscriminator(string $panelId): string
+            {
+                return '';
+            }
+        };
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeCatalog(['app.posts.view']),
+            sources: [$source],
+            cache: new PermissionCache,
+            layer: $layer,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        expect($set->isWildcard())->toBeFalse()
+            ->and($set->isEmpty())->toBeTrue();
+    });
+
     it('caches result and does not call sources twice for same user+panel', function () {
         $callCount = 0;
 
@@ -441,12 +508,6 @@ describe('EffectivePermissionResolver', function () {
 
 describe('EffectivePermissionResolver: dynamic catalog definitions (F28)', function () {
 
-    beforeEach(function () {
-        // Exercise the wildcard-off branch by default; dynamic matching must work
-        // regardless of the wildcard feature flag.
-        config()->set('az-guard.features.wildcard_permission', false);
-    });
-
     it('keeps a concrete grant matching a dynamic definition (app.team.{id}.admin ← app.team.42.admin)', function () {
         $source = makeGrantSource(PermissionSet::fromKeys(['app.team.42.admin']));
 
@@ -533,7 +594,41 @@ describe('EffectivePermissionResolver: dynamic catalog definitions (F28)', funct
             ->and($set->has('app.team.42.viewer'))->toBeFalse();
     });
 
-    it('matches dynamic definitions in the wildcard-enabled branch as well', function () {
+    it('keeps a pattern grant that covers a dynamic definition (F22 flip re-baseline)', function () {
+        // Since the F22 flip, patterns are honoured by default: 'app.team.*'
+        // covers the dynamic definition key 'app.team.{id}' (one segment under
+        // the hierarchical grammar), so the pattern survives catalog filtering
+        // as a meaningful grant over the dynamic space.
+        $source = makeGrantSource(PermissionSet::fromKeys(['app.team.*']));
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeDefinitionCatalog([dynamicDefinition('app.team.{id}')]),
+            sources: [$source],
+            cache: new PermissionCache,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        expect($set->grants('app.team.42'))->toBeTrue()
+            // The pattern does NOT leak outside its segment shape.
+            ->and($set->grants('app.team.42.admin'))->toBeFalse();
+    });
+
+    it('keeps a concrete key matching a dynamic definition (no regression)', function () {
+        $source = makeGrantSource(PermissionSet::fromKeys(['app.team.42']));
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeDefinitionCatalog([dynamicDefinition('app.team.{id}')]),
+            sources: [$source],
+            cache: new PermissionCache,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        expect($set->grants('app.team.42'))->toBeTrue();
+    });
+
+    it('matches dynamic definitions in legacy grammar mode as well', function () {
         config()->set('az-guard.features.wildcard_permission', true);
 
         $source = makeGrantSource(PermissionSet::fromKeys([

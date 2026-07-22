@@ -1,0 +1,20 @@
+{
+  "skill": "tdd-discipline",
+  "snippets": [
+    {
+      "file": "tests.md",
+      "description": "Примеры хороших/плохих тестов: поведение через публичный интерфейс vs связка с реализацией (источник mattpocock, англ.)",
+      "tags": ["tdd", "tests", "behavior", "public-interface"]
+    },
+    {
+      "file": "mocking.md",
+      "description": "Гайдлайны по мокингу: что мокать на seam'е, чего не мокать (внутренние коллабораторы)",
+      "tags": ["tdd", "mocking", "seam", "test-doubles"]
+    },
+    {
+      "file": "refactoring.md",
+      "description": "Кандидаты на рефактор после GREEN: дедупликация, углубление модулей, SOLID — с прогоном тестов после каждого шага",
+      "tags": ["tdd", "refactoring", "deep-modules", "solid"]
+    }
+  ]
+}

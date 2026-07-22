@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Unit\Auth;
 
 use AzGuard\Auth\DirectGrantPolicy;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\UserWithDirectGrants;
 use AzGuard\Tests\TestCase;
 use Illuminate\Contracts\Auth\Authenticatable;

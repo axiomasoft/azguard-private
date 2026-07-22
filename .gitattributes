@@ -36,3 +36,7 @@
 /.serena            export-ignore
 /.swissknifeman     export-ignore
 /ideas              export-ignore
+
+# Preserve vendored upstream Markdown bytes; these references contain intentional hard breaks.
+.agents/skills/dev-engineering-super-skill/references/full.md whitespace=-trailing-space
+.agents/skills/docker/snippets/docker-expert.md whitespace=-trailing-space

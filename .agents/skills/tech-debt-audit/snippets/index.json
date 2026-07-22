@@ -1,0 +1,10 @@
+{
+  "skill": "tech-debt-audit",
+  "snippets": [
+    {
+      "file": "debt-register.md",
+      "description": "debt register",
+      "tags": []
+    }
+  ]
+}

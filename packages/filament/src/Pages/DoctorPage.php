@@ -6,7 +6,7 @@ namespace AzGuard\Filament\Pages;
 
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Guard\AzGuardDiagnostics;
-use AzGuard\Support\RequestState;
+use AzGuard\Runtime\RequestState;
 use BackedEnum;
 use Filament\Pages\Page;
 use Override;
@@ -66,6 +66,7 @@ final class DoctorPage extends Page
 
     // ─── View data ─────────────────────────────────────────────────────────────
 
+    /** @return array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>} */
     public function getDiagnoseResult(): array
     {
         return self::runDiagnose();

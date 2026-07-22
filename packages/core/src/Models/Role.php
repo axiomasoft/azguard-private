@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Models;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
-use AzGuard\Support\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -21,13 +21,22 @@ use Illuminate\Support\Carbon;
  */
 class Role extends Model
 {
-    protected $fillable = ['name', 'level', 'class_name'];
+    /**
+     * class_name is deliberately NOT fillable (C-11): it wires the role to a
+     * PHP RoleInterface class (getRoleLogic()) and must only be set through
+     * trusted internal paths (e.g. RoleAssignmentCommand's direct setter),
+     * never from mass-assigned request input.
+     */
+    protected $fillable = ['name', 'level'];
 
     /** @return MorphToMany<Model, $this> */
     public function users(): MorphToMany
     {
+        /** @var class-string<Model> $userModel */
+        $userModel = config('auth.providers.users.model');
+
         return $this->morphedByMany(
-            config('auth.providers.users.model'),
+            $userModel,
             'model',
             Config::modelHasRolesTable(),
         );

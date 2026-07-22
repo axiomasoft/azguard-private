@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Models;
 
-use AzGuard\Support\Config;
+use AzGuard\Configuration\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -27,12 +27,18 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 class ModelHasScope extends Model
 {
+    /**
+     * scope_class is deliberately NOT fillable (C-11): it wires the scoped
+     * role to a query-scope class (Concerns\HasScopedRoles::apply()) and must
+     * only be set through a trusted internal path — assignScopedRole() sets
+     * it via a direct property assignment (bypasses fillable, unlike
+     * fill()/create()/firstOrCreate()), never from mass-assigned request input.
+     */
     protected $fillable = [
         'model_id',
         'model_type',
         'scope_entity_id',
         'scope_entity_type',
-        'scope_class',
         'role_id',
         'panel_id',
     ];

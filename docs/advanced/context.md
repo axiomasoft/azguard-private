@@ -4,6 +4,24 @@ The `azguard/context` package is an opt-in extension for multi-workspace /
 multi-site scenarios. A user can hold **different permissions in different
 contexts** (workspace, project, organisation, etc.) on the same panel.
 
+## Context or scope?
+
+Context and [entity-scoped roles](/advanced/entity-scopes) both answer a similar question —
+"can this user act here?" — but they are two different mechanisms, on purpose:
+
+| | Context (this page) | [Entity scope](/advanced/entity-scopes) |
+|---|---|---|
+| Lifetime | Runtime — resolved per request, held for its duration | Persisted — stored as a role on the model |
+| What it answers | "Which workspace/tenant am I in right now?" | "Does this user have a role on *this specific record*?" |
+| Package | `azguard/context` (opt-in) | `azguard/core` (built in) |
+| API | `hasPermissionIn($type, $id, $perm)` | `hasScopedPermission($perm, $entity)` |
+
+Pick **context** for a request-scoped "current workspace/tenant" switch that changes which
+permissions apply for the rest of the request. Pick **entity scope** for a persistent
+"this user is an editor on Project A specifically" assignment that survives across requests.
+They are not merged and are not meant to replace each other — use both together if your app
+has both a tenant switch and per-record role assignment.
+
 ## Installation
 
 ```bash
@@ -123,39 +141,56 @@ $user->checkPermission('app.posts.edit', 'app', new AuthorizationContext(
 
 ## Issuing contextual grants
 
-Grants are stored in the `az_guard_context_roles` table. Write them via
-`ContextGrantBuilder` (a fluent write-API, the counterpart of
-`AzGuard\Grants\GrantBuilder` for panel-wide direct grants) or via the CLI:
+Grants are stored in the `az_guard_context_roles` table. Write them through
+the same fluent root you already use for panel-wide direct grants —
+`AzGuard::forUser()` — extended into the context with `->inContext()`:
 
 ```php
-use AzGuard\Context\ContextGrantBuilder;
+use AzGuard\Facades\AzGuard;
 
-(new ContextGrantBuilder($user))
+AzGuard::forUser($user)
     ->on('app')
     ->inContext('workspace', $workspaceId)
     ->grant('app.posts.edit');
 
+// With an expiry — TTL works exactly like a panel-wide direct grant
+AzGuard::forUser($user)
+    ->on('app')
+    ->inContext('workspace', $workspaceId)
+    ->until(now()->addDays(30))   // or ->ttl(3600)
+    ->grant('app.posts.edit');
+
 // Revoke a specific permission
-(new ContextGrantBuilder($user))
+AzGuard::forUser($user)
     ->on('app')
     ->inContext('workspace', $workspaceId)
     ->revoke('app.posts.edit');
 
 // Revoke every permission the user holds in this context+panel
-(new ContextGrantBuilder($user))
+AzGuard::forUser($user)
     ->on('app')
     ->inContext('workspace', $workspaceId)
     ->revokeAll();
-```
 
-Wildcard (`*`) grants full access within the context:
-
-```php
-(new ContextGrantBuilder($user))
+// List the active (non-expired) grants in this context+panel
+AzGuard::forUser($user)
     ->on('app')
     ->inContext('workspace', $workspaceId)
-    ->grant('*');
+    ->grants();
 ```
+
+The builder is immutable: every scope setter (`on()` / `inContext()` /
+`until()` / `ttl()`) returns a **new** instance, so a base builder can be
+reused for several writes. Re-granting an existing permission updates its
+`expires_at` only (idempotent). An expired context grant confers nothing and
+is excluded from `grants()`.
+
+::: warning No wildcards in a context
+Wildcard keys (`*` or any key containing `*`) are rejected at write time —
+a context grant is scoped by design and must never carry superadmin/broad
+reach. Grant broad permissions panel-wide via
+`AzGuard::forUser($user)->on('app')->grant(...)` instead.
+:::
 
 ### CLI
 

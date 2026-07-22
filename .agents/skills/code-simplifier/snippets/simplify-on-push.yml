@@ -1,0 +1,45 @@
+# Шаблон для целевого проекта: .github/workflows/simplify-on-push.yml
+# Фоновый агент-упроститель: прогоняет чек-лист code-simplifier по диффу PR
+# и оставляет предложения комментарием. Ничего не коммитит и не мержит.
+#
+# Требования:
+# - secret ANTHROPIC_API_KEY (платные токены — см. docs/workflows/background-agents)
+# - установленный скилл code-simplifier (install.sh или plugin marketplace)
+name: Code Simplifier
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**.php'
+
+concurrency:
+  group: simplify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simplify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run code-simplifier review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Применили скилл code-simplifier к диффу этого PR
+            (git diff origin/${{ github.base_ref }}...HEAD).
+
+            Правила:
+            - Только предложения по упрощению, без изменения поведения.
+            - Не предлагать правки бизнес-логики и новых зависимостей.
+            - Каждое предложение — с файлом, строкой и обоснованием.
+            - Если упрощать нечего — так и написать одной строкой.
+
+            Оставь результат комментарием к PR.

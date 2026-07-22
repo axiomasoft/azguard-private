@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+use AzGuard\AzGuardManager;
+use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Facades\AzGuard;
+use AzGuard\Tests\Stubs\Project;
+use AzGuard\Tests\Stubs\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
 it('guard:doctor проходит для тестовой панели', function (): void {
@@ -42,6 +48,39 @@ PHP);
         File::delete(paths: $rolePath);
         File::deleteDirectory(directory: $rolesDir);
     }
+});
+
+it('guard:doctor warns (but does not fail) on a stale scope_class (C-03)', function (): void {
+    $user = User::factory()->create();
+    $project = Project::factory()->create();
+
+    DB::table('model_has_scopes')->insert([
+        'model_type' => $user->getMorphClass(),
+        'model_id' => $user->getKey(),
+        'scope_entity_type' => $project->getMorphClass(),
+        'scope_entity_id' => $project->getKey(),
+        'scope_class' => 'AzGuard\\Tests\\Stubs\\Roles\\ThisClassWasDeleted',
+        'panel_id' => null,
+    ]);
+
+    $this->artisan(command: 'guard:doctor', parameters: ['--panel' => 'test'])
+        ->expectsOutputToContain('stale scope_class')
+        ->assertSuccessful();
+});
+
+it('guard:doctor подсказывает headless-quick-start при 0 панелей (A-06)', function (): void {
+    app()->instance(AzGuardManagerInterface::class, new AzGuardManager);
+    AzGuard::clearResolvedInstance(AzGuardManagerInterface::class);
+
+    $this->artisan(command: 'guard:doctor')
+        ->expectsOutputToContain('No panels registered — see docs/introduction/headless-quick-start.md')
+        ->assertSuccessful();
+});
+
+it('guard:doctor не подсказывает headless-quick-start, когда панель зарегистрирована', function (): void {
+    $this->artisan(command: 'guard:doctor', parameters: ['--panel' => 'test'])
+        ->doesntExpectOutputToContain('No panels registered')
+        ->assertSuccessful();
 });
 
 it('guard:doctor находит дубликат ability', function (): void {

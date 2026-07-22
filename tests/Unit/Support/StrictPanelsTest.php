@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\PanelNotFoundException;
-use AzGuard\Support\PanelResolver;
+use AzGuard\Panels\PanelResolver;
 
 // F47: opt-in strict_panels throws on an unregistered panel; default lenient.
 

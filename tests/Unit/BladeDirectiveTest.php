@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Unit;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

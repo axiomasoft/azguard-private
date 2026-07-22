@@ -1,0 +1,30 @@
+{
+  "skill": "test-strategy",
+  "snippets": [
+    {
+      "file": "test-pyramid.md",
+      "description": "test pyramid",
+      "tags": []
+    },
+    {
+      "file": "pest-arch-test.php",
+      "description": "Pest Arch-правила: strict types, запрет debug-хелперов, final actions, readonly DTO/VO/Events, contracts=interfaces, Actions/Repositories без Request",
+      "tags": [
+        "testing",
+        "pest",
+        "architecture",
+        "arch"
+      ]
+    },
+    {
+      "file": "phpunit-testsuites.xml",
+      "description": "phpunit.xml с именованными сюитами Arch/Unit/UnitFilament/Feature/Context (+ exclude) и строгими флагами прогона",
+      "tags": [
+        "testing",
+        "phpunit",
+        "testsuite",
+        "composition"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Source: a Laravel package phpunit.xml (anonymized) -->
+<!-- Композиция именованных сюитов: Arch гоняется первым/отдельно (без БД),
+     Unit/Feature разнесены, <exclude> убирает пересечения. Запуск:
+       vendor/bin/pest --testsuite=Arch        # быстрый барьер границ
+       vendor/bin/pest --testsuite=Unit,Feature -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         executionOrder="random"
+         failOnWarning="true"
+         failOnRisky="true"
+         failOnEmptyTestSuite="true"
+         beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="Arch">
+            <file>tests/Arch/ArchTest.php</file>
+        </testsuite>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+            <exclude>tests/Unit/Filament</exclude>
+        </testsuite>
+        <testsuite name="UnitFilament">
+            <directory>tests/Unit/Filament</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Context</exclude>
+        </testsuite>
+        <testsuite name="Context">
+            <directory>tests/Feature/Context</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>src</directory>
+            <directory>app</directory>
+        </include>
+    </source>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+    </php>
+</phpunit>

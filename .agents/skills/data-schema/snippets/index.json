@@ -1,0 +1,10 @@
+{
+  "skill": "data-schema",
+  "snippets": [
+    {
+      "file": "entity-table.md",
+      "description": "entity table",
+      "tags": []
+    }
+  ]
+}

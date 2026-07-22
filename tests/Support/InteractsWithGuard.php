@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Support;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;
 use UnitEnum;
@@ -18,11 +17,10 @@ function actingAsGuardRole(string $roleClass): User
         'password' => 'secret',
     ]);
 
-    $role = Role::query()->create([
+    $role = createRoleWithClass([
         'name' => 'test-'.class_basename($roleClass),
-        'class_name' => $roleClass,
         'level' => 10,
-    ]);
+    ], $roleClass);
 
     $user->roles()->attach($role);
     test()->actingAs(user: $user);

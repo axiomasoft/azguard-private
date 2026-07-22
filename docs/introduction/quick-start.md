@@ -5,7 +5,7 @@ Get from zero to a working permission check in under 5 minutes.
 ## Requirements
 
 - PHP 8.3+
-- Laravel 11+
+- Laravel 11.x, 12.x, or 13.x
 - A database supported by Laravel (MySQL, PostgreSQL, SQLite)
 
 ## 1. Install
@@ -22,8 +22,9 @@ The migration creates these tables: `roles`, `model_has_roles`, `model_has_scope
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
+use AzGuard\Contracts\AzGuardUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AzGuardUser
 {
     use HasAzGuard;
 }
@@ -40,8 +41,8 @@ Create a panel provider and list it in `config/az-guard.php`:
 // app/Guards/App/AppGuardPanelProvider.php
 namespace App\Guards\App;
 
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\PanelProvider;
+use AzGuard\Panels\Panel;
 use App\Guards\App\Documents\Permissions\DocumentsPermission;
 use App\Guards\App\Users\Permissions\UsersPermission;
 
@@ -144,15 +145,17 @@ php artisan guard:doctor
 ```
 
 The doctor checks:
-- All panel providers are registered and resolvable
-- Every role class implements `RoleInterface`
-- No orphan permission keys in the database
-- Migrations are up to date
+- No duplicate Gate abilities across policy classes
+- Every enum permission case has a matching `#[GateAbility]` policy method
+- Roles reference only known permissions
+- No orphan policies (classes with no `#[GateAbility]` methods)
+- No stale `scope_class` values left over in `model_has_scopes`
 
 ## Next steps
 
+- [Headless Quick Start](/introduction/headless-quick-start) — the minimal path for an embedded/headless consumer (no Filament)
 - [Panels](/advanced/panels) — understand `app` vs `admin` isolation
-- [Permissions](/basic-usage/permissions) — naming conventions, `#[RoleOnly]`, TypeScript export
+- [Permissions](/basic-usage/permissions) — naming conventions, `#[RoleOnly]`, frontend abilities
 - [Roles](/basic-usage/roles) — static and dynamic (DB-backed) roles
 - [HTTP Access](/basic-usage/http-access) — `#[CheckPermission]` on controllers and middleware
 - [Direct Grants](/basic-usage/direct-grants) — per-user permissions without a role

@@ -140,10 +140,10 @@ public function test_gate_with_model(): void
 
 ## Тестирование сервисов, проверяющих права
 
-У AzGuard нет fake/mock-слоя — тестируйте против реального резолвера. Держите
-кеш-стор `'array'` (значение по умолчанию), чтобы ничего не «протекало» между
-тестами, затем назначайте роли или гранты и проверяйте через
-`hasPermission()` / `Gate::allows()`:
+Тестирование против реального резолвера — назначайте роли или гранты и
+проверяйте через `hasPermission()` / `Gate::allows()` — работает из коробки;
+держите кеш-стор `'array'` (значение по умолчанию), чтобы ничего не «протекало»
+между тестами:
 
 ```php
 public function test_service_checks_permission(): void
@@ -168,6 +168,95 @@ public function test_service_denies_without_permission(): void
     );
 }
 ```
+
+## Фейки: тестирование без базы данных
+
+Для юнит-тестов, которым нужна только поверхность проверки прав, AzGuard также
+поставляет dependency-free тестовый дублёр: `FakeAzGuardUser`. Не требует
+миграций, панелей или каталога:
+
+```php
+use AzGuard\Testing\FakeAzGuardUser;
+use App\Guards\App\Documents\Permissions\DocumentsPermission;
+
+$user = (new FakeAzGuardUser)->grant('app', DocumentsPermission::View);
+
+$user->hasPermission(DocumentsPermission::View); // true
+$user->isSuperAdmin();                           // false
+
+(new FakeAzGuardUser)->wildcard()->isSuperAdmin(); // true
+```
+
+Типизируйте параметр как `HasPermissions` (или `Authenticatable`) там, где
+адаптер под тестом принимает фейк. Он намеренно не даёт ролей/связей —
+используйте реальную Eloquent-модель с `HasAzGuard`, когда нужно поведение ролей.
+
+Чтобы выдать фиксированный набор прав **реальным** пользователям без ролей и
+записей в БД, зарегистрируйте `FakeGrantSource`. Он стоит выше встроенных
+источников, поэтому его гранты побеждают в тестах:
+
+```php
+use AzGuard\Facades\AzGuard;
+use AzGuard\Testing\FakeGrantSource;
+
+$fake = (new FakeGrantSource)->grant('app', DocumentsPermission::View);
+app()->instance(FakeGrantSource::class, $fake);
+
+AzGuard::registerGrantSource(FakeGrantSource::class);
+
+// теперь любой пользователь проходит:
+$user->hasPermission(DocumentsPermission::View); // true
+
+// (new FakeGrantSource)->wildcard() выдаёт всё, как супер-админу
+```
+
+Для setup'а без каталога совместите `FakeGrantSource` с проверкой по простому
+строковому ключу — панель-провайдер не нужен, чтобы просто проверить право:
+
+```php
+$user->hasPermission('app.documents.view'); // работает без зарегистрированной панели
+```
+
+## `AzGuard::fake()` — запись грантов и проверок
+
+`AzGuard::fake()` подменяет фасад записывающим дублёром (паттерн `Event::fake()`/
+`Pdf::fake()`): гранты и проверки по-прежнему выполняются по-настоящему —
+fake() наблюдает, а не подменяет поведение — поэтому
+`assertGranted()`/`assertDenied()`/`assertChecked()` читают то, что реально
+произошло в ходе теста:
+
+```php
+use AzGuard\Facades\AzGuard;
+
+public function test_it_records_grants_and_checks(): void
+{
+    AzGuard::fake();
+
+    $user = User::factory()->create();
+
+    AzGuard::forUser($user)->on('app')->grant(DocumentsPermission::View);
+
+    $this->assertTrue($user->can('app.documents.view'));
+
+    AzGuard::assertGranted($user, DocumentsPermission::View, 'app');
+    AzGuard::assertChecked('app.documents.view');
+}
+```
+
+Каждый assert также принимает предикат-замыкание над `Recorded` (`user`,
+`key`, `panelId`, `result`) вместо простой формы — метода «получить лог» нет,
+есть только assert'ы:
+
+```php
+use AzGuard\Testing\Recorded;
+
+AzGuard::assertGranted(fn (Recorded $r) => $r->key === 'app.documents.view');
+AzGuard::assertChecked(fn (Recorded $r) => $r->key === 'app.documents.view' && $r->result === true);
+```
+
+См. [Интеграция и тестирование](/ru/recipes/integration) — паттерн
+сегрегированных контрактов (`HasScopedRoles`/`HasDirectGrants` как опциональные
+пары контракт+трейт) и проверка видимости опционального context guard.
 
 ## Синтаксис Pest
 
@@ -245,3 +334,4 @@ $this->actingAs(User::factory()->editor()->create())
 - **Используйте `assertForbidden()`, а не `assertStatus(403)`** — читаемее вывод теста.
 - **Тестируйте обе стороны.** Для каждого права, которое вы проверяете как `true`, протестируйте и то, что видит пользователь *без* него.
 - **Держите array-стор кеша в тестах** — оставьте `cache.store` равным `'array'` (значение по умолчанию) в `config/az-guard.php`, чтобы резолвленные права никогда не «протекали» между запросами/тестами.
+- **Начинайте с фейка** для юнит-тестов, которым нужна только поверхность прав — `FakeAzGuardUser`/`FakeGrantSource` полностью обходят БД, панели и каталог.

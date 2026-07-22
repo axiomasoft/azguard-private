@@ -23,11 +23,9 @@ describe('Gate integration — entity-scoped roles', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'project-editor',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'project-editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -39,11 +37,9 @@ describe('Gate integration — entity-scoped roles', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'superadmin-scoped',
-            'class_name' => SuperAdminRole::class,
+        $role = createRoleWithClass(['name' => 'superadmin-scoped',
             'level' => 1000,
-        ]);
+        ], SuperAdminRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -57,11 +53,9 @@ describe('Gate integration — entity-scoped roles', function (): void {
         $projectA = Project::factory()->create();
         $projectB = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'editor-isolation',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'editor-isolation',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $projectA);
 
@@ -73,17 +67,13 @@ describe('Gate integration — entity-scoped roles', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $globalRole = Role::create([
-            'name' => 'manager-combo',
-            'class_name' => ManagerRole::class,
+        $globalRole = createRoleWithClass(['name' => 'manager-combo',
             'level' => 10,
-        ]);
+        ], ManagerRole::class);
 
-        $scopedRole = Role::create([
-            'name' => 'project-editor-combo',
-            'class_name' => ProjectEditorRole::class,
+        $scopedRole = createRoleWithClass(['name' => 'project-editor-combo',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->roles()->attach($globalRole);
         $user->load('roles');
@@ -103,11 +93,9 @@ describe('Gate integration — entity-scoped roles', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'editor-revoke',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'editor-revoke',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
         expect($user->hasScopedPermission('projects.edit', $project))->toBeTrue();

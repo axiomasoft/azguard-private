@@ -5,7 +5,7 @@
 | Зависимость | Версия |
 |---|---|
 | PHP | ≥ 8.3 |
-| Laravel | 11.x или 12.x |
+| Laravel | 11.x, 12.x или 13.x |
 | Laravel Octane | совместим (stateless) |
 
 ## Установка через Composer
@@ -41,8 +41,9 @@ php artisan migrate
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
+use AzGuard\Contracts\AzGuardUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AzGuardUser
 {
     use HasAzGuard;
 }
@@ -50,7 +51,7 @@ class User extends Authenticatable
 
 ## Конфигурация панелей
 
-В `config/az-guard.php` укажите PanelProvider'ы вашего приложения (FQCN классов, расширяющих `AzGuard\PanelProvider`):
+В `config/az-guard.php` укажите PanelProvider'ы вашего приложения (FQCN классов, расширяющих `AzGuard\Panels\PanelProvider`):
 
 ```php
 return [

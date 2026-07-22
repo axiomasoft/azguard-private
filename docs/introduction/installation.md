@@ -5,7 +5,7 @@
 | Requirement | Version |
 |---|---|
 | PHP | 8.3+ |
-| Laravel | 11.x or 12.x |
+| Laravel | 11.x, 12.x, or 13.x |
 | Database | MySQL 8+, PostgreSQL 13+, SQLite 3.35+ |
 
 ## Install via Composer
@@ -42,8 +42,9 @@ These tables are created (names match `config/az-guard.php` defaults):
 
 ```php
 use AzGuard\Concerns\HasAzGuard;
+use AzGuard\Contracts\AzGuardUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements AzGuardUser
 {
     use HasAzGuard;
 }
@@ -65,12 +66,14 @@ php artisan migrate
 php artisan guard:doctor
 ```
 
-Expected output on a fresh install:
+`guard:doctor` inspects every registered panel for duplicate abilities, enum
+cases missing a `#[GateAbility]` policy method, roles referencing unknown
+permissions, orphan policies, and stale `scope_class` values in
+`model_has_scopes`. On a fresh install (no panels registered yet) there is
+nothing to check, so it prints:
 
 ```
-✓ Config file found
-✓ Migrations are up to date
-✓ No panels registered yet — add one in config/az-guard.php
+guard:doctor: all checks passed.
 ```
 
 ## Laravel Octane

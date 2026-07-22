@@ -1,0 +1,25 @@
+{
+  "skill": "docker-vite",
+  "snippets": [
+    {
+      "file": "Dockerfile.node",
+      "description": "Отдельный node-образ для фронтенда",
+      "tags": ["dockerfile", "node"]
+    },
+    {
+      "file": "vite.config.docker.ts",
+      "description": "Минимальный vite-конфиг под Docker (TS, базовая версия)",
+      "tags": ["vite", "config"]
+    },
+    {
+      "file": "vite-service.yml",
+      "description": "Сервис vite в compose: pnpm dev --host=0.0.0.0, named volume для node_modules, проброс VITE_PORT",
+      "tags": ["compose", "vite", "dev", "volumes"]
+    },
+    {
+      "file": "vite-server-config.js",
+      "description": "server-блок vite.config.js: host 0.0.0.0, hmr.host localhost, strictPort, CORS на APP_URL",
+      "tags": ["vite", "config", "hmr", "cors"]
+    }
+  ]
+}

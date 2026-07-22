@@ -58,8 +58,11 @@ AzGuard::forUser($user)
     ->ttl(3600)
     ->grant(DocumentsPermission::Export);
 
-// Shorthand
-AzGuard::grant($user, DocumentsPermission::Export, 'app', ttl: 3600);
+// With an absolute expiry timestamp
+AzGuard::forUser($user)
+    ->on('app')
+    ->until(now()->addDays(30))
+    ->grant(DocumentsPermission::Export);
 
 // Directly on the model (pass an optional expiry)
 $user->grant(DocumentsPermission::Export, 'app');
@@ -68,6 +71,10 @@ $user->grant(DocumentsPermission::Export, 'app', now()->addHour());
 
 ::: info Idempotent
 Calling `grant()` on an already-granted permission updates `expires_at` without creating a duplicate. Safe to call multiple times.
+:::
+
+::: tip Immutable builder
+Every scope setter (`on()` / `ttl()` / `until()`) returns a **new** builder instance, so branches from one builder never see each other's state — you can safely reuse a base builder for several grants. In a multi-workspace app the same root also extends into a context: `AzGuard::forUser($user)->on('app')->inContext('workspace', 42)->grant(...)` (see [Contexts](../advanced/context.md)).
 :::
 
 ### Artisan
@@ -88,7 +95,6 @@ php artisan guard:grant 7 admin.reports.view admin --model=App\\Models\\Admin
 ```php
 // Single permission — enum
 AzGuard::forUser($user)->on('app')->revoke(DocumentsPermission::Export);
-AzGuard::revoke($user, DocumentsPermission::Export, 'app');
 
 // All grants for a panel
 AzGuard::forUser($user)->on('app')->revokeAll();
@@ -115,7 +121,6 @@ Gate::allows('direct-grant', ['app.documents.export', 'app']);
 
 // List grants for a panel
 $grants = AzGuard::forUser($user)->on('app')->grants();
-$grants = AzGuard::grants($user, 'app');
 ```
 
 ## Blade
@@ -191,7 +196,7 @@ Event::listen(GrantRevoked::class, function (GrantRevoked $event): void {
 | Method | Code |
 |---|---|
 | Fluent grant | `AzGuard::forUser($u)->on('app')->ttl(3600)->grant(DocumentsPermission::Export)` |
-| Shorthand grant | `AzGuard::grant($u, DocumentsPermission::Export, 'app', ttl: 3600)` |
+| Absolute expiry | `AzGuard::forUser($u)->on('app')->until($date)->grant(DocumentsPermission::Export)` |
 | Artisan grant | `php artisan guard:grant {id} {perm} {panel}` |
 | Revoke | `AzGuard::forUser($u)->on('app')->revoke(DocumentsPermission::Export)` |
 | Check (model) | `$user->hasGrant(DocumentsPermission::Export, 'app')` |

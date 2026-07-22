@@ -1,0 +1,15 @@
+{
+  "skill": "github-flow",
+  "snippets": [
+    {
+      "file": "pull-request-template.md",
+      "description": "Шаблон тела PR для .github/PULL_REQUEST_TEMPLATE.md: Summary/Changes/Breaking/Testing/Checklist/Related Issues",
+      "tags": ["github", "pr", "template"]
+    },
+    {
+      "file": "issue-templates.md",
+      "description": "Шаблоны bug_report/feature_request для .github/ISSUE_TEMPLATE/ + config.yml с запретом пустых Issues",
+      "tags": ["github", "issue", "template"]
+    }
+  ]
+}

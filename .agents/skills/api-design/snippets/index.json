@@ -1,0 +1,15 @@
+{
+  "skill": "api-design",
+  "snippets": [
+    {
+      "file": "rest-conventions.md",
+      "description": "rest conventions",
+      "tags": []
+    },
+    {
+      "file": "openapi-stub.yml",
+      "description": "openapi stub",
+      "tags": []
+    }
+  ]
+}

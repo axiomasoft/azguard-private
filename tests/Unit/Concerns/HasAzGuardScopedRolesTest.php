@@ -12,6 +12,7 @@ use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 // Stub entity model for scoping
@@ -47,11 +48,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Alpha']);
 
-        $role = Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -70,11 +69,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Beta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -86,11 +83,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $project1 = Project::create(['name' => 'Gamma']);
         $project2 = Project::create(['name' => 'Delta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project1);
 
@@ -101,11 +96,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Epsilon']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
         expect($user->hasScopedRole('editor', $project))->toBeTrue();
@@ -118,11 +111,10 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Zeta']);
 
-        Role::create([
+        createRoleWithClass([
             'name' => 'editor',
-            'class_name' => ManagerRole::class, // ManagerRole has test.post.view
             'level' => 5,
-        ]);
+        ], ManagerRole::class); // ManagerRole has test.post.view
 
         $user->assignScopedRole('editor', $project);
 
@@ -133,11 +125,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Eta']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
 
@@ -149,20 +139,16 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $project = Project::create(['name' => 'Theta']);
 
         // Give user a global wildcard role
-        $superRole = Role::create([
-            'name' => 'superadmin',
-            'class_name' => ManagerRole::class,
+        $superRole = createRoleWithClass(['name' => 'superadmin',
             'level' => 1000,
-        ]);
+        ], ManagerRole::class);
 
         // Patch ManagerRole to return ['*'] by adding superadmin globally
         // Instead we test via hasPermission fallback path:
         // assign scoped role that has the perm
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignRole('superadmin');
         $user->load('roles');
@@ -189,11 +175,9 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         $user = User::factory()->create();
         $project = Project::create(['name' => 'Kappa']);
 
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ManagerRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ManagerRole::class);
 
         $user->assignScopedRole('editor', $project);
         $user->assignScopedRole('editor', $project);
@@ -204,5 +188,32 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
             ->count();
 
         expect($count)->toBe(1);
+    });
+
+    it('assignScopedRole persists scope_class in the same INSERT as the row (P1.4 review, atomicity)', function (): void {
+        $user = User::factory()->create();
+        $project = Project::create(['name' => 'Lambda']);
+
+        createRoleWithClass(['name' => 'editor',
+            'level' => 5,
+        ], ManagerRole::class);
+
+        $table = (new ModelHasScope)->getTable();
+        $inserts = [];
+
+        DB::listen(function ($query) use (&$inserts, $table): void {
+            if (str_contains($query->sql, 'insert') && str_contains($query->sql, $table)) {
+                $inserts[] = $query->sql;
+            }
+        });
+
+        $user->assignScopedRole('editor', $project);
+
+        // A firstOrCreate()-then-save() pair would show an INSERT without
+        // scope_class (+ a later UPDATE): a crash between the two persists a
+        // "logic-less" row whose filter never applies. One INSERT, with the
+        // column, proves the write is atomic.
+        expect($inserts)->toHaveCount(1)
+            ->and($inserts[0])->toContain('scope_class');
     });
 });

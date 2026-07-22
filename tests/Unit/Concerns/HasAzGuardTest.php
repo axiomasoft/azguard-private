@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Models\Role;
-use AzGuard\Roles\BaseRole;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
+use AzGuard\Tests\Stubs\Roles\SuperAdminRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -22,11 +21,9 @@ describe('HasAzGuard trait', function () {
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'manager',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -51,11 +48,9 @@ describe('HasAzGuard trait', function () {
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'manager2',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager2',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -70,11 +65,9 @@ describe('HasAzGuard trait', function () {
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'manager3',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager3',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -89,11 +82,9 @@ describe('HasAzGuard trait', function () {
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'manager4',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager4',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -112,11 +103,9 @@ describe('HasAzGuard trait', function () {
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'manager5',
-            'class_name' => ManagerRole::class,
+        $role = createRoleWithClass(['name' => 'manager5',
             'level' => 0,
-        ]);
+        ], ManagerRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');
@@ -131,26 +120,15 @@ describe('HasAzGuard trait', function () {
     });
 
     it('wildcard * grants all permissions when present', function () {
-        // Создаём роль с wildcard через анонимный класс
-        $wildcardRole = new class extends BaseRole
-        {
-            public function permissions(): array
-            {
-                return ['*'];
-            }
-        };
-
         $user = User::create([
             'name' => 'Super',
             'email' => 'super@example.com',
             'password' => 'secret',
         ]);
 
-        $role = Role::create([
-            'name' => 'superadmin',
-            'class_name' => get_class($wildcardRole),
+        $role = createRoleWithClass(['name' => 'superadmin',
             'level' => 100,
-        ]);
+        ], SuperAdminRole::class);
 
         $user->roles()->attach($role);
         $user->load('roles');

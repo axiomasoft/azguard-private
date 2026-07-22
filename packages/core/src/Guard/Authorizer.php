@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Guard;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Events\AccessDecision;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
-use AzGuard\Support\Config;
-use AzGuard\Support\Panel;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 
@@ -19,7 +19,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
  * 1) Delegates permission resolution to EffectivePermissionResolver.
  * 2) Returns true for superadmin (wildcard '*').
  * 3) Checks the specific $ability via PermissionSet::grants() (exact + wildcard).
- * 4) Returns null (pass-through) if the user does not implement Authenticatable.
+ *
+ * The actor must be both Authorizable (the Gate contract) and Authenticatable
+ * (what the resolver consumes) — enforced by the parameter type, so callers
+ * (the Gate::before closure) pass through (null) before calling instead of
+ * this method guarding at runtime.
  *
  * Panel resolution order: the current request panel (SetCurrentPanel
  * middleware), else az-guard.default_panel, else the sole registered panel.
@@ -33,12 +37,8 @@ final readonly class Authorizer
         private AzGuardManagerInterface $manager,
     ) {}
 
-    public function check(Authorizable $user, string $ability): ?bool
+    public function check(Authorizable&Authenticatable $user, string $ability): ?bool
     {
-        if (! $user instanceof Authenticatable) {
-            return null;
-        }
-
         $panelId = $this->resolvePanelId();
 
         if ($panelId === null) {
@@ -83,14 +83,17 @@ final readonly class Authorizer
             $set->isWildcard() => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::WILDCARD,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::WILDCARD),
             ),
             $set->has($ability) => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::SOURCE_GRANT,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::SOURCE_GRANT),
             ),
             $set->matchesWildcard($ability) => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
                 allowed: true, reasonCode: AccessDecision::PATTERN_MATCH,
+                winningSource: $this->resolveWinningSource($user, $panelId, $ability, AccessDecision::PATTERN_MATCH),
             ),
             default => new AccessDecision(
                 userId: $userId, panelId: $panelId, ability: $ability,
@@ -99,6 +102,32 @@ final readonly class Authorizer
         };
 
         return $this->record($decision);
+    }
+
+    /**
+     * Off-hot-path: re-queries each GrantSource individually, highest priority
+     * first, to attribute which one produced the winning grant (C-15). Mirrors
+     * EffectivePermissionResolver::resolve()'s short-circuit order — the first
+     * source whose own set already satisfies $reasonCode is the winner.
+     */
+    private function resolveWinningSource(Authenticatable $user, string $panelId, string $ability, string $reasonCode): ?string
+    {
+        foreach ($this->resolver->sources() as $source) {
+            $sourceSet = $source->permissionsFor($user, $panelId);
+
+            $satisfied = match ($reasonCode) {
+                AccessDecision::WILDCARD => $sourceSet->isWildcard(),
+                AccessDecision::SOURCE_GRANT => $sourceSet->has($ability),
+                AccessDecision::PATTERN_MATCH => $sourceSet->matchesWildcard($ability),
+                default => false,
+            };
+
+            if ($satisfied) {
+                return $source::class;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -10,10 +10,10 @@ use AzGuard\Contracts\ContextGuard;
 use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelResolver;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
-use AzGuard\Support\Panel;
-use AzGuard\Support\PanelResolver;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
@@ -91,6 +91,11 @@ final class AzGuardManager implements AzGuardManagerInterface
         return $panel->resolvePermission(permission: $permission);
     }
 
+    /**
+     * @internal Cut-line P3.1 (facade-cutline.md #7): no docs-facing consumer,
+     *           but still a real seam for PermissionName::resolve() — kept
+     *           reachable via AzGuardManagerInterface, hidden from the facade.
+     */
     #[Override]
     public function tryPermission(string|BackedEnum $panelId, string|UnitEnum $permission): ?string
     {
@@ -99,6 +104,11 @@ final class AzGuardManager implements AzGuardManagerInterface
         return $panel?->resolvePermission(permission: $permission);
     }
 
+    /**
+     * @internal Cut-line P3.1 (facade-cutline.md #8): no docs-facing consumer,
+     *           but still a real seam for HasScopedRoles panel derivation — kept
+     *           reachable via AzGuardManagerInterface, hidden from the facade.
+     */
     #[Override]
     public function panelIdForPermission(UnitEnum $permission): ?string
     {
@@ -113,12 +123,18 @@ final class AzGuardManager implements AzGuardManagerInterface
 
     // ─── Actor ─────────────────────────────────────────────────────────────────
 
+    /**
+     * @internal Positional twin of the canonical $user->isSuperAdmin() from
+     *           HasPermissions — the facade form is de-published (facade-cutline.md #11).
+     */
     #[Override]
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool
     {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $resolvedPanelId = PanelResolver::resolveDefault(
+            $panelId === null ? null : PanelResolver::normalizeId($panelId),
+        );
 
-        return app(PermissionResolverInterface::class)->forUser($user, $panelId)->isWildcard();
+        return app(PermissionResolverInterface::class)->forUser($user, $resolvedPanelId)->isWildcard();
     }
 
     #[Override]
@@ -171,7 +187,7 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Register a custom PermissionCatalogBuilder. Bind it (singleton) if it is
      * not already bound, then tag it so CompositePermissionCatalog picks it up.
      * The public, symmetric counterpart of {@see registerGrantSource()} — the
-     * panel-scoped {@see PanelProvider::registerCustomCatalogBuilders()} remains
+     * panel-scoped PanelProvider::registerCustomCatalogBuilders() remains
      * available for per-panel builders.
      *
      * Call this from a service provider's register()/boot() method:
@@ -207,6 +223,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: issue a direct grant.
      *
      * @param  int|null  $ttl  TTL in seconds. null = permanent.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grant().
      */
     #[Override]
     public function grant(
@@ -226,6 +245,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: revoke a direct grant.
      *
      * @return int Number of deleted records.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->revoke().
      */
     #[Override]
     public function revoke(
@@ -244,6 +266,9 @@ final class AzGuardManager implements AzGuardManagerInterface
      * Shorthand: list active direct grants for a user in a panel.
      *
      * @return Collection<int, DirectGrant>
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grants().
      */
     #[Override]
     public function grants(

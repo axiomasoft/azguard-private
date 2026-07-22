@@ -5,7 +5,7 @@ declare(strict_types=1);
 use AzGuard\Context\Events\ContextGrantGiven;
 use AzGuard\Context\Events\ContextGrantRevoked;
 use AzGuard\Context\Models\ContextRole;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Event;
 

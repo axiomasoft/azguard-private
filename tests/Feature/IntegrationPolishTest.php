@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\Config;
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Models\Role;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Roles\SuperAdminRole;
-use AzGuard\Support\Config;
 use AzGuard\Testing\FakeAzGuardUser;
 use AzGuard\Tests\Stubs\Permissions\TestPermission;
 use AzGuard\Tests\Stubs\User;
@@ -18,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 // ─── isSuperAdmin (A4) ───────────────────────────────────────────────────────
 
 it('isSuperAdmin() is true only when the user holds the wildcard', function () {
-    $superRole = Role::create(['name' => 'super', 'class_name' => SuperAdminRole::class]);
+    $superRole = createRoleWithClass(['name' => 'super'], SuperAdminRole::class);
     $super = User::create(['name' => 'Super', 'email' => 'super@example.com', 'password' => 'password']);
     $super->assignRole($superRole);
 
@@ -105,11 +104,11 @@ it('FakeAzGuardUser wildcard is a super-admin', function () {
 
 // ─── GrantBuilder TTL parity (C5) ────────────────────────────────────────────
 
-it('GrantBuilder::expiresAt() sets an absolute expiry', function () {
+it('GrantBuilder::until() sets an absolute expiry', function () {
     $user = UserWithDirectGrants::factory()->create();
     $at = now()->addDays(3);
 
-    $grant = AzGuard::forUser($user)->on('app')->expiresAt($at)->grant('app.x.view');
+    $grant = AzGuard::forUser($user)->on('app')->until($at)->grant('app.x.view');
 
     expect($grant->expires_at->timestamp)->toBe($at->timestamp);
 });

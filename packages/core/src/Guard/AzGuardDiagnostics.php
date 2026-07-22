@@ -6,12 +6,13 @@ namespace AzGuard\Guard;
 
 use AzGuard\Attributes\GateAbility;
 use AzGuard\Attributes\RoleOnly;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PermissionKey;
+use AzGuard\Panels\Panel;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
-use AzGuard\Support\Panel;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionEnum;
@@ -45,7 +46,20 @@ class AzGuardDiagnostics
         $this->warnings = [];
         $abilityRows = [];
 
-        foreach (AzGuard::getPanels() as $panelId => $panel) {
+        // Panel-independent (model_has_scopes has no meaningful "per panel"
+        // grouping for this check) — run once regardless of $panelFilter.
+        $this->checkStaleScopeClasses();
+
+        $panels = AzGuard::getPanels();
+
+        // A-06: 0 registered panels is a valid (headless/embedded) setup, not
+        // an error — surface it as an onboarding hint rather than staying
+        // silent, so a fresh install is distinguishable from a broken one.
+        if ($panels === []) {
+            $this->warnings[] = 'No panels registered — see docs/introduction/headless-quick-start.md for a minimal setup.';
+        }
+
+        foreach ($panels as $panelId => $panel) {
             if ($panelFilter !== null && $panelFilter !== $panelId) {
                 continue;
             }
@@ -198,10 +212,6 @@ class AzGuardDiagnostics
                     $gateAbility = $attribute->newInstance();
                     $permission = $gateAbility->permission;
 
-                    if (! $permission instanceof UnitEnum) {
-                        continue;
-                    }
-
                     $enumClass = $permission::class;
 
                     if (! isset($enumIndex[$enumClass])) {
@@ -338,6 +348,28 @@ class AzGuardDiagnostics
             static fn (PermissionDefinition $definition): string => $definition->key(),
             app(PermissionCatalog::class)->all($panelId),
         );
+    }
+
+    /**
+     * C-03 — surface stale scope_class values (the class was renamed/removed
+     * after being persisted in model_has_scopes) as a loud warning, rather
+     * than the silent per-request Log::warning in bootHasScopedRoles() being
+     * the only way to ever notice.
+     */
+    private function checkStaleScopeClasses(): void
+    {
+        $model = Config::scopeModel();
+
+        $classes = $model::query()
+            ->whereNotNull('scope_class')
+            ->distinct()
+            ->pluck('scope_class');
+
+        foreach ($classes as $class) {
+            if (! class_exists($class)) {
+                $this->warnings[] = "model_has_scopes: stale scope_class [{$class}] — class does not exist.";
+            }
+        }
     }
 
     /** @return list<class-string> */

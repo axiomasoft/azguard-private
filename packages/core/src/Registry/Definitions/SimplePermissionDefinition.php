@@ -54,6 +54,12 @@ final readonly class SimplePermissionDefinition implements PermissionDefinition
     }
 
     #[Override]
+    public function label(): ?string
+    {
+        return $this->meta()->label();
+    }
+
+    #[Override]
     public function meta(): PermissionMeta
     {
         return $this->meta ?? new SimplePermissionMeta;

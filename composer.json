@@ -18,11 +18,11 @@
     "require-dev": {
         "laravel/pint": "^1.13",
         "rector/rector": "^2.0",
+        "brianium/paratest": "^7.20",
         "pestphp/pest": "^4.7",
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0",
-        "infection/infection": "^0.34",
         "pestphp/pest-plugin-type-coverage": "^4.0"
     },
     "autoload-dev": {
@@ -48,15 +48,28 @@
     "prefer-stable": true,
     "config": {
         "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "infection/extension-installer": true
+            "pestphp/pest-plugin": true
         }
     },
     "scripts": {
-        "test": "vendor/bin/pest",
+        "test": "php -d memory_limit=1G vendor/bin/pest",
+        "test:parallel": "vendor/bin/pest --parallel --passthru-php='-d memory_limit=1G'",
         "test:coverage": "vendor/bin/pest --coverage --min=50",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature",
+        "test:api-snapshot": "vendor/bin/pest tests/Unit/ApiBoundaryTest.php",
+        "test:api-snapshot:update": [
+            "@putenv AZ_UPDATE_API_SNAPSHOT=1",
+            "vendor/bin/pest tests/Unit/ApiBoundaryTest.php"
+        ],
+        "test:pgsql": [
+            "@putenv DB_CONNECTION=pgsql",
+            "php -d memory_limit=1G vendor/bin/pest"
+        ],
+        "test:mysql": [
+            "@putenv DB_CONNECTION=mysql",
+            "php -d memory_limit=1G vendor/bin/pest"
+        ],
         "lint": "vendor/bin/pint",
         "lint:check": "vendor/bin/pint --test",
         "refactor": "vendor/bin/rector process",
@@ -64,12 +77,12 @@
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
         "test:types": "vendor/bin/pest --type-coverage --min=98",
         "check:coverage": "bash bin/coverage-gate.sh",
-        "mutate": "vendor/bin/infection --configuration=infection.core.json5 --threads=4",
-        "mutate:core": "vendor/bin/infection --configuration=infection.core.json5 --threads=4",
-        "mutate:filament": "vendor/bin/infection --configuration=infection.filament.json5 --threads=4",
-        "mutate:context": "vendor/bin/infection --configuration=infection.context.json5 --threads=4",
+        "mutate": "bash bin/mutation-gate.sh",
+        "mutate:core": "bash bin/mutation-gate.sh core",
+        "mutate:filament": "bash bin/mutation-gate.sh filament",
+        "mutate:context": "bash bin/mutation-gate.sh context",
         "mutate:all": "bash bin/mutation-gate.sh",
-        "mutate:diff": "MUTATION_GATE_DIFF_SCOPED=1 bash bin/mutation-gate.sh",
+        "mutate:diff": "bash bin/mutation-gate.sh",
         "docs:parity": "bash bin/docs-parity-gate.sh",
         "docs:php": "bash bin/docs-php-version-gate.sh",
         "check": [
@@ -89,7 +102,7 @@
     "scripts-descriptions": {
         "check": "Run every CI gate locally: code style, static analysis, refactor dry-run, tests, coverage and mutation (both honest-skip without a coverage driver — see bin/*-gate.sh).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
-        "mutate:all": "Run per-package Infection (core/filament/context) against fresh coverage.",
-        "mutate:diff": "Diff-scoped Infection (--git-diff-lines) for PR gating."
+        "mutate:all": "Run per-package native Pest mutation testing against fresh coverage.",
+        "mutate:diff": "Run native Pest mutation checks; diff scoping is not supported by Pest mutate."
     }
 }

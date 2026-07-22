@@ -1,0 +1,25 @@
+{
+  "skill": "php-patterns",
+  "snippets": [
+    {
+      "file": "value-object.php",
+      "description": "Value Object: final readonly значение с инвариантом в конструкторе, равенством по значению и поведением (Email, Money)",
+      "tags": ["pattern", "value-object", "immutability", "invariant"]
+    },
+    {
+      "file": "dto.php",
+      "description": "Голый DTO без spatie/laravel-data: final readonly структура для переноса данных между слоями, без поведения; delta-DTO для sync",
+      "tags": ["pattern", "dto", "data-transfer", "delta"]
+    },
+    {
+      "file": "pipeline.php",
+      "description": "Pipeline: последовательная трансформация значения цепочкой шагов-стадий (handle/next), переставляемых и тестируемых в изоляции",
+      "tags": ["pattern", "pipeline", "transformation", "stage"]
+    },
+    {
+      "file": "specification.php",
+      "description": "Specification: композируемый предикат isSatisfiedBy с and/or/not для in-memory бизнес-правил",
+      "tags": ["pattern", "specification", "predicate", "composition"]
+    }
+  ]
+}

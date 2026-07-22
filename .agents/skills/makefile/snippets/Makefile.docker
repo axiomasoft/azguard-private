@@ -1,0 +1,99 @@
+# Source: anonymized production Laravel project
+# docker/Makefile — вся docker-логика проекта. Вызывается из корневого Makefile
+# через catch-all (см. Makefile.root), поэтому пути compose-файлов — от корня репо.
+
+.PHONY: help up down build restart ps logs logs\:core shell artisan composer pnpm \
+	migrate db-fresh db-seed test db\:create-test clear-cache \
+	prod\:artisan prod\:migrate prod\:test prod\:clear-cache prod\:db\:create-test image
+
+# Dev compose должен подхватывать и .env (приложение), и .env.docker (порты/uid/gid).
+# Важно: при использовании --env-file docker compose перестаёт автоматически читать .env.
+DOCKER_COMPOSE_DEV := docker compose
+ifeq ($(wildcard .env.docker),.env.docker)
+DOCKER_COMPOSE_DEV := docker compose --env-file .env --env-file .env.docker
+endif
+
+help:
+	@echo "DEV:"
+	@echo "  make up | make down | make build   — поднять / остановить / пересобрать стек"
+	@echo "  make shell                         — bash в контейнере app"
+	@echo "  make logs | make logs:core         — логи app / app+queue+scheduler+reverb"
+	@echo "  make artisan ARGS=\"...\"            — php artisan в контейнере"
+	@echo "  make migrate | make db-fresh | make db-seed"
+	@echo "  make test                          — PHP-тесты в контейнере"
+	@echo "  make db:create-test                — создать БД <app>_test (volume уже существует)"
+	@echo "PROD (docker-compose.prod.yml):"
+	@echo "  make image                         — собрать образ <app>/app:latest"
+	@echo "  make prod:migrate | make prod:test | make prod:clear-cache | make prod:db:create-test"
+
+up:
+	$(DOCKER_COMPOSE_DEV) up -d
+
+down:
+	$(DOCKER_COMPOSE_DEV) down
+
+build:
+	$(DOCKER_COMPOSE_DEV) up -d --build
+
+restart:
+	$(DOCKER_COMPOSE_DEV) restart
+
+ps:
+	$(DOCKER_COMPOSE_DEV) ps
+
+logs:
+	$(DOCKER_COMPOSE_DEV) logs -f app
+
+logs\:core:
+	$(DOCKER_COMPOSE_DEV) logs -f app queue scheduler reverb
+
+shell:
+	$(DOCKER_COMPOSE_DEV) exec app bash
+
+artisan:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan $(ARGS)
+
+composer:
+	$(DOCKER_COMPOSE_DEV) exec app composer $(ARGS)
+
+pnpm:
+	$(DOCKER_COMPOSE_DEV) exec vite pnpm $(ARGS)
+
+migrate:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan migrate
+
+db-fresh:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan migrate:fresh
+
+db-seed:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan db:seed
+
+test:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan test
+
+clear-cache:
+	$(DOCKER_COMPOSE_DEV) exec app php artisan optimize:clear
+
+# Сборка production-образа (используется docker-compose.prod.yml)
+image:
+	docker build -t <app>/app:latest -f docker/php/Dockerfile .
+
+# Тестовая БД для существующего volume (init-скрипт не запускался) —
+# идемпотентный скрипт, см. скилл docker-postgres (init-test-db.sh, вариант 2)
+db\:create-test:
+	bash docker/postgres/create-test-db.sh dev
+
+prod\:db\:create-test:
+	bash docker/postgres/create-test-db.sh prod
+
+prod\:artisan:
+	docker compose -f docker-compose.prod.yml exec -T app php artisan $(ARGS)
+
+prod\:migrate:
+	@$(MAKE) -f docker/Makefile prod\:artisan ARGS="migrate --force"
+
+prod\:test:
+	@$(MAKE) -f docker/Makefile prod\:artisan ARGS="test"
+
+prod\:clear-cache:
+	@$(MAKE) -f docker/Makefile prod\:artisan ARGS="optimize:clear"

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use AzGuard\AzGuardManager;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
 use AzGuard\Tests\Stubs\SwapTestManager;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Contracts\Auth\Authenticatable;

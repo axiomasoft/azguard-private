@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Models\Role;
 use AzGuard\Tests\ContextTestCase;
 use AzGuard\Tests\FilamentTestCase;
 use AzGuard\Tests\ManagerSwapTestCase;
@@ -20,16 +21,19 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/AuthorizerExtendedTest.php',
         'Feature/AuthorizerPanelResolutionTest.php',
         'Feature/AuthorizerTest.php',
+        'Feature/AzGuardFakeTest.php',
         'Feature/CacheResetCommandTest.php',
         'Feature/CatalogLazyPanelsTest.php',
         'Feature/CheckAccessMiddlewareTest.php',
+        'Feature/CheckDirectGrantMiddlewareTest.php',
         'Feature/ClassPermissionTest.php',
         'Feature/CrossRequestCacheInvalidationTest.php',
         'Feature/CustomCatalogBuilderTest.php',
         'Feature/CustomGrantSourceTest.php',
         'Feature/DatabaseRoleGrantSourceTest.php',
         'Feature/DirectGrantSourceTest.php',
-        'Feature/DiscoveryTest.php',
+        'Feature/DirectGrantMorphMapTest.php',
+        'Feature/DirectGrantPanelChangeCacheTest.php',
         'Feature/EnumPermissionArgumentTest.php',
         'Feature/EnumRolePermissionsTest.php',
         'Feature/ExplainAbilitiesCommandTest.php',
@@ -38,32 +42,48 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/DoctorCommandTest.php',
         'Feature/StructuredOutputCommandsTest.php',
         'Feature/GateIntegrationScopedTest.php',
+        'Feature/GrantSourcesAllowlistTest.php',
         'Feature/GrantsCliColumnsTest.php',
         'Feature/GrantsFacadeDefaultPanelTest.php',
         'Feature/HasDirectGrantsTest.php',
         'Feature/InstallCommandTest.php',
         'Feature/IntegrationPolishTest.php',
+        'Feature/JobProcessingPanelResetTest.php',
         'Feature/ListScopedRolesCommandTest.php',
         'Feature/LoadAzGuardRolesMiddlewareTest.php',
         'Feature/MakeGuardForceGenerationTest.php',
         'Feature/MakeGuardPanelCommandTest.php',
+        'Feature/MassAssignmentGuardTest.php',
+        'Feature/ModelHasRolesScopesUniqueConstraintTest.php',
+        'Feature/PanelCheckAccessMiddlewareTest.php',
         'Feature/PanelEnumIdentityTest.php',
         'Feature/PanelPermissionResolverTest.php',
+        'Feature/PanelRoleEnumEntrypointsTest.php',
         'Feature/PermissionAccessTest.php',
         'Feature/PermissionCacheEpochInvalidationTest.php',
+        'Feature/PermissionCacheEpochLockWarningTest.php',
+        'Feature/PermissionCacheCrossProcessRaceTest.php',
         'Feature/PermissionMapTest.php',
         'Feature/PolicyAttributeRegistrarTest.php',
         'Feature/RoleAssignmentCommandTest.php',
         'Feature/RoleClassResolutionTest.php',
         'Feature/RolePermissionsCommandTest.php',
         'Feature/RolePermissionValidationTest.php',
+        'Feature/ScopeClassMigrationRollbackTest.php',
         'Feature/ScopedPermissionEnumResolutionTest.php',
+        'Feature/ScopedRoleMorphMapTest.php',
         'Feature/ScopedRolePanelIsolationTest.php',
+        'Feature/ScopedRoleQueryScopePanelIsolationTest.php',
+        'Feature/ScopedRolesConsoleQueueTest.php',
         'Feature/SetCurrentPanelMiddlewareTest.php',
+        'Feature/StaleScopeClassTest.php',
         'Feature/SuperAdminCommandTest.php',
         'Feature/SyncRolesCommandTest.php',
         'Feature/WildcardCatalogFilterTest.php',
     );
+
+uses(TestCase::class, RefreshDatabase::class)
+    ->in('Feature/DebugPgAbortTest.php');
 
 uses(ManagerSwapTestCase::class, RefreshDatabase::class)
     ->in('Feature/ManagerSwapTest.php');
@@ -91,4 +111,18 @@ function createUserWithRole(string $roleName): User
     $user->assignRole($roleName);
 
     return $user;
+}
+
+/**
+ * class_name is guarded (C-11, not mass-assignable via Role::create()/fill())
+ * so tests need a helper that sets it via direct property assignment (bypasses
+ * fillable, unlike fill()/create()) instead of passing it through $attributes.
+ */
+function createRoleWithClass(array $attributes, string $className): Role
+{
+    $role = Role::query()->create($attributes);
+    $role->class_name = $className;
+    $role->save();
+
+    return $role;
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Registry\Values;
 
 use AzGuard\Contracts\PermissionMatcher;
-use AzGuard\PermissionKey;
-use AzGuard\Registry\Matching\WildcardPermissionMatcher;
+use AzGuard\Permissions\PermissionKey;
+use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
 use Closure;
 
 /**
@@ -17,6 +17,14 @@ use Closure;
  *      PermissionLayer contracts and of {@see HasPermissions::permissionSet()}.
  *      Import it from this namespace; consumers implementing a custom GrantSource
  *      or PermissionLayer build/return one via the named constructors below.
+ *
+ *      Wildcard grammar: inside a booted container the set matches patterns via
+ *      the app-configured {@see PermissionMatcher} binding (hierarchical by
+ *      default; the deprecated features.wildcard_permission flag restores the
+ *      legacy dot-crossing grammar). Standalone — outside a booted container —
+ *      the set always falls back to the hierarchical grammar and does NOT see
+ *      the application's matcher configuration; results may diverge from a
+ *      booted app that overrides the matcher.
  *
  * Internals:
  *   - $index: array<string, true>  — O(1) key lookup via isset()
@@ -123,14 +131,14 @@ final readonly class PermissionSet
 
     /**
      * The configured, swappable matcher (memoizes compiled patterns). Falls back
-     * to the default grammar when resolved outside a booted container so the VO
-     * stays usable standalone.
+     * to the default hierarchical grammar when resolved outside a booted
+     * container so the VO stays usable standalone (see the @api note above).
      */
     private function matcher(): PermissionMatcher
     {
         return app()->bound(PermissionMatcher::class)
             ? app(PermissionMatcher::class)
-            : new WildcardPermissionMatcher;
+            : new HierarchicalPermissionMatcher;
     }
 
     /**

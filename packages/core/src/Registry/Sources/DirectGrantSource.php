@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Registry\Sources;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Override;
 
@@ -35,7 +35,7 @@ final class DirectGrantSource implements GrantSource
         $model = Config::directGrantModel();
 
         $keys = $model::query()
-            ->where('grantable_type', $user::class)
+            ->where('grantable_type', $user->getMorphClass())
             ->where('grantable_id', $user->getAuthIdentifier())
             ->where('panel_id', $panelId)
             ->active()

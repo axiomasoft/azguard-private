@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Contracts;
 
 use AzGuard\Models\Role;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -26,15 +27,15 @@ interface HasRoles
     public function scopes(): MorphMany;
 
     /**
-     * @param  string|RoleInterface|class-string<RoleInterface>  $role
+     * @param  string|BackedEnum|RoleInterface|class-string<RoleInterface>  $role
      */
-    public function hasRole(string|RoleInterface $role): bool;
+    public function hasRole(string|BackedEnum|RoleInterface $role): bool;
 
-    public function assignRole(string|Role ...$roles): static;
+    public function assignRole(string|BackedEnum|Role ...$roles): static;
 
-    public function removeRole(string|Role ...$roles): static;
+    public function removeRole(string|BackedEnum|Role ...$roles): static;
 
-    /** @param array<string|Role> $roles */
+    /** @param array<string|BackedEnum|Role> $roles */
     public function syncRoles(array $roles): static;
 
     /** @return Collection<int, string> */

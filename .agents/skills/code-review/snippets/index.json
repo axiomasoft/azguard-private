@@ -1,0 +1,23 @@
+{
+  "skill": "code-review",
+  "snippets": [
+    {
+      "file": "pr-comment-template.md",
+      "description": "pr comment template",
+      "tags": []
+    },
+    {
+      "file": "severity-guide.md",
+      "description": "severity guide",
+      "tags": []
+    },
+    {
+      "file": "code-review.md",
+      "description": "Ревью кода и PR: границы слоёв Action/Service, тикеты, тесты, безопасность",
+      "tags": [
+        "code-review",
+        "laravel"
+      ]
+    }
+  ]
+}

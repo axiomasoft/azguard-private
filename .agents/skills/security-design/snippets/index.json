@@ -1,0 +1,19 @@
+{
+  "skill": "security-design",
+  "snippets": [
+    {
+      "file": "stride-threat-model.md",
+      "description": "stride threat model",
+      "tags": []
+    },
+    {
+      "file": "ops-security-checklist.md",
+      "description": "Операционный чеклист безопасности по Spatie: приложение (SSL, CSRF, мутации POST/PUT/DELETE, автотесты авторизации), БД, сервер, креды, бэкапы",
+      "tags": [
+        "security",
+        "checklist",
+        "ops"
+      ]
+    }
+  ]
+}

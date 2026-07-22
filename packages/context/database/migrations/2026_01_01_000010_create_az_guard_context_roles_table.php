@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Support\Schema\MorphColumns;
+use AzGuard\Database\Schema\MorphColumns;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,19 +17,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('az_guard_context_roles', function (Blueprint $table): void {
+        $binaryCollation = $this->mysqlBinaryCollation();
+
+        Schema::create('az_guard_context_roles', function (Blueprint $table) use ($binaryCollation): void {
             $table->id();
 
             // User (polymorphic) — key type follows az-guard.column_names.morph_type
-            MorphColumns::add($table, 'model');
+            MorphColumns::add($table, 'model', keyTypeCollation: $binaryCollation);
 
             // Context
-            $table->string('context_type');  // 'workspace', 'project', ...
-            $table->string('context_id');    // string to support both UUID and int
+            $this->keyString($table, 'context_type', 127, $binaryCollation); // 'workspace', 'project', ...
+            $this->keyString($table, 'context_id', 64, $binaryCollation);    // string to support both UUID and int
 
             // Permission
-            $table->string('panel_id');
-            $table->string('permission_key');
+            $this->keyString($table, 'panel_id', 128, $binaryCollation);
+            $this->keyString($table, 'permission_key', 191, $binaryCollation);
 
             $table->timestamps();
 
@@ -48,5 +50,21 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('az_guard_context_roles');
+    }
+
+    private function mysqlBinaryCollation(): ?string
+    {
+        return in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'], true)
+            ? 'utf8mb4_bin'
+            : null;
+    }
+
+    private function keyString(Blueprint $table, string $column, int $length, ?string $collation): void
+    {
+        $definition = $table->string($column, $length);
+
+        if ($collation !== null) {
+            $definition->collation($collation);
+        }
     }
 };

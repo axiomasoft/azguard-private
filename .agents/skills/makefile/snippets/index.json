@@ -1,0 +1,15 @@
+{
+  "skill": "makefile",
+  "snippets": [
+    {
+      "file": "Makefile.root",
+      "description": "Корневой делегирующий Makefile: help + catch-all % в docker/Makefile",
+      "tags": ["make", "delegation", "catch-all"]
+    },
+    {
+      "file": "Makefile.docker",
+      "description": "docker/Makefile: up/down/build/shell/logs/migrate/test/db-create-test, env-файлы через --env-file, prod-цели с -f docker-compose.prod.yml",
+      "tags": ["make", "docker", "compose", "laravel"]
+    }
+  ]
+}

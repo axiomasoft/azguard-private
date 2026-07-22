@@ -21,6 +21,14 @@ arch('contracts are interfaces')
     ->expect('AzGuard\\Contracts')
     ->toBeInterfaces();
 
+arch('registry contracts are interfaces')
+    ->expect('AzGuard\\Registry\\Contracts')
+    ->toBeInterfaces()
+    // GrantPriority is a deliberate exception: an enum, not an interface,
+    // sharing the namespace with its subdomain's contracts (D15 — two
+    // AzGuard\Contracts homes by design, not a namespace-hygiene slip).
+    ->ignoring('AzGuard\\Registry\\Contracts\\GrantPriority');
+
 arch('models extend Eloquent Model')
     ->expect('AzGuard\\Models')
     ->toExtend(Model::class);
@@ -118,6 +126,15 @@ arch('events are final')
 
 arch('registry values are final and readonly')
     ->expect('AzGuard\\Registry\\Values')
+    ->toBeFinal()
+    ->toBeReadonly();
+
+arch('grant builders are final and readonly (immutable grammar, D16)')
+    ->expect([
+        'AzGuard\\Grants',
+        'AzGuard\\Context\\ContextGrantBuilder',
+        'AzGuard\\Context\\ContextGrantBuilderFactory',
+    ])
     ->toBeFinal()
     ->toBeReadonly();
 

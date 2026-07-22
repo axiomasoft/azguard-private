@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Contracts;
 
 use AzGuard\Models\DirectGrant;
+use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -25,11 +26,11 @@ interface HasDirectGrants
     public function directGrants(): MorphMany;
 
     /** @return Collection<int, DirectGrant> */
-    public function grants(string $panelId): Collection;
+    public function grants(string|BackedEnum $panelId): Collection;
 
-    public function hasGrant(string|UnitEnum $permission, ?string $panelId = null): bool;
+    public function hasGrant(string|UnitEnum $permission, string|BackedEnum|null $panelId = null): bool;
 
-    public function grant(string|UnitEnum $permission, string $panelId, ?DateTimeInterface $expiresAt = null): static;
+    public function grant(string|UnitEnum $permission, string|BackedEnum $panelId, ?DateTimeInterface $expiresAt = null): static;
 
-    public function revoke(string|UnitEnum $permission, string $panelId): static;
+    public function revoke(string|UnitEnum $permission, string|BackedEnum $panelId): static;
 }

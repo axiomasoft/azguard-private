@@ -15,6 +15,7 @@ function introSidebar(base = '') {
         { text: 'Prerequisites',      link: p('/introduction/prerequisites') },
         { text: 'Installation',       link: p('/introduction/installation') },
         { text: 'Quick Start',        link: p('/introduction/quick-start') },
+        { text: 'Headless Quick Start', link: p('/introduction/headless-quick-start') },
         { text: 'Upgrading',          link: p('/introduction/upgrading') },
         { text: 'Questions & Issues', link: p('/introduction/questions-issues') },
         { text: 'Changelog',          link: p('/introduction/changelog') },
@@ -107,6 +108,7 @@ function ruIntroSidebar() {
         { text: 'Требования',           link: p('/introduction/prerequisites') },
         { text: 'Установка',            link: p('/introduction/installation') },
         { text: 'Быстрый старт',        link: p('/introduction/quick-start') },
+        { text: 'Быстрый старт (headless)', link: p('/introduction/headless-quick-start') },
         { text: 'Обновление',           link: p('/introduction/upgrading') },
         { text: 'Вопросы и проблемы',   link: p('/introduction/questions-issues') },
         { text: 'Список изменений',     link: p('/introduction/changelog') },
@@ -195,8 +197,8 @@ function makeSidebarMap(base: string, factory: (b: string) => any[], pages: stri
 
 const introPages = [
   '/introduction/why-azguard', '/introduction/prerequisites', '/introduction/installation',
-  '/introduction/quick-start', '/introduction/upgrading', '/introduction/questions-issues',
-  '/introduction/changelog', '/introduction',
+  '/introduction/quick-start', '/introduction/headless-quick-start', '/introduction/upgrading',
+  '/introduction/questions-issues', '/introduction/changelog', '/introduction',
 ]
 const basicPages = [
   '/basic-usage/basic-usage', '/basic-usage/permissions', '/basic-usage/roles',

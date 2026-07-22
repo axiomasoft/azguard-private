@@ -1,0 +1,25 @@
+{
+  "skill": "filament",
+  "snippets": [
+    {
+      "file": "resource-stub.php",
+      "description": "Filament v5 Resource stub: ресурс + Schemas/ExampleForm + Tables/ExamplesTable (полный v5-layout)",
+      "tags": ["filament", "resource", "v5"]
+    },
+    {
+      "file": "relation-manager-stub.php",
+      "description": "Filament v5 RelationManager stub (Schema API, Filament\\Actions)",
+      "tags": ["filament", "relation-manager", "v5"]
+    },
+    {
+      "file": "forms-tables-reference.md",
+      "description": "Справочник компонентов v5: поля, layout, Get/Set, колонки, фильтры, actions, widgets, infolist, тесты",
+      "tags": ["filament", "forms", "tables", "reference"]
+    },
+    {
+      "file": "filament-development.md",
+      "description": "Проектные ожидания при разработке Filament v5: artisan-scaffold, структура, namespaces",
+      "tags": ["filament"]
+    }
+  ]
+}

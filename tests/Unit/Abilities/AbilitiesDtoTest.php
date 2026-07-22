@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Abilities\AbilitiesDto;
-use Closure;
 use Illuminate\Support\Facades\Gate;
 
 /**

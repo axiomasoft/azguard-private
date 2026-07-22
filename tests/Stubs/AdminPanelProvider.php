@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Stubs;
 
 use AzGuard\Facades\AzGuard;
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelProvider;
 
 /**
  * Minimal 'admin' panel used by the Filament integration tests. Its permission

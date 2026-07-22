@@ -135,10 +135,34 @@ yellow on warnings.
 
 ## Configuration
 
+`config/az-guard-filament.php` is the wiring surface — panel-linked classes,
+tables, `pages`/`widgets` abilities, `exclude`, `super_admin`, and generation
+paths always come from config. Behavioral options — `enforce`, `source`,
+`abilities`, `key`, `case` — also have a fluent alternative on the plugin, read
+in `register()`; config remains the fallback when a fluent call is omitted:
+
+```php
+use AzGuard\Filament\AzGuardPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel->plugins([
+        AzGuardPlugin::make()
+            ->forPanel('admin')
+            ->enforce(true)
+            ->source('database')
+            ->abilities(['view_any', 'view', 'create', 'update', 'delete'])
+            ->keyTemplate('{panel}.{resource}.{ability}')
+            ->case('snake'),
+    ]);
+}
+```
+
+`AzGuardPlugin::make()` resolves through the container (`app(static::class)`),
+so it can be swapped in tests via `app()->bind(AzGuardPlugin::class, ...)`.
+
 See [`config/az-guard-filament.php`](https://github.com/axioma-studio/azguard)
-for the full, commented options: `panel`, `source`, `abilities`, `pages`,
-`widgets`, `key`, `case`, `exclude`, `super_admin`, `enforce`, and generation
-paths.
+for the full, commented options.
 
 ## Compatibility
 

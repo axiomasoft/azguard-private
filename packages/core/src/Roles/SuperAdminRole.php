@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use Override;
 
 /**

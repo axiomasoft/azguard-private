@@ -1,69 +1,242 @@
-# HTTP и Middleware
+# HTTP-доступ
 
-## Доступные Middleware
+AzGuard предоставляет декларативный способ защиты действий контроллера на
+основе атрибутов. Middleware отвечает за контекст панели; `#[CheckPermission]` —
+за проверку конкретного действия.
 
-| Middleware | Описание |
-|---|---|
-| `azguard.panel` | Устанавливает активную панель для запроса |
-| `azguard.panel_check:panel,permission` | Устанавливает панель и проверяет одно право |
-| `azguard.check` | Проверяет атрибуты `#[CheckPermission]` на методе контроллера |
-| `azguard.grant` | Проверяет прямой грант |
-| `azguard.roles` | Загружает роли пользователя в запрос |
-
-## Примеры применения
+## Стек middleware
 
 ```php
-// routes/web.php
-Route::get('/reports/export', [ReportController::class, 'export'])
-    ->middleware('azguard.panel_check:app,app.reports.export');
-
-Route::get('/admin', [AdminController::class, 'index'])
-    ->middleware(['auth', 'azguard.panel:admin']);
-
-// Группа роутов с общим middleware
-Route::middleware(['auth', 'azguard.panel:admin'])->group(function () {
-    Route::resource('users', UserController::class);
+Route::middleware([
+    'azguard.panel:app',  // устанавливает текущую панель → права резолвятся как app.*
+    'azguard.roles',      // заранее грузит роли и прямые гранты пользователя
+    'azguard.check',      // читает #[CheckPermission] на методе контроллера
+])->group(function () {
+    Route::apiResource('documents', DocumentController::class);
+    Route::apiResource('reports', ReportController::class);
 });
 ```
 
-## Атрибут `#[CheckPermission]` в контроллере
+| Middleware | Алиас | Назначение |
+|---|---|---|
+| `SetCurrentPanel` | `azguard.panel` | Устанавливает активную панель для этого запроса |
+| `LoadAzGuardRoles` | `azguard.roles` | Загружает и кеширует роли + гранты для `auth()->user()` |
+| `CheckAccess` | `azguard.check` | Читает `#[CheckPermission]` и вызывает `Gate::allows()` |
 
-Применяйте middleware `azguard.check` к роуту, чтобы атрибуты на методе проверялись автоматически.
+Все три алиаса регистрируются автоматически через `AzGuardServiceProvider`.
+
+## Статические конструкторы
+
+У каждого middleware AzGuard есть также enum-осведомлённый статический
+конструктор `::using()` — альтернатива строковому DSL-алиасу выше (поддерживаются
+оба варианта, выбирайте тот, что лучше читается в месте вызова). Порядок
+аргументов всегда **что, потом где** (сначала право, потом панель):
 
 ```php
-class PostController extends Controller
+use AzGuard\Http\Middleware\CheckAccess;
+use AzGuard\Http\Middleware\CheckDirectGrant;
+use AzGuard\Http\Middleware\PanelCheckAccess;
+use AzGuard\Http\Middleware\SetCurrentPanel;
+
+Route::middleware([
+    SetCurrentPanel::using('app'),
+    'azguard.roles',
+    CheckAccess::using(),
+])->group(function () {
+    Route::apiResource('documents', DocumentController::class);
+});
+
+// Прямой грант — сначала право, потом панель (панель опциональна, по умолчанию текущая):
+Route::get('/export', ExportController::class)
+    ->middleware(CheckDirectGrant::using(DocumentsPermission::Export, 'app'));
+
+// Комбинированная проверка панели + права — сначала право, потом панель:
+Route::get('/reports', ReportsController::class)
+    ->middleware(PanelCheckAccess::using(ReportsPermission::View, 'app'));
+```
+
+`PanelCheckAccess` принимает `string|BackedEnum` и для права, и для панели;
+строковый алиас — `azguard.panel_check:{permission},{panel}` (право первым —
+это ломающее pre-1.0 переименование относительно прежнего порядка
+`{panel},{permission}`).
+
+## `#[CheckPermission]`
+
+```php
+use AzGuard\Attributes\CheckPermission;
+use AzGuard\Attributes\SkipGuardCheck;
+
+class DocumentController extends Controller
 {
-    #[CheckPermission(PostsPermission::View)]
+    // Проверка права на просмотр — без биндинга модели
+    #[CheckPermission(DocumentsPermission::View)]
     public function index(): Response
     {
-        return response()->json(Post::paginate());
+        return Inertia::render('Documents/Index', [
+            'documents' => Document::paginate(),
+        ]);
     }
 
-    #[CheckPermission(permission: PostsPermission::Edit, arguments: ['post'])]
-    public function update(UpdatePostRequest $request, Post $post): Response
+    // С аргументом-моделью — передаётся в Gate::allows() для интеграции с Policy
+    #[CheckPermission(permission: DocumentsPermission::View, arguments: ['document'])]
+    public function show(Document $document): Response
     {
-        $post->update($request->validated());
-        return response()->json($post);
+        return Inertia::render('Documents/Show', [
+            'document'  => $document,
+            'abilities' => DocumentsAbilities::fromDocument($document)->toArray(),
+        ]);
+    }
+
+    #[CheckPermission(permission: DocumentsPermission::Edit, arguments: ['document'])]
+    public function update(UpdateDocumentRequest $request, Document $document): Response
+    {
+        $document->update($request->validated());
+        return back()->with('success', 'Document updated.');
+    }
+
+    #[CheckPermission(DocumentsPermission::Delete)]
+    public function destroy(Document $document): Response
+    {
+        $document->delete();
+        return redirect()->route('documents.index');
+    }
+
+    // Полностью пропустить проверку guard для публичных эндпоинтов
+    #[SkipGuardCheck]
+    public function publicPreview(Document $document): Response
+    {
+        return Inertia::render('Documents/Preview', ['document' => $document]);
     }
 }
 ```
 
-## Обработка 403
+Массив `arguments` сопоставляется с биндингами модели маршрута по имени
+параметра. Middleware резолвит их из запроса и передаёт в
+`Gate::allows($ability, [$model])`.
 
-Middleware и атрибуты используют стандартный `abort(403)` Laravel. Перехватить ответ можно через рендеринг `HttpException`:
+## Ручные проверки Gate
+
+Для кода вне контроллеров (jobs, listeners, services) всегда передавайте
+**кейс enum** — никогда не сырую строку:
 
 ```php
-// bootstrap/app.php — withExceptions()
-use Illuminate\Http\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+// ✅ Enum — типобезопасно, навигация по IDE
+Gate::authorize(DocumentsPermission::Edit, $document);
 
-$exceptions->renderable(function (HttpException $e, Request $request) {
-    if ($e->getStatusCode() === 403 && $request->expectsJson()) {
-        return response()->json([
-            'message' => 'Доступ запрещён.',
-        ], 403);
-    }
-});
+if (! Gate::allows(DocumentsPermission::Edit, $document)) {
+    throw new AuthorizationException('Cannot edit this document.');
+}
+
+// В контроллерах
+$this->authorize(DocumentsPermission::Delete, $document);
 ```
 
-→ [Исключения](/ru/advanced/exceptions) · [Несколько Guards](/ru/basic-usage/multiple-guards)
+::: tip Route middleware — единственное исключение
+Route middleware `'can:'` требует строку. Используйте `->value`, чтобы получить
+её из enum:
+```php
+Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])
+    ->middleware('can:' . DocumentsPermission::Edit->value . ',document');
+```
+:::
+
+## API-роуты (JSON 403)
+
+Для API-роутов настройте ответ об ошибке в вашем exception handler:
+
+```php
+// app/Exceptions/Handler.php (стиль Laravel 10)
+public function render($request, Throwable $e)
+{
+    if ($e instanceof AuthorizationException && $request->expectsJson()) {
+        return response()->json([
+            'message' => 'Forbidden.',
+            'error'   => 'insufficient_permissions',
+        ], 403);
+    }
+
+    return parent::render($request, $e);
+}
+
+// Laravel 11 — bootstrap/app.php
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (AuthorizationException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+    });
+})
+```
+
+## Цепочки middleware
+
+Несколько панелей в одном приложении — регистрируйте каждую группу с
+собственным middleware панели:
+
+```php
+// Панель app
+Route::prefix('app')
+    ->middleware(['auth', 'azguard.panel:app', 'azguard.roles', 'azguard.check'])
+    ->group(base_path('routes/app.php'));
+
+// Панель admin
+Route::prefix('admin')
+    ->middleware(['auth', 'azguard.panel:admin', 'azguard.roles', 'azguard.check'])
+    ->group(base_path('routes/admin.php'));
+
+// API (stateless)
+Route::prefix('api')
+    ->middleware(['auth:sanctum', 'azguard.panel:api', 'azguard.roles', 'azguard.check'])
+    ->group(base_path('routes/api.php'));
+```
+
+## Именованные группы middleware
+
+Избавьтесь от дублирования в маршрутах, зарегистрировав именованные группы:
+
+```php
+// bootstrap/app.php (Laravel 11)
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->appendToGroup('app-guard', [
+        \AzGuard\Http\Middleware\SetCurrentPanel::class.':app',
+        \AzGuard\Http\Middleware\LoadAzGuardRoles::class,
+        \AzGuard\Http\Middleware\CheckAccess::class,
+    ]);
+
+    $middleware->appendToGroup('admin-guard', [
+        \AzGuard\Http\Middleware\SetCurrentPanel::class.':admin',
+        \AzGuard\Http\Middleware\LoadAzGuardRoles::class,
+        \AzGuard\Http\Middleware\CheckAccess::class,
+    ]);
+})
+```
+
+```php
+// routes/web.php — чисто и читаемо
+Route::middleware(['auth', 'app-guard'])
+    ->group(base_path('routes/app.php'));
+
+Route::middleware(['auth', 'admin-guard'])
+    ->group(base_path('routes/admin.php'));
+```
+
+## Защита целых групп роутов по роли
+
+```php
+// Отдельный класс middleware
+// app/Http/Middleware/RequireRole.php
+public function handle(Request $request, Closure $next, string $role): Response
+{
+    if (! $request->user()?->hasRole($role)) {
+        abort(403);
+    }
+    return $next($request);
+}
+```
+
+```php
+Route::middleware(['auth', 'app-guard', 'role:manager'])
+    ->group(function () {
+        Route::get('/reports', ReportsController::class);
+    });
+```

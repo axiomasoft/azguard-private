@@ -1,6 +1,6 @@
 <?php
 
-use AzGuard\Support\Schema\MorphColumns;
+use AzGuard\Database\Schema\MorphColumns;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,15 +16,16 @@ return new class extends Migration
     public function up(): void
     {
         $t = config('az-guard.table_names');
+        $binaryCollation = $this->mysqlBinaryCollation();
 
         // DB role permissions (roles without a class_name, or custom DB roles)
-        Schema::create($t['role_permissions'] ?? 'az_guard_role_permissions', function (Blueprint $table) use ($t) {
+        Schema::create($t['role_permissions'] ?? 'az_guard_role_permissions', function (Blueprint $table) use ($binaryCollation, $t) {
             $table->id();
             $table->foreignId('role_id')
                 ->constrained($t['roles'])
                 ->cascadeOnDelete();
-            $table->string('permission_key');       // resolved key: "app.documents.view"
-            $table->string('panel_id');             // "app", "admin"
+            $this->keyString($table, 'permission_key', 255, $binaryCollation); // resolved key: "app.documents.view"
+            $this->keyString($table, 'panel_id', 128, $binaryCollation);       // "app", "admin"
             $table->timestamps();
 
             $table->unique(['role_id', 'permission_key', 'panel_id'], 'az_role_perm_unique');
@@ -32,11 +33,11 @@ return new class extends Migration
         });
 
         // Direct grants to a user (without a role)
-        Schema::create($t['direct_grants'] ?? 'az_guard_direct_grants', function (Blueprint $table) {
+        Schema::create($t['direct_grants'] ?? 'az_guard_direct_grants', function (Blueprint $table) use ($binaryCollation) {
             $table->id();
-            MorphColumns::add($table, 'grantable');  // the user (User or any model)
-            $table->string('permission_key');       // resolved key
-            $table->string('panel_id');             // "app"
+            MorphColumns::add($table, 'grantable', keyTypeCollation: $binaryCollation); // the user (User or any model)
+            $this->keyString($table, 'permission_key', 255, $binaryCollation); // resolved key
+            $this->keyString($table, 'panel_id', 128, $binaryCollation);       // "app"
             $table->timestamp('expires_at')->nullable(); // null = never expires
             $table->timestamps();
 
@@ -56,5 +57,21 @@ return new class extends Migration
 
         Schema::dropIfExists($t['direct_grants'] ?? 'az_guard_direct_grants');
         Schema::dropIfExists($t['role_permissions'] ?? 'az_guard_role_permissions');
+    }
+
+    private function mysqlBinaryCollation(): ?string
+    {
+        return in_array(Schema::getConnection()->getDriverName(), ['mysql', 'mariadb'], true)
+            ? 'utf8mb4_bin'
+            : null;
+    }
+
+    private function keyString(Blueprint $table, string $column, int $length, ?string $collation): void
+    {
+        $definition = $table->string($column, $length);
+
+        if ($collation !== null) {
+            $definition->collation($collation);
+        }
     }
 };

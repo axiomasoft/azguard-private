@@ -1,0 +1,31 @@
+# Source: anonymized production project
+# Фрагмент Makefile: пре-флайт тестовой БД как зависимость цели test.
+# Из корня: make -f docker/Makefile <цель> или через делегирующий корневой Makefile.
+# Compose с .env приложения + .env.docker (порты хоста и docker-специфичное).
+
+ROOT_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+COMPOSE  := docker compose --project-directory $(ROOT_DIR) --env-file $(ROOT_DIR)/.env --env-file $(ROOT_DIR)/.env.docker
+DB_SERVICE  := pgsql
+APP_SERVICE := app
+
+.PHONY: test-preflight test test-php
+
+# Пре-флайт: контейнер поднят -> гейт имени *_test -> pg_isready -> существование/создание БД.
+# Имя тестовой БД вытягиваем из phpunit.xml (источник истины — тест-окружение, не .env).
+# Тяжёлую psql-логику выносим в bin/db-test-preflight.sh (см. snippets/preflight.sh),
+# чтобы не бороться с экранированием внутри Makefile-рецепта.
+test-preflight:
+	@$(COMPOSE) ps
+	@TEST_DB=$$(grep -oP '<env name="DB_DATABASE" value="\K[^"]+' phpunit.xml | head -n1); \
+	  case "$$TEST_DB" in \
+	    *_test) echo "preflight: тестовая БД = $$TEST_DB" ;; \
+	    *) echo "PREFLIGHT BLOCKER: '$$TEST_DB' не оканчивается на _test"; exit 1 ;; \
+	  esac
+	@$(COMPOSE) exec -T $(DB_SERVICE) sh -lc 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+	@MODE=docker bash $(ROOT_DIR)/bin/db-test-preflight.sh
+
+# test зависит от пре-флайта: без зелёной БД suite не стартует.
+test: test-preflight test-php
+
+test-php:
+	$(COMPOSE) exec -T $(APP_SERVICE) php artisan test --compact

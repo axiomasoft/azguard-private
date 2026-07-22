@@ -4,15 +4,15 @@
 
 ## Provider панели
 
-Панель описывается классом-провайдером, наследующим `AzGuard\PanelProvider`.
+Панель описывается классом-провайдером, наследующим `AzGuard\Panels\PanelProvider`.
 Метод `panel()` собирает панель через fluent-API.
 
 ```php
 // app/Guards/App/AppGuardPanelProvider.php
 namespace App\Guards\App;
 
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\PanelProvider;
+use AzGuard\Panels\Panel;
 
 class AppGuardPanelProvider extends PanelProvider
 {

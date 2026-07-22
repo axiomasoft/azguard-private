@@ -1,6 +1,6 @@
 <?php
 
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Panels\TestAdminPanelProvider;
 
 test('panel provider boot не падает без каталога Policies', function () {

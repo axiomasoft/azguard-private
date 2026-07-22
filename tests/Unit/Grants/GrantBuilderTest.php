@@ -146,6 +146,40 @@ class GrantBuilderTest extends TestCase
         $this->assertSame('app.a', $list->first()->permission_key);
     }
 
+    // ─── immutability (P2.3, D16) ─────────────────────────────────────────────
+
+    public function test_builder_is_immutable_branches_are_independent(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
+
+        $base = (new GrantBuilder($this->user))->on('app');
+        $ttlBranch = $base->ttl(3600);
+        $untilBranch = $base->until(Carbon::parse('2025-02-01'));
+
+        $this->assertNotSame($base, $ttlBranch);
+        $this->assertNotSame($base, $untilBranch);
+        $this->assertNotSame($ttlBranch, $untilBranch);
+
+        // The base branch is untouched by either sibling — grants permanent.
+        $this->assertNull($base->grant('app.a')->expires_at);
+
+        $this->assertTrue($ttlBranch->grant('app.b')->expires_at->eq(Carbon::parse('2025-01-01 13:00:00')));
+        $this->assertTrue($untilBranch->grant('app.c')->expires_at->eq(Carbon::parse('2025-02-01')));
+    }
+
+    public function test_until_sets_absolute_expiry_and_last_wins_over_ttl(): void
+    {
+        $at = Carbon::parse('2025-03-01 00:00:00');
+
+        $grant = (new GrantBuilder($this->user))
+            ->on('app')
+            ->ttl(3600)
+            ->until($at)
+            ->grant('app.documents.export');
+
+        $this->assertTrue($grant->expires_at->eq($at));
+    }
+
     public function test_on_is_required_throws_without_panel(): void
     {
         $this->expectException(RuntimeException::class);

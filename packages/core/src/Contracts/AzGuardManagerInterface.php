@@ -6,9 +6,9 @@ namespace AzGuard\Contracts;
 
 use AzGuard\Grants\GrantBuilder;
 use AzGuard\Models\DirectGrant;
+use AzGuard\Panels\Panel;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
-use AzGuard\Support\Panel;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
@@ -62,12 +62,18 @@ interface AzGuardManagerInterface
     /**
      * Soft-resolve: returns null when the panel is not registered.
      * Safe in Blade / UI without try-catch.
+     *
+     * @internal Cut-line P3.1 (facade-cutline.md #7): kept for
+     *           Permissions\PermissionName's internal resolution seam.
      */
     public function tryPermission(string|BackedEnum $panelId, string|UnitEnum $permission): ?string;
 
     /**
      * Find the id of the panel that owns a permission enum (i.e. lists the enum
      * class in its permission enums), or null when no registered panel owns it.
+     *
+     * @internal Cut-line P3.1 (facade-cutline.md #8): kept for
+     *           HasScopedRoles's internal panel-derivation seam.
      */
     public function panelIdForPermission(UnitEnum $permission): ?string;
 
@@ -76,8 +82,11 @@ interface AzGuardManagerInterface
     /**
      * Whether the user is a super-admin on the panel — i.e. holds the global
      * wildcard, bypassing every ability via Gate::before.
+     *
+     * @internal Positional twin of the canonical $user->isSuperAdmin() from
+     *           HasPermissions — the facade form is de-published (facade-cutline.md #11).
      */
-    public function isSuperAdmin(Authenticatable $user, ?string $panelId = null): bool;
+    public function isSuperAdmin(Authenticatable $user, string|BackedEnum|null $panelId = null): bool;
 
     /**
      * Curated ability projection for the frontend: resolves ONLY the requested
@@ -126,6 +135,9 @@ interface AzGuardManagerInterface
      * Shorthand: issue a direct grant.
      *
      * @param  int|null  $ttl  TTL in seconds. null = permanent.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grant().
      */
     public function grant(
         Authenticatable $user,
@@ -138,6 +150,9 @@ interface AzGuardManagerInterface
      * Shorthand: revoke a direct grant.
      *
      * @return int Number of deleted records.
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->revoke().
      */
     public function revoke(
         Authenticatable $user,
@@ -149,6 +164,9 @@ interface AzGuardManagerInterface
      * Shorthand: list a user's active direct grants in a panel.
      *
      * @return Collection<int, DirectGrant>
+     *
+     * @internal Positional twin of the fluent root kept for internal
+     *           orchestration — the public path is forUser()->on()->grants().
      */
     public function grants(
         Authenticatable $user,

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Registry\Sources;
 
-use AzGuard\PermissionKey;
+use AzGuard\Configuration\Config;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Override;
@@ -27,7 +27,7 @@ final class DatabaseRoleGrantSource implements GrantSource
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
         $userId = $user->getAuthIdentifier();
-        $userClass = $user::class;
+        $userClass = $user->getMorphClass();
 
         $pivotTable = Config::modelHasRolesTable();
         $permTable = Config::rolePermissionsTable();

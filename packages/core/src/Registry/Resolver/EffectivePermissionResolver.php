@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Registry\Resolver;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Contracts\PermissionResolverInterface;
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Config;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 use Override;
@@ -87,13 +87,15 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
 
         // Optional post-aggregation layer (e.g. the context package applying its
         // merge strategy to the global set). Skipped on a global wildcard above —
-        // a superadmin transcends contextual narrowing.
+        // a superadmin transcends contextual narrowing. Unlike the global-source
+        // wildcard above, a wildcard surfacing HERE (from the layer) is NOT
+        // trusted with an early return: it still passes through the catalog
+        // filter below (defense-in-depth, C-13) — a context grant can never
+        // legitimately carry '*' (ContextGrantBuilder::grant() rejects it at
+        // write time), so a wildcard reaching this point is unexpected and must
+        // not bypass catalog validation.
         if ($this->layer instanceof PermissionLayer) {
             $set = $this->layer->apply($set, $user, $panelId);
-
-            if ($set->isWildcard()) {
-                return $set;
-            }
         }
 
         if (! in_array($panelId, $this->catalog->panels(), true)) {
@@ -107,10 +109,14 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
      * Drop keys the catalog does not know.
      *
      * Exact keys must exist in the catalog. Wildcard patterns ('app.docs.*')
-     * are kept only when the wildcard feature is enabled AND the pattern
-     * actually covers at least one catalog key — so a meaningful grant survives
-     * but a stale 'app.nonsense.*' that matches nothing is dropped. With the
-     * feature off, patterns are treated as unknown exact keys and removed.
+     * are kept only when the pattern actually covers at least one catalog key
+     * under the bound matcher grammar (hierarchical by default; the deprecated
+     * features.wildcard_permission flag restores the legacy grammar) — so a
+     * meaningful grant survives but a stale 'app.nonsense.*' that matches
+     * nothing is dropped. The bare global '*' is always dropped here: a real
+     * superadmin wildcard short-circuits in resolve() before filtering, so one
+     * surfacing at this point came from the layer and must not become a
+     * superadmin grant (C-13/R7 defense-in-depth).
      *
      * After an exact-match miss, a key is also checked against every dynamic
      * definition in the catalog (PermissionDefinition::isDynamic()) — e.g. a
@@ -126,20 +132,16 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
             static fn (PermissionDefinition $d): bool => $d->isDynamic(),
         ));
 
-        if (! Config::wildcardEnabled()) {
-            $filtered = $set->filter(fn (string $key): bool => $this->catalog->has($panelId, $key)
-                || $this->matchesDynamicDefinition($key, $dynamicDefinitions));
-            $this->logDroppedKeys($set, $filtered, $panelId);
-
-            return $filtered;
-        }
-
         $catalogKeys = array_map(
             static fn (PermissionDefinition $d): string => $d->key(),
             $this->catalog->all($panelId),
         );
 
         $filtered = $set->filter(function (string $key) use ($panelId, $catalogKeys, $dynamicDefinitions): bool {
+            if ($key === PermissionKey::WILDCARD) {
+                return false;
+            }
+
             if (! str_contains($key, PermissionKey::WILDCARD)) {
                 if ($this->catalog->has($panelId, $key)) {
                     return true;
@@ -236,5 +238,17 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     public function forgetRequestCache(Authenticatable $user, string $panelId): void
     {
         $this->cache->forgetRequestCache($user->getAuthIdentifier(), $panelId);
+    }
+
+    /**
+     * Sources in priority order (highest first), as sorted at construction.
+     * Used by Authorizer::explain() (C-15) to attribute the winning source —
+     * an off-hot-path diagnostic concern, not part of resolve().
+     *
+     * @return list<GrantSource>
+     */
+    public function sources(): array
+    {
+        return $this->sources;
     }
 }

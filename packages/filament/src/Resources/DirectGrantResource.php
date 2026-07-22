@@ -61,13 +61,22 @@ final class DirectGrantResource extends Resource
                 ->required()
                 ->searchable()
                 ->getSearchResultsUsing(
-                    fn (string $search) => $userModel::where($labelColumn, 'like', "%{$search}%")
-                        ->limit(50)
-                        ->pluck($labelColumn, 'id')
-                        ->toArray(),
+                    function (string $search) use ($userModel, $labelColumn): array {
+                        $query = $userModel::query();
+                        $column = $query->getQuery()->getGrammar()->wrap($labelColumn);
+
+                        return $query
+                            // Use a neutral SQL escape character accepted by SQLite,
+                            // PostgreSQL, and MySQL. Laravel's whereLike() does not
+                            // expose an ESCAPE clause, which this literal search needs.
+                            ->whereRaw("{$column} LIKE ? ESCAPE '!'", ['%'.self::escapeLikeValue($search).'%'])
+                            ->limit(50)
+                            ->pluck($labelColumn, 'id')
+                            ->toArray();
+                    },
                 )
                 ->getOptionLabelUsing(
-                    fn ($value) => $userModel::find($value)?->{$labelColumn} ?? "#{$value}",
+                    fn ($value) => $userModel::find($value)->{$labelColumn} ?? "#{$value}",
                 )
                 ->columnSpan('full'),
 
@@ -141,7 +150,7 @@ final class DirectGrantResource extends Resource
                             return $record->grantable_type.'#'.$state;
                         }
 
-                        return $record->grantable?->{$labelColumn} ?? "#{$state}";
+                        return $record->grantable->{$labelColumn} ?? "#{$state}";
                     })
                     ->searchable(),
 
@@ -184,6 +193,21 @@ final class DirectGrantResource extends Resource
                 DeleteBulkAction::make()->label('Revoke selected'),
             ])
             ->defaultSort('created_at', 'desc');
+    }
+
+    /**
+     * Escape LIKE metacharacters (`%`, `_`) and the explicit `!` escape character
+     * itself, so a raw search string cannot widen the match beyond a literal
+     * substring (C-12) — e.g. a user searching for "a_b" would otherwise match
+     * any single character in place of the underscore.
+     */
+    private static function escapeLikeValue(string $value): string
+    {
+        return str_replace(
+            search: ['!', '%', '_'],
+            replace: ['!!', '!%', '!_'],
+            subject: $value,
+        );
     }
 
     // ─── Pages ────────────────────────────────────────────────────────────────

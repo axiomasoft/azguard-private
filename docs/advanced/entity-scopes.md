@@ -4,6 +4,12 @@ Entity-scoped roles let you assign a role to a user **for a specific model insta
 
 This stacks on top of global roles — it does not replace them.
 
+::: tip
+Looking for a request-scoped "current workspace/tenant" switch instead of a persisted
+per-record role? See [Context or scope?](/advanced/context#context-or-scope) in the
+`azguard/context` docs.
+:::
+
 ## Setup
 
 Add `HasScopedRoles` to any Eloquent model that should support scoped role assignment:

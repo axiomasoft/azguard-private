@@ -23,11 +23,9 @@ describe('F3 — enum-based scoped roles resolve through the panel', function ()
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'enum-scoped-editor',
-            'class_name' => EnumScopedRole::class,
+        $role = createRoleWithClass(['name' => 'enum-scoped-editor',
             'level' => 5,
-        ]);
+        ], EnumScopedRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -40,11 +38,9 @@ describe('F3 — enum-based scoped roles resolve through the panel', function ()
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'enum-scoped-editor-str',
-            'class_name' => EnumScopedRole::class,
+        $role = createRoleWithClass(['name' => 'enum-scoped-editor-str',
             'level' => 5,
-        ]);
+        ], EnumScopedRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -57,11 +53,9 @@ describe('F3 — enum-based scoped roles resolve through the panel', function ()
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'enum-scoped-partial',
-            'class_name' => EnumScopedRole::class,
+        $role = createRoleWithClass(['name' => 'enum-scoped-partial',
             'level' => 5,
-        ]);
+        ], EnumScopedRole::class);
 
         $user->assignScopedRole($role, $project);
 
@@ -74,11 +68,9 @@ describe('F3 — enum-based scoped roles resolve through the panel', function ()
         $projectA = Project::factory()->create();
         $projectB = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'enum-scoped-isolation',
-            'class_name' => EnumScopedRole::class,
+        $role = createRoleWithClass(['name' => 'enum-scoped-isolation',
             'level' => 5,
-        ]);
+        ], EnumScopedRole::class);
 
         $user->assignScopedRole($role, $projectA);
 
@@ -90,11 +82,9 @@ describe('F3 — enum-based scoped roles resolve through the panel', function ()
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'string-scoped-editor',
-            'class_name' => ProjectEditorRole::class,
+        $role = createRoleWithClass(['name' => 'string-scoped-editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole($role, $project);
 

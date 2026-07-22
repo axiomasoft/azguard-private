@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Auth;
 
 use AzGuard\Attributes\GateAbility;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use Illuminate\Support\Facades\Gate;
 use ReflectionClass;
 use ReflectionMethod;

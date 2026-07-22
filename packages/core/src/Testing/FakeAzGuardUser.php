@@ -6,9 +6,9 @@ namespace AzGuard\Testing;
 
 use AzGuard\Contracts\HasPermissions;
 use AzGuard\Contracts\PermissionContext;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionName;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
@@ -73,33 +73,33 @@ final class FakeAzGuardUser implements Authenticatable, HasPermissions
     // ─── HasPermissions ────────────────────────────────────────────────────────
 
     #[Override]
-    public function permissionSet(?string $panelId = null): PermissionSet
+    public function permissionSet(string|BackedEnum|null $panelId = null): PermissionSet
     {
         if ($this->wildcard) {
             return PermissionSet::wildcard();
         }
 
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $panelId = PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId));
 
         return PermissionSet::fromKeys($this->granted[$panelId] ?? []);
     }
 
     #[Override]
-    public function hasPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool
+    public function hasPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool
     {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $panelId = PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId));
 
         return $this->permissionSet($panelId)->grants(PermissionName::resolve($permission, $panelId));
     }
 
     #[Override]
-    public function hasPermissionIn(string $contextType, int|string $contextId, string|UnitEnum $permission, ?string $panelId = null): bool
+    public function hasPermissionIn(string $contextType, int|string $contextId, string|UnitEnum $permission, string|BackedEnum|null $panelId = null): bool
     {
         return false;
     }
 
     #[Override]
-    public function checkPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool
+    public function checkPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool
     {
         try {
             return $this->hasPermission($permission, $panelId, $context);
@@ -110,19 +110,19 @@ final class FakeAzGuardUser implements Authenticatable, HasPermissions
 
     /** @return Collection<int, string> */
     #[Override]
-    public function permissions(?string $panelId = null): Collection
+    public function permissions(string|BackedEnum|null $panelId = null): Collection
     {
         return collect($this->permissionSet($panelId)->keys());
     }
 
     #[Override]
-    public function isSuperAdmin(?string $panelId = null): bool
+    public function isSuperAdmin(string|BackedEnum|null $panelId = null): bool
     {
         return $this->permissionSet($panelId)->isWildcard();
     }
 
     #[Override]
-    public function flushPermissions(?string $panelId = null): void
+    public function flushPermissions(string|BackedEnum|null $panelId = null): void
     {
         // In-memory; nothing to flush.
     }

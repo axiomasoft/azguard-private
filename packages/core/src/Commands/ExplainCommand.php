@@ -8,7 +8,7 @@ use AzGuard\Commands\Concerns\ResolvesUserModel;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Events\AccessDecision;
 use AzGuard\Guard\Authorizer;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Authenticatable;
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Contracts;
 
 use AzGuard\Registry\Values\PermissionSet;
+use BackedEnum;
 use Illuminate\Support\Collection;
 use UnitEnum;
 
@@ -20,20 +21,20 @@ use UnitEnum;
  */
 interface HasPermissions
 {
-    public function hasPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool;
+    public function hasPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool;
 
-    public function hasPermissionIn(string $contextType, int|string $contextId, string|UnitEnum $permission, ?string $panelId = null): bool;
+    public function hasPermissionIn(string $contextType, int|string $contextId, string|UnitEnum $permission, string|BackedEnum|null $panelId = null): bool;
 
-    public function checkPermission(string|UnitEnum $permission, ?string $panelId = null, ?PermissionContext $context = null): bool;
+    public function checkPermission(string|UnitEnum $permission, string|BackedEnum|null $panelId = null, ?PermissionContext $context = null): bool;
 
-    public function permissionSet(?string $panelId = null): PermissionSet;
+    public function permissionSet(string|BackedEnum|null $panelId = null): PermissionSet;
 
     /** @return Collection<int, string> */
-    public function permissions(?string $panelId = null): Collection;
+    public function permissions(string|BackedEnum|null $panelId = null): Collection;
 
-    public function isSuperAdmin(?string $panelId = null): bool;
+    public function isSuperAdmin(string|BackedEnum|null $panelId = null): bool;
 
-    public function flushPermissions(?string $panelId = null): void;
+    public function flushPermissions(string|BackedEnum|null $panelId = null): void;
 
     public function hasContextGuard(): bool;
 }

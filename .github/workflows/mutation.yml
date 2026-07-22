@@ -1,10 +1,7 @@
 name: Mutation Testing
 
-# Two modes (F50):
-# - pull_request: diff-scoped (--git-diff-lines against origin/main), fast,
-#   blocking — holds the test-quality bar on new/changed code only.
-# - push to main / workflow_dispatch: full per-package run, advisory —
-#   mutation testing is expensive; reviewed but doesn't block main.
+# Native Pest mutation testing is blocking in every mode: P4.5 ratchets from
+# actual per-package scores, so an advisory success would hide a regression.
 on:
   pull_request:
     branches: [main]
@@ -13,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  infection:
-    name: Infection (${{ matrix.package }})
+  mutation:
+    name: Pest mutation (${{ matrix.package }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -24,8 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0 # full history needed for --git-diff-lines on PRs
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -45,48 +40,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-infection-${{ hashFiles('**/composer.json') }}
+          key: ${{ runner.os }}-composer-mutation-${{ hashFiles('**/composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-composer-infection-
+            ${{ runner.os }}-composer-mutation-
             ${{ runner.os }}-composer-
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Generate coverage for Infection
-        run: vendor/bin/pest --coverage-xml=build/coverage/xml --min=0
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
-          XDEBUG_MODE: coverage
-
-      # PR: mutate only the diff against origin/main — fast, blocking.
-      - name: Infection (diff-scoped, PR gate)
-        if: github.event_name == 'pull_request'
-        run: |
-          vendor/bin/infection \
-            --configuration="infection.${{ matrix.package }}.json5" \
-            --git-diff-lines \
-            --git-diff-base=origin/main \
-            --threads=4 \
-            --coverage=build/coverage/xml \
-            --no-progress
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: ':memory:'
-          XDEBUG_MODE: coverage
-
-      # main / manual: full per-package run against the config's own gates.
-      # Advisory — continue-on-error so it doesn't block main.
-      - name: Infection (full, advisory)
-        if: github.event_name != 'pull_request'
-        continue-on-error: true
-        run: |
-          vendor/bin/infection \
-            --configuration="infection.${{ matrix.package }}.json5" \
-            --threads=4 \
-            --coverage=build/coverage/xml \
-            --no-progress
+      - name: Pest mutation gate
+        run: composer mutate:${{ matrix.package }}
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

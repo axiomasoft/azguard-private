@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use AzGuard\Contracts\Permission;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 
@@ -24,7 +23,7 @@ it('resolves a class-based permission to its panel-scoped key', function () {
 
 it('checks a class-based permission granted by a role', function () {
     // ManagerRole grants 'test.post.view'.
-    $role = Role::create(['name' => 'manager', 'class_name' => ManagerRole::class]);
+    $role = createRoleWithClass(['name' => 'manager'], ManagerRole::class);
     $user = User::create([
         'name' => 'Class Perm User',
         'email' => 'classperm@example.com',

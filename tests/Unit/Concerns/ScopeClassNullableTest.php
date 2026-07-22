@@ -48,9 +48,7 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
         $entity = ScopedEntity::create(['name' => 'Alpha']);
 
         // A logic-less role: class_name is null, so getRoleLogic() returns null.
-        Role::create([
-            'name' => 'observer',
-            'class_name' => null,
+        Role::create(['name' => 'observer',
             'level' => 1,
         ]);
 
@@ -71,9 +69,7 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
         $user = User::factory()->create();
         $entity = ScopedEntity::create(['name' => 'Beta']);
 
-        Role::create([
-            'name' => 'observer',
-            'class_name' => null,
+        Role::create(['name' => 'observer',
             'level' => 1,
         ]);
 
@@ -81,6 +77,13 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
 
         // Authenticate so the HasScopedRoles global scope actually runs its body.
         Auth::login($user);
+
+        // This test is about null-scope_class handling, not panel isolation
+        // (C-02): no panel is set here, so opt into the aggregate branch
+        // rather than the fail-closed default, which would throw
+        // PanelNotSetException before the scope_class handling under test
+        // even runs.
+        config(['az-guard.scope.on_missing_panel' => 'all']);
 
         // A read query on the scoped entity triggers the global scope, which must
         // treat a null scope_class as logic-less and NOT instantiate anything.
@@ -97,11 +100,9 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
         $entity = ScopedEntity::create(['name' => 'Gamma']);
 
         // A logic-bearing role: class_name resolves to a RoleInterface.
-        Role::create([
-            'name' => 'editor',
-            'class_name' => ProjectEditorRole::class,
+        createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ]);
+        ], ProjectEditorRole::class);
 
         $user->assignScopedRole('editor', $entity);
 
@@ -118,9 +119,7 @@ describe('F48 — scope_class nullable for logic-less scoped roles', function ()
         $user = User::factory()->create();
         $entity = ScopedEntity::create(['name' => 'Delta']);
 
-        Role::create([
-            'name' => 'observer',
-            'class_name' => null,
+        Role::create(['name' => 'observer',
             'level' => 1,
         ]);
 

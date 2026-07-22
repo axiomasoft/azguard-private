@@ -13,7 +13,6 @@ use AzGuard\Registry\Contracts\PermissionDefinition;
 use Illuminate\Console\Command;
 use ReflectionClass;
 use ReflectionMethod;
-use UnitEnum;
 
 /**
  * Validates consistency between the catalog and policies.
@@ -173,10 +172,6 @@ final class CatalogValidateCommand extends Command
                 foreach ($method->getAttributes(GateAbility::class) as $attribute) {
                     /** @var GateAbility $gateAbility */
                     $gateAbility = $attribute->newInstance();
-
-                    if (! $gateAbility->permission instanceof UnitEnum) {
-                        continue;
-                    }
 
                     if ($panel === null) {
                         continue;

@@ -1,0 +1,10 @@
+{
+  "skill": "refactoring-plan",
+  "snippets": [
+    {
+      "file": "mikado-template.md",
+      "description": "mikado template",
+      "tags": []
+    }
+  ]
+}

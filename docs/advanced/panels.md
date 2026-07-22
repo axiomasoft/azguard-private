@@ -26,8 +26,8 @@ Every panel is declared as a PHP class:
 // app/Guards/App/AppGuardPanelProvider.php
 namespace App\Guards\App;
 
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\PanelProvider;
+use AzGuard\Panels\Panel;
 use App\Guards\App\Documents\Permissions\DocumentsPermission;
 use App\Guards\App\Users\Permissions\UsersPermission;
 

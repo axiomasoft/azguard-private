@@ -7,7 +7,7 @@ A super-admin bypasses all Gate checks. AzGuard implements this via a role whose
 ```php
 namespace App\Guards\Admin\Roles;
 
-use AzGuard\PermissionKey;
+use AzGuard\Permissions\PermissionKey;
 use AzGuard\Roles\BaseRole;
 
 class SuperAdminRole extends BaseRole
@@ -69,13 +69,19 @@ The `instanceof AzGuardUser` guard keeps the hook null-safe for guest requests a
 
 ## Segment wildcards
 
-The full `PermissionKey::WILDCARD` superadmin wildcard above always works. Segment wildcards like
-`'admin.*'` are an opt-in feature, disabled by default. Enable them in config:
+The full `PermissionKey::WILDCARD` superadmin wildcard above always works. Segment
+wildcards like `'admin.*'` are honoured by default with the hierarchical grammar:
+`*` matches exactly **one** dotted segment (`admin.*` covers `admin.users` but not
+`admin.users.delete`), `**` matches recursively (`admin.**` covers both). Patterns
+that cover no catalog key are dropped.
+
+The legacy 0.2 grammar (`*` crosses dots) is deprecated and available for one more
+cycle:
 
 ```php
 // config/az-guard.php
 'features' => [
-    'wildcard_permission' => true,  // allow segment wildcards like 'admin.*'
+    'wildcard_permission' => true,  // DEPRECATED: restore the legacy 0.2 grammar
 ],
 ```
 

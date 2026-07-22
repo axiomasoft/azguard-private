@@ -6,8 +6,8 @@ use AzGuard\Context\AuthorizationContext;
 use AzGuard\Context\AuthorizationContextManager;
 use AzGuard\Context\ContextPermissionLayer;
 use AzGuard\Context\Strategies\GlobalPlusContextStrategy;
+use AzGuard\Database\Schema\MorphColumns;
 use AzGuard\Registry\Values\PermissionSet;
-use AzGuard\Support\Schema\MorphColumns;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +42,7 @@ function createContextRolesTable(string $name): void
         $table->string('context_id');
         $table->string('panel_id');
         $table->string('permission_key');
+        $table->timestamp('expires_at')->nullable();
         $table->timestamps();
     });
 }

@@ -1,0 +1,33 @@
+{
+    "scripts": {
+        "lint": [
+            "pint --parallel"
+        ],
+        "lint:check": [
+            "pint --parallel --test"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@lint:check",
+            "@php artisan test"
+        ],
+        "test:critical": [
+            "@php artisan test tests/Feature/Document/DocumentActionsTest.php tests/Feature/Document/WorkflowTest.php tests/Feature/Document/ValidationTest.php tests/Feature/Broadcasting/DocumentBroadcastTest.php tests/Feature/Notifications/DocumentNotificationEventsTest.php"
+        ],
+        "test:coverage": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test --coverage"
+        ],
+        "test:coverage:clover": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test --coverage --coverage-clover=coverage/clover.xml --coverage-html=coverage/html"
+        ],
+        "test:coverage:gate": [
+            "@php scripts/check-coverage-gate.php"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
+            "@test"
+        ]
+    }
+}

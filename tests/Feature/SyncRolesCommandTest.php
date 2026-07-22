@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
 use AzGuard\Models\Role;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 
 it('creates roles for panel from PHP role classes', function (): void {
     // Ensure roles table is empty
@@ -29,11 +29,10 @@ it('supports dry-run mode without writing to database', function (): void {
     );
 
     // Seed an existing role so the command finds something to sync.
-    Role::query()->create([
+    createRoleWithClass([
         'name' => 'existing-role',
         'level' => 10,
-        'class_name' => 'AzGuard\\Tests\\Stubs\\Roles\\ExistingRole',
-    ]);
+    ], 'AzGuard\\Tests\\Stubs\\Roles\\ExistingRole');
 
     $beforeCount = Role::query()->count();
 

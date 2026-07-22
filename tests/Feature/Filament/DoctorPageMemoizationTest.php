@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Filament\Pages\DoctorPage;
 use AzGuard\Guard\AzGuardDiagnostics;
-use AzGuard\Support\RequestState;
+use AzGuard\Runtime\RequestState;
 use AzGuard\Tests\Stubs\CountingDiagnostics;
 
 /**

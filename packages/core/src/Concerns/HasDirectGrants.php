@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Concerns;
 
 use AzGuard\Models\DirectGrant;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionName;
+use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -38,10 +39,10 @@ trait HasDirectGrants
      *
      * @return Collection<int, DirectGrant>
      */
-    public function grants(string $panelId): Collection
+    public function grants(string|BackedEnum $panelId): Collection
     {
         return $this->directGrants()
-            ->where('panel_id', $panelId)
+            ->where('panel_id', PanelResolver::normalizeId($panelId))
             ->active()
             ->get();
     }
@@ -54,9 +55,9 @@ trait HasDirectGrants
      * else 'app'), consistent with hasPermission() — the grant is always scoped
      * to a resolved panel, never matched across panels with a raw key.
      */
-    public function hasGrant(string|UnitEnum $permission, ?string $panelId = null): bool
+    public function hasGrant(string|UnitEnum $permission, string|BackedEnum|null $panelId = null): bool
     {
-        $panelId = PanelResolver::resolveDefault($panelId);
+        $panelId = PanelResolver::resolveDefault($panelId === null ? null : PanelResolver::normalizeId($panelId));
 
         return $this->directGrants()
             ->where('panel_id', $panelId)
@@ -72,8 +73,10 @@ trait HasDirectGrants
      * grant can be given a TTL and vice-versa). $permission may be a key string
      * or a permission enum (scoped to $panelId).
      */
-    public function grant(string|UnitEnum $permission, string $panelId, ?DateTimeInterface $expiresAt = null): static
+    public function grant(string|UnitEnum $permission, string|BackedEnum $panelId, ?DateTimeInterface $expiresAt = null): static
     {
+        $panelId = PanelResolver::normalizeId($panelId);
+
         $this->directGrants()->updateOrCreate(
             ['panel_id' => $panelId, 'permission_key' => PermissionName::resolve($permission, $panelId)],
             ['expires_at' => $expiresAt],
@@ -91,8 +94,10 @@ trait HasDirectGrants
      *
      * $permission may be a key string or a permission enum (scoped to $panelId).
      */
-    public function revoke(string|UnitEnum $permission, string $panelId): static
+    public function revoke(string|UnitEnum $permission, string|BackedEnum $panelId): static
     {
+        $panelId = PanelResolver::normalizeId($panelId);
+
         $this->directGrants()
             ->where('panel_id', $panelId)
             ->where('permission_key', PermissionName::resolve($permission, $panelId))

@@ -100,6 +100,118 @@ public function boot(): void
 }
 ```
 
+## Swapping core services
+
+AzGuard binds five single-active-strategy seams via `config/az-guard.php`. Each is a
+plain container binding resolved through its interface — the facade and every check
+call reach your replacement automatically, no other wiring needed.
+
+| Config key | Interface | Default | Replaces |
+|:--|:--|:--|:--|
+| `manager` | `AzGuardManagerInterface` | `AzGuardManager` | Panels, grants API, `isSuperAdmin()`, `abilitiesFor()` |
+| `resolver` | `PermissionResolverInterface` | `EffectivePermissionResolver` | How GrantSources are unioned into a `PermissionSet` |
+| `matcher` | `PermissionMatcher` | `HierarchicalPermissionMatcher` | The wildcard matching grammar |
+| `abilities_resolver` | `AbilitiesResolver` | `DefaultAbilitiesResolver` | The frontend ability projection (`AzGuard::abilitiesFor()`) |
+| `role_permission_validator` | `RolePermissionValidator` | `CatalogRolePermissionValidator` | The opt-in `saving()` guard on role permission keys |
+
+### `manager`
+
+Decorate or replace `AzGuardManager` to add cross-cutting behaviour (audit logging,
+metrics) around every panel/grant/super-admin call:
+
+```php
+use AzGuard\AzGuardManager;
+
+class AuditingAzGuardManager extends AzGuardManager
+{
+    public function isSuperAdmin(\Illuminate\Contracts\Auth\Authenticatable $user, string|\BackedEnum|null $panelId = null): bool
+    {
+        $result = parent::isSuperAdmin($user, $panelId);
+
+        if ($result) {
+            report_super_admin_check($user, $panelId);
+        }
+
+        return $result;
+    }
+}
+```
+
+```php
+// config/az-guard.php
+'manager' => \App\Guards\AuditingAzGuardManager::class,
+```
+
+### `resolver`
+
+Swap the whole union/merge strategy — e.g. to short-circuit on a different signal
+than the global wildcard, or to add telemetry around resolution. Must implement
+`PermissionResolverInterface::forUser()`/`forgetForUser()`/`forgetRequestCache()`; see
+{@see \AzGuard\Registry\Resolver\EffectivePermissionResolver} for the reference
+implementation (union GrantSources → optional PermissionLayer → catalog filter →
+per-request cache).
+
+```php
+'resolver' => \App\Guards\LoggingPermissionResolver::class,
+```
+
+### `matcher`
+
+Swap the wildcard grammar. AzGuard ships two: the default
+`HierarchicalPermissionMatcher` (segment-aware: `*` matches exactly one segment,
+`**` matches recursively) and the legacy `WildcardPermissionMatcher` (`*` crosses
+dots, e.g. `app.*` matches `app.documents.view`). The legacy grammar is deprecated
+and available for one more cycle via the feature flag, which overrides this key:
+
+```php
+// config/az-guard.php
+'features' => [
+    'wildcard_permission' => true,  // DEPRECATED: restore the legacy 0.2 grammar
+],
+```
+
+A custom grammar plugs in via the `matcher` key:
+
+```php
+'matcher' => \App\Guards\MyPermissionMatcher::class,
+```
+
+### `abilities_resolver`
+
+Customize how the curated `AzGuard::abilitiesFor($user, $panelId, $keys)` projection
+is built — e.g. to add caching or a different short-key resolution rule. Must
+implement `AbilitiesResolver::forUser(Authenticatable $user, string $panelId, array $keys): array<string, bool>`.
+
+```php
+'abilities_resolver' => \App\Guards\CachedAbilitiesResolver::class,
+```
+
+### `role_permission_validator`
+
+Opt-in (`features.validate_role_permissions`) `saving()` guard that rejects an
+invalid `RolePermission` key before it silently grants access. Swap it to enforce a
+stricter grammar than "must exist in the catalog" — e.g. reject wildcard keys
+outright regardless of the `wildcard_permission` feature flag:
+
+```php
+use AzGuard\Contracts\RolePermissionValidator;
+use AzGuard\Registry\Exceptions\InvalidPermissionKeyException;
+
+class NoWildcardRolePermissionValidator implements RolePermissionValidator
+{
+    public function validate(string $permissionKey, string $panelId): void
+    {
+        if (str_contains($permissionKey, '*')) {
+            throw InvalidPermissionKeyException::forKey($permissionKey, $panelId);
+        }
+    }
+}
+```
+
+```php
+'role_permission_validator' => \App\Guards\NoWildcardRolePermissionValidator::class,
+```
+
 ## Swapping AzGuard models
 
 You can replace any of AzGuard's models with your own subclass via `config/az-guard.php`:

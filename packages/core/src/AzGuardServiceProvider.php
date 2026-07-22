@@ -28,6 +28,7 @@ use AzGuard\Commands\RoleAssignmentCommand;
 use AzGuard\Commands\RolePermissionsCommand;
 use AzGuard\Commands\SuperAdminCommand;
 use AzGuard\Commands\SyncRolesCommand;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AbilitiesResolver;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\PermissionLayer;
@@ -52,13 +53,14 @@ use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Registry\Sources\DatabaseRoleGrantSource;
 use AzGuard\Registry\Sources\DirectGrantSource;
-use AzGuard\Support\Config;
-use AzGuard\Support\RequestState;
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\RequestState;
+use AzGuard\Runtime\ScopedRoleCache;
 use Composer\InstalledVersions;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Console\AboutCommand;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -164,6 +166,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         // polymorphic query can silently build the wrong column type.
         Config::morphType();
 
+        // Fail fast (C-04) on an infinite TTL paired with a persistent cache
+        // store — silently grows the store unbounded (see PermissionCache).
+        Config::assertCacheConfigValid();
+
         $this->registerPanelProviders();
 
         $this->loadMigrationsFrom(paths: __DIR__.'/../database/migrations');
@@ -184,8 +190,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         });
 
         // Use instanceof instead of method_exists for a precise type check.
+        // Both contracts are required by Authorizer::check() — pass through
+        // (null) for anything else instead of guarding inside the hot path.
         Gate::before(function ($user, string $ability): ?bool {
-            if (! $user instanceof Authenticatable) {
+            if (! $user instanceof Authenticatable || ! $user instanceof Authorizable) {
                 return null;
             }
 
@@ -198,6 +206,24 @@ final class AzGuardServiceProvider extends ServiceProvider
         // but currentPanel is per-request state. Reset it between Octane requests
         // so a stale panel from a previous request cannot leak. No-op without Octane.
         Event::listen('Laravel\Octane\Events\RequestReceived', function (): void {
+            if ($this->app->resolved(AzGuardManagerInterface::class)) {
+                $this->app->make(AzGuardManagerInterface::class)->setCurrentPanel(null);
+            }
+        });
+
+        // Symmetric with the Octane listener above, for a different long-lived
+        // process: a queue worker keeps the same PHP process (and singleton
+        // AzGuardManager) across many jobs. Reset currentPanel BEFORE each job
+        // runs (C-14) — fail-closed, so a panel set by job N cannot leak into
+        // job N+1 on the same worker. The sync driver is exempt (P1.4 review):
+        // a sync job runs INLINE inside the current request/process — there is
+        // no cross-job leak to prevent, and resetting would wipe the active
+        // request's panel for the remainder of that request.
+        Event::listen(JobProcessing::class, function (JobProcessing $event): void {
+            if ($event->connectionName === 'sync') {
+                return;
+            }
+
             if ($this->app->resolved(AzGuardManagerInterface::class)) {
                 $this->app->make(AzGuardManagerInterface::class)->setCurrentPanel(null);
             }
@@ -306,10 +332,6 @@ final class AzGuardServiceProvider extends ServiceProvider
     {
         $router = $this->app->make(Router::class);
 
-        if (! $router instanceof Router) {
-            return;
-        }
-
         $router->aliasMiddleware('azguard.roles', LoadAzGuardRoles::class);
         $router->aliasMiddleware('azguard.panel', SetCurrentPanel::class);
         $router->aliasMiddleware('azguard.check', CheckAccess::class);
@@ -336,21 +358,21 @@ final class AzGuardServiceProvider extends ServiceProvider
      */
     protected function registerBladeDirectives(): void
     {
-        Blade::directive('azcan', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('azcan', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
 
         Blade::directive('endazcan', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('elseazcan', fn (string $expression): string => "<?php elseif (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('elseazcan', fn (string $expression): string => "<?php elseif (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasPermission({$expression})): ?>");
 
-        Blade::directive('unlessazcan', fn (string $expression): string => "<?php if (! \\AzGuard\\Support\\BladeHelper::authed() || ! auth()->user()->hasPermission({$expression})): ?>");
+        Blade::directive('unlessazcan', fn (string $expression): string => "<?php if (! \\AzGuard\\Auth\\BladeHelper::authed() || ! auth()->user()->hasPermission({$expression})): ?>");
 
         Blade::directive('endunlessazcan', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('azrole', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && auth()->user()->hasRole({$expression})): ?>");
+        Blade::directive('azrole', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && auth()->user()->hasRole({$expression})): ?>");
 
         Blade::directive('endazrole', fn (): string => '<?php endif; ?>');
 
-        Blade::directive('azdirect', fn (string $expression): string => "<?php if (\\AzGuard\\Support\\BladeHelper::authed() && method_exists(auth()->user(), 'hasGrant') && auth()->user()->hasGrant({$expression})): ?>");
+        Blade::directive('azdirect', fn (string $expression): string => "<?php if (\\AzGuard\\Auth\\BladeHelper::authed() && method_exists(auth()->user(), 'hasGrant') && auth()->user()->hasGrant({$expression})): ?>");
 
         Blade::directive('endazdirect', fn (): string => '<?php endif; ?>');
     }
@@ -358,7 +380,7 @@ final class AzGuardServiceProvider extends ServiceProvider
     protected function registerPanelProviders(): void
     {
         foreach (Config::panels() as $provider) {
-            if (is_string($provider) && class_exists($provider)) {
+            if (class_exists($provider)) {
                 $this->app->register($provider);
             }
         }

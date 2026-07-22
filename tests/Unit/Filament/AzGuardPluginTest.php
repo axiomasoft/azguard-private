@@ -82,3 +82,99 @@ it('boot() runs without exception', function () {
 
     expect(fn () => AzGuardPlugin::make()->boot($panel))->not->toThrow(Throwable::class);
 });
+
+it('make() resolves the container-bound instance — enabling test/app swaps', function () {
+    // AzGuardPlugin is final, so a "swap" isn't subclassing — it's replacing
+    // what the container hands back for AzGuardPlugin::class, exactly like
+    // Filament's own Resource::make()/Page::make() convention.
+    $bound = (new AzGuardPlugin)->forPanel('bound-instance');
+
+    app()->bind(AzGuardPlugin::class, fn () => $bound);
+
+    expect(AzGuardPlugin::make())->toBe($bound)
+        ->and(AzGuardPlugin::make()->getPanelId())->toBe('bound-instance');
+});
+
+it('isEnforcing() falls back to config when enforce() was not called', function () {
+    config(['az-guard-filament.enforce' => false]);
+
+    expect(AzGuardPlugin::make()->isEnforcing())->toBeFalse();
+});
+
+it('enforce() overrides the config fallback', function () {
+    config(['az-guard-filament.enforce' => true]);
+
+    expect(AzGuardPlugin::make()->enforce(false)->isEnforcing())->toBeFalse();
+});
+
+it('getSource() falls back to config when source() was not called', function () {
+    config(['az-guard-filament.source' => 'policy']);
+
+    expect(AzGuardPlugin::make()->getSource())->toBe('policy');
+});
+
+it('source() overrides the config fallback', function () {
+    config(['az-guard-filament.source' => 'database']);
+
+    expect(AzGuardPlugin::make()->source('enum')->getSource())->toBe('enum');
+});
+
+it('getAbilities() falls back to config when abilities() was not called', function () {
+    config(['az-guard-filament.abilities' => ['view']]);
+
+    expect(AzGuardPlugin::make()->getAbilities())->toBe(['view']);
+});
+
+it('abilities() overrides the config fallback', function () {
+    config(['az-guard-filament.abilities' => ['view']]);
+
+    expect(AzGuardPlugin::make()->abilities(['view', 'create'])->getAbilities())
+        ->toBe(['view', 'create']);
+});
+
+it('getKeyTemplate()/getCase() fall back to config when not called fluently', function () {
+    config([
+        'az-guard-filament.key' => '{resource}.{ability}',
+        'az-guard-filament.case' => 'kebab',
+    ]);
+
+    expect(AzGuardPlugin::make()->getKeyTemplate())->toBe('{resource}.{ability}')
+        ->and(AzGuardPlugin::make()->getCase())->toBe('kebab');
+});
+
+it('keyTemplate()/case() override the config fallback', function () {
+    $plugin = AzGuardPlugin::make()
+        ->keyTemplate('{panel}::{resource}::{ability}')
+        ->case('camel');
+
+    expect($plugin->getKeyTemplate())->toBe('{panel}::{resource}::{ability}')
+        ->and($plugin->getCase())->toBe('camel');
+});
+
+it('register() writes the effective fluent options back into config as the fallback for other consumers', function () {
+    config([
+        'az-guard-filament.enforce' => true,
+        'az-guard-filament.source' => 'database',
+        'az-guard-filament.abilities' => ['view'],
+        'az-guard-filament.key' => '{panel}.{resource}.{ability}',
+        'az-guard-filament.case' => 'snake',
+    ]);
+
+    $panel = Mockery::mock(Panel::class);
+    $panel->shouldReceive('resources')->once()->andReturnSelf();
+    $panel->shouldReceive('pages')->once()->andReturnSelf();
+
+    AzGuardPlugin::make()
+        ->enforce(false)
+        ->source('policy')
+        ->abilities(['view', 'create'])
+        ->keyTemplate('{resource}.{ability}')
+        ->case('kebab')
+        ->register($panel);
+
+    expect(config('az-guard-filament.enforce'))->toBeFalse()
+        ->and(config('az-guard-filament.source'))->toBe('policy')
+        ->and(config('az-guard-filament.abilities'))->toBe(['view', 'create'])
+        ->and(config('az-guard-filament.key'))->toBe('{resource}.{ability}')
+        ->and(config('az-guard-filament.case'))->toBe('kebab');
+});

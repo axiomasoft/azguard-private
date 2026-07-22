@@ -25,11 +25,7 @@ class TestCase extends Orchestra
         $app['config']->set('app.debug', true);
 
         $app['config']->set('database.default', 'testbench');
-        $app['config']->set('database.connections.testbench', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
+        $app['config']->set('database.connections.testbench', $this->databaseConnectionConfig());
 
         $app['config']->set('auth.providers.users.model', User::class);
 
@@ -60,5 +56,40 @@ class TestCase extends Orchestra
         ]);
 
         return $user;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function databaseConnectionConfig(): array
+    {
+        return match (env('DB_CONNECTION', 'sqlite')) {
+            'pgsql' => [
+                'driver' => 'pgsql',
+                'host' => env('PGSQL_HOST', '127.0.0.1'),
+                'port' => env('PGSQL_PORT', '5432'),
+                'database' => env('PGSQL_DATABASE', 'azguard_test'),
+                'username' => env('PGSQL_USERNAME', 'azguard'),
+                'password' => env('PGSQL_PASSWORD', 'azguard'),
+                'charset' => 'utf8',
+                'prefix' => '',
+            ],
+            'mysql' => [
+                'driver' => 'mysql',
+                'host' => env('MYSQL_HOST', '127.0.0.1'),
+                'port' => env('MYSQL_PORT', '3306'),
+                'database' => env('MYSQL_DATABASE', 'azguard_test'),
+                'username' => env('MYSQL_USERNAME', 'azguard'),
+                'password' => env('MYSQL_PASSWORD', 'azguard'),
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+            ],
+            default => [
+                'driver' => 'sqlite',
+                'database' => ':memory:',
+                'prefix' => '',
+            ],
+        };
     }
 }

@@ -18,7 +18,7 @@ interface RoleInterface
      *
      * Return enum cases (preferred — refactor-safe, scoped to their panel
      * automatically) or already-resolved panel-prefixed string keys. Return
-     * `[\AzGuard\PermissionKey::WILDCARD]` for a super-admin role that bypasses
+     * `[\AzGuard\Permissions\PermissionKey::WILDCARD]` for a super-admin role that bypasses
      * every check.
      *
      * @return list<UnitEnum|string>

@@ -1,8 +1,7 @@
 <?php
 
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Models\Role;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\Gate;
@@ -14,11 +13,9 @@ test('user with ManagerRole can access test.post.view via Gate', function () {
         'password' => 'password',
     ]);
 
-    $role = Role::create([
-        'name' => 'manager',
-        'class_name' => ManagerRole::class,
+    $role = createRoleWithClass(['name' => 'manager',
         'level' => 0,
-    ]);
+    ], ManagerRole::class);
 
     $user->roles()->attach($role);
     $user->load('roles');

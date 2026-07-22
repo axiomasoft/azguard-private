@@ -7,7 +7,7 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
 use AzGuard\Models\RolePermission;
-use AzGuard\Registry\Matching\WildcardPermissionMatcher;
+use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
 
@@ -29,9 +29,10 @@ return [
     | PermissionCache request lifecycle — this key only swaps the class used.
     |
     | matcher: bound to AzGuard\Contracts\PermissionMatcher — the wildcard
-    | matching grammar. The default WildcardPermissionMatcher keeps the historical
-    | grammar ('*' crosses dots). Swap to HierarchicalPermissionMatcher for the
-    | stricter segment-aware grammar ('*' = one segment, '**' = recursive).
+    | matching grammar. The default HierarchicalPermissionMatcher is segment-aware
+    | ('*' = one segment, '**' = recursive). The legacy 0.2 grammar ('*' crosses
+    | dots) is available for ONE deprecation cycle via
+    | features.wildcard_permission = true, which overrides this key.
     |
     | abilities_resolver: bound to AzGuard\Contracts\AbilitiesResolver — builds
     | the curated ability => bool projection for the frontend (AzGuard::abilitiesFor).
@@ -40,7 +41,7 @@ return [
 
     'resolver' => EffectivePermissionResolver::class,
 
-    'matcher' => WildcardPermissionMatcher::class,
+    'matcher' => HierarchicalPermissionMatcher::class,
 
     'abilities_resolver' => DefaultAbilitiesResolver::class,
 
@@ -132,6 +133,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scope (query-scope isolation)
+    |--------------------------------------------------------------------------
+    | on_missing_panel controls what the HasScopedRoles query-scope global
+    | scope does when NO panel is currently active:
+    |   'exception' (default) — throw PanelNotSetException (fail-closed).
+    |   'empty'               — the query returns no rows.
+    |   'all'                 — apply every scope regardless of panel_id
+    |                           (pre-0.3 aggregate behaviour) — explicit opt-out.
+    */
+    'scope' => [
+        'on_missing_panel' => 'exception',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Middleware
     |--------------------------------------------------------------------------
     */
@@ -158,9 +174,11 @@ return [
     |--------------------------------------------------------------------------
     | Grant Sources
     |--------------------------------------------------------------------------
-    | Control which GrantSources are active and their priority order.
+    | Control which GrantSources are active.
     | null (default) = all built-in sources active, sorted by GrantPriority enum.
-    | Provide an explicit list to restrict or reorder:
+    | Provide an explicit list to restrict which sources run — resolution order
+    | is always GrantPriority DESC (EffectivePermissionResolver), regardless of
+    | this array's order, so this cannot be used to reorder sources:
     |
     |   'grant_sources' => [
     |       \AzGuard\Registry\Sources\ClassRoleGrantSource::class,
@@ -201,7 +219,7 @@ return [
     | backwards compatibility.
     */
     'features' => [
-        'wildcard_permission' => false, // Wildcards like 'admin.*'
+        'wildcard_permission' => false, // DEPRECATED (one cycle): true restores the legacy 0.2 grammar ('*' crosses dots)
         'teams' => false, // Multi-team / tenant isolation
         'audit_log' => false, // Dispatch AzGuard\Events\AccessDecision from Authorizer::explain()
         'direct_grants' => true,  // Direct grants (HasDirectGrants + az_direct_grants table)

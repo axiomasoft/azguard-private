@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Models;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Registry\Resolver\PermissionCache;
-use AzGuard\Support\Config;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -44,6 +44,16 @@ class DirectGrant extends Model
      * deleted — covers the Filament resource, raw model saves/deletes, and any
      * other model-event path. The grantable_id is the cache user id, so no model
      * load is needed. (GrantBuilder's bulk revoke fires GrantRevoked instead.)
+     *
+     * On update, also flush the ORIGINAL (panel_id, grantable) pair when either
+     * changed (C-09): moving a grant from panel A to B, or reassigning it to a
+     * different grantable, otherwise leaves panel A's stale cached permission
+     * set alive until TTL — the new-value flush above never touches it.
+     *
+     * Known gap (P1.4 review): a mass update/delete through the query builder
+     * (DirectGrant::query()->update(...)) fires NO model events, so neither
+     * the old nor the new key is flushed — inherent to every model-event hook.
+     * Use guard:cache-reset (or per-model writes) after bulk mutations.
      */
     #[Override]
     protected static function booted(): void
@@ -53,7 +63,18 @@ class DirectGrant extends Model
         };
 
         static::created($flush);
-        static::updated($flush);
+
+        static::updated(static function (self $grant) use ($flush): void {
+            $originalPanelId = $grant->getOriginal('panel_id');
+            $originalGrantableId = $grant->getOriginal('grantable_id');
+
+            if ($originalPanelId !== $grant->panel_id || $originalGrantableId !== $grant->grantable_id) {
+                app(PermissionCache::class)->forgetForUser($originalGrantableId, $originalPanelId);
+            }
+
+            $flush($grant);
+        });
+
         static::deleted($flush);
     }
 

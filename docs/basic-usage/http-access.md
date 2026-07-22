@@ -23,6 +23,41 @@ Route::middleware([
 
 All three aliases are registered automatically by `AzGuardServiceProvider`.
 
+## Static constructors
+
+Every AzGuard middleware also has an enum-aware `::using()` static constructor
+— an alternative to the string alias DSL above (both are supported, pick
+whichever reads better at the call site). Argument order is always
+**what, then where** (permission, then panel):
+
+```php
+use AzGuard\Http\Middleware\CheckAccess;
+use AzGuard\Http\Middleware\CheckDirectGrant;
+use AzGuard\Http\Middleware\PanelCheckAccess;
+use AzGuard\Http\Middleware\SetCurrentPanel;
+
+Route::middleware([
+    SetCurrentPanel::using('app'),
+    'azguard.roles',
+    CheckAccess::using(),
+])->group(function () {
+    Route::apiResource('documents', DocumentController::class);
+});
+
+// Direct grant — permission, then panel (panel optional, defaults to current):
+Route::get('/export', ExportController::class)
+    ->middleware(CheckDirectGrant::using(DocumentsPermission::Export, 'app'));
+
+// Combined panel + permission check — permission, then panel:
+Route::get('/reports', ReportsController::class)
+    ->middleware(PanelCheckAccess::using(ReportsPermission::View, 'app'));
+```
+
+`PanelCheckAccess` accepts `string|BackedEnum` for both the permission and the
+panel; the string alias form is `azguard.panel_check:{permission},{panel}`
+(permission first — this is a breaking pre-1.0 rename from the earlier
+`{panel},{permission}` order).
+
 ## `#[CheckPermission]`
 
 ```php

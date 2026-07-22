@@ -9,10 +9,8 @@ use AzGuard\Tests\Stubs\User;
 function makeRoleResolutionUser(): User
 {
     // A DB role backed by a PHP role class. ManagerRole::getName() === 'manager'.
-    Role::create([
-        'name' => 'manager',
-        'class_name' => ManagerRole::class,
-    ]);
+    createRoleWithClass(['name' => 'manager',
+    ], ManagerRole::class);
 
     return User::create([
         'name' => 'Role User',

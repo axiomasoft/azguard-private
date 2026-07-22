@@ -55,10 +55,12 @@ it('grants viewAny when the user has the resource permission', function (): void
     expect($gate->check($user, 'viewAny', [DEMO_MODEL]))->toBeTrue();
 });
 
-it('denies viewAny when the user lacks the permission', function (): void {
+it('defers (does not deny) viewAny when the user lacks the permission (union-only, C-08)', function (): void {
     [$gate, $user] = gateWith([]);
 
-    expect($gate->check($user, 'viewAny', [DEMO_MODEL]))->toBeFalse();
+    // NOT false: a Gate::before hook returning false would short-circuit the
+    // entire gate, denying even abilities a later policy could still grant.
+    expect($gate->check($user, 'viewAny', [DEMO_MODEL]))->toBeNull();
 });
 
 it('maps bulk *Any actions to the singular permission', function (): void {

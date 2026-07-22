@@ -64,9 +64,6 @@ AzGuard::forUser($user)
     ->ttl(3600)
     ->grant(DocumentsPermission::Export);
 
-// Короткая форма
-AzGuard::grant($user, DocumentsPermission::Export, 'app', ttl: 3600);
-
 // Напрямую на модели (с опциональной датой истечения)
 $user->grant(DocumentsPermission::Export, 'app');
 $user->grant(DocumentsPermission::Export, 'app', now()->addHour());
@@ -95,7 +92,6 @@ php artisan guard:grant 7 admin.reports.view admin --model=App\\Models\\Admin
 ```php
 // Одно право — enum
 AzGuard::forUser($user)->on('app')->revoke(DocumentsPermission::Export);
-AzGuard::revoke($user, DocumentsPermission::Export, 'app');
 
 // Все гранты в панели
 AzGuard::forUser($user)->on('app')->revokeAll();
@@ -122,7 +118,6 @@ Gate::allows('direct-grant', ['app.documents.export', 'app']);
 
 // Список грантов в панели
 $grants = AzGuard::forUser($user)->on('app')->grants();
-$grants = AzGuard::grants($user, 'app');
 ```
 
 ## Blade
@@ -199,7 +194,6 @@ Event::listen(GrantRevoked::class, function (GrantRevoked $event): void {
 | Метод | Код |
 |---|---|
 | Fluent grant | `AzGuard::forUser($u)->on('app')->ttl(3600)->grant(DocumentsPermission::Export)` |
-| Короткая форма grant | `AzGuard::grant($u, DocumentsPermission::Export, 'app', ttl: 3600)` |
 | Artisan grant | `php artisan guard:grant {id} {perm} {panel}` |
 | Отзыв | `AzGuard::forUser($u)->on('app')->revoke(DocumentsPermission::Export)` |
 | Проверка (модель) | `$user->hasGrant(DocumentsPermission::Export, 'app')` |

@@ -6,8 +6,8 @@ namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\SupportsForcefulGeneration;
 use AzGuard\Facades\AzGuard;
-use AzGuard\PanelProvider;
-use AzGuard\Support\Panel;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelProvider;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -98,7 +98,7 @@ final class MakeGuardRoleCommand extends Command
             if (is_subclass_of($providerClass, PanelProvider::class)) {
                 $instance = app()->getProvider($providerClass);
 
-                if ($instance->panel(Panel::make())->getId() === $id) {
+                if ($instance instanceof PanelProvider && $instance->panel(Panel::make())->getId() === $id) {
                     return $providerClass;
                 }
             }

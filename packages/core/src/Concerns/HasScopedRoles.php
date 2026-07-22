@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
-use AzGuard\PermissionKey;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\PermissionKey;
+use AzGuard\Permissions\PermissionName;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
-use AzGuard\Support\Config;
-use AzGuard\Support\PanelResolver;
-use AzGuard\Support\PermissionName;
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\RequestState;
+use AzGuard\Runtime\ScopedRoleCache;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use UnitEnum;
 
 /**
@@ -25,10 +30,11 @@ use UnitEnum;
  * Laravel's own "scope" terminology for Eloquent query scopes.
  *
  * Provides:
- * - assignScopedRole()    — assign a role scoped to a specific entity
- * - removeScopedRole()    — remove a scoped role assignment
- * - hasScopedRole()       — check if user has a role for a specific entity
- * - hasScopedPermission() — check permission within a specific entity scope
+ * - assignScopedRole()          — assign a role scoped to a specific entity
+ * - removeScopedRole()          — remove a scoped role assignment (its own panel, or the any-panel row)
+ * - removeScopedRoleEverywhere() — remove a scoped role assignment across every panel at once
+ * - hasScopedRole()             — check if user has a role for a specific entity
+ * - hasScopedPermission()       — check permission within a specific entity scope
  *
  * Depends on HasAzGuard::resolveRole() being available on the same model.
  */
@@ -46,7 +52,7 @@ trait HasScopedRoles
     public static function bootHasScopedRoles(): void
     {
         static::addGlobalScope(self::SCOPE_KEY, function (Builder $builder): void {
-            if (app()->runningInConsole() || ! Auth::check()) {
+            if (! Auth::check()) {
                 return;
             }
 
@@ -56,20 +62,70 @@ trait HasScopedRoles
                 return;
             }
 
+            $currentPanelId = PanelResolver::resolve(null);
+
+            if ($currentPanelId === null) {
+                $mode = Config::onMissingPanel();
+
+                if ($mode === 'exception') {
+                    throw new PanelNotSetException;
+                }
+
+                if ($mode === 'empty') {
+                    $builder->whereRaw('1 = 0');
+
+                    return;
+                }
+
+                // 'all' falls through to the loop below, which applies every
+                // scope regardless of panel_id (pre-D27 aggregate behaviour).
+            }
+
+            // assignScopedRole() persists scope_entity_type via getMorphClass() —
+            // under an enforced morph map that is the ALIAS, not the FQCN. The
+            // read side must resolve the same way, or every scope row is missed
+            // and the isolation filter silently never applies (C-10 tail).
+            $entityMorphClass = $builder->getModel()->getMorphClass();
+
             $scopes = app(ScopedRoleCache::class)->remember(
                 $user->getAuthIdentifier().'|'.static::class,
+                // eager-load to avoid a query per scope row below; withoutGlobalScope prevents
+                // infinite recursion when scopeEntity is itself a HasScopedRoles model (this scope).
                 fn () => $user->scopes()
-                    ->where('scope_entity_type', static::class)
-                    ->with('scopeEntity') // eager-load to avoid a query per scope row below
+                    ->where('scope_entity_type', $entityMorphClass)
+                    ->with(['scopeEntity' => fn ($q) => $q->withoutGlobalScope(self::SCOPE_KEY)])
                     ->get(),
             );
 
             foreach ($scopes as $scope) {
-                // A null scope_class indicates a logic-less role (no query-scope behavior).
-                // Only apply the scope filter if a scope_class exists and is instantiable.
-                if ($scope->scope_class !== null && class_exists($scope->scope_class)) {
-                    app($scope->scope_class)->apply($builder, $user, $scope->scopeEntity);
+                // No current panel => apply every scope (back-compat, D5). A panel-scoped
+                // row only drops out when a DIFFERENT panel is active.
+                if ($currentPanelId !== null && $scope->panel_id !== null && $scope->panel_id !== $currentPanelId) {
+                    continue;
                 }
+
+                // A null scope_class indicates a logic-less role (no query-scope behavior).
+                if ($scope->scope_class === null) {
+                    continue;
+                }
+
+                // Only apply the scope filter if the class is instantiable. A stale
+                // scope_class (the class was renamed/removed after being persisted)
+                // silently no-ops here — surface it loudly instead (once per request,
+                // C-03) so the gap is diagnosable rather than a quiet loss of isolation.
+                if (! class_exists($scope->scope_class)) {
+                    app(RequestState::class)->once(
+                        'azguard.stale-scope-class.'.$scope->scope_class,
+                        fn () => Log::warning('AzGuard: stale scope_class does not exist', [
+                            'scope_class' => $scope->scope_class,
+                            'model' => static::class,
+                        ]),
+                    );
+
+                    continue;
+                }
+
+                app($scope->scope_class)->apply($builder, $user, $scope->scopeEntity);
             }
         });
     }
@@ -87,7 +143,7 @@ trait HasScopedRoles
      * For logic-less roles (where getRoleLogic() returns null), scope_class
      * is stored as null to avoid the fragile anonymous-class sentinel pattern.
      */
-    public function assignScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static
+    public function assignScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static
     {
         $roleModel = $this->resolveRole($role);
 
@@ -95,18 +151,35 @@ trait HasScopedRoles
             return $this;
         }
 
-        $roleLogic = $roleModel->getRoleLogic();
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
-        ModelHasScope::firstOrCreate([
+        $scope = ModelHasScope::firstOrNew([
             'model_type' => $this->getMorphClass(),
             'model_id' => $this->getKey(),
             'scope_entity_type' => $entity->getMorphClass(),
             'scope_entity_id' => $entity->getKey(),
             'role_id' => $roleModel->getKey(),
             'panel_id' => $panelId,
-        ], [
-            'scope_class' => $roleLogic !== null ? $roleLogic::class : null,
         ]);
+
+        // scope_class is guarded (C-11, not mass-assignable) — firstOrCreate()'s
+        // second array goes through the SAME fill()/fillable check as create(),
+        // it is NOT a bypass. Set it via a direct property assignment on the
+        // yet-unsaved instance instead, so the row is persisted in ONE insert:
+        // a firstOrCreate()-then-save() pair leaves a scope_class=null row
+        // ("logic-less", filter never applies) if interrupted between the two
+        // queries. An existing row's scope_class is never touched.
+        if (! $scope->exists) {
+            $roleLogic = $roleModel->getRoleLogic();
+            $scope->scope_class = $roleLogic !== null ? $roleLogic::class : null;
+
+            try {
+                $scope->save();
+            } catch (UniqueConstraintViolationException) {
+                // Lost a concurrent insert race — the winner's row (C-16
+                // unique) already carries the same scope; nothing to do.
+            }
+        }
 
         $this->flushPermissions();
 
@@ -117,12 +190,55 @@ trait HasScopedRoles
      * Remove a scoped role for a specific entity.
      *
      *   $user->removeScopedRole('editor', $project);
+     *   $user->removeScopedRole('editor', $project, panelId: 'admin');
      *
-     * When $panelId is null (the default), removes assignments regardless of
-     * their panel_id. Pass an explicit $panelId to remove only the assignment
-     * scoped to that panel.
+     * A null $panelId (the default) removes ONLY the any-panel row
+     * (panel_id IS NULL) — symmetric with assignScopedRole(), where a null
+     * $panelId also targets the any-panel row. Pass an explicit $panelId to
+     * remove only the assignment scoped to that panel. To remove the role
+     * across EVERY panel in one call, use removeScopedRoleEverywhere().
+     *
+     * @see removeScopedRoleEverywhere()
      */
-    public function removeScopedRole(string|Role $role, Model $entity, ?string $panelId = null): static
+    public function removeScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): static
+    {
+        $roleModel = $this->resolveRole($role);
+
+        if ($roleModel === null) {
+            return $this;
+        }
+
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
+
+        ModelHasScope::query()
+            ->where('model_type', $this->getMorphClass())
+            ->where('model_id', $this->getKey())
+            ->where('scope_entity_type', $entity->getMorphClass())
+            ->where('scope_entity_id', $entity->getKey())
+            ->where('role_id', $roleModel->getKey())
+            ->when(
+                $panelId !== null,
+                fn (Builder $query): Builder => $query->where('panel_id', $panelId),
+                fn (Builder $query): Builder => $query->whereNull('panel_id'),
+            )
+            ->delete();
+
+        $this->flushPermissions();
+
+        return $this;
+    }
+
+    /**
+     * Remove a scoped role for a specific entity across EVERY panel,
+     * regardless of panel_id.
+     *
+     *   $user->removeScopedRoleEverywhere('editor', $project);
+     *
+     * This is the pre-D10 removeScopedRole(panelId: null) behavior, split
+     * out into its own explicit method now that removeScopedRole(panelId:
+     * null) targets only the any-panel row.
+     */
+    public function removeScopedRoleEverywhere(string|BackedEnum|Role $role, Model $entity): static
     {
         $roleModel = $this->resolveRole($role);
 
@@ -136,7 +252,6 @@ trait HasScopedRoles
             ->where('scope_entity_type', $entity->getMorphClass())
             ->where('scope_entity_id', $entity->getKey())
             ->where('role_id', $roleModel->getKey())
-            ->when($panelId !== null, fn (Builder $query): Builder => $query->where('panel_id', $panelId))
             ->delete();
 
         $this->flushPermissions();
@@ -153,13 +268,15 @@ trait HasScopedRoles
      * their panel_id. Pass an explicit $panelId to require that panel — a
      * scope with a null panel_id still matches (any-panel back-compat).
      */
-    public function hasScopedRole(string|Role $role, Model $entity, ?string $panelId = null): bool
+    public function hasScopedRole(string|BackedEnum|Role $role, Model $entity, string|BackedEnum|null $panelId = null): bool
     {
         $roleModel = $this->resolveRole($role);
 
         if ($roleModel === null) {
             return false;
         }
+
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
         return ModelHasScope::query()
             ->where('model_type', $this->getMorphClass())
@@ -197,8 +314,10 @@ trait HasScopedRoles
      * isolation was added, or intentionally left unscoped) is honoured for ANY
      * panel — back-compat.
      */
-    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, ?string $panelId = null): bool
+    public function hasScopedPermission(string|UnitEnum $permission, Model $entity, string|BackedEnum|null $panelId = null): bool
     {
+        $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
+
         if ($panelId === null) {
             $panelId = match (true) {
                 is_string($permission) && str_contains($permission, PermissionKey::SEPARATOR) => explode(PermissionKey::SEPARATOR, $permission)[0],

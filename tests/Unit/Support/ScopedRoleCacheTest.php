@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\Support\ScopedRoleCache;
+use AzGuard\Runtime\ScopedRoleCache;
 
 it('remembers a value and resolves it only once', function (): void {
     $cache = new ScopedRoleCache;

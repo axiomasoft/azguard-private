@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
-use AzGuard\Support\Config;
 use Illuminate\Console\Command;
 
 /**
@@ -117,11 +117,11 @@ final class SyncRolesCommand extends Command
                     $created++;
 
                     if (! $isDryRun) {
-                        $roleModel::query()->create([
-                            'name' => $name,
-                            'level' => $level,
-                            'class_name' => $className,
-                        ]);
+                        // class_name is guarded (C-11) — not mass-assignable via
+                        // create(); set it via direct property assignment instead.
+                        $role = $roleModel::query()->create(['name' => $name, 'level' => $level]);
+                        $role->class_name = $className;
+                        $role->save();
                     }
                 }
             }

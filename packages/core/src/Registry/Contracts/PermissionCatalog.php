@@ -56,7 +56,9 @@ interface PermissionCatalog
 
     /**
      * Reset any built/cached state so the next access rebuilds from source —
-     * for tests, dev hot-reload, or after registering builders/panels at runtime.
+     * for tests, dev hot-reload, or after a panel is registered at runtime.
+     * Builders themselves are fixed at construction (constructor injection);
+     * flush() re-runs the existing builders, it does not let you add new ones.
      */
     public function flush(): void;
 }

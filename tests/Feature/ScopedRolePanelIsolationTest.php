@@ -23,11 +23,10 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
+        $role = createRoleWithClass([
             'name' => 'scoped-super-A',
-            'class_name' => SuperAdminRole::class, // permissions() => ['*']
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class); // permissions() => ['*']
 
         // Assigned strictly under panel 'test'. User has NO global role, so the
         // hasPermission() wildcard fallback cannot mask the scoped-only check.
@@ -42,11 +41,9 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-super-null',
-            'class_name' => SuperAdminRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-super-null',
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class);
 
         // No panelId => persisted panel_id is null => any-panel.
         $user->assignScopedRole($role, $project);
@@ -62,11 +59,9 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-super-persist',
-            'class_name' => SuperAdminRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-super-persist',
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class);
 
         $user->assignScopedRole($role, $project, panelId: 'test');
 
@@ -86,11 +81,9 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-super-two-panels',
-            'class_name' => SuperAdminRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-super-two-panels',
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class);
 
         // firstOrCreate keys on panel_id, so 'test' and 'other' are distinct rows.
         $user->assignScopedRole($role, $project, panelId: 'test');
@@ -108,11 +101,9 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        Role::create([
-            'name' => 'scoped-role-panel',
-            'class_name' => SuperAdminRole::class,
+        createRoleWithClass(['name' => 'scoped-role-panel',
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class);
 
         $user->assignScopedRole('scoped-role-panel', $project, panelId: 'test');
 
@@ -128,11 +119,9 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
         $user = User::factory()->create();
         $project = Project::factory()->create();
 
-        $role = Role::create([
-            'name' => 'scoped-remove-panel',
-            'class_name' => SuperAdminRole::class,
+        $role = createRoleWithClass(['name' => 'scoped-remove-panel',
             'level' => 5,
-        ]);
+        ], SuperAdminRole::class);
 
         $user->assignScopedRole($role, $project, panelId: 'test');
         $user->assignScopedRole($role, $project, panelId: 'other');
@@ -146,5 +135,50 @@ describe('F8 — scoped-role panel isolation via panel_id', function (): void {
                 ->where('panel_id', 'other')
                 ->exists(),
         )->toBeTrue();
+    });
+
+    it('removeScopedRole with panelId=null removes only the any-panel row (Variant B, D10)', function (): void {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $role = createRoleWithClass(['name' => 'scoped-remove-null-only',
+            'level' => 5,
+        ], SuperAdminRole::class);
+
+        $user->assignScopedRole($role, $project); // any-panel row (panel_id === null)
+        $user->assignScopedRole($role, $project, panelId: 'test');
+        $user->assignScopedRole($role, $project, panelId: 'other');
+
+        $user->removeScopedRole($role, $project); // panelId defaults to null
+
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->whereNull('panel_id')->exists(),
+        )->toBeFalse();
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->where('panel_id', 'test')->exists(),
+        )->toBeTrue();
+        expect(
+            ModelHasScope::query()->where('model_id', $user->getKey())->where('panel_id', 'other')->exists(),
+        )->toBeTrue();
+    });
+
+    it('removeScopedRoleEverywhere removes the assignment across every panel', function (): void {
+        $user = User::factory()->create();
+        $project = Project::factory()->create();
+
+        $role = createRoleWithClass(['name' => 'scoped-remove-everywhere',
+            'level' => 5,
+        ], SuperAdminRole::class);
+
+        $user->assignScopedRole($role, $project); // any-panel row
+        $user->assignScopedRole($role, $project, panelId: 'test');
+        $user->assignScopedRole($role, $project, panelId: 'other');
+
+        expect(ModelHasScope::query()->where('model_id', $user->getKey())->count())->toBe(3);
+
+        $user->removeScopedRoleEverywhere($role, $project);
+
+        expect(ModelHasScope::query()->where('model_id', $user->getKey())->count())->toBe(0);
+        expect($user->hasScopedRole($role, $project))->toBeFalse();
     });
 });

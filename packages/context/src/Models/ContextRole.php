@@ -26,11 +26,13 @@ use Override;
  * @property string $context_id
  * @property string $panel_id
  * @property string $permission_key
+ * @property Carbon|null $expires_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
  * @method static Builder<self> forPanel(string $panelId)
  * @method static Builder<self> inContext(string $contextType, int|string $contextId)
+ * @method static Builder<self> active()
  */
 final class ContextRole extends Model
 {
@@ -41,12 +43,18 @@ final class ContextRole extends Model
         'context_id',
         'panel_id',
         'permission_key',
+        'expires_at',
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
     ];
 
     /**
      * Flush the grantable's cached permissions whenever a context grant is
-     * written or deleted — mirrors DirectGrant::booted() so the effective
-     * permission set never serves a stale context grant from cache.
+     * written, re-stamped (expires_at update) or deleted — mirrors
+     * DirectGrant::booted() so the effective permission set never serves a
+     * stale context grant from cache.
      */
     #[Override]
     protected static function booted(): void
@@ -56,6 +64,7 @@ final class ContextRole extends Model
         };
 
         self::created($flush);
+        self::updated($flush);
         self::deleted($flush);
     }
 
@@ -89,5 +98,29 @@ final class ContextRole extends Model
     public function scopeInContext(Builder $query, string $contextType, int|string $contextId): void
     {
         $query->where('context_type', $contextType)->where('context_id', $contextId);
+    }
+
+    /**
+     * Only non-expired grants: no expiry date OR expires_at > now().
+     * Mirrors DirectGrant::scopeActive().
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where(function (Builder $q): void {
+            $q->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now());
+        });
+    }
+
+    // ─── Helpers ───────────────────────────────────────────────────────────
+
+    /**
+     * Whether this grant has an expiry date in the past.
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
     }
 }
