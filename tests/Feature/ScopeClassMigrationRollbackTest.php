@@ -5,6 +5,14 @@ declare(strict_types=1);
 use AzGuard\Models\ModelHasScope;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+
+function withPostgresSavepoint(Closure $operation): Closure
+{
+    return DB::getDriverName() === 'pgsql'
+        ? fn (): mixed => DB::transaction($operation)
+        : $operation;
+}
 
 /**
  * T5 (2026.07.17-AZGUARD-TAILS P2.3). The down() docblock of migration
@@ -50,8 +58,12 @@ describe('T5 — migration 000004 down() rollback with a null scope_class row', 
         /** @var object{down: callable} $migration */
         $migration = require $migrationPath;
 
-        expect(fn () => $migration->down())
+        expect(withPostgresSavepoint(fn (): mixed => $migration->down()))
             ->toThrow(QueryException::class);
+
+        $tableNames = config('az-guard.table_names');
+
+        expect(DB::table($tableNames['model_has_scopes'])->exists())->toBeTrue();
     });
 
     it('does not throw down() when no null scope_class row exists', function (): void {
