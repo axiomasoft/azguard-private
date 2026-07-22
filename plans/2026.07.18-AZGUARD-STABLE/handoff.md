@@ -1,6 +1,6 @@
 # HANDOFF — 2026-07-22 — after P4.10
 
-**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.3
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.4
 
 | Параметр | Значение |
 |:--|:--|
@@ -8,18 +8,18 @@
 | Effort | medium |
 | Capabilities | — |
 | Context | same-session — item |
-| Суть | Execute paratest and random-order hardening after the closed DB-matrix gate. |
+| Суть | Execute cross-process Redis epoch-race and Octane RequestState isolation tests. |
 
 ```
-$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.3
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.4
 ```
 
-**Done:** P4.10 accepted CI hunk `425c93b`, fresh-vendor full SQLite/PG/MySQL proof (669/669; 1778/1778/1786 assertions), GitHub DB matrix green, EN/RU upgrading note `3a85dc8`, baseline RESOLVED provenance, and independent APPROVE review.
+**Done:** P4.3 item commit `23a2a7a` adds explicit ParaTest, worker memory propagation, static-state reset and TEST_TOKEN filesystem/config isolation. Three full 28-worker parallel runs and sequential suite passed 669/669; independent review APPROVE.
 
-**Remaining:** P4.3–P4.6 → `task:plan-close` P4 → independent phase audit.
+**Remaining:** P4.4–P4.6 → `task:plan-close` P4 → independent phase audit.
 
-**Sources of truth:** `phases/P4.md` P4.10/P4.3; `research/11-p4.10-clean-vendor-union-proof.md`; `findings/P4.2-db-portability-failures.md`; PR #93 checks; commits `425c93b` and `3a85dc8`.
+**Sources of truth:** `phases/P4.md` P4.3/P4.4; commit `23a2a7a`; `/tmp/p43-final-{1,2,3}.log`; independent P4.3 review.
 
-**Open risks:** root ignored `vendor/` is malformed; use a fresh isolated worktree for package validation. Branch-level PR checks still fail outside P4.10 (commit-title, Infection, PHP 8.5/L13).
+**Open risks:** root ignored `vendor/` is malformed; use a fresh isolated worktree for package validation. P4.4 needs real Redis and `ext-redis`; absent infrastructure must produce a loud skip, not a false green.
 
-**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — P4.3 paratest design/validation; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 because the clean proof did not reach it.
+**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — P4.4 Redis availability and cross-process worker bootstrap; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 because the clean proof did not reach it.
