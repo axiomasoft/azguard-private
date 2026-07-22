@@ -5,6 +5,7 @@ declare(strict_types=1);
 use AzGuard\AzGuardManager;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Runtime\RequestState;
 use AzGuard\Runtime\ScopedRoleCache;
 
 /**
@@ -44,5 +45,32 @@ describe('Octane scoping', function () {
 
         expect(app(AzGuardManager::class))->toBe($manager)
             ->and($manager->currentPanel())->toBeNull();
+    });
+
+    it('does not leak RequestState scope_class or panel state across a scoped flush', function () {
+        $calls = 0;
+        $firstRequest = app(RequestState::class);
+
+        $firstRequest->once('scope_class:App\\Models\\Workspace', function () use (&$calls): void {
+            $calls++;
+        });
+        $firstRequest->once('panel:admin', function () use (&$calls): void {
+            $calls++;
+        });
+
+        expect($calls)->toBe(2);
+
+        app()->forgetScopedInstances();
+
+        $secondRequest = app(RequestState::class);
+        $secondRequest->once('scope_class:App\\Models\\Workspace', function () use (&$calls): void {
+            $calls++;
+        });
+        $secondRequest->once('panel:admin', function () use (&$calls): void {
+            $calls++;
+        });
+
+        expect($secondRequest)->not->toBe($firstRequest)
+            ->and($calls)->toBe(4);
     });
 });

@@ -62,6 +62,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/PermissionAccessTest.php',
         'Feature/PermissionCacheEpochInvalidationTest.php',
         'Feature/PermissionCacheEpochLockWarningTest.php',
+        'Feature/PermissionCacheCrossProcessRaceTest.php',
         'Feature/PermissionMapTest.php',
         'Feature/PolicyAttributeRegistrarTest.php',
         'Feature/RoleAssignmentCommandTest.php',
