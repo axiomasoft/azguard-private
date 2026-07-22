@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.33 |
+| Version | 0.3.34 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4.6 closed: baseline 29→10; active UnitFilament suite retained) |
+| Last Updated | 2026-07-22 (P4.5 closed: native Pest mutation ratchet at 98%) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -112,7 +112,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 10/15 | 🟡 In progress |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 11/15 | 🟡 In progress |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -160,6 +160,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D39 | 2026-07-22 | D39 supersedes only D38's P4.14 universal nested-transaction prescription: `ScopeClassMigrationRollbackTest` gets a local driver-aware operation helper. It wraps `migration->down()` in `DB::transaction()` only on `pgsql`, retaining the direct operation and `QueryException` assertion on SQLite/MySQL; after either path a normal same-connection query must succeed. No migration, public API, global Pest harness, configuration or snapshot changes. | The first P4.14 attempt proved the PostgreSQL savepoint recovery twice but MySQL DDL invalidated the nested savepoint and changed the surfaced assertion to `PDOException`. The existing cross-driver constraint helper already uses the same narrow `pgsql`-only savepoint pattern; preserving `QueryException` is the test's explicit contract, whereas a driver-neutral `Throwable`/SQLSTATE assertion would weaken it. RAG:✅ 2026-07-22 (findings/P4.14-laravel-transaction-semantics-2026-07-22.md); RAG:— (repo-grounded: tests/Feature/ScopeClassMigrationRollbackTest.php:28-54; tests/Feature/ModelHasRolesScopesUniqueConstraintTest.php:17-32; vendor/laravel/framework/src/Illuminate/Database/Concerns/ManagesTransactions.php:26-46, 145-174, 261-312) |
 | D40 | 2026-07-22 | P4.10's clean PG `22P02` ULID→bigint failure belongs to new **P4.15**, not `MorphColumns` or package migrations. Apply Testbench's class-local `#[ResetRefreshDatabaseState]` to `MorphTypeTestCase`; it resets shared `RefreshDatabase` state before/after the ULID test class so the existing early config override controls its migration regardless of random order. P4.10 remains blocked until P4.15 is reviewed and repeats both clean full lanes. | The focused MorphType proof is green because its ULID config wins the initial migration; the full seed fails because a prior ordinary case made static state migrated with integer morphs. The installed Testbench attribute exactly owns that class boundary; production changes, global Pest hooks and per-test `DatabaseMigrations` would widen a test-isolation defect. P3/API/SemVer unaffected. RAG:✅ 2026-07-22 (findings/P4.10-ulid-refresh-state-2026-07-22.md); RAG:— (repo-grounded: research/10-p4.15-ulid-refresh-isolation.md; /tmp/azguard-p410-final-pgsql-clean.log:929-951) |
 | D41 | 2026-07-22 | P4.10 reopens after P4.15: its full PostgreSQL/MySQL union proof runs only in a new detached worktree with fresh `composer update`, never a copied/symlinked ignored `vendor/`; success requires both Composer commands to exit 0. The stale `tests/Pest.php` registration remains outside P4.10 until it demonstrably affects this clean proof. | P4.15's copied local vendor yielded 669/669 Pest output but strict `[DEBUG-BATCH-QUERY]` stdout and exit 1 on SQLite/recorded PG; the accepted CI job already performs a fresh install. This isolates environment integrity from D40/product behavior and prevents a false green. RAG:— (repo-grounded: findings/P4.10-debug-stdout-2026-07-22.md; research/11-p4.10-clean-vendor-union-proof.md; .github/workflows/tests.yml:115-118) |
+| D42 | 2026-07-22 | По прямой команде владельца P4.5 заменяет доказанно несовместимый Infection runner на bundled native Pest mutate; per-package blocking score — `floor(measured)-2`, excludes остаются только с inline rationale. Scope Files уточнён: `composer.lock` игнорируется проектом и не является deliverable. | Infection останавливался на Pest JUnit `TestNotFound` до мутаций; native runner даёт измеримый score и blocking CI; dependency cleanup проверен fresh install. RAG:— (repo-grounded: handoff.md предыдущего P4.6; artifacts/P4-mutation-baseline.md; .gitignore:12) |
 
 ## 6. Update Log
 
@@ -228,6 +229,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-design/frontier/high | P4.15 детализирован до DoR: D40 классифицирует PG ULID failure как class-local Testbench refresh-state seam; P4.10/CI/docs/B6 остаются blocked до repair, review и clean union proof — детали см. phases/P4.md P4.15 и research/10-p4.15-ulid-refresh-isolation.md. |
 | 2026-07-22 | plan-exec/implementation-medium | P4.15 закрыт (🟠): `704d16b` class-local Testbench reset снял ULID `22P02`, но debug stdout оставил две Composer validation красными — детали см. phases/P4.md P4.15 Completion Notes. |
 | 2026-07-22 | plan-design/frontier/high | P4.10 re-opened: D41 требует fresh-vendor detached union proof и не смешивает local debug stdout с product result — детали см. phases/P4.md P4.10 и research/11-p4.10-clean-vendor-union-proof.md. |
+| 2026-07-22 | plan-exec/implementation-medium | P4.5 закрыт (🟢): native Pest ratchet 98% для core/filament/context, fresh Xdebug CI 100% и independent review APPROVE; legacy Infection runner удалён — детали см. phases/P4.md P4.5 Completion Notes. |
 
 ## Обсуждение
 
