@@ -1,24 +1,24 @@
-# HANDOFF — 2026-07-22 — after P4.14
+# HANDOFF — 2026-07-22 — after P4.10
 
-**Next:** /task:plan-run 2026.07.18-AZGUARD-STABLE P4.10
+**Next:** /task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
 
-| Parameter | Value |
+| Параметр | Значение |
 |:--|:--|
-| Model | GPT-5.6 Terra |
-| Thinking | medium — full real-DB proof and CI gate |
-| Context | continue (/clear) — ручной item |
-| Суть | В чистом worktree повторить full PostgreSQL, затем MySQL с timeout 900; только после двух green принять CI/docs/baseline/B6. |
+| Model | GPT-5.6 Sol |
+| Thinking | high — определить owner ULID portability defect |
+| Context | NEW SESSION — шаг-не-item |
+| Суть | Спроектировать узкий remediation-item для PostgreSQL ULID→bigint failure, не меняя scope P4.10. |
 
 ```
-/task:plan-run 2026.07.18-AZGUARD-STABLE P4.10
+/task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
 ```
 
-**Done:** P4.14 closed with item commit `976909e`: a local `pgsql` savepoint wraps only the expected migration rollback; SQLite/MySQL retain direct `QueryException`. Focused SQLite, PostgreSQL twice, and MySQL passed; independent GPT-5.6 Sol/high review approved.
+**Done:** Clean detached `d164d94` proof: PostgreSQL failed only at `MorphTypeTest` when a ULID was written to a bigint morph column; MySQL passed 669 tests / 1786 assertions with timeout 900. No CI/docs/baseline/B6 deliverable was accepted.
 
-**Remaining:** P4.10 clean full PG/MySQL proof → CI/docs/baseline/B6 only if both lanes pass → P4.3–P4.6 → `task:plan-close` P4 → separate Sol/xhigh final audit.
+**Remaining:** P4.10 is blocked on a plan-designed ULID portability remediation → repeat both clean DB lanes → CI/docs/baseline/B6 only if both are green → P4.3–P4.6 → `task:plan-close` P4 → separate Sol/xhigh audit.
 
-**Sources of truth:** `plan.md` D38–D39; `phases/P4.md` P4.14/P4.10; `research/09-p4.14-driver-aware-savepoint.md`; `findings/P4.14-laravel-transaction-semantics-2026-07-22.md`; item commit `976909e`.
+**Sources of truth:** `phases/P4.md` P4.10 escalation; `/tmp/azguard-p410-final-pgsql-clean.log`; `/tmp/azguard-p410-final-mysql-clean.log`; item base `d164d94`.
 
-**Open risks:** P4.10 must use a clean worktree that excludes user-owned `.github/workflows/tests.yml` and `tests/Pest.php`; the latter currently emits `DEBUG-BATCH-QUERY` output. No CI/docs/baseline/B6 changes before both full lanes are green.
+**Open risks:** PostgreSQL is not a first-class green lane while `MorphTypeTest` persists ULID into a bigint morph column. User-owned `.github/workflows/tests.yml` and `tests/Pest.php` remain excluded; CI/docs/baseline/B6 stay prohibited.
 
-**Workarounds/Deferred/Open questions:** workarounds — none; deferred — P4.10 CI/docs/baseline/B6 pending full clean proof; open_questions — none.
+**Workarounds/Deferred/Open questions:** workarounds — none; deferred — CI/docs/baseline/B6 until both DB lanes are green; open_questions — whether the remediation belongs in MorphColumns/config lifecycle or the ULID fixture contract; plan-design must decide.
