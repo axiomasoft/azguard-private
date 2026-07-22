@@ -134,10 +134,6 @@ final class AzGuardContextServiceProvider extends ServiceProvider
     {
         $router = $this->app->make(Router::class);
 
-        if (! $router instanceof Router) {
-            return;
-        }
-
         $router->aliasMiddleware('azguard.context', SetAuthorizationContext::class);
     }
 }

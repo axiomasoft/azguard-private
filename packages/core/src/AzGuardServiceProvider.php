@@ -332,10 +332,6 @@ final class AzGuardServiceProvider extends ServiceProvider
     {
         $router = $this->app->make(Router::class);
 
-        if (! $router instanceof Router) {
-            return;
-        }
-
         $router->aliasMiddleware('azguard.roles', LoadAzGuardRoles::class);
         $router->aliasMiddleware('azguard.panel', SetCurrentPanel::class);
         $router->aliasMiddleware('azguard.check', CheckAccess::class);
@@ -384,7 +380,7 @@ final class AzGuardServiceProvider extends ServiceProvider
     protected function registerPanelProviders(): void
     {
         foreach (Config::panels() as $provider) {
-            if (is_string($provider) && class_exists($provider)) {
+            if (class_exists($provider)) {
                 $this->app->register($provider);
             }
         }

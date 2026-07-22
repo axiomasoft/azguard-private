@@ -1,175 +1,71 @@
 parameters:
 	ignoreErrors:
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: packages/core/src/AzGuardServiceProvider.php
-
-		-
-			message: '#^Instanceof between Illuminate\\Routing\\Router and Illuminate\\Routing\\Router will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: packages/context/src/AzGuardContextServiceProvider.php
-
-		-
-			message: '#^Instanceof between Illuminate\\Routing\\Router and Illuminate\\Routing\\Router will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: packages/core/src/AzGuardServiceProvider.php
-
-		-
-			message: '#^Instanceof between UnitEnum and UnitEnum will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: packages/core/src/Commands/CatalogValidateCommand.php
-
-		-
-			message: '#^Instanceof between Illuminate\\Support\\Carbon\|null and Carbon\\CarbonImmutable will always evaluate to false\.$#'
-			identifier: instanceof.alwaysFalse
-			count: 1
-			path: packages/core/src/Commands/GrantCommand.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: packages/core/src/Commands/ListScopedRolesCommand.php
-
-		-
-			message: '#^Using nullsafe property access on non\-nullable type AzGuard\\Models\\ModelHasScope\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: packages/core/src/Commands/ListScopedRolesCommand.php
-
+		# Public opt-in Eloquent traits are consumed by host applications outside source paths.
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasAzGuard is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/HasAzGuard.php
 
+		# Public opt-in Eloquent traits are consumed by host applications outside source paths.
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasDirectGrants is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/HasDirectGrants.php
 
+		# Trait composition becomes live only when the public HasAzGuard trait is enabled by a host model.
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasPermissions is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/HasPermissions.php
 
+		# Trait composition becomes live only when the public HasAzGuard trait is enabled by a host model.
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasRoles is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/HasRoles.php
 
+		# Public opt-in Eloquent traits are consumed by host applications outside source paths.
 		-
 			message: '#^Trait AzGuard\\Concerns\\HasScopedRoles is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/HasScopedRoles.php
 
+		# Trait composition becomes live only when the public HasAzGuard trait is enabled by a host model.
 		-
 			message: '#^Trait AzGuard\\Concerns\\ResolvesRole is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Concerns/ResolvesRole.php
 
-		-
-			message: '#^Method AzGuard\\Contracts\\ScopeInterface\:\:apply\(\) has parameter \$builder with generic class Illuminate\\Database\\Eloquent\\Builder but does not specify its types\: TModel$#'
-			identifier: missingType.generics
-			count: 1
-			path: packages/core/src/Contracts/ScopeInterface.php
-
-		-
-			message: '#^Instanceof between UnitEnum and UnitEnum will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: packages/core/src/Guard/AzGuardDiagnostics.php
-
-		-
-			message: '#^Strict comparison using \=\=\= between non\-empty\-list\<string\> and array\{\} will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: packages/core/src/Guard/PolicyDiscovery.php
-
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: packages/core/src/Http/Middleware/CheckAccess.php
-
-		-
-			message: '#^Parameter \#1 \$array \(list\<\(object\|string\|null\)\>\) of array_values is already a list, call has no effect\.$#'
-			identifier: arrayValues.list
-			count: 1
-			path: packages/core/src/Http/Middleware/CheckAccess.php
-
-		-
-			message: '#^Unable to resolve the template type TRelatedModel in call to method Illuminate\\Database\\Eloquent\\Model\:\:morphedByMany\(\)$#'
-			identifier: argument.templateType
-			count: 1
-			path: packages/core/src/Models/Role.php
-
+		# This trait is emitted by the package panel generator, not used by package source itself.
 		-
 			message: '#^Trait AzGuard\\Permissions\\InteractsWithPanel is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Permissions/InteractsWithPanel.php
 
+		# This trait is emitted by the policy generator, not used by package source itself.
 		-
 			message: '#^Trait AzGuard\\Policies\\AuthorizesPermission is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/core/src/Policies/AuthorizesPermission.php
 
-		-
-			message: '#^Instanceof between UnitEnum and UnitEnum will always evaluate to true\.$#'
-			identifier: instanceof.alwaysTrue
-			count: 1
-			path: packages/core/src/Registry/Builders/PolicyAbilityCatalogBuilder.php
-
+		# Public Filament page trait is intentionally enabled by package integrators outside source paths.
 		-
 			message: '#^Trait AzGuard\\Filament\\Concerns\\HasAzGuardPage is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/filament/src/Concerns/HasAzGuardPage.php
 
+		# Public Filament widget trait is intentionally enabled by package integrators outside source paths.
 		-
 			message: '#^Trait AzGuard\\Filament\\Concerns\\HasAzGuardWidget is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: packages/filament/src/Concerns/HasAzGuardWidget.php
-
-		-
-			message: '#^Method AzGuard\\Filament\\Pages\\DoctorPage\:\:getDiagnoseResult\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: packages/filament/src/Pages/DoctorPage.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>\(Expression\)" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: packages/filament/src/Resources/DirectGrantResource.php
-
-		-
-			message: '#^Method AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RolePermissionsRelationManager\:\:buildPermissionsForm\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php
-
-		-
-			message: '#^Method AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RolePermissionsRelationManager\:\:currentPermissionsFormData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php
-
-		-
-			message: '#^Method AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RolePermissionsRelationManager\:\:syncPermissions\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php

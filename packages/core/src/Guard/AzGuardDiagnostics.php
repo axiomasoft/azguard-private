@@ -212,10 +212,6 @@ class AzGuardDiagnostics
                     $gateAbility = $attribute->newInstance();
                     $permission = $gateAbility->permission;
 
-                    if (! $permission instanceof UnitEnum) {
-                        continue;
-                    }
-
                     $enumClass = $permission::class;
 
                     if (! isset($enumIndex[$enumClass])) {

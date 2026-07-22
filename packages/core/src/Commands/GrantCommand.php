@@ -6,7 +6,6 @@ namespace AzGuard\Commands;
 
 use AzGuard\Commands\Concerns\ResolvesUserModel;
 use AzGuard\Grants\GrantBuilder;
-use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Auth\Authenticatable;
 
@@ -55,9 +54,7 @@ final class GrantCommand extends Command
 
         $grant = $builder->grant($permKey);
 
-        $expiresAt = $grant->expires_at instanceof CarbonImmutable
-            ? $grant->expires_at->toDateTimeString()
-            : ($grant->expires_at ? (string) $grant->expires_at : 'never');
+        $expiresAt = $grant->expires_at?->toDateTimeString() ?? 'never';
 
         $this->table(
             ['User ID', 'Model', 'Permission', 'Panel', 'Expires at'],

@@ -66,6 +66,7 @@ final class DoctorPage extends Page
 
     // ─── View data ─────────────────────────────────────────────────────────────
 
+    /** @return array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>} */
     public function getDiagnoseResult(): array
     {
         return self::runDiagnose();

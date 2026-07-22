@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Log;
 use Override;
 use ReflectionClass;
 use ReflectionMethod;
-use UnitEnum;
 
 /**
  * Builds permission catalog entries from policy methods annotated with #[GateAbility].
@@ -73,10 +72,6 @@ final readonly class PolicyAbilityCatalogBuilder implements PermissionCatalogBui
                     /** @var GateAbility $gateAbility */
                     $gateAbility = $attribute->newInstance();
                     $permission = $gateAbility->permission;
-
-                    if (! $permission instanceof UnitEnum) {
-                        continue;
-                    }
 
                     $resolvedKey = $panel->resolvePermission($permission);
 

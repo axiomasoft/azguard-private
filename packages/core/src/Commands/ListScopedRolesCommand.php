@@ -67,13 +67,13 @@ class ListScopedRolesCommand extends Command
             return self::SUCCESS;
         }
 
-        $entityType = $scopes->first()?->scope_entity_type;
+        $entityType = $scopes->first()->scope_entity_type;
         $entityLabel = $entityType !== null ? class_basename($entityType) : '';
         $this->info("Scoped roles for user: <comment>{$identifier}</comment>".($entityLabel !== '' ? " (entity: {$entityLabel})" : ''));
         $this->line('');
 
         $rows = $scopes->map(fn ($scope): array => [
-            $scope->role?->name ?? '—',
+            $scope->role->name ?? '—',
             $scope->scope_entity_type !== null ? class_basename($scope->scope_entity_type) : '—',
             (string) ($scope->scope_entity_id ?? '—'),
             $scope->scope_class !== null ? class_basename($scope->scope_class) : '—',

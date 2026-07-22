@@ -86,6 +86,7 @@ final class RolePermissionsRelationManager extends RelationManager
      * Builds the permission selection form: each panel has its own CheckboxList,
      * grouped by the groups from the catalog.
      */
+    /** @return list<Section> */
     private function buildPermissionsForm(): array
     {
         /** @var PermissionCatalog $catalog */
@@ -130,6 +131,7 @@ final class RolePermissionsRelationManager extends RelationManager
     /**
      * Fills the form with current values.
      */
+    /** @return array{permissions: array<string, array<string, list<string>>>} */
     private function currentPermissionsFormData(): array
     {
         /** @var PermissionCatalog $catalog */
@@ -165,6 +167,7 @@ final class RolePermissionsRelationManager extends RelationManager
     /**
      * Syncs the role's DB permissions: removes the old ones, adds the new ones.
      */
+    /** @param array{permissions?: array<string, array<string, list<string>>>} $data */
     private function syncPermissions(array $data): void
     {
         $role = $this->ownerRole();

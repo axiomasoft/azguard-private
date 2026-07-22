@@ -32,8 +32,11 @@ class Role extends Model
     /** @return MorphToMany<Model, $this> */
     public function users(): MorphToMany
     {
+        /** @var class-string<Model> $userModel */
+        $userModel = config('auth.providers.users.model');
+
         return $this->morphedByMany(
-            config('auth.providers.users.model'),
+            $userModel,
             'model',
             Config::modelHasRolesTable(),
         );

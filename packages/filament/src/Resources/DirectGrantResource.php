@@ -76,7 +76,7 @@ final class DirectGrantResource extends Resource
                     },
                 )
                 ->getOptionLabelUsing(
-                    fn ($value) => $userModel::find($value)?->{$labelColumn} ?? "#{$value}",
+                    fn ($value) => $userModel::find($value)->{$labelColumn} ?? "#{$value}",
                 )
                 ->columnSpan('full'),
 
@@ -150,7 +150,7 @@ final class DirectGrantResource extends Resource
                             return $record->grantable_type.'#'.$state;
                         }
 
-                        return $record->grantable?->{$labelColumn} ?? "#{$state}";
+                        return $record->grantable->{$labelColumn} ?? "#{$state}";
                     })
                     ->searchable(),
 

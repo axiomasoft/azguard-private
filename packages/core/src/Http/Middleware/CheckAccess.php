@@ -61,10 +61,6 @@ final class CheckAccess
 
         $actionName = $route->getActionName();
 
-        if (! is_string($actionName)) {
-            return [];
-        }
-
         if (str_contains(haystack: $actionName, needle: '@')) {
             [$controllerClass, $methodName] = explode(separator: '@', string: $actionName, limit: 2);
         } elseif (class_exists($actionName)) {
@@ -98,10 +94,10 @@ final class CheckAccess
      */
     private function resolveArguments(Request $request, array $parameterNames): array
     {
-        return array_values(array: array_map(
+        return array_map(
             callback: static fn (string $parameterName): mixed => $request->route($parameterName),
             array: $parameterNames,
-        ));
+        );
     }
 
     private function resolveAbility(UnitEnum $permission): string
