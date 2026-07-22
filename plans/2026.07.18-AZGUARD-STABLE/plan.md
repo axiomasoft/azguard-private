@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (D38: P4.13/P4.14 narrowly recover P4.12's forbidden digest and PostgreSQL rollback-test transaction isolation before P4.10 resumes) |
+| Last Updated | 2026-07-22 (P4.13 replaces the forbidden MorphColumns digest; P4.14 remains before P4.10 resumes) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -111,7 +111,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 6/14 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 7/14 | 🔴 Blocked |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -215,6 +215,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-design/frontier-high | P4.12 детализирован до DoR: explicit table-aware short morph-index names вместо fixture shortening, D37; P4.10 остаётся blocked до repair и timeout-900 full MySQL proof — детали см. phases/P4.md P4.12. |
 | 2026-07-22 | plan-run/implementation-high | P4.12 закрыт: `7ce4934` добавил deterministic short table-aware morph-index names; focused SQLite/PostgreSQL/MySQL proof и Sol/high APPROVE зелёные, P4.10 re-opened для full-lane/CI — детали см. phases/P4.md P4.12 Completion Notes. |
 | 2026-07-22 | plan-design/frontier/high | P4.10 repair design: D38 добавил P4.13 (forbidden digest) и P4.14 (PG transaction recovery), P4.12/P4.10 evidence сохранены; roadmap/handoff обновлены, CI/docs/B6 остаются закрыты до clean proof — детали см. phases/P4.md и research/08-p4.13-p4.14-recovery.md. |
+| 2026-07-22 | plan-run/GPT-5.6 Terra/high | P4.13 закрыт: `cf85e16` заменил forbidden digest на permitted SHA-256 truncation; три driver proof и Sol/high review зелёные — детали см. phases/P4.md P4.13 Completion Notes. |
 
 ## Обсуждение
 

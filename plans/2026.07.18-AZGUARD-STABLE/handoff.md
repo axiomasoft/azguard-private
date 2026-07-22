@@ -1,41 +1,29 @@
-# HANDOFF — 2026-07-22 — after P4
+# HANDOFF — 2026-07-22 — after P4.13
 
-**Next:** run-items: task:plan-run 2026.07.18-AZGUARD-STABLE P4.13
+**Next:** /task:plan-exec 2026.07.18-AZGUARD-STABLE P4.14
 
 | Параметр | Значение |
 |:--|:--|
-| Model class | implementation |
-| Effort | high |
-| Capabilities | task.plan-run · database · laravel-package-testing |
-| Context | same-session — item |
-| Суть | Исполнить только P4.13: заменить forbidden digest в private morph-index helper, сохранить D37 proof и пройти независимое review до P4.14. |
+| Model | implementation |
+| Thinking | medium — prescribed transaction-isolation test seam |
+| Context | continue (/clear) — ручной item |
+| Суть | Исполнить только P4.14: сохранить expected migration failure и восстановить PG outer transaction через savepoint. |
 
 ```text
-$ task:plan-run 2026.07.18-AZGUARD-STABLE P4.13
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.14
 
 РЕЖИМ: remediation
-ВХОД: plans/2026.07.18-AZGUARD-STABLE/findings/P4.10-full-lane-blockers-2026-07-22.md §A → architecture failure; plans/2026.07.18-AZGUARD-STABLE/research/08-p4.13-p4.14-recovery.md → decision
-СКОУП: 1. Replace only sha1() in MorphColumns::morphIndexName() with the D38 permitted deterministic digest. 2. Preserve the 48-character table-aware name and long-name three-driver proof. 3. Obtain Sol/high read-only review before closure.
-НЕ ТРОГАТЬ: P4.12/P4.10 historical Completion Notes and statuses; migrations, public API/config/snapshot, tests/ArchTest.php, CI/docs/B6, user-owned .github/workflows/tests.yml and tests/Pest.php diffs.
+ВХОД: plans/2026.07.18-AZGUARD-STABLE/research/05-codex-execution-contract.md; plans/2026.07.18-AZGUARD-STABLE/findings/P4.10-full-lane-blockers-2026-07-22.md §B; plans/2026.07.18-AZGUARD-STABLE/research/08-p4.13-p4.14-recovery.md; phases/P4.md P4.14.
+СКОУП: только tests/Feature/ScopeClassMigrationRollbackTest.php — expected `down()` failure внутри nested DB transaction/savepoint и assert normal query after it.
+НЕ ТРОГАТЬ: migration 000004, production schema/runtime, tests/Pest.php, test connection config, CI/full lanes (P4.10), P4.13, public API/config/snapshot, user-owned .github/workflows/tests.yml and tests/Pest.php diffs.
 ```
 
-**Done:** D38 classified both P4.10 blockers without changing source: full PG/MySQL logs show
-the P4.12 `sha1()` architecture violation; the isolated PostgreSQL rollback test deterministically
-reproduces `SQLSTATE[25P02]` after its expected migration exception. P4.13/P4.14 are detailed
-to DoR. P4.12/P4.10 provenance remains intact.
+**Done:** P4.13 item commit `cf85e16` replaces only `sha1()` in the private morph-index-name helper with the D38 SHA-256-derived 40-hex digest. Focused SQLite/PostgreSQL/MySQL UUID long-name proof, lint, PHPStan and direct ArchTest passed; independent Sol/high review approved with no material findings.
 
-**Remaining:** P4.13 → independent Sol/high review → P4.14 → independent Sol/high review →
-P4.10 full clean PG/MySQL proof → only then its CI/docs/baseline/B6 review → P4.3–P4.6 →
-`task:plan-close` P4 → separate Sol/xhigh phase audit.
+**Remaining:** P4.14 independent Sol/high review → P4.10 clean full PostgreSQL/MySQL proof → only then CI/docs/baseline/B6 → P4.3–P4.6 → `task:plan-close` P4 → separate Sol/xhigh audit.
 
-**Sources of truth:** `plan.md` D37/D38; `phases/P4.md` P4.10/P4.12/P4.13/P4.14;
-`findings/P4.10-full-lane-blockers-2026-07-22.md`; `research/08-p4.13-p4.14-recovery.md`;
-`/tmp/azguard-p410-pgsql.log`; `/tmp/azguard-p410-mysql.log`; `research/05-codex-execution-contract.md`.
+**Sources of truth:** `plan.md` D37/D38; `phases/P4.md` P4.13/P4.14/P4.10; `findings/P4.10-full-lane-blockers-2026-07-22.md`; `research/08-p4.13-p4.14-recovery.md`; `research/05-codex-execution-contract.md`; commit `cf85e16`.
 
-**Open risks:** `hash('sha256', ...)` must pass the actual architecture gate and retain D37's
-long-name proof. P4.14 must prove recovery on the same testbench connection, not merely catch
-the exception. No CI hunk, docs, RESOLVED finding or B6 review may be accepted before both full
-real-DB suites are green.
+**Open risks:** P4.13's literal ArchTest filter selector returns `No tests found`, although direct `tests/ArchTest.php` passed the security gate; preserve that evidence, do not weaken or edit the architecture test. P4.14 must prove the same testbench connection remains usable after expected exception. P4.10 CI/docs/B6 remain prohibited before new full green proof.
 
-**Workarounds/Deferred/Open questions:** deferred — P4.10 CI/docs/B6 until P4.13/P4.14 are
-terminal and new full proof is green; open_questions — none.
+**Workarounds/Deferred/Open questions:** workarounds — none; deferred — P4.10 CI/docs/B6 until P4.13/P4.14 terminal and full DB proof green; open_questions — none.
