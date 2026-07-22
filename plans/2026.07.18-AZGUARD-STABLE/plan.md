@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.28 |
+| Version | 0.3.29 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4.10 clean proof found a PostgreSQL ULID portability blocker; remediation needs plan-design) |
+| Last Updated | 2026-07-22 (D40/P4.15 isolates the ULID Testbench refresh-state seam before P4.10 repeats its union proof) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -94,6 +94,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P4.12 | implementation/high | manual | предписанный internal schema-helper repair по D37: cross-driver migration correctness, deterministic short identifiers; GPT-5.6 Terra/high, отдельный GPT-5.6 Sol/high read-only review; Review=full |
 | P4.13 | implementation/high | manual | frozen D38 private helper remediation: permitted deterministic short identifier without weakening P4.12's three-driver proof; GPT-5.6 Terra/high, отдельный GPT-5.6 Sol/high review; Review=full |
 | P4.14 | implementation/medium | plan-exec | D39 frozen test-only driver-aware seam: PostgreSQL savepoint recovery while SQLite/MySQL retain the direct QueryException assertion; GPT-5.6 Terra/medium; Review=full |
+| P4.15 | implementation/medium | plan-exec | D40 frozen class-local Testbench lifecycle repair: force ULID config before the MorphType migration without production/global-harness change; GPT-5.6 Terra/medium; Review=full |
 | P4.10 | implementation/medium | plan-exec | green-proof+CI+baseline по D30; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
 | P4.3 | implementation/medium | plan-exec | paratest+shared-state hardening; GPT-5.6 Terra/medium; Review=full |
 | P4.4 | implementation/medium | plan-exec | race Redis/Octane; GPT-5.6 Terra/medium исполняет, GPT-5.6 Sol/high независимо ревьюит concurrency-diff; Review=full; реальный race → §10 |
@@ -111,7 +112,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 8/14 | 🔴 Blocked |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 8/15 | 🔴 Blocked |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -157,6 +158,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D37 | 2026-07-22 | P4.10 UUID `SQLSTATE 1059` получает отдельный **P4.12**, а P4.8 не реопенится: defect находится не в closed migration 000005, а в production-helper `MorphColumns`, который вызывает Laravel UUID morph helpers без explicit index name. P4.12 задаёт короткие deterministic table-aware names и сохраняет длинные configurable-table fixtures; P4.10 остаётся blocked и только после P4.12 повторяет full MySQL proof с `COMPOSER_PROCESS_TIMEOUT=900` | Сокращение test fixture скрыло бы реальный installability defect: migration 000000 также использует `MorphColumns::add()`, Laravel строит default name из table+columns. New item сохраняет P4.8 committed evidence/file ownership, P3/API freeze и SemVer no-change. RAG:— (repo-grounded: findings/P4.10-uuid-morph-index-name-2026-07-22.md; research/07-p4.12-morph-index-portability.md; packages/core/database/migrations/2026_01_01_000000_create_az_guard_tables.php:20-30; root/semver-policy.md §1–4) |
 | D38 | 2026-07-22 | P4.12 и P4.10 provenance не переписываются. Добавлены **P4.13** (замена forbidden `sha1()` только в private deterministic MorphColumns index-name helper) и **P4.14** (PostgreSQL-safe recovery expected rollback exception через nested transaction/savepoint в test seam). P4.10 остаётся 🔴 до терминальности обоих и нового full PG/MySQL proof; CI/docs/B6 review не принимать раньше | Full clean logs независимо показали architecture failure на `sha1()` на обоих драйверах и PG `25P02` после expected migration exception. Тест P4.14 воспроизводит PG failure изолированно и сохраняет документированный unsafe rollback migration 000004; P4.13 сохраняет D37's short table-aware contract. RAG:— (repo-grounded: findings/P4.10-full-lane-blockers-2026-07-22.md; research/08-p4.13-p4.14-recovery.md; phases/P4.md P4.10/P4.12) |
 | D39 | 2026-07-22 | D39 supersedes only D38's P4.14 universal nested-transaction prescription: `ScopeClassMigrationRollbackTest` gets a local driver-aware operation helper. It wraps `migration->down()` in `DB::transaction()` only on `pgsql`, retaining the direct operation and `QueryException` assertion on SQLite/MySQL; after either path a normal same-connection query must succeed. No migration, public API, global Pest harness, configuration or snapshot changes. | The first P4.14 attempt proved the PostgreSQL savepoint recovery twice but MySQL DDL invalidated the nested savepoint and changed the surfaced assertion to `PDOException`. The existing cross-driver constraint helper already uses the same narrow `pgsql`-only savepoint pattern; preserving `QueryException` is the test's explicit contract, whereas a driver-neutral `Throwable`/SQLSTATE assertion would weaken it. RAG:✅ 2026-07-22 (findings/P4.14-laravel-transaction-semantics-2026-07-22.md); RAG:— (repo-grounded: tests/Feature/ScopeClassMigrationRollbackTest.php:28-54; tests/Feature/ModelHasRolesScopesUniqueConstraintTest.php:17-32; vendor/laravel/framework/src/Illuminate/Database/Concerns/ManagesTransactions.php:26-46, 145-174, 261-312) |
+| D40 | 2026-07-22 | P4.10's clean PG `22P02` ULID→bigint failure belongs to new **P4.15**, not `MorphColumns` or package migrations. Apply Testbench's class-local `#[ResetRefreshDatabaseState]` to `MorphTypeTestCase`; it resets shared `RefreshDatabase` state before/after the ULID test class so the existing early config override controls its migration regardless of random order. P4.10 remains blocked until P4.15 is reviewed and repeats both clean full lanes. | The focused MorphType proof is green because its ULID config wins the initial migration; the full seed fails because a prior ordinary case made static state migrated with integer morphs. The installed Testbench attribute exactly owns that class boundary; production changes, global Pest hooks and per-test `DatabaseMigrations` would widen a test-isolation defect. P3/API/SemVer unaffected. RAG:✅ 2026-07-22 (findings/P4.10-ulid-refresh-state-2026-07-22.md); RAG:— (repo-grounded: research/10-p4.15-ulid-refresh-isolation.md; /tmp/azguard-p410-final-pgsql-clean.log:929-951) |
 
 ## 6. Update Log
 
@@ -219,6 +221,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-run/GPT-5.6 Terra/high | P4.13 закрыт: `cf85e16` заменил forbidden digest на permitted SHA-256 truncation; три driver proof и Sol/high review зелёные — детали см. phases/P4.md P4.13 Completion Notes. |
 | 2026-07-22 | plan-design/frontier/high | P4.14 redesign до DoR: D39 сохраняет `QueryException` и изолирует savepoint только на PostgreSQL; P4.10 остаётся blocked до independent review и clean full DB proof — детали см. phases/P4.md P4.14 и research/09-p4.14-driver-aware-savepoint.md. |
 | 2026-07-22 | plan-run/GPT-5.6 Terra/high | P4.14 закрыт: `976909e` изолировал expected rollback через pgsql-only savepoint, сохранив `QueryException` на SQLite/MySQL; Sol/high review APPROVE — детали см. phases/P4.md P4.14 Completion Notes. |
+| 2026-07-22 | plan-design/frontier/high | P4.15 детализирован до DoR: D40 классифицирует PG ULID failure как class-local Testbench refresh-state seam; P4.10/CI/docs/B6 остаются blocked до repair, review и clean union proof — детали см. phases/P4.md P4.15 и research/10-p4.15-ulid-refresh-isolation.md. |
 
 ## Обсуждение
 

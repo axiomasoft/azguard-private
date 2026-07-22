@@ -5,8 +5,8 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.28 (D39 — P4.14
-сохраняет cross-driver `QueryException` и изолирует savepoint только для PostgreSQL до P4.10 CI gate)
+**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.29 (D40 — P4.15
+изолирует ULID Testbench refresh state до повторного P4.10 CI gate)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
@@ -31,6 +31,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P4.12 | — | ✅ закрыт | implementation/high → Terra/high | — | D37 short table-aware MorphColumns index names; historical focused proof/review preserved |
 | P4.13 | solo | plan-run (manual) | implementation/high → Terra/high | — | D38: replace forbidden digest; Sol/high full review; then P4.14 |
 | P4.14 | solo | plan-exec | implementation/medium → Terra/medium | — | D39: local `pgsql` savepoint recovery, direct SQLite/MySQL `QueryException` seam and post-exception query; full review; then P4.10 clean proof |
+| P4.15 | solo | plan-exec | implementation/medium → Terra/medium | — | D40: class-local Testbench refresh-state annotation; recorded random PG seed + full driver proof; full review; then P4.10 clean proof |
 | P4.10 | B6 | plan-exec | implementation/medium → Terra/medium | — | only after P4.13/P4.14: full green proof → CI/docs/baseline; Sol/high B6 review |
 | P4.3 | solo | plan-exec | implementation/medium → Terra/medium | — | paratest, отдельный риск-профиль; full review |
 | P4.4 | solo | plan-exec | implementation/medium → Terra/medium | — | race C-05/C-14; независимый Sol/high concurrency-review; реальный race → §10 |
@@ -80,18 +81,18 @@ B6 — `plan-exec` на Terra/medium. Стенд должен быть подн�
 $ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.11
 ```
 
-### P4.13 → P4.14 → B6 — recover gates, затем green-proof
+### P4.13 → P4.14 → P4.15 → B6 — recover gates, затем green-proof
 
 | Параметр | Значение |
 |:--|:--|
 | Model class | implementation |
 | Codex | GPT-5.6 Terra |
-| Effort | high (P4.13) · medium (P4.14/P4.10) |
-| Context | same-session — item: research/05 → findings/P4.10-full-lane-blockers-2026-07-22.md → findings/P4.14-laravel-transaction-semantics-2026-07-22.md → research/09-p4.14-driver-aware-savepoint.md → plan.md D39 → phases/P4.md P4.14/P4.10 → handoff.md |
-| Суть | P4.14 applies D39 pgsql-only recovery while preserving every-driver QueryException + Sol review → P4.10 clean full green/CI/baseline |
+| Effort | high (P4.13) · medium (P4.14/P4.15/P4.10) |
+| Context | same-session — item: research/05 → findings/P4.10-full-lane-blockers-2026-07-22.md → findings/P4.14-laravel-transaction-semantics-2026-07-22.md → findings/P4.10-ulid-refresh-state-2026-07-22.md → research/09-p4.14-driver-aware-savepoint.md → research/10-p4.15-ulid-refresh-isolation.md → plan.md D39–D40 → phases/P4.md P4.14/P4.15/P4.10 → handoff.md |
+| Суть | P4.15 applies D40 class-local Testbench reset + Sol review → P4.10 clean full green/CI/baseline |
 
 ```
-$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.14
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.15
 ```
 
 ### B5 — релиз + закрытие (plan-exec серия, гейт владельца внутри)
@@ -122,6 +123,7 @@ writer-route. После двух неуспешных review/fix циклов �
 | P4.12 | GPT-5.6 Sol/high, read-only | deterministic short table-aware names, no fixture shortening, identical semantics across morph paths and three-driver proof | findings → Terra/high fix; clean → P4.10 |
 | P4.13 | GPT-5.6 Sol/high, read-only | permitted deterministic digest, 48-character budget, no fixture shortening or architecture-rule bypass, three-driver proof | findings → Terra/high fix; clean → P4.14 |
 | P4.14 | GPT-5.6 Sol/high, read-only | expected `QueryException` retained on all drivers, PostgreSQL savepoint truly recovers outer RefreshDatabase transaction, normal post-exception query passes, no global harness/migration change | findings → Terra/medium fix; clean → P4.10 |
+| P4.15 | GPT-5.6 Sol/high, read-only | installed Testbench reset is class-local, fixed seed/full lanes show ULID config precedes migration, no migration/Pest global/API/P3 or dirty-file change | findings → Terra/medium fix; clean → P4.10 |
 | B6 | GPT-5.6 Sol/high, read-only | LIKE portability + честность full green/CI wiring | findings → Terra/medium fix |
 | P4.4 | GPT-5.6 Sol/high, read-only | race validity, false-green/false-negative risks, process isolation | findings → Terra/high fix или §10 |
 | Фаза P4 | GPT-5.6 Sol/xhigh, новая сессия | adversarial `plan-audit P4` по всем deliverables/commits | только GREEN разрешает P5.1 |

@@ -93,3 +93,13 @@ P4.13/P4.14 (D38), затем только повтор P4.10.
 общий cross-driver helper уже применяет `pgsql`-only savepoint seam. PostgreSQL получает
 savepoint recovery, SQLite/MySQL остаются на исходном direct seam; `Throwable`/message/SQLSTATE
 assertion не вводится. Изменения остаются test-only, P3/SemVer не затрагиваются.
+
+## 2026-07-22 — P4.10: ULID failure must preserve the production migration contract
+
+После P4.14 clean PostgreSQL proof обнаружил `SQLSTATE[22P02]`: random-order suite использовал
+уже мигрированную integer-схему до запуска `MorphTypeTestCase`, хотя его ULID override корректно
+живёт в раннем Testbench environment hook. Владелецский принцип — не «чинить» production
+`MorphColumns`/migration из-за test static-state timing и не расширять глобальный Pest harness.
+Следствие D40/P4.15: применить supported class-local Testbench
+`ResetRefreshDatabaseState`, затем только P4.10 повторяет clean union proof и принимает
+CI/docs/B6.
