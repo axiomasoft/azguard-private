@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (D40/P4.15 isolates the ULID Testbench refresh-state seam before P4.10 repeats its union proof) |
+| Last Updated | 2026-07-22 (P4.15 closes 🟠: D40 removes the ULID lifecycle failure, but debug stdout keeps the P4.10 union gate red) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -222,6 +222,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-design/frontier/high | P4.14 redesign до DoR: D39 сохраняет `QueryException` и изолирует savepoint только на PostgreSQL; P4.10 остаётся blocked до independent review и clean full DB proof — детали см. phases/P4.md P4.14 и research/09-p4.14-driver-aware-savepoint.md. |
 | 2026-07-22 | plan-run/GPT-5.6 Terra/high | P4.14 закрыт: `976909e` изолировал expected rollback через pgsql-only savepoint, сохранив `QueryException` на SQLite/MySQL; Sol/high review APPROVE — детали см. phases/P4.md P4.14 Completion Notes. |
 | 2026-07-22 | plan-design/frontier/high | P4.15 детализирован до DoR: D40 классифицирует PG ULID failure как class-local Testbench refresh-state seam; P4.10/CI/docs/B6 остаются blocked до repair, review и clean union proof — детали см. phases/P4.md P4.15 и research/10-p4.15-ulid-refresh-isolation.md. |
+| 2026-07-22 | plan-exec/implementation-medium | P4.15 закрыт (🟠): `704d16b` class-local Testbench reset снял ULID `22P02`, но debug stdout оставил две Composer validation красными — детали см. phases/P4.md P4.15 Completion Notes. |
 
 ## Обсуждение
 
