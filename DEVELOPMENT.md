@@ -54,7 +54,7 @@ rationale, and are reviewed as code.
 P4.5 measured 100.00% for core, filament, and context, so all three native
 Pest gates enforce 98%. Local runs honestly skip when no pcov/Xdebug driver is
 installed; CI supplies Xdebug and remains blocking. Evidence is in
-`plans/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
+`plans/archive/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
 
 ## Local database matrix
 

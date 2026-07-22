@@ -1,4 +1,4 @@
 # ACTIVE
 
-**Active:** 2026.07.18-AZGUARD-STABLE
+**Active:** —
 **Updated:** 2026-07-22

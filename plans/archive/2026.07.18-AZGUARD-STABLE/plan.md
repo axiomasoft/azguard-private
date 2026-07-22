@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.35 |
-| Status | 🟡 In progress |
+| Version | 0.3.36 |
+| Status | 🟠 Done with deviations |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P5.2 closed: v0.3.0 tagged, released and verified) |
+| Last Updated | 2026-07-22 (P5 closed: release, docs and control-plane reconciled) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -162,6 +162,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D41 | 2026-07-22 | P4.10 reopens after P4.15: its full PostgreSQL/MySQL union proof runs only in a new detached worktree with fresh `composer update`, never a copied/symlinked ignored `vendor/`; success requires both Composer commands to exit 0. The stale `tests/Pest.php` registration remains outside P4.10 until it demonstrably affects this clean proof. | P4.15's copied local vendor yielded 669/669 Pest output but strict `[DEBUG-BATCH-QUERY]` stdout and exit 1 on SQLite/recorded PG; the accepted CI job already performs a fresh install. This isolates environment integrity from D40/product behavior and prevents a false green. RAG:— (repo-grounded: findings/P4.10-debug-stdout-2026-07-22.md; research/11-p4.10-clean-vendor-union-proof.md; .github/workflows/tests.yml:115-118) |
 | D42 | 2026-07-22 | По прямой команде владельца P4.5 заменяет доказанно несовместимый Infection runner на bundled native Pest mutate; per-package blocking score — `floor(measured)-2`, excludes остаются только с inline rationale. Scope Files уточнён: `composer.lock` игнорируется проектом и не является deliverable. | Infection останавливался на Pest JUnit `TestNotFound` до мутаций; native runner даёт измеримый score и blocking CI; dependency cleanup проверен fresh install. RAG:— (repo-grounded: handoff.md предыдущего P4.6; artifacts/P4-mutation-baseline.md; .gitignore:12) |
 | D43 | 2026-07-22 | Snapshot gate канонизирует Reflection same-class type в `self` (включая nullable), чтобы PHP 8.5 не превращал неизменённый source contract в ложный API drift. Публичный API и snapshot fixture не меняются. | GitHub Tests выявил у PHP 8.5 class-name rendering вместо historical `self`; `0a97ffd` нормализует только engine representation. RAG:— (repo-grounded: tests/Unit/ApiBoundaryTest.php; GitHub Tests `29896710961`/`29897276221`) |
+| D44 | 2026-07-22 | P5 реопенена только для control-plane repair после RED audit: roadmap и handoff получают единственный маршрут `plan-audit P5 → archive`; release, docs и item deliverables не переисполняются. | Audit P5 зафиксировал stale roadmap, противоречивый handoff и пустой Phase Handoff; исправление не меняет продуктовые артефакты. RAG:— (repo-grounded: phases/P5.md `## Audit P5 — 2026-07-22`) |
 
 ## 6. Update Log
 
@@ -234,6 +235,8 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-exec/implementation-medium | P4.5 закрыт (🟢): native Pest ratchet 98% для core/filament/context, fresh Xdebug CI 100% и independent review APPROVE; legacy Infection runner удалён — детали см. phases/P4.md P4.5 Completion Notes. |
 | 2026-07-22 | plan-close/implementation-low | Фаза P4 закрыта: 15/15 items terminal (11🟢/4🟠); clean vendor, GitHub Tests `29897276221` и Mutation Testing `29897276175` зелёные; P4 Phase Handoff и roadmap сверены. |
 | 2026-07-22 | plan-run/GPT-5.6 Sol/high | P5.1 закрыт: самодостаточный канон усиления пакета принят после full-review — детали см. phases/P5.md P5.1 Completion Notes. |
+| 2026-07-22 | plan-design/frontier-high | P5 реопенена по D44: устранены stale execution routes и восстановлен единый переход к final audit P5 — детали см. phases/P5.md Audit P5. |
+| 2026-07-22 | plan-close/implementation-low | Фаза P5 закрыта: 3/3 items 🟢; release/docs/control-plane сверены, final audit P5 остаётся гейтом archive — детали см. phases/P5.md Phase Handoff. |
 
 ## Обсуждение
 
