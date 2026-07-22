@@ -3,6 +3,8 @@ name: Split packages
 # Publishes the monorepo's packages to their standalone, read-only repositories
 # on every release tag. Packagist watches those repos (via webhook) and picks up
 # the new version automatically. The split repos are what users `composer require`.
+# Split is deferred until the one-time setup in RELEASING.md is complete. Enable it
+# by creating the repository variable SPLIT_ENABLED=true.
 #
 # One-time setup (see RELEASING.md):
 #   1. Create the three target repos under the org (azguard-core/-filament/-context).
@@ -21,6 +23,7 @@ permissions:
 jobs:
   split:
     name: Split ${{ matrix.package.name }}
+    if: ${{ vars.SPLIT_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

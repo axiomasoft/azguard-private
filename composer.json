@@ -11,9 +11,9 @@
     ],
     "require": {
         "php": "^8.3",
-        "axioma-studio/azguard-core": "^0.2",
-        "axioma-studio/azguard-filament": "^0.2",
-        "axioma-studio/azguard-context": "^0.2"
+        "axioma-studio/azguard-core": "^0.3",
+        "axioma-studio/azguard-filament": "^0.3",
+        "axioma-studio/azguard-context": "^0.3"
     },
     "require-dev": {
         "laravel/pint": "^1.13",
@@ -37,9 +37,9 @@
             "url": "packages/*",
             "options": {
                 "versions": {
-                    "axioma-studio/azguard-core": "0.2.0",
-                    "axioma-studio/azguard-filament": "0.2.0",
-                    "axioma-studio/azguard-context": "0.2.0"
+                    "axioma-studio/azguard-core": "0.3.0",
+                    "axioma-studio/azguard-filament": "0.3.0",
+                    "axioma-studio/azguard-context": "0.3.0"
                 }
             }
         }

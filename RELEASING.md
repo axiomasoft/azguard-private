@@ -26,24 +26,30 @@ Composer derives the version from the git tag the split action pushes.
 
 ## Cutting a release
 
-1. Ensure `main` is green: `composer test`, `composer analyse`, `composer lint:check`, `composer refactor:check`.
+1. Ensure `main` is green with the full local gate: `composer check`.
 2. Update `CHANGELOG.md` (or let `git-cliff` generate it on tag).
-3. Tag and push:
+3. After explicit owner approval, create and push an annotated tag:
    ```bash
-   git tag v1.0.0
+   git tag -a v1.0.0 -m "v1.0.0 — release summary"
    git push origin v1.0.0
    ```
 4. CI takes over:
    - **`release.yml`** validates every package manifest (`composer validate --strict`),
      re-runs analyse + style + tests, then creates the GitHub release.
-   - **`split.yml`** pushes `packages/*` to the standalone repos with the same tag.
-   - Packagist picks up each new tag via webhook.
+   - **`changelog.yml`** regenerates and commits `CHANGELOG.md` to `main`.
+   - **`split.yml`** is skipped until its one-time setup is complete.
 
 Local resolution of the `^1.0` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
 the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
 
-## One-time setup (before the first split)
+## Split and Packagist status — 2026-07-22
+
+Split repositories and Packagist publication are deferred for the private monorepo
+(D25). Release tags still create a GitHub Release and update `CHANGELOG.md`; the
+`split` job is disabled by default through the repository variable guard.
+
+## One-time setup (before enabling split)
 
 1. Create three empty repos under the org: `azguard-core`, `azguard-filament`,
    `azguard-context`. They are **read-only mirrors** — never push to them by hand.
@@ -51,3 +57,5 @@ the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
    add it as the `MONOREPO_SPLIT_TOKEN` repository secret.
 3. Submit each mirror to [Packagist](https://packagist.org/packages/submit) and
    enable the GitHub service hook so new tags auto-update.
+4. Create the repository variable `SPLIT_ENABLED=true` only after steps 1–3 are
+   complete; this enables the guarded `split` job on future release tags.
