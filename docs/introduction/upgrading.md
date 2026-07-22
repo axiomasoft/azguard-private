@@ -212,6 +212,10 @@ in place):
   `expires_at` column backing the new TTL-parity on context grants (see "Direct-grant fluent
   grammar unification" above).
 
+For a fresh MySQL/MariaDB schema, RBAC composite-key strings use `utf8mb4_bin`: keys that differ
+only by letter case are distinct, matching PHP comparison semantics. Review any case-only RBAC
+data or assumptions before upgrading; already-migrated databases are not changed in place.
+
 ```bash
 php artisan migrate --path=vendor/axioma-studio/azguard-core/database/migrations
 php artisan migrate --path=vendor/axioma-studio/azguard-context/database/migrations  # if you use the context package

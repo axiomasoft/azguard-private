@@ -213,6 +213,11 @@ grep -rln "implements PermissionDefinition" packages tests --include='*.php'  # 
   nullable-колонка `expires_at`, несущая новую TTL-парность context-грантов (см. «Единая
   fluent-грамматика прямых грантов» выше).
 
+В новой MySQL/MariaDB-схеме строковые части составных RBAC-ключей используют `utf8mb4_bin`:
+ключи, различающиеся только регистром, считаются разными — как и при сравнении в PHP. Перед
+обновлением проверьте case-only RBAC-данные и допущения; уже применённые миграции не меняются
+задним числом.
+
 ```bash
 php artisan migrate --path=vendor/axioma-studio/azguard-core/database/migrations
 php artisan migrate --path=vendor/axioma-studio/azguard-context/database/migrations  # если используете пакет context
