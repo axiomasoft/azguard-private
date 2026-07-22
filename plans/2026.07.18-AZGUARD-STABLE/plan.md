@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4.4 closed: Redis cross-process race and Octane isolation) |
+| Last Updated | 2026-07-22 (P4.6 closed: baseline 29→10; active UnitFilament suite retained) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
