@@ -113,7 +113,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 11/15 | 🟠 Done with deviations |
-| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 2/3 | 🟡 In progress |
+| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 3/3 | 🟢 Done |
 
 ## 5. Decision Log
 
