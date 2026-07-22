@@ -36,18 +36,24 @@ run_package() {
     case "$package" in
         core)
             path='packages/core/src'
+            # Console entrypoints and Facades are declarative framework adapters;
+            # their domain behavior is exercised through their services.
             ignored='Commands,Facades'
-            min_score="${MUTATION_MIN_CORE:-0}"
+            min_score=98
             ;;
         filament)
             path='packages/filament/src'
+            # These directories declare Filament framework wiring; package behavior
+            # is covered through the underlying policy and registry classes.
             ignored='Commands,Resources,Pages'
-            min_score="${MUTATION_MIN_FILAMENT:-0}"
+            min_score=98
             ;;
         context)
             path='packages/context/src'
+            # Console entrypoints are declarative adapters; mutate the context
+            # domain layer rather than generated command plumbing.
             ignored='Commands'
-            min_score="${MUTATION_MIN_CONTEXT:-0}"
+            min_score=98
             ;;
         *)
             echo "[mutation-gate] unknown package: $package" >&2

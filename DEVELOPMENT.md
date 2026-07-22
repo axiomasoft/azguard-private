@@ -30,7 +30,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 6) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
-| `composer mutate` | Infection | Mutation testing |
+| `composer mutate` | Pest mutate | Per-package mutation testing |
 | `composer check` | — | Run every CI gate (style + analysis + refactor + types + tests) |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
@@ -44,15 +44,17 @@ dedicated commands below.
 
 ## Mutation-ratchet policy
 
-Raise `minMsi` and `minCoveredMsi` only from a fresh, successful per-package
-mutation measurement: each new threshold is `floor(measured score) - 2` and
-must never be below its previous value. Do not change a threshold to make a
-red gate pass. Exclusions require an inline rationale and are reviewed as code.
+Pest's native mutator reports one covered mutation score per package. Raise a
+blocking threshold only from a fresh, successful Xdebug measurement: each new
+threshold is `floor(measured score) - 2` and must never be below the previous
+threshold. Do not lower a threshold to make a red gate pass. Exclusions live
+next to the package settings in `bin/mutation-gate.sh`, carry an inline
+rationale, and are reviewed as code.
 
-At P4.5, Infection 0.34 cannot reconcile Pest 4 JUnit identifiers with its
-coverage trace, so no valid score exists and the thresholds remain unchanged.
-The advisory workflow's green job does not override a failed Infection step;
-see `plans/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
+P4.5 measured 100.00% for core, filament, and context, so all three native
+Pest gates enforce 98%. Local runs honestly skip when no pcov/Xdebug driver is
+installed; CI supplies Xdebug and remains blocking. Evidence is in
+`plans/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
 
 ## Local database matrix
 
