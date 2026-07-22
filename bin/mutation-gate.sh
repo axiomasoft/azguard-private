@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
-# Coverage/mutation gate for `composer check`.
+# Native Pest mutation gate.
 #
-# Runs per-package Infection (core/filament/context) against fresh
-# coverage, honoring diff-scoped mode on PRs (F50, ARCHITECT_REVIEW.md §4.6).
-#
-# Honest-skip contract: mutation testing REQUIRES a coverage driver
-# (Xdebug or PCOV). Local dev boxes frequently don't have one installed
-# (perf cost). Rather than let `composer check` fail for a reason
-# unrelated to code quality, this script skips with a loud warning when
-# no driver is available — CI (tests.yml/mutation.yml) always has one,
-# so the gate is never silently skipped where it matters.
+# Pest 4 bundles pest-plugin-mutate, whose runner keeps the coverage test IDs
+# consistent with Pest. Infection 0.34 cannot resolve those IDs (P4.5).
+# Each package starts from fresh coverage; scores are enforced independently.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-COVERAGE_DIR="build/coverage"
-PACKAGES=(core filament context)
 
 has_coverage_driver() {
     php -m | grep -qiE '^(pcov|xdebug)$'
@@ -23,34 +14,59 @@ has_coverage_driver() {
 
 if ! has_coverage_driver; then
     cat >&2 <<'EOF'
-[mutation-gate] SKIPPED — no coverage driver (pcov/xdebug) available in this
-PHP runtime. Coverage/mutation cannot execute here; this is an infra gap,
-not a code-quality signal. CI (tests.yml `coverage` job, mutation.yml) runs
-with Xdebug and enforces this gate for real. Install pcov or xdebug locally
-to run this gate before pushing:
-  pecl install pcov   # or: pecl install xdebug
+[mutation-gate] SKIPPED — no coverage driver (pcov/xdebug) is available in this
+PHP runtime. CI runs this gate with Xdebug; install pcov or xdebug locally to
+obtain an enforced native Pest mutation score.
 EOF
     exit 0
 fi
 
-mkdir -p "$COVERAGE_DIR"
-
-echo "[mutation-gate] generating coverage (XML) once, reused per package..."
-XDEBUG_MODE=coverage vendor/bin/pest --coverage-xml="$COVERAGE_DIR/xml" --min=0
-
-DIFF_ARGS=()
-if [[ "${MUTATION_GATE_DIFF_SCOPED:-0}" == "1" ]]; then
-    BASE="${MUTATION_GATE_DIFF_BASE:-origin/main}"
-    echo "[mutation-gate] diff-scoped mode against ${BASE}"
-    DIFF_ARGS=(--git-diff-lines --git-diff-base="$BASE")
+if (($# == 0)); then
+    packages=(core filament context)
+else
+    packages=("$@")
 fi
 
-for pkg in "${PACKAGES[@]}"; do
-    echo "[mutation-gate] === ${pkg} ==="
-    XDEBUG_MODE=coverage vendor/bin/infection \
-        --configuration="infection.${pkg}.json5" \
-        --coverage="$COVERAGE_DIR/xml" \
-        --threads=4 \
-        --no-progress \
-        "${DIFF_ARGS[@]}"
+run_package() {
+    local package="$1"
+    local path
+    local ignored
+    local min_score
+
+    case "$package" in
+        core)
+            path='packages/core/src'
+            ignored='Commands,Facades'
+            min_score="${MUTATION_MIN_CORE:-0}"
+            ;;
+        filament)
+            path='packages/filament/src'
+            ignored='Commands,Resources,Pages'
+            min_score="${MUTATION_MIN_FILAMENT:-0}"
+            ;;
+        context)
+            path='packages/context/src'
+            ignored='Commands'
+            min_score="${MUTATION_MIN_CONTEXT:-0}"
+            ;;
+        *)
+            echo "[mutation-gate] unknown package: $package" >&2
+            exit 2
+            ;;
+    esac
+
+    echo "[mutation-gate] === $package (minimum ${min_score}%) ==="
+    XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/pest \
+        --mutate \
+        --parallel \
+        --processes=4 \
+        --path="$path" \
+        --ignore="$ignored" \
+        --covered-only \
+        --min="$min_score" \
+        --no-cache
+}
+
+for package in "${packages[@]}"; do
+    run_package "$package"
 done
