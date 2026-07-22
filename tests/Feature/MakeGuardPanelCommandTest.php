@@ -4,22 +4,25 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 
-beforeEach(function (): void {
-    File::deleteDirectory(directory: base_path('app/Guards'));
-    File::deleteDirectory(directory: base_path('Modules'));
-});
+function guardPanelTestPath(string $suffix): string
+{
+    return 'app/Guards/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'/'.$suffix;
+}
 
 it('создаёт guard-панель с доменной структурой', function (): void {
+    $path = guardPanelTestPath(suffix: 'Structure');
+
     $this->artisan(
         command: 'make:guard-panel',
         parameters: [
             'panel' => 'Admin',
             'domain' => 'Documents',
             '--role' => 'SuperAdmin',
+            '--path' => $path,
         ],
     )->assertSuccessful();
 
-    $basePath = base_path('app/Guards/Admin');
+    $basePath = base_path($path.'/Admin');
 
     expect($basePath.'/AdminGuardPanelProvider.php')->toBeFile()
         ->and($basePath.'/Roles/SuperAdminRole.php')->toBeFile()
@@ -27,7 +30,7 @@ it('создаёт guard-панель с доменной структурой',
         ->and($basePath.'/Documents/Policies/DocumentsPolicy.php')->toBeFile();
 
     $policyContent = File::get(path: $basePath.'/Documents/Policies/DocumentsPolicy.php');
-    expect($policyContent)->toContain('namespace App\Guards\Admin\Documents\Policies;')
+    expect($policyContent)->toContain('namespace App\Guards\P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'\Structure\Admin\Documents\Policies;')
         ->and($policyContent)->toContain('use AuthorizesPermission;')
         ->and($policyContent)->toContain('#[GuardPolicy');
 
@@ -39,44 +42,53 @@ it('создаёт guard-панель с доменной структурой',
 });
 
 it('создаёт Abilities при флаге --with-abilities', function (): void {
+    $path = guardPanelTestPath(suffix: 'Abilities');
+
     $this->artisan(
         command: 'make:guard-panel',
         parameters: [
             'panel' => 'BlogAdmin',
             'domain' => 'Posts',
-            '--path' => 'Modules/Blog/Guards',
+            '--path' => $path,
             '--with-abilities' => true,
         ],
     )->assertSuccessful();
 
-    expect(base_path('Modules/Blog/Guards/BlogAdmin/Posts/Abilities/PostsAbilities.php'))->toBeFile();
+    expect(base_path($path.'/BlogAdmin/Posts/Abilities/PostsAbilities.php'))->toBeFile();
 });
 
 it('auto-registers the generated panel provider in config/az-guard.php', function (): void {
+    $path = guardPanelTestPath(suffix: 'Registration');
+    $application = app();
+    $originalConfigPath = $application->configPath();
+    $isolatedConfigPath = base_path('storage/framework/testing/P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'/config');
+    $application->useConfigPath($isolatedConfigPath);
     $configPath = config_path('az-guard.php');
-    $backup = File::exists($configPath) ? File::get($configPath) : null;
 
     File::ensureDirectoryExists(dirname($configPath));
     File::put($configPath, "<?php\n\nreturn [\n    'panels' => [],\n];\n");
 
-    $this->artisan(
-        command: 'make:guard-panel',
-        parameters: ['panel' => 'Admin', 'domain' => 'Documents'],
-    )->assertSuccessful();
+    try {
+        $this->artisan(
+            command: 'make:guard-panel',
+            parameters: ['panel' => 'Admin', 'domain' => 'Documents', '--path' => $path],
+        )->assertSuccessful();
 
-    expect(File::get($configPath))
-        ->toContain('App\Guards\Admin\AdminGuardPanelProvider::class');
-
-    $backup === null ? File::delete($configPath) : File::put($configPath, $backup);
+        expect(File::get($configPath))
+            ->toContain('App\Guards\P4Parallel'.(getenv('TEST_TOKEN') ?: 'sequential').'\Registration\Admin\AdminGuardPanelProvider::class');
+    } finally {
+        $application->useConfigPath($originalConfigPath);
+        File::deleteDirectory($isolatedConfigPath);
+    }
 });
 
 it('отказывается если панель уже существует', function (): void {
-    $path = base_path('app/Guards/ExistingPanel');
-    File::makeDirectory(path: $path, mode: 0755, recursive: true);
+    $path = guardPanelTestPath(suffix: 'Existing');
+    File::makeDirectory(path: base_path($path.'/ExistingPanel'), mode: 0755, recursive: true);
 
     $this->artisan(
         command: 'make:guard-panel',
-        parameters: ['panel' => 'ExistingPanel', 'domain' => 'Docs'],
+        parameters: ['panel' => 'ExistingPanel', 'domain' => 'Docs', '--path' => $path],
     )
         ->assertFailed();
 });

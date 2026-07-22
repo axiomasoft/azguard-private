@@ -163,6 +163,8 @@ final class PermissionCacheLockSpy implements LockContract
  * store — exactly the Octane / cross-request scenario the epoch guards against.
  */
 beforeEach(function () {
+    PermissionCacheLockSpyStore::$log = [];
+
     // A named array-backed store persists across fresh PermissionCache instances,
     // standing in for a real cross-request store (Redis / file) with infinite TTL.
     config()->set('cache.stores.azguard_test', ['driver' => 'array']);

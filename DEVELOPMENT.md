@@ -25,6 +25,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 | Command | Tool | Description |
 |---|---|---|
 | `composer test` | Pest | Run the test suite |
+| `composer test:parallel` | Pest / ParaTest | Run the SQLite suite in parallel with random order intact |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 6) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
@@ -35,6 +36,11 @@ Mount or symlink the package directory into the app, then `composer update`.
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
+
+`composer test:parallel` keeps Pest's random execution order and passes the
+same 1G memory limit to every ParaTest worker. It is intentionally limited to
+the SQLite lane; run PostgreSQL and MySQL lanes sequentially with their
+dedicated commands below.
 
 ## Local database matrix
 
