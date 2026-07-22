@@ -5,8 +5,8 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.32 (P4.3 parallel
-hardening зелёный; далее P4.4)
+**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.33 (P4.4 race/Octane
+proof закрыт; далее P4.5)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
@@ -34,7 +34,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P4.15 | solo | plan-exec | implementation/medium → Terra/medium | — | D40: class-local Testbench refresh-state annotation; recorded random PG seed + full driver proof; full review; then P4.10 clean proof |
 | P4.10 | B6 | ✅ закрыт | implementation/medium → Terra/medium | — | fresh-vendor union proof, CI DB matrix, EN/RU docs and baseline provenance; full review APPROVE |
 | P4.3 | solo | ✅ закрыт | implementation/medium → Terra/medium | — | ParaTest, TEST_TOKEN isolation, 3× parallel proof; full review APPROVE |
-| P4.4 | solo | plan-exec | implementation/medium → Terra/medium | — | race C-05/C-14; независимый Sol/high concurrency-review; реальный race → §10 |
+| P4.4 | solo | ✅ закрыт (🟠) | implementation/medium → Terra/medium | — | `07cac2b`: race C-05/C-14, Sol/high APPROVE; raw epoch baseline 1 → 25 after 24 bumps |
 | P4.5 | solo | plan-exec | implementation/medium → Terra/medium | — | mutation-ratchet по честному baseline; full review |
 | P4.6 | solo | plan-exec | implementation/medium → Terra/medium | — | механическая чистка дыр; light review |
 | P5.1 | solo | plan-run (manual) | frontier/high → Sol/high | — | канон флота от фактов всех закрытых фаз; solo |

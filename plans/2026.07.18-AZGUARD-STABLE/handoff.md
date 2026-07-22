@@ -1,25 +1,32 @@
-# HANDOFF — 2026-07-22 — after P4.10
+# HANDOFF — 2026-07-22 — after P4.4
 
-**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.4
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.5
 
 | Параметр | Значение |
 |:--|:--|
-| Model class | implementation |
-| Effort | medium |
-| Capabilities | — |
-| Context | same-session — item |
-| Суть | Execute cross-process Redis epoch-race and Octane RequestState isolation tests. |
+| Model | implementation |
+| Thinking | medium — measured mutation baseline |
+| Context | continue (reset the session context) — ручной item |
+| Суть | Измерить mutation baseline, поднять только честные пороги и провести full review P4.5. |
 
 ```
-$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.4
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.5
 ```
 
-**Done:** P4.3 item commit `23a2a7a` adds explicit ParaTest, worker memory propagation, static-state reset and TEST_TOKEN filesystem/config isolation. Three full 28-worker parallel runs and sequential suite passed 669/669; independent review APPROVE.
+**Done:** `07cac2b` добавил real Redis cross-process test: 8 worker-процессов × 3 bump,
+уникальный prefix и явный skip без Redis; C-14 проверяет scoped `RequestState` после
+`forgetScopedInstances()`. Targeted proof 3×, full sqlite suite, Pint/PHPStan и независимый
+Sol/high review зелёные.
 
-**Remaining:** P4.4–P4.6 → `task:plan-close` P4 → independent phase audit.
+**Remaining:** P4.5 → P4.6 → `task:plan-close` P4 → независимый `task:plan-audit` P4.
 
-**Sources of truth:** `phases/P4.md` P4.3/P4.4; commit `23a2a7a`; `/tmp/p43-final-{1,2,3}.log`; independent P4.3 review.
+**Sources of truth:** `phases/P4.md` P4.4; commit `07cac2b`; independent P4.4 review.
 
-**Open risks:** root ignored `vendor/` is malformed; use a fresh isolated worktree for package validation. P4.4 needs real Redis and `ext-redis`; absent infrastructure must produce a loud skip, not a false green.
+**Open risks:** root ignored `vendor/` malformed; package validation выполнять только в fresh isolated
+worktree. P4.10 item record остаётся `⬜ Not started` при зелёной Phase Status строке, поэтому
+plan-lint имеет 2 existing ERROR до его reconciliation. P4.4 raw epoch starts at 1, поэтому 24 real
+bump завершаются на 25 — это записано как material deviation item-а, production-код не менялся.
 
-**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — P4.4 Redis availability and cross-process worker bootstrap; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 because the clean proof did not reach it.
+**Workarounds/Deferred/Open questions:** workarounds — не использовать copied/symlinked root vendor;
+deferred — P4.5 mutation measurement; open_questions — stale `tests/Pest.php` DebugPgAbort registration
+остается вне P4.10.
