@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.27 |
+| Version | 0.3.28 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4.13 replaces the forbidden MorphColumns digest; P4.14 remains before P4.10 resumes) |
+| Last Updated | 2026-07-22 (D39 redesigns P4.14's driver-aware test seam; P4.10 remains blocked pending its proof) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -93,7 +93,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P4.9 | implementation/medium | plan-exec | точечный query-фикс по D30, детерминированный тест; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
 | P4.12 | implementation/high | manual | предписанный internal schema-helper repair по D37: cross-driver migration correctness, deterministic short identifiers; GPT-5.6 Terra/high, отдельный GPT-5.6 Sol/high read-only review; Review=full |
 | P4.13 | implementation/high | manual | frozen D38 private helper remediation: permitted deterministic short identifier without weakening P4.12's three-driver proof; GPT-5.6 Terra/high, отдельный GPT-5.6 Sol/high review; Review=full |
-| P4.14 | implementation/medium | plan-exec | предписанное D38 recovery test isolation: nested transaction/savepoint proof, без migration/API changes; GPT-5.6 Terra/medium; Review=full |
+| P4.14 | implementation/medium | plan-exec | D39 frozen test-only driver-aware seam: PostgreSQL savepoint recovery while SQLite/MySQL retain the direct QueryException assertion; GPT-5.6 Terra/medium; Review=full |
 | P4.10 | implementation/medium | plan-exec | green-proof+CI+baseline по D30; GPT-5.6 Terra/medium; Review=full в общем checkpoint B6 |
 | P4.3 | implementation/medium | plan-exec | paratest+shared-state hardening; GPT-5.6 Terra/medium; Review=full |
 | P4.4 | implementation/medium | plan-exec | race Redis/Octane; GPT-5.6 Terra/medium исполняет, GPT-5.6 Sol/high независимо ревьюит concurrency-diff; Review=full; реальный race → §10 |
@@ -156,6 +156,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | D36 | 2026-07-21 | Добавлен отдельный **P4.11**: два PG wildcard failures классифицированы как portability test fixtures, хранящие `get_class()` анонимных `BaseRole` с NUL-байтом в persistent `roles.class_name`; P4.11 заменяет только эти fixtures на существующий именованный `SuperAdminRole`, сохраняет обе assertions и не меняет P4.8 migration, RBAC runtime или P3 snapshot. Если именованный fixture не докажет wildcard на PG, P4.11 эскалирует как runtime/P3-вопрос, а не ослабляет тест | Повторяемый PG `35/37` не имеет SQLSTATE/transaction-abort; контроль с именованными SuperAdminRole tests — PG `22/22`. Следовательно, минимальный честный путь — отделить невалидный persistent class-string fixture от продукта; SemVer = no-change при подтверждении. RAG:— (repo-grounded: findings/P4.8-wildcard-follow-up-2026-07-21.md; research/06-p4.8-wildcard-classification.md; root/semver-policy.md §1–4) |
 | D37 | 2026-07-22 | P4.10 UUID `SQLSTATE 1059` получает отдельный **P4.12**, а P4.8 не реопенится: defect находится не в closed migration 000005, а в production-helper `MorphColumns`, который вызывает Laravel UUID morph helpers без explicit index name. P4.12 задаёт короткие deterministic table-aware names и сохраняет длинные configurable-table fixtures; P4.10 остаётся blocked и только после P4.12 повторяет full MySQL proof с `COMPOSER_PROCESS_TIMEOUT=900` | Сокращение test fixture скрыло бы реальный installability defect: migration 000000 также использует `MorphColumns::add()`, Laravel строит default name из table+columns. New item сохраняет P4.8 committed evidence/file ownership, P3/API freeze и SemVer no-change. RAG:— (repo-grounded: findings/P4.10-uuid-morph-index-name-2026-07-22.md; research/07-p4.12-morph-index-portability.md; packages/core/database/migrations/2026_01_01_000000_create_az_guard_tables.php:20-30; root/semver-policy.md §1–4) |
 | D38 | 2026-07-22 | P4.12 и P4.10 provenance не переписываются. Добавлены **P4.13** (замена forbidden `sha1()` только в private deterministic MorphColumns index-name helper) и **P4.14** (PostgreSQL-safe recovery expected rollback exception через nested transaction/savepoint в test seam). P4.10 остаётся 🔴 до терминальности обоих и нового full PG/MySQL proof; CI/docs/B6 review не принимать раньше | Full clean logs независимо показали architecture failure на `sha1()` на обоих драйверах и PG `25P02` после expected migration exception. Тест P4.14 воспроизводит PG failure изолированно и сохраняет документированный unsafe rollback migration 000004; P4.13 сохраняет D37's short table-aware contract. RAG:— (repo-grounded: findings/P4.10-full-lane-blockers-2026-07-22.md; research/08-p4.13-p4.14-recovery.md; phases/P4.md P4.10/P4.12) |
+| D39 | 2026-07-22 | D39 supersedes only D38's P4.14 universal nested-transaction prescription: `ScopeClassMigrationRollbackTest` gets a local driver-aware operation helper. It wraps `migration->down()` in `DB::transaction()` only on `pgsql`, retaining the direct operation and `QueryException` assertion on SQLite/MySQL; after either path a normal same-connection query must succeed. No migration, public API, global Pest harness, configuration or snapshot changes. | The first P4.14 attempt proved the PostgreSQL savepoint recovery twice but MySQL DDL invalidated the nested savepoint and changed the surfaced assertion to `PDOException`. The existing cross-driver constraint helper already uses the same narrow `pgsql`-only savepoint pattern; preserving `QueryException` is the test's explicit contract, whereas a driver-neutral `Throwable`/SQLSTATE assertion would weaken it. RAG:✅ 2026-07-22 (findings/P4.14-laravel-transaction-semantics-2026-07-22.md); RAG:— (repo-grounded: tests/Feature/ScopeClassMigrationRollbackTest.php:28-54; tests/Feature/ModelHasRolesScopesUniqueConstraintTest.php:17-32; vendor/laravel/framework/src/Illuminate/Database/Concerns/ManagesTransactions.php:26-46, 145-174, 261-312) |
 
 ## 6. Update Log
 
@@ -216,6 +217,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-run/implementation-high | P4.12 закрыт: `7ce4934` добавил deterministic short table-aware morph-index names; focused SQLite/PostgreSQL/MySQL proof и Sol/high APPROVE зелёные, P4.10 re-opened для full-lane/CI — детали см. phases/P4.md P4.12 Completion Notes. |
 | 2026-07-22 | plan-design/frontier/high | P4.10 repair design: D38 добавил P4.13 (forbidden digest) и P4.14 (PG transaction recovery), P4.12/P4.10 evidence сохранены; roadmap/handoff обновлены, CI/docs/B6 остаются закрыты до clean proof — детали см. phases/P4.md и research/08-p4.13-p4.14-recovery.md. |
 | 2026-07-22 | plan-run/GPT-5.6 Terra/high | P4.13 закрыт: `cf85e16` заменил forbidden digest на permitted SHA-256 truncation; три driver proof и Sol/high review зелёные — детали см. phases/P4.md P4.13 Completion Notes. |
+| 2026-07-22 | plan-design/frontier/high | P4.14 redesign до DoR: D39 сохраняет `QueryException` и изолирует savepoint только на PostgreSQL; P4.10 остаётся blocked до independent review и clean full DB proof — детали см. phases/P4.md P4.14 и research/09-p4.14-driver-aware-savepoint.md. |
 
 ## Обсуждение
 

@@ -84,3 +84,12 @@ architecture запрещает `sha1()` в private index-name helper, а ожи
 неизменным: не ослаблять architecture/test gates, не переписывать provenance закрытых items и
 не принимать CI/docs до честного full green. Следствие — два минимальных follow-up items
 P4.13/P4.14 (D38), затем только повтор P4.10.
+
+## 2026-07-22 — P4.14: не ослаблять контракт ожидаемого исключения
+
+Владелец отдельно потребовал не считать `QueryException` заранее обязательным: сравнить
+сохранение класса с driver-neutral assertion по фактическому тесту, Laravel API и потребителям.
+Решение D39: класс сохраняется, потому что это явный внутренний контракт negative proof и
+общий cross-driver helper уже применяет `pgsql`-only savepoint seam. PostgreSQL получает
+savepoint recovery, SQLite/MySQL остаются на исходном direct seam; `Throwable`/message/SQLSTATE
+assertion не вводится. Изменения остаются test-only, P3/SemVer не затрагиваются.
