@@ -1,6 +1,6 @@
 # HANDOFF — 2026-07-22 — after P4.10
 
-**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.3
 
 | Параметр | Значение |
 |:--|:--|
@@ -8,18 +8,18 @@
 | Effort | medium |
 | Capabilities | — |
 | Context | same-session — item |
-| Суть | Run the fresh-vendor PostgreSQL/MySQL union proof, then accept CI/docs only if both exit green. |
+| Суть | Execute paratest and random-order hardening after the closed DB-matrix gate. |
 
 ```
-$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.3
 ```
 
-**Done:** P4.15 item commit `704d16b` adds only `#[ResetRefreshDatabaseState]` to `MorphTypeTestCase`. D41 redesigns P4.10 to require a fresh Composer dependency tree for its command-level union proof.
+**Done:** P4.10 accepted CI hunk `425c93b`, fresh-vendor full SQLite/PG/MySQL proof (669/669; 1778/1778/1786 assertions), GitHub DB matrix green, EN/RU upgrading note `3a85dc8`, baseline RESOLVED provenance, and independent APPROVE review.
 
-**Remaining:** P4.10 fresh clean PostgreSQL/MySQL union proof → CI/docs/baseline/B6 only if both commands exit green → P4.3–P4.6 → `task:plan-close` P4 → independent phase audit.
+**Remaining:** P4.3–P4.6 → `task:plan-close` P4 → independent phase audit.
 
-**Sources of truth:** `phases/P4.md` P4.10/P4.15; `plan.md` D40; `findings/P4.10-ulid-refresh-state-2026-07-22.md`; `research/10-p4.15-ulid-refresh-isolation.md`; `/tmp/azguard-p415-{sqlite,pgsql-seed,pgsql,mysql}.log`; item commit `704d16b`.
+**Sources of truth:** `phases/P4.md` P4.10/P4.3; `research/11-p4.10-clean-vendor-union-proof.md`; `findings/P4.2-db-portability-failures.md`; PR #93 checks; commits `425c93b` and `3a85dc8`.
 
-**Open risks:** fresh `composer update` requires network and may reveal dependency drift because no lockfile is committed; any command-level red result keeps CI/docs/baseline/B6 prohibited.
+**Open risks:** root ignored `vendor/` is malformed; use a fresh isolated worktree for package validation. Branch-level PR checks still fail outside P4.10 (commit-title, Infection, PHP 8.5/L13).
 
-**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — CI/docs/baseline/B6 until P4.10 command-level union proof is green; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 unless a clean proof reaches it.
+**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — P4.3 paratest design/validation; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 because the clean proof did not reach it.

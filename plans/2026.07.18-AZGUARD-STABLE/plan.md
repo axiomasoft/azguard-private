@@ -6,11 +6,11 @@
 |:--|:--|
 | Plan ID | 2026.07.18-AZGUARD-STABLE |
 | Title | AzGuard: полный аудит, стабилизация публичного API (акцент — интеграционная поверхность, fluent/DX), структурный канон, тест-углубление по оси корректности, тег v0.3.0; план — эталонная дорожка для пакетов экосистемы |
-| Version | 0.3.30 |
+| Version | 0.3.31 |
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (D41 reopens P4.10 for a fresh-vendor command-level union proof) |
+| Last Updated | 2026-07-22 (P4.10 closed: fresh-vendor union proof and CI DB matrix green) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -112,7 +112,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P1 | Ремедиация находок аудита (волны по severity) | 1/4 | 🟠 Done with deviations |
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
-| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 8/15 | 🟡 In progress |
+| P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 9/15 | 🟡 In progress |
 | P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
 
 ## 5. Decision Log
@@ -208,6 +208,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-18 | plan-exec/sonnet-medium | P4.1 закрыт (🟢): docker-compose.yml + Makefile + DEVELOPMENT.md «Local database matrix» — все три сервиса healthy — детали см. phases/P4.md P4.1 Completion Notes |
 | 2026-07-18 | plan-design/opus (P4.2 ре-дизайн) | Эскалация P4.2 снята: ремедиация portability-багов (D30–D32), P4 7→10 items, roadmap пересобран, v0.3.21 — детали phases/P4.md, research/04-p4.2-remediation.md |
 | 2026-07-18 | plan-exec/sonnet-medium | P4.2 закрыт (🟢): БД-лейн-харнесс закоммичен, фикстура ContextTableNameConfigTest дополнена expires_at (R4), PG/MySQL-лейны запущены и воспроизводят baseline — детали см. phases/P4.md P4.2 Completion Notes |
+| 2026-07-22 | plan-exec/implementation-medium | P4.10 закрыт (🟢): fresh-vendor SQLite/PG/MySQL 669/669, CI DB matrix обе зелёные, EN/RU upgrading и RESOLVED provenance подтверждены; независимый review APPROVE — детали phases/P4.md P4.10 Completion Notes |
 | 2026-07-21 | plan-design/GPT-5.6 | Codex-проекция остатка плана (D33): открытые items маршрутизированы через Luna/Terra/Sol, добавлены независимые review checkpoints и cold-start продолжения незакоммиченного P4.8 — детали roadmap.md и handoff.md. v0.3.22 |
 | 2026-07-21 | plan-design/GPT-5.6 | Полная Codex-only подготовка (D34): добавлен обязательный execution contract, fresh-session/task-plugin gate, точные модели/effort/команды, контур handoff/review и приёмка недоверенного P4.8 diff; активные P4/P5 переведены на доступные Codex skills. v0.3.23 |
 | 2026-07-21 | plan-run/GPT-5.6 Terra/high | P4.8 эскалирован: migration 000005 исправлена и независимо одобрена, но отдельный PG wildcard-defect оставил обязательную validation красной — причина и follow-up см. phases/P4.md P4.8 и D35. |

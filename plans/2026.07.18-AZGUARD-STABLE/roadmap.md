@@ -5,8 +5,8 @@
      (модели/effort) — только группирует запуски. Живой документ: закрытие фазы /
      re-design обновляет таблицу (+строка в Update Log плана). -->
 
-**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.29 (D40 — P4.15
-изолирует ULID Testbench refresh state до повторного P4.10 CI gate)
+**Обновлён:** 2026-07-22 · **Соответствует plan.md:** v0.3.31 (P4.10 fresh-vendor
+union proof и CI DB matrix зелёные; далее P4.3)
 
 **Codex-проекция:** economy = GPT-5.6 Luna · implementation = GPT-5.6 Terra ·
 frontier = GPT-5.6 Sol. Семантический route из plan.md важнее имени provider-модели.
@@ -32,7 +32,7 @@ frontier = GPT-5.6 Sol. Семантический route из plan.md важне
 | P4.13 | solo | plan-run (manual) | implementation/high → Terra/high | — | D38: replace forbidden digest; Sol/high full review; then P4.14 |
 | P4.14 | solo | plan-exec | implementation/medium → Terra/medium | — | D39: local `pgsql` savepoint recovery, direct SQLite/MySQL `QueryException` seam and post-exception query; full review; then P4.10 clean proof |
 | P4.15 | solo | plan-exec | implementation/medium → Terra/medium | — | D40: class-local Testbench refresh-state annotation; recorded random PG seed + full driver proof; full review; then P4.10 clean proof |
-| P4.10 | B6 | plan-exec | implementation/medium → Terra/medium | — | only after P4.13/P4.14: full green proof → CI/docs/baseline; Sol/high B6 review |
+| P4.10 | B6 | ✅ закрыт | implementation/medium → Terra/medium | — | fresh-vendor union proof, CI DB matrix, EN/RU docs and baseline provenance; full review APPROVE |
 | P4.3 | solo | plan-exec | implementation/medium → Terra/medium | — | paratest, отдельный риск-профиль; full review |
 | P4.4 | solo | plan-exec | implementation/medium → Terra/medium | — | race C-05/C-14; независимый Sol/high concurrency-review; реальный race → §10 |
 | P4.5 | solo | plan-exec | implementation/medium → Terra/medium | — | mutation-ratchet по честному baseline; full review |
