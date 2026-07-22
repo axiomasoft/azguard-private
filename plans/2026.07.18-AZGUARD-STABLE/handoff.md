@@ -1,30 +1,25 @@
-# HANDOFF — 2026-07-22 — after P4.15
+# HANDOFF — 2026-07-22 — after P4.10
 
-**Next:** task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
 
 | Параметр | Значение |
 |:--|:--|
-| Model class | frontier |
-| Effort | high |
+| Model class | implementation |
+| Effort | medium |
 | Capabilities | — |
-| Context | cold-start — plan-step |
-| Суть | Re-open P4.10 around the strict-output blocker before another union proof. |
+| Context | same-session — item |
+| Суть | Run the fresh-vendor PostgreSQL/MySQL union proof, then accept CI/docs only if both exit green. |
 
 ```
-$ task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
-
-РЕЖИМ: детализация
-ВХОД: phases/P4.md P4.10/P4.15 → Completion Notes and Known Deviations; /tmp/azguard-p415-{sqlite,pgsql-seed,pgsql,mysql}.log
-СКОУП: 1. установить владельца и узкий scope для `[DEBUG-BATCH-QUERY]` stdout, из-за которого Composer exits 1 after Pest 669/669; 2. сохранить D40/P4.15 и повторно определить честный clean PG/MySQL union gate; 3. не принимать CI/docs/baseline/B6 до обеих command-level green validations
-НЕ ТРОГАТЬ: P4.15's class-local annotation; production API/migrations/P3 snapshot; CI/docs/baseline/B6 before the green union proof
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P4.10
 ```
 
-**Done:** P4.15 item commit `704d16b` adds only `#[ResetRefreshDatabaseState]` to `MorphTypeTestCase`. The recorded PostgreSQL random seed no longer shows ULID-to-bigint `22P02`; Pest reported 669/669 across SQLite, PostgreSQL seed, ordinary PostgreSQL and MySQL. Independent full read-only review: APPROVE.
+**Done:** P4.15 item commit `704d16b` adds only `#[ResetRefreshDatabaseState]` to `MorphTypeTestCase`. D41 redesigns P4.10 to require a fresh Composer dependency tree for its command-level union proof.
 
-**Remaining:** P4.10 redesign for the strict-output blocker → fresh clean PostgreSQL/MySQL union proof → CI/docs/baseline/B6 only if both commands exit green → P4.3–P4.6 → `task:plan-close` P4 → independent phase audit.
+**Remaining:** P4.10 fresh clean PostgreSQL/MySQL union proof → CI/docs/baseline/B6 only if both commands exit green → P4.3–P4.6 → `task:plan-close` P4 → independent phase audit.
 
 **Sources of truth:** `phases/P4.md` P4.10/P4.15; `plan.md` D40; `findings/P4.10-ulid-refresh-state-2026-07-22.md`; `research/10-p4.15-ulid-refresh-isolation.md`; `/tmp/azguard-p415-{sqlite,pgsql-seed,pgsql,mysql}.log`; item commit `704d16b`.
 
-**Open risks:** SQLite seed and PostgreSQL seed write `[DEBUG-BATCH-QUERY]` stdout and Composer exits 1 after passing Pest output. P4.10's green-proof is therefore still blocked; the existing dirty workflow/Pest changes require their own accepted commit and validation.
+**Open risks:** fresh `composer update` requires network and may reveal dependency drift because no lockfile is committed; any command-level red result keeps CI/docs/baseline/B6 prohibited.
 
-**Workarounds/Deferred/Open questions:** workarounds — none; deferred — CI/docs/baseline/B6 until P4.10 command-level union proof is green; open_questions — origin/owner of the debug stdout.
+**Workarounds/Deferred/Open questions:** workarounds — no copied/symlinked local vendor; deferred — CI/docs/baseline/B6 until P4.10 command-level union proof is green; open_questions — stale `tests/Pest.php` DebugPgAbort registration remains outside P4.10 unless a clean proof reaches it.
