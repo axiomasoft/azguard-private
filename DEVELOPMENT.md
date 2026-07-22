@@ -42,6 +42,18 @@ same 1G memory limit to every ParaTest worker. It is intentionally limited to
 the SQLite lane; run PostgreSQL and MySQL lanes sequentially with their
 dedicated commands below.
 
+## Mutation-ratchet policy
+
+Raise `minMsi` and `minCoveredMsi` only from a fresh, successful per-package
+mutation measurement: each new threshold is `floor(measured score) - 2` and
+must never be below its previous value. Do not change a threshold to make a
+red gate pass. Exclusions require an inline rationale and are reviewed as code.
+
+At P4.5, Infection 0.34 cannot reconcile Pest 4 JUnit identifiers with its
+coverage trace, so no valid score exists and the thresholds remain unchanged.
+The advisory workflow's green job does not override a failed Infection step;
+see `plans/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
+
 ## Local database matrix
 
 `composer test` runs against SQLite `:memory:` by default. To exercise the
