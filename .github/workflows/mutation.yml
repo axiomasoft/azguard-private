@@ -54,7 +54,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Generate coverage for Infection
-        run: vendor/bin/pest --coverage-xml=build/coverage/xml --min=0
+        run: vendor/bin/pest --coverage-xml=build/coverage/xml --log-junit=build/coverage/xml/junit.xml --min=0
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
