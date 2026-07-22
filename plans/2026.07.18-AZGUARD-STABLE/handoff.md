@@ -1,6 +1,6 @@
-# HANDOFF — 2026-07-22 — after P4.10 escalation
+# HANDOFF — 2026-07-22 — after P4.10
 
-**Next:** `$ task:plan-design 2026.07.18-AZGUARD-STABLE P4.10`
+**Next:** design-item: task:plan-design 2026.07.18-AZGUARD-STABLE P4.10
 
 | Параметр | Значение |
 |:--|:--|
