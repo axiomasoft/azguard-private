@@ -64,6 +64,75 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
 
+  test-db-matrix:
+    name: DB matrix · ${{ matrix.connection }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        connection: [pgsql, mysql]
+        include:
+          - connection: pgsql
+            service: postgres
+          - connection: mysql
+            service: mysql
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: azguard_test
+          POSTGRES_USER: azguard
+          POSTGRES_PASSWORD: azguard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U azguard -d azguard_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_DATABASE: azguard_test
+          MYSQL_USER: azguard
+          MYSQL_PASSWORD: azguard
+          MYSQL_ROOT_PASSWORD: azguard
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -u root -pazguard --silent"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_pgsql, pdo_mysql
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests (${{ matrix.connection }})
+        run: composer test:${{ matrix.connection }}
+        env:
+          PGSQL_HOST: 127.0.0.1
+          PGSQL_PORT: 5432
+          PGSQL_DATABASE: azguard_test
+          PGSQL_USERNAME: azguard
+          PGSQL_PASSWORD: azguard
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_DATABASE: azguard_test
+          MYSQL_USERNAME: azguard
+          MYSQL_PASSWORD: azguard
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest

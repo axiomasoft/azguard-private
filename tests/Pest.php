@@ -81,6 +81,9 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/WildcardCatalogFilterTest.php',
     );
 
+uses(TestCase::class, RefreshDatabase::class)
+    ->in('Feature/DebugPgAbortTest.php');
+
 uses(ManagerSwapTestCase::class, RefreshDatabase::class)
     ->in('Feature/ManagerSwapTest.php');
 
