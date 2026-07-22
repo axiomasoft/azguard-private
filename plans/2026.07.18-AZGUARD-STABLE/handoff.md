@@ -1,28 +1,31 @@
-# HANDOFF — 2026-07-22 — after P4
+# HANDOFF — 2026-07-22 — after P5.1
 
-**Next:** /task:plan-audit 2026.07.18-AZGUARD-STABLE P4
+**Next:** exec-items: task:plan-exec 2026.07.18-AZGUARD-STABLE P5.2 P5.3
 
 | Параметр | Значение |
 |:--|:--|
-| Model class | frontier |
-| Effort | xhigh |
+| Model class | implementation |
+| Effort | medium |
 | Capabilities | — |
-| Context | cold-start — plan-step |
-| Суть | Read-only adversarial audit: сверить P4 plan facts с commits, CI и deliverables. |
+| Context | same-session — item |
+| Суть | B5: релиз по frozen D25 с owner approve перед push тега, затем миграция root/→docs. |
 
 ```
-$ task:plan-audit 2026.07.18-AZGUARD-STABLE P4
+$ task:plan-exec 2026.07.18-AZGUARD-STABLE P5.2 P5.3
 ```
 
-**Done:** P4 закрыта: 15/15 items terminal (11🟢/4🟠). PR #93: Tests `29897276221` и
-Mutation Testing `29897276175` success; PHP 8.5/L13 snapshot rendering fixed `0a97ffd`.
+**Done:** P5.1 закрыт 🟢. `root/package-hardening-track.md` создан item-коммитом `73837ad`,
+два reviewer findings исправлены отдельными коммитами `9362a7c`/`272acef`; повторный
+independent documentation full-review — ACCEPTED.
 
-**Remaining:** independent `task:plan-audit` P4; only GREEN permits P5.1.
+**Remaining:** B5: P5.2 релиз v0.3.0 с блокирующим owner approve перед push тега; затем P5.3
+миграция root/→docs и подготовка terminal audit/archive. P5.2 не запускался в сессии P5.1.
 
-**Sources of truth:** `phases/P4.md` Phase Handoff; `artifacts/P4-mutation-baseline.md`; commits
-`b265061`, `0a97ffd`; PR #93 CI runs.
+**Sources of truth:** `phases/P5.md` P5.1 Completion Notes; `root/package-hardening-track.md`;
+`roadmap.md` B5; commits `73837ad`, `9362a7c`, `272acef`.
 
-**Open risks:** root ignored `vendor/` повреждён и не используется для package validation.
+**Open risks:** root ignored `vendor/` неполон; release validation должна идти через fresh
+Composer install. Standalone repo не содержит `packages/task/lib`, journal helper недоступен.
 
-**Workarounds/Deferred/Open questions:** native Pest reports one covered score instead of
-Infection MSI/coveredMSI (D42). No open question.
+**Workarounds/Deferred/Open questions:** validation P5.1 повторена в fresh detached worktree;
+split/Packagist отложены по D25. Открытых вопросов нет.

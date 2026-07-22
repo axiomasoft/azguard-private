@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P4 closed: 15/15 terminal; PR #93 Tests and mutation green) |
+| Last Updated | 2026-07-22 (P5.1 closed: fleet package-hardening canon extracted and accepted) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -113,7 +113,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 11/15 | 🟠 Done with deviations |
-| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 0/3 | ⬜ Not started |
+| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 1/3 | 🟡 In progress |
 
 ## 5. Decision Log
 
@@ -232,6 +232,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | 2026-07-22 | plan-design/frontier/high | P4.10 re-opened: D41 требует fresh-vendor detached union proof и не смешивает local debug stdout с product result — детали см. phases/P4.md P4.10 и research/11-p4.10-clean-vendor-union-proof.md. |
 | 2026-07-22 | plan-exec/implementation-medium | P4.5 закрыт (🟢): native Pest ratchet 98% для core/filament/context, fresh Xdebug CI 100% и independent review APPROVE; legacy Infection runner удалён — детали см. phases/P4.md P4.5 Completion Notes. |
 | 2026-07-22 | plan-close/implementation-low | Фаза P4 закрыта: 15/15 items terminal (11🟢/4🟠); clean vendor, GitHub Tests `29897276221` и Mutation Testing `29897276175` зелёные; P4 Phase Handoff и roadmap сверены. |
+| 2026-07-22 | plan-run/GPT-5.6 Sol/high | P5.1 закрыт: самодостаточный канон усиления пакета принят после full-review — детали см. phases/P5.md P5.1 Completion Notes. |
 
 ## Обсуждение
 
