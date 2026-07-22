@@ -10,7 +10,7 @@
 | Status | 🟡 In progress |
 | Document Type | Executable Master Plan |
 | Authoring Model | fable (opus-класс) |
-| Last Updated | 2026-07-22 (P5.1 closed: fleet package-hardening canon extracted and accepted) |
+| Last Updated | 2026-07-22 (P5.2 closed: v0.3.0 tagged, released and verified) |
 | Repository | /home/vostrikov/projects/packages/azguard |
 | Related Packages | core, filament, context |
 | Execution Mode | phase-first |
@@ -113,7 +113,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 | P2 | Структурный канон + fluent/DX редизайн API | 5/10 | 🟠 Done with deviations |
 | P3 | Release-готовность: cut-line, заморозка поверхности, SemVer-политика | 2/3 | 🟠 Done with deviations |
 | P4 | Тест-углубление (ось корректности): docker БД-матрица, portability-ремедиация, race, mutation-ratchet | 11/15 | 🟠 Done with deviations |
-| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 1/3 | 🟡 In progress |
+| P5 | Шаблонизация дорожки + тег v0.3.0 + архивация | 2/3 | 🟡 In progress |
 
 ## 5. Decision Log
 
@@ -167,6 +167,7 @@ implementation→GPT-5.6 Terra, frontier→GPT-5.6 Sol. Пусто = дефол�
 
 | Дата | Кто (role/model) | Что |
 |:--|:--|:--|
+| 2026-07-22 | plan-exec/implementation-medium | P5.2 закрыт: v0.3.0 tagged/released, split skipped guard'ом — детали см. phases/P5.md P5.2 Completion Notes |
 | 2026-07-18 | issue-planner/fable | План создан (design pass 1/3: recon×3 → findings/, синтез research/00, скелеты P0–P5 с контракт-блоками, D1–D6). ACTIVE: — → 2026.07.18-AZGUARD-STABLE. Фокус pass 2: детализация P0 |
 | 2026-07-18 | issue-planner/fable | Заложены приоры research/01-fluent-api-priors.md + RAG-preseed findings/P0-rag-fluent-dx-preseed.md (5 тезисов верифицированы, приор B.7 скорректирован); P0.1 сужен до добора первоисточников (Filament/context7) |
 | 2026-07-18 | issue-planner/fable | Design pass 2/3: P0 детализирована до DoR (6 items, чеклисты C-A/B/C/D, finding-template), workflow wf-azguard-stable-p0-audit.js создан, Routing P0 уточнён, D7–D8, v0.2.0. Фокус pass 3: детализация P1–P5 по фактам аудита P0 |
