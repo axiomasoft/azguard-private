@@ -5,10 +5,16 @@
             "packages/filament/src"
         ],
         "excludes": [
+            // Console entrypoints are declarative; their behavior is covered through services.
             "Commands",
+            // Filament resources declare framework wiring rather than domain logic.
             "Resources",
+            // Filament pages are declarative UI adapters, not unit-testable domain behavior.
             "Pages"
         ]
+    },
+    "phpUnit": {
+        "customPath": "vendor/bin/pest"
     },
     "logs": {
         "text": "build/infection/filament.log",

@@ -5,9 +5,14 @@
             "packages/core/src"
         ],
         "excludes": [
+            // Console entrypoints are declarative; their behavior is covered through services.
             "Commands",
+            // Facades are thin static proxies without independent domain behavior.
             "Facades"
         ]
+    },
+    "phpUnit": {
+        "customPath": "vendor/bin/pest"
     },
     "logs": {
         "text": "build/infection/core.log",

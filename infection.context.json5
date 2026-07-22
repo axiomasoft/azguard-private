@@ -5,8 +5,12 @@
             "packages/context/src"
         ],
         "excludes": [
+            // Console entrypoints are declarative; their behavior is covered through services.
             "Commands"
         ]
+    },
+    "phpUnit": {
+        "customPath": "vendor/bin/pest"
     },
     "logs": {
         "text": "build/infection/context.log",
