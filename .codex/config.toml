@@ -5,10 +5,17 @@ sandbox_mode = "danger-full-access"
 command = "maind"
 args = ["mcp", "--scope", "project:azguard"]
 
-[mcp_servers.codegraph]
+[mcp_servers.serena]
 command = "uvx"
-args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide-assistant", "--project", "/home/vostrikov/projects/packages/azguard", "--enable-web-dashboard", "false"]
-
-[mcp_servers.perplexity]
-command = "${PERPLEXITY_WEB_MCP_BIN:-/home/vostrikov/projects/packages/perplexity-web-mcp/start.sh}"
-args = ["--pool=default"]
+args = [
+    "--from",
+    "git+https://github.com/oraios/serena",
+    "serena",
+    "start-mcp-server",
+    "--context",
+    "ide-assistant",
+    "--project",
+    ".",
+    "--enable-web-dashboard",
+    "false",
+]
