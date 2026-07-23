@@ -1,8 +1,0 @@
-{
-  "name": "php",
-  "version": "0.4.0",
-  "description": "PHP and Laravel core: architecture, structure, conventions, DI, database, repositories, patterns, static analysis",
-  "skills": [
-    "./"
-  ]
-}

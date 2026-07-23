@@ -1,8 +1,0 @@
-{
-  "name": "system",
-  "version": "0.4.0",
-  "description": "Local environment topology: the three hub nodes (Brain vault, swissknifeman, projects base) and how agents navigate between projects and their docs",
-  "skills": [
-    "./"
-  ]
-}

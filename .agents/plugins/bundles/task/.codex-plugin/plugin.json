@@ -1,8 +1,0 @@
-{
-  "description": "Provider-neutral task commands and executable plan protocol for Codex",
-  "name": "task",
-  "skills": [
-    "./adapters/codex/skills"
-  ],
-  "version": "0.3.0"
-}

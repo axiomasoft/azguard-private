@@ -1,8 +1,0 @@
-{
-  "name": "php-packages",
-  "version": "0.4.0",
-  "description": "Laravel package development: scaffold, service provider, testing, compatibility, docs, releases",
-  "skills": [
-    "./"
-  ]
-}
