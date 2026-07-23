@@ -29,4 +29,13 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+
+    public function down(): void
+    {
+        $t = config('az-guard.table_names');
+
+        Schema::dropIfExists(table: $t['model_has_scopes']);
+        Schema::dropIfExists(table: $t['model_has_roles']);
+        Schema::dropIfExists(table: $t['roles']);
+    }
 };
