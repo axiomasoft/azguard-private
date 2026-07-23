@@ -1,0 +1,65 @@
+# Source: anonymized production project
+# Мутационный гейт качества тестов в CI.
+# Две стратегии запуска: инкремент на PR (быстро) + полный прогон на main (advisory).
+name: Mutation Testing
+
+on:
+  pull_request:        # инкремент: мутируем только изменённые строки
+  push:
+    branches: [main]   # полный прогон при merge — advisory, не блокер
+  workflow_dispatch:   # ручной запуск полного прогона
+
+jobs:
+  infection:
+    name: Infection (MSI gate)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # нужна полная история для --git-diff-lines
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3
+          coverage: xdebug          # драйвер покрытия обязателен для Infection
+          tools: composer:v2
+        env:
+          XDEBUG_MODE: coverage
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      # Покрытие генерируем отдельным шагом и переиспользуем в Infection,
+      # чтобы не прогонять весь набор тестов дважды.
+      - name: Generate coverage
+        run: vendor/bin/pest --coverage-xml=build/coverage/xml --min=0
+        env:
+          XDEBUG_MODE: coverage
+
+      # PR: мутируем только diff к origin/main — держим планку на новом коде.
+      - name: Infection (incremental, on PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          vendor/bin/infection \
+            --git-diff-lines \
+            --git-diff-base=origin/main \
+            --threads=4 \
+            --min-msi=70 \
+            --min-covered-msi=80 \
+            --coverage=build/coverage/xml \
+            --no-progress
+
+      # main / manual: полный прогон. Дорого — потому advisory, вне PR-блокировки.
+      - name: Infection (full, on main)
+        if: github.event_name != 'pull_request'
+        run: |
+          vendor/bin/infection \
+            --threads=4 \
+            --min-msi=70 \
+            --min-covered-msi=80 \
+            --coverage=build/coverage/xml \
+            --no-progress

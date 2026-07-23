@@ -1,0 +1,30 @@
+{
+  "skill": "context-economy",
+  "snippets": [
+    {
+      "file": "rules-example.md",
+      "description": "Шаблон path-scoped правила .claude/rules/ с paths: frontmatter",
+      "tags": ["claude-code", "rules", "tokens"]
+    },
+    {
+      "file": "command-prime.md",
+      "description": "Шаблон команды /prime — минимальная загрузка контекста сессии",
+      "tags": ["claude-code", "commands"]
+    },
+    {
+      "file": "command-plan.md",
+      "description": "Шаблон команды /plan — план в файл без выполнения (Plan→Clear→Execute)",
+      "tags": ["claude-code", "commands", "workflow"]
+    },
+    {
+      "file": "command-execute.md",
+      "description": "Шаблон команды /execute — выполнение плана из файла в чистой сессии",
+      "tags": ["claude-code", "commands", "workflow"]
+    },
+    {
+      "file": "claude-md-checklist.md",
+      "description": "Чеклист аудита CLAUDE.md: размер ≤200 строк, тесты на каждую строку, анти-паттерны",
+      "tags": ["claude-code", "claude-md", "tokens"]
+    }
+  ]
+}

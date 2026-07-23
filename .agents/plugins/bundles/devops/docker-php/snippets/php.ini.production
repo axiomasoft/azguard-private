@@ -1,0 +1,4 @@
+[PHP]
+memory_limit = 256M
+max_execution_time = 60
+expose_php = Off

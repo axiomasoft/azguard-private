@@ -1,0 +1,10 @@
+{
+  "skill": "gh-review",
+  "snippets": [
+    {
+      "file": "gh-review-commands.md",
+      "description": "Шпаргалка gh для ревью (pr view/diff/comment/review), точечного чтения чужого репо (gh api contents/commits/rate_limit) и границы с git",
+      "tags": ["github", "gh", "review", "api"]
+    }
+  ]
+}

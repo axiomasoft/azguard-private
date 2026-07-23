@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Source: anonymized production Laravel project -->
+<!-- Дуальная схема БД: основная `app` (из .env) и тестовая `app_test`. -->
+<!-- Замените `app_test` на `<имя_вашей_бд>_test`. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <!-- $_SERVER читается Laravel/Dotenv первым (ServerConstAdapter). Docker инжектит DB_* сюда; переопределяем как и env. -->
+        <!-- DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD наследуются из окружения / .env (Docker: pgsql:5432; хост: 127.0.0.1). Подменяется только ИМЯ БД на app_test. -->
+        <server name="APP_ENV" value="testing"/>
+        <server name="DB_CONNECTION" value="pgsql"/>
+        <server name="DB_DATABASE" value="app_test"/>
+        <server name="CACHE_STORE" value="array"/>
+        <server name="SESSION_DRIVER" value="array"/>
+        <server name="QUEUE_CONNECTION" value="sync"/>
+        <!-- force="true": Docker / хост могут задать эти переменные через getenv; PHPUnit ОБЯЗАН перебить их ради изолированной тестовой БД -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_TIMEZONE" value="UTC"/>
+        <env name="APP_LOCALE" value="en"/>
+        <env name="APP_FALLBACK_LOCALE" value="en"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="app_test" force="true"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="MEDIA_DISK" value="media-test" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

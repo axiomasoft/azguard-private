@@ -1,0 +1,6 @@
+{
+  "name": "vendor/package",
+  "type": "library",
+  "require": { "php": "^8.2" },
+  "autoload": { "psr-4": { "Vendor\\Package\\": "src/" } }
+}

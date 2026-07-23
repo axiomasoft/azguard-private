@@ -1,0 +1,35 @@
+{
+  "skill": "dependency-injection",
+  "snippets": [
+    {
+      "file": "action-di.php",
+      "description": "Два Action с constructor DI: простой (одна зависимость, DB::transaction, Command DTO) и средний (StateMachine + StoreRepository, бизнес-валидация через ValidationException)",
+      "tags": ["di", "action", "transaction", "validation"]
+    },
+    {
+      "file": "service-orchestrator.php",
+      "description": "PersistenceService — оркестрация трёх зависимостей (store-repo + sync-service + attachment-repo); SyncService — делегирование репозиторию, доменное событие, broadcaster",
+      "tags": ["di", "service", "orchestration", "events"]
+    },
+    {
+      "file": "composite-action.php",
+      "description": "Composite Action: многошаговый сценарий через композицию атомарных Actions в одной внешней транзакции (вместо use-case Service)",
+      "tags": ["di", "action", "composition", "transaction"]
+    },
+    {
+      "file": "controller-action.php",
+      "description": "Тонкий контроллер: authorize → FormRequest → mapper → Action → redirect/Inertia; method injection Action в экшен-метод vs constructor injection",
+      "tags": ["di", "controller", "method-injection", "inertia"]
+    },
+    {
+      "file": "provider-bindings.php",
+      "description": "Когда нужен интерфейс: контракт + bind по конфигу, singleton, контекстуальный биндинг — с комментарием «по умолчанию НЕ нужно, конкретные классы резолвятся zero-config»",
+      "tags": ["di", "provider", "bindings", "interfaces"]
+    },
+    {
+      "file": "di-matrix.md",
+      "description": "Матрица разрешённых инъекций по слоям + антипаттерны: app() в Action, инъекция Request, циклы, god-конструктор 6+, интерфейс без второй реализации",
+      "tags": ["di", "architecture", "antipatterns", "layers"]
+    }
+  ]
+}

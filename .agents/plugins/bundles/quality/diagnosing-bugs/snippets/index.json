@@ -1,0 +1,10 @@
+{
+  "skill": "diagnosing-bugs",
+  "snippets": [
+    {
+      "file": "hitl-loop.template.sh",
+      "description": "Шаблон human-in-the-loop bash-скрипта: структурирует ручной/девайс-зависимый прогон (клик человека, ответ физического POS-устройства) как воспроизводимый feedback-loop, чей вывод возвращается агенту",
+      "tags": ["debugging", "feedback-loop", "hitl", "bash", "device"]
+    }
+  ]
+}

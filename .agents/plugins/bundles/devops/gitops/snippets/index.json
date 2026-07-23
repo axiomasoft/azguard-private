@@ -1,0 +1,19 @@
+{
+  "skill": "gitops",
+  "snippets": [
+    {
+      "file": "branch-strategy.md",
+      "description": "Branch strategy",
+      "tags": [
+        "git"
+      ]
+    },
+    {
+      "file": "commit-conventions.md",
+      "description": "Commit conventions",
+      "tags": [
+        "git"
+      ]
+    }
+  ]
+}

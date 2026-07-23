@@ -1,0 +1,34 @@
+// Source: anonymized production project
+// Фрагмент composer.json: пре-флайт тестовой БД встроен перед запуском suite.
+// @db:preflight вызывает shell-скрипт (см. snippets/preflight.sh), затем — тесты.
+// При ненулевом коде скрипта composer прерывает цепочку — suite по dev/prod не стартует.
+{
+  "scripts": {
+    "db:preflight": [
+      "@php -r \"exit((int) (passthru('bash bin/db-test-preflight.sh', $c) === false ? 1 : $c));\""
+    ],
+    "test:preflight": [
+      "bash bin/db-test-preflight.sh"
+    ],
+    "test": [
+      "@php artisan config:clear --ansi",
+      "@test:preflight",
+      "@php artisan test --compact"
+    ],
+    "ci:check": [
+      "Composer\\Config::disableProcessTimeout",
+      "@test"
+    ]
+  },
+
+  "//_git_hook": [
+    "Тот же пре-флайт в git-хуке pre-push — тесты не уйдут в remote по красной/неправильной БД.",
+    "Файл .husky/pre-push (или .git/hooks/pre-push, chmod +x):",
+    "",
+    "  #!/usr/bin/env bash",
+    "  set -euo pipefail",
+    "  # docker-режим по умолчанию; MODE=host для хостового Postgres",
+    "  bash bin/db-test-preflight.sh",
+    "  composer test"
+  ]
+}

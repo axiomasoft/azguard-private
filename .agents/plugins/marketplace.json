@@ -1,0 +1,116 @@
+{
+  "name": "swissknifeman",
+  "interface": {
+    "displayName": "swissknifeman"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/core"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "meta"
+    },
+    {
+      "name": "devops",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/devops"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "infrastructure"
+    },
+    {
+      "name": "laravel-testing",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/laravel-testing"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "oss-dev",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/oss-dev"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "php",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/php"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "php-packages",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/php-packages"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "quality",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/quality"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "engineering"
+    },
+    {
+      "name": "system",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/system"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "meta"
+    },
+    {
+      "name": "task",
+      "source": {
+        "source": "local",
+        "path": "./.agents/plugins/bundles/task"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "ecosystem"
+    }
+  ]
+}

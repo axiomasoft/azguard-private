@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Source: anonymized production Laravel project -->
+<!-- Отдельный конфиг для Dusk: php artisan dusk использует phpunit.dusk.xml,
+     обычные тесты — phpunit.xml. Не смешивать testsuites. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+>
+    <testsuites>
+        <testsuite name="Browser">
+            <directory suffix="Test.php">tests/Browser</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <!-- Изоляция тестовой БД app_test (паттерн: имя_приложения + _test).
+             force="true" обязателен: иначе значения из .env.dusk.local
+             перебьют тестовую БД и migrate:fresh пройдётся по рабочей базе.
+             Фактические креды Dusk (APP_URL, DUSK_*) — из .env.dusk.local. -->
+        <server name="APP_ENV" value="testing"/>
+        <server name="DB_CONNECTION" value="pgsql"/>
+        <server name="DB_DATABASE" value="app_test"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="app_test" force="true"/>
+        <!-- Сессии и очереди должны быть видны и тесту, и artisan serve. -->
+        <env name="SESSION_DRIVER" value="file" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+    </php>
+</phpunit>

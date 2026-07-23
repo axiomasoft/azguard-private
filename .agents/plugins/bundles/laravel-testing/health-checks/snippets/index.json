@@ -1,0 +1,15 @@
+{
+  "skill": "health-checks",
+  "snippets": [
+    {
+      "file": "ExampleCheck.php",
+      "description": "Шаблон кастомной spatie/laravel-health проверки: run(): Result без исключений наружу, try/catch (Throwable), активная проверка ресурса (диск put/get/delete, heartbeat из кэша против порога, TCP-порт через fsockopen), конфиг через config() с дефолтами, диагностика в meta, приватный конструктор + статическая фабрика forDisk()",
+      "tags": ["check", "result", "custom-check", "disk", "tcp", "heartbeat", "factory"]
+    },
+    {
+      "file": "config-health.php",
+      "description": "config/health.php: result store, уведомления (mail/slack, throttle, only_on_failure), json_results_failure_status, secret_token, Oh Dear, проектные секции (scheduler/service) через env; в комментарии — обвязка: Health::checks([...]) с фабриками и встроенными проверками, роуты liveness/readiness/дашборд, расписание health:check + heartbeat шедулера",
+      "tags": ["config", "registration", "notifications", "endpoint", "schedule", "result-store"]
+    }
+  ]
+}

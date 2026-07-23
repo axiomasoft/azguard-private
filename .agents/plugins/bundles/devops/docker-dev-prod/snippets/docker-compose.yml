@@ -1,0 +1,8 @@
+services:
+  app:
+    build: ./php
+    volumes: ['.:/var/www/html']
+  db:
+    image: postgres:16-alpine
+  redis:
+    image: redis:7-alpine

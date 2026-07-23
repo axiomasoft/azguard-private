@@ -1,0 +1,38 @@
+{
+  "skill": "static-analysis",
+  "snippets": [
+    {
+      "file": "pint.json",
+      "description": "Эталонный pint.json: declare_strict_types, date_time_immutable, final_class, fully_qualified_strict_types, global_namespace_import, mb_str_functions, ordered_class_elements, strict_comparison, protected_to_private",
+      "tags": [
+        "pint",
+        "code-style"
+      ]
+    },
+    {
+      "file": "phpstan.neon",
+      "description": "Эталонный phpstan.neon: larastan, level max, paths [app], inferPrivatePropertyTypeFromConstructor",
+      "tags": [
+        "phpstan",
+        "larastan"
+      ]
+    },
+    {
+      "file": "rector.php",
+      "description": "Эталонный rector.php: LaravelSetProvider, TYPE_DECLARATION + Laravel-сеты, withPreparedSets (deadCode/codeQuality/typeDeclarations/privatization/earlyReturn)",
+      "tags": [
+        "rector",
+        "refactoring"
+      ]
+    },
+    {
+      "file": "qa-composer-scripts.json",
+      "description": "Composer-скрипты QA: lint, lint:check, analyse, refactor, qa-конвейер rector → pint → phpstan → tests",
+      "tags": [
+        "composer",
+        "ci",
+        "qa"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "skill": "playwright-e2e",
+  "snippets": [
+    {
+      "file": "playwright.config.ts",
+      "description": "Конфиг E2E: baseURL из env, webServer с reuseExistingServer и env-изоляцией, projects-браузеры, отдельный project setup для логина через storageState, testIdAttribute, артефакты при падении",
+      "tags": ["config", "webserver", "storage-state", "projects"]
+    },
+    {
+      "file": "example.spec.ts",
+      "description": "auth.setup.ts (одноразовый логин → storageState) + order-checkout.spec.ts: залогиненный сценарий, многошаговая форма, getByTestId, загрузка файла, уникальные данные через Date.now, авто-вэйтинг без sleep",
+      "tags": ["spec", "setup", "storage-state", "data-testid", "flow"]
+    },
+    {
+      "file": "ci-step.yml",
+      "description": "GitHub Actions job: установка/кэш браузеров, тестовая БД как service, миграции, env-изоляция данных/медиа, прогон playwright test, публикация отчёта и трейсов",
+      "tags": ["ci", "github-actions", "browsers", "isolation"]
+    }
+  ]
+}
