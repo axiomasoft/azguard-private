@@ -52,6 +52,19 @@ trait HasScopedRoles
     public static function bootHasScopedRoles(): void
     {
         static::addGlobalScope(self::SCOPE_KEY, function (Builder $builder): void {
+            // Resolving Auth::user() loads this model; applying the scope here would recurse.
+            $authenticationModels = array_filter(
+                array: array_column(
+                    array: config(key: 'auth.providers', default: []),
+                    column_key: 'model',
+                ),
+                callback: 'is_string',
+            );
+
+            if (in_array(needle: static::class, haystack: $authenticationModels, strict: true)) {
+                return;
+            }
+
             if (! Auth::check()) {
                 return;
             }

@@ -44,6 +44,24 @@ describe('T1 — panel-aware query-scope filtering (bootHasScopedRoles)', functi
         expect($visibleIds)->toContain($independent->id, $scopedUnderA->id);
     });
 
+    it('does not apply a scoped role to the authentication user model', function (): void {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $this->actingAs($user);
+
+        $role = createRoleWithClass(['name' => 'scoped-filter-auth-user',
+            'level' => 1,
+        ], ScopedFilterRole::class);
+
+        $user->assignScopedRole($role, $user, panelId: 'panel-a');
+
+        AzGuard::setCurrentPanel(panel: Panel::make()->id(id: 'panel-a')->label(label: 'A'));
+
+        $visibleUserIds = User::query()->pluck('id')->all();
+
+        expect($visibleUserIds)->toContain($user->id, $otherUser->id);
+    });
+
     it('honours a null-panel scope under ANY active panel (back-compat)', function (): void {
         $user = User::factory()->create();
         $this->actingAs($user);
