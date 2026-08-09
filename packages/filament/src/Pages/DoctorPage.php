@@ -25,7 +25,7 @@ use UnitEnum;
  */
 final class DoctorPage extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-stethoscope';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-heart';
 
     protected static string|UnitEnum|null $navigationGroup = 'AzGuard';
 
