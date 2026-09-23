@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-09-23
-inputs_sha256: 05a008d6d5373f98c814c7ecac7d039fa657aeb8a5313f23c04da65477be5800
+inputs_sha256: ddec214616ac9f443fb076219a9408de9a8df92124ce3f5ebb9a16b274586305
 generated_by: task plan-views status
 -->
 
@@ -24,7 +24,7 @@ generated_by: task plan-views status
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
 | P1 | Идентичность и срок жизни кэша | 2/2 | 🟢 Done |
-| P2 | Атомарные мутации и согласованная инвалидация | 0/3 | ⬜ Not started |
+| P2 | Атомарные мутации и согласованная инвалидация | 0/3 | 🟡 In progress |
 | P3 | Согласованная подмена моделей | 0/2 | ⬜ Not started |
 | P4 | Runtime panel и единые validation boundaries | 0/2 | ⬜ Not started |
 | P5 | Role identity и безопасное создание панелей | 0/2 | ⬜ Not started |
@@ -42,7 +42,7 @@ generated_by: task plan-views status
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P2.1 | Один атомарный role-permission sync | ⬜ Not started | — |
+| P2.1 | Один атомарный role-permission sync | 🟡 In progress | 2026-09-23 |
 | P2.2 | Согласовать revision и commit protocol | ⬜ Not started | — |
 | P2.3 | Проверить отказ backend и безопасный сброс | ⬜ Not started | — |
 
@@ -111,6 +111,9 @@ generated_by: task plan-views status
 | 2026-09-23 | grok-4.6/high | plan-exec · in-progress · — |
 | 2026-09-23 | grok-4.6/high | plan-exec · closed-green · validUntil, v2 envelope, hit-time expiry; Pest 78, PHPStan clean |
 | 2026-09-23 | grok-4.6/high | plan-close · closed-green · P1.1 and P1.2 GREEN; inline phase close |
+| 2026-09-23 | grok-4.6/high | plan-exec · in-progress · — |
+| 2026-09-23 | grok-4.6/high | plan-design · no-op · Owner attested: P1.md contract-first block added so phase closure matches the generator; design GREEN remains. |
+| 2026-09-23 | grok-4.6/high | plan-audit · audit-green · Owner attested: bind GREEN design to fingerprint after P1 contract-first block for closure generator. No new product audit. |
 
 ## Owner Gates
 
