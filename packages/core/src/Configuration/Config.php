@@ -107,7 +107,12 @@ final class Config
         return (string) config('az-guard.table_names.direct_grants', 'az_direct_grants');
     }
 
-    /** @param 'roles'|'model_has_roles'|'model_has_scopes'|'role_permissions'|'direct_grants' $key */
+    public static function permissionStateTable(): string
+    {
+        return (string) config('az-guard.table_names.permission_state', 'az_guard_permission_state');
+    }
+
+    /** @param 'roles'|'model_has_roles'|'model_has_scopes'|'role_permissions'|'direct_grants'|'permission_state' $key */
     public static function tableName(string $key): string
     {
         return (string) config("az-guard.table_names.{$key}");
@@ -194,6 +199,17 @@ final class Config
         $value = config('az-guard.cache.expiration_time', 3600);
 
         return $value !== null ? (int) $value : null;
+    }
+
+    /**
+     * Deployment generation mixed into cache identity. Changing it creates a
+     * new namespace; old entries expire under TTL instead of being flushed.
+     */
+    public static function cacheGeneration(): int
+    {
+        $value = (int) config('az-guard.cache.generation', 1);
+
+        return $value > 0 ? $value : 1;
     }
 
     /**

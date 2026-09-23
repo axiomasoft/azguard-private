@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Registry\Sources;
 
 use AzGuard\Concerns\HasRoles;
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Contracts\HasRoles as HasRolesContract;
 use AzGuard\Contracts\RoleInterface;
 use AzGuard\Models\Role;
 use AzGuard\Panels\Panel;
@@ -14,7 +16,6 @@ use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Override;
 use UnitEnum;
@@ -40,20 +41,22 @@ final readonly class ClassRoleGrantSource implements GrantSource
     #[Override]
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
-        // Gate on HasRoles (the trait that actually provides $user->roles), so
-        // a user that uses HasRoles directly — not only the HasAzGuard composite
-        // — still resolves its class roles. The Model gate is fail-closed: the
-        // trait's relation cannot exist outside an Eloquent model.
-        if (! $user instanceof Model
-            || ! in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
+        if (! $user instanceof Model) {
             return PermissionSet::empty();
         }
 
-        // Same runtime path as $user->roles (relation-cache included) — the
-        // trait guarantees the relation, mirrored 1:1 by the
-        // AzGuard\Contracts\HasRoles contract (parity-tested).
-        /** @var Collection<int, Role> $roles */
-        $roles = $user->getAttribute('roles');
+        if ($user instanceof HasRolesContract) {
+            $roles = $user->roles()->get();
+        } elseif (in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
+            // Trait-only users (no HasRoles contract) still resolve class roles.
+            $roles = $user->morphToMany(
+                Config::roleModel(),
+                'model',
+                Config::modelHasRolesTable(),
+            )->get();
+        } else {
+            return PermissionSet::empty();
+        }
 
         $keys = $roles
             ->filter(fn ($role): bool => $role->class_name !== null)

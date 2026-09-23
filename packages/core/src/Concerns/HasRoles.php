@@ -10,6 +10,7 @@ use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
 use AzGuard\Models\Role;
 use AzGuard\Permissions\PermissionKey;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
@@ -72,80 +73,112 @@ trait HasRoles
 
     public function assignRole(string|BackedEnum|Role ...$roles): static
     {
-        foreach ($roles as $role) {
-            $roleModel = $this->resolveRole($role);
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
 
-            if ($roleModel === null) {
-                continue;
+        return $state->mutate(function () use ($roles): array {
+            $changed = false;
+
+            foreach ($roles as $role) {
+                $roleModel = $this->resolveRole($role);
+
+                if ($roleModel === null) {
+                    continue;
+                }
+
+                app(PermissionStateRevision::class)->assertSameConnection($roleModel);
+
+                $sync = $this->roles()->syncWithoutDetaching([$roleModel->getKey()]);
+
+                if (($sync['attached'] ?? []) !== []) {
+                    $changed = true;
+                    event(new RoleAttached($this, $roleModel));
+                }
             }
 
-            $this->roles()->syncWithoutDetaching([$roleModel->getKey()]);
-            event(new RoleAttached($this, $roleModel));
-        }
+            $this->flushPermissions();
+            $this->unsetRelation('roles');
 
-        $this->flushPermissions();
-        $this->unsetRelation('roles');
-
-        return $this;
+            return [$this, $changed];
+        });
     }
 
     public function removeRole(string|BackedEnum|Role ...$roles): static
     {
-        foreach ($roles as $role) {
-            $roleModel = $this->resolveRole($role);
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
 
-            if ($roleModel === null) {
-                continue;
+        return $state->mutate(function () use ($roles): array {
+            $changed = false;
+
+            foreach ($roles as $role) {
+                $roleModel = $this->resolveRole($role);
+
+                if ($roleModel === null) {
+                    continue;
+                }
+
+                app(PermissionStateRevision::class)->assertSameConnection($roleModel);
+
+                $detached = $this->roles()->detach($roleModel->getKey());
+
+                if ($detached > 0) {
+                    $changed = true;
+                    event(new RoleDetached($this, $roleModel));
+                }
             }
 
-            $this->roles()->detach($roleModel->getKey());
-            event(new RoleDetached($this, $roleModel));
-        }
+            $this->flushPermissions();
+            $this->unsetRelation('roles');
 
-        $this->flushPermissions();
-        $this->unsetRelation('roles');
-
-        return $this;
+            return [$this, $changed];
+        });
     }
 
     /** @param array<string|BackedEnum|Role> $roles */
     public function syncRoles(array $roles): static
     {
-        $roleIds = [];
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
 
-        foreach ($roles as $role) {
-            $roleModel = $this->resolveRole($role);
+        return $state->mutate(function () use ($roles): array {
+            $roleIds = [];
 
-            if ($roleModel !== null) {
-                $roleIds[] = $roleModel->getKey();
-            }
-        }
+            foreach ($roles as $role) {
+                $roleModel = $this->resolveRole($role);
 
-        $changes = $this->roles()->sync($roleIds);
-
-        // Batch-load all affected roles in 1 query instead of N separate Role::find() calls.
-        $allAffectedIds = array_merge($changes['detached'], $changes['attached']);
-
-        if ($allAffectedIds !== []) {
-            $roleModels = Role::whereIn('id', $allAffectedIds)->get()->keyBy('id');
-
-            foreach ($changes['detached'] as $id) {
-                if ($role = $roleModels->get($id)) {
-                    event(new RoleDetached($this, $role));
+                if ($roleModel !== null) {
+                    app(PermissionStateRevision::class)->assertSameConnection($roleModel);
+                    $roleIds[] = $roleModel->getKey();
                 }
             }
 
-            foreach ($changes['attached'] as $id) {
-                if ($role = $roleModels->get($id)) {
-                    event(new RoleAttached($this, $role));
+            $changes = $this->roles()->sync($roleIds);
+
+            // Batch-load all affected roles in 1 query instead of N separate Role::find() calls.
+            $allAffectedIds = array_merge($changes['detached'], $changes['attached']);
+
+            if ($allAffectedIds !== []) {
+                $roleModels = Role::whereIn('id', $allAffectedIds)->get()->keyBy('id');
+
+                foreach ($changes['detached'] as $id) {
+                    if ($role = $roleModels->get($id)) {
+                        event(new RoleDetached($this, $role));
+                    }
+                }
+
+                foreach ($changes['attached'] as $id) {
+                    if ($role = $roleModels->get($id)) {
+                        event(new RoleAttached($this, $role));
+                    }
                 }
             }
-        }
 
-        $this->flushPermissions();
-        $this->unsetRelation('roles');
+            $this->flushPermissions();
+            $this->unsetRelation('roles');
 
-        return $this;
+            return [$this, $allAffectedIds !== []];
+        });
     }
 
     /** @return Collection<int, string> */

@@ -59,25 +59,25 @@ at a persistent store (the default `'array'` store is request-scoped):
 ```php
 // config/az-guard.php
 'cache' => [
-    'store'           => 'redis',  // any Laravel cache store; 'array' = request-scoped only
-    'expiration_time' => 300,      // seconds — 5 minutes is a safe default
-    'key'             => 'az_guard',
+    'store'           => 'redis',
+    'expiration_time' => 300,
+    'generation'      => 1,
 ],
 ```
 
-With a persistent store, resolved `PermissionSet` objects are serialized into the cache store. The cache key includes the user ID, panel, and a version tag. The tag is invalidated automatically when `flushPermissions()` is called.
+With a persistent store, resolved `PermissionSet` objects are serialized into the cache store. The cache key includes the typed subject identity, panel, permission-state revision, and `cache.generation`. Official mutations bump the revision in the same DB transaction, so a committed revoke cannot stay hidden behind a stale entry. Changing `generation` opens a new namespace; old keys expire under TTL. `guard:cache-reset` advances the revision and clears local request state — it does **not** flush the configured store.
 
-::: warning Always flush after changes
-With persistent cache enabled, always call `$user->flushPermissions()` after any role or grant change that should take effect immediately. Without it, the old permission set will be served until the TTL expires.
+::: warning Always flush after unofficial bulk writes
+Official `assignRole` / `grant` / role-permission sync paths bump the revision themselves. After raw SQL or other bulk writes, run `php artisan guard:cache-reset --force` (or bump revision) so the next check cannot reuse a previous namespace.
 :::
 
 ## Cache key structure
 
 ```
-az_guard:{user_id}:{panel}:{version_tag}
+azg:v2:perm:{digest(subject, panel, discriminator, epoch, revision, generation)}
 ```
 
-The version tag is stored separately and bumped atomically on `flushPermissions()`, so stale keys expire naturally without explicit deletion.
+The per-subject epoch remains a local optimization. The global permission-state revision and `cache.generation` are the correctness fence: a committed mutation or `guard:cache-reset` makes previous keys miss, and old entries expire under TTL without a store-wide flush.
 
 ## Redis strategy recommendations
 

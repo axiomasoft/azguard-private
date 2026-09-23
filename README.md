@@ -162,7 +162,7 @@ $user->hasPermission(UpdatePost::class, 'app');    // -> "app.posts.update"
 | `guard:super-admin --user=` | Promote a user to super-admin |
 | `guard:doctor` | Diagnose the configuration |
 | `guard:list-permissions {panel?}` | List registered permissions |
-| `guard:cache-reset` | Flush the permission cache |
+| `guard:cache-reset` | Advance permission-state revision (does not flush the store) |
 
 `php artisan about` shows AzGuard's version, registered panels and cache store.
 
@@ -177,6 +177,7 @@ Per-request, in-memory by default. For cross-request caching via Redis:
 'cache' => [
     'store'           => 'redis',
     'expiration_time' => 3600,
+    'generation'      => 1,
 ],
 ```
 

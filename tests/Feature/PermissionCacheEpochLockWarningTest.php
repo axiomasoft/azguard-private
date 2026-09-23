@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Tests\Support\IdlePermissionStateRevision;
 use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Support\Facades\Cache;
@@ -93,7 +94,7 @@ it('warns once per request when the epoch bump runs without a lock', function ()
 
     Log::spy();
 
-    $cache = new PermissionCache;
+    $cache = new PermissionCache(permissionState: new IdlePermissionStateRevision);
     $subject = permissionCacheTestSubject(7);
     $cache->forgetForUser($subject, 'app');
     $cache->forgetForUser($subject, 'app');

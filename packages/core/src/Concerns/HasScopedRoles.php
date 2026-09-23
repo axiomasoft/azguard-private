@@ -12,6 +12,7 @@ use AzGuard\Models\Role;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Permissions\PermissionName;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Runtime\RequestState;
@@ -152,39 +153,50 @@ trait HasScopedRoles
             return $this;
         }
 
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
+        $state->assertSameConnection($roleModel);
+
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
-        $scope = ModelHasScope::firstOrNew([
-            'model_type' => $this->getMorphClass(),
-            'model_id' => $this->getKey(),
-            'scope_entity_type' => $entity->getMorphClass(),
-            'scope_entity_id' => $entity->getKey(),
-            'role_id' => $roleModel->getKey(),
-            'panel_id' => $panelId,
-        ]);
+        return $state->mutate(function () use ($roleModel, $entity, $panelId): array {
+            $scope = ModelHasScope::firstOrNew([
+                'model_type' => $this->getMorphClass(),
+                'model_id' => $this->getKey(),
+                'scope_entity_type' => $entity->getMorphClass(),
+                'scope_entity_id' => $entity->getKey(),
+                'role_id' => $roleModel->getKey(),
+                'panel_id' => $panelId,
+            ]);
 
-        // scope_class is guarded (C-11, not mass-assignable) — firstOrCreate()'s
-        // second array goes through the SAME fill()/fillable check as create(),
-        // it is NOT a bypass. Set it via a direct property assignment on the
-        // yet-unsaved instance instead, so the row is persisted in ONE insert:
-        // a firstOrCreate()-then-save() pair leaves a scope_class=null row
-        // ("logic-less", filter never applies) if interrupted between the two
-        // queries. An existing row's scope_class is never touched.
-        if (! $scope->exists) {
-            $roleLogic = $roleModel->getRoleLogic();
-            $scope->scope_class = $roleLogic !== null ? $roleLogic::class : null;
+            app(PermissionStateRevision::class)->assertSameConnection($scope);
 
-            try {
-                $scope->save();
-            } catch (UniqueConstraintViolationException) {
-                // Lost a concurrent insert race — the winner's row (C-16
-                // unique) already carries the same scope; nothing to do.
+            $changed = false;
+
+            // scope_class is guarded (C-11, not mass-assignable) — firstOrCreate()'s
+            // second array goes through the SAME fill()/fillable check as create(),
+            // it is NOT a bypass. Set it via a direct property assignment on the
+            // yet-unsaved instance instead, so the row is persisted in ONE insert:
+            // a firstOrCreate()-then-save() pair leaves a scope_class=null row
+            // ("logic-less", filter never applies) if interrupted between the two
+            // queries. An existing row's scope_class is never touched.
+            if (! $scope->exists) {
+                $roleLogic = $roleModel->getRoleLogic();
+                $scope->scope_class = $roleLogic !== null ? $roleLogic::class : null;
+
+                try {
+                    $scope->save();
+                    $changed = true;
+                } catch (UniqueConstraintViolationException) {
+                    // Lost a concurrent insert race — the winner's row (C-16
+                    // unique) already carries the same scope; nothing to do.
+                }
             }
-        }
 
-        $this->flushPermissions();
+            $this->flushPermissions();
 
-        return $this;
+            return [$this, $changed];
+        });
     }
 
     /**
@@ -209,24 +221,30 @@ trait HasScopedRoles
             return $this;
         }
 
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
+        $state->assertSameConnection($roleModel);
+
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
-        ModelHasScope::query()
-            ->where('model_type', $this->getMorphClass())
-            ->where('model_id', $this->getKey())
-            ->where('scope_entity_type', $entity->getMorphClass())
-            ->where('scope_entity_id', $entity->getKey())
-            ->where('role_id', $roleModel->getKey())
-            ->when(
-                $panelId !== null,
-                fn (Builder $query): Builder => $query->where('panel_id', $panelId),
-                fn (Builder $query): Builder => $query->whereNull('panel_id'),
-            )
-            ->delete();
+        return $state->mutate(function () use ($roleModel, $entity, $panelId): array {
+            $deleted = ModelHasScope::query()
+                ->where('model_type', $this->getMorphClass())
+                ->where('model_id', $this->getKey())
+                ->where('scope_entity_type', $entity->getMorphClass())
+                ->where('scope_entity_id', $entity->getKey())
+                ->where('role_id', $roleModel->getKey())
+                ->when(
+                    $panelId !== null,
+                    fn (Builder $query): Builder => $query->where('panel_id', $panelId),
+                    fn (Builder $query): Builder => $query->whereNull('panel_id'),
+                )
+                ->delete();
 
-        $this->flushPermissions();
+            $this->flushPermissions();
 
-        return $this;
+            return [$this, $deleted > 0];
+        });
     }
 
     /**
@@ -247,17 +265,23 @@ trait HasScopedRoles
             return $this;
         }
 
-        ModelHasScope::query()
-            ->where('model_type', $this->getMorphClass())
-            ->where('model_id', $this->getKey())
-            ->where('scope_entity_type', $entity->getMorphClass())
-            ->where('scope_entity_id', $entity->getKey())
-            ->where('role_id', $roleModel->getKey())
-            ->delete();
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
+        $state->assertSameConnection($roleModel);
 
-        $this->flushPermissions();
+        return $state->mutate(function () use ($roleModel, $entity): array {
+            $deleted = ModelHasScope::query()
+                ->where('model_type', $this->getMorphClass())
+                ->where('model_id', $this->getKey())
+                ->where('scope_entity_type', $entity->getMorphClass())
+                ->where('scope_entity_id', $entity->getKey())
+                ->where('role_id', $roleModel->getKey())
+                ->delete();
 
-        return $this;
+            $this->flushPermissions();
+
+            return [$this, $deleted > 0];
+        });
     }
 
     /**

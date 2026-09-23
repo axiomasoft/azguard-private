@@ -7,9 +7,9 @@ AzGuard кеширует эффективный набор прав пользо
 ```php
 // config/az-guard.php
 'cache' => [
-    'store'           => 'array',                 // 'array' | 'redis' | 'memcached' | 'file' | 'default'
-    'expiration_time' => 3600,                     // TTL в секундах; null = без истечения
-    'key'             => 'azguard.permissions',    // префикс ключа
+    'store'           => 'array',
+    'expiration_time' => 3600,
+    'generation'      => 1,
 ],
 ```
 
@@ -22,7 +22,7 @@ AzGuard кеширует эффективный набор прав пользо
 ## Сброс кеша
 
 ```bash
-# Сброс всего кеша прав
+# Сдвигает DB revision и локальный request-кэш. Store не flush-ится.
 php artisan guard:cache-reset
 
 # Без подтверждения

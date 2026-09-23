@@ -50,6 +50,7 @@ use AzGuard\Registry\Builders\CompositePermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Registry\Sources\DatabaseRoleGrantSource;
 use AzGuard\Registry\Sources\DirectGrantSource;
@@ -113,6 +114,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         // permission sets. Under Octane a singleton would bleed one user's
         // permissions into the next request on the same worker.
         $this->app->scoped(PermissionCache::class);
+
+        $this->app->singleton(PermissionStateRevision::class);
 
         // Reset per request (Octane-safe) — caches scoped-role rows for HasScopedRoles.
         $this->app->scoped(ScopedRoleCache::class);
@@ -302,12 +305,9 @@ final class AzGuardServiceProvider extends ServiceProvider
     }
 
     /**
-     * Flush the permission cache whenever grants or roles change through ANY
-     * path — the fluent GrantBuilder, the AzGuard facade, console commands, or
-     * any code that dispatches these events. The model-trait helpers also flush
-     * inline; these listeners cover the paths that previously did not (notably
-     * GrantBuilder, which only fired the events). Without this a revoked grant
-     * could stay live until TTL when a persistent cache store is used.
+     * Safety-net flush on grant/role events. Official mutations already bump
+     * the permission-state revision in the same transaction; these listeners
+     * are not a second invalidation authority.
      */
     protected function registerCacheInvalidation(): void
     {

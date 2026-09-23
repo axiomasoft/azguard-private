@@ -14,6 +14,7 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Permissions\PermissionName;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -129,25 +130,30 @@ final readonly class GrantBuilder
         $expiresAt = $this->expiresAt
             ?? ($this->ttlSeconds !== null ? Carbon::now()->addSeconds($this->ttlSeconds) : null);
 
-        /** @var DirectGrant $grant */
-        $grant = DirectGrant::query()->updateOrCreate(
-            [
-                'grantable_type' => $this->user->getMorphClass(),
-                'grantable_id' => $this->user->getAuthIdentifier(),
-                'panel_id' => $panel,
-                'permission_key' => $permissionKey,
-            ],
-            ['expires_at' => $expiresAt],
-        );
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new DirectGrant);
 
-        event(new GrantGiven(
-            user: $this->user,
-            permissionKey: $permissionKey,
-            panelId: $panel,
-            grant: $grant,
-        ));
+        return $state->mutate(function () use ($panel, $permissionKey, $expiresAt): array {
+            /** @var DirectGrant $grant */
+            $grant = DirectGrant::query()->updateOrCreate(
+                [
+                    'grantable_type' => $this->user->getMorphClass(),
+                    'grantable_id' => $this->user->getAuthIdentifier(),
+                    'panel_id' => $panel,
+                    'permission_key' => $permissionKey,
+                ],
+                ['expires_at' => $expiresAt],
+            );
 
-        return $grant;
+            event(new GrantGiven(
+                user: $this->user,
+                permissionKey: $permissionKey,
+                panelId: $panel,
+                grant: $grant,
+            ));
+
+            return [$grant, $grant->wasRecentlyCreated || $grant->wasChanged()];
+        });
     }
 
     /**
@@ -161,19 +167,24 @@ final readonly class GrantBuilder
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
         $permissionKey = PermissionName::resolve($permission, $panel);
-        $deleted = $this->baseQuery($panel)
-            ->where('permission_key', $permissionKey)
-            ->delete();
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new DirectGrant);
 
-        if ($deleted > 0) {
-            event(new GrantRevoked(
-                user: $this->user,
-                permissionKey: $permissionKey,
-                panelId: $panel,
-            ));
-        }
+        return $state->mutate(function () use ($panel, $permissionKey): array {
+            $deleted = $this->baseQuery($panel)
+                ->where('permission_key', $permissionKey)
+                ->delete();
 
-        return (int) $deleted;
+            if ($deleted > 0) {
+                event(new GrantRevoked(
+                    user: $this->user,
+                    permissionKey: $permissionKey,
+                    panelId: $panel,
+                ));
+            }
+
+            return [(int) $deleted, $deleted > 0];
+        });
     }
 
     /**
@@ -186,17 +197,22 @@ final readonly class GrantBuilder
     public function revokeAll(): int
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
-        $deleted = $this->baseQuery($panel)->delete();
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new DirectGrant);
 
-        if ($deleted > 0) {
-            event(new GrantRevoked(
-                user: $this->user,
-                permissionKey: PermissionKey::WILDCARD,
-                panelId: $panel,
-            ));
-        }
+        return $state->mutate(function () use ($panel): array {
+            $deleted = $this->baseQuery($panel)->delete();
 
-        return (int) $deleted;
+            if ($deleted > 0) {
+                event(new GrantRevoked(
+                    user: $this->user,
+                    permissionKey: PermissionKey::WILDCARD,
+                    panelId: $panel,
+                ));
+            }
+
+            return [(int) $deleted, $deleted > 0];
+        });
     }
 
     /**

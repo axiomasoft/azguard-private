@@ -8,6 +8,7 @@ use AzGuard\Contracts\ContextGuard as ContextGuardContract;
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Tests\Stubs\User;
+use AzGuard\Tests\Support\IdlePermissionStateRevision;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -76,12 +77,13 @@ it('a real grant/role change STILL bumps the epoch (durable invalidation preserv
 
     $subject = SubjectIdentity::fromAuthenticatable($user);
 
-    $before = (new PermissionCache)->keyFor($subject, 'app');
+    $cache = new PermissionCache(permissionState: new IdlePermissionStateRevision);
+    $before = $cache->keyFor($subject, 'app');
 
     // Simulate the durable path used by DirectGrant/role events/HasPermissions.
-    app(PermissionCache::class)->forgetForUser($subject, 'app');
+    $cache->forgetForUser($subject, 'app');
 
-    $after = (new PermissionCache)->keyFor($subject, 'app');
+    $after = $cache->keyFor($subject, 'app');
 
     expect($after)->not->toBe($before);
 });

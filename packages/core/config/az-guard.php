@@ -81,6 +81,7 @@ return [
         'model_has_scopes' => 'model_has_scopes',
         'role_permissions' => 'az_guard_role_permissions',
         'direct_grants' => 'az_direct_grants',
+        'permission_state' => 'az_guard_permission_state',
     ],
 
     /*
@@ -164,10 +165,13 @@ return [
     | store: 'default' | 'redis' | 'memcached' | 'file' | 'array'
     | Use 'array' to disable cross-request caching (in-memory only, good for tests).
     | expiration_time: TTL in seconds. null = no expiry.
+    | generation: integer mixed into cache identity. Bump on deploy to open a
+    | new namespace without flushing the configured store.
     */
     'cache' => [
         'store' => 'array',
         'expiration_time' => 3600,
+        'generation' => 1,
     ],
 
     /*

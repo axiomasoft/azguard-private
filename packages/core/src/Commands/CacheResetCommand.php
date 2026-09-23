@@ -4,30 +4,23 @@ declare(strict_types=1);
 
 namespace AzGuard\Commands;
 
-use Exception;
+use AzGuard\Configuration\Config;
+use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
+use AzGuard\Runtime\ScopedRoleCache;
 use Illuminate\Console\Command;
+use Throwable;
 
 class CacheResetCommand extends Command
 {
     protected $signature = 'guard:cache-reset {--force : Skip the confirmation prompt}';
 
-    protected $description = 'Flush the AzGuard permission cache store';
+    protected $description = 'Advance the AzGuard permission-state revision without flushing the cache store';
 
-    public function handle(): int
+    public function handle(PermissionStateRevision $permissionState, PermissionCache $permissionCache, ScopedRoleCache $scopedRoleCache): int
     {
-        $store = (string) config('az-guard.cache.store', 'array');
-
-        if ($store === 'array') {
-            $this->info('Cross-request caching is disabled (store=array); nothing to flush.');
-
-            return self::SUCCESS;
-        }
-
-        // flush() clears the ENTIRE cache store, not just AzGuard keys — a generic
-        // store cannot delete by prefix. Point az-guard.cache.store at a dedicated
-        // store to keep this safe, or confirm that wiping the shared store is OK.
         if (! $this->option('force') && ! $this->confirm(
-            "This flushes the ENTIRE '{$store}' cache store, not only AzGuard keys. Continue?",
+            'This advances the AzGuard permission-state revision and clears local request caches. The configured cache store is not flushed. Continue?',
         )) {
             $this->warn('Aborted.');
 
@@ -35,13 +28,22 @@ class CacheResetCommand extends Command
         }
 
         try {
-            cache()->store($store)->flush();
-            $this->info("Flushed the '{$store}' cache store.");
-        } catch (Exception $e) {
-            $this->error("Failed to flush cache: {$e->getMessage()}");
+            $before = $permissionState->current();
+            $revision = $permissionState->connection()->transaction(
+                fn (): int => $permissionState->bump(),
+            );
+        } catch (Throwable $e) {
+            $this->error('Failed to advance permission-state revision: '.$e->getMessage());
 
             return self::FAILURE;
         }
+
+        $permissionCache->forgetAll();
+        $scopedRoleCache->flush();
+
+        $generation = Config::cacheGeneration();
+        $this->info("AzGuard permission cache reset. revision={$revision} generation={$generation}");
+        $this->line("Previous revision was {$before}.");
 
         return self::SUCCESS;
     }

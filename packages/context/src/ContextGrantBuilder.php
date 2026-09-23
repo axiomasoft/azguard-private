@@ -12,6 +12,7 @@ use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Permissions\PermissionName;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -144,29 +145,34 @@ final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
         $expiresAt = $this->expiresAt
             ?? ($this->ttlSeconds !== null ? Carbon::now()->addSeconds($this->ttlSeconds) : null);
 
-        /** @var ContextRole $contextRole */
-        $contextRole = ContextRole::query()->updateOrCreate(
-            [
-                'model_type' => $this->user->getMorphClass(),
-                'model_id' => $this->user->getAuthIdentifier(),
-                'context_type' => $contextType,
-                'context_id' => $contextId,
-                'panel_id' => $panel,
-                'permission_key' => $permissionKey,
-            ],
-            ['expires_at' => $expiresAt],
-        );
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new ContextRole);
 
-        event(new ContextGrantGiven(
-            user: $this->user,
-            permissionKey: $permissionKey,
-            panelId: $panel,
-            contextType: $contextType,
-            contextId: $contextId,
-            contextRole: $contextRole,
-        ));
+        return $state->mutate(function () use ($panel, $contextType, $contextId, $permissionKey, $expiresAt): array {
+            /** @var ContextRole $contextRole */
+            $contextRole = ContextRole::query()->updateOrCreate(
+                [
+                    'model_type' => $this->user->getMorphClass(),
+                    'model_id' => $this->user->getAuthIdentifier(),
+                    'context_type' => $contextType,
+                    'context_id' => $contextId,
+                    'panel_id' => $panel,
+                    'permission_key' => $permissionKey,
+                ],
+                ['expires_at' => $expiresAt],
+            );
 
-        return $contextRole;
+            event(new ContextGrantGiven(
+                user: $this->user,
+                permissionKey: $permissionKey,
+                panelId: $panel,
+                contextType: $contextType,
+                contextId: $contextId,
+                contextRole: $contextRole,
+            ));
+
+            return [$contextRole, $contextRole->wasRecentlyCreated || $contextRole->wasChanged()];
+        });
     }
 
     /**
@@ -183,22 +189,26 @@ final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
         $panel = PanelResolver::resolveOrFail($this->panelId);
         [$contextType, $contextId] = $this->resolveContextOrFail();
         $permissionKey = PermissionName::resolve($permission, $panel);
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new ContextRole);
 
-        $deleted = $this->baseQuery($panel, $contextType, $contextId)
-            ->where('permission_key', $permissionKey)
-            ->delete();
+        return $state->mutate(function () use ($panel, $contextType, $contextId, $permissionKey): array {
+            $deleted = $this->baseQuery($panel, $contextType, $contextId)
+                ->where('permission_key', $permissionKey)
+                ->delete();
 
-        if ($deleted > 0) {
-            event(new ContextGrantRevoked(
-                user: $this->user,
-                permissionKey: $permissionKey,
-                panelId: $panel,
-                contextType: $contextType,
-                contextId: $contextId,
-            ));
-        }
+            if ($deleted > 0) {
+                event(new ContextGrantRevoked(
+                    user: $this->user,
+                    permissionKey: $permissionKey,
+                    panelId: $panel,
+                    contextType: $contextType,
+                    contextId: $contextId,
+                ));
+            }
 
-        return (int) $deleted;
+            return [(int) $deleted, $deleted > 0];
+        });
     }
 
     /**
@@ -214,20 +224,24 @@ final readonly class ContextGrantBuilder implements ContextGrantBuilderContract
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
         [$contextType, $contextId] = $this->resolveContextOrFail();
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection(new ContextRole);
 
-        $deleted = $this->baseQuery($panel, $contextType, $contextId)->delete();
+        return $state->mutate(function () use ($panel, $contextType, $contextId): array {
+            $deleted = $this->baseQuery($panel, $contextType, $contextId)->delete();
 
-        if ($deleted > 0) {
-            event(new ContextGrantRevoked(
-                user: $this->user,
-                permissionKey: PermissionKey::WILDCARD,
-                panelId: $panel,
-                contextType: $contextType,
-                contextId: $contextId,
-            ));
-        }
+            if ($deleted > 0) {
+                event(new ContextGrantRevoked(
+                    user: $this->user,
+                    permissionKey: PermissionKey::WILDCARD,
+                    panelId: $panel,
+                    contextType: $contextType,
+                    contextId: $contextId,
+                ));
+            }
 
-        return (int) $deleted;
+            return [(int) $deleted, $deleted > 0];
+        });
     }
 
     /**

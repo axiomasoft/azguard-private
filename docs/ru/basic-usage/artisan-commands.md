@@ -61,6 +61,11 @@ php artisan guard:cache-reset
 php artisan guard:cache-reset --force
 ```
 
+Сдвигает глобальную permission-state revision и локальный request-кэш.
+Настроенный cache store **не** flush-ится — чужие ключи в том же store
+остаются. Используйте после неофициальных bulk-SQL или смены
+`cache.generation`.
+
 ## `guard:grant` / `guard:grants` / `guard:revoke-grant` / `guard:prune-grants`
 
 ```bash

@@ -8,9 +8,9 @@ use AzGuard\Configuration\Config;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Registry\Values\PermissionSet;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Support\Facades\DB;
 use Override;
 
 /**
@@ -32,7 +32,7 @@ final class DatabaseRoleGrantSource implements GrantSource
         $pivotTable = Config::modelHasRolesTable();
         $permTable = Config::rolePermissionsTable();
 
-        $keys = DB::table($permTable)
+        $keys = (new PermissionStateRevision)->connection()->table($permTable)
             ->join($pivotTable, "{$pivotTable}.role_id", '=', "{$permTable}.role_id")
             ->where("{$pivotTable}.model_type", $userClass)
             ->where("{$pivotTable}.model_id", $userId)

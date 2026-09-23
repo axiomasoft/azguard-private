@@ -11,6 +11,7 @@ use AzGuard\Registry\Definitions\SimplePermissionDefinition;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Values\PermissionSet;
+use AzGuard\Tests\Support\IdlePermissionStateRevision;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 
@@ -359,7 +360,7 @@ describe('EffectivePermissionResolver', function () {
         $resolver = new EffectivePermissionResolver(
             catalog: makeCatalog(['app.posts.view']),
             sources: [$source],
-            cache: new PermissionCache,
+            cache: new PermissionCache(permissionState: new IdlePermissionStateRevision),
         );
 
         $user = makeUser(1);

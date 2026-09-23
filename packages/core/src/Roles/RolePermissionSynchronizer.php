@@ -7,6 +7,7 @@ namespace AzGuard\Roles;
 use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RolePermissionValidator;
 use AzGuard\Models\Role;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
@@ -27,6 +28,7 @@ final readonly class RolePermissionSynchronizer
         }
 
         $this->assertSameConnection($role);
+        app(PermissionStateRevision::class)->assertSameConnection($role);
 
         return $role->getConnection()->transaction(function () use ($role, $selection): RolePermissionSyncResult {
             $locked = $role->newQuery()->whereKey($role->getKey())->lockForUpdate()->first();
@@ -68,6 +70,8 @@ final readonly class RolePermissionSynchronizer
                     'permission_key' => $tuple[1],
                 ]);
             }
+
+            app(PermissionStateRevision::class)->bump();
 
             return new RolePermissionSyncResult(added: count($toAdd), removed: count($toRemove));
         });

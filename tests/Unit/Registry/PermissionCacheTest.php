@@ -5,7 +5,13 @@ declare(strict_types=1);
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Tests\Stubs\User;
+use AzGuard\Tests\Support\IdlePermissionStateRevision;
 use Carbon\CarbonImmutable;
+
+function permissionCacheForTest(): PermissionCache
+{
+    return new PermissionCache(permissionState: new IdlePermissionStateRevision);
+}
 
 describe('PermissionCache', function () {
 
@@ -14,7 +20,7 @@ describe('PermissionCache', function () {
     });
 
     it('generates v2 cache keys embedding the current epoch digest', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(42);
 
         $key = $cache->keyFor($subject, 'app');
@@ -25,7 +31,7 @@ describe('PermissionCache', function () {
     });
 
     it('uses a fixed internal v2 namespace — az-guard.cache.key is not a knob (F38)', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(42);
 
         config(['az-guard.cache.key' => 'tenant7.acl']);
@@ -38,7 +44,7 @@ describe('PermissionCache', function () {
     });
 
     it('remembers result for same subject+panel', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $calls = 0;
 
@@ -59,7 +65,7 @@ describe('PermissionCache', function () {
     });
 
     it('stores separate entries for different subject identities', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
 
         $setA = $cache->rememberForRequest(
             permissionCacheTestSubject(1, User::class),
@@ -80,7 +86,7 @@ describe('PermissionCache', function () {
         config()->set('cache.stores.azguard_test', ['driver' => 'array']);
         config()->set('az-guard.cache.store', 'azguard_test');
 
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $userCalls = 0;
         $adminCalls = 0;
 
@@ -124,7 +130,7 @@ describe('PermissionCache', function () {
     });
 
     it('forgetAll clears entire request cache', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $calls = 0;
 
@@ -149,7 +155,7 @@ describe('PermissionCache', function () {
         config()->set('cache.stores.azguard_test', ['driver' => 'array']);
         config()->set('az-guard.cache.store', 'azguard_test');
 
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $calls = 0;
 
@@ -167,7 +173,7 @@ describe('PermissionCache', function () {
     });
 
     it('forgetRequestCache forces an in-process recompute of that subject+panel', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $calls = 0;
 
@@ -189,7 +195,7 @@ describe('PermissionCache', function () {
     });
 
     it('forgetForUser removes only that subject+panel entry', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subjectOne = permissionCacheTestSubject(1);
         $subjectTwo = permissionCacheTestSubject(2);
         $calls = 0;
@@ -216,7 +222,7 @@ describe('PermissionCache', function () {
     });
 
     it('request cache allows until the exact deadline then recomputes without prune', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $deadline = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
         $calls = 0;
@@ -258,16 +264,16 @@ describe('PermissionCache', function () {
         };
 
         Carbon\Carbon::setTestNow($deadline->subSecond());
-        (new PermissionCache)->rememberForRequest($subject, 'app', $resolve);
+        (permissionCacheForTest())->rememberForRequest($subject, 'app', $resolve);
 
         Carbon\Carbon::setTestNow($deadline);
-        $fresh = new PermissionCache;
+        $fresh = permissionCacheForTest();
         expect($fresh->rememberForRequest($subject, 'app', $resolve)->grants('app.invoice.view'))->toBeFalse()
             ->and($calls)->toBe(2);
     });
 
     it('recompute after the earlier contributor expires keeps a later allow', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(1);
         $early = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
         $late = $early->addHour();
@@ -300,7 +306,7 @@ describe('PermissionCache', function () {
         config()->set('cache.stores.azguard_test', ['driver' => 'array']);
         config()->set('az-guard.cache.store', 'azguard_test');
 
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(9);
         $key = $cache->keyFor($subject, 'app');
         $store = cache()->store('azguard_test');
@@ -331,7 +337,7 @@ describe('PermissionCache', function () {
     });
 
     it('does not cache an already-expired resolve result', function () {
-        $cache = new PermissionCache;
+        $cache = permissionCacheForTest();
         $subject = permissionCacheTestSubject(3);
         $deadline = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
         $calls = 0;

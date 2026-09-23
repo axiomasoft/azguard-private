@@ -27,7 +27,7 @@ so it should never drift from what `php artisan list` reports.
 | `guard:list-scoped-roles` | List all entity-scoped role assignments for a user |
 | `guard:grants` | List direct permission grants |
 | `guard:sync-roles` | Sync PHP role classes with the `roles` table in the database |
-| `guard:cache-reset` | Flush the AzGuard permission cache store |
+| `guard:cache-reset` | Advance the AzGuard permission-state revision without flushing the cache store |
 | `guard:grant` | Issue a direct grant to an AzGuard user |
 | `guard:revoke-grant` | Revoke direct grant(s) for an AzGuard user |
 | `guard:prune-grants` | Delete all expired direct grants |
@@ -156,8 +156,13 @@ php artisan guard:cache-reset          # prompts for confirmation
 php artisan guard:cache-reset --force  # skip the confirmation prompt
 ```
 
-Run this after modifying a role's `permissions()` array in code and
-deploying, so the new permissions take effect immediately.
+Advances the global permission-state revision and clears local request caches.
+It does **not** flush the configured cache store, so application keys in the
+same store are left untouched. Use this after unofficial bulk SQL, a
+`cache.generation` deploy, or when you need a namespace-only reset.
+
+A cache backend get/put/lock failure never turns a stale allow into a success:
+AzGuard recomputes from authorization tables (or fails closed on a source/DB error).
 
 ## Direct grants — `guard:grant` / `guard:grants` / `guard:revoke-grant` / `guard:prune-grants`
 

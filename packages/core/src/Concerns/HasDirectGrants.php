@@ -7,6 +7,7 @@ namespace AzGuard\Concerns;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionName;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -76,17 +77,21 @@ trait HasDirectGrants
     public function grant(string|UnitEnum $permission, string|BackedEnum $panelId, ?DateTimeInterface $expiresAt = null): static
     {
         $panelId = PanelResolver::normalizeId($panelId);
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
 
-        $this->directGrants()->updateOrCreate(
-            ['panel_id' => $panelId, 'permission_key' => PermissionName::resolve($permission, $panelId)],
-            ['expires_at' => $expiresAt],
-        );
+        return $state->mutate(function () use ($permission, $panelId, $expiresAt): array {
+            $grant = $this->directGrants()->updateOrCreate(
+                ['panel_id' => $panelId, 'permission_key' => PermissionName::resolve($permission, $panelId)],
+                ['expires_at' => $expiresAt],
+            );
 
-        if (method_exists($this, 'flushPermissions')) {
-            $this->flushPermissions($panelId);
-        }
+            if (method_exists($this, 'flushPermissions')) {
+                $this->flushPermissions($panelId);
+            }
 
-        return $this;
+            return [$this, $grant->wasRecentlyCreated || $grant->wasChanged()];
+        });
     }
 
     /**
@@ -97,16 +102,20 @@ trait HasDirectGrants
     public function revoke(string|UnitEnum $permission, string|BackedEnum $panelId): static
     {
         $panelId = PanelResolver::normalizeId($panelId);
+        $state = app(PermissionStateRevision::class);
+        $state->assertSameConnection($this);
 
-        $this->directGrants()
-            ->where('panel_id', $panelId)
-            ->where('permission_key', PermissionName::resolve($permission, $panelId))
-            ->delete();
+        return $state->mutate(function () use ($permission, $panelId): array {
+            $deleted = $this->directGrants()
+                ->where('panel_id', $panelId)
+                ->where('permission_key', PermissionName::resolve($permission, $panelId))
+                ->delete();
 
-        if (method_exists($this, 'flushPermissions')) {
-            $this->flushPermissions($panelId);
-        }
+            if (method_exists($this, 'flushPermissions')) {
+                $this->flushPermissions($panelId);
+            }
 
-        return $this;
+            return [$this, $deleted > 0];
+        });
     }
 }

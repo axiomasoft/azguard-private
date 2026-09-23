@@ -13,6 +13,7 @@ use Closure;
 use DateTimeInterface;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Per-request (and optional cross-request) cache for PermissionSet.
@@ -38,11 +39,12 @@ class PermissionCache
 
     public function __construct(
         private readonly RequestState $requestState = new RequestState,
+        private readonly PermissionStateRevision $permissionState = new PermissionStateRevision,
     ) {}
 
     /**
-     * @var array<string, array<string, array<string, PermissionSet>>>
-     *                                                                 subjectDigest => panelId => discriminator => PermissionSet
+     * @var array<string, array<string, array<string, array<int, array<int, PermissionSet>>>>>
+     *                                                                                         subjectDigest => panelId => discriminator => generation => revision => PermissionSet
      */
     private array $requestCache = [];
 
@@ -53,32 +55,49 @@ class PermissionCache
      */
     public function rememberForRequest(SubjectIdentity $subject, string $panelId, Closure $callback, string $discriminator = ''): PermissionSet
     {
+        if ($this->permissionState->inTransaction()) {
+            $set = $this->materialize($callback);
+
+            return $set instanceof PermissionSet ? $set : PermissionSet::empty();
+        }
+
+        $revision = $this->permissionState->current();
+        $generation = Config::cacheGeneration();
         $subjectKey = $subject->digest();
-        $cached = $this->requestCache[$subjectKey][$panelId][$discriminator] ?? null;
+        $cached = $this->requestCache[$subjectKey][$panelId][$discriminator][$generation][$revision] ?? null;
 
         if ($cached instanceof PermissionSet && $this->isLive($cached)) {
             return $cached;
         }
 
         if ($cached instanceof PermissionSet) {
-            unset($this->requestCache[$subjectKey][$panelId][$discriminator]);
+            unset($this->requestCache[$subjectKey][$panelId][$discriminator][$generation][$revision]);
         }
 
         $store = Config::cacheStore();
-        $set = $store !== 'array'
-            ? $this->loadFromStore($this->keyFor($subject, $panelId, $discriminator), $store, $callback)
+        $epoch = $this->currentEpoch($subject, $panelId);
+        $set = $store !== 'array' && $epoch !== null
+            ? $this->loadFromStore($this->keyFor($subject, $panelId, $discriminator, $revision), $store, $callback, $revision)
             : $this->materialize($callback);
 
         if (! $set instanceof PermissionSet) {
             return PermissionSet::empty();
         }
 
-        return $this->requestCache[$subjectKey][$panelId][$discriminator] = $set;
+        if ($this->permissionState->current() !== $revision || Config::cacheGeneration() !== $generation) {
+            return $set;
+        }
+
+        return $this->requestCache[$subjectKey][$panelId][$discriminator][$generation][$revision] = $set;
     }
 
     public function forgetForUser(SubjectIdentity $subject, string $panelId): void
     {
         unset($this->requestCache[$subject->digest()][$panelId]);
+
+        if ($this->permissionState->inTransaction()) {
+            return;
+        }
 
         $store = Config::cacheStore();
 
@@ -94,19 +113,26 @@ class PermissionCache
             $epochStore->put($epochKey, $epoch, Config::cacheTtl());
         };
 
-        $lockStore = $epochStore->getStore();
+        try {
+            $lockStore = $epochStore->getStore();
 
-        if ($lockStore instanceof LockProvider) {
-            $lockStore->lock($epochKey.':lock', 5)->block(2, $bump);
-        } else {
-            $this->requestState->once(
-                'azguard.epoch-bump-without-lock.'.$store,
-                fn () => Log::warning('AzGuard: bumping the permission cache epoch without a lock — store does not implement LockProvider', [
-                    'store' => $store,
-                ]),
-            );
+            if ($lockStore instanceof LockProvider) {
+                $lockStore->lock($epochKey.':lock', 5)->block(2, $bump);
+            } else {
+                $this->requestState->once(
+                    'azguard.epoch-bump-without-lock.'.$store,
+                    fn () => Log::warning('AzGuard: bumping the permission cache epoch without a lock — store does not implement LockProvider', [
+                        'store' => $store,
+                    ]),
+                );
 
-            $bump();
+                $bump();
+            }
+        } catch (Throwable $e) {
+            Log::warning('AzGuard: permission cache epoch bump failed', [
+                'store' => $store,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -125,9 +151,12 @@ class PermissionCache
         $this->requestCache = [];
     }
 
-    public function keyFor(SubjectIdentity $subject, string $panelId, string $discriminator = ''): string
+    public function keyFor(SubjectIdentity $subject, string $panelId, string $discriminator = '', ?int $revision = null): string
     {
-        $epoch = $this->currentEpoch($subject, $panelId);
+        $epoch = $this->currentEpoch($subject, $panelId) ?? 1;
+        $revision ??= $this->permissionState->inTransaction()
+            ? 0
+            : $this->permissionState->current();
 
         return 'azg:v2:perm:'.SubjectIdentity::digestPayload([
             2,
@@ -136,6 +165,8 @@ class PermissionCache
             $panelId,
             $discriminator,
             $epoch,
+            $revision,
+            Config::cacheGeneration(),
         ]);
     }
 
@@ -149,7 +180,7 @@ class PermissionCache
         ]);
     }
 
-    private function currentEpoch(SubjectIdentity $subject, string $panelId): int
+    private function currentEpoch(SubjectIdentity $subject, string $panelId): ?int
     {
         $store = Config::cacheStore();
 
@@ -157,12 +188,32 @@ class PermissionCache
             return 1;
         }
 
-        return (int) cache()->store($store)->get($this->epochStorageKey($subject, $panelId), 1);
+        try {
+            return (int) cache()->store($store)->get($this->epochStorageKey($subject, $panelId), 1);
+        } catch (Throwable $e) {
+            Log::warning('AzGuard: permission cache epoch read failed', [
+                'store' => $store,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
-    private function loadFromStore(string $cacheKey, string $store, Closure $callback): ?PermissionSet
+    private function loadFromStore(string $cacheKey, string $store, Closure $callback, int $revision): ?PermissionSet
     {
-        $decoded = $this->decodeEnvelope(cache()->store($store)->get($cacheKey));
+        try {
+            $raw = cache()->store($store)->get($cacheKey);
+        } catch (Throwable $e) {
+            Log::warning('AzGuard: permission cache get failed', [
+                'store' => $store,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->materialize($callback);
+        }
+
+        $decoded = $this->decodeEnvelope($raw);
 
         if ($decoded instanceof PermissionSet && $this->isLive($decoded)) {
             return $decoded;
@@ -174,7 +225,18 @@ class PermissionCache
             return null;
         }
 
-        cache()->store($store)->put($cacheKey, $this->encodeEnvelope($set), $this->backendExpiry($set));
+        if ($this->permissionState->current() !== $revision) {
+            return $set;
+        }
+
+        try {
+            cache()->store($store)->put($cacheKey, $this->encodeEnvelope($set), $this->backendExpiry($set));
+        } catch (Throwable $e) {
+            Log::warning('AzGuard: permission cache put failed', [
+                'store' => $store,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return $set;
     }
