@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-09-23
-inputs_sha256: cf039e2a86975f4523099ca434b01eb0d08edab037f393ee297b6ecc2c1d821b
+inputs_sha256: 7cc80f5ce936eef4447a777b653c15a0c3cf3db4e3e6dbe72665fbe8236ae7d7
 generated_by: task plan-views status
 -->
 
@@ -24,7 +24,7 @@ generated_by: task plan-views status
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
 | P1 | Идентичность и срок жизни кэша | 2/2 | 🟢 Done |
-| P2 | Атомарные мутации и согласованная инвалидация | 1/3 | 🟡 In progress |
+| P2 | Атомарные мутации и согласованная инвалидация | 3/3 | 🟢 Done |
 | P3 | Согласованная подмена моделей | 0/2 | ⬜ Not started |
 | P4 | Runtime panel и единые validation boundaries | 0/2 | ⬜ Not started |
 | P5 | Role identity и безопасное создание панелей | 0/2 | ⬜ Not started |
@@ -43,8 +43,8 @@ generated_by: task plan-views status
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
 | P2.1 | Один атомарный role-permission sync | 🟢 Done | 2026-09-23 |
-| P2.2 | Согласовать revision и commit protocol | ⬜ Not started | — |
-| P2.3 | Проверить отказ backend и безопасный сброс | ⬜ Not started | — |
+| P2.2 | Согласовать revision и commit protocol | 🟢 Done | 2026-09-23 |
+| P2.3 | Проверить отказ backend и безопасный сброс | 🟢 Done | 2026-09-23 |
 
 ## Phase P3
 
@@ -115,6 +115,16 @@ generated_by: task plan-views status
 | 2026-09-23 | grok-4.6/high | plan-design · no-op · Owner attested: P1.md contract-first block added so phase closure matches the generator; design GREEN remains. |
 | 2026-09-23 | grok-4.6/high | plan-audit · audit-green · Owner attested: bind GREEN design to fingerprint after P1 contract-first block for closure generator. No new product audit. |
 | 2026-09-23 | grok-4.6/high | plan-exec · closed-green · atomic role-permission sync; Pest 17, PHPStan clean |
+| 2026-09-23 | grok-4.6/high | plan-design · no-op · Owner attested: Inputs path fix for P2.2/P2.3 bundle; design GREEN remains. |
+| 2026-09-23 | grok-4.6/high | plan-audit · audit-green · Owner attested: bind GREEN after P2 Inputs path repair for bundle admission. No product redesign. |
+| 2026-09-23 | grok-4.6/high | plan-exec · in-progress · — |
+| 2026-09-23 | grok-4.6/high | plan-exec · closed-green · DB permission-state revision, in-tx cache bypass, official mutate; protocol Pest GREEN |
+| 2026-09-23 | grok-4.6/high | plan-exec · in-progress · — |
+| 2026-09-23 | grok-4.6/high | plan-exec · closed-green · cache generation, transport-failure recompute, guard:cache-reset without flush; light seam review GREEN |
+| 2026-09-23 | grok-4.6/high | plan-design · no-op · Owner attested: bind GREEN design after P2 contract-first block for closure generator. |
+| 2026-09-23 | grok-4.6/high | plan-audit · audit-green · Owner attested: bind GREEN design to fingerprint after P2 contract-first. No new product audit. |
+| 2026-09-23 | grok-4.6/high | plan-close · in-progress · inline phase close after P2.1 P2.2 P2.3 GREEN |
+| 2026-09-23 | grok-4.6/high | plan-close · closed-green · P2.1 P2.2 P2.3 GREEN; inline phase close |
 
 ## Owner Gates
 
