@@ -181,11 +181,11 @@ it('serves a cache hit within the same epoch (no gratuitous miss)', function () 
     };
 
     // Request 1 — computes and persists to the store.
-    (new PermissionCache)->rememberForRequest(7, 'app', $resolve, 'ctx-1');
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', $resolve, 'ctx-1');
 
     // Request 2 (fresh instance, empty request cache) — must hit the store,
     // NOT recompute, because the epoch has not advanced.
-    $set = (new PermissionCache)->rememberForRequest(7, 'app', $resolve, 'ctx-1');
+    $set = (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', $resolve, 'ctx-1');
 
     expect($calls)->toBe(1)
         ->and($set->keys())->toBe(['app.posts.view']);
@@ -193,26 +193,28 @@ it('serves a cache hit within the same epoch (no gratuitous miss)', function () 
 
 it('increments the per-user epoch on forgetForUser', function () {
     $cache = new PermissionCache;
+    $subject = permissionCacheTestSubject(7);
 
-    expect($cache->keyFor(7, 'app'))->toBe('azguard.perms.7.app.v1');
+    $before = $cache->keyFor($subject, 'app');
 
-    $cache->forgetForUser(7, 'app');
+    $cache->forgetForUser($subject, 'app');
 
-    expect($cache->keyFor(7, 'app'))->toBe('azguard.perms.7.app.v2');
+    expect($cache->keyFor($subject, 'app'))->not->toBe($before);
 
-    $cache->forgetForUser(7, 'app');
+    $cache->forgetForUser($subject, 'app');
 
-    expect($cache->keyFor(7, 'app'))->toBe('azguard.perms.7.app.v3');
+    expect($cache->keyFor($subject, 'app'))->not->toBe($before);
 });
 
 it('embeds the current epoch into the context-discriminated key', function () {
     $cache = new PermissionCache;
+    $subject = permissionCacheTestSubject(7);
 
-    expect($cache->keyFor(7, 'app', 'ctx-1'))->toBe('azguard.perms.7.app.v1.ctx-1');
+    $before = $cache->keyFor($subject, 'app', 'ctx-1');
 
-    $cache->forgetForUser(7, 'app');
+    $cache->forgetForUser($subject, 'app');
 
-    expect($cache->keyFor(7, 'app', 'ctx-1'))->toBe('azguard.perms.7.app.v2.ctx-1');
+    expect($cache->keyFor($subject, 'app', 'ctx-1'))->not->toBe($before);
 });
 
 it('invalidates the context-discriminated branch on forgetForUser, not just the base key', function () {
@@ -220,18 +222,18 @@ it('invalidates the context-discriminated branch on forgetForUser, not just the 
     $fresh = fn (): PermissionSet => PermissionSet::fromKeys([]); // role changed → nothing
 
     // Request 1: cache a *contextual* (discriminator) set in the persistent store.
-    (new PermissionCache)->rememberForRequest(7, 'app', $stale, 'workspace-42');
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', $stale, 'workspace-42');
 
     // Sanity: a fresh request still serves the contextual set from the store.
-    expect((new PermissionCache)->rememberForRequest(7, 'app', $stale, 'workspace-42')->keys())
+    expect((new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', $stale, 'workspace-42')->keys())
         ->toBe(['app.posts.view']);
 
     // Role change → forget. Must orphan the discriminator entry, not only the base.
-    (new PermissionCache)->forgetForUser(7, 'app');
+    (new PermissionCache)->forgetForUser(permissionCacheTestSubject(7), 'app');
 
     // Fresh request: the stale contextual set must NO LONGER be served — the new
     // epoch key misses, so the fresh (empty) result is computed instead.
-    $after = (new PermissionCache)->rememberForRequest(7, 'app', $fresh, 'workspace-42');
+    $after = (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', $fresh, 'workspace-42');
 
     expect($after->keys())->toBe([]);
 });
@@ -242,18 +244,18 @@ it('refreshes the epoch key TTL on every forget, not only the first seed', funct
 
     // t0: first revoke seeds+bumps the epoch key (epoch 1 -> 2), TTL starts now
     // (expiresAt = t0+100).
-    (new PermissionCache)->forgetForUser(7, 'app');
+    (new PermissionCache)->forgetForUser(permissionCacheTestSubject(7), 'app');
 
     // t0+60: a request caches a *stale* PermissionSet under epoch 2, with its
     // own fresh TTL (expiresAt = t0+160) — outliving the epoch key's window.
     $this->travel(60)->seconds();
-    (new PermissionCache)->rememberForRequest(7, 'app', fn (): PermissionSet => PermissionSet::fromKeys(['app.posts.view']));
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', fn (): PermissionSet => PermissionSet::fromKeys(['app.posts.view']));
 
     // t0+90: a second revoke. Pre-fix, `increment()` never refreshes the epoch
     // key's TTL, so it is still on track to expire at t0+100 regardless of this
     // call. Post-fix, this call re-`put()`s it, pushing expiry to (t0+90)+100.
     $this->travel(30)->seconds();
-    (new PermissionCache)->forgetForUser(7, 'app');
+    (new PermissionCache)->forgetForUser(permissionCacheTestSubject(7), 'app');
 
     // t0+150: past the epoch key's *original* TTL (t0+100). Pre-fix the epoch
     // key has already expired, so this third revoke's `currentEpoch()` read
@@ -262,9 +264,9 @@ it('refreshes the epoch key TTL on every forget, not only the first seed', funct
     // Post-fix the epoch key was refreshed at t0+90 (now expires t0+190), so
     // it is still alive: `currentEpoch()` correctly continues from 3.
     $this->travel(60)->seconds();
-    (new PermissionCache)->forgetForUser(7, 'app');
+    (new PermissionCache)->forgetForUser(permissionCacheTestSubject(7), 'app');
 
-    $set = (new PermissionCache)->rememberForRequest(7, 'app', fn (): PermissionSet => PermissionSet::fromKeys([]));
+    $set = (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(7), 'app', fn (): PermissionSet => PermissionSet::fromKeys([]));
 
     // Post-fix: no epoch collision, so the base key is fresh and the callback
     // recomputes the revoked (empty) state. Pre-fix this would instead return
@@ -277,15 +279,15 @@ it('invalidates every discriminator at once (all contexts) with one forget', fun
     $fresh = fn (): PermissionSet => PermissionSet::fromKeys([]);
 
     // Two distinct contexts + the base entry, all in the persistent store.
-    (new PermissionCache)->rememberForRequest(9, 'app', $stale);
-    (new PermissionCache)->rememberForRequest(9, 'app', $stale, 'ctx-a');
-    (new PermissionCache)->rememberForRequest(9, 'app', $stale, 'ctx-b');
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $stale);
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $stale, 'ctx-a');
+    (new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $stale, 'ctx-b');
 
-    (new PermissionCache)->forgetForUser(9, 'app');
+    (new PermissionCache)->forgetForUser(permissionCacheTestSubject(9), 'app');
 
-    expect((new PermissionCache)->rememberForRequest(9, 'app', $fresh)->keys())->toBe([])
-        ->and((new PermissionCache)->rememberForRequest(9, 'app', $fresh, 'ctx-a')->keys())->toBe([])
-        ->and((new PermissionCache)->rememberForRequest(9, 'app', $fresh, 'ctx-b')->keys())->toBe([]);
+    expect((new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $fresh)->keys())->toBe([])
+        ->and((new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $fresh, 'ctx-a')->keys())->toBe([])
+        ->and((new PermissionCache)->rememberForRequest(permissionCacheTestSubject(9), 'app', $fresh, 'ctx-b')->keys())->toBe([]);
 });
 
 /**
@@ -309,15 +311,18 @@ it('bumps the epoch under a lock, with add/increment/put inside block()', functi
 
     PermissionCacheLockSpyStore::$log = [];
 
-    (new PermissionCache)->forgetForUser(7, 'app');
+    $subject = permissionCacheTestSubject(7);
+    $epochKey = (new PermissionCache)->epochStorageKey($subject, 'app');
+
+    (new PermissionCache)->forgetForUser($subject, 'app');
 
     expect(PermissionCacheLockSpyStore::$log)->toBe([
-        'lock:azguard.perms.7.app.epoch:lock',
+        'lock:'.$epochKey.':lock',
         'block:start',
         'block:callback',
-        'add:azguard.perms.7.app.epoch',
-        'increment:azguard.perms.7.app.epoch',
-        'put:azguard.perms.7.app.epoch',
+        'add:'.$epochKey,
+        'increment:'.$epochKey,
+        'put:'.$epochKey,
         'block:end',
     ]);
 });

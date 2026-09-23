@@ -11,6 +11,7 @@ use AzGuard\Registry\Definitions\SimplePermissionDefinition;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Values\PermissionSet;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -649,5 +650,79 @@ describe('EffectivePermissionResolver: dynamic catalog definitions (F28)', funct
 
         expect($set->grants('app.team.42.admin'))->toBeTrue()
             ->and($set->has('app.orphan.unknown'))->toBeFalse();
+    });
+
+    it('keeps the nearest source deadline through catalog filter', function () {
+        $deadline = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
+        $source = makeGrantSource(
+            PermissionSet::fromKeys(['app.posts.view', 'unknown.drop'])->withValidUntil($deadline),
+        );
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeCatalog(['app.posts.view']),
+            sources: [$source],
+            cache: new PermissionCache,
+        );
+
+        $set = $resolver->forUser(makeUser(1), 'app');
+
+        expect($set->grants('app.posts.view'))->toBeTrue()
+            ->and($set->has('unknown.drop'))->toBeFalse()
+            ->and($set->validUntil()?->eq($deadline))->toBeTrue();
+    });
+
+    it('two sources sharing a key keep allow after the earlier deadline', function () {
+        $early = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
+        $late = $early->addHour();
+
+        $earlySource = new class($early) implements GrantSource
+        {
+            public function __construct(private CarbonImmutable $deadline) {}
+
+            public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
+            {
+                return now()->lt($this->deadline)
+                    ? PermissionSet::fromKeys(['app.posts.view'])->withValidUntil($this->deadline)
+                    : PermissionSet::empty();
+            }
+
+            public function priority(): int
+            {
+                return GrantPriority::ClassRole->value;
+            }
+        };
+
+        $lateSource = new class($late) implements GrantSource
+        {
+            public function __construct(private CarbonImmutable $deadline) {}
+
+            public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
+            {
+                return now()->lt($this->deadline)
+                    ? PermissionSet::fromKeys(['app.posts.view'])->withValidUntil($this->deadline)
+                    : PermissionSet::empty();
+            }
+
+            public function priority(): int
+            {
+                return GrantPriority::DirectGrant->value;
+            }
+        };
+
+        $resolver = new EffectivePermissionResolver(
+            catalog: makeCatalog(['app.posts.view']),
+            sources: [$earlySource, $lateSource],
+            cache: new PermissionCache,
+        );
+
+        $user = makeUser(1);
+        Carbon\Carbon::setTestNow($early->subSecond());
+        expect($resolver->forUser($user, 'app')->grants('app.posts.view'))->toBeTrue();
+
+        Carbon\Carbon::setTestNow($early);
+        expect($resolver->forUser($user, 'app')->grants('app.posts.view'))->toBeTrue()
+            ->and($resolver->forUser($user, 'app')->validUntil()?->eq($late))->toBeTrue();
+
+        Carbon\Carbon::setTestNow();
     });
 });

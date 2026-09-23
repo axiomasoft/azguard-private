@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Context\Models;
 
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -60,11 +61,31 @@ final class ContextRole extends Model
     protected static function booted(): void
     {
         $flush = static function (self $contextRole): void {
-            app(PermissionCache::class)->forgetForUser($contextRole->model_id, $contextRole->panel_id);
+            app(PermissionCache::class)->forgetForUser(
+                SubjectIdentity::fromPersisted($contextRole->model_type, $contextRole->model_id),
+                $contextRole->panel_id,
+            );
         };
 
         self::created($flush);
-        self::updated($flush);
+
+        self::updated(static function (self $contextRole) use ($flush): void {
+            $originalPanelId = $contextRole->getOriginal('panel_id');
+            $originalModelType = $contextRole->getOriginal('model_type');
+            $originalModelId = $contextRole->getOriginal('model_id');
+
+            if ($originalPanelId !== $contextRole->panel_id
+                || $originalModelType !== $contextRole->model_type
+                || $originalModelId !== $contextRole->model_id) {
+                app(PermissionCache::class)->forgetForUser(
+                    SubjectIdentity::fromPersisted((string) $originalModelType, $originalModelId),
+                    (string) $originalPanelId,
+                );
+            }
+
+            $flush($contextRole);
+        });
+
         self::deleted($flush);
     }
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Registry\Values\PermissionSet;
+use Carbon\CarbonImmutable;
 
 describe('PermissionSet', function () {
 
@@ -156,5 +157,30 @@ describe('PermissionSet', function () {
         expect($top->matchesWildcard('app.documents'))->toBeTrue()
             ->and($top->matchesWildcard('app.documents.view'))->toBeFalse()
             ->and($top->matchesWildcard('admin.documents'))->toBeFalse();
+    });
+
+    it('merge keeps the earliest non-null deadline', function () {
+        $early = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
+        $late = $early->addHour();
+        $merged = PermissionSet::fromKeys(['app.posts.view'])->withValidUntil($late)
+            ->merge(PermissionSet::fromKeys(['app.posts.edit'])->withValidUntil($early));
+
+        expect($merged->validUntil()?->eq($early))->toBeTrue()
+            ->and($merged->grants('app.posts.view'))->toBeTrue()
+            ->and($merged->grants('app.posts.edit'))->toBeTrue();
+    });
+
+    it('filter and wildcard merge keep the contributing deadline', function () {
+        $deadline = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
+        $filtered = PermissionSet::fromKeys(['app.posts.view', 'app.tags.view'])
+            ->withValidUntil($deadline)
+            ->filter(fn (string $key): bool => $key === 'app.posts.view');
+        $wild = PermissionSet::fromKeys(['app.posts.view'])->withValidUntil($deadline)
+            ->merge(PermissionSet::wildcard());
+
+        expect($filtered->keys())->toBe(['app.posts.view'])
+            ->and($filtered->validUntil()?->eq($deadline))->toBeTrue()
+            ->and($wild->isWildcard())->toBeTrue()
+            ->and($wild->validUntil()?->eq($deadline))->toBeTrue();
     });
 });

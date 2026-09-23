@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 
 const P4_REDIS_CONNECTION = 'p4_race';
 const P4_REDIS_STORE = 'p4_race';
@@ -82,11 +83,13 @@ it('serializes concurrent epoch bumps across real Redis processes', function ():
     $prefix = "azguard:p4-race:{$token}:";
     $userId = 4404;
     $panelId = 'p4-race';
+    $morphType = 'azguard.p4-race-subject';
+    $subject = SubjectIdentity::fromPersisted($morphType, $userId);
 
     configureP4RedisCache($prefix);
     deleteP4RedisKeys($redis, $prefix);
 
-    $epochKey = "azguard.perms.{$userId}.{$panelId}.epoch";
+    $epochKey = (new PermissionCache)->epochStorageKey($subject, $panelId);
     $environment = [
         'P4_RACE_WORKER' => '1',
         'P4_REDIS_HOST' => p4RedisConnection()['host'],
@@ -95,6 +98,7 @@ it('serializes concurrent epoch bumps across real Redis processes', function ():
         'P4_REDIS_PREFIX' => $prefix,
         'P4_RACE_USER_ID' => (string) $userId,
         'P4_RACE_PANEL_ID' => $panelId,
+        'P4_RACE_MORPH_TYPE' => $morphType,
         'P4_RACE_ITERATIONS' => (string) P4_RACE_ITERATIONS,
     ];
     $workspace = dirname(__DIR__, 2);
@@ -139,11 +143,11 @@ it('serializes concurrent epoch bumps across real Redis processes', function ():
 
         expect((int) cache()->store(P4_REDIS_STORE)->get($epochKey))
             ->toBe($expectedEpoch)
-            ->and((new PermissionCache)->keyFor($userId, $panelId))
-            ->toBe("azguard.perms.{$userId}.{$panelId}.v{$expectedEpoch}");
+            ->and((new PermissionCache)->keyFor($subject, $panelId))
+            ->toStartWith('azg:v2:perm:');
 
         // One more real bump proves the completed sequence did not roll the value back.
-        (new PermissionCache)->forgetForUser($userId, $panelId);
+        (new PermissionCache)->forgetForUser($subject, $panelId);
 
         expect((int) cache()->store(P4_REDIS_STORE)->get($epochKey))
             ->toBe($expectedEpoch + 1);

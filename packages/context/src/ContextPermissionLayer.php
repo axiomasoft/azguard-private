@@ -7,6 +7,8 @@ namespace AzGuard\Context;
 use AzGuard\Context\Contracts\MergeStrategy;
 use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Registry\Values\PermissionSet;
+use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Override;
@@ -58,7 +60,7 @@ final readonly class ContextPermissionLayer implements PermissionLayer
     ): PermissionSet {
         $table = config('az-guard-context.table_names.context_roles', 'az_guard_context_roles');
 
-        $keys = DB::table($table)
+        $grants = DB::table($table)
             ->where('model_type', $user->getMorphClass())
             ->where('model_id', $user->getAuthIdentifier())
             ->where('context_type', $context->contextType)
@@ -70,9 +72,27 @@ final readonly class ContextPermissionLayer implements PermissionLayer
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             })
-            ->pluck('permission_key')
-            ->all();
+            ->get(['permission_key', 'expires_at']);
 
-        return PermissionSet::fromRawKeys($keys);
+        $keys = [];
+        $nearest = null;
+
+        foreach ($grants as $grant) {
+            $keys[] = $grant->permission_key;
+            $expires = $grant->expires_at;
+
+            if ($expires === null) {
+                continue;
+            }
+
+            $instant = $expires instanceof DateTimeInterface
+                ? CarbonImmutable::createFromInterface($expires)->utc()
+                : CarbonImmutable::parse((string) $expires)->utc();
+            $nearest = $nearest instanceof CarbonImmutable && $nearest->lte($instant)
+                ? $nearest
+                : $instant;
+        }
+
+        return PermissionSet::fromRawKeys($keys)->withValidUntil($nearest);
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Models\Role;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Tests\ContextTestCase;
 use AzGuard\Tests\FilamentTestCase;
 use AzGuard\Tests\ManagerSwapTestCase;
@@ -34,6 +35,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/DirectGrantSourceTest.php',
         'Feature/DirectGrantMorphMapTest.php',
         'Feature/DirectGrantPanelChangeCacheTest.php',
+        'Feature/DirectGrantGrantableMoveCacheTest.php',
         'Feature/EnumPermissionArgumentTest.php',
         'Feature/EnumRolePermissionsTest.php',
         'Feature/ExplainAbilitiesCommandTest.php',
@@ -125,4 +127,9 @@ function createRoleWithClass(array $attributes, string $className): Role
     $role->save();
 
     return $role;
+}
+
+function permissionCacheTestSubject(int|string $id = 7, string $morphType = 'azguard.test-subject'): SubjectIdentity
+{
+    return SubjectIdentity::fromPersisted($morphType, $id);
 }

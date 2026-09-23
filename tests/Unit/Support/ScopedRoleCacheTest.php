@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Runtime\ScopedRoleCache;
+use AzGuard\Tests\Stubs\User;
 
 it('remembers a value and resolves it only once', function (): void {
     $cache = new ScopedRoleCache;
@@ -36,4 +38,31 @@ it('is bound as a scoped instance and reset on a new request scope', function ()
     app()->forgetScopedInstances();
 
     expect(app(ScopedRoleCache::class))->not->toBe($first);
+});
+
+it('does not share scoped-role cache entries between morph types with the same id', function (): void {
+    $cache = new ScopedRoleCache;
+
+    $user = SubjectIdentity::fromPersisted(User::class, 1);
+    $admin = SubjectIdentity::fromPersisted('AzGuard\\Tests\\Stubs\\AdminActor', 1);
+    $entity = User::class;
+
+    $userCalls = 0;
+    $adminCalls = 0;
+
+    $cache->remember($user->scopedRolesRequestKey($entity), function () use (&$userCalls): string {
+        $userCalls++;
+
+        return 'user-scopes';
+    });
+
+    $cache->remember($admin->scopedRolesRequestKey($entity), function () use (&$adminCalls): string {
+        $adminCalls++;
+
+        return 'admin-scopes';
+    });
+
+    expect($userCalls)->toBe(1)
+        ->and($adminCalls)->toBe(1)
+        ->and($cache->remember($user->scopedRolesRequestKey($entity), fn (): string => 'again'))->toBe('user-scopes');
 });

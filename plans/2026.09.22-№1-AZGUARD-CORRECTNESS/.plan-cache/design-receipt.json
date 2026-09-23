@@ -1,0 +1,48 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "67ebcde7b3ab32aa0205deb37a483b605e140cdb",
+  "continuity": {
+    "evidence": [
+      "lifecycle:scope-complete",
+      "checkpoint:plans/2026.09.22-№1-AZGUARD-CORRECTNESS/handoff.md"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:d48fe22d27ed564e45054e29415382f5cd249f63a1765257cade787ed6fca682",
+    "plan": "sha256:9ee8fa30a2f33ab2a1a0075ab73fb68f4aa277ffb1ab71ea9b5b75e23d609082",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "exec-items: task:plan-exec 2026.09.22-№1-AZGUARD-CORRECTNESS P1.1",
+  "plan_id": "2026.09.22-№1-AZGUARD-CORRECTNESS",
+  "rationale": {
+    "open_risks": null,
+    "remaining": "Execute only the detailed items in `roadmap.md`, honoring each"
+  },
+  "recommendation": "**Next:** exec-items: task:plan-exec 2026.09.22-№1-AZGUARD-CORRECTNESS P1.1\n\n| Параметр | Значение |\n|:--|:--|\n| Batch | solo |\n| Model class | implementation |\n| Model | composer-2.5 |\n| Effort | medium |\n| Thinking | medium |\n| Capabilities | filesystem read/write, test execution |\n| Context | continue-root |\n| Суть | Начать только P1.1; затем соблюдать `roadmap.md` и terminal predecessors |\n\n```bash\nagent --workspace /home/vostrikov/projects/packages/azguard --model composer-2.5 --force --sandbox disabled --trust --approve-mcps 'task:plan-exec 2026.09.22-№1-AZGUARD-CORRECTNESS P1.1'\n```\n\n```session-continuity-decision/v1\n{\"schema_version\":\"session-continuity-decision/v1\",\"outcome\":\"continue-root\",\"reason\":\"authorized-scope-complete\",\"evidence\":[\"lifecycle:scope-complete\",\"checkpoint:plans/2026.09.22-№1-AZGUARD-CORRECTNESS/handoff.md\"],\"runnable\":true}\n```",
+  "route": {
+    "batch": "solo",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "lifecycle:scope-complete",
+        "checkpoint:plans/2026.09.22-№1-AZGUARD-CORRECTNESS/handoff.md"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": "composer-2.5",
+    "thinking": "medium"
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "P7"
+}

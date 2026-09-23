@@ -6,6 +6,7 @@ use AzGuard\Context\AuthorizationContext;
 use AzGuard\Context\AuthorizationContextManager;
 use AzGuard\Contracts\ContextGuard as ContextGuardContract;
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Support\Facades\DB;
 
@@ -33,37 +34,38 @@ beforeEach(function (): void {
 
 it('does NOT advance the per-user epoch across repeated context checks (persistent store)', function (): void {
     $user = User::factory()->create();
-    $uid = $user->getAuthIdentifier();
 
     // Panel 'app' is not registered in the test catalog, so the resolved set is
     // returned unfiltered — matching the sibling ContextGuardTest.
-    $epochBefore = (new PermissionCache)->keyFor($uid, 'app');
+    $subject = SubjectIdentity::fromAuthenticatable($user);
+    $epochBefore = (new PermissionCache)->keyFor($subject, 'app');
 
     for ($i = 0; $i < 5; $i++) {
         $this->guard->checkInContext($user, 'workspace', 42, 'app.posts.edit', 'app');
     }
 
-    $epochAfter = (new PermissionCache)->keyFor($uid, 'app');
+    $epochAfter = (new PermissionCache)->keyFor($subject, 'app');
 
-    // The epoch (embedded as vN in the key) must be identical — no gratuitous
+    // The epoch (embedded in the v2 permission key) must be identical — no gratuitous
     // durable invalidation from a transient context switch.
     expect($epochAfter)->toBe($epochBefore)
-        ->and($epochAfter)->toBe("azguard.perms.{$uid}.app.v1");
+        ->and($epochAfter)->toStartWith('azg:v2:perm:');
 });
 
 it('leaves a cross-request cached set intact across context checks', function (): void {
     $user = User::factory()->create();
-    $uid = $user->getAuthIdentifier();
+
+    $subject = SubjectIdentity::fromAuthenticatable($user);
 
     // Seed the persistent store as if a previous request had already resolved &
     // cached this user's set for panel 'app' under the base (no-context) key.
-    $key = (new PermissionCache)->keyFor($uid, 'app');
+    $key = (new PermissionCache)->keyFor($subject, 'app');
     cache()->store('azguard_test')->forever($key, ['app.posts.view']);
 
     // A transient context check must not bump the epoch, so the key stays valid.
     $this->guard->checkInContext($user, 'workspace', 42, 'app.posts.edit', 'app');
 
-    $keyAfter = (new PermissionCache)->keyFor($uid, 'app');
+    $keyAfter = (new PermissionCache)->keyFor($subject, 'app');
 
     expect($keyAfter)->toBe($key)
         ->and(cache()->store('azguard_test')->get($key))->toBe(['app.posts.view']);
@@ -71,18 +73,17 @@ it('leaves a cross-request cached set intact across context checks', function ()
 
 it('a real grant/role change STILL bumps the epoch (durable invalidation preserved)', function (): void {
     $user = User::factory()->create();
-    $uid = $user->getAuthIdentifier();
 
-    $before = (new PermissionCache)->keyFor($uid, 'app');
-    expect($before)->toBe("azguard.perms.{$uid}.app.v1");
+    $subject = SubjectIdentity::fromAuthenticatable($user);
+
+    $before = (new PermissionCache)->keyFor($subject, 'app');
 
     // Simulate the durable path used by DirectGrant/role events/HasPermissions.
-    app(PermissionCache::class)->forgetForUser($uid, 'app');
+    app(PermissionCache::class)->forgetForUser($subject, 'app');
 
-    $after = (new PermissionCache)->keyFor($uid, 'app');
+    $after = (new PermissionCache)->keyFor($subject, 'app');
 
-    expect($after)->toBe("azguard.perms.{$uid}.app.v2")
-        ->and($after)->not->toBe($before);
+    expect($after)->not->toBe($before);
 });
 
 it('returns the correct decision under a switched context', function (): void {

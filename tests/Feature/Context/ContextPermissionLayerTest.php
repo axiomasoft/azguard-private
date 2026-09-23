@@ -24,7 +24,7 @@ afterEach(function () {
     $this->manager->clearAll();
 });
 
-function seedContextPermission(User $user, string $type, int $id, string $key): void
+function seedContextPermission(User $user, string $type, int $id, string $key, ?string $expiresAt = null): void
 {
     DB::table('az_guard_context_roles')->insert([
         'model_type' => User::class,
@@ -33,6 +33,7 @@ function seedContextPermission(User $user, string $type, int $id, string $key): 
         'context_id' => $id,
         'panel_id' => 'app',
         'permission_key' => $key,
+        'expires_at' => $expiresAt,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -121,4 +122,18 @@ it('a context wildcard grants everything', function () {
     $result = $layer->apply(PermissionSet::empty(), $this->user, 'app');
 
     expect($result->grants('anything.at.all'))->toBeTrue();
+});
+
+it('propagates nearest context expires_at and drops expired rows', function () {
+    $this->manager->set(new AuthorizationContext('app', 'workspace', 42));
+    $early = now()->addHour();
+    seedContextPermission($this->user, 'workspace', 42, 'app.posts.edit', $early->toDateTimeString());
+    seedContextPermission($this->user, 'workspace', 42, 'app.posts.expired', now()->subSecond()->toDateTimeString());
+
+    $layer = new ContextPermissionLayer($this->manager, new GlobalPlusContextStrategy);
+    $result = $layer->apply(PermissionSet::empty(), $this->user, 'app');
+
+    expect($result->grants('app.posts.edit'))->toBeTrue()
+        ->and($result->grants('app.posts.expired'))->toBeFalse()
+        ->and($result->validUntil())->not->toBeNull();
 });

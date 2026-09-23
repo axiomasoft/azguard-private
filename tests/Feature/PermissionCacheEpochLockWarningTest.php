@@ -94,8 +94,9 @@ it('warns once per request when the epoch bump runs without a lock', function ()
     Log::spy();
 
     $cache = new PermissionCache;
-    $cache->forgetForUser(7, 'app');
-    $cache->forgetForUser(7, 'app');
+    $subject = permissionCacheTestSubject(7);
+    $cache->forgetForUser($subject, 'app');
+    $cache->forgetForUser($subject, 'app');
 
     Log::shouldHaveReceived('warning')
         ->withArgs(fn (string $message): bool => str_contains($message, 'without a lock'))

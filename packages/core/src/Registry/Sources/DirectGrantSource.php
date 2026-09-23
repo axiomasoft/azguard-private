@@ -9,6 +9,8 @@ use AzGuard\Models\DirectGrant;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Values\PermissionSet;
+use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Override;
 
@@ -34,15 +36,31 @@ final class DirectGrantSource implements GrantSource
         /** @var class-string<DirectGrant> $model */
         $model = Config::directGrantModel();
 
-        $keys = $model::query()
+        $grants = $model::query()
             ->where('grantable_type', $user->getMorphClass())
             ->where('grantable_id', $user->getAuthIdentifier())
             ->where('panel_id', $panelId)
             ->active()
-            ->pluck('permission_key')
-            ->all();
+            ->get(['permission_key', 'expires_at']);
 
-        return PermissionSet::fromRawKeys($keys);
+        $keys = [];
+        $nearest = null;
+
+        foreach ($grants as $grant) {
+            $keys[] = $grant->permission_key;
+            $expires = $grant->expires_at;
+
+            if (! $expires instanceof DateTimeInterface) {
+                continue;
+            }
+
+            $instant = CarbonImmutable::createFromInterface($expires)->utc();
+            $nearest = $nearest instanceof CarbonImmutable && $nearest->lte($instant)
+                ? $nearest
+                : $instant;
+        }
+
+        return PermissionSet::fromRawKeys($keys)->withValidUntil($nearest);
     }
 
     #[Override]

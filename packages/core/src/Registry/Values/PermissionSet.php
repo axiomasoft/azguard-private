@@ -7,7 +7,9 @@ namespace AzGuard\Registry\Values;
 use AzGuard\Contracts\PermissionMatcher;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
+use Carbon\CarbonImmutable;
 use Closure;
+use DateTimeInterface;
 
 /**
  * Immutable set of resolved permission keys for one user+panel.
@@ -44,8 +46,10 @@ final readonly class PermissionSet
     /** @var list<string> Wildcard patterns only (keys containing '*'). */
     private array $patterns;
 
+    private ?CarbonImmutable $validUntil;
+
     /** @param list<string> $keys */
-    private function __construct(array $keys)
+    private function __construct(array $keys, ?CarbonImmutable $validUntil = null)
     {
         $unique = array_unique($keys);
         $this->wildcard = in_array(self::WILDCARD, $unique, strict: true);
@@ -53,6 +57,7 @@ final readonly class PermissionSet
         $this->patterns = $this->wildcard
             ? []
             : array_values(array_filter($unique, static fn (string $k): bool => str_contains($k, self::WILDCARD)));
+        $this->validUntil = $validUntil;
     }
 
     public static function empty(): self
@@ -90,14 +95,17 @@ final readonly class PermissionSet
 
     /**
      * Merge two sets. If either is wildcard — result is wildcard.
+     * The nearest non-null absolute deadline is kept (never dropped on the wildcard path).
      */
     public function merge(self $other): self
     {
+        $deadline = self::nearestDeadline($this->validUntil, $other->validUntil);
+
         if ($this->wildcard || $other->wildcard) {
-            return self::wildcard();
+            return new self([self::WILDCARD], $deadline);
         }
 
-        return new self([...array_keys($this->index), ...array_keys($other->index)]);
+        return new self([...array_keys($this->index), ...array_keys($other->index)], $deadline);
     }
 
     /**
@@ -169,7 +177,26 @@ final readonly class PermissionSet
      */
     public function filter(Closure $callback): self
     {
-        return new self(array_keys(array_filter($this->index, $callback, ARRAY_FILTER_USE_KEY)));
+        return new self(
+            array_keys(array_filter($this->index, $callback, ARRAY_FILTER_USE_KEY)),
+            $this->validUntil,
+        );
+    }
+
+    /**
+     * Absolute authorization deadline for this set, or null when the set is TTL-limited only.
+     */
+    public function validUntil(): ?CarbonImmutable
+    {
+        return $this->validUntil;
+    }
+
+    /**
+     * Additive copy with an absolute UTC deadline. Null keeps configured cache TTL behaviour.
+     */
+    public function withValidUntil(?DateTimeInterface $validUntil): self
+    {
+        return new self($this->keys(), self::normalizeDeadline($validUntil));
     }
 
     /** @return list<string> */
@@ -181,5 +208,25 @@ final readonly class PermissionSet
     public function count(): int
     {
         return count($this->index);
+    }
+
+    private static function normalizeDeadline(?DateTimeInterface $validUntil): ?CarbonImmutable
+    {
+        return $validUntil instanceof DateTimeInterface
+            ? CarbonImmutable::createFromInterface($validUntil)->utc()
+            : null;
+    }
+
+    private static function nearestDeadline(?CarbonImmutable $left, ?CarbonImmutable $right): ?CarbonImmutable
+    {
+        if (! $left instanceof CarbonImmutable) {
+            return $right;
+        }
+
+        if (! $right instanceof CarbonImmutable) {
+            return $left;
+        }
+
+        return $left->lte($right) ? $left : $right;
     }
 }

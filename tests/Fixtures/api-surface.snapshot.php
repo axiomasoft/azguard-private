@@ -270,6 +270,8 @@ return [
             'keys(): array',
             'matchesWildcard(string $key): bool',
             'merge(self $other): self',
+            'validUntil(): ?Carbon\\CarbonImmutable',
+            'withValidUntil(?DateTimeInterface $validUntil): self',
             'static empty(): self',
             'static fromKeys(array $keys): self',
             'static fromRawKeys(array $keys): self',

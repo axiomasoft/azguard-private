@@ -12,6 +12,7 @@ use AzGuard\Models\Role;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Permissions\PermissionName;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Runtime\RequestState;
 use AzGuard\Runtime\ScopedRoleCache;
@@ -88,7 +89,7 @@ trait HasScopedRoles
             $entityMorphClass = $builder->getModel()->getMorphClass();
 
             $scopes = app(ScopedRoleCache::class)->remember(
-                $user->getAuthIdentifier().'|'.static::class,
+                SubjectIdentity::fromAuthenticatable($user)->scopedRolesRequestKey($entityMorphClass),
                 // eager-load to avoid a query per scope row below; withoutGlobalScope prevents
                 // infinite recursion when scopeEntity is itself a HasScopedRoles model (this scope).
                 fn () => $user->scopes()

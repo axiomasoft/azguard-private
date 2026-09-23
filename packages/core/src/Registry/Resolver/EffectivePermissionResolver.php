@@ -53,7 +53,7 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     public function forUser(Authenticatable $user, string $panelId): PermissionSet
     {
         return $this->cache->rememberForRequest(
-            $user->getAuthIdentifier(),
+            SubjectIdentity::fromAuthenticatable($user),
             $panelId,
             fn (): PermissionSet => $this->resolve($user, $panelId),
             $this->layer?->cacheDiscriminator($panelId) ?? '',
@@ -227,7 +227,7 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     #[Override]
     public function forgetForUser(Authenticatable $user, string $panelId): void
     {
-        $this->cache->forgetForUser($user->getAuthIdentifier(), $panelId);
+        $this->cache->forgetForUser(SubjectIdentity::fromAuthenticatable($user), $panelId);
     }
 
     /**
@@ -237,7 +237,7 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     #[Override]
     public function forgetRequestCache(Authenticatable $user, string $panelId): void
     {
-        $this->cache->forgetRequestCache($user->getAuthIdentifier(), $panelId);
+        $this->cache->forgetRequestCache(SubjectIdentity::fromAuthenticatable($user), $panelId);
     }
 
     /**

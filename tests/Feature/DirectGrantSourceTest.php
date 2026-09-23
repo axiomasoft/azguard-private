@@ -88,3 +88,22 @@ it('does not return expired grants and isolates by panel (enabled behaviour unch
 it('has priority 80', function () {
     expect(app(DirectGrantSource::class)->priority())->toBe(80);
 });
+
+it('exposes the nearest active expires_at as validUntil', function () {
+    config(['az-guard.features.direct_grants' => true]);
+
+    $user = UserWithDirectGrants::factory()->create();
+    $early = now()->addHour()->startOfSecond();
+    $late = now()->addHours(3)->startOfSecond();
+
+    $user->directGrants()->create(['panel_id' => 'app', 'permission_key' => 'app.active', 'expires_at' => $late]);
+    $user->directGrants()->create(['panel_id' => 'app', 'permission_key' => 'app.soon', 'expires_at' => $early]);
+    $user->directGrants()->create(['panel_id' => 'app', 'permission_key' => 'app.forever', 'expires_at' => null]);
+
+    $result = app(DirectGrantSource::class)->permissionsFor($user, 'app');
+
+    expect($result->grants('app.active'))->toBeTrue()
+        ->and($result->grants('app.soon'))->toBeTrue()
+        ->and($result->grants('app.forever'))->toBeTrue()
+        ->and($result->validUntil()?->equalTo($early))->toBeTrue();
+});

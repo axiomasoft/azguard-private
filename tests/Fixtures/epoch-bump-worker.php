@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use AzGuard\Tests\TestCase;
 
 if (getenv('P4_RACE_WORKER') === '1') {
@@ -28,9 +29,13 @@ if (getenv('P4_RACE_WORKER') === '1') {
 
         $cache = new PermissionCache;
         $iterations = (int) (getenv('P4_RACE_ITERATIONS') ?: 1);
+        $subject = SubjectIdentity::fromPersisted(
+            (string) (getenv('P4_RACE_MORPH_TYPE') ?: 'azguard.p4-race-subject'),
+            (int) getenv('P4_RACE_USER_ID'),
+        );
 
         for ($iteration = 0; $iteration < $iterations; $iteration++) {
-            $cache->forgetForUser((int) getenv('P4_RACE_USER_ID'), (string) getenv('P4_RACE_PANEL_ID'));
+            $cache->forgetForUser($subject, (string) getenv('P4_RACE_PANEL_ID'));
         }
 
         expect($iterations)->toBeGreaterThan(0);

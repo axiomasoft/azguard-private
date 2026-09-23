@@ -4,6 +4,16 @@ All notable changes to AzGuard are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **core:** `PermissionSet::validUntil()` / `withValidUntil()` carry an optional absolute grant deadline. Request and durable caches reject a hit at that instant and store a strict `{version, keys, valid_until}` envelope; a custom source without a deadline still follows the configured TTL (plan P1.2 / D3).
+
+### Changed
+
+- **core:** Permission cache keys now use typed subject identity (persisted morph type + id) under the `azg:v2:` namespace, fixing cross-model ID collisions; grant/context invalidation and scoped-role request cache follow the same identity (plan P1.1 / D3).
+
 ## [0.3.0] - 2026-07-22
 
 ### Bug Fixes

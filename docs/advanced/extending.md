@@ -33,6 +33,8 @@ class SubscriptionGrantSource implements GrantSource
 }
 ```
 
+A set returned without `validUntil()` keeps the configured cache TTL. Built-in direct and context grants set that instant to the nearest active `expires_at`. Call `withValidUntil($instant)` when your source knows an absolute UTC deadline: cache hits fail closed at `now >= validUntil`, refresh once, and do not store an already-expired result. Leaving the deadline null does not invent one.
+
 Register it in a service provider's `register()` method:
 
 ```php

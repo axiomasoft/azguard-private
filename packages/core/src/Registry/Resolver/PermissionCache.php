@@ -7,7 +7,10 @@ namespace AzGuard\Registry\Resolver;
 use AzGuard\Configuration\Config;
 use AzGuard\Registry\Values\PermissionSet;
 use AzGuard\Runtime\RequestState;
+use Carbon\CarbonImmutable;
+use Carbon\Exceptions\InvalidFormatException;
 use Closure;
+use DateTimeInterface;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Log;
 
@@ -24,16 +27,14 @@ use Illuminate\Support\Facades\Log;
  * Concurrent in-process calls compute the value twice and last writer wins
  * in the array — harmless and far safer than any locking strategy.
  *
+ * Durable payloads are a strict v2 envelope `{version, keys, valid_until}`.
+ * Hit-time `now >= validUntil` is a miss; backend TTL is eviction only.
+ *
  * @internal
  */
 class PermissionCache
 {
-    /**
-     * Prefix for every durable cache entry (permission set + per-user epoch).
-     * A fixed internal namespace — Laravel's own `cache.prefix` already isolates
-     * AzGuard's entries per app on a shared store, so this is not a config knob.
-     */
-    private const string KEY_PREFIX = 'azguard.perms';
+    private const ENVELOPE_VERSION = 2;
 
     public function __construct(
         private readonly RequestState $requestState = new RequestState,
@@ -41,7 +42,7 @@ class PermissionCache
 
     /**
      * @var array<string, array<string, array<string, PermissionSet>>>
-     *                                                                 userId => panelId => discriminator => PermissionSet
+     *                                                                 subjectDigest => panelId => discriminator => PermissionSet
      */
     private array $requestCache = [];
 
@@ -50,29 +51,34 @@ class PermissionCache
      * out-of-band state (e.g. the active workspace context) so two contexts on
      * the same panel never share a cached set. Supplied by a PermissionLayer.
      */
-    public function rememberForRequest(int|string $userId, string $panelId, Closure $callback, string $discriminator = ''): PermissionSet
+    public function rememberForRequest(SubjectIdentity $subject, string $panelId, Closure $callback, string $discriminator = ''): PermissionSet
     {
-        $uid = (string) $userId;
+        $subjectKey = $subject->digest();
+        $cached = $this->requestCache[$subjectKey][$panelId][$discriminator] ?? null;
 
-        if (isset($this->requestCache[$uid][$panelId][$discriminator])) {
-            return $this->requestCache[$uid][$panelId][$discriminator];
+        if ($cached instanceof PermissionSet && $this->isLive($cached)) {
+            return $cached;
+        }
+
+        if ($cached instanceof PermissionSet) {
+            unset($this->requestCache[$subjectKey][$panelId][$discriminator]);
         }
 
         $store = Config::cacheStore();
-
         $set = $store !== 'array'
-            ? $this->loadFromStore($this->keyFor($userId, $panelId, $discriminator), $store, $callback)
-            : $callback();
+            ? $this->loadFromStore($this->keyFor($subject, $panelId, $discriminator), $store, $callback)
+            : $this->materialize($callback);
 
-        return $this->requestCache[$uid][$panelId][$discriminator] = $set;
+        if (! $set instanceof PermissionSet) {
+            return PermissionSet::empty();
+        }
+
+        return $this->requestCache[$subjectKey][$panelId][$discriminator] = $set;
     }
 
-    public function forgetForUser(int|string $userId, string $panelId): void
+    public function forgetForUser(SubjectIdentity $subject, string $panelId): void
     {
-        $uid = (string) $userId;
-
-        // Drop every discriminator (all contexts) for this user+panel in-process.
-        unset($this->requestCache[$uid][$panelId]);
+        unset($this->requestCache[$subject->digest()][$panelId]);
 
         $store = Config::cacheStore();
 
@@ -80,35 +86,8 @@ class PermissionCache
             return;
         }
 
-        // Bump the per-user epoch. Every key built from `keyFor()` embeds the
-        // epoch, so incrementing it orphans ALL context-discriminated entries
-        // (and the base entry) at once — no store-specific prefix enumeration
-        // needed, and infinite-TTL entries stop being served immediately.
-        //
-        // `increment()` on a store where the key is still absent treats the
-        // missing value as 0 and returns 1 — i.e. a no-op against the
-        // `currentEpoch()` default of 1. Seed the key first (`add`, so a
-        // concurrent forget never clobbers a genuine counter) to guarantee
-        // the epoch strictly advances past the default on every forget.
-        //
-        // `increment()` does NOT refresh TTL on most stores, so a key seeded
-        // once by `add()` would expire on its own while later PermissionSet
-        // entries keep getting a fresh TTL every forget. Once the epoch key
-        // expires, `currentEpoch()` falls back to 1 and the next forget
-        // reseeds epoch 2 — colliding with a still-live epoch-2 entry from
-        // before the expiry and serving a revoked grant until that entry's
-        // own TTL runs out. Re-`put()` the resulting value on every call so
-        // the epoch key's TTL never lags behind the entries it guards.
-        //
-        // `increment()` is atomic on most stores, but the trailing `put()` is a
-        // separate read-modify-write: two concurrent forgets can interleave so
-        // the LATER increment's `put()` is overwritten by the EARLIER one,
-        // rolling the epoch backward and letting a revoked grant keep being
-        // served under the still-live old epoch key. Serialize the whole
-        // add()/increment()/put() sequence under a lock so concurrent forgets
-        // for the same user+panel cannot interleave.
         $epochStore = cache()->store($store);
-        $epochKey = $this->epochKey($userId, $panelId);
+        $epochKey = $this->epochStorageKey($subject, $panelId);
         $bump = function () use ($epochStore, $epochKey): void {
             $epochStore->add($epochKey, 1, Config::cacheTtl());
             $epoch = $epochStore->increment($epochKey);
@@ -120,9 +99,6 @@ class PermissionCache
         if ($lockStore instanceof LockProvider) {
             $lockStore->lock($epochKey.':lock', 5)->block(2, $bump);
         } else {
-            // C-05: the concurrent-forget race documented above is only closed
-            // when the store supports locking. Without one, the degradation is
-            // silent — surface it once per request so it is diagnosable.
             $this->requestState->once(
                 'azguard.epoch-bump-without-lock.'.$store,
                 fn () => Log::warning('AzGuard: bumping the permission cache epoch without a lock — store does not implement LockProvider', [
@@ -138,19 +114,10 @@ class PermissionCache
      * In-process-only invalidation: drops the cached PermissionSet(s) for this
      * user+panel from the request-local array WITHOUT bumping the durable
      * per-user epoch.
-     *
-     * Intended for transient, within-request context switches (e.g.
-     * ContextGuard::checkInContext) where the previously-computed set for the
-     * OLD discriminator must not leak into a check made under a different
-     * (temporarily active) context, but there is no real grant/role change to
-     * persist. Bumping the epoch here would invalidate the entire cross-request
-     * cache for this user+panel on a persistent store on every single context
-     * check — see forgetForUser() for the durable counterpart used on actual
-     * grant/role mutations.
      */
-    public function forgetRequestCache(int|string $userId, string $panelId): void
+    public function forgetRequestCache(SubjectIdentity $subject, string $panelId): void
     {
-        unset($this->requestCache[(string) $userId][$panelId]);
+        unset($this->requestCache[$subject->digest()][$panelId]);
     }
 
     public function forgetAll(): void
@@ -158,20 +125,31 @@ class PermissionCache
         $this->requestCache = [];
     }
 
-    public function keyFor(int|string $userId, string $panelId, string $discriminator = ''): string
+    public function keyFor(SubjectIdentity $subject, string $panelId, string $discriminator = ''): string
     {
-        $epoch = $this->currentEpoch($userId, $panelId);
-        $base = self::KEY_PREFIX.".{$userId}.{$panelId}.v{$epoch}";
+        $epoch = $this->currentEpoch($subject, $panelId);
 
-        return $discriminator === '' ? $base : "{$base}.{$discriminator}";
+        return 'azg:v2:perm:'.SubjectIdentity::digestPayload([
+            2,
+            'perm',
+            $subject->digest(),
+            $panelId,
+            $discriminator,
+            $epoch,
+        ]);
     }
 
-    /**
-     * Current epoch for user+panel, read from the store (defaults to 1 —
-     * never yet forgotten). Only meaningful when a persistent store is in
-     * use; the array store never calls into this (see rememberForRequest).
-     */
-    private function currentEpoch(int|string $userId, string $panelId): int
+    public function epochStorageKey(SubjectIdentity $subject, string $panelId): string
+    {
+        return 'azg:v2:epoch:'.SubjectIdentity::digestPayload([
+            2,
+            'epoch',
+            $subject->digest(),
+            $panelId,
+        ]);
+    }
+
+    private function currentEpoch(SubjectIdentity $subject, string $panelId): int
     {
         $store = Config::cacheStore();
 
@@ -179,30 +157,127 @@ class PermissionCache
             return 1;
         }
 
-        return (int) cache()->store($store)->get($this->epochKey($userId, $panelId), 1);
+        return (int) cache()->store($store)->get($this->epochStorageKey($subject, $panelId), 1);
     }
 
-    private function epochKey(int|string $userId, string $panelId): string
+    private function loadFromStore(string $cacheKey, string $store, Closure $callback): ?PermissionSet
     {
-        return self::KEY_PREFIX.".{$userId}.{$panelId}.epoch";
-    }
+        $decoded = $this->decodeEnvelope(cache()->store($store)->get($cacheKey));
 
-    private function loadFromStore(string $cacheKey, string $store, Closure $callback): PermissionSet
-    {
-        $raw = cache()->store($store)->remember(
-            $cacheKey,
-            Config::cacheTtl(),
-            fn () => $callback()->keys(),
-        );
-
-        if (is_array($raw)) {
-            return PermissionSet::fromKeys($raw);
+        if ($decoded instanceof PermissionSet && $this->isLive($decoded)) {
+            return $decoded;
         }
 
-        // Stale or incompatible cache entry — recompute and overwrite.
-        $set = $callback();
-        cache()->store($store)->put($cacheKey, $set->keys(), Config::cacheTtl());
+        $set = $this->materialize($callback);
+
+        if (! $set instanceof PermissionSet) {
+            return null;
+        }
+
+        cache()->store($store)->put($cacheKey, $this->encodeEnvelope($set), $this->backendExpiry($set));
 
         return $set;
+    }
+
+    /**
+     * @return array{version: int, keys: list<string>, valid_until: ?string}
+     */
+    private function encodeEnvelope(PermissionSet $set): array
+    {
+        return [
+            'version' => self::ENVELOPE_VERSION,
+            'keys' => $set->keys(),
+            'valid_until' => $set->validUntil()?->utc()->format('Y-m-d\TH:i:s.u\Z'),
+        ];
+    }
+
+    private function decodeEnvelope(mixed $raw): ?PermissionSet
+    {
+        if (! is_array($raw)) {
+            return null;
+        }
+
+        $fields = array_keys($raw);
+        sort($fields);
+
+        if ($fields !== ['keys', 'valid_until', 'version']) {
+            return null;
+        }
+
+        if ($raw['version'] !== self::ENVELOPE_VERSION) {
+            return null;
+        }
+
+        if (! is_array($raw['keys'])) {
+            return null;
+        }
+
+        $keys = [];
+
+        foreach ($raw['keys'] as $key) {
+            if (! is_string($key)) {
+                return null;
+            }
+
+            $keys[] = $key;
+        }
+
+        $until = $raw['valid_until'];
+
+        if ($until === null) {
+            return PermissionSet::fromKeys($keys);
+        }
+
+        if (! is_string($until)) {
+            return null;
+        }
+
+        try {
+            $parsed = CarbonImmutable::createFromFormat('Y-m-d\TH:i:s.u\Z', $until, 'UTC');
+        } catch (InvalidFormatException) {
+            return null;
+        }
+
+        if (! $parsed instanceof CarbonImmutable) {
+            return null;
+        }
+
+        return PermissionSet::fromKeys($keys)->withValidUntil($parsed);
+    }
+
+    private function materialize(Closure $callback): ?PermissionSet
+    {
+        $set = $callback();
+
+        if (! $set instanceof PermissionSet || ! $this->isLive($set)) {
+            return null;
+        }
+
+        return $set;
+    }
+
+    private function isLive(PermissionSet $set): bool
+    {
+        $until = $set->validUntil();
+
+        return ! $until instanceof CarbonImmutable || now()->lt($until);
+    }
+
+    private function backendExpiry(PermissionSet $set): DateTimeInterface|int|null
+    {
+        $configured = Config::cacheTtl();
+        $deadline = $set->validUntil();
+
+        if (! $deadline instanceof CarbonImmutable) {
+            return $configured;
+        }
+
+        if ($configured === null) {
+            return $deadline;
+        }
+
+        $configuredAt = now()->addSeconds($configured);
+
+        return $configuredAt->lt($deadline) ? $configured : $deadline;
     }
 }

@@ -6,6 +6,7 @@ namespace AzGuard\Models;
 
 use AzGuard\Configuration\Config;
 use AzGuard\Registry\Resolver\PermissionCache;
+use AzGuard\Registry\Resolver\SubjectIdentity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -42,13 +43,13 @@ class DirectGrant extends Model
     /**
      * Flush the grantable's cached permissions whenever a grant is written or
      * deleted — covers the Filament resource, raw model saves/deletes, and any
-     * other model-event path. The grantable_id is the cache user id, so no model
-     * load is needed. (GrantBuilder's bulk revoke fires GrantRevoked instead.)
+     * other model-event path. Typed subject identity (morph type + id) drives
+     * cache invalidation — no model load is needed. (GrantBuilder's bulk revoke fires GrantRevoked instead.)
      *
-     * On update, also flush the ORIGINAL (panel_id, grantable) pair when either
-     * changed (C-09): moving a grant from panel A to B, or reassigning it to a
-     * different grantable, otherwise leaves panel A's stale cached permission
-     * set alive until TTL — the new-value flush above never touches it.
+     * On update, also flush the ORIGINAL (panel_id, grantable_type, grantable_id) tuple when any
+     * changed (C-09): moving a grant from panel A to B, reassigning it to a
+     * different grantable, or changing morph type, otherwise leaves the old
+     * cached permission set alive until TTL — the new-value flush above never touches it.
      *
      * Known gap (P1.4 review): a mass update/delete through the query builder
      * (DirectGrant::query()->update(...)) fires NO model events, so neither
@@ -59,17 +60,26 @@ class DirectGrant extends Model
     protected static function booted(): void
     {
         $flush = static function (self $grant): void {
-            app(PermissionCache::class)->forgetForUser($grant->grantable_id, $grant->panel_id);
+            app(PermissionCache::class)->forgetForUser(
+                SubjectIdentity::fromPersisted($grant->grantable_type, $grant->grantable_id),
+                $grant->panel_id,
+            );
         };
 
         static::created($flush);
 
         static::updated(static function (self $grant) use ($flush): void {
             $originalPanelId = $grant->getOriginal('panel_id');
+            $originalGrantableType = $grant->getOriginal('grantable_type');
             $originalGrantableId = $grant->getOriginal('grantable_id');
 
-            if ($originalPanelId !== $grant->panel_id || $originalGrantableId !== $grant->grantable_id) {
-                app(PermissionCache::class)->forgetForUser($originalGrantableId, $originalPanelId);
+            if ($originalPanelId !== $grant->panel_id
+                || $originalGrantableType !== $grant->grantable_type
+                || $originalGrantableId !== $grant->grantable_id) {
+                app(PermissionCache::class)->forgetForUser(
+                    SubjectIdentity::fromPersisted((string) $originalGrantableType, $originalGrantableId),
+                    (string) $originalPanelId,
+                );
             }
 
             $flush($grant);

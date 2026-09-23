@@ -16,6 +16,10 @@ Request comes in
 
 The in-memory cache is **never shared** between requests. Under Octane, each worker resolves permissions independently per request.
 
+## Absolute grant deadlines
+
+`PermissionSet::validUntil()` is an optional absolute UTC instant. Built-in direct and context grants set it to the nearest active `expires_at`. On every request-cache and durable-cache hit, AzGuard treats `now >= validUntil` as a miss, refreshes once, and does not store a result that is already expired. The durable payload is `{version, keys, valid_until}`. Backend TTL is the earlier of `expiration_time` and that deadline; `expiration_time => null` does not cancel a deadline. A custom source or layer that leaves `validUntil()` null still follows only the configured TTL.
+
 ## Manual cache flush
 
 If you modify roles or grants within the same request (e.g., in a test or admin action), flush the cache to get fresh results:
