@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-09-23
-inputs_sha256: ddec214616ac9f443fb076219a9408de9a8df92124ce3f5ebb9a16b274586305
+inputs_sha256: cf039e2a86975f4523099ca434b01eb0d08edab037f393ee297b6ecc2c1d821b
 generated_by: task plan-views status
 -->
 
@@ -24,7 +24,7 @@ generated_by: task plan-views status
 | Phase | Title | Items 🟢/всего | Status |
 |:--|:--|:--|:--|
 | P1 | Идентичность и срок жизни кэша | 2/2 | 🟢 Done |
-| P2 | Атомарные мутации и согласованная инвалидация | 0/3 | 🟡 In progress |
+| P2 | Атомарные мутации и согласованная инвалидация | 1/3 | 🟡 In progress |
 | P3 | Согласованная подмена моделей | 0/2 | ⬜ Not started |
 | P4 | Runtime panel и единые validation boundaries | 0/2 | ⬜ Not started |
 | P5 | Role identity и безопасное создание панелей | 0/2 | ⬜ Not started |
@@ -42,7 +42,7 @@ generated_by: task plan-views status
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P2.1 | Один атомарный role-permission sync | 🟡 In progress | 2026-09-23 |
+| P2.1 | Один атомарный role-permission sync | 🟢 Done | 2026-09-23 |
 | P2.2 | Согласовать revision и commit protocol | ⬜ Not started | — |
 | P2.3 | Проверить отказ backend и безопасный сброс | ⬜ Not started | — |
 
@@ -114,6 +114,7 @@ generated_by: task plan-views status
 | 2026-09-23 | grok-4.6/high | plan-exec · in-progress · — |
 | 2026-09-23 | grok-4.6/high | plan-design · no-op · Owner attested: P1.md contract-first block added so phase closure matches the generator; design GREEN remains. |
 | 2026-09-23 | grok-4.6/high | plan-audit · audit-green · Owner attested: bind GREEN design to fingerprint after P1 contract-first block for closure generator. No new product audit. |
+| 2026-09-23 | grok-4.6/high | plan-exec · closed-green · atomic role-permission sync; Pest 17, PHPStan clean |
 
 ## Owner Gates
 

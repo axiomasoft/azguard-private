@@ -7,6 +7,10 @@ namespace AzGuard\Commands;
 use AzGuard\Configuration\Config;
 use AzGuard\Models\Role;
 use AzGuard\Registry\Contracts\PermissionCatalog;
+use AzGuard\Registry\Exceptions\InvalidPermissionKeyException;
+use AzGuard\Roles\RolePermissionConnectionException;
+use AzGuard\Roles\RolePermissionSelection;
+use AzGuard\Roles\RolePermissionSynchronizer;
 use Illuminate\Console\Command;
 
 /**
@@ -31,7 +35,7 @@ class RolePermissionsCommand extends Command
 
     protected $description = 'Manage DB-level role permissions (role_permissions)';
 
-    public function handle(PermissionCatalog $catalog): int
+    public function handle(PermissionCatalog $catalog, RolePermissionSynchronizer $synchronizer): int
     {
         $action = $this->argument('action');
         $roleArg = $this->argument('role');
@@ -51,9 +55,9 @@ class RolePermissionsCommand extends Command
 
         return match ($action) {
             'list' => $this->actionList($role, $panelId),
-            'add' => $this->actionAdd($role, $panelId, $catalog),
-            'remove' => $this->actionRemove($role, $panelId),
-            'sync' => $this->actionSync($role, $panelId, $catalog),
+            'add' => $this->actionAdd($role, $panelId, $synchronizer),
+            'remove' => $this->actionRemove($role, $panelId, $synchronizer),
+            'sync' => $this->actionSync($role, $panelId, $catalog, $synchronizer),
             default => $this->invalidAction($action),
         };
     }
@@ -88,62 +92,60 @@ class RolePermissionsCommand extends Command
         return self::SUCCESS;
     }
 
-    private function actionAdd(Role $role, string $panelId, PermissionCatalog $catalog): int
+    private function actionAdd(Role $role, string $panelId, RolePermissionSynchronizer $synchronizer): int
     {
         $key = $this->argument('permission_key');
 
-        if ($key === null) {
+        if (! is_string($key) || $key === '') {
             $this->error('Specify a permission_key.');
 
             return self::FAILURE;
         }
 
-        if (! $catalog->has($panelId, $key)) {
-            $this->error("Permission key [{$key}] is not registered in the catalog for panel [{$panelId}].");
+        try {
+            $result = $synchronizer->sync(
+                role: $role,
+                selection: RolePermissionSelection::singleKey(panel: $panelId, key: $key, present: true),
+            );
+        } catch (InvalidPermissionKeyException|RolePermissionConnectionException $exception) {
+            $this->error($exception->getMessage());
 
             return self::FAILURE;
         }
 
-        $exists = $role->dbPermissions()
-            ->where('permission_key', $key)
-            ->where('panel_id', $panelId)
-            ->exists();
-
-        if ($exists) {
+        if (! $result->changed()) {
             $this->warn("Permission [{$key}] already assigned to role [{$role->name}] (panel: {$panelId}).");
 
             return self::SUCCESS;
         }
-
-        $rolePermissionModel = Config::rolePermissionModel();
-
-        $rolePermissionModel::create([
-            'role_id' => $role->id,
-            'permission_key' => $key,
-            'panel_id' => $panelId,
-        ]);
 
         $this->info("Added: [{$key}] → role [{$role->name}] (panel: {$panelId}).");
 
         return self::SUCCESS;
     }
 
-    private function actionRemove(Role $role, string $panelId): int
+    private function actionRemove(Role $role, string $panelId, RolePermissionSynchronizer $synchronizer): int
     {
         $key = $this->argument('permission_key');
 
-        if ($key === null) {
+        if (! is_string($key) || $key === '') {
             $this->error('Specify a permission_key.');
 
             return self::FAILURE;
         }
 
-        $deleted = $role->dbPermissions()
-            ->where('permission_key', $key)
-            ->where('panel_id', $panelId)
-            ->delete();
+        try {
+            $result = $synchronizer->sync(
+                role: $role,
+                selection: RolePermissionSelection::singleKey(panel: $panelId, key: $key, present: false),
+            );
+        } catch (RolePermissionConnectionException $exception) {
+            $this->error($exception->getMessage());
 
-        if ($deleted === 0) {
+            return self::FAILURE;
+        }
+
+        if (! $result->changed()) {
             $this->warn("Permission [{$key}] not found on role [{$role->name}] (panel: {$panelId}).");
 
             return self::SUCCESS;
@@ -154,7 +156,7 @@ class RolePermissionsCommand extends Command
         return self::SUCCESS;
     }
 
-    private function actionSync(Role $role, string $panelId, PermissionCatalog $catalog): int
+    private function actionSync(Role $role, string $panelId, PermissionCatalog $catalog, RolePermissionSynchronizer $synchronizer): int
     {
         $keysRaw = (string) $this->option('keys');
 
@@ -164,9 +166,8 @@ class RolePermissionsCommand extends Command
             return self::FAILURE;
         }
 
-        $newKeys = array_filter(array_map(trim(...), explode(',', $keysRaw)));
-
-        $unknownKeys = array_filter($newKeys, fn (string $key): bool => ! $catalog->has($panelId, $key));
+        $newKeys = array_values(array_unique(array_filter(array_map(trim(...), explode(',', $keysRaw)))));
+        $unknownKeys = array_values(array_filter($newKeys, fn (string $key): bool => ! $catalog->has($panelId, $key)));
 
         if ($unknownKeys !== []) {
             $this->error(sprintf(
@@ -183,8 +184,8 @@ class RolePermissionsCommand extends Command
             ->pluck('permission_key')
             ->all();
 
-        $toAdd = array_diff($newKeys, $existing);
-        $toRemove = array_diff($existing, $newKeys);
+        $toAdd = array_values(array_diff($newKeys, $existing));
+        $toRemove = array_values(array_diff($existing, $newKeys));
 
         if ($toAdd === [] && $toRemove === []) {
             $this->info('Permissions already in sync — no changes.');
@@ -209,27 +210,21 @@ class RolePermissionsCommand extends Command
             return self::SUCCESS;
         }
 
-        $rolePermissionModel = Config::rolePermissionModel();
+        try {
+            $result = $synchronizer->sync(
+                role: $role,
+                selection: RolePermissionSelection::panelReplacement(panel: $panelId, keys: $newKeys),
+            );
+        } catch (InvalidPermissionKeyException|RolePermissionConnectionException $exception) {
+            $this->error($exception->getMessage());
 
-        foreach ($toAdd as $key) {
-            $rolePermissionModel::create([
-                'role_id' => $role->id,
-                'permission_key' => $key,
-                'panel_id' => $panelId,
-            ]);
-        }
-
-        if ($toRemove !== []) {
-            $role->dbPermissions()
-                ->where('panel_id', $panelId)
-                ->whereIn('permission_key', $toRemove)
-                ->delete();
+            return self::FAILURE;
         }
 
         $this->info(sprintf(
             'Sync complete: +%d added, -%d removed (role: %s, panel: %s).',
-            count($toAdd),
-            count($toRemove),
+            $result->added,
+            $result->removed,
             $role->name,
             $panelId,
         ));

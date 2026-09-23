@@ -6,16 +6,21 @@ namespace AzGuard\Filament\Resources\RoleResource\RelationManagers;
 
 use AzGuard\AzGuardManager;
 use AzGuard\Models\Role;
-use AzGuard\Models\RolePermission;
 use AzGuard\Registry\Contracts\PermissionCatalog;
+use AzGuard\Roles\RolePermissionSelection;
+use AzGuard\Roles\RolePermissionSyncConflictException;
+use AzGuard\Roles\RolePermissionSynchronizer;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Exceptions\Halt;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -68,7 +73,10 @@ final class RolePermissionsRelationManager extends RelationManager
                 Action::make('sync_permissions')
                     ->label('Edit permissions')
                     ->icon('heroicon-o-pencil-square')
-                    ->form(fn (): array => $this->buildPermissionsForm())
+                    ->form(fn (): array => [
+                        Hidden::make('fingerprint'),
+                        ...$this->buildPermissionsForm(),
+                    ])
                     ->fillForm(fn (): array => $this->currentPermissionsFormData())
                     ->action(fn (array $data) => $this->syncPermissions($data)),
             ])
@@ -161,57 +169,79 @@ final class RolePermissionsRelationManager extends RelationManager
             }
         }
 
+        $data['fingerprint'] = app(RolePermissionSynchronizer::class)->fingerprint(
+            role: $role,
+            managed: $this->renderedCatalogKeys($catalog, $manager),
+        );
+
         return $data;
     }
 
     /**
      * Syncs the role's DB permissions: removes the old ones, adds the new ones.
      */
-    /** @param array{permissions?: array<string, array<string, list<string>>>} $data */
+    /**
+     * @param  array{permissions?: array<string, array<string, list<string>>>, fingerprint?: string}  $data
+     */
     private function syncPermissions(array $data): void
     {
         $role = $this->ownerRole();
-        $permissionsData = $data['permissions'] ?? [];
-
+        /** @var PermissionCatalog $catalog */
+        $catalog = app(PermissionCatalog::class);
+        /** @var AzGuardManager $manager */
+        $manager = app(AzGuardManager::class);
         $desired = [];
 
-        foreach ($permissionsData as $panelId => $groups) {
+        foreach ($data['permissions'] ?? [] as $panelId => $groups) {
             foreach ($groups as $keys) {
                 foreach ($keys as $key) {
-                    $desired[$panelId][] = $key;
+                    $desired[] = [(string) $panelId, (string) $key];
                 }
             }
         }
 
-        $role->dbPermissions()->delete();
+        $fingerprint = is_string($data['fingerprint'] ?? null) ? $data['fingerprint'] : null;
 
-        $rows = [];
-        $now = now();
+        try {
+            app(RolePermissionSynchronizer::class)->sync(
+                role: $role,
+                selection: RolePermissionSelection::managedSubset(
+                    managed: $this->renderedCatalogKeys($catalog, $manager),
+                    desired: $desired,
+                    expectedFingerprint: $fingerprint,
+                ),
+            );
+        } catch (RolePermissionSyncConflictException $exception) {
+            Notification::make()->title($exception->getMessage())->danger()->send();
 
-        foreach ($desired as $panelId => $keys) {
-            foreach (array_unique($keys) as $key) {
-                $rows[] = [
-                    'role_id' => $role->id,
-                    'permission_key' => $key,
-                    'panel_id' => $panelId,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
+            throw new Halt;
         }
 
-        if ($rows !== []) {
-            RolePermission::insert($rows);
-        }
-
-        // Raw delete()/insert() bypasses model events, and editing a role's
-        // permissions affects every holder — flush each user's cached set so the
-        // change is effective immediately even with a persistent cache store.
         $role->users()->cursor()->each(static function (Model $user): void {
             if (method_exists($user, 'flushPermissions')) {
                 $user->flushPermissions();
             }
         });
+    }
+
+    /**
+     * Catalog keys the edit form actually renders. Rows outside this set survive.
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    private function renderedCatalogKeys(PermissionCatalog $catalog, AzGuardManager $manager): array
+    {
+        $managed = [];
+
+        foreach (array_keys($manager->getPanels()) as $panelId) {
+            foreach ($catalog->groups($panelId) as $definitions) {
+                foreach ($definitions as $definition) {
+                    $managed[] = [$panelId, $definition->key()];
+                }
+            }
+        }
+
+        return $managed;
     }
 
     /**
