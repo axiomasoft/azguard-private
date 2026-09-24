@@ -39,8 +39,8 @@ return new class extends Migration
     {
         $t = config('az-guard.table_names');
 
-        Schema::dropIfExists($t['model_has_scopes']);
-        Schema::dropIfExists($t['model_has_roles']);
-        Schema::dropIfExists($t['roles']);
+        Schema::dropIfExists(table: $t['model_has_scopes']);
+        Schema::dropIfExists(table: $t['model_has_roles']);
+        Schema::dropIfExists(table: $t['roles']);
     }
 };
