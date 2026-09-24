@@ -1,13 +1,12 @@
 # AzGuard SemVer policy
 
-AzGuard 1.0.0 establishes a stable public contract. An incompatible public API,
-default-behavior, schema, or supported-runtime change requires a MAJOR version
-and an upgrade guide. Additive features use MINOR; compatible fixes use PATCH.
-Review the root `CHANGELOG.md`, the [upgrade guide](./upgrading.md), and the API
-snapshot together before creating a release candidate.
+AzGuard is still on 0.x; 1.0.0 is not scheduled. Until a 1.0 tag exists, an
+incompatible public API, default-behavior, schema, or supported-runtime change
+may ship in a MINOR bump. Additive features use MINOR; compatible fixes use
+PATCH. Review the root `CHANGELOG.md`, the [upgrade guide](./upgrading.md), and
+the API snapshot together before creating a release candidate.
 
-The sections below record the historical 0.x policy and the mechanical snapshot
-procedure. The pre-1.0 minor-release exception no longer applies to 1.x.
+The sections below record the 0.x policy and the mechanical snapshot procedure.
 
 ## 1. What counts as the public API
 
@@ -109,5 +108,6 @@ in the snapshot's change detection.
 - `plans/archive/2026.07.18-AZGUARD-STABLE/root/api-surface.md` — historical frozen surface registry (P3.1).
 - `plans/archive/2026.07.18-AZGUARD-STABLE/root/contracts/facade-cutline.md` — historical facade decision (P2.5/P3.1, D29).
 - [Known limitations](./known-limitations.md) — current documented support boundaries.
-- [Upgrading](./upgrading.md) — the consolidated `0.2 → 0.3` and `1.0.0` migration guides, generated from this
+- [Upgrading](./upgrading.md) — the consolidated `0.2 → 0.3` and unreleased `main`
+  migration guides, generated from this
   policy's §2 definition and the plan's Decision Log / Completion Notes (D10, D14–D18, D29).

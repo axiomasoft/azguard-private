@@ -184,11 +184,22 @@ final class Config
         foreach (self::authorizationModelBindings() as $configKey => $base) {
             $raw = config("az-guard.{$configKey}", $base);
 
-            if (! is_string($raw) || $raw === '' || ! class_exists($raw) || ($raw !== $base && ! is_subclass_of($raw, $base))) {
+            if (! is_string($raw)) {
                 continue;
             }
 
-            /** @var Model $model */
+            if ($raw === '') {
+                continue;
+            }
+
+            if (! class_exists($raw)) {
+                continue;
+            }
+
+            if ($raw !== $base && ! is_subclass_of($raw, $base)) {
+                continue;
+            }
+
             $model = new $raw;
             $connections[$configKey] = (string) ($model->getConnectionName() ?? config('database.default'));
         }

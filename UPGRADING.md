@@ -1,14 +1,15 @@
 # Upgrading
 
-## 0.3 → 1.0
+## After 0.3 (unreleased)
 
-Correctness release **2026.09.22-№1-AZGUARD-CORRECTNESS**. Upgrade
-`axioma-studio/azguard-core`, `-context`, and `-filament` together to `^1.0`.
-This is a breaking release: cache identity, permission-state revision, panel/role
-identity, migrations, and several defaults changed.
+Correctness work on `main` from **2026.09.22-№1-AZGUARD-CORRECTNESS**. This is
+not a 1.0 release. A future 0.x or 1.0 cut will pick these up; until then treat
+`main` as breaking relative to tagged `v0.3.0`. Upgrade
+`axioma-studio/azguard-core`, `-context`, and `-filament` together when that
+cut happens.
 
 Full consumer steps (RU/EN) live in
-[docs/introduction/upgrading.md](docs/introduction/upgrading.md) (**1.0.0**
+[docs/introduction/upgrading.md](docs/introduction/upgrading.md) (**Unreleased**
 section) — keep RU/EN pairs in sync when editing upgrade notes.
 
 Summary of required actions:

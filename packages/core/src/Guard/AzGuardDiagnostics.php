@@ -164,10 +164,10 @@ class AzGuardDiagnostics
     private function authorizationModelDetails(): array
     {
         $bindings = [
-            'models.role' => static fn (): string => Config::roleModel(),
-            'models.scope' => static fn (): string => Config::scopeModel(),
-            'models.direct_grant' => static fn (): string => Config::directGrantModel(),
-            'models.role_permission' => static fn (): string => Config::rolePermissionModel(),
+            'models.role' => Config::roleModel(...),
+            'models.scope' => Config::scopeModel(...),
+            'models.direct_grant' => Config::directGrantModel(...),
+            'models.role_permission' => Config::rolePermissionModel(...),
         ];
         $details = [];
 
@@ -204,7 +204,11 @@ class AzGuardDiagnostics
             $reflection = new ReflectionClass($policyClass);
             $filename = $reflection->getFileName();
 
-            if (! is_string($filename) || ! str_contains(File::get(path: $filename), 'azguard:generated-policy')) {
+            if (! is_string($filename)) {
+                continue;
+            }
+
+            if (! str_contains(File::get(path: $filename), 'azguard:generated-policy')) {
                 continue;
             }
 
@@ -242,7 +246,11 @@ class AzGuardDiagnostics
             $reflection = new ReflectionClass($enumClass);
             $filename = $reflection->getFileName();
 
-            if (! is_string($filename) || ! str_contains(File::get(path: $filename), 'azguard:generated-permission')) {
+            if (! is_string($filename)) {
+                continue;
+            }
+
+            if (! str_contains(File::get(path: $filename), 'azguard:generated-permission')) {
                 continue;
             }
 
@@ -489,7 +497,7 @@ class AzGuardDiagnostics
 
             $method = $this->controllerMethodForRoute($route);
 
-            if ($method === null) {
+            if (! $method instanceof ReflectionMethod) {
                 continue;
             }
 

@@ -46,10 +46,8 @@ final readonly class PermissionSet
     /** @var list<string> Wildcard patterns only (keys containing '*'). */
     private array $patterns;
 
-    private ?CarbonImmutable $validUntil;
-
     /** @param list<string> $keys */
-    private function __construct(array $keys, ?CarbonImmutable $validUntil = null)
+    private function __construct(array $keys, private ?CarbonImmutable $validUntil = null)
     {
         $unique = array_unique($keys);
         $this->wildcard = in_array(self::WILDCARD, $unique, strict: true);
@@ -57,7 +55,6 @@ final readonly class PermissionSet
         $this->patterns = $this->wildcard
             ? []
             : array_values(array_filter($unique, static fn (string $k): bool => str_contains($k, self::WILDCARD)));
-        $this->validUntil = $validUntil;
     }
 
     public static function empty(): self
@@ -99,7 +96,7 @@ final readonly class PermissionSet
      */
     public function merge(self $other): self
     {
-        $deadline = self::nearestDeadline($this->validUntil, $other->validUntil);
+        $deadline = $this->nearestDeadline($this->validUntil, $other->validUntil);
 
         if ($this->wildcard || $other->wildcard) {
             return new self([self::WILDCARD], $deadline);
@@ -196,7 +193,7 @@ final readonly class PermissionSet
      */
     public function withValidUntil(?DateTimeInterface $validUntil): self
     {
-        return new self($this->keys(), self::normalizeDeadline($validUntil));
+        return new self($this->keys(), $this->normalizeDeadline($validUntil));
     }
 
     /** @return list<string> */
@@ -210,14 +207,14 @@ final readonly class PermissionSet
         return count($this->index);
     }
 
-    private static function normalizeDeadline(?DateTimeInterface $validUntil): ?CarbonImmutable
+    private function normalizeDeadline(?DateTimeInterface $validUntil): ?CarbonImmutable
     {
         return $validUntil instanceof DateTimeInterface
             ? CarbonImmutable::createFromInterface($validUntil)->utc()
             : null;
     }
 
-    private static function nearestDeadline(?CarbonImmutable $left, ?CarbonImmutable $right): ?CarbonImmutable
+    private function nearestDeadline(?CarbonImmutable $left, ?CarbonImmutable $right): ?CarbonImmutable
     {
         if (! $left instanceof CarbonImmutable) {
             return $right;

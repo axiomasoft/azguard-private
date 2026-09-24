@@ -47,3 +47,4 @@ ideas/
 CLAUDE.md
 AGENTS.md
 *.bak
+.tmp*

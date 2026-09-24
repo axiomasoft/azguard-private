@@ -25,7 +25,7 @@ use Override;
  */
 final class AzGuardPlugin implements Plugin
 {
-    private const DEFAULTS_BINDING = 'az-guard-filament.registration-defaults';
+    private const string DEFAULTS_BINDING = 'az-guard-filament.registration-defaults';
 
     private ?string $panelId = null;
 

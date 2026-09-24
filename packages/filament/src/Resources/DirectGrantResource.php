@@ -192,13 +192,11 @@ final class DirectGrantResource extends Resource
                     )),
             ])
             ->actions([
-                DeleteAction::make()->label('Revoke')->using(static function (DirectGrant $record): bool {
-                    return app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
-                        $deleted = $record->delete();
+                DeleteAction::make()->label('Revoke')->using(static fn (DirectGrant $record): bool => app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
+                    $deleted = $record->delete();
 
-                        return [$deleted === true, $deleted === true];
-                    });
-                }),
+                    return [$deleted === true, $deleted === true];
+                })),
             ])
             ->bulkActions([
                 DeleteBulkAction::make()->label('Revoke selected')->using(static function (EloquentCollection|Collection|LazyCollection $records): void {

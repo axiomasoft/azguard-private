@@ -69,7 +69,7 @@ final class PermissionGrammar
 
     private static function isValidSegment(string $segment): bool
     {
-        if ($segment === '' || $segment === PermissionKey::WILDCARD || $segment === '**') {
+        if (in_array($segment, ['', PermissionKey::WILDCARD, '**'], true)) {
             return $segment !== '';
         }
 

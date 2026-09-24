@@ -51,9 +51,12 @@ threshold. Do not lower a threshold to make a red gate pass. Exclusions live
 next to the package settings in `bin/mutation-gate.sh`, carry an inline
 rationale, and are reviewed as code.
 
-P4.5 measured 100.00% for core, filament, and context, so all three native
-Pest gates enforce 98%. Local runs honestly skip when no pcov/Xdebug driver is
-installed; CI supplies Xdebug and remains blocking. Evidence is in
+P4.5 measured 100.00% for core, filament, and context. A later Xdebug run on
+2026-09-24 still measured 100.00%, so the native Pest gates now enforce 99%.
+Line coverage on that run was 87.1%, so `composer check:coverage` and the CI
+coverage job enforce `--min=85` (`floor(87.1) - 2`). Local runs use PATH `php`,
+then `php8.4`, and skip only when neither binary has pcov/Xdebug; CI supplies
+Xdebug and remains blocking. Evidence is in
 `plans/archive/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
 
 ## Local database matrix

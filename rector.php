@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\SetList;
 
@@ -21,4 +22,6 @@ return RectorConfig::configure()
     ->withImportNames()
     ->withSkip([
         __DIR__.'/packages/core/src/Roles/BaseRole.php',
+        // Keep identifier/permission grammar regex explicit; `\w` is not a documented contract.
+        SimplifyRegexPatternRector::class,
     ]);

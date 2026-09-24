@@ -9,7 +9,6 @@ use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Contracts\HasRoles as HasRolesContract;
 use AzGuard\Contracts\RoleInterface;
-use AzGuard\Models\Role;
 use AzGuard\Panels\Panel;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantPriority;

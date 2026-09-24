@@ -32,7 +32,7 @@ final readonly class FilamentPermissionCatalogBuilder implements PermissionCatal
             return [];
         }
 
-        $plugin = $this->pluginForPanel === null ? null : ($this->pluginForPanel)($panelId);
+        $plugin = $this->pluginForPanel instanceof Closure ? ($this->pluginForPanel)($panelId) : null;
         $schema = $plugin instanceof AzGuardPlugin
             ? $this->schema->withOptions($plugin->getKeyTemplate(), $plugin->getCase())
             : $this->schema;
@@ -44,6 +44,6 @@ final readonly class FilamentPermissionCatalogBuilder implements PermissionCatal
     public function supports(string $panelId): bool
     {
         return $panelId === $this->panelId
-            || ($this->pluginForPanel !== null && ($this->pluginForPanel)($panelId) instanceof AzGuardPlugin);
+            || ($this->pluginForPanel instanceof Closure && ($this->pluginForPanel)($panelId) instanceof AzGuardPlugin);
     }
 }

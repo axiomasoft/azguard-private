@@ -420,14 +420,22 @@ trait HasScopedRoles
         foreach ((array) config('auth.providers', []) as $provider) {
             $providerModel = is_array($provider) ? ($provider['model'] ?? null) : null;
 
-            if (! is_string($providerModel) || $providerModel === '' || ! class_exists($providerModel)) {
+            if (! is_string($providerModel)) {
+                continue;
+            }
+
+            if ($providerModel === '') {
+                continue;
+            }
+
+            if (! class_exists($providerModel)) {
                 continue;
             }
 
             // A subclass may be a scoped domain query sharing the provider's
             // base class. Only the model the provider itself instantiates is
             // exempt from the auth-dependent filter.
-            if (is_a($model, $providerModel) && is_a($providerModel, $model::class, true)) {
+            if ($model instanceof $providerModel && is_a($providerModel, $model::class, true)) {
                 return true;
             }
         }

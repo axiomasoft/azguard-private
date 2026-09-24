@@ -173,13 +173,11 @@ final class RoleResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                DeleteAction::make()->using(static function (Role $record): bool {
-                    return app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
-                        $deleted = self::deleteRole($record);
+                DeleteAction::make()->using(static fn (Role $record): bool => app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
+                    $deleted = self::deleteRole($record);
 
-                        return [$deleted, $deleted];
-                    });
-                }),
+                    return [$deleted, $deleted];
+                })),
             ])
             ->bulkActions([
                 DeleteBulkAction::make()->using(static function (EloquentCollection|Collection|LazyCollection $records): void {

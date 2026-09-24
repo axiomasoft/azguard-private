@@ -263,6 +263,32 @@ it('guard:prune-grants does not remove active (non-expired) grants', function ()
         ->count())->toBe(1);
 });
 
+it('guard:prune-grants --panel only deletes expired grants on that panel', function (): void {
+    $user = User::factory()->create();
+
+    DirectGrant::create([
+        'grantable_type' => User::class,
+        'grantable_id' => $user->id,
+        'permission_key' => 'test.post.view',
+        'panel_id' => 'test',
+        'expires_at' => now()->subDay(),
+    ]);
+    DirectGrant::create([
+        'grantable_type' => User::class,
+        'grantable_id' => $user->id,
+        'permission_key' => 'test.post.create',
+        'panel_id' => 'other',
+        'expires_at' => now()->subDay(),
+    ]);
+
+    $this->artisan('guard:prune-grants', ['--panel' => 'test'])
+        ->expectsOutputToContain('(panel: test)')
+        ->assertSuccessful();
+
+    expect(DirectGrant::query()->where('panel_id', 'test')->count())->toBe(0)
+        ->and(DirectGrant::query()->where('panel_id', 'other')->count())->toBe(1);
+});
+
 // ─── guard:catalog ──────────────────────────────────────────────────────────
 
 it('guard:catalog lists all registered permissions', function (): void {

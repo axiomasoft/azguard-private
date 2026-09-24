@@ -17,7 +17,7 @@ splits the same tag into every package repo, so `azguard-core`,
 
 Consequences:
 
-- Satellites require the core at the **same major**: `"axioma-studio/azguard-core": "^1.0"`.
+- Satellites require the core at the **same major**: `"axioma-studio/azguard-core": "^0.3"`.
 - A breaking change in any package bumps the major for all three.
 - Never tag a single package independently — always tag the monorepo.
 
@@ -40,7 +40,7 @@ Composer derives the version from the git tag the split action pushes.
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 1.0.0 HEAD
+   bash bin/release-preflight.sh 0.4.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -48,8 +48,8 @@ Composer derives the version from the git tag the split action pushes.
 4. After explicit owner approval, create and push an annotated tag from that
    commit:
    ```bash
-   git tag -a v1.0.0 -m "v1.0.0 — release summary"
-   git push origin v1.0.0
+   git tag -a v0.4.0 -m "v0.4.0 — release summary"
+   git push origin v0.4.0
    ```
 5. CI takes over:
    - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
@@ -62,7 +62,7 @@ Composer derives the version from the git tag the split action pushes.
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.
 
-Local resolution of the `^1.0` constraints between packages is handled by the
+Local resolution of the `^0.3` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
 the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
 

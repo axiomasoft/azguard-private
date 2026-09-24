@@ -42,7 +42,7 @@ jobs:
       - name: Fail if satellites still pin core with a wildcard
         run: |
           if grep -REn '"axioma-studio/azguard-core"[[:space:]]*:[[:space:]]*"\*"' packages/*/composer.json; then
-            echo "::error::A satellite still requires azguard-core with '*'. Pin it to a real constraint (e.g. ^1.0)."
+            echo "::error::A satellite still requires azguard-core with '*'. Pin it to a real constraint (e.g. ^0.3)."
             exit 1
           fi
 

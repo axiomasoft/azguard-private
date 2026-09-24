@@ -16,9 +16,9 @@ use AzGuard\Roles\SuperAdminRole;
  */
 final class RoleIdentity
 {
-    public const SUPER_ADMIN_NAME = 'super-admin';
+    public const string SUPER_ADMIN_NAME = 'super-admin';
 
-    public const NAME_MAX_LENGTH = 255;
+    public const int NAME_MAX_LENGTH = 255;
 
     public static function isBuiltInSuperAdmin(string $className): bool
     {

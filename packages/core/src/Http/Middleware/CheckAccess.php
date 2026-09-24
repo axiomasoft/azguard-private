@@ -37,7 +37,7 @@ final class CheckAccess
     {
         $method = $this->actionMethod($request);
 
-        if ($method !== null) {
+        if ($method instanceof ReflectionMethod) {
             $skipped = $method->getAttributes(SkipGuardCheck::class) !== [];
             $attributes = $skipped ? [] : $this->instantiateAttributes($method);
 

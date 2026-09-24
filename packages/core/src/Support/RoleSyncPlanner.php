@@ -216,10 +216,13 @@ final class RoleSyncPlanner
         $byClass = [];
 
         foreach ($existing as $row) {
-            if (! is_string($row->class_name) || $row->class_name === '') {
+            if (! is_string($row->class_name)) {
                 continue;
             }
 
+            if ($row->class_name === '') {
+                continue;
+            }
             $byClass[$row->class_name][] = $row;
         }
 

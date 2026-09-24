@@ -17,12 +17,12 @@ use Throwable;
  * Shared validation, rendering, conflict detection and atomic writes for
  * make:guard-panel and make:guard-domain.
  */
-final class GuardScaffoldGenerator
+final readonly class GuardScaffoldGenerator
 {
-    private const STUB_DIR = __DIR__.'/../../stubs/panel/';
+    private const string STUB_DIR = __DIR__.'/../../stubs/panel/';
 
     public function __construct(
-        private readonly Command $command,
+        private Command $command,
     ) {}
 
     /**
@@ -507,7 +507,6 @@ final class GuardScaffoldGenerator
             return $this->validateModelFqcn(fqcn: $modelOption);
         }
 
-        /** @var mixed $configured */
         $configured = config(key: "az-guard.scaffold.domain_models.{$panelId}.{$domainKey}");
 
         if (is_string($configured) && $configured !== '') {

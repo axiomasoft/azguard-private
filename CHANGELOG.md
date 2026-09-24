@@ -6,15 +6,6 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed
-
-- **authorization:** Filament catalog, resource Gate, and page/widget checks now use each linked panel's own plugin settings; an admin grant cannot authorize a tenant resource through the default panel.
-- **cache:** Direct and context grant instance writes now commit with the database permission revision, so a cache epoch failure cannot leave a successful revoke behind a stale allow. Failed explicit epoch invalidation reports an error.
-- **configuration:** Configured role-permission connections and model tables are checked consistently; invalid model configuration gives an actionable doctor result instead of a crash.
-- **migrations:** PostgreSQL drops schema-qualified indexes correctly, and MySQL downgrade checks legacy collisions before any index DDL.
-
-## [1.0.0] - 2026-09-23
-
 ### Added
 
 - **core:** `PermissionSet::validUntil()` / `withValidUntil()` carry an optional absolute grant deadline. Request and durable caches reject a hit at that instant and store a strict `{version, keys, valid_until}` envelope; a custom source without a deadline still follows the configured TTL (plan P1.2 / D3).
@@ -38,7 +29,15 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 - **core:** `Gate::before` returns `null` for abilities AzGuard does not own (exact catalog key or registered dynamic definition), so ordinary Laravel policies run even for an AzGuard wildcard user (plan P4.2 / D7).
 - **core:** Class/instance role lookup uses exact `class_name` with no `getName()` fallback; string lookup is the exact persisted name. Invalid non-null `class_name` throws `InvalidRoleClassException`. Built-in `SuperAdminRole` keeps reserved `super-admin` and refuses a same-name DB-only row (plan P5.1 / D8).
 - **release:** `bin/release-preflight.sh` validates the candidate git tree before tags; `release.yml` runs it on the tagged commit. The post-tag `changelog.yml` writer is removed — version notes live in the candidate commit (plan P7.2 / D10).
-- **release:** All three Composer packages use aligned `^1.0` constraints; split publication waits for release validation, and docs publication waits for parity and PHP-floor checks (plan P7.2 / D10).
+- **release:** Split publication waits for release validation; docs publication waits for parity and PHP-floor checks (plan P7.2 / D10).
+- **quality:** Line-coverage floor is 85% (measured 87.1%). Native Pest mutation floors are 99% per package (measured 100%).
+
+### Fixed
+
+- **authorization:** Filament catalog, resource Gate, and page/widget checks now use each linked panel's own plugin settings; an admin grant cannot authorize a tenant resource through the default panel.
+- **cache:** Direct and context grant instance writes now commit with the database permission revision, so a cache epoch failure cannot leave a successful revoke behind a stale allow. Failed explicit epoch invalidation reports an error.
+- **configuration:** Configured role-permission connections and model tables are checked consistently; invalid model configuration gives an actionable doctor result instead of a crash.
+- **migrations:** PostgreSQL drops schema-qualified indexes correctly, and MySQL downgrade checks legacy collisions before any index DDL.
 
 ## [0.3.0] - 2026-07-22
 

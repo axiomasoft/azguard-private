@@ -73,9 +73,7 @@ final class SyncRolesCommand extends Command
         }
 
         if (! $isDryRun) {
-            $revision->mutate(function () use ($plan): array {
-                return [null, $this->apply($plan['decisions'])];
-            });
+            $revision->mutate(fn (): array => [null, $this->apply($plan['decisions'])]);
         }
 
         $suffix = $isDryRun ? ' (dry-run)' : '';

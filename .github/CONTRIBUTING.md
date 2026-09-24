@@ -87,7 +87,7 @@ composer refactor:check # Rector dry-run
 ## Pull Request Requirements
 
 - [ ] Tests pass (`composer test`)
-- [ ] Coverage ≥ 80% (`composer test:coverage`)
+- [ ] Coverage ≥ 85% (`composer test:coverage`)
 - [ ] No Larastan errors (`composer analyse`)
 - [ ] Code style clean (`composer lint:check`)
 - [ ] PR title follows Conventional Commits format

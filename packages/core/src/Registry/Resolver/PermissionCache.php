@@ -36,7 +36,7 @@ use Throwable;
  */
 class PermissionCache
 {
-    private const ENVELOPE_VERSION = 2;
+    private const int ENVELOPE_VERSION = 2;
 
     public function __construct(
         private readonly RequestState $requestState = new RequestState,

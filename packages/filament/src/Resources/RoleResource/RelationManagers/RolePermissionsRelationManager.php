@@ -247,7 +247,7 @@ final class RolePermissionsRelationManager extends RelationManager
         } catch (RolePermissionSyncConflictException $exception) {
             Notification::make()->title($exception->getMessage())->danger()->send();
 
-            throw new Halt;
+            throw new Halt($exception->getMessage(), $exception->getCode(), $exception);
         }
 
     }
