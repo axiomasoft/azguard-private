@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
-use AzGuard\Contracts\Permission;
+use AzGuard\Exceptions\PanelIdTooLongException;
+use AzGuard\Permissions\PermissionGrammar;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Roles\BaseRole;
 use UnitEnum;
@@ -37,6 +38,10 @@ final class Panel
 
     public function id(string $id): static
     {
+        if (mb_strlen($id, 'UTF-8') > PanelIdTooLongException::MAX_LENGTH) {
+            throw new PanelIdTooLongException($id);
+        }
+
         $this->id = $id;
 
         return $this;
@@ -131,24 +136,24 @@ final class Panel
      */
     public function resolvePermission(string|UnitEnum $permission): string
     {
-        if ($permission instanceof UnitEnum) {
-            return $this->scope(PermissionKey::normalize($permission));
-        }
+        $scoped = $this->scope(PermissionGrammar::raw($permission));
+        PermissionGrammar::assertValid($scoped);
 
-        // A class-based permission (implements Permission). A permission key
-        // always contains a '.' (or is '*'); a class-string never does — so the
-        // dotted-key common path never triggers autoload.
-        if (! str_contains($permission, '.') && is_subclass_of($permission, Permission::class)) {
-            return $this->scope($permission::ability());
-        }
-
-        return $this->scope($permission);
+        return $scoped;
     }
 
     private function scope(string $permission): string
     {
-        return $this->isScopedByPanelId
-            ? "{$this->id}.{$permission}"
-            : $permission;
+        if (! $this->isScopedByPanelId) {
+            return $permission;
+        }
+
+        $prefix = $this->id.PermissionKey::SEPARATOR;
+
+        if (str_starts_with($permission, $prefix)) {
+            return $permission;
+        }
+
+        return $prefix.$permission;
     }
 }

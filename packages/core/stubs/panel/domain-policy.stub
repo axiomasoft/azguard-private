@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
+// azguard:generated-policy
+
 namespace {{ namespace }}\{{ domain }}\Policies;
 
 use {{ namespace }}\{{ domain }}\Permissions\{{ domain }}Permission;
-use App\Models\User;
 use AzGuard\Attributes\GateAbility;
 use AzGuard\Attributes\GuardPolicy;
 use AzGuard\Policies\AuthorizesPermission;
 
-#[GuardPolicy(model: \App\Models\{{ domain }}::class)]
+#[GuardPolicy(model: \{{ modelFqcn }}::class)]
 final class {{ domain }}Policy
 {
     use AuthorizesPermission;
@@ -21,31 +22,31 @@ final class {{ domain }}Policy
     }
 
     #[GateAbility(permission: {{ domain }}Permission::ViewAny)]
-    public function canViewAny(User $user): bool
+    public function canViewAny(\{{ actorFqcn }} $user): bool
     {
         return $this->allows(permission: {{ domain }}Permission::ViewAny, user: $user);
     }
 
     #[GateAbility(permission: {{ domain }}Permission::View)]
-    public function canView(User $user): bool
+    public function canView(\{{ actorFqcn }} $user): bool
     {
         return $this->allows(permission: {{ domain }}Permission::View, user: $user);
     }
 
     #[GateAbility(permission: {{ domain }}Permission::Create)]
-    public function canCreate(User $user): bool
+    public function canCreate(\{{ actorFqcn }} $user): bool
     {
         return $this->allows(permission: {{ domain }}Permission::Create, user: $user);
     }
 
     #[GateAbility(permission: {{ domain }}Permission::Update)]
-    public function canUpdate(User $user): bool
+    public function canUpdate(\{{ actorFqcn }} $user): bool
     {
         return $this->allows(permission: {{ domain }}Permission::Update, user: $user);
     }
 
     #[GateAbility(permission: {{ domain }}Permission::Delete)]
-    public function canDelete(User $user): bool
+    public function canDelete(\{{ actorFqcn }} $user): bool
     {
         return $this->allows(permission: {{ domain }}Permission::Delete, user: $user);
     }

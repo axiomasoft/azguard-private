@@ -98,7 +98,7 @@ public function test_user_cannot_edit_others_document(): void
     $owner  = User::factory()->create();
     $editor = User::factory()->create();
 
-    $editor->assignRole('editor');  // has DocumentsPermission::Edit
+    $editor->assignRole('app:editor');  // has DocumentsPermission::Edit
 
     $document = Document::factory()->for($owner)->create();
 

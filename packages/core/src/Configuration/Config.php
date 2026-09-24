@@ -13,6 +13,7 @@ use AzGuard\Contracts\PermissionResolverInterface;
 use AzGuard\Contracts\RolePermissionValidator;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\InvalidCacheConfigException;
+use AzGuard\Exceptions\InvalidModelConfigException;
 use AzGuard\Exceptions\InvalidMorphTypeException;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Models\ModelHasScope;
@@ -22,6 +23,8 @@ use AzGuard\Registry\Matching\HierarchicalPermissionMatcher;
 use AzGuard\Registry\Matching\WildcardPermissionMatcher;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use AzGuard\Registry\Validation\CatalogRolePermissionValidator;
+use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
 
 /**
  * Centralised config accessor for AzGuard.
@@ -42,37 +45,170 @@ final class Config
     /** @return class-string<Role> */
     public static function roleModel(): string
     {
-        /** @var class-string<Role> $model */
-        $model = config('az-guard.models.role', Role::class);
-
-        return $model;
+        /** @var class-string<Role> */
+        return self::validatedModelClass('models.role', Role::class);
     }
 
     /** @return class-string<ModelHasScope> */
     public static function scopeModel(): string
     {
-        /** @var class-string<ModelHasScope> $model */
-        $model = config('az-guard.models.scope', ModelHasScope::class);
-
-        return $model;
+        /** @var class-string<ModelHasScope> */
+        return self::validatedModelClass('models.scope', ModelHasScope::class);
     }
 
     /** @return class-string<DirectGrant> */
     public static function directGrantModel(): string
     {
-        /** @var class-string<DirectGrant> $model */
-        $model = config('az-guard.models.direct_grant', DirectGrant::class);
-
-        return $model;
+        /** @var class-string<DirectGrant> */
+        return self::validatedModelClass('models.direct_grant', DirectGrant::class);
     }
 
     /** @return class-string<RolePermission> */
     public static function rolePermissionModel(): string
     {
-        /** @var class-string<RolePermission> $model */
-        $model = config('az-guard.models.role_permission', RolePermission::class);
+        /** @var class-string<RolePermission> */
+        return self::validatedModelClass('models.role_permission', RolePermission::class);
+    }
 
-        return $model;
+    /**
+     * Actionable model-config issues for guard:doctor (does not throw).
+     *
+     * @return list<string>
+     */
+    public static function authorizationModelConfigErrors(): array
+    {
+        $errors = [];
+
+        foreach (self::authorizationModelBindings() as $configKey => $base) {
+            $raw = config("az-guard.{$configKey}", $base);
+            $message = self::modelClassValidationMessage($configKey, $raw, $base);
+
+            if ($message !== null) {
+                $errors[] = $message;
+            }
+        }
+
+        if ($errors !== []) {
+            return $errors;
+        }
+
+        return self::authorizationConnectionMismatchMessages();
+    }
+
+    /**
+     * Fail fast when configured AzGuard models use different database connections.
+     *
+     * @throws RuntimeException
+     */
+    public static function assertAuthorizationConnectionsAligned(): void
+    {
+        $messages = self::authorizationConnectionMismatchMessages();
+
+        if ($messages !== []) {
+            throw new RuntimeException($messages[0]);
+        }
+    }
+
+    /**
+     * @param  class-string<Model>  $base
+     * @return class-string<Model>
+     */
+    private static function validatedModelClass(string $configKey, string $base): string
+    {
+        $raw = config("az-guard.{$configKey}", $base);
+        $message = self::modelClassValidationMessage($configKey, $raw, $base);
+
+        if ($message !== null) {
+            throw InvalidModelConfigException::forKey($configKey, $raw, $base);
+        }
+
+        /** @var class-string<Model> $raw */
+        return $raw;
+    }
+
+    /**
+     * @param  class-string<Model>  $base
+     */
+    private static function modelClassValidationMessage(string $configKey, mixed $raw, string $base): ?string
+    {
+        if (! is_string($raw) || $raw === '') {
+            return sprintf(
+                'Invalid az-guard.%s [%s]: expected an existing subclass of %s.',
+                $configKey,
+                is_string($raw) ? $raw : get_debug_type($raw),
+                $base,
+            );
+        }
+
+        if (! class_exists($raw)) {
+            return sprintf(
+                'Invalid az-guard.%s [%s]: expected an existing subclass of %s.',
+                $configKey,
+                $raw,
+                $base,
+            );
+        }
+
+        if ($raw !== $base && ! is_subclass_of($raw, $base)) {
+            return sprintf(
+                'Invalid az-guard.%s [%s]: expected an existing subclass of %s.',
+                $configKey,
+                $raw,
+                $base,
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, class-string<Model>>
+     */
+    private static function authorizationModelBindings(): array
+    {
+        return [
+            'models.role' => Role::class,
+            'models.scope' => ModelHasScope::class,
+            'models.direct_grant' => DirectGrant::class,
+            'models.role_permission' => RolePermission::class,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function authorizationConnectionMismatchMessages(): array
+    {
+        $connections = [];
+
+        foreach (self::authorizationModelBindings() as $configKey => $base) {
+            $raw = config("az-guard.{$configKey}", $base);
+
+            if (! is_string($raw) || $raw === '' || ! class_exists($raw) || ($raw !== $base && ! is_subclass_of($raw, $base))) {
+                continue;
+            }
+
+            /** @var Model $model */
+            $model = new $raw;
+            $connections[$configKey] = (string) ($model->getConnectionName() ?? config('database.default'));
+        }
+
+        $unique = array_unique(array_values($connections));
+
+        if (count($unique) <= 1) {
+            return [];
+        }
+
+        $parts = [];
+
+        foreach ($connections as $key => $connection) {
+            $parts[] = "{$key} => [{$connection}]";
+        }
+
+        return [
+            'AzGuard authorization models use split database connections ('.implode(', ', $parts).'). '
+            .'All four models must share one connection with permission-state storage.',
+        ];
     }
 
     public static function modelsNamespace(): string
@@ -273,6 +409,16 @@ final class Config
         return (bool) config('az-guard.strict_panels', false);
     }
 
+    /**
+     * Opt-in: `azguard.check` raises MissingPermissionAttributeException when
+     * a resolved controller action has neither #[CheckPermission] nor
+     * #[SkipGuardCheck]. Off by default for back-compat.
+     */
+    public static function requirePermissionAttributes(): bool
+    {
+        return (bool) config('az-guard.require_permission_attributes', false);
+    }
+
     // ─── Scope (query-scope isolation, C-02) ──────────────────────────────
 
     /**
@@ -314,9 +460,10 @@ final class Config
         return is_array($value) ? array_values($value) : null;
     }
 
+    /** @deprecated Source failures always propagate; retained for caller compatibility. */
     public static function failOnSourceException(): bool
     {
-        return (bool) config('az-guard.fail_on_source_exception', false);
+        return true;
     }
 
     public static function pruneExpiredDaily(): bool

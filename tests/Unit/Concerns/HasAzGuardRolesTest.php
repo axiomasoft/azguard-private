@@ -5,6 +5,7 @@ declare(strict_types=1);
 use AzGuard\Events\RoleAttached;
 use AzGuard\Events\RoleDetached;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
+use AzGuard\Tests\Stubs\Roles\ProjectEditorRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -86,7 +87,7 @@ describe('HasAzGuard — role management API', function (): void {
 
         $newRole = createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ], ManagerRole::class);
+        ], ProjectEditorRole::class);
 
         $user->roles()->attach($oldRole);
         $user->load('roles');

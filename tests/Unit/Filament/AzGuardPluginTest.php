@@ -164,17 +164,32 @@ it('register() writes the effective fluent options back into config as the fallb
     $panel->shouldReceive('resources')->once()->andReturnSelf();
     $panel->shouldReceive('pages')->once()->andReturnSelf();
 
-    AzGuardPlugin::make()
+    $plugin = AzGuardPlugin::make()
+        ->forPanel('tenant')
         ->enforce(false)
         ->source('policy')
         ->abilities(['view', 'create'])
         ->keyTemplate('{resource}.{ability}')
-        ->case('kebab')
-        ->register($panel);
+        ->case('kebab');
+    $plugin->register($panel);
 
     expect(config('az-guard-filament.enforce'))->toBeFalse()
+        ->and(config('az-guard-filament.panel'))->toBe($plugin->getPanelId())
         ->and(config('az-guard-filament.source'))->toBe('policy')
         ->and(config('az-guard-filament.abilities'))->toBe(['view', 'create'])
         ->and(config('az-guard-filament.key'))->toBe('{resource}.{ability}')
         ->and(config('az-guard-filament.case'))->toBe('kebab');
+});
+
+it('does not inherit another panel plugin\'s enforcement override', function (): void {
+    config()->set('az-guard-filament.enforce', true);
+
+    $first = AzGuardPlugin::make()->forPanel('first')->enforce(false);
+    $first->register(Panel::make());
+
+    $second = AzGuardPlugin::make()->forPanel('second');
+    $second->register(Panel::make());
+
+    expect($first->isEnforcing())->toBeFalse()
+        ->and($second->isEnforcing())->toBeTrue();
 });

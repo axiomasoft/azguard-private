@@ -11,9 +11,9 @@
     ],
     "require": {
         "php": "^8.3",
-        "axioma-studio/azguard-core": "^0.3",
-        "axioma-studio/azguard-filament": "^0.3",
-        "axioma-studio/azguard-context": "^0.3"
+        "axioma-studio/azguard-core": "^1.0",
+        "axioma-studio/azguard-filament": "^1.0",
+        "axioma-studio/azguard-context": "^1.0"
     },
     "require-dev": {
         "laravel/pint": "^1.13",
@@ -23,7 +23,8 @@
         "orchestra/testbench": "^9.0|^10.0|^11.0",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0",
-        "pestphp/pest-plugin-type-coverage": "^4.0"
+        "pestphp/pest-plugin-type-coverage": "^4.0",
+        "laravel/pao": "*"
     },
     "autoload-dev": {
         "psr-4": {
@@ -37,9 +38,9 @@
             "url": "packages/*",
             "options": {
                 "versions": {
-                    "axioma-studio/azguard-core": "0.3.0",
-                    "axioma-studio/azguard-filament": "0.3.0",
-                    "axioma-studio/azguard-context": "0.3.0"
+                    "axioma-studio/azguard-core": "1.0.0",
+                    "axioma-studio/azguard-filament": "1.0.0",
+                    "axioma-studio/azguard-context": "1.0.0"
                 }
             }
         }
@@ -47,6 +48,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
+        "process-timeout": 1200,
         "allow-plugins": {
             "pestphp/pest-plugin": true
         }
@@ -69,6 +71,9 @@
         "test:mysql": [
             "@putenv DB_CONNECTION=mysql",
             "php -d memory_limit=1G vendor/bin/pest"
+        ],
+        "test:redis": [
+            "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped tests/Feature/PermissionCacheCrossProcessRaceTest.php tests/Feature/PermissionRevisionCrossProcessTest.php tests/Feature/JobProcessingPanelResetTest.php tests/Feature/PermissionStateRevisionProtocolTest.php tests/Feature/Context/ContextCrossRequestCacheInvalidationTest.php"
         ],
         "lint": "vendor/bin/pint",
         "lint:check": "vendor/bin/pint --test",

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionName;
@@ -32,7 +33,7 @@ trait HasDirectGrants
      */
     public function directGrants(): MorphMany
     {
-        return $this->morphMany(DirectGrant::class, 'grantable');
+        return $this->morphMany(Config::directGrantModel(), 'grantable');
     }
 
     /**

@@ -28,7 +28,7 @@ class MyFeatureTest extends TestCase
 public function test_editor_can_view_documents(): void
 {
     $user = User::factory()->create();
-    $user->assignRole('editor');
+    $user->assignRole('app:editor');
 
     $this->actingAs($user)
         ->get(route('documents.index'))
@@ -39,7 +39,7 @@ public function test_viewer_cannot_delete(): void
 {
     $user     = User::factory()->create();
     $document = Document::factory()->create();
-    $user->assignRole('viewer');
+    $user->assignRole('app:viewer');
 
     $this->actingAs($user)
         ->delete(route('documents.destroy', $document))
@@ -53,7 +53,7 @@ public function test_viewer_cannot_delete(): void
 public function test_editor_permissions(): void
 {
     $user = User::factory()->create();
-    $user->assignRole('editor');
+    $user->assignRole('app:editor');
 
     $this->assertTrue($user->hasPermission(DocumentsPermission::View));
     $this->assertTrue($user->hasPermission(DocumentsPermission::Edit));
@@ -112,7 +112,7 @@ public function test_grant_with_ttl_is_active(): void
 public function test_gate_allows_editor(): void
 {
     $user = User::factory()->create();
-    $user->assignRole('editor');
+    $user->assignRole('app:editor');
 
     $this->actingAs($user);
 
@@ -126,7 +126,7 @@ public function test_gate_with_model(): void
 {
     $user     = User::factory()->create();
     $document = Document::factory()->create(['owner_id' => $user->id]);
-    $user->assignRole('editor');
+    $user->assignRole('app:editor');
 
     $this->actingAs($user);
 
@@ -258,7 +258,7 @@ the optional context-guard visibility check.
 ```php
 it('allows editors to view documents', function () {
     $user = User::factory()->create();
-    $user->assignRole('editor');
+    $user->assignRole('app:editor');
 
     expect($user->hasPermission(DocumentsPermission::View))->toBeTrue();
     expect($user->hasPermission(DocumentsPermission::Delete))->toBeFalse();
@@ -287,7 +287,7 @@ Define factory states so tests stay readable:
 public function editor(): static
 {
     return $this->afterCreating(fn (User $user) =>
-        $user->assignRole('editor')
+        $user->assignRole('app:editor')
     );
 }
 

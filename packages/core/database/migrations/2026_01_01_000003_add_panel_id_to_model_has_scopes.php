@@ -25,7 +25,7 @@ return new class extends Migration
         $t = config('az-guard.table_names');
 
         Schema::table($t['model_has_scopes'], function (Blueprint $table): void {
-            $table->string('panel_id')
+            $table->string('panel_id', 128)
                 ->nullable()
                 ->after('role_id')
                 ->index();
@@ -35,6 +35,10 @@ return new class extends Migration
     public function down(): void
     {
         $t = config('az-guard.table_names');
+
+        Schema::table($t['model_has_scopes'], function (Blueprint $table): void {
+            $table->dropIndex(['panel_id']);
+        });
 
         Schema::table($t['model_has_scopes'], function (Blueprint $table): void {
             $table->dropColumn('panel_id');

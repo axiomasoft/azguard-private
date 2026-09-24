@@ -20,6 +20,11 @@ class PermissionStateRevision
 {
     public const SINGLETON_ID = 1;
 
+    private int $mutationDepth = 0;
+
+    /** @var array<int, bool> */
+    private array $changedAtDepth = [];
+
     /**
      * @template T
      *
@@ -28,15 +33,48 @@ class PermissionStateRevision
      */
     public function mutate(Closure $operation): mixed
     {
+        Config::assertAuthorizationConnectionsAligned();
+
         return $this->connection()->transaction(function () use ($operation): mixed {
-            [$result, $changed] = $operation();
+            $level = ++$this->mutationDepth;
+            $this->changedAtDepth[$level] = false;
 
-            if ($changed) {
-                $this->bump();
+            try {
+                [$result, $changed] = $operation();
+
+                if ($changed || $this->wasMarkedChanged($level)) {
+                    if ($level > 1) {
+                        $this->changedAtDepth[$level - 1] = true;
+                    } else {
+                        $this->bump();
+                    }
+                }
+
+                return $result;
+            } finally {
+                unset($this->changedAtDepth[$level]);
+                $this->mutationDepth--;
             }
-
-            return $result;
         });
+    }
+
+    public function insideMutation(): bool
+    {
+        return $this->mutationDepth > 0;
+    }
+
+    public function markChanged(): void
+    {
+        if (! $this->insideMutation()) {
+            throw new RuntimeException('AzGuard permission-state change must be inside a mutation.');
+        }
+
+        $this->changedAtDepth[$this->mutationDepth] = true;
+    }
+
+    private function wasMarkedChanged(int $level): bool
+    {
+        return $this->changedAtDepth[$level] ?? false;
     }
 
     public function current(): int

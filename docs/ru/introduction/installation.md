@@ -6,6 +6,7 @@
 |---|---|
 | PHP | ≥ 8.3 |
 | Laravel | 11.x, 12.x или 13.x |
+| База данных | MySQL 8.0.13+ (не MariaDB), PostgreSQL 16+, SQLite 3.35+ |
 | Laravel Octane | совместим (stateless) |
 
 ## Установка через Composer

@@ -4,19 +4,30 @@ declare(strict_types=1);
 
 namespace AzGuard\Guard;
 
+use AzGuard\Attributes\CheckPermission as CheckPermissionAttribute;
 use AzGuard\Attributes\GateAbility;
+use AzGuard\Attributes\GuardPolicy;
 use AzGuard\Attributes\RoleOnly;
+use AzGuard\Attributes\SkipGuardCheck;
 use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
+use AzGuard\Exceptions\InvalidModelConfigException;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Http\Middleware\CheckAccess;
 use AzGuard\Panels\Panel;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionDefinition;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Routing\Route as LaravelRoute;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
 use ReflectionClass;
 use ReflectionEnum;
 use ReflectionMethod;
+use ReflectionNamedType;
+use Throwable;
 use UnitEnum;
 
 /**
@@ -38,7 +49,7 @@ class AzGuardDiagnostics
     /**
      * Run all checks across all (or a single) registered panel(s).
      *
-     * @return array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>}
+     * @return array{errors: list<string>, warnings: list<string>, abilities: list<array{panel: string, ability: string, handler: string}>, models: list<array{key: string, class: string, table: string, connection: string}>}
      */
     public function diagnose(?string $panelFilter = null): array
     {
@@ -48,7 +59,14 @@ class AzGuardDiagnostics
 
         // Panel-independent (model_has_scopes has no meaningful "per panel"
         // grouping for this check) — run once regardless of $panelFilter.
-        $this->checkStaleScopeClasses();
+        $modelErrors = Config::authorizationModelConfigErrors();
+        array_push($this->errors, ...$modelErrors);
+
+        if ($modelErrors === []) {
+            $this->checkStaleScopeClasses();
+            $this->checkRoleClassIdentity();
+        }
+        $this->checkPermissionAttributes();
 
         $panels = AzGuard::getPanels();
 
@@ -94,6 +112,7 @@ class AzGuardDiagnostics
 
             // Discover permission enums once per panel — shared by three checks below.
             $enumClasses = $this->discoverPermissionEnums(basePath: $basePath, baseNamespace: $baseNamespace);
+            $this->checkGeneratedScaffold(policyClasses: $policyClasses, enumClasses: $enumClasses, panel: $panel);
 
             // Enum↔policy pairing только для панелей на policy-модели. Панель без
             // policy-классов enforce-ит иначе (Gate/ResourceGate, напр. Filament),
@@ -133,7 +152,104 @@ class AzGuardDiagnostics
             'errors' => $this->errors,
             'warnings' => $this->warnings,
             'abilities' => $abilityRows,
+            'models' => $this->authorizationModelDetails(),
         ];
+    }
+
+    /**
+     * Report each valid configured model even when another binding is invalid.
+     *
+     * @return list<array{key: string, class: string, table: string, connection: string}>
+     */
+    private function authorizationModelDetails(): array
+    {
+        $bindings = [
+            'models.role' => static fn (): string => Config::roleModel(),
+            'models.scope' => static fn (): string => Config::scopeModel(),
+            'models.direct_grant' => static fn (): string => Config::directGrantModel(),
+            'models.role_permission' => static fn (): string => Config::rolePermissionModel(),
+        ];
+        $details = [];
+
+        foreach ($bindings as $key => $resolve) {
+            try {
+                $class = $resolve();
+            } catch (InvalidModelConfigException) {
+                continue;
+            }
+
+            /** @var Model $model */
+            $model = new $class;
+            $details[] = [
+                'key' => $key,
+                'class' => $class,
+                'table' => $model->getTable(),
+                'connection' => (string) ($model->getConnectionName() ?? config('database.default')),
+            ];
+        }
+
+        return $details;
+    }
+
+    /**
+     * Generated files have a narrow marker so custom policy and enum layouts
+     * are not judged by scaffold-specific assumptions.
+     *
+     * @param  list<class-string>  $policyClasses
+     * @param  list<class-string>  $enumClasses
+     */
+    private function checkGeneratedScaffold(array $policyClasses, array $enumClasses, Panel $panel): void
+    {
+        foreach ($policyClasses as $policyClass) {
+            $reflection = new ReflectionClass($policyClass);
+            $filename = $reflection->getFileName();
+
+            if (! is_string($filename) || ! str_contains(File::get(path: $filename), 'azguard:generated-policy')) {
+                continue;
+            }
+
+            $attributes = $reflection->getAttributes(GuardPolicy::class);
+
+            if ($attributes === []) {
+                $this->errors[] = "Generated policy {$policyClass}: missing #[GuardPolicy] model.";
+
+                continue;
+            }
+
+            /** @var GuardPolicy $policy */
+            $policy = $attributes[0]->newInstance();
+
+            if (! class_exists($policy->model) || ! is_subclass_of($policy->model, Model::class)) {
+                $this->errors[] = "Generated policy {$policyClass}: invalid Eloquent model [{$policy->model}].";
+            }
+
+            foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+                if ($method->getAttributes(GateAbility::class) === []) {
+                    continue;
+                }
+
+                $parameters = $method->getParameters();
+                $type = isset($parameters[0]) ? $parameters[0]->getType() : null;
+                $actor = $type instanceof ReflectionNamedType ? $type->getName() : '';
+
+                if ($actor === '' || ! class_exists($actor) || ! is_subclass_of($actor, Authenticatable::class)) {
+                    $this->errors[] = "Generated policy {$policyClass}::{$method->getName()}: invalid Authenticatable actor [{$actor}].";
+                }
+            }
+        }
+
+        foreach ($enumClasses as $enumClass) {
+            $reflection = new ReflectionClass($enumClass);
+            $filename = $reflection->getFileName();
+
+            if (! is_string($filename) || ! str_contains(File::get(path: $filename), 'azguard:generated-permission')) {
+                continue;
+            }
+
+            if (! in_array($enumClass, $panel->getPermissionEnums(), true)) {
+                $this->errors[] = "Panel [{$panel->getId()}]: generated permission enum {$enumClass} is missing from provider permissionEnums([...]).";
+            }
+        }
     }
 
     /**
@@ -351,11 +467,149 @@ class AzGuardDiagnostics
     }
 
     /**
+     * Routes that carry CheckAccess must declare #[CheckPermission] or
+     * #[SkipGuardCheck]. Closures and unresolvable actions are skipped.
+     * Missing metadata is a warning in legacy mode and an error when
+     * `require_permission_attributes` is on.
+     */
+    private function checkPermissionAttributes(): void
+    {
+        try {
+            $routes = Route::getRoutes()->getRoutes();
+        } catch (Throwable) {
+            return;
+        }
+
+        $strict = Config::requirePermissionAttributes();
+
+        foreach ($routes as $route) {
+            if (! $this->routeUsesCheckAccess($route)) {
+                continue;
+            }
+
+            $method = $this->controllerMethodForRoute($route);
+
+            if ($method === null) {
+                continue;
+            }
+
+            if ($method->getAttributes(SkipGuardCheck::class) !== []) {
+                continue;
+            }
+
+            if ($method->getAttributes(CheckPermissionAttribute::class) !== []) {
+                continue;
+            }
+
+            $label = $this->routeAttributeLabel($route, $method);
+            $message = "{$label} has azguard.check without #[CheckPermission] or #[SkipGuardCheck].";
+
+            if ($strict) {
+                $this->errors[] = $message;
+            } else {
+                $this->warnings[] = $message;
+            }
+        }
+    }
+
+    private function routeUsesCheckAccess(LaravelRoute $route): bool
+    {
+        $needles = [
+            'azguard.check',
+            Config::checkAccessAlias(),
+            CheckAccess::class,
+        ];
+
+        foreach ($route->gatherMiddleware() as $middleware) {
+            if (! is_string($middleware)) {
+                continue;
+            }
+
+            $name = explode(':', $middleware, 2)[0];
+
+            if (in_array($name, $needles, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function controllerMethodForRoute(LaravelRoute $route): ?ReflectionMethod
+    {
+        $actionName = $route->getActionName();
+
+        if ($actionName === 'Closure' || str_contains($actionName, '{closure}')) {
+            return null;
+        }
+
+        if (str_contains($actionName, '@')) {
+            [$controllerClass, $methodName] = explode('@', $actionName, 2);
+        } elseif (class_exists($actionName)) {
+            $controllerClass = $actionName;
+            $methodName = '__invoke';
+        } else {
+            return null;
+        }
+
+        if (! class_exists($controllerClass) || ! method_exists($controllerClass, $methodName)) {
+            return null;
+        }
+
+        return new ReflectionMethod($controllerClass, $methodName);
+    }
+
+    private function routeAttributeLabel(LaravelRoute $route, ReflectionMethod $method): string
+    {
+        $verb = $route->methods()[0] ?? 'ANY';
+        $uri = '/'.$route->uri();
+
+        return "Route [{$verb} {$uri}] ({$method->class}::{$method->name})";
+    }
+
+    /**
      * C-03 — surface stale scope_class values (the class was renamed/removed
      * after being persisted in model_has_scopes) as a loud warning, rather
      * than the silent per-request Log::warning in bootHasScopedRoles() being
      * the only way to ever notice.
      */
+    private function checkRoleClassIdentity(): void
+    {
+        $model = Config::roleModel();
+        $rows = $model::query()
+            ->whereNotNull('class_name')
+            ->get(['id', 'name', 'class_name']);
+        $byClass = [];
+
+        foreach ($rows as $row) {
+            if (! is_string($row->class_name) || $row->class_name === '') {
+                $this->errors[] = "roles: invalid class_name [{$row->class_name}] on role [{$row->name}] — expected a non-empty RoleInterface class.";
+
+                continue;
+            }
+
+            if (! class_exists($row->class_name)) {
+                $this->errors[] = "roles: invalid class_name [{$row->class_name}] on role [{$row->name}] — class does not exist.";
+
+                continue;
+            }
+
+            if (! is_subclass_of($row->class_name, RoleInterface::class)) {
+                $this->errors[] = "roles: invalid class_name [{$row->class_name}] on role [{$row->name}] — class does not implement RoleInterface.";
+
+                continue;
+            }
+
+            $byClass[$row->class_name][] = $row->id;
+        }
+
+        foreach ($byClass as $class => $ids) {
+            if (count($ids) > 1) {
+                $this->errors[] = 'roles: duplicate class_name ['.$class.'] on rows '.implode(', ', $ids).'.';
+            }
+        }
+    }
+
     private function checkStaleScopeClasses(): void
     {
         $model = Config::scopeModel();

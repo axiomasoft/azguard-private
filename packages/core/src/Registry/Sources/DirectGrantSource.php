@@ -29,6 +29,8 @@ final class DirectGrantSource implements GrantSource
     #[Override]
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
+        Config::assertAuthorizationConnectionsAligned();
+
         if (! Config::directGrantsEnabled()) {
             return PermissionSet::empty();
         }

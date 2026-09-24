@@ -216,13 +216,16 @@ class NoWildcardRolePermissionValidator implements RolePermissionValidator
 
 ## Swapping AzGuard models
 
-You can replace any of AzGuard's models with your own subclass via `config/az-guard.php`:
+You can replace any of AzGuard's models with your own **subclass** of the documented AzGuard base model via `config/az-guard.php`. Core relations, grant builders, the database role grant source, Filament resources, and `guard:doctor` all resolve through these keys — invalid values (missing class, wrong base) produce an actionable config error instead of silent fallback to the default class.
+
+**Supported boundary:** all four models (`role`, `scope`, `direct_grant`, `role_permission`), their pivot tables, and permission-state revision must use the **same** effective database connection. Split connections or arbitrary non-subclass ORM types are not supported and fail before writes.
 
 ```php
 'models' => [
-    'role'         => \App\Models\AzGuard\Role::class,         // custom
-    'scope'        => \AzGuard\Models\ModelHasScope::class,
-    'direct_grant' => \AzGuard\Models\DirectGrant::class,
+    'role'             => \App\Models\AzGuard\Role::class,
+    'scope'            => \AzGuard\Models\ModelHasScope::class,
+    'direct_grant'     => \AzGuard\Models\DirectGrant::class,
+    'role_permission'  => \AzGuard\Models\RolePermission::class,
 ],
 ```
 
@@ -232,11 +235,13 @@ use AzGuard\Models\Role as BaseRole;
 
 class Role extends BaseRole
 {
-    // Override as needed, e.g., for UUID foreign keys
+    // Override table, connection, scopes, events, etc.
     protected $keyType = 'string';
     public $incrementing = false;
 }
 ```
+
+Run `php artisan guard:doctor` after changing model keys. Its model table shows each valid binding's class, effective table, and connection; invalid classes and split connections are errors. `guard:doctor --json` keeps `errors`, `warnings`, and `abilities` and adds a `models` array with `key`, `class`, `table`, and `connection` fields.
 
 For string-based (UUID/ULID) morph keys, set the morph-type column type in config
 instead of subclassing:

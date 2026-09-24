@@ -8,7 +8,7 @@ Roles defined as PHP classes are **always available** without seeding. You can a
 
 ```php
 // In a seeder, factory, or anywhere after `php artisan migrate`
-$user->assignRole(EditorRole::class);  // by class (preferred); 'editor' by name also works
+$user->assignRole(EditorRole::class);  // by class (preferred); 'app:editor' after sync
 ```
 
 Run `php artisan guard:sync-roles` first so your code role classes are mirrored into the `roles` table before assigning.

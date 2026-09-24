@@ -48,6 +48,7 @@ final class PanelCheckAccess
             abort(code: 500, message: "AzGuard panel [{$panelId}] is not registered.");
         }
 
+        $previous = AzGuard::currentPanel();
         AzGuard::setCurrentPanel(panel: $panel);
 
         try {
@@ -59,7 +60,7 @@ final class PanelCheckAccess
 
             return $next($request);
         } finally {
-            AzGuard::setCurrentPanel(panel: null);
+            AzGuard::setCurrentPanel(panel: $previous);
         }
     }
 }

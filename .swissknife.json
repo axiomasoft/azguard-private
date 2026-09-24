@@ -8,7 +8,19 @@
       },
       "codex": {
         "enabled": true
+      },
+      "cursor": {
+        "enabled": true
       }
     }
-  }
+  },
+  "plugins": [
+    "core",
+    "devops",
+    "laravel-testing",
+    "php",
+    "php-packages",
+    "quality",
+    "task"
+  ]
 }

@@ -26,6 +26,8 @@ trait HasRoles
             Config::roleModel(),
             'model',
             Config::modelHasRolesTable(),
+            'model_id',
+            'role_id',
         );
     }
 
@@ -45,30 +47,19 @@ trait HasRoles
      */
     public function hasRole(string|BackedEnum|RoleInterface $role): bool
     {
-        return $this->roles->contains('name', $this->roleNameFor($role));
-    }
-
-    /**
-     * Resolve a role name from a class-string, a RoleInterface instance, a
-     * backed enum, or a plain name string.
-     *
-     * @param  string|BackedEnum|RoleInterface|class-string<RoleInterface>  $role
-     */
-    private function roleNameFor(string|BackedEnum|RoleInterface $role): string
-    {
         if ($role instanceof RoleInterface) {
-            return $role->getName();
+            return $this->roles->contains('class_name', $role::class);
         }
 
         if ($role instanceof BackedEnum) {
-            return PermissionKey::normalize($role);
+            return $this->roles->contains('name', PermissionKey::normalize($role));
         }
 
         if (is_subclass_of($role, RoleInterface::class)) {
-            return (new $role)->getName();
+            return $this->roles->contains('class_name', $role);
         }
 
-        return $role;
+        return $this->roles->contains('name', $role);
     }
 
     public function assignRole(string|BackedEnum|Role ...$roles): static
@@ -159,7 +150,8 @@ trait HasRoles
             $allAffectedIds = array_merge($changes['detached'], $changes['attached']);
 
             if ($allAffectedIds !== []) {
-                $roleModels = Role::whereIn('id', $allAffectedIds)->get()->keyBy('id');
+                $roleClass = Config::roleModel();
+                $roleModels = $roleClass::query()->whereIn('id', $allAffectedIds)->get()->keyBy('id');
 
                 foreach ($changes['detached'] as $id) {
                     if ($role = $roleModels->get($id)) {

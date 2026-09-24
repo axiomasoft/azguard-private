@@ -1,5 +1,41 @@
 # Upgrading
 
+## 0.3 → 1.0
+
+Correctness release **2026.09.22-№1-AZGUARD-CORRECTNESS**. Upgrade
+`axioma-studio/azguard-core`, `-context`, and `-filament` together to `^1.0`.
+This is a breaking release: cache identity, permission-state revision, panel/role
+identity, migrations, and several defaults changed.
+
+Full consumer steps (RU/EN) live in
+[docs/introduction/upgrading.md](docs/introduction/upgrading.md) (**1.0.0**
+section) — keep RU/EN pairs in sync when editing upgrade notes.
+
+Summary of required actions:
+
+1. **Cache cold start** — permission keys moved to `azg:v2:` with typed subject
+   identity. Flush or bump epochs after deploy; expect a one-time miss storm.
+2. **Grant deadlines** — optional `validUntil` on permission sets; custom sources
+   without a deadline keep the configured TTL.
+3. **One DB connection** — authorization mutations and
+   `az_guard_permission_state` must share the configured model connection.
+4. **Transactions** — checks inside a DB transaction bypass all reusable caches
+   and never publish a rolled-back allow to other readers.
+5. **Panel IDs** — max 128 characters; `strict_panels` rejects unknown IDs even
+   with an empty registry.
+6. **Role names** — panel-scoped code roles persist as `{panel}:{name}`; use the
+   class or qualified string, not legacy bare slugs.
+7. **Migrations** — fresh installs get exact null-safe indexes and `VARCHAR(128)`
+   `panel_id`. Recorded DBs run `000006` (preflight rejects overlong panel ids and
+   unsupported MySQL/MariaDB profiles). Fix data, then retry; no automatic truncation.
+8. **`guard:cache-reset`** — advances DB revision without flushing foreign cache keys.
+9. **Grant source errors** — an exception from any `GrantSource` now aborts the
+   authorization check. Remove `fail_on_source_exception`; its previous `false`
+   setting no longer skips a failed source. Repair the source or handle its
+   failure explicitly before authorizing.
+
+Run `guard:doctor` after upgrading models, panels, and migrations.
+
 ## 0.1 → 0.2
 
 An integration-polish release. The changes are breaking but mechanical. All three

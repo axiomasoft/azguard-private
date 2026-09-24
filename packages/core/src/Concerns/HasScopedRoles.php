@@ -7,7 +7,6 @@ namespace AzGuard\Concerns;
 use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Exceptions\PanelNotSetException;
-use AzGuard\Models\ModelHasScope;
 use AzGuard\Models\Role;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Permissions\PermissionKey;
@@ -54,6 +53,12 @@ trait HasScopedRoles
     public static function bootHasScopedRoles(): void
     {
         static::addGlobalScope(self::SCOPE_KEY, function (Builder $builder): void {
+            // Auth::check()/user() may retrieve the provider model, which would
+            // re-enter this scope. Skip the auth-dependent filter on that model.
+            if (self::queriedModelIsAuthProvider($builder->getModel())) {
+                return;
+            }
+
             if (! Auth::check()) {
                 return;
             }
@@ -160,7 +165,8 @@ trait HasScopedRoles
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
         return $state->mutate(function () use ($roleModel, $entity, $panelId): array {
-            $scope = ModelHasScope::firstOrNew([
+            $scopeClass = Config::scopeModel();
+            $scope = $scopeClass::firstOrNew([
                 'model_type' => $this->getMorphClass(),
                 'model_id' => $this->getKey(),
                 'scope_entity_type' => $entity->getMorphClass(),
@@ -228,7 +234,8 @@ trait HasScopedRoles
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
         return $state->mutate(function () use ($roleModel, $entity, $panelId): array {
-            $deleted = ModelHasScope::query()
+            $scopeClass = Config::scopeModel();
+            $deleted = $scopeClass::query()
                 ->where('model_type', $this->getMorphClass())
                 ->where('model_id', $this->getKey())
                 ->where('scope_entity_type', $entity->getMorphClass())
@@ -270,7 +277,8 @@ trait HasScopedRoles
         $state->assertSameConnection($roleModel);
 
         return $state->mutate(function () use ($roleModel, $entity): array {
-            $deleted = ModelHasScope::query()
+            $scopeClass = Config::scopeModel();
+            $deleted = $scopeClass::query()
                 ->where('model_type', $this->getMorphClass())
                 ->where('model_id', $this->getKey())
                 ->where('scope_entity_type', $entity->getMorphClass())
@@ -303,7 +311,9 @@ trait HasScopedRoles
 
         $panelId = $panelId === null ? null : PanelResolver::normalizeId($panelId);
 
-        return ModelHasScope::query()
+        $scopeClass = Config::scopeModel();
+
+        return $scopeClass::query()
             ->where('model_type', $this->getMorphClass())
             ->where('model_id', $this->getKey())
             ->where('scope_entity_type', $entity->getMorphClass())
@@ -357,7 +367,8 @@ trait HasScopedRoles
             return true;
         }
 
-        $scopedRoleIds = ModelHasScope::query()
+        $scopeClass = Config::scopeModel();
+        $scopedRoleIds = $scopeClass::query()
             ->where('model_type', $this->getMorphClass())
             ->where('model_id', $this->getKey())
             ->where('scope_entity_type', $entity->getMorphClass())
@@ -393,6 +404,30 @@ trait HasScopedRoles
             $resolvedKeys = $grantSource->resolveFor(roleLogic: $logic, panelId: $panelId);
 
             if (in_array(PermissionKey::WILDCARD, $resolvedKeys, true) || in_array($key, $resolvedKeys, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * True when the queried model is an effective configured auth-provider
+     * model. Reads auth config/classes only — never instantiates or authenticates.
+     */
+    private static function queriedModelIsAuthProvider(Model $model): bool
+    {
+        foreach ((array) config('auth.providers', []) as $provider) {
+            $providerModel = is_array($provider) ? ($provider['model'] ?? null) : null;
+
+            if (! is_string($providerModel) || $providerModel === '' || ! class_exists($providerModel)) {
+                continue;
+            }
+
+            // A subclass may be a scoped domain query sharing the provider's
+            // base class. Only the model the provider itself instantiates is
+            // exempt from the auth-dependent filter.
+            if (is_a($model, $providerModel) && is_a($providerModel, $model::class, true)) {
                 return true;
             }
         }

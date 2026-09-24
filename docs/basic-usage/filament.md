@@ -125,6 +125,8 @@ permissions to DB roles from a picker grouped by permission group.
 
 Lists direct grants for any user on the panel — create (user + permission +
 optional expiry) and revoke.
+The expiry must be in the future. A past value fails form validation; it never
+creates a permanent grant. A future value is stored as the chosen absolute time.
 
 ### Doctor page
 

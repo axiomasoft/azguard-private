@@ -22,13 +22,16 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/AuthorizerExtendedTest.php',
         'Feature/AuthorizerPanelResolutionTest.php',
         'Feature/AuthorizerTest.php',
+        'Feature/AuthModelScopedRoleGuardTest.php',
         'Feature/AzGuardFakeTest.php',
         'Feature/CacheResetCommandTest.php',
         'Feature/CatalogLazyPanelsTest.php',
         'Feature/CheckAccessMiddlewareTest.php',
         'Feature/CheckDirectGrantMiddlewareTest.php',
+        'Feature/ConfiguredModelsTest.php',
         'Feature/ClassPermissionTest.php',
         'Feature/CrossRequestCacheInvalidationTest.php',
+        'Feature/CurrentPanelLifecycleTest.php',
         'Feature/CustomCatalogBuilderTest.php',
         'Feature/CustomGrantSourceTest.php',
         'Feature/DatabaseRoleGrantSourceTest.php',
@@ -55,7 +58,9 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/LoadAzGuardRolesMiddlewareTest.php',
         'Feature/MakeGuardForceGenerationTest.php',
         'Feature/MakeGuardPanelCommandTest.php',
+        'Feature/MakeGuardDomainCommandTest.php',
         'Feature/MassAssignmentGuardTest.php',
+        'Feature/MigrationLifecycleTest.php',
         'Feature/ModelHasRolesScopesUniqueConstraintTest.php',
         'Feature/PanelCheckAccessMiddlewareTest.php',
         'Feature/PanelEnumIdentityTest.php',
@@ -75,6 +80,7 @@ uses(TestCase::class, RefreshDatabase::class)
         'Feature/RolePermissionSynchronizerTest.php',
         'Feature/RolePermissionsCommandTest.php',
         'Feature/RolePermissionValidationTest.php',
+        'Feature/SchemaIdentifierPortabilityTest.php',
         'Feature/ScopeClassMigrationRollbackTest.php',
         'Feature/ScopedPermissionEnumResolutionTest.php',
         'Feature/ScopedRoleMorphMapTest.php',
@@ -90,6 +96,9 @@ uses(TestCase::class, RefreshDatabase::class)
 
 uses(TestCase::class, RefreshDatabase::class)
     ->in('Feature/DebugPgAbortTest.php');
+
+uses(TestCase::class)
+    ->in('Feature/PermissionRevisionCrossProcessTest.php');
 
 uses(ManagerSwapTestCase::class, RefreshDatabase::class)
     ->in('Feature/ManagerSwapTest.php');

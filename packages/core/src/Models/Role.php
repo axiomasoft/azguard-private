@@ -6,10 +6,12 @@ namespace AzGuard\Models;
 
 use AzGuard\Configuration\Config;
 use AzGuard\Contracts\RoleInterface;
+use AzGuard\Support\RoleIdentity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
+use Override;
 
 /**
  * @property int $id
@@ -29,6 +31,12 @@ class Role extends Model
      */
     protected $fillable = ['name', 'level'];
 
+    #[Override]
+    public function getTable(): string
+    {
+        return Config::rolesTable();
+    }
+
     /** @return MorphToMany<Model, $this> */
     public function users(): MorphToMany
     {
@@ -39,6 +47,8 @@ class Role extends Model
             $userModel,
             'model',
             Config::modelHasRolesTable(),
+            'role_id',
+            'model_id',
         );
     }
 
@@ -59,17 +69,16 @@ class Role extends Model
     /**
      * Instantiate the role logic class (e.g. SuperAdminRole).
      *
-     * Returns null when class_name is unset, missing, or does not implement
-     * RoleInterface — so callers can rely on the contract without a fatal on a
-     * stale/invalid class_name.
+     * Returns null only for DB-only roles (`class_name` null). A non-null
+     * missing or non-contract class raises InvalidRoleClassException.
      */
     public function getRoleLogic(): ?RoleInterface
     {
-        if (! is_string($this->class_name) || ! is_subclass_of($this->class_name, RoleInterface::class)) {
+        if ($this->class_name === null) {
             return null;
         }
 
-        return new $this->class_name;
+        return RoleIdentity::logicOrFail($this->class_name);
     }
 
     /**

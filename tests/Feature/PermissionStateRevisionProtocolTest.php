@@ -109,6 +109,57 @@ it('rolls grant, revoke and role-permission sync back when revision write fails'
     expect(DirectGrant::query()->count())->toBe(1);
 });
 
+it('keeps raw model grant writes and their revision in one transaction', function (): void {
+    $user = User::factory()->create();
+    $attributes = [
+        'grantable_type' => $user->getMorphClass(),
+        'grantable_id' => $user->getAuthIdentifier(),
+        'panel_id' => 'test',
+        'permission_key' => 'test.post.view',
+    ];
+    $before = permissionRevision();
+
+    $grant = DirectGrant::query()->create($attributes);
+    expect(permissionRevision())->toBe($before + 1);
+
+    $grant->save();
+    expect(permissionRevision())->toBe($before + 1);
+
+    DB::table(Config::permissionStateTable())->delete();
+
+    expect(fn () => $grant->delete())
+        ->toThrow(RuntimeException::class, 'AzGuard permission-state row is missing.');
+    expect(DirectGrant::query()->whereKey($grant->getKey())->exists())->toBeTrue();
+
+    expect(fn () => DirectGrant::query()->create(array_merge($attributes, ['permission_key' => 'test.post.edit'])))
+        ->toThrow(RuntimeException::class, 'AzGuard permission-state row is missing.');
+    expect(DirectGrant::query()->count())->toBe(1);
+});
+
+it('tracks a raw model write inside nested revision mutations', function (): void {
+    $user = User::factory()->create();
+    $state = app(PermissionStateRevision::class);
+    $before = $state->current();
+
+    $state->mutate(function () use ($state, $user): array {
+        $state->mutate(function () use ($user): array {
+            DirectGrant::query()->create([
+                'grantable_type' => $user->getMorphClass(),
+                'grantable_id' => $user->getAuthIdentifier(),
+                'panel_id' => 'test',
+                'permission_key' => 'test.post.view',
+            ]);
+
+            return [null, false];
+        });
+
+        return [null, false];
+    });
+
+    expect($state->current())->toBe($before + 1)
+        ->and(DirectGrant::query()->count())->toBe(1);
+});
+
 it('does not bump revision on no-op grant, attach or sync retry', function (): void {
     $user = User::factory()->create();
     $role = createRoleWithClass(['name' => 'manager', 'level' => 10], ManagerRole::class);

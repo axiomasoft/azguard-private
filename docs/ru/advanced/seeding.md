@@ -13,10 +13,10 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Назначаем роли конкретным пользователям — по классу (предпочтительно)
         $admin = User::where('email', 'admin@example.com')->first();
-        $admin?->assignRole(AdminRole::class);        // 'admin' по имени тоже работает
+        $admin?->assignRole(AdminRole::class);        // или 'app:admin' после sync
 
         $editor = User::where('email', 'editor@example.com')->first();
-        $editor?->assignRole(EditorRole::class);      // 'editor' по имени тоже работает
+        $editor?->assignRole(EditorRole::class);      // или 'app:editor' после sync
     }
 }
 ```

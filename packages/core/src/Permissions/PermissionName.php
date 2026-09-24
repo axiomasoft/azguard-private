@@ -23,32 +23,30 @@ final class PermissionName
     {
         // A plain key string is already resolved. A Permission class-string is
         // not — it still needs scoping via its owning panel.
-        if (is_string($permission) && ! self::isPermissionClass($permission)) {
+        if (is_string($permission) && ! PermissionGrammar::isPermissionClass($permission)) {
+            PermissionGrammar::assertValid($permission);
+
             return $permission;
         }
 
         $resolved = app(AzGuardManagerInterface::class)->tryPermission($panelId, $permission);
 
         if ($resolved !== null) {
+            PermissionGrammar::assertValid($resolved);
+
             return $resolved;
         }
 
         // Panel not registered — best-effort unscoped fallback.
         if ($permission instanceof UnitEnum) {
-            return PermissionKey::normalize($permission);
+            $fallback = PermissionKey::normalize($permission);
+        } else {
+            /** @var class-string<Permission> $permission */
+            $fallback = $permission::ability();
         }
 
-        /** @var class-string<Permission> $permission */
-        return $permission::ability();
-    }
+        PermissionGrammar::assertValid($fallback);
 
-    /**
-     * Whether the string is a class-string of a class-based Permission. A
-     * permission key always contains a '.' (or is '*') and a class-string never
-     * does, so the dotted-key common path never triggers autoload.
-     */
-    private static function isPermissionClass(string $permission): bool
-    {
-        return ! str_contains($permission, '.') && is_subclass_of($permission, Permission::class);
+        return $fallback;
     }
 }

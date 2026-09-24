@@ -32,12 +32,13 @@ final class SetCurrentPanel
             abort(response("AzGuard panel [{$panelId}] is not registered.", 500));
         }
 
+        $previous = AzGuard::currentPanel();
         AzGuard::setCurrentPanel(panel: $panel);
 
         try {
             return $next($request);
         } finally {
-            AzGuard::setCurrentPanel(panel: null);
+            AzGuard::setCurrentPanel(panel: $previous);
         }
     }
 }

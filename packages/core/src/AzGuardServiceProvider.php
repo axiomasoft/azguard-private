@@ -18,6 +18,7 @@ use AzGuard\Commands\InstallCommand;
 use AzGuard\Commands\ListPermissionsCommand;
 use AzGuard\Commands\ListScopedRolesCommand;
 use AzGuard\Commands\MakeGuardAbilitiesCommand;
+use AzGuard\Commands\MakeGuardDomainCommand;
 use AzGuard\Commands\MakeGuardPanelCommand;
 use AzGuard\Commands\MakeGuardPermissionCommand;
 use AzGuard\Commands\MakeGuardPolicyCommand;
@@ -46,6 +47,7 @@ use AzGuard\Http\Middleware\CheckDirectGrant;
 use AzGuard\Http\Middleware\LoadAzGuardRoles;
 use AzGuard\Http\Middleware\PanelCheckAccess;
 use AzGuard\Http\Middleware\SetCurrentPanel;
+use AzGuard\Panels\PanelResolver;
 use AzGuard\Registry\Builders\CompositePermissionCatalog;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
@@ -54,6 +56,7 @@ use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Registry\Sources\ClassRoleGrantSource;
 use AzGuard\Registry\Sources\DatabaseRoleGrantSource;
 use AzGuard\Registry\Sources\DirectGrantSource;
+use AzGuard\Runtime\CurrentPanelState;
 use AzGuard\Runtime\RequestState;
 use AzGuard\Runtime\ScopedRoleCache;
 use Composer\InstalledVersions;
@@ -115,13 +118,17 @@ final class AzGuardServiceProvider extends ServiceProvider
         // permissions into the next request on the same worker.
         $this->app->scoped(PermissionCache::class);
 
-        $this->app->singleton(PermissionStateRevision::class);
+        $this->app->scoped(PermissionStateRevision::class);
 
         // Reset per request (Octane-safe) — caches scoped-role rows for HasScopedRoles.
         $this->app->scoped(ScopedRoleCache::class);
 
         // Per-request scratch state (Octane-safe once-per-request side effects).
         $this->app->scoped(RequestState::class);
+
+        // Request/job-scoped current panel. The manager stays a singleton so
+        // boot-time panel registrations survive; only this holder is flushed.
+        $this->app->scoped(CurrentPanelState::class);
 
         // Scoped as well: the resolver captures the PermissionCache instance at
         // construction, so it must share the cache's per-request lifecycle.
@@ -174,6 +181,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         Config::assertCacheConfigValid();
 
         $this->registerPanelProviders();
+
+        if (Config::strictPanelsEnabled() && Config::defaultPanel() !== null) {
+            PanelResolver::resolveDefault(null);
+        }
 
         $this->loadMigrationsFrom(paths: __DIR__.'/../database/migrations');
 
@@ -257,6 +268,7 @@ final class AzGuardServiceProvider extends ServiceProvider
                 RolePermissionsCommand::class,
                 RoleAssignmentCommand::class,
                 MakeGuardPanelCommand::class,
+                MakeGuardDomainCommand::class,
                 MakeGuardPermissionCommand::class,
                 MakeGuardPolicyCommand::class,
                 MakeGuardAbilitiesCommand::class,

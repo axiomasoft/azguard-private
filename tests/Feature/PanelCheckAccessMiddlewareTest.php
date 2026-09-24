@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 use AzGuard\Facades\AzGuard;
 use AzGuard\Http\Middleware\PanelCheckAccess;
+use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Permissions\TestPermission;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 enum TestPanelCheckPanelId: string
 {
@@ -79,4 +82,34 @@ it('fails with 500 when the panel is not registered', function (): void {
 
     $this->get('/panel-check-unknown-test')
         ->assertStatus(500);
+});
+
+it('restores an outer panel after panel-check success and exception', function (): void {
+    $user = User::factory()->create();
+    $role = createRoleWithClass(['name' => 'panel-check-nested', 'level' => 0], ManagerRole::class);
+    $user->assignRole($role);
+
+    $outer = Panel::make()->id('outer');
+    AzGuard::setCurrentPanel($outer);
+    $request = Request::create('/');
+    $request->setUserResolver(fn (): User => $user);
+    $middleware = new PanelCheckAccess;
+
+    $middleware->handle($request, function (): Response {
+        expect(AzGuard::currentPanel()?->getId())->toBe('test');
+
+        return response('ok');
+    }, 'test.post.view', 'test');
+
+    expect(AzGuard::currentPanel())->toBe($outer);
+
+    try {
+        $middleware->handle($request, function (): Response {
+            throw new RuntimeException('nested failure');
+        }, 'test.post.view', 'test');
+    } catch (RuntimeException $exception) {
+        expect($exception->getMessage())->toBe('nested failure');
+    }
+
+    expect(AzGuard::currentPanel())->toBe($outer);
 });

@@ -6,6 +6,7 @@ use AzGuard\Facades\AzGuard;
 use AzGuard\Http\Middleware\SetCurrentPanel;
 use AzGuard\Panels\Panel;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
 
 it('sets and resets current panel around request lifecycle', function (): void {
     AzGuard::setCurrentPanel(panel: null);
@@ -50,4 +51,31 @@ it('sets the current panel via a route built with ::using()', function (): void 
     $this->get('/set-current-panel-using-test')
         ->assertOk()
         ->assertSee('web');
+});
+
+it('restores the previous panel after a nested azguard.panel middleware', function (): void {
+    AzGuard::setCurrentPanel(panel: null);
+
+    AzGuard::registerPanel(panel: Panel::make()->id(id: 'outer')->label(label: 'Outer'));
+    AzGuard::registerPanel(panel: Panel::make()->id(id: 'inner')->label(label: 'Inner'));
+
+    Route::middleware([SetCurrentPanel::class.':outer'])
+        ->get('/nested-current-panel', function (): string {
+            $inner = app(SetCurrentPanel::class)->handle(request(), function (): Response {
+                expect(AzGuard::currentPanel()?->getId())->toBe('inner');
+
+                return response('inner');
+            }, 'inner');
+
+            expect($inner->getContent())->toBe('inner')
+                ->and(AzGuard::currentPanel()?->getId())->toBe('outer');
+
+            return (string) AzGuard::currentPanel()?->getId();
+        });
+
+    $this->get('/nested-current-panel')
+        ->assertOk()
+        ->assertSee('outer');
+
+    expect(AzGuard::currentPanel())->toBeNull();
 });

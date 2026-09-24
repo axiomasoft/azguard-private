@@ -10,7 +10,8 @@ use Illuminate\Database\Schema\Blueprint;
 /**
  * Adds a polymorphic column pair (`{name}_type` + `{name}_id`) whose key type
  * follows config('az-guard.column_names.morph_type'): int (default), ULID or
- * UUID. Lets a host app line AzGuard's morphs up with its models' key type
+ * UUID. The id column is an integer, a ULID string, or a UUID string.
+ * Lets a host app line AzGuard's morphs up with its models' key type
  * without forking the package migrations.
  */
 final class MorphColumns

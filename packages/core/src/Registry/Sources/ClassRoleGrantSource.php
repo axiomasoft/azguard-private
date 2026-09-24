@@ -41,6 +41,8 @@ final readonly class ClassRoleGrantSource implements GrantSource
     #[Override]
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
+        Config::assertAuthorizationConnectionsAligned();
+
         if (! $user instanceof Model) {
             return PermissionSet::empty();
         }

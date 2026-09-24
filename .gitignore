@@ -32,7 +32,14 @@ tests/temp/
 .swissknifeman/
 .cursorrules
 .mcp.json
-.mcp.json.example
+.codex/state/
+.codex/hooks.pre-telemetry-*/
+.cursor/state/
+.cursor/logs/
+.cursor/runs/
+.cursor/mcp.json
+packages/core/core
+packages/filament/filament
 skills-lock.json
 AI-OPTIMIZATION.md
 docs/05_AI/

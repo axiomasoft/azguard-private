@@ -124,7 +124,7 @@ class EditorRole extends BaseRole
 ```php
 // Назначение по классу — однозначно и безопасно при рефакторинге
 $user->assignRole(EditorRole::class);
-$user->assignRole('editor');                       // по имени тоже работает
+$user->assignRole('app:editor');                       // по имени тоже работает
 
 // ✅ Проверка через enum-кейс — автоматически скоупится к панели
 $user->hasPermission(DocumentsPermission::View);   // true

@@ -8,6 +8,7 @@ use AzGuard\Configuration\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Override;
 
 /**
  * Entity-scoped role assignment.
@@ -18,9 +19,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  *
  * @property int $id
  * @property string $model_type
- * @property int $model_id
+ * @property int|string $model_id
  * @property string|null $scope_entity_type
- * @property int|null $scope_entity_id
+ * @property int|string|null $scope_entity_id
  * @property string|null $scope_class
  * @property int|null $role_id
  * @property string|null $panel_id
@@ -42,6 +43,12 @@ class ModelHasScope extends Model
         'role_id',
         'panel_id',
     ];
+
+    #[Override]
+    public function getTable(): string
+    {
+        return Config::modelHasScopesTable();
+    }
 
     /** @return MorphTo<Model, $this> */
     public function scopeEntity(): MorphTo

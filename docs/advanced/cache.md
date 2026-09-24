@@ -20,36 +20,41 @@ The in-memory cache is **never shared** between requests. Under Octane, each wor
 
 `PermissionSet::validUntil()` is an optional absolute UTC instant. Built-in direct and context grants set it to the nearest active `expires_at`. On every request-cache and durable-cache hit, AzGuard treats `now >= validUntil` as a miss, refreshes once, and does not store a result that is already expired. The durable payload is `{version, keys, valid_until}`. Backend TTL is the earlier of `expiration_time` and that deadline; `expiration_time => null` does not cancel a deadline. A custom source or layer that leaves `validUntil()` null still follows only the configured TTL.
 
-## Manual cache flush
+## Official mutations and manual maintenance
 
-If you modify roles or grants within the same request (e.g., in a test or admin action), flush the cache to get fresh results:
+Official role and grant mutations advance the permission-state revision and
+clear local request state. The next check sees the new state without a manual
+flush:
 
 ```php
-$user->assignRole('editor');
-$user->flushPermissions();  // clears in-memory cache for this user
+$user->assignRole(EditorRole::class);
 
 $user->hasPermission(DocumentsPermission::View);  // re-resolves from DB
 ```
 
 ## Cache in tests
 
-Always call `flushPermissions()` between state changes in a single test:
+The same applies to state changes in a test:
 
 ```php
 public function test_role_change_takes_effect(): void
 {
     $user = User::factory()->create();
-    $user->assignRole('viewer');
+    $user->assignRole(ViewerRole::class);
 
     $this->assertFalse($user->hasPermission(DocumentsPermission::Delete));
 
     // Upgrade role
-    $user->syncRoles(['editor']);
-    $user->flushPermissions();  // required — clears the in-memory cache
+    $user->syncRoles([EditorRole::class]);
 
     $this->assertTrue($user->hasPermission(DocumentsPermission::Edit));
 }
 ```
+
+If you change authorization rows through raw SQL or another external bulk
+writer, advance the global revision with `guard:cache-reset --force` after the
+write. `flushPermissions()` only clears local state and is not a cross-process
+invalidation protocol.
 
 ## Redis / persistent cache (optional)
 
@@ -65,7 +70,14 @@ at a persistent store (the default `'array'` store is request-scoped):
 ],
 ```
 
-With a persistent store, resolved `PermissionSet` objects are serialized into the cache store. The cache key includes the typed subject identity, panel, permission-state revision, and `cache.generation`. Official mutations bump the revision in the same DB transaction, so a committed revoke cannot stay hidden behind a stale entry. Changing `generation` opens a new namespace; old keys expire under TTL. `guard:cache-reset` advances the revision and clears local request state — it does **not** flush the configured store.
+With a persistent store, resolved sets use the versioned `{version, keys, valid_until}` envelope. The cache key includes the typed subject identity, panel, permission-state revision, and `cache.generation`. Official mutations bump the revision in the same DB transaction, so a committed revoke cannot stay hidden behind a stale entry. Changing `generation` opens a new namespace; old keys expire under TTL. `guard:cache-reset` advances the revision and clears local request state — it does **not** flush the configured store.
+
+At every positive transaction level on the authorization connection, checks
+bypass request, durable, and scoped-role cache reads and writes. They resolve
+from the current database state for that check only. A nested commit or rollback
+cannot publish that result; the first check after the outer transaction rereads
+the committed revision. If the connection or transaction state cannot be
+established reliably, the check fails closed.
 
 ::: warning Always flush after unofficial bulk writes
 Official `assignRole` / `grant` / role-permission sync paths bump the revision themselves. After raw SQL or other bulk writes, run `php artisan guard:cache-reset --force` (or bump revision) so the next check cannot reuse a previous namespace.

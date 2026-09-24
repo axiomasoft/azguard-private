@@ -14,6 +14,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalogBuilder;
+use AzGuard\Runtime\CurrentPanelState;
 use BackedEnum;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
@@ -38,8 +39,6 @@ final class AzGuardManager implements AzGuardManagerInterface
 
     /** @var array<string, Panel> */
     protected array $panels = [];
-
-    protected ?Panel $currentPanel = null;
 
     // ─── Panels ──────────────────────────────────────────────────────────────
 
@@ -68,13 +67,22 @@ final class AzGuardManager implements AzGuardManagerInterface
     #[Override]
     public function currentPanel(): ?Panel
     {
-        return $this->currentPanel;
+        return $this->currentPanelState()->panel;
     }
 
     #[Override]
     public function setCurrentPanel(?Panel $panel): void
     {
-        $this->currentPanel = $panel;
+        $this->currentPanelState()->panel = $panel;
+    }
+
+    /**
+     * Resolve the scoped holder per call so a singleton manager never captures
+     * one request/job instance for the process lifetime.
+     */
+    private function currentPanelState(): CurrentPanelState
+    {
+        return app(CurrentPanelState::class);
     }
 
     #[Override]

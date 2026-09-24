@@ -80,19 +80,29 @@ substring.
 With the stand up, run the suite against a real engine via `composer
 test:pgsql` / `composer test:mysql` — these switch `DB_CONNECTION` and
 otherwise share `tests/TestCase.php`'s env-driven connection config with the
-sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job) and
-the PG/MySQL matrix (`test-db-matrix` job) on every push/PR; **both lanes are
-required for merge** — the sqlite lane alone self-skips database-specific
-code (collation, cross-process locking), so a PG/MySQL regression is only
-visible in the real-database lane.
+sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job), the PG/MySQL matrix (`test-db-matrix`
+job), and a dedicated Redis lane (`test-redis`) on every push/PR. **All three
+lanes are required for merge** — sqlite alone self-skips database-specific code,
+and array-store tests do not prove cross-process Redis lock behaviour.
+
+With Redis up (`make up`), run the qualification bundle:
+
+```bash
+REDIS_HOST=127.0.0.1 REDIS_PORT="${REDIS_PORT:-6379}" composer test:redis
+```
+
+The lane uses `--fail-on-skipped`; missing `ext-redis` or an unreachable service
+is a hard failure, not a silent pass.
 
 ## Conventions
 
 - `declare(strict_types=1)` in every PHP file; PHPStan level 6; Pest 4.
 - Permissions and roles are referenced by **enums and classes**, never magic
   strings (see the docs).
-- Role contract: `roles.name` holds a slug (`admin`), `roles.class_name` holds
-  the FQCN of the PHP role class (`App\Guards\App\Roles\AdminRole`).
+- Role contract: a panel-scoped code role uses a persisted name such as
+  `app:admin`; `roles.class_name` holds its exact PHP FQCN
+  (`App\Guards\App\Roles\AdminRole`). The built-in super-admin keeps the
+  reserved name `super-admin`; DB-only roles use their own stored name.
 
 ## Git workflow
 

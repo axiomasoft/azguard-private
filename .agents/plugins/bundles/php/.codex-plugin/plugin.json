@@ -1,0 +1,24 @@
+{
+  "name": "php",
+  "version": "0.4.1",
+  "description": "PHP and Laravel core: architecture, structure, conventions, DI, database, repositories, patterns, static analysis",
+  "skills": [
+    "./code-style-spatie",
+    "./cursor-pagination-design",
+    "./database",
+    "./dependency-injection",
+    "./laravel",
+    "./laravel-best-practices",
+    "./laravel-structure",
+    "./named-arguments",
+    "./namespace-refactor-safety",
+    "./naming-conventions",
+    "./pao",
+    "./php-patterns",
+    "./php-upgrade-checklist",
+    "./production-readiness-checklist",
+    "./repositories",
+    "./static-analysis",
+    "./transactional-outbox-relay"
+  ]
+}

@@ -14,6 +14,7 @@ use AzGuard\Commands\InstallCommand;
 use AzGuard\Commands\ListPermissionsCommand;
 use AzGuard\Commands\ListScopedRolesCommand;
 use AzGuard\Commands\MakeGuardAbilitiesCommand;
+use AzGuard\Commands\MakeGuardDomainCommand;
 use AzGuard\Commands\MakeGuardPanelCommand;
 use AzGuard\Commands\MakeGuardPermissionCommand;
 use AzGuard\Commands\MakeGuardPolicyCommand;
@@ -50,6 +51,7 @@ function allRegisteredGuardCommandClasses(): array
         RolePermissionsCommand::class,
         RoleAssignmentCommand::class,
         MakeGuardPanelCommand::class,
+        MakeGuardDomainCommand::class,
         MakeGuardPermissionCommand::class,
         MakeGuardPolicyCommand::class,
         MakeGuardAbilitiesCommand::class,
@@ -82,9 +84,9 @@ it('lists every registered command class in this drift test\'s own fixture', fun
     // Guards the guard: fixture files themselves stay in lockstep with the
     // provider registrations enumerated in CommandPrefixRegistrationTest —
     // this is a sanity check that the counts line up (22 core + 2 context
-    // + 1 filament = 25), so a newly-added command can't silently skip both
+    // + 1 filament = 26), so a newly-added command can't silently skip both
     // this test and the reference doc.
-    expect(allRegisteredGuardCommandClasses())->toHaveCount(25);
+    expect(allRegisteredGuardCommandClasses())->toHaveCount(26);
 });
 
 it('covers every registered command signature in the CLI reference doc', function (): void {

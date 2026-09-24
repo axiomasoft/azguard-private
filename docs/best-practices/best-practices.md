@@ -13,7 +13,7 @@ if ($user->hasPermission(DocumentsPermission::Edit)) {
 }
 
 // ❌ Business logic checks the role — brittle
-if ($user->hasRole('editor')) {
+if ($user->hasRole('app:editor')) {
     // What if an editor loses this permission? Or a manager gets it?
 }
 ```
@@ -159,5 +159,5 @@ When you pass `arguments: ['document']` to `#[CheckPermission]`, AzGuard passes 
 | Permission enum | `{Resource}Permission` | `DocumentsPermission` |
 | Enum case | PascalCase verb | `View`, `Create`, `Edit`, `Delete`, `Export` |
 | Role class | `{Name}Role` | `EditorRole`, `ViewerRole` |
-| Role name (string) | kebab-case | `'editor'`, `'super-admin'` |
+| Role name (string) | kebab-case | `'app:editor'`, `'super-admin'` |
 | Panel ID | lowercase, short | `'app'`, `'admin'`, `'api'` |

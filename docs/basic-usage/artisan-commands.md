@@ -35,6 +35,7 @@ so it should never drift from what `php artisan list` reports.
 | `guard:explain` | Explain WHY a user was granted or denied an ability |
 | `guard:abilities` | List the fully-resolved abilities for a user in a panel |
 | `make:guard-panel` | Scaffold a guard panel with Permissions/Policies/Abilities domain structure |
+| `make:guard-domain` | Add a domain (permissions, policy, optional abilities) to an existing panel |
 | `make:guard-permission` | Add a case to an existing Permissions enum or create one |
 | `make:guard-policy` | Create a policy stub with `GuardPolicy` and `GateAbility` attributes |
 | `make:guard-abilities` | Create an Abilities DTO based on `AbilitiesDto` |
@@ -109,8 +110,8 @@ php artisan guard:catalog:validate --panel=app --strict
 user:
 
 ```bash
-php artisan guard:role assign 42 EditorRole
-php artisan guard:role detach 42 EditorRole
+php artisan guard:role assign 42 app:editor
+php artisan guard:role detach 42 app:editor
 ```
 
 `guard:role-permissions` manages the DB-level `role_permissions` table for
@@ -143,6 +144,10 @@ php artisan guard:sync-roles
 php artisan guard:sync-roles --panel=app
 php artisan guard:sync-roles --dry-run
 ```
+
+Persisted names are `{panelId}:{getName()}` except built-in `super-admin`.
+`--dry-run` reports the same create/rename/collision decisions without writes.
+A collision (including a DB-only row on the canonical name) aborts before write.
 
 ::: warning
 This command does **not** assign roles to users. It only ensures the role
@@ -247,10 +252,26 @@ php artisan guard:filament:generate --dry-run
 
 ## Scaffolding commands
 
+`--actor` accepts an existing `Authenticatable` class. By default, the commands
+use the model configured for the default auth guard’s provider. Add-domain also
+accepts `az-guard.scaffold.domain_models.{panelId}.{domain_key}` when `--model`
+is omitted. Repeating the same generation leaves files unchanged. Conflicts
+list the target files; `--force` replaces only those generated targets. A custom
+provider or config layout requires the manual registration step printed by the
+command.
+
+
 ```bash
-# Scaffold a whole panel domain (Permissions/Policies/Abilities) at once
+# New panel with an initial domain (prefer validated model/actor FQCNs)
+php artisan make:guard-panel Admin Documents --model=App\\Models\\Document
+# → app/Guards/Admin/...
+
+# Add another domain to an existing generated panel
+php artisan make:guard-domain Admin Invoices --model=App\\Models\\Invoice
+# → app/Guards/Admin/Invoices/... and appends InvoicesPermission to the panel provider
+
+# Legacy panel call without --model still works but warns (App\\Models\\{Domain} is not validated)
 php artisan make:guard-panel App Invoices
-# → app/Guards/App/Invoices/...
 
 # Add a case to (or create) a permission enum: panel, domain, case
 php artisan make:guard-permission App Invoices View

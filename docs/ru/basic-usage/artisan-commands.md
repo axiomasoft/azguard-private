@@ -28,6 +28,10 @@ php artisan guard:sync-roles --panel=app
 php artisan guard:sync-roles --dry-run
 ```
 
+Persisted-имя панельной code role — `{panelId}:{getName()}`; встроенный
+`super-admin` без префикса. `--dry-run` показывает те же решения create/rename/
+collision. Collision (включая DB-only на каноническом имени) останавливает запись.
+
 Запускайте при деплое или в CI/CD — команда **не** назначает роли
 пользователям, только гарантирует наличие записи роли для UI.
 
@@ -88,6 +92,25 @@ php artisan guard:prune-grants
 ```php
 $schedule->command('guard:prune-grants')->daily();
 ```
+
+## Скаффолд панелей и доменов
+
+`--actor` принимает существующий класс `Authenticatable`. По умолчанию берётся
+модель провайдера активного auth guard. Для add-domain модель можно задать через
+`az-guard.scaffold.domain_models.{panelId}.{domain_key}`. Конфликт перечисляет
+целевые файлы; `--force` меняет только их. Для custom provider/config команда
+выводит ручной шаг регистрации.
+
+
+```bash
+php artisan make:guard-panel Admin Documents --model=App\\Models\\Document
+php artisan make:guard-domain Admin Invoices --model=App\\Models\\Invoice
+```
+
+`make:guard-panel` — новая панель; `make:guard-domain` — домен в существующей.
+Без `--model` у panel-команды остаётся legacy `App\\Models\\{Domain}` с
+предупреждением. Повтор с теми же аргументами не меняет файлы; конфликт —
+только с `--force` на целевых generated-файлах.
 
 ## `guard:list-permissions`
 

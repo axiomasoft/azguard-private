@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources\RoleResource\RelationManagers;
 
+use AzGuard\Models\Role;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
@@ -12,7 +14,12 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Override;
+use RuntimeException;
 
 /**
  * Relation Manager: users of a DB role.
@@ -56,13 +63,58 @@ final class RoleUsersRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make()
                     ->label('Assign role')
-                    ->preloadRecordSelect(),
+                    ->preloadRecordSelect()
+                    ->using(function (AttachAction $action): void {
+                        $record = $action->getRecord();
+
+                        if (! $record instanceof Model) {
+                            throw new RuntimeException('AzGuard could not resolve the selected user.');
+                        }
+
+                        $this->assignRoleTo($record);
+                    }),
             ])
             ->actions([
-                DetachAction::make()->label('Revoke'),
+                DetachAction::make()->label('Revoke')->using(function (Model $record): void {
+                    $this->removeRoleFrom($record);
+                }),
             ])
             ->bulkActions([
-                DetachBulkAction::make()->label('Revoke selected'),
+                DetachBulkAction::make()->label('Revoke selected')->using(function (EloquentCollection|Collection|LazyCollection $records): void {
+                    app(PermissionStateRevision::class)->mutate(function () use ($records): array {
+                        foreach ($records as $record) {
+                            $this->removeRoleFrom($record);
+                        }
+
+                        return [null, false];
+                    });
+                }),
             ]);
+    }
+
+    private function assignRoleTo(Model $user): void
+    {
+        if (! method_exists($user, 'assignRole')) {
+            throw new RuntimeException('AzGuard user model must provide assignRole().');
+        }
+
+        $user->assignRole($this->ownerRole());
+    }
+
+    private function removeRoleFrom(Model $user): void
+    {
+        if (! method_exists($user, 'removeRole')) {
+            throw new RuntimeException('AzGuard user model must provide removeRole().');
+        }
+
+        $user->removeRole($this->ownerRole());
+    }
+
+    private function ownerRole(): Role
+    {
+        $role = $this->getOwnerRecord();
+        assert($role instanceof Role);
+
+        return $role;
     }
 }

@@ -110,6 +110,8 @@ class DocumentController extends Controller
 
 The `arguments` array maps to route model bindings by parameter name. The middleware resolves them from the request and passes them to `Gate::allows($ability, [$model])`.
 
+Missing `#[CheckPermission]` is still allowed at runtime (`require_permission_attributes` defaults to `false`). Set it to `true` to throw `MissingPermissionAttributeException` when `azguard.check` reaches an action with neither `#[CheckPermission]` nor `#[SkipGuardCheck]`. `#[SkipGuardCheck]` stays an explicit bypass in both modes. `guard:doctor` reports the same routes as a warning (default) or an error (opt-in); closures and unresolvable actions are skipped.
+
 ## Manual Gate checks
 
 For non-controller code (jobs, listeners, services), always pass the **enum case** — never a raw string:

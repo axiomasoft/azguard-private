@@ -7,6 +7,7 @@ namespace AzGuard\Registry\Resolver;
 use AzGuard\Configuration\Config;
 use AzGuard\Contracts\PermissionLayer;
 use AzGuard\Contracts\PermissionResolverInterface;
+use AzGuard\Permissions\CatalogKeyMatcher;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantSource;
 use AzGuard\Registry\Contracts\PermissionCatalog;
@@ -15,7 +16,6 @@ use AzGuard\Registry\Values\PermissionSet;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 use Override;
-use Throwable;
 
 /**
  * Main entry point for obtaining a PermissionSet for a user.
@@ -52,6 +52,8 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
     #[Override]
     public function forUser(Authenticatable $user, string $panelId): PermissionSet
     {
+        Config::assertAuthorizationConnectionsAligned();
+
         return $this->cache->rememberForRequest(
             SubjectIdentity::fromAuthenticatable($user),
             $panelId,
@@ -65,20 +67,7 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
         $set = PermissionSet::empty();
 
         foreach ($this->sources as $source) {
-            try {
-                $set = $set->merge($source->permissionsFor($user, $panelId));
-            } catch (Throwable $e) {
-                if (Config::failOnSourceException()) {
-                    throw $e;
-                }
-
-                Log::warning('AzGuard: grant source failed, skipping', [
-                    'source' => $source::class,
-                    'error' => $e->getMessage(),
-                ]);
-
-                continue;
-            }
+            $set = $set->merge($source->permissionsFor($user, $panelId));
 
             if ($set->isWildcard()) {
                 return $set;
@@ -127,27 +116,18 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
      */
     private function filterAgainstCatalog(PermissionSet $set, string $panelId): PermissionSet
     {
-        $dynamicDefinitions = array_values(array_filter(
-            $this->catalog->all($panelId),
-            static fn (PermissionDefinition $d): bool => $d->isDynamic(),
-        ));
-
         $catalogKeys = array_map(
             static fn (PermissionDefinition $d): string => $d->key(),
             $this->catalog->all($panelId),
         );
 
-        $filtered = $set->filter(function (string $key) use ($panelId, $catalogKeys, $dynamicDefinitions): bool {
+        $filtered = $set->filter(function (string $key) use ($panelId, $catalogKeys): bool {
             if ($key === PermissionKey::WILDCARD) {
                 return false;
             }
 
             if (! str_contains($key, PermissionKey::WILDCARD)) {
-                if ($this->catalog->has($panelId, $key)) {
-                    return true;
-                }
-
-                return $this->matchesDynamicDefinition($key, $dynamicDefinitions);
+                return CatalogKeyMatcher::owns($this->catalog, $panelId, $key);
             }
 
             $pattern = PermissionSet::fromKeys([$key]);
@@ -164,44 +144,6 @@ final readonly class EffectivePermissionResolver implements PermissionResolverIn
         $this->logDroppedKeys($set, $filtered, $panelId);
 
         return $filtered;
-    }
-
-    /**
-     * Whether a concrete key (e.g. 'app.team.42.admin') matches at least one
-     * dynamic definition (e.g. 'app.team.{id}.admin'). Each '{seg}' placeholder
-     * segment matches exactly one dotted segment of the candidate key.
-     *
-     * @param  list<PermissionDefinition>  $dynamicDefinitions
-     */
-    private function matchesDynamicDefinition(string $key, array $dynamicDefinitions): bool
-    {
-        foreach ($dynamicDefinitions as $definition) {
-            if ($this->matchesDynamicPattern($key, $definition->key())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function matchesDynamicPattern(string $key, string $pattern): bool
-    {
-        $keySegments = explode(PermissionKey::SEPARATOR, $key);
-        $patternSegments = explode(PermissionKey::SEPARATOR, $pattern);
-
-        if (count($keySegments) !== count($patternSegments)) {
-            return false;
-        }
-
-        foreach ($patternSegments as $index => $patternSegment) {
-            $isPlaceholder = str_starts_with($patternSegment, '{') && str_ends_with($patternSegment, '}');
-
-            if (! $isPlaceholder && $patternSegment !== $keySegments[$index]) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**

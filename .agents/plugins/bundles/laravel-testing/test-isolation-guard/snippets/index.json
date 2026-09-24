@@ -1,0 +1,25 @@
+{
+  "skill": "test-isolation-guard",
+  "snippets": [
+    {
+      "file": "bootstrap.php",
+      "description": "tests/bootstrap.php: выставляет APP_ENV=testing, DB_DATABASE=*_test, MEDIA_DISK=media-test через $_SERVER/$_ENV/putenv ДО vendor/autoload",
+      "tags": ["bootstrap", "phpunit", "isolation", "env"]
+    },
+    {
+      "file": "TestEnvironmentGuard.php",
+      "description": "Класс-страж: через config проверяет, что имя активной БД заканчивается на _test и медиа-диск тестовый, иначе бросает RuntimeException с инструкцией по починке",
+      "tags": ["guard", "database", "media-disk", "safety"]
+    },
+    {
+      "file": "TestCase.php",
+      "description": "Базовый TestCase: createApplication() проверяет project-owned canonical serial DB до первого запроса; parallel exact DB остаётся в framework callback",
+      "tags": ["testcase", "createapplication", "refreshdatabase"]
+    },
+    {
+      "file": "ParallelTestingIsolation.php",
+      "description": "Parallel callback: exact selected DB/token before migration, local contained per-worker disk roots and owned-only cleanup; missing lifecycle evidence fails FRAMEWORK_LIFECYCLE_CONFLICT",
+      "tags": ["parallel", "database", "filesystem", "lifecycle", "safety"]
+    }
+  ]
+}

@@ -71,6 +71,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scaffold defaults
+    |--------------------------------------------------------------------------
+    | Optional domain model FQCNs for make:guard-domain when --model is omitted.
+    | Keys: panel id (lowercase) => domain key (snake_case) => model class.
+    */
+    'scaffold' => [
+        'domain_models' => [
+            // 'admin' => [
+            //     'documents' => App\Models\Document::class,
+            // ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Table Names
     |--------------------------------------------------------------------------
     | Override these if the default names conflict with existing tables.
@@ -104,7 +119,13 @@ return [
     |--------------------------------------------------------------------------
     | AzGuard panel providers. Each entry is the FQCN of a class extending PanelProvider.
     */
+    // azguard:generated-config-panels
     'panels' => [],
+
+    // Optional domain-to-model mappings for make:guard-domain.
+    'scaffold' => [
+        'domain_models' => [],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -126,11 +147,23 @@ return [
     |--------------------------------------------------------------------------
     | Strict Panels
     |--------------------------------------------------------------------------
-    | Opt-in. When true, resolving an explicit but unregistered panel throws
-    | PanelNotFoundException instead of the default lenient (best-effort)
-    | resolution against an empty catalog. Off by default for back-compat.
+    | Opt-in. When true, resolving an explicit, configured, current or fallback
+    | panel that is not registered throws PanelNotFoundException — including
+    | when the registry is still empty. Off by default for back-compat.
+    | Independently of this flag, every final panel id is at most 128 characters.
     */
     'strict_panels' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Require Permission Attributes
+    |--------------------------------------------------------------------------
+    | Opt-in. When true, azguard.check raises MissingPermissionAttributeException
+    | if the controller action has neither #[CheckPermission] nor #[SkipGuardCheck].
+    | Off by default: missing attributes still pass at runtime, and guard:doctor
+    | reports them as a warning. SkipGuardCheck remains an explicit bypass.
+    */
+    'require_permission_attributes' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -194,14 +227,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Fail-fast on GrantSource Exception
+    | GrantSource exception policy (deprecated setting)
     |--------------------------------------------------------------------------
-    | When true, any Throwable from a GrantSource::permissionsFor() call
-    | propagates immediately, failing the entire authorization pipeline.
-    | When false (default), the failing source is skipped and a warning is logged.
-    | Recommended: true in tests, false in production.
+    | Source exceptions always propagate so a partial permission set cannot
+    | authorize a request. This key remains for existing published configs but
+    | its value no longer changes the fail-closed behavior.
     */
-    'fail_on_source_exception' => false,
+    'fail_on_source_exception' => true,
 
     /*
     |--------------------------------------------------------------------------

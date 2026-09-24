@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Attributes\CheckPermission;
 use AzGuard\Attributes\SkipGuardCheck;
+use AzGuard\Exceptions\MissingPermissionAttributeException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Http\Middleware\CheckAccess;
 use AzGuard\Panels\Panel;
@@ -100,6 +101,36 @@ it('enforces #[CheckPermission] on a route built with ::using()', function (): v
         ->assertSuccessful();
 });
 
+it('allows a missing attribute in legacy mode', function (): void {
+    Route::middleware(['web', CheckAccess::class])
+        ->get('/azguard-missing-legacy', MissingPermissionAttributeController::class);
+
+    $this->get(uri: '/azguard-missing-legacy')
+        ->assertSuccessful();
+});
+
+it('throws when require_permission_attributes is on and the action has no attribute', function (): void {
+    config()->set('az-guard.require_permission_attributes', true);
+
+    Route::middleware(['web', CheckAccess::class])
+        ->get('/azguard-missing-strict', MissingPermissionAttributeController::class);
+
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->get(uri: '/azguard-missing-strict'))
+        ->toThrow(MissingPermissionAttributeException::class);
+});
+
+it('honours SkipGuardCheck when require_permission_attributes is on', function (): void {
+    config()->set('az-guard.require_permission_attributes', true);
+
+    Route::middleware(['web', CheckAccess::class])
+        ->get('/azguard-skip-strict', [SkipGuardController::class, 'show']);
+
+    $this->get(uri: '/azguard-skip-strict')
+        ->assertSuccessful();
+});
+
 final class InvokablePostController
 {
     #[CheckPermission(permission: PostPermission::View)]
@@ -121,6 +152,14 @@ final class SkipGuardController
 final class CustomStatusController
 {
     #[CheckPermission(permission: PostPermission::View, status: 419, message: 'nope')]
+    public function __invoke(): string
+    {
+        return 'ok';
+    }
+}
+
+final class MissingPermissionAttributeController
+{
     public function __invoke(): string
     {
         return 'ok';

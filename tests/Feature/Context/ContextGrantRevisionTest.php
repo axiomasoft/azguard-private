@@ -42,3 +42,28 @@ it('rolls a context grant back when revision write fails', function (): void {
 
     expect(ContextRole::query()->count())->toBe(0);
 });
+
+it('keeps raw context model writes and their revision in one transaction', function (): void {
+    $user = User::factory()->create();
+    $attributes = [
+        'model_type' => $user->getMorphClass(),
+        'model_id' => $user->getAuthIdentifier(),
+        'context_type' => 'workspace',
+        'context_id' => '9',
+        'panel_id' => 'test',
+        'permission_key' => 'test.post.view',
+    ];
+    $before = app(PermissionStateRevision::class)->current();
+
+    $grant = ContextRole::query()->create($attributes);
+    expect(app(PermissionStateRevision::class)->current())->toBe($before + 1);
+
+    $grant->save();
+    expect(app(PermissionStateRevision::class)->current())->toBe($before + 1);
+
+    DB::table(Config::permissionStateTable())->delete();
+
+    expect(fn () => $grant->delete())
+        ->toThrow(RuntimeException::class, 'AzGuard permission-state row is missing.');
+    expect(ContextRole::query()->whereKey($grant->getKey())->exists())->toBeTrue();
+});

@@ -13,6 +13,7 @@ use Closure;
 use DateTimeInterface;
 use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -76,15 +77,24 @@ class PermissionCache
 
         $store = Config::cacheStore();
         $epoch = $this->currentEpoch($subject, $panelId);
-        $set = $store !== 'array' && $epoch !== null
-            ? $this->loadFromStore($this->keyFor($subject, $panelId, $discriminator, $revision), $store, $callback, $revision)
-            : $this->materialize($callback);
+
+        if ($store !== 'array' && $epoch !== null) {
+            [$set, $cacheable] = $this->loadFromStore(
+                $this->keyForEpoch($subject, $panelId, $discriminator, $revision, $epoch),
+                $store,
+                $callback,
+                $revision,
+            );
+        } else {
+            $set = $this->materialize($callback);
+            $cacheable = $store === 'array';
+        }
 
         if (! $set instanceof PermissionSet) {
             return PermissionSet::empty();
         }
 
-        if ($this->permissionState->current() !== $revision || Config::cacheGeneration() !== $generation) {
+        if (! $cacheable || $this->permissionState->current() !== $revision || Config::cacheGeneration() !== $generation) {
             return $set;
         }
 
@@ -110,7 +120,10 @@ class PermissionCache
         $bump = function () use ($epochStore, $epochKey): void {
             $epochStore->add($epochKey, 1, Config::cacheTtl());
             $epoch = $epochStore->increment($epochKey);
-            $epochStore->put($epochKey, $epoch, Config::cacheTtl());
+
+            if (! is_int($epoch) || $epoch < 2 || $epochStore->put($epochKey, $epoch, Config::cacheTtl()) === false) {
+                throw new RuntimeException('AzGuard permission cache epoch bump did not persist.');
+            }
         };
 
         try {
@@ -133,6 +146,8 @@ class PermissionCache
                 'store' => $store,
                 'error' => $e->getMessage(),
             ]);
+
+            throw $e;
         }
     }
 
@@ -158,6 +173,11 @@ class PermissionCache
             ? 0
             : $this->permissionState->current();
 
+        return $this->keyForEpoch($subject, $panelId, $discriminator, $revision, $epoch);
+    }
+
+    private function keyForEpoch(SubjectIdentity $subject, string $panelId, string $discriminator, int $revision, int $epoch): string
+    {
         return 'azg:v2:perm:'.SubjectIdentity::digestPayload([
             2,
             'perm',
@@ -200,7 +220,8 @@ class PermissionCache
         }
     }
 
-    private function loadFromStore(string $cacheKey, string $store, Closure $callback, int $revision): ?PermissionSet
+    /** @return array{?PermissionSet, bool} The bool permits request-local caching. */
+    private function loadFromStore(string $cacheKey, string $store, Closure $callback, int $revision): array
     {
         try {
             $raw = cache()->store($store)->get($cacheKey);
@@ -210,35 +231,43 @@ class PermissionCache
                 'error' => $e->getMessage(),
             ]);
 
-            return $this->materialize($callback);
+            return [$this->materialize($callback), false];
         }
 
         $decoded = $this->decodeEnvelope($raw);
 
         if ($decoded instanceof PermissionSet && $this->isLive($decoded)) {
-            return $decoded;
+            return [$decoded, true];
         }
 
         $set = $this->materialize($callback);
 
         if (! $set instanceof PermissionSet) {
-            return null;
+            return [null, false];
         }
 
         if ($this->permissionState->current() !== $revision) {
-            return $set;
+            return [$set, false];
         }
 
         try {
-            cache()->store($store)->put($cacheKey, $this->encodeEnvelope($set), $this->backendExpiry($set));
+            $stored = cache()->store($store)->put($cacheKey, $this->encodeEnvelope($set), $this->backendExpiry($set));
+
+            if ($stored === false) {
+                Log::warning('AzGuard: permission cache put returned failure', ['store' => $store]);
+
+                return [$set, false];
+            }
         } catch (Throwable $e) {
             Log::warning('AzGuard: permission cache put failed', [
                 'store' => $store,
                 'error' => $e->getMessage(),
             ]);
+
+            return [$set, false];
         }
 
-        return $set;
+        return [$set, true];
     }
 
     /**

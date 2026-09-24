@@ -25,6 +25,8 @@ use Override;
  */
 final class AzGuardPlugin implements Plugin
 {
+    private const DEFAULTS_BINDING = 'az-guard-filament.registration-defaults';
+
     private ?string $panelId = null;
 
     private ?bool $enforce = null;
@@ -145,10 +147,22 @@ final class AzGuardPlugin implements Plugin
     #[Override]
     public function register(Panel $panel): void
     {
+        $defaults = $this->registrationDefaults();
+
+        // Freeze this panel's effective options before another Filament panel
+        // can update the global compatibility fallback below.
+        $this->panelId ??= (string) ($defaults['panel'] ?? 'admin');
+        $this->enforce ??= (bool) ($defaults['enforce'] ?? true);
+        $this->source ??= (string) ($defaults['source'] ?? 'database');
+        $this->abilities ??= (array) ($defaults['abilities'] ?? []);
+        $this->keyTemplate ??= (string) ($defaults['key'] ?? '{panel}.{resource}.{ability}');
+        $this->case ??= (string) ($defaults['case'] ?? 'snake');
+
         // Fluent options, when set, are the effective value; config remains the
         // fallback for consumers (PermissionSchema/discovery/gate) that resolve
         // it independently of this plugin instance — keep them in sync here.
         config([
+            'az-guard-filament.panel' => $this->getPanelId(),
             'az-guard-filament.enforce' => $this->isEnforcing(),
             'az-guard-filament.source' => $this->getSource(),
             'az-guard-filament.abilities' => $this->getAbilities(),
@@ -164,6 +178,16 @@ final class AzGuardPlugin implements Plugin
             ->pages([
                 DoctorPage::class,
             ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function registrationDefaults(): array
+    {
+        if (! app()->bound(self::DEFAULTS_BINDING)) {
+            app()->instance(self::DEFAULTS_BINDING, (array) config('az-guard-filament', []));
+        }
+
+        return app(self::DEFAULTS_BINDING);
     }
 
     #[Override]

@@ -17,6 +17,8 @@ class CustomRole extends Role
 {
     public static bool $retrieved = false;
 
+    public static bool $created = false;
+
     protected $table = 'roles';
 
     protected static function booted(): void
@@ -25,6 +27,10 @@ class CustomRole extends Role
 
         static::retrieved(static function (): void {
             self::$retrieved = true;
+        });
+
+        static::created(static function (): void {
+            self::$created = true;
         });
     }
 }

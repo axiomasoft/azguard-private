@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Database\Schema\MorphColumns;
+use AzGuard\Database\Schema\NullSafeUniqueIndex;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,9 +18,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $tableName = $this->contextRolesTable();
         $binaryCollation = $this->mysqlBinaryCollation();
 
-        Schema::create('az_guard_context_roles', function (Blueprint $table) use ($binaryCollation): void {
+        Schema::create($tableName, function (Blueprint $table) use ($binaryCollation): void {
             $table->id();
 
             // User (polymorphic) — key type follows az-guard.column_names.morph_type
@@ -49,7 +51,15 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('az_guard_context_roles');
+        Schema::dropIfExists($this->contextRolesTable());
+    }
+
+    private function contextRolesTable(): string
+    {
+        $name = (string) config('az-guard-context.table_names.context_roles', 'az_guard_context_roles');
+        NullSafeUniqueIndex::assertIdentifier($name);
+
+        return $name;
     }
 
     private function mysqlBinaryCollation(): ?string

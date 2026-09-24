@@ -9,6 +9,7 @@ use AzGuard\Filament\Resources\DirectGrantResource;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Override;
 
 /**
@@ -39,14 +40,15 @@ final class CreateDirectGrant extends CreateRecord
 
         $user = $userModel::findOrFail($data['grantable_id']);
 
-        $ttl = null;
+        $expiresAt = null;
 
         if (! empty($data['expires_at'])) {
             $expiresAt = Carbon::parse($data['expires_at']);
-            $ttl = (int) now()->diffInSeconds($expiresAt, absolute: false);
 
-            if ($ttl <= 0) {
-                $ttl = null; // invalid value — no expiry
+            if ($expiresAt->lessThanOrEqualTo(now())) {
+                throw ValidationException::withMessages([
+                    'expires_at' => 'The expiry must be in the future.',
+                ]);
             }
         }
 
@@ -56,7 +58,7 @@ final class CreateDirectGrant extends CreateRecord
         return $manager
             ->forUser($user)
             ->on($data['panel_id'])
-            ->ttl($ttl)
+            ->until($expiresAt)
             ->grant($data['permission_key']);
     }
 }

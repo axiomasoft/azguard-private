@@ -41,12 +41,10 @@ trait ResolvesRole
         /** @var class-string<Role> $roleClass */
         $roleClass = Config::roleModel();
 
-        // A role class-string (e.g. App\Guards\App\Roles\EditorRole) resolves by
-        // its stored class_name, then falls back to the name derived from the
-        // class — so assignRole(EditorRole::class) is unambiguous and refactor-safe.
+        // Class-strings resolve only by exact class_name. A missing class row
+        // is never adopted via getName() / a same-named DB-only role.
         if (is_subclass_of($role, RoleInterface::class)) {
-            return $roleClass::query()->where('class_name', $role)->first()
-                ?? $roleClass::findByName((new $role)->getName());
+            return $roleClass::query()->where('class_name', $role)->first();
         }
 
         return $roleClass::findByName($role);

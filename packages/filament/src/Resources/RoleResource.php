@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Filament\Resources\RoleResource\Pages\CreateRole;
 use AzGuard\Filament\Resources\RoleResource\Pages\EditRole;
 use AzGuard\Filament\Resources\RoleResource\Pages\ListRoles;
 use AzGuard\Models\Role;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -22,8 +24,12 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\LazyCollection;
 use Override;
+use RuntimeException;
 use UnitEnum;
 
 /**
@@ -39,8 +45,6 @@ use UnitEnum;
  */
 final class RoleResource extends Resource
 {
-    protected static ?string $model = Role::class;
-
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-shield-check';
 
     protected static string|UnitEnum|null $navigationGroup = 'AzGuard';
@@ -169,12 +173,65 @@ final class RoleResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()->using(static function (Role $record): bool {
+                    return app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
+                        $deleted = self::deleteRole($record);
+
+                        return [$deleted, $deleted];
+                    });
+                }),
             ])
             ->bulkActions([
-                DeleteBulkAction::make(),
+                DeleteBulkAction::make()->using(static function (EloquentCollection|Collection|LazyCollection $records): void {
+                    app(PermissionStateRevision::class)->mutate(static function () use ($records): array {
+                        $changed = false;
+
+                        foreach ($records as $record) {
+                            assert($record instanceof Role);
+                            $changed = self::deleteRole($record) || $changed;
+                        }
+
+                        return [null, $changed];
+                    });
+                }),
             ])
             ->defaultSort('level', 'desc');
+    }
+
+    /**
+     * Apply the role foreign-key effects explicitly as well. SQLite hosts may
+     * disable foreign keys, and leaving both pivot and permission rows behind
+     * would continue to grant a deleted role until those orphans are removed.
+     */
+    private static function deleteRole(Role $record): bool
+    {
+        if (! $record->exists) {
+            return false;
+        }
+
+        $locked = $record->newQuery()->whereKey($record->getKey())->lockForUpdate()->first();
+
+        if (! $locked instanceof Role) {
+            return false;
+        }
+
+        $connection = $locked->getConnection();
+        $roleId = $locked->getKey();
+        $connection->table(Config::modelHasRolesTable())->where('role_id', $roleId)->delete();
+        $connection->table(Config::rolePermissionsTable())->where('role_id', $roleId)->delete();
+        $connection->table(Config::modelHasScopesTable())->where('role_id', $roleId)->update(['role_id' => null]);
+
+        if ($locked->delete() !== true) {
+            throw new RuntimeException('AzGuard could not delete the selected role.');
+        }
+
+        return true;
+    }
+
+    #[Override]
+    public static function getModel(): string
+    {
+        return Config::roleModel();
     }
 
     #[Override]

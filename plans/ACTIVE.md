@@ -1,7 +1,7 @@
 # ACTIVE
 
-**Active:** 2026.09.22-№1-AZGUARD-CORRECTNESS (PLAN1)
-**Updated:** 2026-09-23
+**Active:** —
+**Updated:** 2026-09-24
 
-Исполнение: [plan.md](2026.09.22-№1-AZGUARD-CORRECTNESS/plan.md).
-P1 закрыт (P1.1 + P1.2 GREEN). Следующий admission: `task:plan-exec 2026.09.22-№1-AZGUARD-CORRECTNESS P2.1 P2.2 P2.3`.
+PLAN1 перенесён в [архив](archive/2026.09.22-№1-AZGUARD-CORRECTNESS/plan.md).
+Итог независимой проверки: [аудит](archive/2026.09.22-№1-AZGUARD-CORRECTNESS/findings/plan-full-adversarial-audit-2026-09-23.md).

@@ -31,7 +31,7 @@ describe('Authorizer — Gate integration', function (): void {
         expect(Gate::allows('admin.delete.users'))->toBeFalse();
     });
 
-    it('grants wildcard * superadmin all permissions via Gate::before', function (): void {
+    it('grants wildcard * superadmin owned catalog abilities via Gate::before', function (): void {
         $user = User::factory()->create();
 
         $role = createRoleWithClass(['name' => 'superadmin',
@@ -42,8 +42,28 @@ describe('Authorizer — Gate integration', function (): void {
         $user->load('roles');
         $this->actingAs($user);
 
-        expect(Gate::allows('any.permission.whatsoever'))->toBeTrue();
-        expect(Gate::allows('admin.delete.users'))->toBeTrue();
+        expect(Gate::allows('test.post.view'))->toBeTrue()
+            ->and(Gate::allows('any.permission.whatsoever'))->toBeFalse()
+            ->and(Gate::allows('admin.delete.users'))->toBeFalse();
+    });
+
+    it('lets a Laravel policy decide a foreign ability for an AzGuard wildcard user', function (): void {
+        $user = User::factory()->create();
+
+        $role = createRoleWithClass(['name' => 'superadmin',
+            'level' => 1000,
+        ], SuperAdminRole::class);
+
+        $user->roles()->attach($role);
+        $user->load('roles');
+        $this->actingAs($user);
+
+        Gate::define('posts.update', fn ($user): bool => true);
+        Gate::define('posts.delete', fn ($user): bool => false);
+
+        expect(Gate::allows('posts.update'))->toBeTrue()
+            ->and(Gate::allows('posts.delete'))->toBeFalse()
+            ->and(Gate::allows('test.post.view'))->toBeTrue();
     });
 
     it('panel prefix is respected — cross-panel permission is denied', function (): void {

@@ -68,7 +68,7 @@ it('creates the scopes unique index when the morph type is uuid', function (): v
             MorphColumns::add($table, 'scope_entity', nullable: true);
             $table->string('scope_class')->nullable();
             $table->unsignedBigInteger('role_id')->nullable();
-            $table->string('panel_id')->nullable();
+            $table->string('panel_id', 128)->nullable();
             $table->timestamps();
         });
 

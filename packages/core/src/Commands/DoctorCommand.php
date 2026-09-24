@@ -33,11 +33,10 @@ final class DoctorCommand extends Command
         $result = $doctor->diagnose(panelFilter: is_string($panel) ? $panel : null);
 
         if ($this->wantsJson()) {
-            $this->renderJsonPayload(
-                errors: $result['errors'],
-                warnings: $result['warnings'],
-                abilities: $result['abilities'],
-            );
+            $this->line((string) json_encode(
+                value: $result,
+                flags: JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE,
+            ));
 
             return $result['errors'] !== [] ? self::FAILURE : self::SUCCESS;
         }
@@ -48,6 +47,16 @@ final class DoctorCommand extends Command
                 rows: array_map(
                     callback: static fn (array $row): array => [$row['panel'], $row['ability'], $row['handler']],
                     array: $result['abilities'],
+                ),
+            );
+        }
+
+        if ($result['models'] !== []) {
+            $this->table(
+                headers: ['Config', 'Class', 'Table', 'Connection'],
+                rows: array_map(
+                    callback: static fn (array $model): array => [$model['key'], $model['class'], $model['table'], $model['connection']],
+                    array: $result['models'],
                 ),
             );
         }

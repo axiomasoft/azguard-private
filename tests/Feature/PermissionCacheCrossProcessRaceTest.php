@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Resolver\SubjectIdentity;
+use Illuminate\Support\Facades\DB;
 
 const P4_REDIS_CONNECTION = 'p4_race';
 const P4_REDIS_STORE = 'p4_race';
@@ -145,6 +146,11 @@ it('serializes concurrent epoch bumps across real Redis processes', function ():
             ->toBe($expectedEpoch)
             ->and((new PermissionCache)->keyFor($subject, $panelId))
             ->toStartWith('azg:v2:perm:');
+
+        // D13 skips durable epoch bumps inside a DB transaction (RefreshDatabase).
+        while (DB::transactionLevel() > 0) {
+            DB::commit();
+        }
 
         // One more real bump proves the completed sequence did not roll the value back.
         (new PermissionCache)->forgetForUser($subject, $panelId);

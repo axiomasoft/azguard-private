@@ -42,13 +42,14 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
         }
 
         $subjects = [];
+        $abilities = $this->azGuardPlugin($panel)?->getAbilities() ?? $this->abilities;
 
         foreach ($panel->getResources() as $resourceClass) {
             if ($this->excluded('resources', $resourceClass)) {
                 continue;
             }
 
-            $subject = $this->resourceSubject($resourceClass);
+            $subject = $this->resourceSubject($resourceClass, $abilities);
 
             if ($subject instanceof PermissionSubject) {
                 $subjects[] = $subject;
@@ -76,7 +77,8 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
         return $subjects;
     }
 
-    private function resourceSubject(string $resourceClass): ?PermissionSubject
+    /** @param list<string> $abilities */
+    private function resourceSubject(string $resourceClass, array $abilities): ?PermissionSubject
     {
         try {
             /** @var class-string $model */
@@ -90,7 +92,7 @@ final readonly class FilamentDiscovery implements PermissionDiscovery
         return new PermissionSubject(
             name: $name,
             label: Str::headline(Str::pluralStudly($name)),
-            abilities: $this->abilities,
+            abilities: $abilities,
             model: $model,
         );
     }

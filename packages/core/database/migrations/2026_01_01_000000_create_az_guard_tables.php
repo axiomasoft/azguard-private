@@ -29,4 +29,18 @@ return new class extends Migration
             $table->timestamps();
         });
     }
+
+    /**
+     * Drop this migration's tables in FK-safe order: scopes, role assignments, roles.
+     * Later migrations that reference roles must already have been rolled back.
+     * This does not make 000004 reversible while a null scope_class row exists.
+     */
+    public function down(): void
+    {
+        $t = config('az-guard.table_names');
+
+        Schema::dropIfExists($t['model_has_scopes']);
+        Schema::dropIfExists($t['model_has_roles']);
+        Schema::dropIfExists($t['roles']);
+    }
 };

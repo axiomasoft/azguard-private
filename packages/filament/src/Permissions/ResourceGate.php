@@ -16,8 +16,8 @@ namespace AzGuard\Filament\Permissions;
  */
 final class ResourceGate
 {
-    /** @var array<class-string, string>|null */
-    private ?array $resourcesByModel = null;
+    /** @var array<string, array<class-string, string>> */
+    private array $resourcesByPanel = [];
 
     public function __construct(
         private readonly string $panelId,
@@ -30,6 +30,17 @@ final class ResourceGate
      */
     public function check(object $user, string $ability, array $arguments): ?bool
     {
+        return $this->checkForPanel($user, $ability, $arguments, $this->panelId, $this->schema);
+    }
+
+    /** @param array<int, mixed> $arguments */
+    public function checkForPanel(
+        object $user,
+        string $ability,
+        array $arguments,
+        string $panelId,
+        PermissionSchema $schema,
+    ): ?bool {
         $slug = FilamentActions::MAP[$ability] ?? null;
 
         if ($slug === null) {
@@ -44,7 +55,7 @@ final class ResourceGate
             default => null,
         };
 
-        $resource = $modelClass === null ? null : ($this->map()[$modelClass] ?? null);
+        $resource = $modelClass === null ? null : ($this->map($panelId)[$modelClass] ?? null);
 
         if ($resource === null || ! method_exists($user, 'hasPermission')) {
             return null;
@@ -55,28 +66,28 @@ final class ResourceGate
         // policy/before callback would otherwise grant. Absence of a grant here
         // defers (null), it does not assert a denial.
         return $user->hasPermission(
-            $this->schema->key($this->panelId, $resource, $slug),
-            $this->panelId,
+            $schema->key($panelId, $resource, $slug),
+            $panelId,
         ) ? true : null;
     }
 
     /**
      * @return array<class-string, string>
      */
-    private function map(): array
+    private function map(string $panelId): array
     {
-        if ($this->resourcesByModel !== null) {
-            return $this->resourcesByModel;
+        if (isset($this->resourcesByPanel[$panelId])) {
+            return $this->resourcesByPanel[$panelId];
         }
 
         $map = [];
 
-        foreach ($this->discovery->subjects($this->panelId) as $subject) {
+        foreach ($this->discovery->subjects($panelId) as $subject) {
             if ($subject->model !== null) {
                 $map[$subject->model] = $subject->name;
             }
         }
 
-        return $this->resourcesByModel = $map;
+        return $this->resourcesByPanel[$panelId] = $map;
     }
 }

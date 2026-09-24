@@ -25,26 +25,34 @@ class EditorRole extends BaseRole
 }
 ```
 
+`make:guard-domain` добавляет enum нового домена в сгенерированный provider.
+Роли могут возвращать его cases из `permissions()`; в custom provider enum
+нужно добавить в `permissionEnums([...])` вручную.
+
 ## Назначение / снятие
 
 ```php
-// Назначить одну роль (по имени: класс EditorRole → 'editor')
-$user->assignRole('editor');
+// Предпочтительно — по классу (точный class_name)
+$user->assignRole(EditorRole::class);
+
+// По persisted name: `{panelId}:{getName()}`
+$user->assignRole('app:editor');
 
 // Назначить несколько (variadic)
-$user->assignRole('editor', 'moderator');
+$user->assignRole(EditorRole::class, ModeratorRole::class);
 
 // Снять
-$user->removeRole('editor');
+$user->removeRole(EditorRole::class);
 
 // Синхронизация: только эти роли (остальные снимаются)
-$user->syncRoles(['editor']);
+$user->syncRoles([EditorRole::class]);
 ```
 
 ## Проверка
 
 ```php
-$user->hasRole('editor');        // true / false
+$user->hasRole(EditorRole::class); // true / false
+$user->hasRole('app:editor');
 
 $user->getRoleNames();           // Collection<string> — имена всех ролей
 $user->roles;                    // Collection моделей Role (отношение)
@@ -74,7 +82,11 @@ php artisan guard:sync-roles
 ```
 
 ::: tip
-`sync-roles` идемпотентна. Запускайте в миграциях или CI при деплое.
+`sync-roles` идемпотентна. Панельные code roles пишутся как `{panelId}:{getName()}`;
+встроенный `SuperAdminRole` остаётся `super-admin`. Повторный запуск не меняет
+совпавшие строки. `--dry-run` показывает те же решения. Старые неквалифицированные
+строки (`editor`) больше не резолвят code role — мигрируйте на класс или
+`app:editor`.
 :::
 
 → [Лучшие практики: роли vs разрешения](/ru/best-practices/best-practices)

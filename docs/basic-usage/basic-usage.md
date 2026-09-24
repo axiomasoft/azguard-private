@@ -73,18 +73,18 @@ See [Roles](/basic-usage/roles) for dynamic (DB-backed) roles and level-based hi
 ```php
 // Assign one role — by class (preferred: unambiguous and refactor-safe)
 $user->assignRole(EditorRole::class);
-$user->assignRole('editor');                     // by name also works
+$user->assignRole('app:editor');                     // by name also works
 
 // Assign several at once (variadic)
 $user->assignRole(EditorRole::class, ViewerRole::class);
 
 // Remove one role
 $user->removeRole(EditorRole::class);
-$user->removeRole('editor');                     // by name also works
+$user->removeRole('app:editor');                     // by name also works
 
 // Sync — replaces ALL current roles with the given list
 $user->syncRoles([EditorRole::class, ViewerRole::class]);
-$user->syncRoles(['editor', 'viewer']);          // by name also works
+$user->syncRoles(['app:editor', 'app:viewer']);          // by name also works
 
 // Remove all roles
 $user->syncRoles([]);
@@ -94,7 +94,7 @@ $user->syncRoles([]);
 
 ```php
 $user->hasRole(EditorRole::class);                 // bool — by class (preferred)
-$user->hasRole('editor');                          // by name also works
+$user->hasRole('app:editor');                          // by name also works
 $user->getRoleNames();                             // Collection<string>
 $user->roles();                                    // the roles() relation
 ```
@@ -154,19 +154,19 @@ $user->hasGrant(DocumentsPermission::View, 'app');  // bool
 
 ```php
 // Users that have a specific role
-User::whereHas('roles', fn ($q) => $q->where('name', 'editor'))->get();
+User::whereHas('roles', fn ($q) => $q->where('name', 'app:editor'))->get();
 
 // Users that have any of these roles
-User::whereHas('roles', fn ($q) => $q->whereIn('name', ['editor', 'admin']))->get();
+User::whereHas('roles', fn ($q) => $q->whereIn('name', ['app:editor', 'app:admin']))->get();
 
 // Users that do NOT have a specific role
-User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'editor'))->get();
+User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'app:editor'))->get();
 ```
 
 These can be chained with other Eloquent calls:
 
 ```php
-User::whereHas('roles', fn ($q) => $q->where('name', 'editor'))
+User::whereHas('roles', fn ($q) => $q->where('name', 'app:editor'))
     ->where('active', true)
     ->orderBy('name')
     ->paginate();
@@ -186,7 +186,7 @@ User::with('roles')
     ->get()
     ->flatMap->roles
     ->countBy('name');
-// => ['editor' => 12, 'admin' => 3, 'viewer' => 47]
+// => ['app:editor' => 12, 'app:admin' => 3, 'app:viewer' => 47]
 ```
 
 ## Gate check in Blade

@@ -49,6 +49,11 @@ Levels are **not** used for permission inheritance — a `manager` does not auto
 
 ## Generating roles
 
+`make:guard-domain` adds the new permission enum to a generated panel provider.
+Roles can then return cases from that enum in `permissions()`; custom providers
+need the enum added to `permissionEnums([...])` manually.
+
+
 ```bash
 php artisan make:guard-role
 ```
@@ -61,18 +66,18 @@ The command is interactive: it asks which panel the role belongs to and the role
 // By class name (most explicit — preferred)
 $user->assignRole(EditorRole::class);
 
-// By string name
-$user->assignRole('editor');
+// By persisted name (`{panelId}:{getName()}` for panel-scoped code roles)
+$user->assignRole('app:editor');
 
 // Multiple roles at once (variadic — adds them)
-$user->assignRole('editor', 'admin');
+$user->assignRole(EditorRole::class, ViewerRole::class);
 
 // Replace the full list in one call
 $user->syncRoles([EditorRole::class, ViewerRole::class]);
 
 // Remove a single role
 $user->removeRole(EditorRole::class);
-$user->removeRole('editor');
+$user->removeRole('app:editor');
 
 // Remove all roles
 $user->syncRoles([]);
@@ -95,7 +100,7 @@ php artisan guard:role assign 1 editor --model=App\\Models\\Admin
 ## Checking roles
 
 ```php
-$user->hasRole('editor');                     // bool — by role name
+$user->hasRole('app:editor');                     // bool — by role name
 $user->getRoleNames();                         // Collection<string>
 $user->roles();                                // the roles() relation (Role models)
 ```
@@ -104,7 +109,7 @@ $user->roles();                                // the roles() relation (Role mod
 
 ```php
 // All role names as strings
-$user->getRoleNames();            // Collection<string> — ['editor', 'viewer']
+$user->getRoleNames();            // Collection<string> — ['app:editor', 'app:viewer']
 
 // All resolved permission keys (roles + direct grants) for a panel
 $user->permissions('app');        // Collection<int, string>
@@ -115,17 +120,17 @@ $user->permissions('app');        // Collection<int, string>
 `HasAzGuard` exposes a `roles()` relation. Query it with standard Eloquent:
 
 ```php
-// All users with the 'editor' role
-User::whereHas('roles', fn ($q) => $q->where('name', 'editor'))->get();
+// All users with the 'app:editor' role
+User::whereHas('roles', fn ($q) => $q->where('name', 'app:editor'))->get();
 
 // Users with any of these roles
-User::whereHas('roles', fn ($q) => $q->whereIn('name', ['editor', 'admin']))->get();
+User::whereHas('roles', fn ($q) => $q->whereIn('name', ['app:editor', 'app:admin']))->get();
 
 // Users WITHOUT a specific role
-User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'editor'))->get();
+User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'app:editor'))->get();
 
 // Combine with other clauses
-User::whereHas('roles', fn ($q) => $q->where('name', 'editor'))
+User::whereHas('roles', fn ($q) => $q->where('name', 'app:editor'))
     ->where('active', true)
     ->orderBy('name')
     ->paginate();
@@ -184,6 +189,12 @@ php artisan guard:sync-roles --panel=app
 php artisan guard:sync-roles --dry-run    # preview without writing
 ```
 
+Panel-scoped code roles persist as `{panelId}:{getName()}` (for example
+`app:editor`). The built-in `SuperAdminRole` keeps the reserved name
+`super-admin`. A second sync is a no-op when the class row already matches;
+a legacy unqualified code row is renamed in place. `--dry-run` prints the
+same create/rename/collision decisions without writing.
+
 This is safe to run in CI/CD pipelines.
 
 ## Listing a role's permissions
@@ -194,11 +205,11 @@ php artisan guard:role-permissions list {role} --panel=app
 
 ## Gotchas
 
-**Roles are resolved by name.** `assignRole('admin')` looks the role up by its `getName()`. Assign by class (`assignRole(AdminRole::class)`) when you want to be unambiguous.
+**Assign by class.** `assignRole(AdminRole::class)` looks the role up by exact `class_name`. A string looks up the exact persisted `name` only — it never falls back from a class to a same-named DB-only row. After sync, panel-scoped code roles use `{panelId}:{getName()}`; old unqualified strings such as `admin` no longer match.
 
 **`syncRoles([])` removes all roles.** This is intentional. Pass only the roles you want the user to have after the call.
 
-**Role names should be unique.** Two role classes with the same `getName()` resolve to the same role record. Keep names distinct.
+**Same human name, different panels.** Two `AdminRole` classes with `getName() = admin` become `sales:admin` and `support:admin` — distinct rows. A DB-only row that already holds the canonical name is not adopted.
 
 **Levels are not inherited.** A level-100 `SuperAdmin` does not automatically include all lower-level permissions. List them explicitly.
 

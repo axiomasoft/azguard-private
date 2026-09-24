@@ -124,7 +124,7 @@ class EditorRole extends BaseRole
 ```php
 // Assign by class — unambiguous and refactor-safe
 $user->assignRole(EditorRole::class);
-$user->assignRole('editor');                       // by name also works
+$user->assignRole('app:editor');                       // by name also works
 
 // ✅ Check with an enum case — scoped to the panel automatically
 $user->hasPermission(DocumentsPermission::View);   // true

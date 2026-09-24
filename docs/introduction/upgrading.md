@@ -1,5 +1,77 @@
 # Upgrading
 
+## 1.0.0
+
+### Exact identity indexes
+
+Fresh installs store `model_has_scopes.panel_id` as `VARCHAR(128)`. The scope identity index is exact: PostgreSQL 16+ uses `NULLS NOT DISTINCT`; SQLite and MySQL store an `IS NULL` marker plus the full value, so `NULL` stays distinct from `0`, `''` and the all-zero UUID. MySQL support for that index is non-MariaDB 8.0.13+ with InnoDB 16 KiB pages and `DYNAMIC` or `COMPRESSED` row format. A smaller page size, an older row format, or MariaDB stops the migration before it changes the schema.
+
+`2026_01_01_000006_harden_az_guard_identity_indexes` is the upgrade for a database that already recorded `000005`. Before any schema change it rejects a `panel_id` longer than 128 characters and an unsupported engine profile, and it leaves the old index and rows in place. Shorten those panel ids in your own data migration, then run the migration again. AzGuard does not truncate them. The same file adds a nullable unique index on `roles.class_name` (many `NULL` class names remain valid; a repeated non-null class name does not). Its `down()` restores the previous sentinel scope index.
+
+Context migration `000010` creates and drops whatever table `az-guard-context.table_names.context_roles` names at that moment. Changing the config later does not move a table that already exists.
+
+Table names in config are one identifier or `schema.table`. Quotes, comments and SQL expressions are rejected before DDL.
+
+### Migration rollback and duplicate assignments
+
+Fresh installs can roll the base schema back (`2026_01_01_000000`): `model_has_scopes`, then `model_has_roles`, then `roles`. That `down()` does not make `2026_01_01_000004` reversible while any `scope_class` is null — that rollback still fails until those rows are backfilled or removed.
+
+`2026_01_01_000005` dedupe, for a database that has not recorded that migration yet, runs in a maintenance window with no concurrent writers. Role duplicates are rebuilt from a SQL distinct stage inside one transaction. Scope duplicates keep the lowest `id` and that row's timestamps. If the replacement insert fails, the original rows remain. If a unique index fails afterwards, the deduped rows remain; run the migration again to finish the index. A database that already recorded `000005` does not apply this file edit.
+
+### Safe panel and domain scaffolding
+
+`make:guard-panel` creates a new panel tree; `make:guard-domain` adds one domain
+to an existing generated panel. Both accept `--model` (existing Eloquent model
+FQCN) and `--actor` (`Authenticatable`, defaulting to the model of the
+default auth guard’s provider).
+Calls without `--model` on `make:guard-panel` keep the legacy
+`App\Models\{Domain}` convention with an explicit warning. Add-domain requires
+`--model` or `az-guard.scaffold.domain_models.{panelId}.{domain_key}`.
+Identical reruns are byte-no-op; conflicting generated files fail unless
+`--force` (owned targets only). Custom provider/config PHP is not rewritten —
+commands print manual registration steps. `guard:doctor` reports invalid generated policy model/actor types and permission
+enums not registered on the generated provider.
+
+### Panel-qualified code-role names
+
+`guard:sync-roles` persists panel-scoped code roles as `{panelId}:{getName()}`
+(for example `app:editor`). Class and instance lookup uses exact `class_name`
+and no longer falls back to `getName()`. String lookup is the exact persisted
+`name`. Existing code rows with the same class are renamed in place; a DB-only
+row that already holds the canonical name is not adopted. The built-in
+`SuperAdminRole` keeps reserved `super-admin`. Consumers still using unqualified
+strings such as `assignRole('editor')` must switch to the class or the
+qualified name. `guard:doctor` reports a non-null missing or non-contract
+`class_name` as an error.
+
+### Panel ID width (128)
+
+Every final resolved panel ID is at most 128 characters, including when
+`strict_panels` is off. A 129-character id throws `PanelIdTooLongException`
+before any official persistence. Repair stored panel ids that exceed this
+width before upgrade.
+
+### Strict panels: empty registry is not a bypass
+
+With `strict_panels=true`, unknown explicit, configured, current, or `app`
+fallback ids throw `PanelNotFoundException` even when no panels are registered
+yet. Configured `default_panel` is validated after providers register. Legacy
+(`false`) resolution stays lenient aside from the 128-character width.
+
+### Gate wildcard no longer covers foreign abilities
+
+`Gate::before` returns `null` for an ability that is not an exact catalog key
+or a registered dynamic definition, even when the user has AzGuard `*`.
+Ordinary Laravel policies continue to run. Catalog-owned abilities still honour
+wildcard.
+
+### Opt-in permission attributes
+
+`az-guard.require_permission_attributes` (default `false`) makes `azguard.check`
+throw `MissingPermissionAttributeException` when the action has neither
+`#[CheckPermission]` nor `#[SkipGuardCheck]`. `guard:doctor` reports the same
+routes as a warning (legacy) or an error (opt-in). Closures are skipped.
+
 ## 0.2 → 0.3
 
 This release lands the full remediation + fluent/DX redesign wave (see the package's
@@ -206,8 +278,10 @@ Two new migrations ship this cycle (publish/run them — no already-applied migr
 in place):
 
 - `2026_01_01_000005_add_unique_constraints_to_model_has_roles_and_scopes.php` (core) — adds
-  PK/unique constraints to `model_has_roles`/`model_has_scopes`. If you have manually-inserted
-  duplicate rows, the migration fails — dedupe before upgrading.
+  unique constraints to `model_has_roles`/`model_has_scopes`. If the migration is not yet
+  recorded, it removes exact duplicate assignments during a maintenance window with no
+  concurrent writes, then adds the indexes. An interrupted rewrite keeps the original rows.
+  If this migration is already recorded, editing the file does not upgrade that database.
 - `2026_01_01_000011_add_expires_at_to_az_guard_context_roles_table.php` (context) — nullable
   `expires_at` column backing the new TTL-parity on context grants (see "Direct-grant fluent
   grammar unification" above).

@@ -23,7 +23,7 @@
 Проверьте:
 1. Трейт `HasAzGuard` добавлен в модель User
 2. Роль синхронизирована с БД: `php artisan guard:sync-roles`
-3. Пользователю назначена роль: `$user->assignRole('editor')`
+3. Пользователю назначена роль: `$user->assignRole('app:editor')`
 4. Кэш сброшен: `php artisan guard:cache-reset`
 
 ### Конфликт с существующей реализацией Gate

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\AzGuardManagerInterface;
+use AzGuard\Exceptions\PanelNotFoundException;
 use AzGuard\Panels\Panel;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
 use AzGuard\Tests\Stubs\User;
@@ -52,4 +53,21 @@ it('honours az-guard.default_panel when configured and registered', function () 
     $this->manager->setCurrentPanel(null);
 
     expect(Gate::allows('test.post.view'))->toBeTrue();
+});
+
+it('rejects an unregistered configured default in strict mode during Gate evaluation', function (): void {
+    config()->set('az-guard.strict_panels', true);
+    config()->set('az-guard.default_panel', 'ghost');
+    $this->manager->setCurrentPanel(null);
+
+    expect(fn (): bool => Gate::allows('test.post.view'))
+        ->toThrow(PanelNotFoundException::class);
+});
+
+it('rejects an unregistered current panel in strict mode during Gate evaluation', function (): void {
+    config()->set('az-guard.strict_panels', true);
+    $this->manager->setCurrentPanel(Panel::make()->id('ghost'));
+
+    expect(fn (): bool => Gate::allows('test.post.view'))
+        ->toThrow(PanelNotFoundException::class);
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Configuration\Config;
+use AzGuard\Exceptions\PanelIdTooLongException;
 use AzGuard\Exceptions\PanelNotFoundException;
 use AzGuard\Exceptions\PanelNotSetException;
 use AzGuard\Facades\AzGuard;
@@ -30,28 +31,34 @@ final class PanelResolver
      * built-in 'app' fallback. The single place the 'app' literal lives — set
      * az-guard.default_panel to change it project-wide. Does not consult the
      * current request panel (that is the Authorizer's job).
+     *
+     * The final id is always width-checked (128). With `strict_panels`, it must
+     * also be registered — an empty registry is not a bypass.
      */
     public static function resolveDefault(?string $panelId): string
     {
-        if ($panelId !== null) {
-            self::guardUnregistered($panelId);
+        $resolved = $panelId ?? Config::defaultPanel() ?? 'app';
 
-            return $panelId;
-        }
+        self::assertFinal($resolved);
 
-        return Config::defaultPanel() ?? 'app';
+        return $resolved;
     }
 
     /**
-     * Handle an explicit panel id that is not registered. Default (lenient):
-     * debug-only, fail-soft log — resolution is best-effort by design. Opt-in
-     * strict mode (config `az-guard.strict_panels`): throw PanelNotFoundException.
-     * Both skip when no panels are registered yet (headless/test bootstraps).
+     * Handle a final resolved panel id. Width is always enforced (D14).
+     * Default (lenient): debug-only, fail-soft log — resolution is best-effort
+     * by design. Opt-in strict mode (config `az-guard.strict_panels`): throw
+     * PanelNotFoundException even when no panels are registered yet.
      *
+     * @throws PanelIdTooLongException
      * @throws PanelNotFoundException
      */
-    private static function guardUnregistered(string $panelId): void
+    private static function assertFinal(string $panelId): void
     {
+        if (mb_strlen($panelId, 'UTF-8') > PanelIdTooLongException::MAX_LENGTH) {
+            throw new PanelIdTooLongException($panelId);
+        }
+
         $strict = Config::strictPanelsEnabled();
 
         // Fast path: nothing to inspect when lenient and not debugging.
@@ -61,12 +68,16 @@ final class PanelResolver
 
         $panels = AzGuard::getPanels();
 
-        if ($panels === [] || isset($panels[$panelId])) {
+        if (isset($panels[$panelId])) {
             return;
         }
 
         if ($strict) {
             throw new PanelNotFoundException($panelId);
+        }
+
+        if ($panels === []) {
+            return;
         }
 
         Log::debug("AzGuard: permission check against unregistered panel [{$panelId}].", [
@@ -90,7 +101,15 @@ final class PanelResolver
      */
     public static function resolve(?string $panelId): ?string
     {
-        return $panelId ?? AzGuard::currentPanel()?->getId();
+        $resolved = $panelId ?? AzGuard::currentPanel()?->getId();
+
+        if ($resolved === null) {
+            return null;
+        }
+
+        self::assertFinal($resolved);
+
+        return $resolved;
     }
 
     /**
@@ -100,8 +119,12 @@ final class PanelResolver
      */
     public static function resolveOrFail(?string $panelId): string
     {
-        return $panelId
+        $resolved = $panelId
             ?? AzGuard::currentPanel()?->getId()
             ?? throw new PanelNotSetException;
+
+        self::assertFinal($resolved);
+
+        return $resolved;
     }
 }

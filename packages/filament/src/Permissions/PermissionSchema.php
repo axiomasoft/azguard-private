@@ -34,6 +34,13 @@ final readonly class PermissionSchema
         );
     }
 
+    public function withOptions(string $keyTemplate, string $case): self
+    {
+        return $this->keyTemplate === $keyTemplate && $this->case === $case
+            ? $this
+            : new self($keyTemplate, $case);
+    }
+
     public function key(string $panelId, string $subject, string $ability): string
     {
         return strtr($this->keyTemplate, [

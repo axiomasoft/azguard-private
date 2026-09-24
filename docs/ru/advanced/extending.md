@@ -102,6 +102,20 @@ public function boot(): void
 }
 ```
 
+## Подмена Eloquent-моделей
+
+Ключи `models.role`, `models.scope`, `models.direct_grant` и `models.role_permission`
+принимают только **существующий подкласс** соответствующей базовой модели AzGuard.
+Официальные пути (relations, grant builder, database role source, Filament resources,
+`guard:doctor`) резолвят класс через `Config`; неверное значение даёт понятную ошибку,
+а не тихий откат к дефолту.
+
+**Граница поддержки:** все четыре модели, pivot-таблицы и revision permission-state
+должны использовать **одно** effective database connection. Разные connection для
+части моделей не поддерживаются и отклоняются до записи.
+
+После смены ключей запустите `php artisan guard:doctor`: таблица моделей показывает класс, фактическую таблицу и connection каждой корректной привязки; неверные классы и разные соединения выводятся как ошибки. `guard:doctor --json` сохраняет поля `errors`, `warnings`, `abilities` и добавляет массив `models` с полями `key`, `class`, `table`, `connection`.
+
 ## Замена базовых сервисов
 
 AzGuard связывает пять швов «единственная активная стратегия» через

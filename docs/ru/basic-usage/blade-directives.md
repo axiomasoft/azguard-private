@@ -40,11 +40,11 @@ AzGuard работает со всеми стандартными Blade-дире
 `EditorRole` → `editor`, `AdminRole` → `admin`.
 
 ```blade
-@azrole('editor')
+@azrole('app:editor')
     <nav>Меню редактора</nav>
 @endazrole
 
-@azrole('admin')
+@azrole('app:admin')
     <a href="/admin">Панель администратора</a>
 @endazrole
 ```

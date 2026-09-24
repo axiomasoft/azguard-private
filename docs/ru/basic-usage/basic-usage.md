@@ -15,7 +15,7 @@ $user->hasPermission('app.posts.view');               // строка — пол
 
 // Проверка роли — по классу (предпочтительно), по имени тоже работает
 $user->hasRole(EditorRole::class);                    // true / false
-$user->hasRole('editor');                             // по имени тоже работает
+$user->hasRole('app:editor');                             // по имени тоже работает
 
 // Нативный Laravel Gate — нужен полный строковый ключ с префиксом панели.
 // НЕ передавайте сюда «голый» enum: Laravel приведёт его к ->value без
@@ -28,7 +28,7 @@ $this->authorize('update', $post);                    // 403 если запре
 // Blade
 @azcan(PostsPermission::Edit) ... @endazcan           // директива AzGuard — понимает enum
 @can('app.posts.edit') ... @endcan                    // нативный @can — полный ключ с префиксом панели
-@azrole('editor') ... @endazrole
+@azrole('app:editor') ... @endazrole
 ```
 
 ## Назначение / снятие роли
@@ -36,12 +36,12 @@ $this->authorize('update', $post);                    // 403 если запре
 ```php
 // Назначить — по классу (предпочтительно: однозначно и безопасно при рефакторинге)
 $user->assignRole(EditorRole::class);
-$user->assignRole('editor');                          // по имени тоже работает
+$user->assignRole('app:editor');                          // по имени тоже работает
 $user->assignRole(EditorRole::class, ModeratorRole::class);
 
 // Снять
 $user->removeRole(EditorRole::class);
-$user->removeRole('editor');                          // по имени тоже работает
+$user->removeRole('app:editor');                          // по имени тоже работает
 
 // Все роли пользователя
 $user->roles;   // Collection (отношение)
@@ -86,7 +86,7 @@ $user->revoke(ReportsPermission::Export, 'app');
 
 ```php
 // Все пользователи с ролью editor
-User::whereHas('roles', fn ($q) => $q->where('name', 'editor'))->get();
+User::whereHas('roles', fn ($q) => $q->where('name', 'app:editor'))->get();
 
 // Все пользователи без какой-либо роли
 User::whereDoesntHave('roles')->get();

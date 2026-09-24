@@ -6,6 +6,7 @@ namespace AzGuard\Filament\Resources\RoleResource\RelationManagers;
 
 use AzGuard\AzGuardManager;
 use AzGuard\Models\Role;
+use AzGuard\Models\RolePermission;
 use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Roles\RolePermissionSelection;
 use AzGuard\Roles\RolePermissionSyncConflictException;
@@ -23,7 +24,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Exceptions\Halt;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Override;
 
 /**
@@ -81,10 +85,39 @@ final class RolePermissionsRelationManager extends RelationManager
                     ->action(fn (array $data) => $this->syncPermissions($data)),
             ])
             ->actions([
-                DeleteAction::make()->label('Revoke'),
+                DeleteAction::make()->label('Revoke')->using(function (RolePermission $record): bool {
+                    $role = $this->ownerRole();
+                    $managed = [[(string) $record->panel_id, (string) $record->permission_key]];
+                    $synchronizer = app(RolePermissionSynchronizer::class);
+
+                    return $synchronizer->sync(
+                        role: $role,
+                        selection: RolePermissionSelection::managedSubset(
+                            managed: $managed,
+                            desired: [],
+                            expectedFingerprint: $synchronizer->fingerprint($role, $managed),
+                        ),
+                    )->changed();
+                }),
             ])
             ->bulkActions([
-                DeleteBulkAction::make()->label('Revoke selected'),
+                DeleteBulkAction::make()->label('Revoke selected')->using(function (EloquentCollection|Collection|LazyCollection $records): void {
+                    $role = $this->ownerRole();
+                    $managed = $records->map(static fn (RolePermission $record): array => [
+                        (string) $record->panel_id,
+                        (string) $record->permission_key,
+                    ])->all();
+                    $synchronizer = app(RolePermissionSynchronizer::class);
+
+                    $synchronizer->sync(
+                        role: $role,
+                        selection: RolePermissionSelection::managedSubset(
+                            managed: $managed,
+                            desired: [],
+                            expectedFingerprint: $synchronizer->fingerprint($role, $managed),
+                        ),
+                    );
+                }),
             ]);
     }
 
@@ -217,11 +250,6 @@ final class RolePermissionsRelationManager extends RelationManager
             throw new Halt;
         }
 
-        $role->users()->cursor()->each(static function (Model $user): void {
-            if (method_exists($user, 'flushPermissions')) {
-                $user->flushPermissions();
-            }
-        });
     }
 
     /**

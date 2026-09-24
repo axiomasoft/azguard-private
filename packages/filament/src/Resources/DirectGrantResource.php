@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Resources;
 
 use AzGuard\AzGuardManager;
+use AzGuard\Configuration\Config;
 use AzGuard\Filament\Resources\DirectGrantResource\Pages\CreateDirectGrant;
 use AzGuard\Filament\Resources\DirectGrantResource\Pages\ListDirectGrants;
 use AzGuard\Models\DirectGrant;
 use AzGuard\Registry\Contracts\PermissionCatalog;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,7 +23,12 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Override;
+use RuntimeException;
 use UnitEnum;
 
 /**
@@ -35,8 +42,6 @@ use UnitEnum;
  */
 final class DirectGrantResource extends Resource
 {
-    protected static ?string $model = DirectGrant::class;
-
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-key';
 
     protected static string|UnitEnum|null $navigationGroup = 'AzGuard';
@@ -178,7 +183,7 @@ final class DirectGrantResource extends Resource
             ->filters([
                 SelectFilter::make('panel_id')
                     ->label('Panel')
-                    ->options(fn () => DirectGrant::query()->distinct()->pluck('panel_id', 'panel_id')),
+                    ->options(fn () => Config::directGrantModel()::query()->distinct()->pluck('panel_id', 'panel_id')),
 
                 Filter::make('active')
                     ->label('Active only')
@@ -187,10 +192,32 @@ final class DirectGrantResource extends Resource
                     )),
             ])
             ->actions([
-                DeleteAction::make()->label('Revoke'),
+                DeleteAction::make()->label('Revoke')->using(static function (DirectGrant $record): bool {
+                    return app(PermissionStateRevision::class)->mutate(static function () use ($record): array {
+                        $deleted = $record->delete();
+
+                        return [$deleted === true, $deleted === true];
+                    });
+                }),
             ])
             ->bulkActions([
-                DeleteBulkAction::make()->label('Revoke selected'),
+                DeleteBulkAction::make()->label('Revoke selected')->using(static function (EloquentCollection|Collection|LazyCollection $records): void {
+                    app(PermissionStateRevision::class)->mutate(static function () use ($records): array {
+                        $changed = false;
+
+                        foreach ($records as $record) {
+                            assert($record instanceof Model);
+
+                            if ($record->delete() !== true) {
+                                throw new RuntimeException('AzGuard could not revoke the selected grant.');
+                            }
+
+                            $changed = true;
+                        }
+
+                        return [null, $changed];
+                    });
+                }),
             ])
             ->defaultSort('created_at', 'desc');
     }
@@ -208,6 +235,12 @@ final class DirectGrantResource extends Resource
             replace: ['!!', '!%', '!_'],
             subject: $value,
         );
+    }
+
+    #[Override]
+    public static function getModel(): string
+    {
+        return Config::directGrantModel();
     }
 
     // ─── Pages ────────────────────────────────────────────────────────────────

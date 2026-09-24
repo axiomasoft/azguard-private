@@ -114,6 +114,13 @@ class DocumentController extends Controller
 параметра. Middleware резолвит их из запроса и передаёт в
 `Gate::allows($ability, [$model])`.
 
+Отсутствие `#[CheckPermission]` по-прежнему допустимо в runtime
+(`require_permission_attributes` по умолчанию `false`). Включите ключ, чтобы
+`azguard.check` бросал `MissingPermissionAttributeException`, если у action нет
+ни `#[CheckPermission]`, ни `#[SkipGuardCheck]`. `#[SkipGuardCheck]` остаётся
+явным bypass в обоих режимах. `guard:doctor` пишет те же маршруты как warning
+(по умолчанию) или error (opt-in); closures и неразрешимые action пропускаются.
+
 ## Ручные проверки Gate
 
 Для кода вне контроллеров (jobs, listeners, services) всегда передавайте

@@ -58,6 +58,14 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
 
+      - name: Require changelog section in tagged commit
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          bash bin/release-preflight.sh "${version}" "${GITHUB_SHA}"
+
+      - name: Verify release preflight fixtures
+        run: bash bin/test-release-preflight.sh
+
   release:
     name: Create GitHub Release
     needs: validate
@@ -89,3 +97,9 @@ jobs:
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  split:
+    name: Split validated packages
+    needs: validate
+    uses: ./.github/workflows/split.yml
+    secrets: inherit

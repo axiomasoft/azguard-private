@@ -5,9 +5,9 @@
 # root composer.json "php" constraint. Drift-proof: bump the composer floor and
 # the forbidden set follows automatically — no need to touch this script.
 #
-# A hit is a line that mentions "php" AND carries a version-like token at or
-# below the floor (same major, lower minor; or any lower major). Scoping to
-# php-bearing lines avoids matching unrelated versions (MySQL 8.0, Filament 5.0).
+# A hit is a PHP version expression below the floor (same major, lower minor;
+# or any lower major). Keep PHP adjacent to the version so filenames such as
+# Resource.php do not turn an unrelated Filament version into a false positive.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -36,11 +36,11 @@ if [ ${#patterns[@]} -eq 0 ]; then
     exit 0
 fi
 
-regex="\\b($(IFS='|'; echo "${patterns[*]}"))\\b"
+regex="(^|[^[:alnum:]_])php([[:space:]]+version)?[[:space:]]*([><=^~]+[[:space:]]*)?($(IFS='|'; echo "${patterns[*]}"))([^[:digit:]]|$)"
 
 echo "[docs-php] Floor from composer.json: PHP ${floor}. Scanning docs for lower versions..."
 
-hits=$(grep -rnEi --include='*.md' --exclude-dir='.vitepress' 'php' docs | grep -Ei "${regex}" || true)
+hits=$(grep -rnEi --include='*.md' --exclude-dir='.vitepress' "${regex}" docs || true)
 
 if [ -n "$hits" ]; then
     echo "[docs-php] FAIL — docs advertise a PHP version below the composer floor (PHP ${floor}):" >&2

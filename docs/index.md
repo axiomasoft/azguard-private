@@ -104,7 +104,7 @@ $this->authorize('update', $document);               // ✅ via Policy
 @endcan
 
 // Roles relation
-$user->roles()->where('name', 'editor')->exists();
+$user->roles()->where('name', 'app:editor')->exists();
 ```
 
 :::

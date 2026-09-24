@@ -6,7 +6,10 @@ namespace AzGuard\Commands;
 
 use AzGuard\Concerns\HasRoles;
 use AzGuard\Configuration\Config;
+use AzGuard\Contracts\HasRoles as HasRolesContract;
+use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Roles\SuperAdminRole;
+use AzGuard\Support\RoleIdentity;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,7 +24,7 @@ final class SuperAdminCommand extends Command
 
     protected $description = 'Grant a user the super-admin role (wildcard access)';
 
-    public function handle(): int
+    public function handle(PermissionStateRevision $revision): int
     {
         $userId = $this->option('user') ?: $this->ask('User id to promote to super-admin');
 
@@ -47,33 +50,46 @@ final class SuperAdminCommand extends Command
             return self::FAILURE;
         }
 
-        if (! in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
+        if (! $user instanceof HasRolesContract
+            && ! in_array(HasRoles::class, class_uses_recursive($user), strict: true)) {
             $this->components->error('The user model must use the HasAzGuard (or HasRoles) trait.');
 
             return self::FAILURE;
         }
 
         $superAdmin = new SuperAdminRole;
-
         $roleModel = Config::roleModel();
+        $role = $roleModel::query()->where('class_name', SuperAdminRole::class)->first();
 
-        // class_name is guarded (C-11) — not mass-assignable via firstOrCreate();
-        // set it via direct property assignment when the role is newly created
-        // (matching the original semantics: only applied on creation, not on an
-        // already-existing role).
-        $role = $roleModel::query()->firstOrCreate(
-            ['name' => $superAdmin->getName()],
-            ['level' => $superAdmin->getLevel()],
-        );
+        if ($role === null) {
+            $collision = $roleModel::findByName(RoleIdentity::SUPER_ADMIN_NAME);
 
-        if ($role->wasRecentlyCreated) {
-            $role->class_name = SuperAdminRole::class;
-            $role->save();
+            if ($collision !== null) {
+                $holder = $collision->class_name ?? 'null';
+                $this->components->error(
+                    'Reserved name ['.RoleIdentity::SUPER_ADMIN_NAME."] is held by row id={$collision->getKey()} class_name={$holder}. Will not adopt a DB-only or foreign row.",
+                );
+
+                return self::FAILURE;
+            }
+
+            $role = $revision->mutate(function () use ($roleModel, $superAdmin): array {
+                $created = $roleModel::query()->create([
+                    'name' => RoleIdentity::SUPER_ADMIN_NAME,
+                    'level' => $superAdmin->getLevel(),
+                ]);
+                $created->class_name = SuperAdminRole::class;
+                $created->save();
+
+                return [$created, true];
+            });
         }
 
-        // Attach via the role's (typed) inverse relation so we don't depend on
-        // the user model's trait methods being statically known here.
-        $role->users()->syncWithoutDetaching([$user->getKey()]);
+        if ($user instanceof HasRolesContract) {
+            $user->assignRole($role);
+        } else {
+            $role->users()->syncWithoutDetaching([$user->getKey()]);
+        }
 
         $this->components->info("User [{$userId}] is now a super-admin (role '{$role->name}').");
 

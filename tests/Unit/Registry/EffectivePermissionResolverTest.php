@@ -411,7 +411,7 @@ describe('EffectivePermissionResolver', function () {
         expect($order)->toBe([100, 90, 80]);
     });
 
-    it('skips a throwing source by default and merges the rest', function () {
+    it('rejects a partial permission set when a source throws even with the legacy option disabled', function () {
         $throwing = new class implements GrantSource
         {
             public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
@@ -433,7 +433,7 @@ describe('EffectivePermissionResolver', function () {
             cache: new PermissionCache,
         );
 
-        expect($resolver->forUser(makeUser(1), 'app')->grants('app.posts.view'))->toBeTrue();
+        expect(fn () => $resolver->forUser(makeUser(1), 'app'))->toThrow(RuntimeException::class, 'boom');
     });
 
     it('propagates a source exception when fail_on_source_exception is true', function () {
@@ -654,7 +654,7 @@ describe('EffectivePermissionResolver: dynamic catalog definitions (F28)', funct
     });
 
     it('keeps the nearest source deadline through catalog filter', function () {
-        $deadline = CarbonImmutable::parse('2026-09-23T12:00:00.000000Z');
+        $deadline = CarbonImmutable::now('UTC')->addHour();
         $source = makeGrantSource(
             PermissionSet::fromKeys(['app.posts.view', 'unknown.drop'])->withValidUntil($deadline),
         );

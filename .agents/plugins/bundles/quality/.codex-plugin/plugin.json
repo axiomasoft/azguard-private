@@ -1,0 +1,18 @@
+{
+  "name": "quality",
+  "version": "0.4.1",
+  "description": "Code review, refactoring plans, tech debt audits, test strategy",
+  "skills": [
+    "./artifact-review",
+    "./code-review",
+    "./code-simplifier",
+    "./diagnosing-bugs",
+    "./mutation-testing",
+    "./playwright-e2e",
+    "./refactoring-plan",
+    "./tdd-discipline",
+    "./tech-debt-audit",
+    "./test-strategy",
+    "./testing-safety-report"
+  ]
+}

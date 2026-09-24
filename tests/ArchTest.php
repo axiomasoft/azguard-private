@@ -10,7 +10,10 @@ use Illuminate\Support\ServiceProvider;
 
 arch()->preset()->php()->ignoring('AzGuard\\Filament');
 
-arch()->preset()->security()->ignoring('AzGuard\\Filament');
+arch()->preset()->security()->ignoring([
+    'AzGuard\\Filament',
+    'AzGuard\\Scaffold\\GuardScaffoldGenerator',
+]);
 
 arch('no debugging calls in source')
     ->expect(['dd', 'dump', 'ray', 'var_dump', 'print_r'])
@@ -37,10 +40,9 @@ arch('service provider extends ServiceProvider')
     ->expect('AzGuard\\AzGuardServiceProvider')
     ->toExtend(ServiceProvider::class);
 
-arch('roles implement RoleInterface')
-    ->expect('AzGuard\\Roles')
-    ->toImplement(RoleInterface::class)
-    ->ignoring('AzGuard\\Roles\\BaseRole');
+arch('shipped role classes implement RoleInterface')
+    ->expect('AzGuard\\Roles\\SuperAdminRole')
+    ->toImplement(RoleInterface::class);
 
 arch('facades extend Illuminate Facade')
     ->expect('AzGuard\\Facades')

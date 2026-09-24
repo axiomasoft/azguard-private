@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Models;
 
+use AzGuard\Concerns\RevisionedPermissionModelWrites;
 use AzGuard\Configuration\Config;
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Resolver\SubjectIdentity;
@@ -28,6 +29,8 @@ use Override;
  */
 class DirectGrant extends Model
 {
+    use RevisionedPermissionModelWrites;
+
     protected $fillable = [
         'grantable_type',
         'grantable_id',

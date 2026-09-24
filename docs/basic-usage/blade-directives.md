@@ -131,7 +131,7 @@ The only legitimate use of role directives is displaying role-specific UI chrome
 AzGuard's role directive. It calls `$user->hasRole()`, so pass a single role name:
 
 ```blade
-@azrole('admin')
+@azrole('app:admin')
     <a href="/admin">Admin panel</a>
 @endazrole
 ```
@@ -139,7 +139,7 @@ AzGuard's role directive. It calls `$user->hasRole()`, so pass a single role nam
 To check for one of several roles, combine conditions in PHP and expose a boolean, or chain checks:
 
 ```blade
-@if(auth()->user()?->hasRole('editor') || auth()->user()?->hasRole('admin'))
+@if(auth()->user()?->hasRole('app:editor') || auth()->user()?->hasRole('app:admin'))
     <div class="editor-toolbar">...</div>
 @else
     <div class="read-only">...</div>
@@ -175,7 +175,7 @@ This keeps authorization logic out of templates and makes it easy to test.
 For non-Gate checks in controllers you can also use `@if` with the trait methods:
 
 ```blade
-@if(auth()->user()?->hasRole('admin'))
+@if(auth()->user()?->hasRole('app:admin'))
     <a href="/admin">Admin panel</a>
 @endif
 

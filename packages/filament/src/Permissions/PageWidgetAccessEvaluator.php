@@ -45,7 +45,7 @@ final readonly class PageWidgetAccessEvaluator
 
         $plugin = $this->azGuardPlugin($panel);
 
-        if (! $plugin instanceof AzGuardPlugin || ! $this->enforced()) {
+        if (! $plugin instanceof AzGuardPlugin || ! $plugin->isEnforcing() || $plugin->getSource() === 'policy') {
             return true;
         }
 
@@ -56,18 +56,10 @@ final readonly class PageWidgetAccessEvaluator
         }
 
         $panelId = $plugin->getPanelId();
-        $key = $this->schema->key($panelId, class_basename($subjectClass), $ability);
+        $schema = $this->schema->withOptions($plugin->getKeyTemplate(), $plugin->getCase());
+        $key = $schema->key($panelId, class_basename($subjectClass), $ability);
 
         return (bool) $user->hasPermission($key, $panelId);
-    }
-
-    private function enforced(): bool
-    {
-        if (! config('az-guard-filament.enforce', true)) {
-            return false;
-        }
-
-        return config('az-guard-filament.source', 'database') !== 'policy';
     }
 
     private function currentPanel(): ?Panel

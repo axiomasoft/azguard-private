@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace {{ namespace }};
 
+// azguard:generated-provider
 use {{ namespace }}\{{ domain }}\Permissions\{{ domain }}Permission;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\Panel;

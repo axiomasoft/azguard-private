@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace AzGuard\Registry\Sources;
 
 use AzGuard\Configuration\Config;
+use AzGuard\Models\RolePermission;
 use AzGuard\Permissions\PermissionKey;
 use AzGuard\Registry\Contracts\GrantPriority;
 use AzGuard\Registry\Contracts\GrantSource;
-use AzGuard\Registry\Resolver\PermissionStateRevision;
 use AzGuard\Registry\Values\PermissionSet;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Override;
@@ -19,25 +19,37 @@ use Override;
  * Covers roles without class_name (pure DB roles, not PHP classes).
  * Priority 90 (ClassRoleGrantSource = 100, DirectGrantSource = 80).
  *
- * Uses a single JOIN instead of N+1 queries for performance.
+ * Reads assigned role IDs once, then resolves scoped permission rows with a
+ * live-role existence check. The query count is fixed per authorization check.
  */
 final class DatabaseRoleGrantSource implements GrantSource
 {
     #[Override]
     public function permissionsFor(Authenticatable $user, string $panelId): PermissionSet
     {
+        Config::assertAuthorizationConnectionsAligned();
+
         $userId = $user->getAuthIdentifier();
         $userClass = $user->getMorphClass();
 
         $pivotTable = Config::modelHasRolesTable();
-        $permTable = Config::rolePermissionsTable();
+        $permissionModel = Config::rolePermissionModel();
+        /** @var RolePermission $permissionPrototype */
+        $permissionPrototype = new $permissionModel;
+        $roleIds = $permissionPrototype->getConnection()->table($pivotTable)
+            ->where('model_type', $userClass)
+            ->where('model_id', $userId)
+            ->pluck('role_id');
 
-        $keys = (new PermissionStateRevision)->connection()->table($permTable)
-            ->join($pivotTable, "{$pivotTable}.role_id", '=', "{$permTable}.role_id")
-            ->where("{$pivotTable}.model_type", $userClass)
-            ->where("{$pivotTable}.model_id", $userId)
-            ->where("{$permTable}.panel_id", $panelId)
-            ->pluck("{$permTable}.permission_key")
+        if ($roleIds->isEmpty()) {
+            return PermissionSet::empty();
+        }
+
+        $keys = $permissionModel::query()
+            ->whereIn('role_id', $roleIds)
+            ->whereHas('role')
+            ->where('panel_id', $panelId)
+            ->pluck('permission_key')
             ->all();
 
         if ($keys === []) {

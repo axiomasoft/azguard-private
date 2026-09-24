@@ -11,10 +11,13 @@ use AzGuard\Filament\Permissions\PageWidgetAccessEvaluator;
 use AzGuard\Filament\Permissions\PermissionDiscovery;
 use AzGuard\Filament\Permissions\PermissionSchema;
 use AzGuard\Filament\Permissions\ResourceGate;
+use Filament\Facades\Filament;
+use Filament\Panel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Override;
+use Throwable;
 
 final class AzGuardFilamentServiceProvider extends ServiceProvider
 {
@@ -44,6 +47,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
             panelId: (string) config('az-guard-filament.panel', 'admin'),
             schema: $app->make(PermissionSchema::class),
             discovery: $app->make(PermissionDiscovery::class),
+            pluginForPanel: fn (string $panelId): ?AzGuardPlugin => $this->linkedPlugin($panelId),
         ));
 
         // Discovered keys are always registered in the catalog so they appear
@@ -77,12 +81,20 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         // register(Panel) at Filament's panel-registration time, which is not
         // guaranteed to run before this boot() — still take effect.
         Gate::before(function ($user, string $ability, array $arguments = []): ?bool {
-            if (! config('az-guard-filament.enforce', true) || config('az-guard-filament.source', 'database') === 'policy') {
+            $plugin = $this->currentPlugin();
+
+            if (! $plugin instanceof AzGuardPlugin || ! $plugin->isEnforcing() || $plugin->getSource() === 'policy') {
                 return null;
             }
 
             return is_object($user)
-                ? $this->app->make(ResourceGate::class)->check($user, $ability, $arguments)
+                ? $this->app->make(ResourceGate::class)->checkForPanel(
+                    $user,
+                    $ability,
+                    $arguments,
+                    $plugin->getPanelId(),
+                    $this->app->make(PermissionSchema::class)->withOptions($plugin->getKeyTemplate(), $plugin->getCase()),
+                )
                 : null;
         });
 
@@ -101,5 +113,40 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
                 GenerateFilamentPermissionsCommand::class,
             ]);
         }
+    }
+
+    private function currentPlugin(): ?AzGuardPlugin
+    {
+        try {
+            $panel = Filament::getCurrentPanel();
+
+            return $panel instanceof Panel ? $this->plugin($panel) : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function linkedPlugin(string $panelId): ?AzGuardPlugin
+    {
+        try {
+            foreach (Filament::getPanels() as $panel) {
+                $plugin = $this->plugin($panel);
+
+                if ($plugin instanceof AzGuardPlugin && $plugin->getPanelId() === $panelId) {
+                    return $plugin;
+                }
+            }
+        } catch (Throwable) {
+            return null;
+        }
+
+        return null;
+    }
+
+    private function plugin(Panel $panel): ?AzGuardPlugin
+    {
+        $plugin = $panel->getPlugins()['az-guard'] ?? null;
+
+        return $plugin instanceof AzGuardPlugin ? $plugin : null;
     }
 }

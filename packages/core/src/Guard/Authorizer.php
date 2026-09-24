@@ -8,6 +8,9 @@ use AzGuard\Configuration\Config;
 use AzGuard\Contracts\AzGuardManagerInterface;
 use AzGuard\Events\AccessDecision;
 use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Permissions\CatalogKeyMatcher;
+use AzGuard\Registry\Contracts\PermissionCatalog;
 use AzGuard\Registry\Resolver\EffectivePermissionResolver;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -16,9 +19,11 @@ use Illuminate\Contracts\Auth\Authenticatable;
  * Core authorization component.
  *
  * Registered via Gate::before() and:
- * 1) Delegates permission resolution to EffectivePermissionResolver.
- * 2) Returns true for superadmin (wildcard '*').
- * 3) Checks the specific $ability via PermissionSet::grants() (exact + wildcard).
+ * 1) Returns null for abilities AzGuard does not own (exact catalog key or
+ *    registered dynamic definition) so later Laravel policies can run.
+ * 2) Delegates permission resolution to EffectivePermissionResolver.
+ * 3) Returns true for superadmin (wildcard '*') on owned abilities.
+ * 4) Checks the specific $ability via PermissionSet::grants() (exact + wildcard).
  *
  * The actor must be both Authorizable (the Gate contract) and Authenticatable
  * (what the resolver consumes) — enforced by the parameter type, so callers
@@ -35,6 +40,7 @@ final readonly class Authorizer
     public function __construct(
         private EffectivePermissionResolver $resolver,
         private AzGuardManagerInterface $manager,
+        private PermissionCatalog $catalog,
     ) {}
 
     public function check(Authorizable&Authenticatable $user, string $ability): ?bool
@@ -42,6 +48,10 @@ final readonly class Authorizer
         $panelId = $this->resolvePanelId();
 
         if ($panelId === null) {
+            return null;
+        }
+
+        if (! CatalogKeyMatcher::owns($this->catalog, $panelId, $ability)) {
             return null;
         }
 
@@ -74,6 +84,16 @@ final readonly class Authorizer
                 ability: $ability,
                 allowed: false,
                 reasonCode: AccessDecision::NO_ACTIVE_PANEL,
+            ));
+        }
+
+        if (! CatalogKeyMatcher::owns($this->catalog, $panelId, $ability)) {
+            return $this->record(new AccessDecision(
+                userId: $userId,
+                panelId: $panelId,
+                ability: $ability,
+                allowed: false,
+                reasonCode: AccessDecision::NO_GRANT,
             ));
         }
 
@@ -148,7 +168,7 @@ final readonly class Authorizer
         $current = $this->manager->currentPanel();
 
         if ($current instanceof Panel) {
-            return $current->getId();
+            return PanelResolver::resolve($current->getId());
         }
 
         $panels = $this->manager->getPanels();
@@ -156,13 +176,17 @@ final readonly class Authorizer
         // Explicit default wins when it is actually registered.
         $default = Config::defaultPanel();
 
+        if ($default !== null && Config::strictPanelsEnabled()) {
+            return PanelResolver::resolveDefault($default);
+        }
+
         if ($default !== null && isset($panels[$default])) {
-            return $default;
+            return PanelResolver::resolve($default);
         }
 
         // A single registered panel is unambiguous; with several, refuse to
         // guess — returning null lets the Gate deny instead of evaluating the
         // ability against an arbitrary panel.
-        return count($panels) === 1 ? array_key_first($panels) : null;
+        return count($panels) === 1 ? PanelResolver::resolve(array_key_first($panels)) : null;
     }
 }

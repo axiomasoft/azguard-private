@@ -9,6 +9,7 @@ uses(RefreshDatabase::class);
 use AzGuard\Concerns\HasScopedRoles;
 use AzGuard\Models\Role;
 use AzGuard\Tests\Stubs\Roles\ManagerRole;
+use AzGuard\Tests\Stubs\Roles\ProjectEditorRole;
 use AzGuard\Tests\Stubs\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
@@ -148,7 +149,7 @@ describe('HasAzGuard — entity-scoped roles (HasScopedRoles)', function (): voi
         // assign scoped role that has the perm
         createRoleWithClass(['name' => 'editor',
             'level' => 5,
-        ], ManagerRole::class);
+        ], ProjectEditorRole::class);
 
         $user->assignRole('superadmin');
         $user->load('roles');

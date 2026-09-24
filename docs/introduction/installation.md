@@ -6,7 +6,7 @@
 |---|---|
 | PHP | 8.3+ |
 | Laravel | 11.x, 12.x, or 13.x |
-| Database | MySQL 8+, PostgreSQL 13+, SQLite 3.35+ |
+| Database | MySQL 8.0.13+ (not MariaDB), PostgreSQL 16+, SQLite 3.35+ |
 
 ## Install via Composer
 
@@ -85,7 +85,7 @@ AzGuard is Octane-safe. The permission resolver uses per-request state and does 
 When running tests, use `RefreshDatabase` and keep the permission cache in-memory by setting `cache.store` to `'array'` (the default). Then assert against the real API:
 
 ```php
-$user->assignRole('editor');
+$user->assignRole('app:editor');
 
 expect($user->hasPermission('app.documents.view'))->toBeTrue();
 expect(Gate::forUser($user)->allows('app.documents.view'))->toBeTrue();

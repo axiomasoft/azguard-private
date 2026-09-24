@@ -12,6 +12,7 @@ use AzGuard\Commands\InstallCommand;
 use AzGuard\Commands\ListPermissionsCommand;
 use AzGuard\Commands\ListScopedRolesCommand;
 use AzGuard\Commands\MakeGuardAbilitiesCommand;
+use AzGuard\Commands\MakeGuardDomainCommand;
 use AzGuard\Commands\MakeGuardPanelCommand;
 use AzGuard\Commands\MakeGuardPermissionCommand;
 use AzGuard\Commands\MakeGuardPolicyCommand;
@@ -57,6 +58,7 @@ function guardMakeCommandClasses(): array
 {
     return [
         MakeGuardPanelCommand::class,
+        MakeGuardDomainCommand::class,
         MakeGuardPermissionCommand::class,
         MakeGuardPolicyCommand::class,
         MakeGuardAbilitiesCommand::class,

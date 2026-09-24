@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Grants;
 
+use AzGuard\Configuration\Config;
 use AzGuard\Contracts\ContextGrantBuilder;
 use AzGuard\Contracts\ContextGrantBuilderFactory;
 use AzGuard\Events\GrantGiven;
@@ -131,11 +132,13 @@ final readonly class GrantBuilder
             ?? ($this->ttlSeconds !== null ? Carbon::now()->addSeconds($this->ttlSeconds) : null);
 
         $state = app(PermissionStateRevision::class);
-        $state->assertSameConnection(new DirectGrant);
+        $directGrant = $this->configuredDirectGrantPrototype();
+        $state->assertSameConnection($directGrant);
 
-        return $state->mutate(function () use ($panel, $permissionKey, $expiresAt): array {
+        return $state->mutate(function () use ($panel, $permissionKey, $expiresAt, $directGrant): array {
+            $grantClass = $directGrant::class;
             /** @var DirectGrant $grant */
-            $grant = DirectGrant::query()->updateOrCreate(
+            $grant = $grantClass::query()->updateOrCreate(
                 [
                     'grantable_type' => $this->user->getMorphClass(),
                     'grantable_id' => $this->user->getAuthIdentifier(),
@@ -168,7 +171,7 @@ final readonly class GrantBuilder
         $panel = PanelResolver::resolveOrFail($this->panelId);
         $permissionKey = PermissionName::resolve($permission, $panel);
         $state = app(PermissionStateRevision::class);
-        $state->assertSameConnection(new DirectGrant);
+        $state->assertSameConnection($this->configuredDirectGrantPrototype());
 
         return $state->mutate(function () use ($panel, $permissionKey): array {
             $deleted = $this->baseQuery($panel)
@@ -198,7 +201,7 @@ final readonly class GrantBuilder
     {
         $panel = PanelResolver::resolveOrFail($this->panelId);
         $state = app(PermissionStateRevision::class);
-        $state->assertSameConnection(new DirectGrant);
+        $state->assertSameConnection($this->configuredDirectGrantPrototype());
 
         return $state->mutate(function () use ($panel): array {
             $deleted = $this->baseQuery($panel)->delete();
@@ -239,9 +242,18 @@ final readonly class GrantBuilder
      */
     private function baseQuery(string $panel): Builder
     {
-        return DirectGrant::query()
+        $grantClass = Config::directGrantModel();
+
+        return $grantClass::query()
             ->where('grantable_type', $this->user->getMorphClass())
             ->where('grantable_id', $this->user->getAuthIdentifier())
             ->where('panel_id', $panel);
+    }
+
+    private function configuredDirectGrantPrototype(): DirectGrant
+    {
+        $class = Config::directGrantModel();
+
+        return new $class;
     }
 }

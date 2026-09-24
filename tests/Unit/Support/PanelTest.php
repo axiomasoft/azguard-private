@@ -36,6 +36,11 @@ describe('Panel', function () {
         expect($panel->resolvePermission('posts.view'))->toBe('crm.posts.view');
     });
 
+    it('does not prefix an already scoped key', function () {
+        $panel = Panel::make()->id('admin')->scopedByPanelId(true);
+        expect($panel->resolvePermission('admin.users.view'))->toBe('admin.users.view');
+    });
+
     it('resolves string permission', function () {
         $panel = Panel::make()->id('shop')->scopedByPanelId(true);
         expect($panel->resolvePermission('orders.edit'))->toBe('shop.orders.edit');

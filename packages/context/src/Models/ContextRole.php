@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Context\Models;
 
+use AzGuard\Concerns\RevisionedPermissionModelWrites;
 use AzGuard\Registry\Resolver\PermissionCache;
 use AzGuard\Registry\Resolver\SubjectIdentity;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,8 +14,10 @@ use Illuminate\Support\Carbon;
 use Override;
 
 /**
- * A single row of az_guard_context_roles: "user X in context (type, id) of
- * the {panel} panel has the {permission_key} permission".
+ * A single row of the configured context-roles table
+ * (`az-guard-context.table_names.context_roles`, default `az_guard_context_roles`):
+ * "user X in context (type, id) of the {panel} panel has the {permission_key} permission".
+ * Changing that config does not move a table that was already created.
  *
  * Written by ContextGrantBuilder (used by guard:context:grant/revoke);
  * read by ContextPermissionLayer::contextPermissions() via a plain query
@@ -37,6 +40,8 @@ use Override;
  */
 final class ContextRole extends Model
 {
+    use RevisionedPermissionModelWrites;
+
     protected $fillable = [
         'model_type',
         'model_id',

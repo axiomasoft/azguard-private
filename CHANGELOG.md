@@ -6,16 +6,39 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **authorization:** Filament catalog, resource Gate, and page/widget checks now use each linked panel's own plugin settings; an admin grant cannot authorize a tenant resource through the default panel.
+- **cache:** Direct and context grant instance writes now commit with the database permission revision, so a cache epoch failure cannot leave a successful revoke behind a stale allow. Failed explicit epoch invalidation reports an error.
+- **configuration:** Configured role-permission connections and model tables are checked consistently; invalid model configuration gives an actionable doctor result instead of a crash.
+- **migrations:** PostgreSQL drops schema-qualified indexes correctly, and MySQL downgrade checks legacy collisions before any index DDL.
+
+## [1.0.0] - 2026-09-23
+
 ### Added
 
 - **core:** `PermissionSet::validUntil()` / `withValidUntil()` carry an optional absolute grant deadline. Request and durable caches reject a hit at that instant and store a strict `{version, keys, valid_until}` envelope; a custom source without a deadline still follows the configured TTL (plan P1.2 / D3).
 - **core:** Role-permission edits go through one transactional synchronizer. Filament edits only the rendered catalog keys and rejects a stale fingerprint; CLI add/remove stay one-key and `sync --panel` replaces that panel (plan P2.1 / D13).
 - **core:** Official authorization mutations bump a global `az_guard_permission_state` revision on the same connection. Request, durable and scoped-role caches key by that revision and bypass all reusable tiers inside a transaction (plan P2.2 / D13).
 - **core:** Permission cache keys include an explicit `cache.generation`. `guard:cache-reset` advances the DB revision and clears local request state without flushing the configured store; cache get/put/lock failures recompute from sources instead of returning a stale allow (plan P2.3 / D13).
+- **core:** Opt-in `az-guard.require_permission_attributes` (default off): `azguard.check` raises `MissingPermissionAttributeException` when a controller action has neither `#[CheckPermission]` nor `#[SkipGuardCheck]`; `guard:doctor` warns in legacy mode and errors when the flag is on (plan P4.2 / D7).
+- **core:** `guard:sync-roles` persists panel-scoped code roles as `{panelId}:{getName()}` with preflight/dry-run classification, in-place legacy rename, and fail-closed collisions; `guard:doctor` errors on stale/invalid `class_name` (plan P5.1 / D8).
+- **core:** `make:guard-panel` and new `make:guard-domain` share a safe scaffold generator: validated `--model` / `--actor` FQCNs, per-file conflict detection, idempotent reruns, recognized provider/config registration only, and `guard:doctor` generated scaffold errors (plan P5.2 / D8).
 
 ### Changed
 
+- **core:** Grant-source exceptions now propagate and abort authorization; the previous `fail_on_source_exception=false` setting no longer skips a failed source. Remove that option from published config (plan P2.3 / D13).
+- **filament:** Creating a direct grant with a past expiry now fails validation instead of converting it into a permanent grant; future expiry is stored as the exact absolute instant (plan P1.2 / D3).
+- **core:** Scope assignment identity is an exact cross-engine unique index. Fresh `panel_id` is `VARCHAR(128)`. Recorded databases upgrade through `000006`, which rejects overlong panel ids and unsupported MySQL/MariaDB profiles before DDL. `roles.class_name` gains a nullable unique index. Context `000010` uses the configured table for both directions (plan P6.2 / D14).
+- **core:** Fresh `000000` rolls base tables back in foreign-key order. `000005` dedupes assignment rows in SQL inside a transaction during a maintenance window; a failed insert keeps the original rows, and a failed index leaves a complete deduped set that a rerun can finish. A database that already recorded `000005` is unchanged (plan P6.1 / D14).
 - **core:** Permission cache keys now use typed subject identity (persisted morph type + id) under the `azg:v2:` namespace, fixing cross-model ID collisions; grant/context invalidation and scoped-role request cache follow the same identity (plan P1.1 / D3).
+- **core:** Configured `role` / `scope` / `direct_grant` / `role_permission` subclasses are validated and used on official read/write paths (relations, grant builder, database role source); split connections fail before mutation; `guard:doctor` reports bad model keys (plan P3.1 / D6).
+- **filament:** Role and Direct Grant resources resolve their Eloquent model through `Config` (plan P3.2 / D6).
+- **core:** Final panel resolution always rejects IDs longer than 128 characters; with `strict_panels`, unknown explicit/default/current/`app` fallback IDs throw even when the registry is empty (plan P4.2 / D7 / D14).
+- **core:** `Gate::before` returns `null` for abilities AzGuard does not own (exact catalog key or registered dynamic definition), so ordinary Laravel policies run even for an AzGuard wildcard user (plan P4.2 / D7).
+- **core:** Class/instance role lookup uses exact `class_name` with no `getName()` fallback; string lookup is the exact persisted name. Invalid non-null `class_name` throws `InvalidRoleClassException`. Built-in `SuperAdminRole` keeps reserved `super-admin` and refuses a same-name DB-only row (plan P5.1 / D8).
+- **release:** `bin/release-preflight.sh` validates the candidate git tree before tags; `release.yml` runs it on the tagged commit. The post-tag `changelog.yml` writer is removed — version notes live in the candidate commit (plan P7.2 / D10).
+- **release:** All three Composer packages use aligned `^1.0` constraints; split publication waits for release validation, and docs publication waits for parity and PHP-floor checks (plan P7.2 / D10).
 
 ## [0.3.0] - 2026-07-22
 
@@ -504,4 +527,3 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 - Fix remaining Pint violations in context tests and core rector.php ([eb6f408](eb6f40871415fe4e85dba04e5369d35767f4a96c))
 - Apply Pint Laravel preset and Rector PHP 8.3 rules across all packages ([a159af7](a159af72c74feaac2e6712bb1e1ab9fd3b555afb))
-

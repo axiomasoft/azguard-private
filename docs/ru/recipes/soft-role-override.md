@@ -6,7 +6,7 @@
 
 ```php
 // Пользователь — редактор, но сегодня может публиковать
-$user->assignRole('editor');
+$user->assignRole('app:editor');
 $user->grant(
     PostsPermission::Publish,
     'app',

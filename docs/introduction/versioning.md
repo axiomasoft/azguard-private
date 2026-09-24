@@ -1,8 +1,13 @@
-# AzGuard SemVer policy (0.x) — produced by P3.3
+# AzGuard SemVer policy
 
-> **Status:** SSOT for how AzGuard versions its public API pre-1.0. Consumed by `docs/introduction/upgrading.md`
-> (breaking-change catalog) and `root/known-limitations.md` (documented, non-blocking gaps). At archival
-> (`/task:plan-close archive`, D26) this file's content moves to `docs/introduction/versioning.md` (EN+RU).
+AzGuard 1.0.0 establishes a stable public contract. An incompatible public API,
+default-behavior, schema, or supported-runtime change requires a MAJOR version
+and an upgrade guide. Additive features use MINOR; compatible fixes use PATCH.
+Review the root `CHANGELOG.md`, the [upgrade guide](./upgrading.md), and the API
+snapshot together before creating a release candidate.
+
+The sections below record the historical 0.x policy and the mechanical snapshot
+procedure. The pre-1.0 minor-release exception no longer applies to 1.x.
 
 ## 1. What counts as the public API
 
@@ -22,7 +27,7 @@ Two consequences worth naming explicitly (both exercised in this cycle, P3.1/D29
   `filament`/`context` are documented but do not (yet) run the `@api`/`@internal` reflection convention — see
   `root/known-limitations.md` §1.
 
-## 2. What is breaking before 1.0
+## 2. Historical pre-1.0 breaking policy
 
 Per [semver.org](https://semver.org), a `0.y.z` release may break the API in a `MINOR` bump — there is no
 `PATCH`-only breaking-change guarantee below 1.0. AzGuard's `0.x` releases (this one: `0.2.0 → 0.3.0`) use that
@@ -62,7 +67,7 @@ removal:
   cleanly + document precisely*, not carry parallel names indefinitely (see `docs/introduction/upgrading.md`
   "Pre-1.0 cleanup" precedent — no compatibility aliases policy already established there).
 
-Going forward (post-0.3.0, still pre-1.0), a breaking `@api` change should:
+For the historical post-0.3.0 pre-1.0 period, a breaking `@api` change had to:
 
 1. Get its own `D#` decision (or plan-item equivalent) naming *why* the break is worth it now vs. deferring.
 2. Land in the same release as the `upgrading.md` entry (old → new + grep command) — never a "we'll document it
@@ -96,13 +101,13 @@ justification, not just its mechanics.
 tag-boundary BC checker (compares two git refs/tags, understands variance/covariance more precisely than a flat
 reflection diff). It was evaluated and **deferred** — the reflection-snapshot mechanism above is sufficient for
 0.x-strict freezing (its very over-sensitivity is a feature here, not a gap `roave` would need to fill) and
-avoids adding a new dev-dependency this cycle. Revisit at the 1.0 tag boundary, where `roave`'s actual/intended-BC
-distinction becomes more valuable than the snapshot's blunt drift-detection.
+avoids adding a new dev-dependency this cycle. Revisit only for a measured gap
+in the snapshot's change detection.
 
 ## 5. Cross-reference
 
-- `root/api-surface.md` — the frozen surface, human-readable (P3.1).
-- `root/contracts/facade-cutline.md` — the facade de-publication spec this cycle executed (P2.5/P3.1, D29).
-- `root/known-limitations.md` — documented gaps that are *not* SemVer violations (out of scope, not blockers).
-- `docs/introduction/upgrading.md` — the consolidated `0.2 → 0.3` breaking-change catalog, generated from this
+- `plans/archive/2026.07.18-AZGUARD-STABLE/root/api-surface.md` — historical frozen surface registry (P3.1).
+- `plans/archive/2026.07.18-AZGUARD-STABLE/root/contracts/facade-cutline.md` — historical facade decision (P2.5/P3.1, D29).
+- [Known limitations](./known-limitations.md) — current documented support boundaries.
+- [Upgrading](./upgrading.md) — the consolidated `0.2 → 0.3` and `1.0.0` migration guides, generated from this
   policy's §2 definition and the plan's Decision Log / Completion Notes (D10, D14–D18, D29).

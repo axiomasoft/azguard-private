@@ -6,9 +6,10 @@ namespace AzGuard\Http\Middleware;
 
 use AzGuard\Attributes\CheckPermission as CheckPermissionAttribute;
 use AzGuard\Attributes\SkipGuardCheck;
+use AzGuard\Configuration\Config;
+use AzGuard\Exceptions\MissingPermissionAttributeException;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Permissions\PermissionKey;
-use BackedEnum;
+use AzGuard\Permissions\PermissionGrammar;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -34,7 +35,20 @@ final class CheckAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
-        foreach ($this->getPermissionAttributes(request: $request) as $attribute) {
+        $method = $this->actionMethod($request);
+
+        if ($method !== null) {
+            $skipped = $method->getAttributes(SkipGuardCheck::class) !== [];
+            $attributes = $skipped ? [] : $this->instantiateAttributes($method);
+
+            if (! $skipped && $attributes === [] && Config::requirePermissionAttributes()) {
+                throw new MissingPermissionAttributeException($this->actionLabel($method));
+            }
+        } else {
+            $attributes = [];
+        }
+
+        foreach ($attributes as $attribute) {
             $arguments = $this->resolveArguments(request: $request, parameterNames: $attribute->arguments);
             $ability = $this->resolveAbility(permission: $attribute->permission);
 
@@ -48,15 +62,12 @@ final class CheckAccess
         return $next($request);
     }
 
-    /**
-     * @return list<CheckPermissionAttribute>
-     */
-    private function getPermissionAttributes(Request $request): array
+    private function actionMethod(Request $request): ?ReflectionMethod
     {
         $route = $request->route();
 
         if ($route === null) {
-            return [];
+            return null;
         }
 
         $actionName = $route->getActionName();
@@ -67,25 +78,32 @@ final class CheckAccess
             $controllerClass = $actionName;
             $methodName = '__invoke';
         } else {
-            return [];
+            return null;
         }
 
         if (! class_exists($controllerClass) || ! method_exists(object_or_class: $controllerClass, method: $methodName)) {
-            return [];
+            return null;
         }
 
-        $method = new ReflectionMethod($controllerClass, $methodName);
+        return new ReflectionMethod($controllerClass, $methodName);
+    }
 
-        if ($method->getAttributes(SkipGuardCheck::class) !== []) {
-            return [];
-        }
-
+    /**
+     * @return list<CheckPermissionAttribute>
+     */
+    private function instantiateAttributes(ReflectionMethod $method): array
+    {
         $attributes = $method->getAttributes(name: CheckPermissionAttribute::class);
 
         return array_map(
             callback: static fn (ReflectionAttribute $attribute): CheckPermissionAttribute => $attribute->newInstance(),
             array: $attributes,
         );
+    }
+
+    private function actionLabel(ReflectionMethod $method): string
+    {
+        return $method->class.'::'.$method->name;
     }
 
     /**
@@ -104,10 +122,13 @@ final class CheckAccess
     {
         $panel = AzGuard::currentPanel();
 
-        if ($panel !== null && $permission instanceof BackedEnum) {
+        if ($panel !== null) {
             return $panel->resolvePermission(permission: $permission);
         }
 
-        return PermissionKey::normalize($permission);
+        $raw = PermissionGrammar::raw($permission);
+        PermissionGrammar::assertValid($raw);
+
+        return $raw;
     }
 }
