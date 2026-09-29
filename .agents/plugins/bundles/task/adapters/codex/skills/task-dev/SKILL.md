@@ -8,7 +8,7 @@ description: "Only when explicitly invoked. Implement an authorized feature dire
 Generated Codex adapter for semantic command `task:dev`.
 
 - Invocation: `$ task:dev <arguments>`
-- Routing: `implementation/high -> gpt-5.6-terra/high`
+- Routing: `implementation/high -> gpt-6-sol/high`
 - Canonical source: `packages/task/commands/dev.md`
 - Canonical SHA-256: `sha256:ee2b29790bd36d9861240fbe71a94b35ddbc2092e7f64dc5970cc723dcd804c2`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)

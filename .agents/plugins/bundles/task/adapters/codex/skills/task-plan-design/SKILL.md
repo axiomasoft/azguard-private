@@ -8,7 +8,7 @@ description: "Only when explicitly invoked. Explicit Task plan design: author or
 Generated Codex adapter for semantic command `task:plan-design`.
 
 - Invocation: `$ task:plan-design <arguments>`
-- Routing: `frontier/high -> gpt-5.6-sol/high`
+- Routing: `frontier/high -> gpt-6-astra/high`
 - Canonical source: `packages/task/commands/plan-design.md`
 - Canonical SHA-256: `sha256:596348032dd0ec0b227dca35acadeb5b430587e382868acfba7b2696c43826bf`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)

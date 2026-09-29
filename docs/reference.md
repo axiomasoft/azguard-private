@@ -27,3 +27,17 @@ directly over HTTPS on 2026-09-22; conclusions and boundaries are recorded in
 
 Upstream branches move: re-check installed sources before changing behaviour on
 another version. Extracted material is not vendored and is not executor instructions.
+
+## Architecture audit 2026-09-29
+
+The directly checked external design sources and limitations are recorded in
+`audits/2026-09-29-audit/Research/primary-sources.md` in the repository.
+Perplexity was used for discovery and synthesis; load-bearing facts were checked
+against primary documentation. Key sources: [Laravel 13 authorization](https://laravel.com/docs/13.x/authorization),
+[Eloquent events](https://laravel.com/docs/13.x/eloquent#events),
+[read/write connections](https://laravel.com/docs/13.x/database#read-and-write-connections),
+[Filament 5 Resources](https://filamentphp.com/docs/5.x/resources/overview),
+[PHPStan internal symbols](https://phpstan.org/writing-php-code/phpdocs-basics#internal-symbols),
+[OWASP Multi Tenant Security](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html),
+[Cedar authorization](https://docs.cedarpolicy.com/auth/authorization.html), and
+[Composer path repositories](https://getcomposer.org/doc/05-repositories.md#path).

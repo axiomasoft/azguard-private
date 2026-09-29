@@ -1,7 +1,7 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/dev.md
 Canonical SHA-256: sha256:ee2b29790bd36d9861240fbe71a94b35ddbc2092e7f64dc5970cc723dcd804c2
-Adapter: task.codex-command/1.0.16
+Adapter: task.codex-command/1.0.17
 -->
 
 Это задача РАЗРАБОТКИ. Ввод пользователя: «$ARGUMENTS».

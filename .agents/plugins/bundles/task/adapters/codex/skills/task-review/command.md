@@ -1,7 +1,7 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/review.md
 Canonical SHA-256: sha256:c04416db5b4c7e82a9fc2194453ea1c4c05809ef6fd0f425a1f0f929c315d40c
-Adapter: task.codex-command/1.0.16
+Adapter: task.codex-command/1.0.17
 -->
 Это read-only review: «$ARGUMENTS». Файлы не меняй.
 

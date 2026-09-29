@@ -8,7 +8,7 @@ description: "Only when explicitly invoked. Fix a scoped defect directly; preser
 Generated Codex adapter for semantic command `task:fix`.
 
 - Invocation: `$ task:fix <arguments>`
-- Routing: `implementation/medium -> gpt-5.6-terra/medium`
+- Routing: `implementation/medium -> gpt-6-sol/medium`
 - Canonical source: `packages/task/commands/fix.md`
 - Canonical SHA-256: `sha256:fbb5d186d8100ec8fd136b5b9d17aabc1d6b949bfc3ba4cc40c2947889d7e693`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)

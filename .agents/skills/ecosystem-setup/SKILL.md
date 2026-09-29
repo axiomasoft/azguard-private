@@ -51,5 +51,5 @@ description: "Use when changing project skills, plugins, memory scopes, roles, o
 
 ## Связи проекта
 
-- namespaces: `axioma` · scope: `project:azguard` · связан с: chatom.
+- namespaces: `axioma` · scope: `project:azguard` · связан с: —.
 - актуальные связи: `maind graph --project azguard`.

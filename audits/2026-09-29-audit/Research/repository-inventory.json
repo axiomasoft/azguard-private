@@ -1,0 +1,631 @@
+{
+  "baseline_commit": "253cbf4cce0226545cd96ca8c6bcbefe329b1403",
+  "scope": "Top-level named type declarations and direct use imports in packages/*/src; source scan, not full PHP AST or behavioral proof.",
+  "limitations": "Does not enumerate fully-qualified inline references, phpdoc dependencies, inherited methods or dynamic/container references; PHP group imports require manual review.",
+  "counts": {
+    "core": {
+      "api": 31,
+      "api+internal": 1,
+      "internal": 16,
+      "unclassified": 103
+    },
+    "context": {
+      "internal": 1,
+      "unclassified": 18
+    },
+    "filament": {
+      "unclassified": 25
+    }
+  },
+  "types_by_status": {
+    "core": {
+      "api": [
+        "AzGuard\\Contracts\\AbilitiesResolver",
+        "AzGuard\\Contracts\\AzGuardManagerInterface",
+        "AzGuard\\Contracts\\AzGuardUser",
+        "AzGuard\\Contracts\\ContextGrantBuilder",
+        "AzGuard\\Contracts\\ContextGrantBuilderFactory",
+        "AzGuard\\Contracts\\ContextGuard",
+        "AzGuard\\Contracts\\HasDirectGrants",
+        "AzGuard\\Contracts\\HasPermissions",
+        "AzGuard\\Contracts\\HasRoles",
+        "AzGuard\\Contracts\\HasScopedRoles",
+        "AzGuard\\Contracts\\Permission",
+        "AzGuard\\Contracts\\PermissionContext",
+        "AzGuard\\Contracts\\PermissionLayer",
+        "AzGuard\\Contracts\\PermissionMatcher",
+        "AzGuard\\Contracts\\PermissionResolverInterface",
+        "AzGuard\\Contracts\\RoleInterface",
+        "AzGuard\\Contracts\\RolePermissionValidator",
+        "AzGuard\\Contracts\\ScopeInterface",
+        "AzGuard\\Panels\\Panel",
+        "AzGuard\\Permissions\\PermissionKey",
+        "AzGuard\\Registry\\Contracts\\GrantPriority",
+        "AzGuard\\Registry\\Contracts\\GrantSource",
+        "AzGuard\\Registry\\Contracts\\PermissionCatalog",
+        "AzGuard\\Registry\\Contracts\\PermissionCatalogBuilder",
+        "AzGuard\\Registry\\Contracts\\PermissionDefinition",
+        "AzGuard\\Registry\\Contracts\\PermissionMeta",
+        "AzGuard\\Registry\\Values\\PermissionSet",
+        "AzGuard\\Testing\\AzGuardFake",
+        "AzGuard\\Testing\\FakeAzGuardUser",
+        "AzGuard\\Testing\\FakeGrantSource",
+        "AzGuard\\Testing\\Recorded"
+      ],
+      "api+internal": [
+        "AzGuard\\Facades\\AzGuard"
+      ],
+      "internal": [
+        "AzGuard\\Abilities\\DefaultAbilitiesResolver",
+        "AzGuard\\Concerns\\RevisionedPermissionModelWrites",
+        "AzGuard\\Database\\Schema\\AssignmentDeduplicator",
+        "AzGuard\\Database\\Schema\\NullSafeUniqueIndex",
+        "AzGuard\\Guard\\PolicyDiscovery",
+        "AzGuard\\Permissions\\CatalogKeyMatcher",
+        "AzGuard\\Permissions\\PermissionGrammar",
+        "AzGuard\\Registry\\Resolver\\EffectivePermissionResolver",
+        "AzGuard\\Registry\\Resolver\\PermissionCache",
+        "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+        "AzGuard\\Registry\\Resolver\\SubjectIdentity",
+        "AzGuard\\Runtime\\CurrentPanelState",
+        "AzGuard\\Runtime\\RequestState",
+        "AzGuard\\Runtime\\ScopedRoleCache",
+        "AzGuard\\Support\\RoleIdentity",
+        "AzGuard\\Support\\RoleSyncPlanner"
+      ],
+      "unclassified": [
+        "AzGuard\\Abilities\\AbilitiesDto",
+        "AzGuard\\Abilities\\ResolvesGateAbilities",
+        "AzGuard\\Attributes\\CheckPermission",
+        "AzGuard\\Attributes\\GateAbility",
+        "AzGuard\\Attributes\\GuardPolicy",
+        "AzGuard\\Attributes\\RoleOnly",
+        "AzGuard\\Attributes\\SkipGuardCheck",
+        "AzGuard\\Auth\\BladeHelper",
+        "AzGuard\\Auth\\DirectGrantPolicy",
+        "AzGuard\\Auth\\PolicyAttributeRegistrar",
+        "AzGuard\\AzGuardManager",
+        "AzGuard\\AzGuardServiceProvider",
+        "AzGuard\\Commands\\AbilitiesCommand",
+        "AzGuard\\Commands\\CacheResetCommand",
+        "AzGuard\\Commands\\CatalogListCommand",
+        "AzGuard\\Commands\\CatalogValidateCommand",
+        "AzGuard\\Commands\\Concerns\\OutputsStructured",
+        "AzGuard\\Commands\\Concerns\\ResolvesGuardNamespaces",
+        "AzGuard\\Commands\\Concerns\\ResolvesUserModel",
+        "AzGuard\\Commands\\Concerns\\SupportsForcefulGeneration",
+        "AzGuard\\Commands\\DoctorCommand",
+        "AzGuard\\Commands\\ExplainCommand",
+        "AzGuard\\Commands\\GrantCommand",
+        "AzGuard\\Commands\\GrantsListCommand",
+        "AzGuard\\Commands\\InstallCommand",
+        "AzGuard\\Commands\\ListPermissionsCommand",
+        "AzGuard\\Commands\\ListScopedRolesCommand",
+        "AzGuard\\Commands\\MakeGuardAbilitiesCommand",
+        "AzGuard\\Commands\\MakeGuardDomainCommand",
+        "AzGuard\\Commands\\MakeGuardPanelCommand",
+        "AzGuard\\Commands\\MakeGuardPermissionCommand",
+        "AzGuard\\Commands\\MakeGuardPolicyCommand",
+        "AzGuard\\Commands\\MakeGuardRoleCommand",
+        "AzGuard\\Commands\\PruneGrantsCommand",
+        "AzGuard\\Commands\\RevokeGrantCommand",
+        "AzGuard\\Commands\\RoleAssignmentCommand",
+        "AzGuard\\Commands\\RolePermissionsCommand",
+        "AzGuard\\Commands\\SuperAdminCommand",
+        "AzGuard\\Commands\\SyncRolesCommand",
+        "AzGuard\\Concerns\\HasAzGuard",
+        "AzGuard\\Concerns\\HasDirectGrants",
+        "AzGuard\\Concerns\\HasPermissions",
+        "AzGuard\\Concerns\\HasRoles",
+        "AzGuard\\Concerns\\HasScopedRoles",
+        "AzGuard\\Concerns\\ResolvesRole",
+        "AzGuard\\Configuration\\Config",
+        "AzGuard\\Database\\Schema\\MorphColumns",
+        "AzGuard\\Events\\AccessDecision",
+        "AzGuard\\Events\\GrantGiven",
+        "AzGuard\\Events\\GrantRevoked",
+        "AzGuard\\Events\\RoleAttached",
+        "AzGuard\\Events\\RoleDetached",
+        "AzGuard\\Exceptions\\AzGuardException",
+        "AzGuard\\Exceptions\\ContextPackageNotInstalledException",
+        "AzGuard\\Exceptions\\IdentityIndexException",
+        "AzGuard\\Exceptions\\InvalidCacheConfigException",
+        "AzGuard\\Exceptions\\InvalidModelConfigException",
+        "AzGuard\\Exceptions\\InvalidMorphTypeException",
+        "AzGuard\\Exceptions\\InvalidPermissionSyntaxException",
+        "AzGuard\\Exceptions\\InvalidRoleClassException",
+        "AzGuard\\Exceptions\\InvalidRoleIdentityException",
+        "AzGuard\\Exceptions\\MissingPermissionAttributeException",
+        "AzGuard\\Exceptions\\PanelIdTooLongException",
+        "AzGuard\\Exceptions\\PanelNotFoundException",
+        "AzGuard\\Exceptions\\PanelNotSetException",
+        "AzGuard\\Grants\\GrantBuilder",
+        "AzGuard\\Guard\\Authorizer",
+        "AzGuard\\Guard\\AzGuardDiagnostics",
+        "AzGuard\\Http\\Middleware\\CheckAccess",
+        "AzGuard\\Http\\Middleware\\CheckDirectGrant",
+        "AzGuard\\Http\\Middleware\\LoadAzGuardRoles",
+        "AzGuard\\Http\\Middleware\\PanelCheckAccess",
+        "AzGuard\\Http\\Middleware\\SetCurrentPanel",
+        "AzGuard\\Models\\DirectGrant",
+        "AzGuard\\Models\\ModelHasScope",
+        "AzGuard\\Models\\Role",
+        "AzGuard\\Models\\RolePermission",
+        "AzGuard\\Panels\\PanelProvider",
+        "AzGuard\\Panels\\PanelResolver",
+        "AzGuard\\Permissions\\InteractsWithPanel",
+        "AzGuard\\Permissions\\PermissionName",
+        "AzGuard\\Policies\\AuthorizesPermission",
+        "AzGuard\\Registry\\Builders\\CompositePermissionCatalog",
+        "AzGuard\\Registry\\Builders\\EnumPermissionCatalogBuilder",
+        "AzGuard\\Registry\\Builders\\PolicyAbilityCatalogBuilder",
+        "AzGuard\\Registry\\Definitions\\EnumPermissionDefinition",
+        "AzGuard\\Registry\\Definitions\\SimplePermissionDefinition",
+        "AzGuard\\Registry\\Definitions\\SimplePermissionMeta",
+        "AzGuard\\Registry\\Exceptions\\InvalidPermissionKeyException",
+        "AzGuard\\Registry\\Matching\\HierarchicalPermissionMatcher",
+        "AzGuard\\Registry\\Matching\\WildcardPermissionMatcher",
+        "AzGuard\\Registry\\Sources\\ClassRoleGrantSource",
+        "AzGuard\\Registry\\Sources\\DatabaseRoleGrantSource",
+        "AzGuard\\Registry\\Sources\\DirectGrantSource",
+        "AzGuard\\Registry\\Validation\\CatalogRolePermissionValidator",
+        "AzGuard\\Roles\\BaseRole",
+        "AzGuard\\Roles\\RolePermissionConnectionException",
+        "AzGuard\\Roles\\RolePermissionSelection",
+        "AzGuard\\Roles\\RolePermissionSyncConflictException",
+        "AzGuard\\Roles\\RolePermissionSyncResult",
+        "AzGuard\\Roles\\RolePermissionSynchronizer",
+        "AzGuard\\Roles\\SuperAdminRole",
+        "AzGuard\\Scaffold\\GuardScaffoldGenerator"
+      ]
+    },
+    "context": {
+      "internal": [
+        "AzGuard\\Context\\ContextGrantBuilderFactory"
+      ],
+      "unclassified": [
+        "AzGuard\\Context\\AuthorizationContext",
+        "AzGuard\\Context\\AuthorizationContextManager",
+        "AzGuard\\Context\\AzGuardContextServiceProvider",
+        "AzGuard\\Context\\Commands\\ContextGrantCommand",
+        "AzGuard\\Context\\Commands\\ContextRevokeCommand",
+        "AzGuard\\Context\\ContextGrantBuilder",
+        "AzGuard\\Context\\ContextGuard",
+        "AzGuard\\Context\\ContextNotSetException",
+        "AzGuard\\Context\\ContextPermissionLayer",
+        "AzGuard\\Context\\Contracts\\MergeStrategy",
+        "AzGuard\\Context\\Contracts\\ResolvesContext",
+        "AzGuard\\Context\\Events\\ContextGrantGiven",
+        "AzGuard\\Context\\Events\\ContextGrantRevoked",
+        "AzGuard\\Context\\Middleware\\SetAuthorizationContext",
+        "AzGuard\\Context\\Models\\ContextRole",
+        "AzGuard\\Context\\Strategies\\ContextOnlyStrategy",
+        "AzGuard\\Context\\Strategies\\DenyWithoutContextStrategy",
+        "AzGuard\\Context\\Strategies\\GlobalPlusContextStrategy"
+      ]
+    },
+    "filament": {
+      "unclassified": [
+        "AzGuard\\Filament\\AzGuardFilamentServiceProvider",
+        "AzGuard\\Filament\\AzGuardPlugin",
+        "AzGuard\\Filament\\Commands\\GenerateFilamentPermissionsCommand",
+        "AzGuard\\Filament\\Concerns\\HasAzGuardPage",
+        "AzGuard\\Filament\\Concerns\\HasAzGuardWidget",
+        "AzGuard\\Filament\\Pages\\DoctorPage",
+        "AzGuard\\Filament\\Permissions\\FilamentActions",
+        "AzGuard\\Filament\\Permissions\\FilamentDiscovery",
+        "AzGuard\\Filament\\Permissions\\FilamentPermissionCatalogBuilder",
+        "AzGuard\\Filament\\Permissions\\PageWidgetAccessEvaluator",
+        "AzGuard\\Filament\\Permissions\\PermissionDiscovery",
+        "AzGuard\\Filament\\Permissions\\PermissionEnumGenerator",
+        "AzGuard\\Filament\\Permissions\\PermissionSchema",
+        "AzGuard\\Filament\\Permissions\\PermissionSubject",
+        "AzGuard\\Filament\\Permissions\\PolicyGenerator",
+        "AzGuard\\Filament\\Permissions\\ResourceGate",
+        "AzGuard\\Filament\\Resources\\DirectGrantResource",
+        "AzGuard\\Filament\\Resources\\DirectGrantResource\\Pages\\CreateDirectGrant",
+        "AzGuard\\Filament\\Resources\\DirectGrantResource\\Pages\\ListDirectGrants",
+        "AzGuard\\Filament\\Resources\\RoleResource",
+        "AzGuard\\Filament\\Resources\\RoleResource\\Pages\\CreateRole",
+        "AzGuard\\Filament\\Resources\\RoleResource\\Pages\\EditRole",
+        "AzGuard\\Filament\\Resources\\RoleResource\\Pages\\ListRoles",
+        "AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RolePermissionsRelationManager",
+        "AzGuard\\Filament\\Resources\\RoleResource\\RelationManagers\\RoleUsersRelationManager"
+      ]
+    }
+  },
+  "cross_package_imports": [
+    {
+      "from": "packages/context/src/AuthorizationContext.php",
+      "line": 7,
+      "to": "packages/core/src/Contracts/PermissionContext.php",
+      "type": "AzGuard\\Contracts\\PermissionContext",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/AzGuardContextServiceProvider.php",
+      "line": 15,
+      "to": "packages/core/src/Contracts/ContextGrantBuilderFactory.php",
+      "type": "AzGuard\\Contracts\\ContextGrantBuilderFactory",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/AzGuardContextServiceProvider.php",
+      "line": 16,
+      "to": "packages/core/src/Contracts/ContextGuard.php",
+      "type": "AzGuard\\Contracts\\ContextGuard",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/AzGuardContextServiceProvider.php",
+      "line": 17,
+      "to": "packages/core/src/Contracts/PermissionLayer.php",
+      "type": "AzGuard\\Contracts\\PermissionLayer",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/AzGuardContextServiceProvider.php",
+      "line": 18,
+      "to": "packages/core/src/Contracts/PermissionResolverInterface.php",
+      "type": "AzGuard\\Contracts\\PermissionResolverInterface",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/Commands/ContextGrantCommand.php",
+      "line": 7,
+      "to": "packages/core/src/Commands/Concerns/ResolvesUserModel.php",
+      "type": "AzGuard\\Commands\\Concerns\\ResolvesUserModel",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/Commands/ContextRevokeCommand.php",
+      "line": 7,
+      "to": "packages/core/src/Commands/Concerns/ResolvesUserModel.php",
+      "type": "AzGuard\\Commands\\Concerns\\ResolvesUserModel",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 10,
+      "to": "packages/core/src/Contracts/ContextGrantBuilder.php",
+      "type": "AzGuard\\Contracts\\ContextGrantBuilder",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 11,
+      "to": "packages/core/src/Exceptions/PanelNotSetException.php",
+      "type": "AzGuard\\Exceptions\\PanelNotSetException",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 12,
+      "to": "packages/core/src/Panels/PanelResolver.php",
+      "type": "AzGuard\\Panels\\PanelResolver",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 13,
+      "to": "packages/core/src/Permissions/PermissionKey.php",
+      "type": "AzGuard\\Permissions\\PermissionKey",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 14,
+      "to": "packages/core/src/Permissions/PermissionName.php",
+      "type": "AzGuard\\Permissions\\PermissionName",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilder.php",
+      "line": 15,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilderFactory.php",
+      "line": 7,
+      "to": "packages/core/src/Contracts/ContextGrantBuilder.php",
+      "type": "AzGuard\\Contracts\\ContextGrantBuilder",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextGrantBuilderFactory.php",
+      "line": 8,
+      "to": "packages/core/src/Contracts/ContextGrantBuilderFactory.php",
+      "type": "AzGuard\\Contracts\\ContextGrantBuilderFactory",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextGuard.php",
+      "line": 7,
+      "to": "packages/core/src/Contracts/ContextGuard.php",
+      "type": "AzGuard\\Contracts\\ContextGuard",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextGuard.php",
+      "line": 8,
+      "to": "packages/core/src/Contracts/PermissionResolverInterface.php",
+      "type": "AzGuard\\Contracts\\PermissionResolverInterface",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextNotSetException.php",
+      "line": 7,
+      "to": "packages/core/src/Exceptions/AzGuardException.php",
+      "type": "AzGuard\\Exceptions\\AzGuardException",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/context/src/ContextPermissionLayer.php",
+      "line": 8,
+      "to": "packages/core/src/Contracts/PermissionLayer.php",
+      "type": "AzGuard\\Contracts\\PermissionLayer",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/ContextPermissionLayer.php",
+      "line": 9,
+      "to": "packages/core/src/Registry/Values/PermissionSet.php",
+      "type": "AzGuard\\Registry\\Values\\PermissionSet",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/Contracts/MergeStrategy.php",
+      "line": 7,
+      "to": "packages/core/src/Registry/Values/PermissionSet.php",
+      "type": "AzGuard\\Registry\\Values\\PermissionSet",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/Models/ContextRole.php",
+      "line": 7,
+      "to": "packages/core/src/Concerns/RevisionedPermissionModelWrites.php",
+      "type": "AzGuard\\Concerns\\RevisionedPermissionModelWrites",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/context/src/Models/ContextRole.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Resolver/PermissionCache.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionCache",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/context/src/Models/ContextRole.php",
+      "line": 9,
+      "to": "packages/core/src/Registry/Resolver/SubjectIdentity.php",
+      "type": "AzGuard\\Registry\\Resolver\\SubjectIdentity",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/context/src/Strategies/ContextOnlyStrategy.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Values/PermissionSet.php",
+      "type": "AzGuard\\Registry\\Values\\PermissionSet",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/Strategies/DenyWithoutContextStrategy.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Values/PermissionSet.php",
+      "type": "AzGuard\\Registry\\Values\\PermissionSet",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/context/src/Strategies/GlobalPlusContextStrategy.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Values/PermissionSet.php",
+      "type": "AzGuard\\Registry\\Values\\PermissionSet",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/filament/src/AzGuardPlugin.php",
+      "line": 10,
+      "to": "packages/core/src/Panels/PanelResolver.php",
+      "type": "AzGuard\\Panels\\PanelResolver",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Pages/DoctorPage.php",
+      "line": 8,
+      "to": "packages/core/src/Guard/AzGuardDiagnostics.php",
+      "type": "AzGuard\\Guard\\AzGuardDiagnostics",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Pages/DoctorPage.php",
+      "line": 9,
+      "to": "packages/core/src/Runtime/RequestState.php",
+      "type": "AzGuard\\Runtime\\RequestState",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/filament/src/Permissions/FilamentPermissionCatalogBuilder.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Contracts/PermissionCatalogBuilder.php",
+      "type": "AzGuard\\Registry\\Contracts\\PermissionCatalogBuilder",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/filament/src/Permissions/PermissionSchema.php",
+      "line": 7,
+      "to": "packages/core/src/Registry/Contracts/PermissionDefinition.php",
+      "type": "AzGuard\\Registry\\Contracts\\PermissionDefinition",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/filament/src/Permissions/PermissionSchema.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Definitions/SimplePermissionDefinition.php",
+      "type": "AzGuard\\Registry\\Definitions\\SimplePermissionDefinition",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Permissions/PermissionSchema.php",
+      "line": 9,
+      "to": "packages/core/src/Registry/Definitions/SimplePermissionMeta.php",
+      "type": "AzGuard\\Registry\\Definitions\\SimplePermissionMeta",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource/Pages/CreateDirectGrant.php",
+      "line": 7,
+      "to": "packages/core/src/AzGuardManager.php",
+      "type": "AzGuard\\AzGuardManager",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource.php",
+      "line": 7,
+      "to": "packages/core/src/AzGuardManager.php",
+      "type": "AzGuard\\AzGuardManager",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource.php",
+      "line": 8,
+      "to": "packages/core/src/Configuration/Config.php",
+      "type": "AzGuard\\Configuration\\Config",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource.php",
+      "line": 11,
+      "to": "packages/core/src/Models/DirectGrant.php",
+      "type": "AzGuard\\Models\\DirectGrant",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource.php",
+      "line": 12,
+      "to": "packages/core/src/Registry/Contracts/PermissionCatalog.php",
+      "type": "AzGuard\\Registry\\Contracts\\PermissionCatalog",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/filament/src/Resources/DirectGrantResource.php",
+      "line": 13,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/Pages/CreateRole.php",
+      "line": 8,
+      "to": "packages/core/src/Models/Role.php",
+      "type": "AzGuard\\Models\\Role",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/Pages/CreateRole.php",
+      "line": 9,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/Pages/EditRole.php",
+      "line": 10,
+      "to": "packages/core/src/Models/Role.php",
+      "type": "AzGuard\\Models\\Role",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/Pages/EditRole.php",
+      "line": 11,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 7,
+      "to": "packages/core/src/AzGuardManager.php",
+      "type": "AzGuard\\AzGuardManager",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 8,
+      "to": "packages/core/src/Models/Role.php",
+      "type": "AzGuard\\Models\\Role",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 9,
+      "to": "packages/core/src/Models/RolePermission.php",
+      "type": "AzGuard\\Models\\RolePermission",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 10,
+      "to": "packages/core/src/Registry/Contracts/PermissionCatalog.php",
+      "type": "AzGuard\\Registry\\Contracts\\PermissionCatalog",
+      "target_status": "api"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 11,
+      "to": "packages/core/src/Roles/RolePermissionSelection.php",
+      "type": "AzGuard\\Roles\\RolePermissionSelection",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 12,
+      "to": "packages/core/src/Roles/RolePermissionSyncConflictException.php",
+      "type": "AzGuard\\Roles\\RolePermissionSyncConflictException",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RolePermissionsRelationManager.php",
+      "line": 13,
+      "to": "packages/core/src/Roles/RolePermissionSynchronizer.php",
+      "type": "AzGuard\\Roles\\RolePermissionSynchronizer",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RoleUsersRelationManager.php",
+      "line": 7,
+      "to": "packages/core/src/Models/Role.php",
+      "type": "AzGuard\\Models\\Role",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource/RelationManagers/RoleUsersRelationManager.php",
+      "line": 8,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource.php",
+      "line": 7,
+      "to": "packages/core/src/Configuration/Config.php",
+      "type": "AzGuard\\Configuration\\Config",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource.php",
+      "line": 11,
+      "to": "packages/core/src/Models/Role.php",
+      "type": "AzGuard\\Models\\Role",
+      "target_status": "unclassified"
+    },
+    {
+      "from": "packages/filament/src/Resources/RoleResource.php",
+      "line": 12,
+      "to": "packages/core/src/Registry/Resolver/PermissionStateRevision.php",
+      "type": "AzGuard\\Registry\\Resolver\\PermissionStateRevision",
+      "target_status": "internal"
+    }
+  ]
+}

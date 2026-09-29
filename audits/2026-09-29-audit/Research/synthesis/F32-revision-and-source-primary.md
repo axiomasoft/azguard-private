@@ -1,0 +1,38 @@
+# F32 — revision-and-source-primary
+
+**Статус:** точечный Perplexity synthesis; первичные факты сверяются отдельно, ответ не является доказательством поведения репозитория.
+
+## Данный контекст и пробел
+
+Earlier R04 studied revision-key consistency ASSUMING the revision read came from write/primary connection. Current PHP method PermissionStateRevision::current() calls $this->connection()->table(...)->where('id',1)->first() without useWritePdo(). EffectivePermissionResolver global sources use ordinary SELECTs too; a logical Laravel connection may have read and write hosts. Revision bump and grant write happen in one DB transaction; Redis cache key includes revision.
+
+## Вопрос
+
+For Laravel 13 read/write split, decide precisely whether BOTH revision and grant-source reads must target primary to claim no stale allow for checks started after revoke commit. Analyze two schedules: stale revision+old cached key, fresh revision+lagged grant data written into fresh cache key. Compare useWritePdo, forced write connection, replica wait token, and advertised eventual consistency. Include SQL isolation/in-flight boundary and a minimal verification test topology. Cite official Laravel database docs and a primary DB source; avoid broad cache discussion.
+
+## Ответ
+
+Для строгого обещания «проверки, начатые после commit отзыва, не разрешат доступ по старым данным» направляйте на primary и чтение ревизии, и все чтения grant-источников. Для ревизии используйте useWritePdo(); для grant-источников — то же на каждом запросе либо отдельное гарантированное подключение к primary. Только useWritePdo() у ревизии недостаточно: свежая ревизия может сочетаться с устаревшими grant-данными и попасть под новый cache key. Это мой проектный вывод из заданных условий, не утверждение о просмотре репозитория.
+
+## Две гонки
+
+- Старая ревизия → старый cache key. После commit отзыва чтение current() с реплики может вернуть прежнюю ревизию. Тогда resolver найдёт старый закешированный allow. Чтение ревизии с primary исключает именно этот путь, если запрос к primary видит commit.
+- Новая ревизия → старые grants → новый cache key. Даже прочитав актуальную ревизию с primary, resolver, читающий grants с лагающей реплики, может получить старое разрешение и сохранить его уже под свежей ревизией. Поэтому все источники, формирующие permission state, должны читать согласованное актуальное состояние; cache key не исправляет устаревший источник.
+Laravel документирует раздельные read/write hosts и sticky как переключение на write после записи в рамках текущего request cycle; это не гарантия, что любой новый запрос после чужого commit прочитает primary. useWritePdo() явно направляет конкретный SELECT на write PDO.
+
+## Альтернативы
+
+- useWritePdo(): достаточен для каждого конкретного query builder запроса, если write PDO действительно ведёт к primary. Нужно применить к ревизии и каждому grant-read, а не только к одному из них.
+- Принудительное write-соединение: уместно, если проще гарантировать, что все permission reads используют отдельное подключение без read-host маршрутизации. По сути тот же инвариант; проверьте конфигурацию/прокси, чтобы write endpoint не перенаправлял SELECT на реплику.
+- Replica wait token: потенциальная альтернатива только если commit выдаёт позицию/токен и выбранная реплика гарантированно применяет как минимум эту позицию до чтений обоих типов данных. Одного ожидания по ревизии недостаточно, если grants читаются с другого replica endpoint или snapshot.
+- Явная eventual consistency: допустимо только если продукт не обещает немедленное прекращение доступа после commit и принимает окно устаревшего allow. Это не выполняет поставленное строгое требование.
+
+## Граница и проверка
+
+Граница обещания — момент, когда началась проверка: конкурентная проверка, уже прочитавшая данные до commit, может завершиться после него со старым результатом. На primary транзакционное чтение всё равно подчиняется уровню изоляции: например, в PostgreSQL READ COMMITTED SELECT видит snapshot на начало команды, а в REPEATABLE READ транзакция сохраняет snapshot от её начала. Поэтому транзакция проверки, начатая до commit отзыва, не обязана увидеть отзыв даже при чтении с primary.
+Минимальный integration test: primary + реплика с управляемой задержкой применения; прогреть allow/cache, выполнить отзыв и bump ревизии одной транзакцией, дождаться commit, не снимая задержку репликации, затем запустить новую проверку и требовать deny. Отдельно подтвердить маршрутизацию SQL обеих выборок на primary. Успех теста без реплики или без намеренно устаревших данных не проверяет ни одну из двух гонок.
+
+Sources:
+1. [Документация Laravel 13](https://laravel.com/docs/13.x/database)
+2. [API Laravel 13](https://api.laravel.com/docs/13.x/Illuminate/Database/Query/Builder.html)
+3. [PostgreSQL: Transaction Isolation](https://www.postgresql.org/docs/current/transaction-iso.html)

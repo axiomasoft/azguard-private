@@ -1,7 +1,7 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/make-workflow.md
 Canonical SHA-256: sha256:d1bd1f94d90501e252b007d22a680d2fe51748e5786006e6afd9ffb5cd31f13a
-Adapter: task.codex-command/1.0.16
+Adapter: task.codex-command/1.0.17
 -->
 Активируй только для явного запроса создать workflow-скрипт. Обычная разработка или исследование
 не требуют этого контура. Это АВТОРИНГ workflow-скрипта. Ввод

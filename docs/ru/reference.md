@@ -27,3 +27,17 @@ Perplexity использован для поиска первоисточник
 
 Версионные ветки подвижны: перед изменением поведения на другой версии сверять installed
 source. Извлечённые материалы не vendored и не являются инструкциями исполнителю.
+
+## Архитектурный аудит 2026-09-29
+
+Проверенные напрямую внешние источники и границы выводов записаны в
+`audits/2026-09-29-audit/Research/primary-sources.md` в репозитории.
+Perplexity применялся для поиска и сравнения, опорные факты сверены с
+[Laravel 13 authorization](https://laravel.com/docs/13.x/authorization),
+[Eloquent events](https://laravel.com/docs/13.x/eloquent#events),
+[read/write connections](https://laravel.com/docs/13.x/database#read-and-write-connections),
+[Filament 5 Resources](https://filamentphp.com/docs/5.x/resources/overview),
+[PHPStan internal symbols](https://phpstan.org/writing-php-code/phpdocs-basics#internal-symbols),
+[OWASP Multi Tenant Security](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html),
+[Cedar authorization](https://docs.cedarpolicy.com/auth/authorization.html) и
+[Composer path repositories](https://getcomposer.org/doc/05-repositories.md#path).

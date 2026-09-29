@@ -1,0 +1,30 @@
+{
+    "php_version": "8.4.1",
+    "scope": "No DB\/cache backend access; demonstrates registry\/value\/discriminator behavior only, not an end-to-end privilege escalation.",
+    "accepted_panel_ids": [
+        "",
+        "a.b",
+        "*",
+        "a\nb"
+    ],
+    "duplicate_panel_replaced": true,
+    "registry_keys_after_mutation": [
+        "app"
+    ],
+    "registered_object_id_after_mutation": "changed",
+    "distinct_contexts": true,
+    "left_context": {
+        "type": "workspace:a",
+        "id": 7
+    },
+    "right_context": {
+        "type": "workspace",
+        "id": "a:7"
+    },
+    "left_discriminator": "ctx:workspace:a:7",
+    "right_discriminator": "ctx:workspace:a:7",
+    "discriminator_collision": true,
+    "context_guard_injected_error": "Controlled extension invalidation failure",
+    "context_guard_previous_restored": false,
+    "context_guard_after_error_id": "temporary"
+}

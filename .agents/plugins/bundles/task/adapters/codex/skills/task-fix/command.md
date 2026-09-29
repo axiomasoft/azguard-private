@@ -1,7 +1,7 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/fix.md
 Canonical SHA-256: sha256:fbb5d186d8100ec8fd136b5b9d17aabc1d6b949bfc3ba4cc40c2947889d7e693
-Adapter: task.codex-command/1.0.16
+Adapter: task.codex-command/1.0.17
 -->
 Это МЕЛКАЯ инкрементальная правка. Ввод пользователя: «$ARGUMENTS».
 Применяй общий opt-in контракт `references/intent-routing.md` из установленного пакета Task.

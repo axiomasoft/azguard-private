@@ -8,7 +8,7 @@ description: "Only when explicitly invoked. Explicit design request: produce a p
 Generated Codex adapter for semantic command `task:design`.
 
 - Invocation: `$ task:design <arguments>`
-- Routing: `frontier/high -> gpt-5.6-sol/high`
+- Routing: `frontier/high -> gpt-6-astra/high`
 - Canonical source: `packages/task/commands/design.md`
 - Canonical SHA-256: `sha256:06f407bd9341ea0fe1973a9f857e2c529e457fe6cbf325b0a64c59c30d12d3c1`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)

@@ -8,7 +8,7 @@ description: "Only when explicitly invoked. Execute authorized Task plan items u
 Generated Codex adapter for semantic command `task:plan-exec`.
 
 - Invocation: `$ task:plan-exec <arguments>`
-- Routing: `implementation/medium -> gpt-5.6-terra/medium`
+- Routing: `implementation/medium -> gpt-6-sol/medium`
 - Canonical source: `packages/task/commands/plan-exec.md`
 - Canonical SHA-256: `sha256:9cf2b9df3668132211fa5051765f1a2c870022992f09db15c40cde97e016cdb8`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)

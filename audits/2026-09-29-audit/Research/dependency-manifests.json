@@ -1,0 +1,85 @@
+{
+  "filament-panels-5.x": {
+    "url": "https://raw.githubusercontent.com/filamentphp/filament/5.x/packages/panels/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "edefd200e1d9a790786943f7f8749377578341f3a4784e9cc8e02ba6c456c294",
+    "name": "filament/filament",
+    "relevant_require": {
+      "php": "^8.2",
+      "composer-runtime-api": "^2.1",
+      "filament/support": "self.version"
+    }
+  },
+  "filament-support-5.x": {
+    "url": "https://raw.githubusercontent.com/filamentphp/filament/5.x/packages/support/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "aa04452e505e6f304060eb7b40b8278264de9ede94943be4649f4a57087fe8c9",
+    "name": "filament/support",
+    "relevant_require": {
+      "php": "^8.2",
+      "composer-runtime-api": "^2.1",
+      "illuminate/contracts": "^11.28|^12.0|^13.0",
+      "livewire/livewire": "^4.4.2"
+    }
+  },
+  "pest-4.x": {
+    "url": "https://raw.githubusercontent.com/pestphp/pest/4.x/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "3a05f506a5718749b7f9ba812235e3088face3bd36ba1025a7303c3115dd19f5",
+    "name": "pestphp/pest",
+    "relevant_require": {
+      "php": "^8.3.0",
+      "pestphp/pest-plugin-mutate": "^4.0.1",
+      "phpunit/phpunit": "^12.5.33"
+    }
+  },
+  "testbench-9.x": {
+    "url": "https://raw.githubusercontent.com/orchestral/testbench/9.x/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "a723edf1f648d2ebaae304174c33b86e0b7b94952ca045ddf3e7d6b2b20f2ccb",
+    "name": "orchestra/testbench",
+    "relevant_require": {
+      "php": "^8.2",
+      "composer-runtime-api": "^2.2",
+      "laravel/framework": "^11.56.1",
+      "orchestra/testbench-core": "^9.23.0",
+      "phpunit/phpunit": "^10.5.35|^11.3.6|^12.0.1"
+    }
+  },
+  "testbench-10.x": {
+    "url": "https://raw.githubusercontent.com/orchestral/testbench/10.x/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "efc5850b61472303e9392b1f29d8ac4ba706a3097e64625c882221a25b1c00c7",
+    "name": "orchestra/testbench",
+    "relevant_require": {
+      "php": "^8.2",
+      "composer-runtime-api": "^2.2",
+      "laravel/framework": "^12.69.2",
+      "orchestra/testbench-core": "^10.15.0",
+      "phpunit/phpunit": "^11.5.3|^12.0.1|^13.0.0"
+    }
+  },
+  "testbench-11.x": {
+    "url": "https://raw.githubusercontent.com/orchestral/testbench/11.x/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "7032467dda52d7eb5a0ba48b91f61107e7b3cd3bd0f4f5ed88a8e70f77af87ca",
+    "name": "orchestra/testbench",
+    "relevant_require": {
+      "php": "^8.3",
+      "composer-runtime-api": "^2.2",
+      "laravel/framework": "^13.32.0",
+      "orchestra/testbench-core": "^11.5.0",
+      "phpunit/phpunit": "^11.5.50|^12.5.8|^13.0.0"
+    }
+  },
+  "laravel-13.x": {
+    "url": "https://raw.githubusercontent.com/laravel/framework/13.x/composer.json",
+    "checked_date": "2026-09-29",
+    "sha256": "569e7ab8a687a35d011999d64e2380dbda1cdb0e4c657cb310fcdbf19dee2a1a",
+    "name": "laravel/framework",
+    "relevant_require": {
+      "php": "^8.3",
+      "composer-runtime-api": "^2.2"
+    }
+  }
+}

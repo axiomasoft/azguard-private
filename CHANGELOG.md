@@ -8,6 +8,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **docs:** Архитектурный аудит от 2026-09-29 дополнен самостоятельными находками, вариантами redesign и Research с первичными источниками и воспроизводимыми probes.
 - **core:** `PermissionSet::validUntil()` / `withValidUntil()` carry an optional absolute grant deadline. Request and durable caches reject a hit at that instant and store a strict `{version, keys, valid_until}` envelope; a custom source without a deadline still follows the configured TTL (plan P1.2 / D3).
 - **core:** Role-permission edits go through one transactional synchronizer. Filament edits only the rendered catalog keys and rejects a stale fingerprint; CLI add/remove stay one-key and `sync --panel` replaces that panel (plan P2.1 / D13).
 - **core:** Official authorization mutations bump a global `az_guard_permission_state` revision on the same connection. Request, durable and scoped-role caches key by that revision and bypass all reusable tiers inside a transaction (plan P2.2 / D13).

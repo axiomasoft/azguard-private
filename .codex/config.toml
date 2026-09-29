@@ -123,7 +123,7 @@ enabled = false
 enabled = false
 
 [plugins."oss-dev@swissknifeman"]
-enabled = true
+enabled = false
 
 [plugins."php@swissknifeman"]
 enabled = true
@@ -156,7 +156,7 @@ enabled = false
 enabled = false
 
 [plugins."system@swissknifeman"]
-enabled = true
+enabled = false
 
 [plugins."task@swissknifeman"]
 enabled = true
