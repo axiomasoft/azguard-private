@@ -2,30 +2,29 @@
 
 Решения: [D33](02-decisions.md#d33), [D34](02-decisions.md#d34), [D45](02-decisions.md#d45), [D46](02-decisions.md#d46).
 
-## 1. Где что настраивается — простыми словами
+## 1. Где что настраивается
 
 | Где | Что там | Пример |
 |---|---|---|
-| `config/azguard.php` | то, что **общее** для приложения: список панелей, хранилища, типы ключей хоста, расписание — и **значения по умолчанию** для всех панелей | `defaults.cache.ttl = 3600` |
-| `PanelProvider` панели | всё **особенное** для панели | у `site` кэш 6 часов и контексты магазина |
-| плагин | настройки, которые плагин приносит панели, если провайдер их не задал | плагин аудита включает наблюдение |
-| `config/azguard-filament.php` | значения по умолчанию для Filament-плагина | какую guard panel показывать |
+| `config/azguard.php` | то, что **общее** для приложения: список панелей, хранилища, тип ключей, расписание — и **значения по умолчанию** для всех панелей | `defaults.cache.ttl = 3600` |
+| `PanelProvider` панели | всё **особенное** для панели: субъекты, механики, контексты, суперадмин, хуки | у `cabinet` нет БД, у `admin` есть |
+| плагин | значения, которые плагин приносит панели, если провайдер их не задал | плагин аудита включает журнал |
+| `AzGuard::configurePanels()` | одна настройка для всех панелей в коде (можно с замыканием) | общее правило суперадмина |
+| `config/azguard-filament.php` | значения по умолчанию для Filament-плагина | какую панель AzGuard показывать |
 
-Эффективная настройка панели: **провайдер панели → плагины (в порядке подключения) → `defaults` из конфига**.
-Команда `azguard:panels:list --settings` показывает итоговое значение и откуда оно пришло.
+Итоговая настройка панели: **провайдер панели → плагины (в порядке подключения) → `configurePanels()` → `defaults` из
+конфига**. Команда `azguard:panels:list --settings` показывает итоговое значение и откуда оно пришло.
 
 Принципы (общие инженерные правила экосистемы, D43):
 
 1. Файл на пакет: `config/azguard.php`, `config/azguard-filament.php`.
-2. Схемо-влияющие параметры (хранилища, `ids.host_keys`) фиксируются в таблице состояния хранилища; doctor
-   сравнивает с конфигом.
-3. Один канонический ключ на понятие; `ConfigNormalizer` переводит `az-guard.*` с `E_USER_DEPRECATED` до 1.0;
-   «старый и новый заданы по-разному» → `InvalidConfigurationException`.
-4. Типизированный доступ: readonly `AzGuardConfig` читает через `Config\Repository` без кэширования; `config('azguard…')`
-   вне `Configuration\` запрещён arch-тестом.
-5. Ошибки безопасности — исключение при boot во всех окружениях; наблюдаемость — warning.
-6. Замыкания в конфиге запрещены (`config:cache`); замыкания допустимы в коде провайдера панели.
-7. Инварианты не настраиваются ([D45](02-decisions.md#d45)).
+2. Параметры, влияющие на схему БД (хранилища, `ids.host_keys`), фиксируются в таблице состояния хранилища; doctor
+   сравнивает их с конфигом.
+3. Один ключ на понятие. Старых ключей и нормализатора нет ([D01](02-decisions.md#d01)).
+4. Типизированный доступ: readonly `AzGuardConfig`; `config('azguard…')` вне `Configuration\` запрещён arch-тестом.
+5. Ошибки безопасности — исключение при загрузке во всех окружениях; наблюдаемость — предупреждение.
+6. Замыканий в конфиге нет (`config:cache`); замыкания допустимы в коде провайдера панели.
+7. Гарантии D45 не настраиваются.
 
 ## 2. `config/azguard.php`
 
@@ -33,14 +32,14 @@
 return [
     'panels' => [
         'providers' => [
+            // App\Authorization\Panels\CabinetPanelProvider::class,
             // App\Authorization\Panels\AdminPanelProvider::class,
-            // App\Authorization\Panels\SitePanelProvider::class,
         ],
     ],
 
     'storages' => [
         'default' => [
-            'connection' => env('AZGUARD_DB_CONNECTION'),   // null = соединение по умолчанию
+            'connection' => env('AZGUARD_DB_CONNECTION'),   // null = подключение по умолчанию
             'table_prefix' => 'azg_',
             'host_keys' => null,                             // null = ids.host_keys
         ],
@@ -52,37 +51,25 @@ return [
     ],
 
     'defaults' => [                                          // значения по умолчанию для всех панелей
-        'plugins' => [                                       // встроенные плагины, подключаемые к каждой панели
-            'azguard/roles', 'azguard/direct-grants', 'azguard/contexts', 'azguard/superadmin', 'azguard/access',
-        ],
+        'database' => true,                                  // механика «роли и права в БД» включена, пока панель не скажет иначе
         'models' => [
             'role' => \AzGuard\Storage\Models\Role::class,
             'role_permission' => \AzGuard\Storage\Models\RolePermission::class,
             'role_assignment' => \AzGuard\Storage\Models\RoleAssignment::class,
-            'direct_grant' => \AzGuard\Storage\Models\DirectGrant::class,
+            'direct_permission' => \AzGuard\Storage\Models\DirectPermission::class,
         ],
-        'subjects' => [
-            'guard' => null,                                 // null = guard по умолчанию
-            'resolver' => \AzGuard\Authorization\Subjects\ModelSubjectResolver::class,
-            'directory' => \AzGuard\Authorization\Subjects\GuardSubjectDirectory::class,
-            'label_column' => 'name',
+        'super_admin' => [
+            'role' => 'superadmin',                          // null — правило по роли не действует
+            'when' => null,                                  // класс SuperAdminRule, например App\Authorization\IsRoot
         ],
         'contexts' => [
             'resolvers' => [],
         ],
         'gate' => [
-            'mode' => 'authoritative',                       // authoritative | additive (deprecated к 1.0)
-            'superadmin_scope' => 'owned',                   // owned | all
-        ],
-        'superadmin' => [
-            'bypass_restrictions' => false,
-        ],
-        'administration' => [
-            'prevent_escalation' => true,
-            'direct_writes' => 'warn',                       // warn | throw (throw в local/testing)
+            'mode' => 'authoritative',                       // authoritative | additive
         ],
         'cache' => [
-            'store' => null,                                 // null = только request-кэш
+            'store' => null,                                 // null = только кэш в пределах запроса
             'ttl' => 3600,
             'generation' => 1,
         ],
@@ -90,7 +77,8 @@ return [
             'reads' => 'primary',                            // primary | default
             'state_refresh' => 'request',                    // request | check
         ],
-        'trace_decisions' => false,                          // AccessDecided на каждую проверку (диагностика)
+        'direct_writes' => 'strict',                         // strict (исключение в local/testing, warning в production) | warn
+        'trace_decisions' => false,                          // событие AccessDecided на каждую проверку (диагностика)
     ],
 
     'gate' => [
@@ -115,21 +103,23 @@ return [
 
 ## 3. Настройки в провайдере панели
 
-Полный список методов — [05 §3](05-php-api.md#3-панели). Типичный пример:
+Полный список методов — [05 §4](05-php-api.md#4-описание-панели-panelprovider-и-panelbuilder). Пример:
 
 ```php
 public function panel(PanelBuilder $panel): PanelBuilder
 {
     return $panel
-        ->id('site')
-        ->subjects(guard: 'web', models: [Customer::class])
-        ->permissions(ShopPermission::class)
-        ->contexts(ContextPolicy::inherit('store')->requireMembership(StoreMembership::class))
-        ->storage('default')
+        ->id('seller')
+        ->subjects(User::class, guard: 'web')
+        ->middleware(['web', 'auth:web'])
+        ->entry(SellerPermission::Access)
+        ->permissions(SellerPermission::class)
+        ->roles(SellerRole::class)
+        ->relation(Store::class, via: 'staff', role: 'pivot.role')
+        ->database(directPermissions: false)               // только роли, без прямых прав
+        ->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')))
         ->cache(ttl: 21600)
-        ->consistency(refresh: StateRefresh::Request)
-        ->gate(GateMode::Authoritative)
-        ->withoutPlugin('azguard/direct-grants');   // на сайте прямые права не выдаём
+        ->superAdmin(false);
 }
 ```
 
@@ -137,55 +127,38 @@ public function panel(PanelBuilder $panel): PanelBuilder
 
 ```php
 return [
-    // Значения по умолчанию для AzGuardPlugin; fluent-вызовы плагина побеждают и не пишутся обратно в config.
+    // Значения по умолчанию для AzGuardPlugin; вызовы плагина в провайдере Filament-панели побеждают
     'guard_panel' => 'admin',
-    'manages' => null,                       // панели AzGuard, видимые в админке; null = все
+    'manages' => null,                       // панели AzGuard, чьими ролями управляет админка; null = все с механикой БД
     'enforce' => true,
-    'source' => 'database',                  // database | enum
     'abilities' => ['view_any', 'view', 'create', 'update', 'delete', 'restore', 'force_delete', 'replicate', 'reorder'],
-    'key' => '{panel}.{resource}.{ability}',
+    'key' => '{resource}.{ability}',         // локальное имя; панель — guard_panel
     'resource_segment' => 'slug',            // slug (Resource::getSlug()) | model (morph alias)
     'pages' => ['ability' => 'view'],
     'widgets' => ['ability' => 'view'],
-    'exclude' => ['resources' => [], 'pages' => [\Filament\Resources\Pages\CreateRecord::class], 'widgets' => []],
+    'exclude' => ['resources' => [], 'pages' => [], 'widgets' => []],
     'generation' => ['enum_namespace' => 'App\\Authorization\\Filament', 'enum_path' => 'app/Authorization/Filament'],
 ];
 ```
 
-## 5. Карта устаревших ключей
+## 5. Проверки при запуске
 
-Полная карта — [03 §8](03-glossary-and-renames.md#8-конфигурация). Нормализатор:
-
-| Старый | Новый | Преобразование |
-|---|---|---|
-| `az-guard.panels` | `azguard.panels.providers` | FQCN провайдеров переносятся; провайдер нужно переписать на `panel(PanelBuilder)` — ошибка с подсказкой |
-| `az-guard.column_names.morph_type` | `azguard.ids.host_keys` | `int→bigint`, `ulid`, `uuid` |
-| `az-guard.table_names.*` | `azguard.storages.default.table_prefix` | используется upgrade-миграцией для поиска старых таблиц |
-| `az-guard.models.*` | `azguard.defaults.models.*` | `scope` → `role_assignment` (с предупреждением: модель переписать) |
-| `az-guard.cache.store = 'array'` / `expiration_time` / `generation` | `azguard.defaults.cache.store = null` / `.ttl` / `.generation` | |
-| `az-guard.grant_sources` | `azguard.defaults.plugins` | отсутствие `DirectGrantSource` → убрать `azguard/direct-grants` |
-| `az-guard.features.direct_grants = false` | то же | |
-| `az-guard.features.audit_log` | `azguard.defaults.trace_decisions` | |
-| `az-guard.prune_expired_daily` | `azguard.schedule.prune_expired` | `true→'daily'`, `false→null` |
-| `az-guard-context.resolvers` | `azguard.defaults.contexts.resolvers` | |
-| `az-guard-context.merge_strategy` | — | ошибка с подсказкой: `ContextPolicy` на панели |
-| `az-guard.default_panel`, `strict_panels`, `require_permission_attributes`, `scope.*`, `middleware.*`, `manager`, `resolver`, `matcher`, `abilities_resolver`, `role_permission_validator`, `fail_on_source_exception`, `features.teams`, `teams.*`, `features.wildcard_permission`, `features.validate_role_permissions` | — | `E_USER_DEPRECATED` «ключ удалён, не действует» |
-
-## 6. Проверки при boot (исключение во всех окружениях)
+Исключение во всех окружениях:
 
 | Проверка | Код |
 |---|---|
 | `host_keys` вне списка (глобально или у хранилища) | `invalid_configuration.host_keys` |
-| `cache.ttl = null` при персистентном store (на любой панели) | `invalid_configuration.cache_ttl` |
-| enum-настройки вне списка (`reads`, `state_refresh`, `gate.mode`, `superadmin_scope`, `direct_writes`) | `invalid_configuration.enum` |
-| модель панели не наследует базовую / не совпадает с хранилищем | `storage_mismatch` |
+| `cache.ttl = null` при постоянном store (на любой панели) | `invalid_configuration.cache_ttl` |
+| значения-перечисления вне списка (`reads`, `state_refresh`, `gate.mode`, `direct_writes`) | `invalid_configuration.enum` |
+| модель панели не наследует базовую или не совпадает с хранилищем | `storage_mismatch` |
 | панель ссылается на неизвестное хранилище | `invalid_configuration.storage` |
+| две панели по умолчанию для одной модели | `default_panel_conflict` |
 | панель требует членства, а `ContextMembership` не задан | `invalid_configuration.membership` |
-| ключ плагина/источника/ограничения не `vendor/name` или класс не реализует контракт | `invalid_configuration.extension` |
+| фиксированная роль из связи (`->relation(role: 'owner')`) не существует на панели | `unknown_role` |
+| право привязано к двум политикам | `duplicate_policy_binding` |
 | конфликт настроек между плагинами панели | `plugin_conflict` |
-| отсутствует зависимость плагина | `plugin_dependency_missing` |
+| не хватает зависимости плагина | `plugin_dependency_missing` |
 | `configurePanel()` для незарегистрированной панели | `unknown_panel` |
-| старый и новый ключ заданы по-разному | `invalid_configuration.conflict` |
 
-Warning (лог + doctor): `reads = default` при read-хостах; `gate.mode = additive`; обнаруженные прямые записи в
-production; панель `inherit` с контекстами без членства.
+Предупреждения (лог + doctor): `reads = default` при read-хостах; `gate.mode = additive`; прямые записи моделей в
+production; `inherit` с контекстами без членства; поле из `decisionFields` лежит в `meta`.

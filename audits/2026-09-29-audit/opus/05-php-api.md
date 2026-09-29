@@ -1,79 +1,197 @@
-# 05 — Публичный PHP API (нормативные сигнатуры)
+# 05 — Публичный PHP API
 
-Решения: [D05](02-decisions.md#d05)–[D11](02-decisions.md#d11), [D22](02-decisions.md#d22), [D27](02-decisions.md#d27)–[D29](02-decisions.md#d29),
-[D31](02-decisions.md#d31), [D37](02-decisions.md#d37), [D45](02-decisions.md#d45)–[D50](02-decisions.md#d50).
-Сигнатуры нормативны по именам, типам и смыслу; порядок необязательных параметров можно уточнить в спецификации
-пункта плана. Всё ниже — `@api`, если не сказано иное. Контракты расширения (плагины, шаги пайплайнов) — в [06](06-extension-points.md).
+Решения: [D05](02-decisions.md#d05)–[D11](02-decisions.md#d11), [D14](02-decisions.md#d14), [D19](02-decisions.md#d19),
+[D22](02-decisions.md#d22), [D45](02-decisions.md#d45)–[D55](02-decisions.md#d55).
+Имена, типы и смысл сигнатур обязательны; порядок необязательных параметров можно уточнить в спецификации пункта
+плана. Всё ниже — `@api`, если не сказано иное. Контракты для расширения (источники, хуки, плагины) —
+[06](06-extension-points.md).
 
 ## 0. Как это выглядит целиком
 
 ```php
-// Панель админки: сотрудники, свои модели, аудит, подтверждения
+// Личный кабинет: права из кода и политик, ничего не редактируется; панель по умолчанию для User
+final class CabinetPanelProvider extends PanelProvider
+{
+    public function panel(PanelBuilder $panel): PanelBuilder
+    {
+        return $panel
+            ->id('cabinet')->label('Личный кабинет')->default()
+            ->subjects(User::class, guard: 'web')
+            ->middleware(['web', 'auth:web'])
+            ->permissions(CabinetPermission::class)
+            ->grantToAll(CabinetPermission::ProfileView, CabinetPermission::OrdersList)
+            ->policies(OrderPolicy::class)                         // orders.view решает политика
+            ->relation(Project::class, via: 'members', role: 'pivot.role')
+            ->roles(ProjectEditorRole::class)                      // роль, которую даёт связь
+            ->contexts(ContextPolicy::inherit(Project::class))
+            ->database(false)                                      // ничего не редактируется
+            ->superAdmin(false);
+    }
+}
+
+// Кабинет продавца: автоматическая роль + доступ к своим магазинам
+final class SellerPanelProvider extends PanelProvider
+{
+    public function panel(PanelBuilder $panel): PanelBuilder
+    {
+        return $panel
+            ->id('seller')
+            ->subjects(User::class, guard: 'web')
+            ->entry(SellerPermission::Access)                      // войти может только продавец
+            ->permissions(SellerPermission::class)
+            ->roles(SellerRole::class)                             // appliesTo(): $user->stores()->exists()
+            ->relation(Store::class, via: 'staff', role: 'pivot.role')
+            ->database()                                           // владелец магазина выдаёт доп. права
+            ->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreStaff::class));
+    }
+}
+
+// Админка: роли и права в БД, редактируются в Filament
 final class AdminPanelProvider extends PanelProvider
 {
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel
-            ->id('admin')->label('Админка')
-            ->subjects(guard: 'admin', models: [Admin::class])
-            ->permissions(OrderPermission::class, UserPermission::class)
-            ->roles(SupportRole::class, ManagerRole::class)
-            ->storage('backoffice')                                   // именованное хранилище из конфига
-            ->models(assignment: AdminRoleAssignment::class)          // своя модель с department_id
-            ->decisionAttributes(assignment: ['weekdays'])            // поле участвует в решении
-            ->restrict(OfficeHoursRestriction::class)
-            ->plugins([AuditPlugin::make(), ApprovalPlugin::make()->forRoles('admin:manager')]);
+            ->id('admin')
+            ->subjects(User::class, guard: 'web')
+            ->entry(AdminPermission::Access)
+            ->permissions(AdminPermission::class, OrderPermission::class)
+            ->roles(ManagerRole::class)                            // роль из кода, назначается вручную
+            ->database()
+            ->models(assignment: AdminRoleAssignment::class)       // своё поле department_id
+            ->superAdmin(role: 'superadmin')
+            ->plugin(AuditPlugin::make());
     }
 }
 
-// Панель сайта: покупатели, права внутри магазина
-final class SitePanelProvider extends PanelProvider
-{
-    public function panel(PanelBuilder $panel): PanelBuilder
-    {
-        return $panel
-            ->id('site')
-            ->subjects(guard: 'web', models: [Customer::class])
-            ->permissions(ShopPermission::class)
-            ->roles(BuyerRole::class, StoreOwnerRole::class)
-            ->contexts(ContextPolicy::inherit('store')->requireMembership(StoreMembership::class))
-            ->contextResolvers(RouteParameterResolver::for('store'))
-            ->cache(ttl: 3600);
-    }
-}
-
-// Модуль Blog дополняет админку
-AzGuard::configurePanel('admin', fn (PanelBuilder $p) => $p->plugin(BlogAccessPlugin::make()->keyPrefix('blog')));
-
-// Проверки
-$admin->hasPermission(OrderPermission::Refund);                         // enum подключён к одной панели → admin
-AzGuard::check($customer, 'site.orders.cancel', context: $store);
-Gate::allows('admin.orders.refund');                                     // панель из ключа
-AzGuard::panel('admin')->decideMany($requests);
+// Проверки — панель по умолчанию (cabinet) или панель маршрута
+$user->hasPermissionTo(CabinetPermission::OrdersView, on: $order);
+$user->can('projects.edit', $project);
+$user->inPanel('admin')->hasRole('manager');
+$user->hasPermissionTo('admin:orders.refund');
 
 // Изменения
-AzGuard::panel('admin')->manage()->actingAs($vera)
-    ->assignRole($anna, 'admin:support', expiresAt: now()->addMonth(), attributes: ['department_id' => 7]);
-AzGuard::panel('site')->manage()->asSystem('checkout')
-    ->grantPermission($customer, 'site.reviews.create', context: $store);
+$user->inPanel('seller')->assignRole('store-manager', on: $store);
+$user->inPanel('admin')->assignRole('support', fields: ['department_id' => 7], expiresAt: now()->addMonth());
+AzGuard::panel('admin')->roles()->create('support', label: 'Поддержка', permissions: [OrderPermission::View]);
 ```
 
-## 1. Фасад
+## 1. Модель: трейт `HasAzGuard`
 
 ```php
-namespace AzGuard\Facades;
+namespace AzGuard\Concerns;
 
+trait HasAzGuard            // реализует AzGuard\Contracts\AzGuardSubject; подходит любой модели
+{
+    // Права (панель по правилу D05)
+    public function hasPermissionTo(string|UnitEnum $permission, Model|ContextRef|null $on = null): bool;
+    /** @param list<string|UnitEnum> $permissions */
+    public function hasAnyPermission(array $permissions, Model|ContextRef|null $on = null): bool;
+    public function hasAllPermissions(array $permissions, Model|ContextRef|null $on = null): bool;
+    public function getAllPermissions(Model|ContextRef|null $on = null): PermissionSet;
+    /** @return Collection<int, string> */ public function getPermissionNames(Model|ContextRef|null $on = null): Collection;
+
+    // Роли
+    public function hasRole(string|UnitEnum|array $roles, Model|ContextRef|null $on = null): bool;   // массив = любая
+    public function hasAnyRole(array $roles, Model|ContextRef|null $on = null): bool;
+    public function hasAllRoles(array $roles, Model|ContextRef|null $on = null): bool;
+    /** @return Collection<int, string> */ public function getRoleNames(Model|ContextRef|null $on = null): Collection;
+
+    public function isSuperAdmin(): bool;
+
+    // Изменения (механики с хранением в БД)
+    public function assignRole(string|UnitEnum|array $roles, Model|ContextRef|null $on = null, ?DateTimeInterface $expiresAt = null, array $fields = []): ChangeResult;
+    public function removeRole(string|UnitEnum $role, Model|ContextRef|AnyContext|null $on = null): ChangeResult;
+    public function syncRoles(array $roles, Model|ContextRef|null $on = null): ChangeResult;
+    public function givePermissionTo(string|UnitEnum|array $permissions, Model|ContextRef|null $on = null, ?DateTimeInterface $expiresAt = null, array $fields = []): ChangeResult;
+    public function revokePermissionTo(string|UnitEnum $permission, Model|ContextRef|AnyContext|null $on = null): ChangeResult;
+    public function syncPermissions(array $permissions, Model|ContextRef|null $on = null): ChangeResult;
+
+    // Панели
+    public function inPanel(string $panel): SubjectAccess;        // те же методы в указанной панели
+    public function azguard(): SubjectPanels;                     // все панели субъекта
+    public function azguardDefaultPanel(): ?string;               // можно переопределить; по умолчанию null → D11
+    public function azguardRef(): SubjectRef;
+}
+```
+
+- `$on` — сущность: контекст (тип объявлен панелью) или ресурс для политик и ограничений ([D16](02-decisions.md#d16)).
+- Имя роли или права без панели относится к панели по правилу D05; полное имя (`admin:manager`) — к указанной.
+- `$user->can('orders.view', $order)` работает через Gate ([D26](02-decisions.md#d26)).
+- Ошибки конфигурации не глотаются: неизвестное право → `UnknownPermissionException`, неопределимая панель →
+  `PanelNotResolvedException`.
+
+```php
+final readonly class SubjectAccess          // $user->inPanel('admin'), AzGuard::panel('admin')->for($user)
+{
+    // все методы трейта из групп «Права», «Роли», «Суперадмин», «Изменения» — в этой панели
+    public function panel(): Panel;
+    public function decide(string|UnitEnum $permission, Model|ContextRef|null $on = null): Decision;
+    /** @return array<string, bool> */ public function abilities(array $permissions, Model|ContextRef|null $on = null): array;  // для фронтенда
+    /** @return Collection<int, RoleAssignment> модели панели со своими полями */ public function assignments(Model|ContextRef|AnyContext|null $on = null): Collection;
+    /** @return Collection<int, DirectPermission> */ public function directPermissions(Model|ContextRef|AnyContext|null $on = null): Collection;
+}
+
+final readonly class SubjectPanels          // $user->azguard()
+{
+    /** @return list<string> */ public function panels(): array;               // панели, принимающие модель
+    public function default(): ?string;
+    public function panel(string $id): SubjectAccess;
+    /** @return array<string, PermissionSet> */ public function permissions(): array;  // по панелям
+    /** @return array<string, list<string>> */ public function roles(): array;
+}
+```
+
+## 2. Панель: `AzGuard::panel()`
+
+```php
+namespace AzGuard\Contracts;
+
+interface PanelAccess                         // AzGuard::panel('admin')
+{
+    public function definition(): Panel;
+    public function for(Model|Authenticatable|SubjectRef $subject): SubjectAccess;
+    public function roles(): RoleManager;
+    public function schema(): PanelSchema;
+    public function decide(AccessRequest $request): Decision;
+    /** @param iterable<AccessRequest> $requests */
+    public function decideMany(iterable $requests): DecisionSet;
+    public function explain(AccessRequest $request): Explanation;
+    public function catalog(): PermissionCatalog;
+    public function visibility(): Visibility;
+    public function state(): StateToken;
+    public function touch(): StateToken;       // новая версия вручную (данные автоматических ролей изменились)
+}
+
+interface RoleManager                         // только роли в БД; роли из кода — в коде
+{
+    /** @return list<RoleSchema> роли из кода и из БД */ public function all(): array;
+    public function find(string $key): ?RoleSchema;
+    public function create(string $key, ?string $label = null, array $permissions = [], array $fields = []): ChangeResult;
+    public function update(string $key, array $changes): ChangeResult;                 // label, description, свои поля
+    public function syncPermissions(string $key, array $permissions, ?string $expectedFingerprint = null): ChangeResult;
+    public function delete(string $key): ChangeResult;                                 // + назначения этой роли, одной транзакцией
+    public function renameKey(string $from, string $to): ChangeResult;                 // для ролей из кода (formerKeys)
+}
+```
+
+`expectedFingerprint` защищает от сохранения устаревшей формы: если права роли успели поменять, → `StaleSelectionException`.
+
+## 3. Фасад
+
+```php
 /**
- * @method static PanelAuthorizer panel(string $id)
+ * @method static PanelAccess panel(string $id)
  * @method static array<string, Panel> panels()
  * @method static Panel|null currentPanel()
- * @method static void registerPanel(class-string<PanelProvider> $provider)             // до заморозки
- * @method static void configurePanel(string $id, Closure(PanelBuilder): mixed $callback) // до заморозки
- * @method static bool check(mixed $subject, PermissionKey|string|UnitEnum $permission, ContextRef|Model|null $context = null, ?object $resource = null, ?string $panel = null)
- * @method static void authorize(mixed $subject, PermissionKey|string|UnitEnum $permission, ContextRef|Model|null $context = null, ?object $resource = null, ?string $panel = null)
- * @method static Decision decide(AccessRequest $request)
- * @method static mixed withinContext(ContextRef|Model $context, Closure $callback)
+ * @method static void registerPanel(class-string<PanelProvider> $provider)                // до заморозки
+ * @method static void configurePanel(string $id, Closure(PanelBuilder): mixed $callback)  // до заморозки
+ * @method static void configurePanels(Closure(PanelBuilder): mixed $callback)            // для всех панелей
+ * @method static bool check(mixed $subject, string|UnitEnum $permission, Model|ContextRef|null $on = null)
+ * @method static void authorize(mixed $subject, string|UnitEnum $permission, Model|ContextRef|null $on = null)
+ * @method static mixed withinContext(Model|ContextRef $context, Closure $callback)
  * @method static ContextRef|null currentContext()
+ * @method static mixed actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure $callback)  // кто выдаёт; строка — system с причиной
  */
 final class AzGuard extends Facade
 {
@@ -81,88 +199,11 @@ final class AzGuard extends Facade
 }
 ```
 
-`$subject` — `Model|Authenticatable|SubjectRef` (приводит `SubjectResolver` панели). Глобальные `check/authorize/decide`
-находят панель по ключу (D05) и делегируют `PanelAuthorizer`.
+`$subject` — модель, `Authenticatable` или `SubjectRef`. `check`/`authorize` выбирают панель по правилу D05.
+`actingAs()` необязателен: без него актор — текущий пользователь или system в консоли ([D23](02-decisions.md#d23)).
+Пример: `AzGuard::actingAs('import: crm', fn () => $user->assignRole('manager'))`.
 
-## 2. Значения ядра (`AzGuard\Kernel\…`)
-
-```php
-final readonly class PermissionKey implements Stringable, JsonSerializable
-{
-    public static function from(PermissionKey|string|UnitEnum $permission, ?string $panel = null): self;
-    //   строка — только полный ключ; enum/класс — локальная часть + панель (явная или единственная, иначе AmbiguousPanelException)
-    public static function in(string $panel, string $local): self;
-    public function panel(): string;
-    public function local(): string;          // 'orders.refund'
-    public function value(): string;          // 'admin.orders.refund'
-}
-
-final readonly class PermissionPattern      // только в выдачах: 'admin.orders.*', 'admin.**', или точный ключ
-{
-    public static function from(PermissionKey|string|UnitEnum $pattern, ?string $panel = null): self;
-    public function panel(): string;
-    public function covers(PermissionKey $key): bool;
-    public function isExact(): bool;
-    public function isPanelWide(): bool;
-}
-
-final readonly class RoleKey { public static function from(string $value): self; public static function of(string $panel, string $key): self; public function panel(): string; public function key(): string; }
-final readonly class SubjectRef { public static function of(string $type, int|string $id): self; public function type(): string; public function id(): string; public function equals(self $o): bool; }
-final readonly class ContextRef { public static function of(string $type, int|string $id): self; public static function global(): self; public function isGlobal(): bool; public function key(): string; public function equals(self $o): bool; }
-final readonly class AnyContext { public static function all(): self; }     // «во всех контекстах» — только для отзыва
-
-final readonly class Actor
-{
-    public static function subject(SubjectRef $ref): self;
-    public static function system(string $reason): self;
-    public function isSystem(): bool;
-    public function ref(): ActorRef;
-}
-final readonly class ActorRef { public const string SYSTEM_TYPE = 'azguard:system'; public function __construct(public ?string $type, public ?string $id, public ?string $reason = null) {} }
-
-final readonly class AccessRequest
-{
-    public static function for(SubjectRef $subject, PermissionKey $permission): self;
-    public function in(?ContextRef $context): self;       // null = текущий контекст панели или глобальный
-    public function about(?object $resource): self;       // для ограничений
-    public function traced(bool $trace = true): self;
-}
-
-enum Effect: string { case Allow = 'allow'; case Deny = 'deny'; case NotApplicable = 'not_applicable'; }
-enum DecisionReason: string
-{
-    case Granted = 'granted'; case Superadmin = 'superadmin'; case NotGranted = 'not_granted';
-    case NotApplicable = 'not_applicable'; case ContextRequired = 'context_required';
-    case ContextNotAccepted = 'context_not_accepted'; case RestrictionDenied = 'restriction_denied';
-    case RestrictionError = 'restriction_error'; case SourceError = 'source_error';
-}
-
-final readonly class Decision
-{
-    public Effect $effect; public DecisionReason $reason; public StateToken $state;
-    public ?string $component;                                    // ключ ограничения или источника при отказе/ошибке
-    /** @var list<Contribution> */ public array $contributions;   // при trace
-    public function allowed(): bool;
-    public function toGateResult(): ?bool;
-}
-
-final readonly class Contribution
-{
-    public PermissionPattern $pattern; public string $source;     // 'azguard/roles'
-    public ?RoleKey $role; public ContextRef $context; public ?DateTimeImmutable $expiresAt;
-    public ?string $grantId;                                       // id строки выдачи
-    /** @return array<string, mixed> только decisionAttributes */ public function attributes(): array;
-}
-
-final readonly class StateToken { public string $panel; public int $revision; public int $generation; public string $policyFingerprint; }
-final readonly class DecisionSet implements Countable, IteratorAggregate { public function get(int $i): Decision; public function allowedIndexes(): array; public StateToken $state; }
-final readonly class PermissionSet { public function patterns(): array; public function covers(PermissionKey $key): bool; public function validUntil(): ?DateTimeImmutable; }
-```
-
-`Kernel\` не зависит от Laravel; `ContextRef` из модели строит Laravel-слой (`Contexts::fromModel($model)`), и все
-методы с `ContextRef|Model` принимают модель напрямую.
-
-## 3. Панели
+## 4. Описание панели: `PanelProvider` и `PanelBuilder`
 
 ```php
 namespace AzGuard\Panels;
@@ -175,255 +216,273 @@ abstract class PanelProvider extends \Illuminate\Support\ServiceProvider   // к
 final class PanelBuilder
 {
     // идентичность
-    public function id(string $id): static;                       // ^[a-z0-9][a-z0-9-]{0,63}$
+    public function id(string $id): static;                               // ^[a-z0-9][a-z0-9-]{0,63}$
     public function label(string $label): static;
     public function description(?string $description): static;
-    // каталог и роли
+    public function default(bool $default = true): static;                // панель по умолчанию для своих моделей
+    // субъекты и вход
+    public function subjects(string|array $models, ?string $guard = null, ?string $directory = null): static;
+    public function middleware(array $middleware): static;                // что выполняется при входе в панель
+    public function entry(string|UnitEnum|null $permission): static;       // право входа (суперадмин проходит)
+    public function onDenied(Closure|string|null $response): static;       // 403 по умолчанию; редирект и т. п.
+    // права
     public function permissions(string ...$enumsOrClasses): static;
     public function catalogBuilders(string|PermissionCatalogBuilder ...$builders): static;
-    public function grantSources(string|GrantSource ...$sources): static;
-    public function roles(string ...$roleDefinitions): static;
-    public function databaseRoles(bool $allowed = true): static;
-    // субъекты и контексты
-    public function subjects(?string $guard = null, array $models = [], ?string $resolver = null, ?string $directory = null): static;
+    // механики (D52–D53)
+    public function grantToAll(string|UnitEnum ...$permissions): static;
+    public function roles(string ...$codeRoles): static;
+    public function policies(string ...$policyClasses): static;
+    public function discoverPolicies(string $path, ?string $namespace = null): static;
+    public function gates(array $map): static;                             // [Perm::X => 'laravel-ability']
+    public function database(bool $enabled = true, bool $roles = true, bool $directPermissions = true): static;
+    public function relation(string $model, string $via, string $role, ?Closure $scope = null): static;
+    public function source(string|GrantSource ...$sources): static;
+    // контексты
     public function contexts(ContextPolicy $policy): static;
     public function contextResolvers(string|ContextResolver ...$resolvers): static;
-    public function membership(string|ContextMembership $membership): static;
-    // хранилище и модели
-    public function storage(string|Storage $storage): static;                 // имя из конфига или Storage::own(...)
-    public function models(?string $role = null, ?string $rolePermission = null, ?string $assignment = null, ?string $directGrant = null): static;
-    public function decisionAttributes(array $assignment = [], array $directGrant = []): static;
-    // проверка
+    // суперадмин и хуки
+    public function superAdmin(string|false|null $role = 'superadmin', Closure|string|null $when = null): static;
+    public function before(Closure|string|BeforeHook ...$hooks): static;
     public function restrict(string|Restriction ...$restrictions): static;
-    public function prepare(string|PreparesAccess ...$pipes): static;
-    public function observe(string|ObservesAccess ...$observers): static;
-    public function gate(GateMode $mode = GateMode::Authoritative, SuperadminScope $superadminScope = SuperadminScope::Owned): static;
-    public function superadmin(string|SuperadminPolicy|null $policy = null, bool $bypassRestrictions = false): static;
-    // изменения
-    public function delegation(string|DelegationPolicy $policy): static;
-    public function administeredBy(string $panelId): static;       // кто управляет правами этой панели (D23); по умолчанию — она сама
-    public function onChange(string|object $pipe, ChangeStage $stage): static;   // Validate | Intercept | Record | Notify
-    // кэш и консистентность
+    public function after(Closure|string|AfterHook ...$hooks): static;
+    public function changing(Closure|string|ChangingHook ...$hooks): static;
+    public function changed(Closure|string|ChangedHook ...$hooks): static;
+    // хранилище и модели
+    public function storage(string|Storage $storage): static;
+    public function models(?string $role = null, ?string $rolePermission = null, ?string $assignment = null, ?string $directPermission = null): static;
+    public function decisionFields(array $assignment = [], array $directPermission = []): static;
+    public function fields(FieldTarget $target, Field ...$fields): static;   // поля от плагина (без своей модели)
+    // Gate, кэш, консистентность
+    public function gate(GateMode $mode = GateMode::Authoritative): static;
     public function cache(?string $store = null, ?int $ttl = null, ?int $generation = null): static;
     public function consistency(Reads $reads = Reads::Primary, StateRefresh $refresh = StateRefresh::Request): static;
-    // плагины
+    // плагины и прочее
     public function plugin(Plugin $plugin): static;
     public function plugins(array $plugins): static;
     public function withoutPlugin(string $pluginId): static;
-    public function hasPlugin(string $pluginId): bool;
-    public function getPlugin(string $pluginId): Plugin;
-    // диагностика
     public function doctorChecks(string|DoctorCheck ...$checks): static;
-    // оформление для UI
-    public function presentation(array $options): static;
+    public function presentation(array $options): static;                // группы, иконки, подписи для UI
 }
 
-final readonly class Panel                                    // результат сборки, после заморозки неизменяем
+final readonly class Panel                    // после сборки неизменяем
 {
     public function id(): string;
     public function label(): string;
-    public function settings(): PanelSettings;                   // эффективные значения (D45), с источником каждого
+    public function isDefault(): bool;
+    /** @return list<class-string<Model>> */ public function subjectModels(): array;
+    public function accepts(Model|SubjectRef $subject): bool;
+    public function settings(): PanelSettings;                 // итоговые значения и откуда взято каждое
     public function storage(): Storage;
     public function contextPolicy(): ContextPolicy;
+    public function isWritable(): bool;                        // есть механика, принимающая изменения
     /** @return list<string> */ public function pluginIds(): array;
-    public function plugin(string $id): Plugin;
 }
 
-interface PanelRegistry   // AzGuard\Contracts\Panels\PanelRegistry
+interface PanelRegistry                       // AzGuard\Contracts\Panels
 {
-    public function get(string $id): Panel;                      // @throws UnknownPanelException
+    public function get(string $id): Panel;                    // UnknownPanelException
     public function find(string $id): ?Panel;
     /** @return array<string, Panel> */ public function all(): array;
-    public function register(string $providerClass): void;       // до заморозки; дубликат id → DuplicatePanelException
-    public function replace(string $providerClass): void;        // до заморозки
-    public function configure(string $id, Closure $callback): void; // до заморозки; неизвестная панель → ошибка при сборке
+    /** @return list<Panel> */ public function forModel(string $modelClass): array;
+    public function defaultFor(string $modelClass): ?Panel;
+    public function register(string $providerClass): void;     // до заморозки
+    public function replace(string $providerClass): void;
+    public function configure(string $id, Closure $callback): void;
+    public function configureAll(Closure $callback): void;
     public function isFrozen(): bool;
 }
 ```
 
-## 4. Хранилище и модели
+`PanelResolver` (internal) — единственная реализация правила выбора панели ([09 §1](09-authorization-semantics.md#1-как-выбирается-панель)).
+
+## 5. Значения ядра (`AzGuard\Kernel\…`)
 
 ```php
-namespace AzGuard\Storage;
-
-final readonly class Storage
+final readonly class PermissionKey implements Stringable, JsonSerializable
 {
-    public static function named(string $name): self;                         // из azguard.storages.{name}
-    public static function own(string $prefix, ?string $connection = null, ?string $hostKeys = null): self;
-    public function name(): string;
-    public function connection(): ?string;
-    public function tablePrefix(): string;
-    public function hostKeys(): string;
+    public static function of(string $panel, string $local): self;
+    public static function parse(string $full): self;                  // 'admin:orders.view'
+    public function panel(): string;
+    public function local(): string;                                   // 'orders.view'
+    public function full(): string;                                    // 'admin:orders.view'
+}
+
+final readonly class PermissionPattern                                 // только в выдачах: 'orders.*', 'orders.**' или точное имя
+{
+    public static function of(string $panel, string $local): self;
+    public function covers(PermissionKey $key): bool;
+    public function isExact(): bool;
+}
+
+final readonly class RoleKey { public static function of(string $panel, string $key): self; public static function parse(string $full): self; public function panel(): string; public function key(): string; }
+final readonly class SubjectRef { public static function of(string $type, int|string $id): self; public function type(): string; public function id(): string; public function equals(self $o): bool; }
+final readonly class ContextRef { public static function of(string $type, int|string $id): self; public static function global(): self; public function isGlobal(): bool; public function key(): string; }
+final readonly class AnyContext { public static function all(): self; }    // «во всех сущностях» — только для отзыва
+
+final readonly class ActorRef { public const string SYSTEM_TYPE = 'azguard:system'; public ?string $type; public ?string $id; public ?string $reason; }
+
+final readonly class AccessRequest
+{
+    public static function for(SubjectRef $subject, PermissionKey $permission): self;
+    public function on(?ContextRef $context, ?object $resource = null): self;
+    public function traced(bool $trace = true): self;
+}
+
+enum Effect: string { case Allow = 'allow'; case Deny = 'deny'; case NotApplicable = 'not_applicable'; }
+
+enum DecisionReason: string
+{
+    case Granted = 'granted';               case SuperAdmin = 'super_admin';        case Hook = 'hook';
+    case Policy = 'policy';                 case NotGranted = 'not_granted';        case NotApplicable = 'not_applicable';
+    case ContextRequired = 'context_required'; case ContextNotAccepted = 'context_not_accepted';
+    case Restricted = 'restricted';         case SourceError = 'source_error';      case PolicyError = 'policy_error';
+    case RestrictionError = 'restriction_error'; case HookError = 'hook_error';
+}
+
+final readonly class Decision
+{
+    public Effect $effect; public DecisionReason $reason; public StateToken $state;
+    public ?string $component;                                     // ключ хука, политики, ограничения, источника
+    /** @var list<Contribution> */ public array $contributions;    // при трассировке
+    public function allowed(): bool;
+    public function toGateResult(): ?bool;
+}
+
+final readonly class Contribution                                  // «право есть, потому что…»
+{
+    public PermissionPattern $pattern; public string $source;      // 'azguard/database', 'azguard/code', 'azguard/relations'
+    public ?RoleKey $role; public ContextRef $context; public ?DateTimeImmutable $expiresAt;
+    /** @return array<string, mixed> только decisionFields */ public function fields(): array;
+}
+
+final readonly class StateToken { public string $panel; public int $version; public int $generation; public string $fingerprint; }
+final readonly class DecisionSet implements Countable, IteratorAggregate { public function get(int $i): Decision; public StateToken $state; }
+final readonly class PermissionSet { public function patterns(): array; public function covers(PermissionKey $key): bool; public function validUntil(): ?DateTimeImmutable; }
+```
+
+`Kernel\` не зависит от Laravel. Модели в `ContextRef` переводит Laravel-слой; все методы с `Model|ContextRef` принимают
+модель напрямую.
+
+## 6. Роли в коде
+
+```php
+namespace AzGuard\Roles;
+
+abstract class CodeRole
+{
+    abstract public function key(): string;                    // 'manager'
+    public function label(): string;                           // по умолчанию из key()
+    /** @return list<UnitEnum|string> */ abstract public function permissions(): array;   // enum или локальные имена, шаблоны 'orders.*'
+    /** @return list<string> */ public function formerKeys(): array;                        // старые ключи после переименования
+    public function assignable(): bool;                        // можно ли назначать вручную; false для автоматических
+}
+
+interface AssignedAutomatically                                // роль, которую получает каждый, кто подходит под правило
+{
+    public function appliesTo(Model $subject, ?ContextRef $context): bool;
+}
+
+final class SellerRole extends CodeRole implements AssignedAutomatically
+{
+    public function key(): string { return 'seller'; }
+    public function permissions(): array { return [SellerPermission::Access, SellerPermission::ProductsManage]; }
+    public function appliesTo(Model $subject, ?ContextRef $context): bool { return $subject->stores()->exists(); }
 }
 ```
 
-Базовые модели (`Storage\Models\Role`, `RolePermission`, `RoleAssignment`, `DirectGrant`) — `@api` для чтения и
-наследования. Идентификационные колонки и методы (`panel`, `key`, `subject_*`, `context_*`, `role_id`, `permission`,
-`expires_at`, `granted_by_*`) — `final` аксессоры; наследник добавляет поля, касты, связи, scopes и может объявить:
+`appliesTo()` вызывается при сборе прав и кэшируется вместе с набором прав на время запроса (`Volatility::Request`).
+Если результат зависит от данных, которые меняются редко, роль может объявить `Volatility::Stable`; тогда приложение
+само сбрасывает версию панели при их изменении (`AzGuard::panel($id)->touch()`).
+
+## 7. Политики
 
 ```php
-public static function azguardRules(): array;          // правила валидации своих полей для шага «Проверка»
-```
+namespace AzGuard\Policies;
 
-Экземпляры моделей панели создаёт и находит только `Storage` панели (статические запросы к моделям AzGuard вне
-`Storage\` запрещены arch-тестом; для чтения хостом — `AzGuard::panel($id)->for($s)->assignments()` и
-`->storage()->query(RoleAssignment::class)`, который подставляет таблицу/соединение хранилища).
-
-## 5. `PanelAuthorizer` и глобальный `Authorizer`
-
-```php
-namespace AzGuard\Contracts\Authorization;
-
-interface Authorizer                                   // глобальный: находит панель по ключу
+#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+final readonly class Decides
 {
-    public function decide(AccessRequest $request): Decision;
-    public function allows(AccessRequest $request): bool;
+    public function __construct(public UnitEnum|string $permission, public bool $assignable = false) {}
 }
 
-interface PanelAuthorizer extends Authorizer           // AzGuard::panel('admin')
+trait ConsultsGrants
 {
-    public function definition(): Panel;
-    public function check(mixed $subject, PermissionKey|string|UnitEnum $permission, ContextRef|Model|null $context = null, ?object $resource = null): bool;
-    /** @param iterable<AccessRequest> $requests */
-    public function decideMany(iterable $requests): DecisionSet;
-    public function explain(AccessRequest $request): Explanation;
-    public function for(mixed $subject): SubjectAccess;
-    public function manage(): AccessManager;
-    public function catalog(): PermissionCatalog;
-    public function visibility(): Visibility;
-    public function state(): StateToken;
+    // спрашивает только механики, дающие права (без политик и хуков) — рекурсии нет
+    protected function granted(string|UnitEnum $permission, Model $subject, Model|ContextRef|null $on = null): bool;
 }
 ```
 
-Ключ чужой панели в `PanelAuthorizer` → `PanelMismatchException` (явная ошибка, не молчаливый отказ).
+Метод политики получает субъекта и ресурс из `on:` (если есть) и возвращает `bool`, `Response` или `null` («не знаю»
+→ решают механики). Пример — [D53](02-decisions.md#d53).
 
-## 6. Handle субъекта
+## 8. Схема панели
 
 ```php
-final readonly class SubjectAccess     // AzGuard::panel('admin')->for($user)
+namespace AzGuard\Schema;
+
+final readonly class PanelSchema implements JsonSerializable
 {
-    public function in(ContextRef|Model|null $context): self;
-    public function can(PermissionKey|string|UnitEnum $permission, ?object $resource = null): bool;
-    public function decide(PermissionKey|string|UnitEnum $permission, ?object $resource = null): Decision;
-    public function permissions(): PermissionSet;
-    /** @param list<PermissionKey|string|UnitEnum> $permissions @return array<string, bool> */
-    public function abilities(array $permissions): array;          // для фронтенда
-    /** @return list<RoleKey> */ public function roles(): array;
-    public function hasRole(RoleKey|string $role): bool;
-    public function isSuperadmin(): bool;
-    /** @return Collection<int, RoleAssignment> модели панели, со своими полями */ public function assignments(): Collection;
-    /** @return Collection<int, DirectGrant> */ public function directGrants(): Collection;
-    public function ref(): SubjectRef;
+    public string $panel; public string $label; public bool $writable;
+    /** @return list<PermissionSchema> */ public function permissions(): array;
+    /** @return array<string, list<PermissionSchema>> */ public function groups(): array;
+    /** @return list<RoleSchema> */ public function roles(): array;
+    /** @return list<FieldSchema> */ public function fields(FieldTarget $target): array;   // Role | Assignment | DirectPermission
+    /** @return list<ContextTypeSchema> */ public function contexts(): array;
+    /** @return list<SubjectTypeSchema> */ public function subjects(): array;
+    public function toArray(): array;
+}
+
+final readonly class PermissionSchema
+{
+    public PermissionKey $key; public string $label; public ?string $group; public ?string $description;
+    public bool $assignable;                 // можно выдать вручную (роль в БД, прямое право)
+    public ?string $decidedBy;               // 'policy:App\Policies\OrderPolicy@view', 'gate:beta-access' или null
+    /** @var list<string> */ public array $sources;   // механики, которые могут дать право
+    /** @var list<string> */ public array $contextTypes;
+}
+
+final readonly class RoleSchema
+{
+    public RoleKey $key; public string $label;
+    public RoleOrigin $origin;               // Code | Database
+    public bool $editable;                   // можно менять права (только Database)
+    public bool $assignable;                 // можно назначать вручную
+    public bool $automatic;                  // назначается правилом
+    /** @var list<PermissionPattern> */ public array $permissions;
+}
+
+final readonly class FieldSchema
+{
+    public string $name; public string $label; public string $type;   // string|int|bool|date|enum|model
+    public array $rules; public ?array $options; public bool $inMeta; public string $contributedBy;
 }
 ```
 
-## 7. `AccessManager` — единственный вход для изменений
+## 9. Изменения: что происходит при записи
 
-```php
-namespace AzGuard\Contracts\Administration;
-
-interface AccessManager                    // AzGuard::panel('admin')->manage()
-{
-    public function actingAs(Model|Authenticatable|SubjectRef $actor): static;
-    public function asSystem(string $reason): static;
-    public function withReason(string $reason): static;
-    public function withCorrelationId(string $id): static;
-
-    public function assignRole(mixed $subject, RoleKey|string|class-string $role, ContextRef|Model|null $context = null, ?DateTimeInterface $expiresAt = null, array $attributes = []): ChangeResult;
-    public function revokeRole(mixed $subject, RoleKey|string|class-string $role, ContextRef|Model|AnyContext|null $context = null): ChangeResult;
-    /** @param list<RoleKey|string> $roles */
-    public function syncRoles(mixed $subject, array $roles, ContextRef|Model|null $context = null): ChangeResult;
-
-    public function grantPermission(mixed $subject, PermissionPattern|string|UnitEnum $pattern, ContextRef|Model|null $context = null, ?DateTimeInterface $expiresAt = null, array $attributes = []): ChangeResult;
-    public function revokePermission(mixed $subject, PermissionPattern|string|UnitEnum $pattern, ContextRef|Model|AnyContext|null $context = null): ChangeResult;
-    public function revokePermissions(mixed $subject, ContextRef|Model|AnyContext|null $context = null): ChangeResult;
-
-    public function createRole(string $key, ?string $label = null, int $rank = 0, array $attributes = []): ChangeResult;
-    public function updateRole(RoleKey|string $role, array $changes): ChangeResult;              // label, description, rank, is_superadmin, свои поля
-    public function deleteRole(RoleKey|string $role): ChangeResult;
-    public function setRolePermissions(RoleKey|string $role, PermissionSelection $selection): ChangeResult;
-
-    public function apply(PendingChange $pending): ChangeResult;                                 // применить отложенное (подтверждение)
-    public function pruneExpired(?DateTimeInterface $before = null): ChangeResult;               // только system
-    public function resetState(): ChangeResult;                                                   // только system
-}
-
-final readonly class ChangeResult
-{
-    public ChangeStatus $status;               // Applied | Pending | Unchanged
-    public ?PendingChange $pending;            // при Pending — что ждёт подтверждения (создал плагин)
-    public ?Model $record;                     // затронутая модель панели (Applied)
-    public StateToken $state;
-}
-```
-
-- Без `actingAs()`/`asSystem()` → `MissingActorException`.
-- Каждая операция — пайплайн изменений (D49): полномочия → проверка (в т. ч. `attributes` по `azguardRules()` и
-  шагам плагинов; неизвестное поле → ошибка) → перехват → запись одной транзакцией → журнал → уведомления.
-- `PermissionSelection::replace(array $patterns, ?string $expectedFingerprint)` / `::toggle(string $pattern, bool $present, ?string $expectedFingerprint)`
-  — защита от устаревшей формы (`StaleSelectionException`), как в нынешнем синхронизаторе.
-
-## 8. Каталог
-
-```php
-interface PermissionCatalog     // AzGuard\Contracts\Catalog
-{
-    /** @return list<PermissionDefinition> */ public function all(): array;
-    public function find(PermissionKey $key): ?PermissionDefinition;
-    public function owns(PermissionKey $key): bool;
-    /** @return array<string, list<PermissionDefinition>> */ public function groups(): array;
-    public function fingerprint(): string;
-}
-
-final readonly class PermissionDefinition     // AzGuard\Catalog
-{
-    public PermissionKey $key; public ?string $label; public ?string $group; public ?string $description;
-    public bool $dynamic; public string $contributedBy;   // 'azguard/enum', 'acme/blog', 'azguard/filament'
-    /** @var array<string, scalar> */ public array $meta;
-}
-```
-
-`#[Describe(label:, group:, description:)]` — на enum case. Трейт `BelongsToPanels` на enum: `->in('admin'): PermissionKey`.
-
-## 9. Host-модель и видимость
-
-```php
-interface AzGuardSubject   // AzGuard\Contracts
-{
-    public function hasPermission(PermissionKey|string|UnitEnum $permission, ContextRef|Model|null $context = null, ?string $panel = null, ?object $resource = null): bool;
-    public function hasRole(RoleKey|string $role, ContextRef|Model|null $context = null): bool;
-    public function permissions(string $panel, ContextRef|Model|null $context = null): PermissionSet;
-    public function isSuperadmin(string $panel): bool;
-    public function azguardRef(): SubjectRef;
-}
-
-trait HasAzGuard { /* реализует AzGuardSubject через AzGuard::panel(...)->for($this) */ }
-
-trait ContextAware   // на модели-контексте (Project, Store)
-{
-    public function scopeVisibleTo(Builder $query, mixed $subject, PermissionKey|string|UnitEnum $permission): void;
-    public function azguardContext(): ContextRef;
-}
-```
-
-`hasPermission()` не глотает ошибки конфигурации (было `checkPermission()` с `catch Throwable`).
+- Все методы изменения (трейт, `SubjectAccess`, `RoleManager`, команды, Filament) создают `Change` и отправляют его в
+  пайплайн изменений ([D49](02-decisions.md#d49)).
+- `ChangeResult`: `status` (`Applied` | `Unchanged`), `record` (затронутая модель панели), `state` (новая версия).
+- Повторная выдача того же — `Unchanged`, без события. Выдача с новым сроком или полями — обновление строки.
+- Свои поля (`fields:`) проверяются по `azguardFields()` модели панели и хукам `changing`; неизвестное поле →
+  `InvalidChangeFieldsException`.
+- Отзыв во всех сущностях — `on: AnyContext::all()`.
 
 ## 10. Исключения
 
 | Класс | Код | Родитель | Когда |
 |---|---|---|---|
-| `InvalidConfigurationException` | `invalid_configuration` | `ConfigurationException` | boot-проверки |
-| `DuplicatePanelException` / `UnknownPanelException` / `RegistryFrozenException` | `duplicate_panel` / `unknown_panel` / `registry_frozen` | `DefinitionException` | реестр панелей |
-| `AmbiguousPanelException` | `ambiguous_panel` | `DefinitionException` | enum в нескольких панелях без указания панели |
-| `PanelMismatchException` | `panel_mismatch` | `DefinitionException` | ключ чужой панели в `PanelAuthorizer` |
-| `DuplicatePermissionException` / `DuplicateRoleException` | `duplicate_permission` / `duplicate_role` | `DefinitionException` | коллизии вкладов (с именами плагинов) |
-| `RoleDefinitionException` | `role_definition_invalid` | `DefinitionException` | sync/запись code-роли |
-| `MissingPluginDependencyException` / `PluginConflictException` | `plugin_dependency_missing` / `plugin_conflict` | `PluginException` | сборка панели |
-| `InvalidPanelIdException`, `InvalidPermissionKeyException`, `UnqualifiedPermissionException`, `InvalidRoleKeyException`, `InvalidContextException` | `invalid_panel_id`, `invalid_permission_key`, `unqualified_permission`, `invalid_role_key`, `invalid_context` | `InvalidIdentityException` | грамматика |
-| `StorageMismatchException` | `storage_mismatch` | `StorageException` | модель панели не совпадает с хранилищем |
-| `UnsupportedDirectWriteException` | `unsupported_direct_write` | `StorageException` | запись модели вне пайплайна |
-| `UnknownPermissionException`, `UnknownRoleException`, `UnsupportedContextException`, `ImmutableRoleException`, `StaleSelectionException`, `MissingActorException`, `InvalidChangeAttributesException` | `unknown_permission`, `unknown_role`, `unsupported_context`, `immutable_role`, `stale_selection`, `missing_actor`, `invalid_change_attributes` | `AccessManagementException` | пайплайн изменений |
-| `AccessManagementDeniedException` | `delegation_denied` | `Illuminate\Auth\Access\AuthorizationException` | полномочия (403) |
-| `GrantSourceException` | `source_failed` | `AuthorizationEngineException` | ошибка источника (наружу) |
+| `InvalidConfigurationException` | `invalid_configuration` | `ConfigurationException` | проверки при загрузке |
+| `DuplicatePanelException`, `UnknownPanelException`, `RegistryFrozenException`, `DefaultPanelConflictException` | `duplicate_panel`, `unknown_panel`, `registry_frozen`, `default_panel_conflict` | `DefinitionException` | реестр панелей |
+| `PanelNotResolvedException` | `panel_not_resolved` | `DefinitionException` | правило выбора панели не нашло панель |
+| `AmbiguousPanelException` | `ambiguous_panel` | `DefinitionException` | enum подключён к нескольким панелям, панель не указана |
+| `SubjectNotAcceptedException` | `subject_not_accepted` | `DefinitionException` | модель не является субъектом панели |
+| `DuplicatePermissionException`, `DuplicateRoleException`, `DuplicatePolicyBindingException` | `duplicate_permission`, `duplicate_role`, `duplicate_policy_binding` | `DefinitionException` | коллизии вкладов (с именами плагинов) |
+| `PluginDependencyMissingException`, `PluginConflictException` | `plugin_dependency_missing`, `plugin_conflict` | `PluginException` | сборка панели |
+| `InvalidPanelIdException`, `InvalidPermissionKeyException`, `InvalidRoleKeyException`, `InvalidContextException` | `invalid_panel_id`, `invalid_permission_key`, `invalid_role_key`, `invalid_context` | `InvalidIdentityException` | грамматика |
+| `StorageMismatchException`, `UnsupportedDirectWriteException` | `storage_mismatch`, `unsupported_direct_write` | `StorageException` | хранилище |
+| `UnknownPermissionException`, `UnknownRoleException`, `PermissionNotAssignableException`, `RoleNotAssignableException`, `RoleNotEditableException`, `ContextNotAcceptedException`, `PanelNotWritableException`, `InvalidChangeFieldsException`, `StaleSelectionException`, `ChangeCancelledException` | `unknown_permission`, `unknown_role`, `permission_not_assignable`, `role_not_assignable`, `role_not_editable`, `context_not_accepted`, `panel_not_writable`, `invalid_change_fields`, `stale_selection`, `change_cancelled` | `ChangeException` | пайплайн изменений |
 
-Отказ доступа — `Illuminate\Auth\Access\AuthorizationException`; `$e->response()->code()` = `DecisionReason::value`.
+Отказ в доступе — `Illuminate\Auth\Access\AuthorizationException`; `$e->response()->code()` = `DecisionReason::value`.
+Ошибки механик, политик и ограничений при проверке не выбрасываются наружу: они дают отказ с причиной
+`source_error`/`policy_error`/`restriction_error`/`hook_error` и пишутся в лог.

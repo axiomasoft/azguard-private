@@ -3,6 +3,10 @@
 Probes фиксируют **текущее** поведение 0.3.x (`253cbf4`): зелёный probe = дефект воспроизведён. Они не входят в
 продуктовый набор и лежат вне `tests/`, чтобы не ломать CI.
 
+В новой версии совместимости с 0.3 нет, поэтому probes не «переворачиваются» на старом коде: каждый сценарий
+переписывается на новый API с обратным ожиданием (дефект невозможен) в пункте плана из колонки «Probe»
+[14-verification.md](../14-verification.md).
+
 - [probes/OpusAuditProbesTest.php](probes/OpusAuditProbesTest.php) — core (Testbench, SQLite in-memory);
 - [probes/OpusAuditContextProbesTest.php](probes/OpusAuditContextProbesTest.php) — с `azguard-context`;
 - [probes-run.txt](probes-run.txt) — вывод прогона: **19 tests, 41 assertions, OK** (PHP 8.4.19, PHPUnit 12.5, Laravel 13 из lock).
