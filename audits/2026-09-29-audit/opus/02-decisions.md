@@ -2,8 +2,10 @@
 
 Каждое решение — **утверждённая позиция для плана**, а не вариант. Где решение меняет продуктовую семантику,
 это отмечено; владелец может отменить его в [15-owner-questions.md](15-owner-questions.md), иначе оно действует.
+У каждого решения есть строка **«Кратко»** — смысл без технических деталей; ниже — спецификация для исполнителя.
+Обзор всей картины человеческим языком — [00-overview.md](00-overview.md).
 
-Уровни (как в Vaulter):
+Уровни:
 
 - **T0** — исправить до любого следующего релиза (обход изоляции, эскалация, ложное разрешение, потеря данных);
 - **T1** — канон 1.0: breaking-изменения, которые делаются один раз в окне 0.4;
@@ -11,768 +13,896 @@
 
 Ссылки `Nxx` — находки из [01-review.md](01-review.md), `Cxx` — находки Codex, `Pxx` — probes из [evidence](evidence/README.md).
 
+**Второй проход (после отзыва владельца):** философия независимых **панелей** сохранена и усилена (своё хранилище,
+свои модели и поля, плагины, пайплайны, модули — D45–D50); переименование Panel → Realm отменено; часть лишних
+переименований отменена (`GrantSource`, `DirectGrant`, `PermissionCatalogBuilder` остаются); терминология с Vaulter
+разведена на «общие инженерные правила» и «свои предметные слова» (D43); мост Vaulter делает Vaulter, AzGuard
+даёт стабильный контракт для любых пакетов-интеграций (D51).
+
 ---
 
 <a id="d01"></a>
 ### D01 — Одно окно канона: 0.4.0, затем 0.9.0 RC и 1.0.0 · T1
 
-**Решение.** Все переименования, новая схема, новый публичный API и слияние пакетов выходят одним релизом **0.4.0**
-(«canon break»; текущая линия — 0.3.x). PHP-символы переименовываются жёстко, без алиасов-обёрток. Устаревшие
-**ключи конфигурации** читает `ConfigNormalizer` с `E_USER_DEPRECATED` до 1.0 (как Vaulter D01). Данные
-переносятся upgrade-миграцией с сохранением прав ([08 §5](08-data-model-and-migration.md#5-upgrade-03x--040)).
-Затем **0.9.0** — freeze candidate (API заморожен, только исправления и аддитивные изменения), затем **1.0.0**,
-когда зелёные все гейты [12 §5](12-operations-and-release.md#5-гейты-совместимости).
+**Кратко:** все большие изменения — одним релизом 0.4.0; до этого — патч безопасности для 0.3.
 
-**Почему.** Двойная поверхность удваивает работу и тесты; у 0.x нет SemVer-обязательств. T0-исправления из этого
-журнала **дополнительно** выходят патчем 0.3.x до канона (они нужны тем, кто уже использует 0.3).
+**Решение.** Все переименования, новая схема, новый публичный API и слияние пакетов выходят одним релизом **0.4.0**
+(текущая линия — 0.3.x). PHP-символы переименовываются жёстко, без алиасов-обёрток. Устаревшие **ключи
+конфигурации** читает `ConfigNormalizer` с `E_USER_DEPRECATED` до 1.0. Данные переносятся upgrade-миграцией
+([08 §6](08-data-model-and-migration.md#6-upgrade-03x--040)). Затем **0.9.0** — freeze candidate, затем **1.0.0**, когда
+зелёные гейты [12 §5](12-operations-and-release.md#5-гейты-совместимости). T0-исправления **дополнительно** выходят
+патчем 0.3.x до канона.
 
 **Отвергнуто.** Постепенные переименования по минорам; deprecated-обёртки для всех методов.
 
 ---
 
 <a id="d02"></a>
-### D02 — Архитектура: модульное ядро с чистым слоем значений; Eloquent — единственное хранилище 1.0 · T1
+### D02 — Архитектура: зоны ядра + панели как независимые единицы + плагины и пайплайны · T1
 
-**Решение.** Вариант «B внутри одного дистрибутива» ([architecture-options](../architecture-options.md)):
+**Кратко:** ядро маленькое и чистое; всё остальное — панели, которые собираются из плагинов; проверка и изменение
+прав — пайплайны с чёткими шагами.
 
-```
-Host / Gate / Blade / middleware / Filament
-        │                       │
-        ▼                       ▼
-  Authorization (read)    Administration (write, с актором)
-        │    ╲                 │
-        │     ╲── Catalog ─────┤
-        ▼                       ▼
-  Kernel (чистые значения: ключи, ссылки, решение, алгебра, грамматика)  ← без Illuminate
-        ▲                       ▲
-  Sources / Constraints    Persistence\Eloquent (+ AzGuardDatabase, State)
-```
+**Решение.** Зоны (подробно — [04](04-packages-and-layout.md)):
 
-- `Kernel\` — PHP без Illuminate (arch-тест): `PermissionKey`, `PermissionPattern`, `RealmId`, `RoleKey`,
-  `SubjectRef`, `ContextRef`, `Decision`, `DecisionReason`, `Contribution`, алгебра объединения, грамматика.
-- `Authorization\` — движок решения, кэш наборов, пакетная оценка, объяснение; читает через `PermissionSource`-ы.
-- `Administration\` — все записи: `AccessManager`, операции, политика делегирования, запись событий.
-- `Persistence\Eloquent\` — модели, `AzGuardDatabase` (соединение, транзакция, ревизия), встроенные источники.
-- `Laravel\` — адаптеры: провайдер, фасад, Gate-мост, middleware, трейт, команды.
+| Зона | Что в ней | Правило |
+|---|---|---|
+| **Kernel** (ядро понятий) | ключи, ссылки на субъект/контекст, решение, грамматика, алгебра | чистый PHP, без Laravel |
+| **Panels** (панели) | определение панели, настройки, реестр, провайдеры | панель — неизменяемое значение после загрузки |
+| **Authorization** (проверка) | пайплайн доступа, кэш, пакетная оценка, объяснение, видимость | только читает |
+| **Administration** (изменение) | пайплайн изменений, менеджер доступа, делегирование | единственный путь записи |
+| **Storage** (хранилище) | хранилища панелей, модели, миграции, версия состояния | единственное место работы с БД |
+| **Plugins** (расширения) | контракт плагина, встроенные плагины (роли, прямые права, контексты, суперадмин, аудит) | ядро не знает конкретных плагинов |
+| **Laravel** (адаптеры) | провайдер, фасад, Gate, middleware, трейт, команды | только переводят Laravel ↔ ядро |
+| **Filament** (отдельный пакет) | UI | только через публичный API |
 
-Хранилище назначений в 1.0 — только Eloquent (модели подменяемы, соединение настраивается). Внешние системы прав
-подключаются как **дополнительный `PermissionSource`** (read-only, с объявленной волатильностью), а не как замена store.
-Порт записи для альтернативного хранилища — T2 при реальном потребителе.
+Хранилище в 1.0 — Eloquent (модели подменяемы по панелям, D46). Внешние системы прав подключаются как
+**источник прав** (`GrantSource`) через плагин, а не как замена хранилища. Порт записи для чужого хранилища — T2.
 
-**Почему.** Чистый слой значений даёт детерминированные тесты алгебры и делает вход/выход движка явными — то, что
-Codex ценил в B. Отдельный store-порт в 1.0 был бы обещанием без потребителя и без проверки (C11): «атомарность
-записи + ревизии» и «authoritative reads» пришлось бы специфицировать для неизвестных хранилищ. Vaulter принял
-тот же выбор (Laravel-native, D06 Vaulter).
+**Почему.** Панели и плагины — философия продукта (Filament-подобная сборка); чистое ядро делает алгебру
+проверяемой; пайплайны дают расширяемость без возможности случайно «открыть» доступ (D48).
 
-**Отвергнуто.** C (policy engine / внешний Cedar/OpenFGA) — нет потребителя графов отношений; отдельный пакет
-`azguard-kernel` — нет независимого потребителя, граница держится arch-тестом.
+**Отвергнуто.** Policy engine / внешний Cedar/OpenFGA (нет потребителя графов отношений); отдельный пакет
+`azguard-kernel` (граница держится arch-тестом).
 
 ---
 
 <a id="d03"></a>
-### D03 — Пакеты: `azguard` (core + context) и `azguard-filament`; lockstep · T1
+### D03 — Пакеты: `azguard` (ядро + контексты) и `azguard-filament`; интеграции — отдельными пакетами · T1
+
+**Кратко:** два пакета AzGuard; интеграции (Vaulter и другие) живут в своих пакетах и опираются только на
+публичный контракт.
 
 **Решение.**
 
-1. `axioma-studio/azguard-context` **сливается** в core. Контекст становится измерением каждого назначения (D13, D15),
-   а не надстройкой через `PermissionLayer`.
-2. `axioma-studio/azguard-core` переименовывается в **`axioma-studio/azguard`** (главный пакет; параллель
-   metapackage `axioma-studio/vaulter`); на Packagist старые имена помечаются `abandoned` → `axioma-studio/azguard`.
-3. `axioma-studio/azguard-filament` остаётся отдельным (тяжёлая зависимость Filament) и требует
-   `axioma-studio/azguard: self.version`.
-4. Релизы lockstep: один тег монорепо → одинаковая версия всех split-пакетов (как Vaulter).
+1. `axioma-studio/azguard-context` **сливается** в ядро: контексты — встроенный плагин `azguard/contexts`, их
+   контракты уже живут в core, а сам пакет импортирует пять `@internal`-типов core (`PermissionCache`,
+   `PermissionStateRevision`, `SubjectIdentity`, `RevisionedPermissionModelWrites`, `NullSafeUniqueIndex`).
+2. `axioma-studio/azguard-core` переименовывается в **`axioma-studio/azguard`**; старые имена на Packagist →
+   `abandoned`.
+3. `axioma-studio/azguard-filament` остаётся отдельным и требует `axioma-studio/azguard: self.version`.
+4. Релизы lockstep: один тег монорепо → одинаковая версия split-пакетов.
+5. Пакеты-интеграции (`vaulter-azguard` и будущие) — **вне** монорепо AzGuard, зависят только от `@api`/`@spi`
+   (D51).
 
-**Почему.** Core уже содержит контракты контекста (`ContextGuard`, `ContextGrantBuilder`, `PermissionContext`,
-`hasPermissionIn`), а context импортирует пять `@internal`-типов core (`PermissionCache`, `PermissionStateRevision`,
-`SubjectIdentity`, `RevisionedPermissionModelWrites`, `NullSafeUniqueIndex`) — это не расширение, а часть ядра в чужом
-пакете. Слияние убирает класс проблем C09/«friend-модуль» и дублирование N10. Одна строка `composer require
-axioma-studio/azguard` — одинаковый опыт с Vaulter.
-
-**Отвергнуто.** Сохранить 3 пакета с SPI для context (аудит) — SPI пришлось бы делать под единственного потребителя,
-которого мы сами же проектируем; новые пакеты `kernel/contracts` (аудит, «только при условиях» — условия не выполнены).
+**Отвергнуто.** Сохранить context отдельным пакетом с SPI под единственного потребителя; пакеты `kernel/contracts`.
 
 ---
 
 <a id="d04"></a>
-### D04 — Канонический словарь · T1
+### D04 — Словарь: сохраняем язык продукта, вводим только недостающие слова · T1
 
-Полная таблица и правила — [03-glossary-and-renames.md](03-glossary-and-renames.md). Ключевые выборы:
+**Кратко:** панели остаются панелями; меняем имена только там, где старое имя вводит в заблуждение.
 
-| Понятие | Термин | Почему не альтернатива |
-|---|---|---|
-| Пространство прав/ролей (было Panel) | **Realm** | «Panel» сталкивается с Filament panel в пакете, который сам поставляет Filament-plugin (та же причина, что Panel→Profile в Vaulter); «Namespace» занят PHP; «Domain» занят фичей генератора; «Area» слабее выражает изоляцию ролей |
-| Объявленная возможность | **Permission** (`PermissionKey`) | «Ability» оставляется только для Laravel Gate |
-| Шаблон в выдаче (`app.docs.*`) | **Permission pattern** | не путать с ключом каталога |
-| Кто проверяется / получает права | **Subject** (`SubjectRef`) | совпадает со словом Vaulter для адресата grant'а |
-| Кто меняет права | **Actor** (user или system с причиной) | совпадает с Vaulter D07 |
-| Где действует назначение | **Context** (`ContextRef`: workspace, project, …) | уже термин продукта и моста Vaulter; «scope» остаётся только для Eloquent |
-| Назначение роли | **Role assignment** | вместо `model_has_roles` + `model_has_scopes` |
-| Прямая выдача права | **Grant** | вместо DirectGrant + ContextRole |
-| Кто поставляет права при чтении | **Permission source** (было `GrantSource`) | «GrantSource» читалось бы как «источник Grant'ов» — а Grant теперь только прямая выдача |
-| Обязательная проверка | **Constraint** | отдельно от источников (C06) |
-| Итог | **Decision** (`Effect` + `DecisionReason`) | «AccessDecision» было событием |
-| Обход проверок | **Superadmin** | отдельная политика, не значение `*` |
+Полная таблица — [03-glossary-and-renames.md](03-glossary-and-renames.md). Ключевое:
+
+| Понятие | Термин | Было | Почему |
+|---|---|---|---|
+| Независимое пространство прав | **Panel** | Panel | философия продукта; как панели Filament — независимые области приложения со своими настройками. В Filament-пакете уточняется как «guard panel» (`AzGuardPlugin::make()->guardPanel('admin')`) |
+| Объявленная возможность | **Permission** (`PermissionKey`) | Permission | без изменений; «Ability» — только для Laravel Gate |
+| Набор прав | **Role** (`RoleKey = panel:key`) | Role | идентичность — ключ, а не PHP-класс (D14) |
+| Выдача роли | **RoleAssignment** | `model_has_roles` + `ModelHasScope` | «ModelHasScope» — технический pivot, а не понятие |
+| Прямая выдача права | **DirectGrant** | DirectGrant + `ContextRole` | имя остаётся; «ContextRole» не было ролью. В экосистеме не путается с `NodeGrant` Vaulter |
+| Где действует выдача | **Context** | Context / scope entity | один механизм вместо двух (D13) |
+| Кому проверяем | **Subject** | user | в панели могут быть не только пользователи (токены, сервисы) |
+| Кто меняет права | **Actor** | — (не было) | нужен для делегирования и журнала |
+| Откуда права при проверке | **GrantSource** | GrantSource | без изменений, новая сигнатура |
+| Обязательная проверка «только запретить» | **Restriction** | `PermissionLayer` | понятнее «ограничения»; единый реестр вместо одного binding |
+| Расширение панели | **Plugin** | — | как у Filament (D47) |
+| Шаги проверки/изменения | **Pipeline** (access / change) | — | D48, D49 |
+| Где лежат данные панели | **Storage** | table_names | D46 |
+| Итог | **Decision** | `AccessDecision` (событие) | решение ≠ событие |
 
 ---
 
 <a id="d05"></a>
-### D05 — Ключ права всегда квалифицирован; «локальную» форму знают только enum и классы · T1
+### D05 — Ключ права всегда знает свою панель; никакого угадывания · T1
+
+**Кратко:** строка права всегда начинается с панели (`admin.orders.refund`); enum знает свою панель, если
+подключён к одной; если к нескольким — панель указывают явно.
 
 **Решение.**
 
-- Строка на любом входе (`check`, Gate, CLI, конфиг, БД) — **только** квалифицированный ключ `realm.segment[.segment…]`,
-  первый сегмент — зарегистрированный realm. Неквалифицированная строка → `UnqualifiedPermissionException`
-  (без угадывания, без fallback на `'app'`).
-- Enum и классы `Permission` объявляют realm сами: атрибут `#[Realm('app')]` на enum/классе **или** включение в
-  `RealmBuilder::permissions([...])`. Enum, принадлежащий двум realm, запрещён (boot-ошибка).
-- Realm проверки **выводится из ключа**. Понятие «текущая панель» для решения прав удаляется
-  (`SetCurrentPanel`, `CurrentPanelState`, `default_panel`, `PanelResolver`).
-- `Panel::scopedByPanelId(false)` удаляется: ключ без префикса realm не существует.
+- Строка на любом входе (проверка, Gate, CLI, БД, конфиг) — **только** квалифицированный ключ `panel.segment[.segment…]`.
+  Неквалифицированная строка → `UnqualifiedPermissionException` (без fallback на `'app'`).
+- Enum-права и классы-права хранят **локальную** часть (`orders.refund`) — как сейчас; так один enum может
+  подключаться к разным панелям (модули, D50). Панель определяется по реестру: enum подключён к одной панели →
+  она; к нескольким → нужно явно (`hasPermission(OrderPermission::Refund, panel: 'admin')` или
+  `OrderPermission::Refund->in('admin')` через трейт `BelongsToPanels`), иначе `AmbiguousPanelException`.
+- «Текущая панель» **не участвует** в выборе панели проверки. Она остаётся только как маршрутизация запроса (какой
+  auth guard, какие резолверы контекста, какой UI) — D32.
+- `Panel::scopedByPanelId(false)` удаляется: ключ без панели не может сосуществовать с другими панелями.
 
-**Почему.** Устраняет N05 (мост Vaulter), N09 (четыре правила выбора панели), P01c (чужой ключ по набору панели по
-умолчанию) и асимметрию строка/enum из аудита. Квалифицированный ключ уже содержит всю информацию — её нужно
-использовать, а не дополнять ambient-состоянием.
-
-**Отвергнуто.** Два типа строк `Ability::qualified()`/`Permission::local()` (аудит) — лишняя сущность; ambient
-current realm как fallback — именно он создаёт расхождения.
+**Почему.** Закрывает N05, N09, P01c, P09 и асимметрию строка/enum из аудита, но сохраняет переиспользуемость enum.
 
 ---
 
 <a id="d06"></a>
-### D06 — Realm: грамматика, неизменяемый реестр, провайдеры · T1
+### D06 — Панель — самостоятельная единица: определение, провайдер, реестр · T1
+
+**Кратко:** панель описывается в своём провайдере (как в Filament), после загрузки приложения её уже нельзя
+незаметно поменять; две панели с одним id — ошибка.
 
 **Решение.**
 
-- `AzGuard\Realms\Realm` — `final readonly`; собирается `RealmBuilder` внутри `RealmProvider::realm(RealmBuilder): RealmBuilder`.
-- Идентификатор: `^[a-z0-9][a-z0-9-]{0,63}$` — **та же грамматика, что ключ профиля Vaulter**; `*`, точка,
-  пробелы, верхний регистр запрещены.
-- `RealmRegistry::register()` при повторном id → `DuplicateRealmException`; `replace()` — явная замена до freeze;
-  после `booted` приложения реестр заморожен (`RegistryFrozenException`).
-- Поля realm: `id`, `label`, `permissions` (enum/классы/провайдеры каталога), `roles` (классы code-ролей),
-  `contexts` (политика контекстов, D15), `constraints` (ключи constraint'ов, действующих в realm, D20).
-  `path`, `namespace`, `basePath` удаляются из публичной модели (генератору они не нужны после D36).
+- `PanelProvider::panel(PanelBuilder $panel): PanelBuilder` — описание; результат — `final readonly Panel`.
+- id панели: `^[a-z0-9][a-z0-9-]{0,63}$` (`*`, точка, пробелы, верхний регистр запрещены) — id является первым
+  сегментом каждого ключа.
+- `PanelRegistry`: повторный id → `DuplicatePanelException`; `replace()` — явная замена до заморозки;
+  `configurePanel(id, callback)` — дополнение чужой панели до заморозки (модули, D50); после `booted` приложения
+  реестр заморожен (`RegistryFrozenException`).
+- Что задаётся на панели — D45; хранилище и модели — D46; плагины — D47; пайплайны — D48–D49.
+- `path`, `namespace`, `basePath` удаляются из модели панели (генераторы получают пути из конфига scaffold).
 
 ---
 
 <a id="d07"></a>
 ### D07 — Единый кодек идентичности: `SubjectRef`, `ContextRef`, `RoleKey` · T0 (утечка P07) / T1 (API)
 
+**Кратко:** «кто» и «где» кодируются одним способом везде — в БД, кэше и событиях, — так что два разных
+контекста никогда не превратятся в одну строку.
+
 **Решение.**
 
-- `SubjectRef(type, id)` и `ContextRef(type, id)` — `Kernel\Identity`, readonly. `type` — morph alias
-  (`Relation::getMorphAlias`), грамматика `^[A-Za-z0-9_.\\-]{1,128}$` (**без `:`**); `id` — строка: int →
-  десятичная строка, строка — без преобразований (как `BlobScope` Vaulter D20), печатный ASCII без пробелов,
-  ≤ 64 байт (под `varchar(64)` при `host_keys = string`). `7` и `'7'` — одна идентичность.
-- `ContextRef::key()` = `"{type}:{id}"` — инъективно, потому что `type` не содержит `:`; то же значение хранится в
-  колонке `context_key` и входит в ключ кэша. Глобальный контекст — `ContextRef::global()`, ключ `global`: в нём нет
-  `:`, а в ключе любого другого контекста есть — коллизия исключена.
-- `RoleKey(realm, key)` → строка `"{realm}:{key}"` (грамматика обоих частей без `:`).
-- `IdentityCodec` — единственное место кодирования для БД, кэша, событий, логов; digest — sha256 от
-  JSON-массива компонентов (как сейчас `SubjectIdentity::digestPayload`).
-- Сравнение — только через `equals()` кодека; `AuthorizationContext::equals()` со строгим `===` удаляется.
+- `SubjectRef(type, id)`, `ContextRef(type, id)` — `Kernel\Identity`, readonly. `type` — morph alias, грамматика
+  `^[A-Za-z0-9_.\\-]{1,128}$` (**без `:`**); `id` — строка: int → десятичная строка, строка — без преобразований,
+  печатный ASCII без пробелов, ≤ 64 байт. `7` и `'7'` — одна идентичность.
+- `ContextRef::key()` = `"{type}:{id}"` — инъективно, потому что `type` не содержит `:`; глобальный контекст —
+  ключ `global` (в нём нет `:`, в ключе любого контекста есть).
+- `RoleKey(panel, key)` → `"{panel}:{key}"`.
+- `IdentityCodec` — единственное место кодирования; digest — sha256 от JSON-массива компонентов.
 
-**T0 в 0.3.x.** Патч: `ContextPermissionLayer::cacheDiscriminator()` возвращает `json_encode([$type, (string) $id])`;
-`AuthorizationContext` отвергает `:` в `contextType`. Закрывает P07.
+**T0 в 0.3.x:** дискриминатор контекста — `json_encode([$type, (string) $id])`; `AuthorizationContext` отвергает `:` в
+типе. Закрывает P07.
 
 ---
 
 <a id="d08"></a>
-### D08 — Типы ключей хоста: `azguard.ids.host_keys` как в Vaulter · T1
+### D08 — Типы ключей хоста: `ids.host_keys` · T1
 
-**Решение.** Ключ `azguard.ids.host_keys`: `string` (по умолчанию, `varchar(64)`) | `bigint` | `uuid` | `ulid` —
-**те же имя и значения, что `vaulter.ids.host_keys`** (Vaulter D25). Применяется ко всем колонкам, хранящим
-ключи хоста: `subject_id`, `context_id`, `granted_by_id`. `column_names.morph_type` удаляется (карта в
-`ConfigNormalizer`: `int → bigint`). При `string` все привязки параметров идут через кодек как строки
-(MySQL не теряет индекс на неявном приведении).
+**Кратко:** колонки, где лежат id пользователей и сущностей хоста, по умолчанию строковые — подходят и для int,
+и для UUID/ULID; можно выбрать тип явно. Настройка общая, а у своего хранилища панели — своя.
 
-**Почему.** N16: один тип на все морфы не позволяет смешанных хостов; в экосистеме это третья независимая ручка
-(`vaulter.ids.default`, `corex.ids.strategy`, `AZ_GUARD_MORPH_TYPE` — см. docblock `AzgardGuard` в Vaulter).
+**Решение.** `azguard.ids.host_keys`: `string` (по умолчанию, `varchar(64)`) | `bigint` | `uuid` | `ulid` — те же
+значения, что у Vaulter (общее инженерное правило экосистемы, D43). Хранилище панели может переопределить
+(`Storage::own(..., hostKeys: 'uuid')`). Применяется к `subject_id`, `context_id`, `granted_by_id`. Параметры
+запросов всегда приводятся кодеком к строке при `string`. `column_names.morph_type` удаляется (`int → bigint`).
 
 ---
 
 <a id="d09"></a>
-### D09 — Публичный API: фасад-диспетчер, `Authorizer` для чтения, `AccessManager` для записи · T1
+### D09 — Публичный API: панель — главный вход; глобальные ярлыки маршрутизируют по ключу · T1
 
-**Решение.** Нормативные сигнатуры — [05-php-api.md](05-php-api.md). Суть:
+**Кратко:** `AzGuard::panel('admin')` — всё про одну панель (проверить, посмотреть, изменить); короткие
+глобальные методы сами находят панель по ключу права.
+
+**Решение.** Нормативно — [05-php-api.md](05-php-api.md).
 
 ```php
-AzGuard::check($user, 'app.documents.update', context: $workspace);          // bool
-AzGuard::decide(AccessRequest::for($user, Documents::Update)->in($workspace)); // Decision
-AzGuard::for($user)->in($workspace)->can(Documents::Update);                  // handle субъекта
-AzGuard::for($user)->permissions('app');                                      // PermissionSet
+$admin = AzGuard::panel('admin');                         // PanelAuthorizer
+$admin->check($user, 'admin.orders.refund', context: $store);
+$admin->for($user)->in($store)->can(OrderPermission::Refund);
+$admin->decideMany($requests);                            // пакетно, один снимок
+$admin->manage()->actingAs($vera)->assignRole($anna, 'admin:support', expiresAt: $deadline);
 
-AzGuard::access()->actingAs($admin)->assignRole($user, 'app:editor', context: $workspace);
-AzGuard::access()->asSystem('import')->issueGrant($user, 'app.reports.export', expiresAt: $deadline);
-
-AzGuard::realms()->get('app');  AzGuard::catalog()->all('app');
+AzGuard::check($user, 'admin.orders.refund');             // ярлык: панель из ключа
+$user->hasPermission(OrderPermission::Refund);            // трейт: панель из enum (D05)
 ```
 
-- `AzGuardManager`, `AzGuardManagerInterface`, `GrantBuilder`, `ContextGrantBuilder`(+factory) удаляются.
-- `Authorizer` (контракт `@api`) — `decide()`, `allows()`, `decideMany()` (D27), `explain()` (D29).
-- `AccessManager` (`@api`) — иммутабельный handle с актором: без `actingAs()`/`asSystem()` любая запись →
-  `MissingActorException` (тот же принцип, что `Vaulter::drive()->actingAs()/asSystem()`, Vaulter D07).
-- Фасад — только делегирующие методы, без собственного состояния; `AzGuard::fake()` остаётся (D39).
+- `AzGuardManager` остаётся корнем фасада, но без состояния; `AzGuardManagerInterface`, `GrantBuilder`,
+  `ContextGrantBuilder`(+factory) удаляются.
+- `PanelAuthorizer` (`@api`) — `check/decide/decideMany/explain/for/manage/catalog/visibility/state/definition`.
+- `AccessManager` (`@api`, `->manage()`) — неизменяемый handle с актором; без `actingAs()`/`asSystem()` любая
+  запись → `MissingActorException`.
 
 ---
 
 <a id="d10"></a>
 ### D10 — Трейт host-модели — только чтение · T1 (меняет DX)
 
-**Решение.** `AzGuard\Concerns\HasAzGuard` (+ контракт `AzGuard\Contracts\AzGuardSubject`) даёт только:
-`hasPermission(PermissionKey|string|UnitEnum $permission, ContextRef|Model|null $context = null, ?object $resource = null): bool`,
-`hasRole(RoleKey|string $role, ContextRef|Model|null $context = null): bool`, `permissions(string $realm, …): PermissionSet`,
-`isSuperadmin(string $realm): bool`, `azguardRef(): SubjectRef`.
+**Кратко:** на модели пользователя остаются вопросы («можно ли?», «есть ли роль?»); выдача и отзыв — через
+менеджер доступа панели, чтобы всегда было видно «кто выдал» и работали проверки полномочий.
 
-Удаляются из host-модели: `roles()`, `scopes()`, `directGrants()` (связи), `assignRole/removeRole/syncRoles`,
-`grant/revoke`, `assignScopedRole/…`, `hasScopedRole`, `hasScopedPermission` (→ `hasPermission(..., context: $model)`),
-`hasPermissionIn` (→ то же), `checkPermission`, `flushPermissions`, `hasContextGuard`, `getRoleNames`, `isSuperAdmin`
-(→ `isSuperadmin`). Трейты `HasRoles`, `HasPermissions`, `HasDirectGrants`, `HasScopedRoles` и контракт `AzGuardUser` удаляются.
-
-**Почему.** Записи без актора обходят делегирование (N02) и дают разные события (N11); связи делают схему
-публичным API. Для сидеров и тестов — `AzGuard::access()->asSystem('seed')` и `InteractsWithAzGuard` (D39).
-**Продуктовая семантика меняется** (Spatie-подобное `$user->assignRole()` уходит) — [Q3](15-owner-questions.md).
+**Решение.** `AzGuard\Concerns\HasAzGuard` (+ контракт `AzGuardSubject`): `hasPermission($permission, context:, panel:, resource:)`,
+`hasRole($role, context:)`, `permissions(string $panel, context:)`, `isSuperadmin(string $panel)`, `azguardRef()`.
+Удаляются из модели: связи `roles()/scopes()/directGrants()`, `assignRole/removeRole/syncRoles`, `grant/revoke`,
+`assignScopedRole/...`, `hasScopedRole/hasScopedPermission` (→ `hasPermission(..., context: $model)`),
+`hasPermissionIn`, `checkPermission`, `flushPermissions`, `getRoleNames`. Для сидеров и тестов —
+`->manage()->asSystem('seed')` и `InteractsWithAzGuard` (D39). **Семантика DX меняется** — [Q3](15-owner-questions.md).
 
 ---
 
 <a id="d11"></a>
-### D11 — Субъекты: любой Eloquent-модель, `SubjectResolver` вместо зашитой user-модели · T1
+### D11 — Субъекты задаёт панель: guard, модели, резолвер · T1
+
+**Кратко:** у админки субъекты — сотрудники из guard `admin`, у сайта — покупатели из `web`; никакой зашитой
+модели `User`.
 
 **Решение.**
 
-- Субъект — любой объект, который `SubjectResolver` превращает в `SubjectRef` (по умолчанию — Eloquent-модель:
-  morph alias + ключ; `Authenticatable` без модели — `getAuthIdentifier()` + класс). Контракт `@spi`.
-- `azguard.subjects.types` — список разрешённых morph-типов субъектов (пусто = любой); используется валидацией
-  записей и Filament-пикером.
-- Поиск субъектов для UI/CLI — `SubjectDirectory` (`@spi`): `search(string $term, int $limit): list<SubjectOption>`,
-  `find(SubjectRef): ?SubjectOption`; по умолчанию — провайдер guard'а `azguard.subjects.guard` (null = guard по
-  умолчанию). Все упоминания `auth.providers.users.model` и ключа `'id'` удаляются (N15).
+- `PanelBuilder::subjects(guard: ?string, models: list<class-string>, resolver: ?class-string)`:
+  guard — откуда брать «текущего субъекта» панели (UI, middleware), models — какие морф-типы могут получать роли
+  (валидация в пайплайне изменений), resolver — `SubjectResolver` (`@spi`, по умолчанию модель → `SubjectRef`).
+- `SubjectDirectory` (`@spi`) — поиск субъектов для UI/CLI, по умолчанию через провайдер guard'а панели.
+- Все `auth.providers.users.model` и ключ `'id'` удаляются (N15).
 
 ---
 
 <a id="d12"></a>
-### D12 — Граница API: namespace + манифест, теги только `@api`/`@spi`/`@internal` · T1
+### D12 — Граница API: namespace + машинный манифест; `@api`/`@spi`/`@internal` · T1
 
-**Решение.**
+**Кратко:** по расположению класса сразу видно, можно ли от него зависеть; автоматический тест не даст
+незаметно поменять публичный контракт.
 
-| Где | Статус | Проверка |
-|---|---|---|
-| `Contracts\*` | `@api` (для вызова) или `@spi` (для реализации расширениями) — тег обязателен | arch-тест: каждый тип в `Contracts\` помечен ровно одним |
-| `Kernel\*`, `Realms\Realm*`, `Events\*`, `Exceptions\*`, `Facades\AzGuard`, `Concerns\HasAzGuard`, `Testing\*` | `@api` | manifest |
-| `Persistence\Eloquent\Models\*` | `@api` только для чтения и наследования (подмена модели) | doc + manifest |
-| остальное (`Authorization\*`, `Administration\*` реализации, `Persistence\*`, `Laravel\*`, `Internal\*`) | internal по расположению | arch-тест: filament и хост-тесты не импортируют |
-
-- `api-manifest.json` в каждом пакете генерируется из рефлексии (типы, методы, параметры **с значениями по
-  умолчанию**, константы и значения, enum cases, `final/readonly/abstract`, реализуемые интерфейсы) и сравнивается
-  в CI; любое изменение требует записи в `CHANGELOG` с классом изменения ([12 §5](12-operations-and-release.md#5-гейты-совместимости)).
-- `@experimental` не вводится: нестабильные возможности — за флагом `azguard.features.*` и в `Internal\`.
+**Решение.** `Contracts\*` — `@api` (для вызова) или `@spi` (для авторов плагинов и интеграций); `Kernel\*`,
+`Panels\Panel`/`PanelBuilder`/`PanelProvider`, `Events\*`, `Exceptions\*`, `Facades\AzGuard`, `Concerns\HasAzGuard`,
+`Testing\*`, базовые модели (чтение и наследование) — `@api`; остальное — internal по расположению.
+`api-manifest.json` в каждом пакете (типы, методы, параметры **со значениями по умолчанию**, константы, enum cases,
+`final/readonly`, интерфейсы) сравнивается в CI. `@experimental` не вводится (нестабильное — за флагом и в `Internal\`).
 
 ---
 
 <a id="d13"></a>
-### D13 — Единая модель назначений: `RoleAssignment` и `Grant`, обе с контекстом · T1 (меняет схему)
+### D13 — Модель выдач: `RoleAssignment` и `DirectGrant`, обе с контекстом, сроком, актором · T1
 
-**Решение.** Четыре таблицы назначений (`model_has_roles`, `model_has_scopes`, `az_direct_grants`,
-`az_guard_context_roles`) заменяются двумя:
+**Кратко:** «роль в проекте» и «право в workspace» — одна и та же операция «выдать что-то кому-то где-то до
+такой-то даты»; поэтому одна схема и одна проверка вместо двух механизмов.
 
-| Таблица | Строка означает | Идентичность (UNIQUE, все колонки NOT NULL) |
+**Решение.** В каждом хранилище (D46) — две таблицы выдач вместо четырёх (`model_has_roles`, `model_has_scopes`,
+`az_direct_grants`, `az_guard_context_roles`):
+
+| Таблица | Строка означает | Идентичность (UNIQUE, NOT NULL) |
 |---|---|---|
-| `azg_role_assignments` | субъект S держит роль R в контексте C до T | `(role_id, subject_type, subject_id, context_key)` |
-| `azg_grants` | субъект S имеет право/шаблон P в контексте C до T | `(subject_type, subject_id, permission, context_key)` |
+| `{prefix}role_assignments` | субъект S держит роль R панели P в контексте C до T | `(role_id, subject_type, subject_id, context_key)` |
+| `{prefix}direct_grants` | субъекту S выдано право/шаблон в панели P в контексте C до T | `(panel, subject_type, subject_id, permission, context_key)` |
 
-Обе несут `expires_at`, `granted_by_type/_id`, `reason`, `created_at`. `context_key = 'global' | '{type}:{id}'` (D07)
-плюс денормализованные `context_type`, `context_id` (nullable, для запросов и видимости). Колонки NULL в
-идентичности нет → обычные unique-индексы на всех СУБД; `NullSafeUniqueIndex` (781 строка) и
-`AssignmentDeduplicator` (319) удаляются после upgrade-миграции. Схема — [08](08-data-model-and-migration.md).
-
-**Почему.** N10: два механизма одного понятия; N08/N16 — следствия. Роль в контексте проекта и право в контексте
-workspace — одна операция «назначить X субъекту в C», одна проверка, один кэш, одна грамматика.
+Обе несут `panel`, `context_key` (`global` | `{type}:{id}`) + `context_type/context_id`, `expires_at`,
+`granted_by_type/_id`, `reason`, `meta` (JSON для своих полей без миграций), `created_at/updated_at`. В идентичности нет
+NULL → обычные unique-индексы на всех СУБД; `NullSafeUniqueIndex` и `AssignmentDeduplicator` (~1100 строк) уходят
+после upgrade. Схема — [08](08-data-model-and-migration.md).
 
 ---
 
 <a id="d14"></a>
-### D14 — Роли: `RoleKey(realm, key)`, класс — сменяемая привязка · T1 (T0: DoS P02)
+### D14 — Роли: ключ `panel:key`, класс — сменяемая привязка · T1 (T0: авария P02)
+
+**Кратко:** роль узнаётся по ключу, а не по имени PHP-класса; переименование класса ничего не ломает.
 
 **Решение.**
 
-- `azg_roles`: `realm`, `key` (`^[a-z0-9][a-z0-9-]{0,63}$`), `label`, `description`, `origin` (`code`|`database`),
-  `definition` (FQCN, только для code), `is_superadmin`, `rank`. Идентичность — `UNIQUE(realm, key)`; `id` — только
-  внутренний FK.
-- Code-роль: класс, реализующий `AzGuard\Contracts\Roles\RoleDefinition` (`@spi`): `key(): string`, `label(): ?string`,
-  `permissions(): list<UnitEnum|string>` (строки — квалифицированные ключи/шаблоны этого realm), необязательно
-  `formerKeys(): list<string>` для переименований. Realm берётся из `RealmBuilder::roles([...])`.
-- `azguard:roles:sync` сопоставляет по `(realm, key)`, затем по `formerKeys()` (переименование ключа сохраняет
-  назначения), и **только затем** обновляет `definition` — перенос/переименование PHP-класса ничего не ломает (N12).
-- Роль, чей `definition` не разрешается: движок **не бросает** на пути проверки; роль даёт пустой набор,
-  событие `RoleDefinitionMissing` пишется один раз за запрос, `azguard:doctor` — error. (T0 в 0.3.x: `getRoleLogic()`
-  → `null` + лог вместо исключения на пути чтения.)
-- Code-роли **нельзя** изменять через UI/`AccessManager` (кроме `label`); DB-роли редактируются полностью.
-- `level` → `rank` (int, по умолчанию 0) — используется только политикой делегирования (D23): актор не управляет
-  ролями с `rank` выше своего максимального. «Priority when merging» удаляется (N20).
-- Роль принадлежит ровно одному realm; её права вне этого realm отвергаются при sync/записи.
+- Роль: `panel`, `key` (`^[a-z0-9][a-z0-9-]{0,63}$`), `label`, `description`, `origin` (`code`|`database`),
+  `definition` (FQCN для code), `is_superadmin`, `rank`, `meta` + свои колонки модели панели. Идентичность —
+  `UNIQUE(panel, key)`.
+- Code-роль — класс `RoleDefinition` (`@spi`: `key()`, `label()`, `permissions()`, `formerKeys()`, `rank()`).
+  Enum-права в `permissions()` получают панель той панели, к которой подключена роль.
+- `azguard:roles:sync` сопоставляет по `(panel, key)`, затем по `formerKeys()`, затем обновляет `definition`.
+- Неразрешимый `definition` → на пути проверки роль пустая + событие `RoleDefinitionMissing` + doctor error,
+  **не исключение**. (T0 в 0.3.x: `getRoleLogic()` → `null` + лог.)
+- Code-роли в UI/менеджере меняются только в `label`/`meta`/своих полях; права — в коде.
+- `level` → `rank` (для делегирования, D23); «priority when merging» удаляется.
 
 ---
 
 <a id="d15"></a>
-### D15 — Контекст — измерение назначения; политика контекстов на realm · T1 (T0: P06)
+### D15 — Контексты: политика на панели · T1 (T0: P06)
+
+**Кратко:** каждая панель сама решает, работают ли в ней контексты и как: права «везде + внутри workspace»,
+«только внутри», «без workspace нельзя» или «контекстов нет». Строгость одной панели не ломает другую.
 
 **Решение.**
 
-- Realm объявляет, какие типы контекстов принимает, и режим:
-  ```php
-  $realm->contexts(ContextPolicy::inherit('workspace', 'project'));   // глобальные ∪ контекстные (по умолчанию)
-  $realm->contexts(ContextPolicy::isolated('workspace'));             // в контексте — только контекстные
-  $realm->contexts(ContextPolicy::required('workspace'));             // без контекста — отказ
-  $realm->contexts(ContextPolicy::none());                            // контексты не применяются (admin)
-  ```
-- Применимые назначения для запроса `(S, P, C)`:
-  - `inherit`: `context_key ∈ {global, key(C)}`;
-  - `isolated`: при `C` — только `key(C)`; без `C` — только `global`;
-  - `required`: при `C` — `{global, key(C)}`; без `C` — `Decision::deny(ContextRequired)`;
-  - `none`: только `global`; контекст запроса игнорируется, в `explain` — предупреждение.
-- Контекст типа, не объявленного realm, → `UnsupportedContextException` при записи и `deny(ContextNotAccepted)` при
-  проверке (не молчаливое игнорирование).
-- **Членство** (tenant boundary) — отдельная обязательная проверка (D20, встроенный constraint
-  `azguard/context-membership`), включаемая на realm: `ContextPolicy::inherit('workspace')->requireMembership()`.
-  Без неё `inherit` означает «глобальная роль действует в любом контексте» — это документируется явно.
+```php
+$panel->contexts(ContextPolicy::inherit('workspace', 'project'));   // глобальные ∪ контекстные (по умолчанию для контекстных панелей)
+$panel->contexts(ContextPolicy::isolated('workspace'));             // в контексте — только контекстные
+$panel->contexts(ContextPolicy::required('workspace'));             // без контекста — отказ
+$panel->contexts(ContextPolicy::none());                            // контекстов нет (по умолчанию)
+$panel->contexts(ContextPolicy::inherit('store')->requireMembership());   // + граница «только члены магазина»
+```
 
-**Почему.** N07 (одна стратегия на все панели), C07/D16 Codex (контекст выбирает гранты ≠ проверяет членство).
-**T0 в 0.3.x:** `merge_strategy` становится картой `panel => strategy` с глобальным fallback.
+Таблица семантики — [09 §2](09-authorization-semantics.md#2-политика-контекстов-панели). Контекст типа, не
+объявленного панелью, → отказ при записи и `Deny(ContextNotAccepted)` при проверке. Членство — встроенное
+ограничение `azguard/context-membership` через `ContextMembership` (`@spi`). **T0 в 0.3.x:** `merge_strategy`
+принимает карту `panel => strategy`.
 
 ---
 
 <a id="d16"></a>
-### D16 — Жизненный цикл контекста: аргумент запроса, scoped ambient, `withinContext` · T0 (C02) / T1
+### D16 — Жизненный цикл контекста: аргумент запроса, текущий контекст, `withinContext` · T0 (C02) / T1
 
-**Решение.**
+**Кратко:** контекст передают прямо в проверку; «текущий workspace» запроса ставит middleware; в фоновых задачах
+контекст задаётся явно и гарантированно сбрасывается.
 
-- Одноразовая проверка передаёт контекст **аргументом** (`AccessRequest::in()`, `hasPermission(..., context:)`);
-  никакого `set()/restore` вокруг проверки (C02 исчезает как класс).
-- Ambient-контекст запроса — `AzGuard\Context\CurrentContext` (scoped): ставит middleware `azguard.context`
-  через `ContextResolver`-ы (`@spi`, `resolve(Request): ?ContextRef`); используется, только когда запрос не указал
-  контекст явно и **realm принимает этот тип**.
-- `AzGuard::withinContext(ContextRef $context, Closure $callback): mixed` — для кода без HTTP (jobs): сохраняет
-  предыдущее, ставит новое **внутри** `try`, восстанавливает в `finally` до любых fallible-действий (F31).
-- Jobs: контекст не переносится автоматически; `ShouldQueue`-job, которому нужен контекст, сериализует `ContextRef`
-  и оборачивает `handle()` в `withinContext` (документированный рецепт + trait `InteractsWithAccessContext`).
-- **T0 в 0.3.x:** в `ContextGuard::checkInContext()` перенести `set()` и `forgetRequestCache()` внутрь `try`.
+**Решение.** Одноразовая проверка — `context:` аргумент (никакого `set()/restore`). Текущий контекст —
+`CurrentContext` (scoped), ставит middleware `azguard.context` через `ContextResolver`-ы **панели**; используется,
+только если панель принимает этот тип. `AzGuard::withinContext($context, fn)` ставит внутри `try`, восстанавливает
+в `finally`. Jobs сериализуют `ContextRef` сами. **T0 в 0.3.x:** в `ContextGuard::checkInContext()` перенести `set()`
+и `forgetRequestCache()` внутрь `try`.
 
 ---
 
 <a id="d17"></a>
-### D17 — Алгебра решения · T1 (меняет семантику)
+### D17 — Смысл решения: пайплайн доступа с жёсткими правилами шагов · T1 (меняет семантику)
 
-**Решение.** Нормативно — [09-authorization-semantics.md](09-authorization-semantics.md). Порядок:
+**Кратко:** права собираются, потом проверяются ограничения; добавлять права может только шаг «сбор», запрещать —
+только шаг «ограничения»; ошибка всегда означает «нет».
 
-1. **Владение**: ключ принадлежит realm и есть в каталоге (точно или по динамическому определению) — иначе
-   `Decision::notApplicable()` (Gate → `null`).
-2. **Применимые контексты** по политике realm (D15).
-3. **Superadmin** realm (D19) → allow, если ни один применимый constraint не помечен `bypassable: false`.
-4. **Вклады**: каждый `PermissionSource` возвращает шаблоны с происхождением и сроком; объединение (∪). Нет
-   совпадения → `deny(NotGranted)`.
-5. **Constraints** в объявленном порядке: `fail` → `deny(ConstraintFailed, key)`; исключение → `deny(ConstraintError)`
-   (fail-closed, с логом); `abstain` — не влияет.
-6. `Decision::allow(Granted)` со списком вкладов (при trace) и `StateToken`.
-
-- **Явных deny-правил в 1.0 нет** (запрет выражается constraint'ом). Причина: deny-override в RBAC-гранты ломает
-  предсказуемость для админов; constraint с ключом объясним и тестируем. T2 — при реальном запросе (D21).
-- Ошибка источника → исключение наружу (как сейчас: частичный набор не авторизует).
+**Решение.** Порядок и контракты шагов — D48; нормативный алгоритм и свойства — [09](09-authorization-semantics.md).
+Итог — `Decision` (`Allow`/`Deny`/`NotApplicable` + причина + версия состояния). Явных deny-правил в 1.0 нет
+(запрет — ограничение, [Q12](15-owner-questions.md)). Ошибка источника прав → исключение наружу (частичный набор
+не авторизует); ошибка ограничения → `Deny(RestrictionError)`.
 
 ---
 
 <a id="d18"></a>
 ### D18 — Грамматика ключей и шаблонов · T1
 
-**Решение.**
+**Кратко:** права пишутся маленькими буквами через точку; звёздочки — только при выдаче, не в каталоге; голой
+звёздочки «всё везде» больше нет.
 
-- Сегмент ключа: `^[a-z0-9][a-z0-9_-]*$` (нижний регистр — нет зависимости от collation); динамический
-  плейсхолдер `{name}` (`^[a-z][a-z0-9_]*$`) — только в **определениях** каталога; длина ключа ≤ 255.
-- Шаблоны — только в **выдаче** (роль, грант): сегмент `*` — ровно один сегмент, `**` — последний сегмент, «всё
-  глубже». Голый `*` без realm запрещён (superadmin — D19). `app.**` — «все права realm» (не superadmin: constraints
-  действуют, `isSuperadmin` = false — это разные вещи, и это документируется).
-- Легаси-грамматика (`features.wildcard_permission`, `WildcardPermissionMatcher`) удаляется в 0.4.0.
-- Сменяемый `PermissionMatcher` удаляется: грамматика — часть контракта идентичности (кэш, БД, делегирование),
-  её нельзя менять конфигом без смены данных. `Kernel\Grammar\PatternMatcher` — единственная реализация.
+**Решение.** Сегмент: `^[a-z0-9][a-z0-9_-]*$`; плейсхолдер `{name}` — только в определениях каталога; длина ≤ 255.
+Шаблоны — только в выдаче: `*` — один сегмент, `**` — последний сегмент («всё глубже»). Голый `*` запрещён (суперадмин —
+D19). `panel.**` — все права панели, но **не** суперадмин (ограничения действуют). Легаси-грамматика и сменяемый
+`PermissionMatcher` удаляются: грамматика — часть идентичности данных.
 
 ---
 
 <a id="d19"></a>
-### D19 — Superadmin — отдельная политика, а не значение ключа · T0 (N01, P01, P14) / T1
+### D19 — Суперадмин — свойство роли панели, а не значение `*` · T0 (N01, P01, P14) / T1
+
+**Кратко:** суперадмин всегда «в какой-то панели»; стать им можно только через роль, отмеченную как суперадмин;
+«суперадмин во всех панелях» — это осознанно подключаемый общий плагин, а не побочный эффект звёздочки.
 
 **Решение.**
 
-- Источник superadmin — только роли с `is_superadmin = true`:
-  - роль realm X → superadmin **только в X**;
-  - встроенная роль платформы `*:superadmin` (realm `*` — единственное допустимое исключение из грамматики realm,
-    создаётся только `azguard:superadmin:assign`/`AccessManager::assignPlatformSuperadmin()`, включается
-    `azguard.superadmin.platform_role = true`) → superadmin во всех realm.
-- Назначение superadmin-роли возможно **только** в глобальном контексте и только актором-superadmin того же уровня
-  (или system).
-- `azguard.superadmin.bypass_constraints` (по умолчанию `false`): superadmin обходит отсутствие грантов, но не
-  constraints, помеченные `bypassable: false` (членство в tenant — по умолчанию не обходится).
-- `*` в правах роли, гранте, источнике → ошибка валидации (запись) / отбрасывание с warning (внешний источник).
-- `SuperadminPolicy` (`@spi`) заменяема: хост может вычислять superadmin иначе (например, по флагу модели).
+- Суперадмин панели P — держатель роли P с `is_superadmin = true`, назначенной в глобальном контексте.
+- Суперадмин во всех панелях — через общий плагин/политику, подключаемую к нужным панелям:
+  `GlobalSuperadminPlugin::make()->when(fn (Model $s) => $s->is_root)` (или своя `SuperadminPolicy`). Так
+  независимость панелей сохраняется: каждая явно соглашается доверять общему правилу.
+- Назначать суперадмин-роли — только суперадмин той же панели (или system).
+- `superadmin.bypass_restrictions` (по умолчанию `false`): суперадмин проходит отсутствие прав, но не ограничения,
+  помеченные `bypassable = false` (членство в магазине по умолчанию не обходится).
+- `*` в правах роли, прямом праве, источнике → ошибка валидации / отбрасывание с warning.
 
-**T0 в 0.3.x:** в `ClassRoleGrantSource` учитывать панель роли: `*` из роли панели X — только для X (роль
-`super-admin` — как сейчас, глобально); `GrantBuilder`/`HasDirectGrants`/`guard:grant` отвергают `*` без
-`--force-superadmin`; документация super-admin исправляется.
+**T0 в 0.3.x:** `*` class-роли — только в её панели (`super-admin` — как сейчас, глобально); `GrantBuilder`,
+`HasDirectGrants`, `guard:grant` отвергают `*` без явного флага; документация super-admin исправляется.
 
 ---
 
 <a id="d20"></a>
-### D20 — Constraints: упорядоченный реестр с ключами · T1
+### D20 — Ограничения (Restrictions): упорядоченный реестр вместо одного `PermissionLayer` · T1
 
-**Решение.** Контракт `AzGuard\Contracts\Authorization\Constraint` (`@spi`):
+**Кратко:** несколько плагинов могут одновременно ограничивать доступ (членство, лицензия, часы работы) — в
+понятном порядке, и каждый может только сказать «нет».
 
-```php
-interface Constraint
-{
-    public function key(): string;                                     // 'vendor/name'
-    public function appliesTo(AccessRequest $request): bool;
-    public function check(AccessRequest $request, EvaluationContext $context): ConstraintResult; // pass|fail|abstain
-    public function bypassable(): bool;                                // может ли superadmin обойти
-}
-```
-
-- Регистрация: `azguard.authorization.constraints` (FQCN, порядок = порядок массива) + `RealmBuilder::constraints([...])`
-  (ключи; realm может только добавить). Дубликат ключа → boot-ошибка; `replace()` — явная.
-- Порядок входит в `policy_fingerprint` (D25), меняющий ключ кэша решений explain/audit.
-- Встроенные: `azguard/context-membership` (использует `ContextMembership` `@spi`: `isMember(SubjectRef, ContextRef): bool`),
-  `azguard/resource-owner` — пример в документации, не в ядре.
-- `PermissionLayer` (единственный binding) удаляется.
+**Решение.** `Restriction` (`@spi`): `key()`, `appliesTo(AccessRequest, Panel)`, `check(AccessRequest, EvaluationContext): RestrictionResult`
+(`pass`|`deny(reason)`|`abstain`), `bypassable()`. Регистрация — в панели (`$panel->restrict(...)`) и через плагины;
+порядок = порядок регистрации, входит в отпечаток политики (D25). Дубликат ключа → ошибка; `replace()` явный.
+`PermissionLayer` удаляется.
 
 ---
 
 <a id="d21"></a>
 ### D21 — Сознательно отложено (T2, аддитивно)
 
-Иерархия контекстов (`ContextHierarchy`: проект ⊂ workspace — наследование назначений); явные deny-правила;
-relationship-граф/внешний Zanzibar-подобный backend; порт записи для альтернативного хранилища; раздельные ревизии
-«роли/субъект» вместо глобальной (после бенчмарка, D24); durable outbox для событий AzGuard (сейчас достаточно
-after-commit + опционального audit-журнала, D28); UI-«предпросмотр эффективных прав» в Filament.
+Связи панелей (`$panel->inherits('app', roles: true)`); официальный плагин подтверждений (4-eyes) — в 1.0 только
+точка расширения и пример (D49); иерархия контекстов (проект ⊂ workspace); явные deny-правила; relationship-граф;
+порт записи для чужого хранилища; outbox для событий; предпросмотр эффективных прав в Filament.
 
 ---
 
 <a id="d22"></a>
-### D22 — Единственный путь записи: `AccessManager` на `AzGuardDatabase::mutate()` · T0 (Filament, Role::delete) / T1
+### D22 — Единственный путь записи: пайплайн изменений панели · T0 (Filament, Role::delete) / T1
 
-**Решение.**
+**Кратко:** выдать или отобрать права можно только через менеджер доступа панели; всё происходит одной
+транзакцией; прямые записи в модели не поддерживаются.
 
-- Каждая операция `AccessManager` выполняется в `AzGuardDatabase::mutate(Closure)`: транзакция на соединении AzGuard
-  → проверка делегирования (D23) → валидация (грамматика, каталог, realm роли, тип контекста) → запись строк →
-  bump ревизии (если строки изменились) → запись событий (D28). Всё или ничего.
-- Модели AzGuard остаются Eloquent-моделями (чтение, связи, подмена класса), но их `save/delete` вне `mutate()`
-  логирует `UnsupportedDirectWriteException` в `local/testing` (исключение) и warning в production; bulk-запросы
-  не перехватываются и официально unsupported (документ «Supported write paths»).
-- CLI, Filament, сидеры, тестовый kit — клиенты `AccessManager`; `RolePermissionSynchronizer` становится внутренней
-  операцией `setRolePermissions()` (сохраняет fingerprint-конфликт как `expectedFingerprint`).
-- **T0 в 0.3.x:** `Role` получает `RevisionedPermissionModelWrites` (удаление роли каскадом снимает назначения
-  без bump ревизии); `RolePermission` — тоже.
+**Решение.** Каждая операция `AccessManager` проходит пайплайн изменений (D49); шаг «Запись» выполняется в
+`Storage::mutate()` хранилища панели: транзакция → строки → +1 версия состояния **панели** → журнал → commit → уведомления.
+Модели можно читать и наследовать, но их `save/delete` вне `mutate()` — `UnsupportedDirectWriteException` в
+local/testing и warning в production; bulk-запросы — официально unsupported. CLI, Filament, сидеры, тесты —
+клиенты менеджера. **T0 в 0.3.x:** `Role`, `RolePermission` получают `RevisionedPermissionModelWrites`.
 
 ---
 
 <a id="d23"></a>
-### D23 — Политика делегирования: актор, мета-права, запрет эскалации · T0
+### D23 — Делегирование: актор, мета-права, запрет эскалации · T0
 
-**Решение.**
+**Кратко:** выдавать можно только то, что есть у тебя самого; управлять ролями выше своего ранга нельзя;
+суперадминов назначают только суперадмины.
 
-- `DelegationPolicy` (`@spi`, по умолчанию `DefaultDelegationPolicy`) вызывается каждой операцией `AccessManager`
-  для актора-пользователя (system — пропускает делегирование, но не валидацию).
-- Мета-права регистрируются в каждом realm автоматически (enum `AzGuard\Permissions\AccessPermission`):
-  `{realm}.azguard.roles.view`, `…roles.manage`, `…assignments.manage`, `…grants.manage`, `…superadmin.manage`,
-  `…doctor.view`.
-- Правила по умолчанию:
-  1. нужная мета-право в realm цели **в контексте цели или глобально**;
-  2. **без эскалации** (`azguard.administration.prevent_escalation = true`): актор может назначить роль/выдать право,
-     только если сам обладает всеми её правами в том же контексте; шаблон `**` — только superadmin realm;
-  3. роли с `rank` выше максимального `rank` ролей актора в realm — недоступны;
-  4. superadmin-роли — только superadmin того же уровня (D19);
-  5. актор не может снять с себя последнюю роль, дающую `roles.manage` в realm (защита от самоблокировки,
-     предупреждение, не ошибка, если есть другой superadmin).
-- Отказ → `AccessManagementDeniedException extends AuthorizationException` (403) с кодом `delegation_denied`.
-- **T0 в 0.3.x:** Filament RoleResource — поле `class_name` только для чтения; `DirectGrantResource`/`RoleResource`
-  требуют мета-прав и проверяют «без эскалации»; документировать отсутствие делегирования в CLI.
+**Решение.** Шаг «Полномочия» пайплайна изменений вызывает `DelegationPolicy` панели (`@spi`, по умолчанию
+`DefaultDelegationPolicy`; system-актор пропускает делегирование, но не проверки). Мета-права регистрируются в каждой
+панели (встроенный плагин `azguard/access`): `{panel}.azguard.roles.view|manage`, `…assignments.manage`,
+`…grants.manage`, `…superadmin.manage`, `…doctor.view`. Правила: мета-право в контексте цели или глобально; без
+эскалации (`prevent_escalation = true`); `rank`; суперадмин-роли — только суперадмин; защита от самоблокировки.
+Отказ → `AccessManagementDeniedException extends AuthorizationException` (`delegation_denied`). **T0 в 0.3.x:**
+`class_name` в Filament только для чтения, ресурсы требуют мета-прав, выдача — без эскалации.
+
+**Кто управляет панелью.** По умолчанию панель администрирует сама себя: актор — субъект этой панели, мета-права
+лежат в ней. Частый случай другой: сотрудники админки раздают роли покупателям сайта, но сами не являются
+субъектами панели `site`. Для этого `site->administeredBy('admin')`: мета-права управления `site` регистрируются в
+панели `admin` как `admin.azguard.site.roles.manage`, `…assignments.manage`, `…grants.manage`, `…superadmin.manage`,
+и `DelegationPolicy` панели `site` проверяет актора по панели `admin`. Правило «не больше, чем есть у тебя» между
+панелями не применяется (у сотрудника нет прав покупателя). Вместо него действует явное мета-право, а при
+необходимости — своё ограничение или своя `DelegationPolicy`. Цепочки не разрешены: панель, которую администрирует
+другая, сама не может быть администратором третьей (проверка при сборке).
 
 ---
 
 <a id="d24"></a>
-### D24 — Ревизия состояния и консистентность чтений · T0 (primary) / T1
+### D24 — Версия состояния на панель и честная консистентность · T0 (primary) / T1
+
+**Кратко:** у каждой панели свой счётчик изменений — изменения в админке не сбрасывают кэш сайта; после отзыва
+права новая проверка его уже не увидит; повторная проверка в запросе не ходит в БД.
 
 **Решение.**
 
-- `AzGuardDatabase` владеет строкой `azg_state(id=1, revision)`; bump — только внутри `mutate()` (Codex прав: наружу
-  нет `advanceRevision()`). `StateToken` = `{revision, generation, policyFingerprint}` — публичное значение для
-  внешних кэшей (Vaulter, D43).
-- `azguard.database.reads = 'primary'` (по умолчанию): ревизия **и** все встроенные источники читают через write-PDO
-  (`useWritePdo()`), закрывая обе гонки F32. `'default'` — осознанный выбор eventual consistency (doctor: warning).
-- `azguard.cache.state_refresh = 'request'` (по умолчанию): ревизия читается один раз на request/job-lifecycle и
-  обновляется после собственных мутаций процесса; `'check'` — на каждую проверку (строгий режим). Граница
-  документируется: «отзыв действует для проверок, начавших request/job после commit отзыва» (при `check` — «после
-  commit»). Закрывает P10 (N запросов на N проверок).
-- Обход кэша — только если **текущий процесс** выполнил мутацию AzGuard в ещё не закоммиченной транзакции
-  (read-your-writes), а не при любой транзакции соединения (P10b).
-- Глобальная ревизия остаётся базовой топологией; раздельные ревизии (роли/субъект) — T2 после бенчмарка (D21).
+- Таблица состояния хранилища содержит **строку на панель** (`panel`, `revision`); bump — только внутри `mutate()`
+  этой панели. `StateToken` = `{panel, revision, generation, policyFingerprint}` — публичное значение для кэшей
+  интеграций (D51).
+- `reads = primary` (по умолчанию): версия и все встроенные источники читают через write-PDO (обе гонки F32).
+- `state_refresh = request` (по умолчанию): версия читается раз на request/job и продвигается после своих мутаций;
+  `check` — на каждую проверку. Дословная гарантия отзыва — [09 §6](09-authorization-semantics.md#6-кэш-и-консистентность).
+- Обход кэша — только при незакоммиченной мутации AzGuard в этом процессе (не при любой транзакции, P10b).
+- Настройки `reads`/`state_refresh`/`cache` — на панели с глобальными значениями по умолчанию (D45).
 
 ---
 
 <a id="d25"></a>
 ### D25 — Кэш наборов прав · T1
 
-**Решение.**
+**Кратко:** кэшируется только «что у субъекта есть» (результат шага сбора), ключ кэша однозначный и учитывает
+версию панели и конфигурацию кода.
 
-- Кэшируется `PermissionSet` (шаблоны + ближайший `validUntil`) на ключ
-  `digest(v3, subjectRef, realm, contextKeys, stateToken)`. Эпохи субъектов удаляются (ревизия в ключе делает их
-  избыточными; ~120 строк и lock-логика уходят).
-- `azguard.cache.store`: `null` (по умолчанию) — только request-кэш; имя store — межзапросный кэш.
-  `expiration_time: null` на персистентном store — boot-ошибка (как сейчас).
-- `generation` остаётся (смена при деплое); `policyFingerprint` = хэш определения realm, каталога, ролей из кода,
-  constraints и их порядка — вычисляется при boot, делает кэш безопасным при смене кода без bump ревизии.
-- Кэшированный набор не содержит решений constraints (они вычисляются на каждой проверке — дешёвые или сами кэшируют).
+**Решение.** Ключ `digest(v3, panel, subjectRef, contextKeys, stateToken)`; эпохи субъектов удаляются. Хранилище кэша,
+TTL, `generation` — настройки панели. `policyFingerprint` — хэш определения панели, каталога, code-ролей, плагинов,
+ограничений и их порядка: смена кода не требует ручного сброса. Результаты ограничений не кэшируются движком.
+Решения, помеченные источником как `Volatile`, межзапросно не кэшируются.
 
 ---
 
 <a id="d26"></a>
-### D26 — Gate-мост: authoritative для своих ключей · T1 (меняет семантику)
+### D26 — Gate: панель из ключа, режим — настройка панели · T1 (меняет семантику)
 
-**Решение.**
+**Кратко:** `@can('admin.orders.refund')` всегда спрашивает панель `admin`; если право принадлежит AzGuard, его ответ
+окончательный (по умолчанию); чужие права AzGuard не трогает.
 
-- `GateBridge` (`Gate::before`): ability — не квалифицированный ключ зарегистрированного realm или нет в каталоге →
-  `null`; своё → `true`/`false` по `Decision` (`azguard.gate.mode = 'authoritative'`, по умолчанию). `'additive'`
-  (как в 0.3: `true`/`null`) — для постепенной миграции, deprecated к 1.0.
-- Аргументы Gate: первый аргумент `ContextRef`/модель контекста → контекст запроса; иначе — ambient (D16). Прочие
-  аргументы доступны constraints как `resource`.
-- `azguard.gate.superadmin_scope`: `'owned'` (по умолчанию: superadmin отвечает `true` только на ключи AzGuard) |
-  `'all'` (Laravel-style super-user: `true` на любую ability). Рецепт `Gate::before` в документации удаляется.
-- `Gate::define('direct-grant')`, `PolicyAttributeRegistrar`, авто-`Gate::policy()` по ФС, генерируемые политики
-  удаляются (N19): политика хоста — обычная Laravel-политика, которая вызывает `AzGuard::check()` для RBAC-части.
-- Ability-ключи в `@can`, `can:` middleware, `$user->can()` — квалифицированные ключи или enum (`$user->can(Documents::Update)`).
+**Решение.** `GateBridge` (`Gate::before`): ability — не ключ зарегистрированной панели или нет в каталоге → `null`;
+своя → `true/false` при `gate.mode = authoritative` (по умолчанию на панели) или `true/null` при `additive`.
+Первый аргумент-контекст (модель/`ContextRef`) → контекст запроса. `gate.superadmin_scope`: `owned` | `all`.
+Удаляются `Gate::define('direct-grant')`, `PolicyAttributeRegistrar`, авто-`Gate::policy()` по ФС и генерируемые
+политики (N19); политики хоста — обычные Laravel-политики, вызывающие `AzGuard::check()` для RBAC-части.
 
 ---
 
 <a id="d27"></a>
 ### D27 — Пакетная оценка с общим снимком · T1
 
-**Решение.** `Authorizer::decideMany(iterable<AccessRequest>): DecisionSet` — все решения на одном `StateToken`,
-одна загрузка назначений на `(subject, realm)`, контексты группируются. `DecisionSet::allowed(): list<int>`,
-`get(int $i): Decision`. Нужен Vaulter для листинга (Vaulter D12 — `evaluateMany`) и Filament для таблиц.
+**Кратко:** можно спросить про тысячу объектов одним вызовом — дёшево и согласованно (одна версия данных).
+
+**Решение.** `PanelAuthorizer::decideMany(iterable<AccessRequest>): DecisionSet` — один `StateToken`, одна загрузка
+выдач на `(subject, panel)`, контексты группируются. Нужен интеграциям (листинги Vaulter и др.) и Filament-таблицам.
 
 ---
 
 <a id="d28"></a>
-### D28 — События: after-commit, значения вместо моделей, `EventType` · T1
+### D28 — События: после commit, значения вместо моделей, `EventType` · T1
 
-**Решение.**
+**Кратко:** события отправляются только после успешного сохранения, несут «кто, что, где, когда» и понятны без
+загрузки моделей.
 
-- База `AzGuard\Events\AccessEvent` (abstract readonly): `eventId` (ULID), `occurredAt`, `actor` (`ActorRef`),
-  `correlationId`, `stateRevision`, `type(): EventType` — **те же поля, что `Vaulter\Events\DomainEvent`**.
-- Каталог: `RoleCreated`, `RoleUpdated`, `RoleDeleted`, `RolePermissionsChanged`, `RoleAssigned`, `RoleUnassigned`,
-  `GrantIssued`, `GrantRevoked`, `AssignmentExpired` (при prune), `AuthorizationStateReset`; диагностические
-  `RoleDefinitionMissing` и `AccessDecided` (только из `explain()`/`trace_decisions`). Payload — refs и скаляры, без Eloquent.
-- `EventRecorder` вызывается внутри `mutate()`: при `azguard.features.audit = true` пишет строку в `azg_audit_log` в
-  той же транзакции; Laravel-события диспатчатся **после commit** (`DB::afterCommit` на соединении AzGuard).
-  Одно событие на фактическое изменение (no-op → нет события).
-- `EventType`: `role.created`, `role.assigned`, `grant.issued`, … (`noun.verb_past`, как Vaulter).
-- Слушатели кэш-инвалидации удаляются (инвалидацию делает ревизия).
+**Решение.** База `AccessEvent`: `eventId` (ULID), `occurredAt`, `panel`, `actor` (`ActorRef`), `correlationId`,
+`stateRevision`, `type(): EventType`. Каталог — [08 §7](08-data-model-and-migration.md#7-каталог-событий). Laravel-события —
+на шаге «Уведомления» (после commit); durable-след — журнал аудита (встроенный плагин `azguard/audit`) в той же
+транзакции. No-op → нет события. Слушатели кэш-инвалидации удаляются.
 
 ---
 
 <a id="d29"></a>
 ### D29 — Объяснение из той же оценки · T1
 
-**Решение.** `Authorizer::explain(AccessRequest): Explanation` = решение + trace той же оценки (без повторного
-опроса источников): применимые контексты, вклады с происхождением (`source`, `assignmentId`, `roleKey`, `pattern`,
-`expiresAt`), результаты constraints, `StateToken`, итог Gate-моста (`true`/`false`/`null`) отдельно от локального
-решения (Codex C05). `DecisionReason`: `Granted`, `Superadmin`, `NotGranted`, `NotApplicable`, `ContextRequired`,
-`ContextNotAccepted`, `ConstraintFailed`, `ConstraintError`. Значения атрибутов субъекта в trace не пишутся
-(приватность, R18).
+**Кратко:** «почему нет?» показывает весь путь запроса по шагам пайплайна — какие права нашлись, какое ограничение
+отказало.
+
+**Решение.** `explain(AccessRequest): Explanation` = решение + трасса той же оценки по шагам (подготовка, суперадмин,
+вклады с происхождением, ограничения, итог Gate), без повторного опроса источников. Причины: `Granted`,
+`Superadmin`, `NotGranted`, `NotApplicable`, `ContextRequired`, `ContextNotAccepted`, `RestrictionDenied`,
+`RestrictionError`. Значения атрибутов субъекта в трассу не пишутся.
 
 ---
 
 <a id="d30"></a>
-### D30 — Filament: клиент Administration API · T0 (class_name, делегирование) / T1
+### D30 — Filament: клиент публичного API, связывается с «guard panel» · T0 (class_name, делегирование) / T1
 
-**Решение.** Детали — [11-filament.md](11-filament.md).
+**Кратко:** админка Filament управляет правами только через менеджер доступа (с проверкой полномочий), умеет
+показывать свои поля панели и не путает Filament-панели с панелями AzGuard.
 
-- Все записи — через `AzGuard::access()->actingAs(auth()->user())`; ресурсы не пишут модели напрямую.
-- Роли: code-роли только для чтения (кроме `label`), `definition` не редактируется никогда; DB-роли — label,
-  description, rank, права; `is_superadmin` — только superadmin.
-- Назначения и гранты — единый ресурс «Access» с выбором субъекта (`SubjectDirectory`), realm, роли/права и контекста
-  (`ContextDirectory` `@spi`); поиск, а не загрузка всех пользователей.
-- Плагин: `AzGuardPlugin::make()->realm('admin')->manages(['app', 'admin'])` — состояние плагина живёт в экземпляре,
-  глобальный конфиг не мутируется; ключи ресурсов — `{realm}.{resource-slug}.{ability}` из `Resource::getSlug()`.
-- Страницы и виджеты при включённом enforce — fail-closed.
+**Решение.** Детали — [11-filament.md](11-filament.md). `AzGuardPlugin::make()->guardPanel('admin')->manages(['admin', 'site'])`;
+все записи — `AzGuard::panel($id)->manage()->actingAs(auth()->user())`; поле `class_name` удаляется; свои поля моделей
+панели и плагинов появляются в формах через расширения (`FilamentFormExtension`); ключи ресурсов — по slug;
+страницы/виджеты fail-closed.
 
 ---
 
 <a id="d31"></a>
-### D31 — Видимость записей: явный API вместо глобального scope · T0 (P04) / T1
+### D31 — Видимость записей: явный фильтр вместо глобального scope · T0 (P04) / T1
 
-**Решение.**
+**Кратко:** «покажи проекты, которые пользователь может видеть» — явный вызов, который без пользователя показывает
+ничего, а при нескольких назначениях — все нужные записи.
 
-- Глобальный scope `HasScopedRoles` удаляется. Вместо него — явный фильтр:
-  ```php
-  Project::query()->visibleTo($user, 'app.projects.view')->paginate();   // trait AzGuard\Concerns\ContextAware
-  AzGuard::visibility()->constrain($query, $user, 'app.projects.view');   // для любого Builder
-  ```
-- Семантика: строка видна, если право выдано глобально (→ фильтр не добавляется), либо субъект — superadmin realm,
-  либо есть назначение/грант в контексте `(morph(модели), id строки)`, чья роль/шаблон покрывает право (OR по всем
-  назначениям — один `whereExists`). Нет субъекта → `whereRaw('1 = 0')` (fail-closed), без чтения `Auth`.
-- Роли, покрывающие право, вычисляются по каталогу и `azg_role_permissions` (кэшируется по `StateToken`).
-- **T0 в 0.3.x:** в `bootHasScopedRoles` — `on_missing_user` (по умолчанию `empty`), пустой набор назначений →
-  `empty`, композиция через `orWhere`-группу; документировать, что это не граница безопасности при `all`.
+**Решение.** Глобальный scope `HasScopedRoles` удаляется. `Project::query()->visibleTo($user, 'app.projects.view')`
+(трейт `ContextAware`) или `AzGuard::panel('app')->visibility()->constrain($query, $user, $permission)`. Семантика —
+[09 §8](09-authorization-semantics.md#8-видимость-visibleto). **T0 в 0.3.x:** без пользователя → пусто, пустые
+назначения → пусто, объединение через `orWhere`.
 
 ---
 
 <a id="d32"></a>
-### D32 — HTTP и Blade: одна проверка · T1
+### D32 — HTTP и Blade · T1
 
-**Решение.** Middleware: `azguard.can:{permission}[,{contextParam}]` (контекст из параметра маршрута, приведённого
-через `ContextResolver`), `azguard.context` (ambient). Удаляются `azguard.panel`, `azguard.check` (+ атрибуты
-`CheckPermission`/`SkipGuardCheck`), `azguard.grant`, `azguard.panel_check`, `azguard.roles`, alias `check.access`.
-Blade: стандартный `@can` (Gate-мост authoritative); `@azcan`/`@azrole`/`@azdirect` удаляются. Для контроллеров —
-`$this->authorize(Documents::Update)` или `AzGuard::authorize(...)` (бросает `AuthorizationException`).
+**Кратко:** одна middleware для проверки права, одна — для «эта группа маршрутов относится к такой-то панели»;
+в шаблонах — обычный `@can`.
+
+**Решение.** `azguard.panel:{id}` — маршрутизация: ставит текущую панель запроса (auth guard панели как источник
+субъекта, резолверы контекста панели, UI); на выбор панели в проверке не влияет. `azguard.can:{permission}` —
+проверка (контекст из резолверов панели). `azguard.context` — только резолвинг контекста. Удаляются
+`azguard.check` (+ атрибуты), `azguard.grant`, `azguard.panel_check`, `azguard.roles`, `check.access`; Blade —
+`@can`/`@cannot`, директивы `@az*` удаляются.
 
 ---
 
 <a id="d33"></a>
-### D33 — Конфигурация: файл на пакет, типизированный объект, нормализатор · T1
+### D33 — Конфигурация: файл — общие значения по умолчанию, провайдер панели — её настройки · T1
+
+**Кратко:** в `config/azguard.php` — то, что общее для всех панелей, и значения по умолчанию; всё
+особенное — в провайдере панели, как в Filament.
 
 **Решение.** Детали — [07-configuration.md](07-configuration.md). Файлы `config/azguard.php` и
-`config/azguard-filament.php` (было `az-guard*.php`); readonly `AzGuard\Configuration\AzGuardConfig` читает через
-`Illuminate\Contracts\Config\Repository` без кэширования; `config('azguard…')` вне `Configuration\` запрещён
-arch-тестом; мёртвые ключи (N20) удаляются; ошибки безопасности — исключение при boot во всех окружениях.
+`config/azguard-filament.php`; readonly `AzGuardConfig` читает через `Config\Repository` без кэширования; эффективные
+настройки панели = значения по умолчанию из файла ⊕ настройки провайдера ⊕ вклад плагинов (D45); мёртвые ключи
+(N20) удаляются; ошибки безопасности — исключение при boot.
 
 ---
 
 <a id="d34"></a>
-### D34 — База данных: соединение, префикс, фиксированные колонки · T1
+### D34 — База данных: хранилища и их соединения · T1
 
-**Решение.**
+**Кратко:** есть общее хранилище по умолчанию; панели могут жить в нём же или получить своё.
 
-- `AzGuard\Database\AzGuardDatabase` (≙ `VaulterDatabase`, Vaulter D25): `connection()`, `mutate(Closure)`,
-  `read(): Connection` (write-PDO при `reads = primary`), `driver()`. Все модели, миграции, источники, команды — через
-  него; arch-тест запрещает фасад `DB` и `Schema::` без `->connection()` в `src`.
-- `azguard.database.connection` (null = по умолчанию), `azguard.database.table_prefix = 'azg_'`; карта
-  `table_names` удаляется. Колонки и индексы фиксированы; модели подменяемы (`azguard.models.*`), подмена обязана
-  наследовать базовую модель и не менять соединение.
+**Решение.** Хранилище = соединение + префикс таблиц + типы ключей хоста + классы моделей (D46). `azguard.storages.default`
+(`connection: null`, `table_prefix: 'azg_'`); именованные хранилища — `azguard.storages.{name}`; панель ссылается
+`->storage('default'|'name')` или `Storage::own(...)`. Все модели, миграции, источники, команды работают через
+`Storage` панели; arch-тест запрещает фасад `DB`, `Schema::` без соединения и статические запросы к моделям
+AzGuard вне `Storage\`.
 
 ---
 
 <a id="d35"></a>
-### D35 — Миграции: пакет владеет схемой; fresh и upgrade — разные гарантии · T1
+### D35 — Миграции: у каждого хранилища своя схема; fresh и upgrade — разные гарантии · T1
 
-**Решение.** Обе части ядра загружают миграции (`loadMigrationsFrom`), публикация — опциональна и документирована
-как «после публикации схема ваша». Схемо-влияющие ключи (`table_prefix`, `host_keys`, `connection`) фиксируются в
-`azg_state.schema` (json) при установке; `azguard:doctor` сверяет их с конфигом и с реальными колонками. Уникальные
-метки миграций. Upgrade 0.3 → 0.4 — одна переносящая миграция с preflight и dry-run командой ([08 §5](08-data-model-and-migration.md#5-upgrade-03x--040)).
+**Кратко:** таблицы общего хранилища создаёт пакет; для своего хранилища панели команда генерирует миграцию в
+проект — туда можно дописать свои колонки.
+
+**Решение.** Ядро загружает миграции общего хранилища (`loadMigrationsFrom`). `azguard:storage:migration {name}`
+генерирует миграцию для именованного/собственного хранилища в `database/migrations` хоста (хост владеет ей, может
+добавлять колонки). Схемо-влияющие параметры каждого хранилища фиксируются в его таблице состояния; `azguard:doctor`
+сверяет с конфигом, моделями и реальными колонками. Upgrade 0.3 → 0.4 — [08 §6](08-data-model-and-migration.md#6-upgrade-03x--040).
 
 ---
 
 <a id="d36"></a>
-### D36 — Каталог: провайдеры, неизменяемость, без сканирования ФС · T1
+### D36 — Каталог прав: построители, неизменяемость, без сканирования ФС · T1
 
-**Решение.**
+**Кратко:** список прав панели собирается из enum, классов, конфига и плагинов один раз; одинаковый ключ с разным
+описанием — ошибка; в production — из кэш-файла.
 
-- Каталог realm собирается из провайдеров: `EnumCatalogProvider` (enum'ы realm), `ClassCatalogProvider` (классы
-  `Permission`), `ConfigCatalogProvider`, пользовательские `CatalogProvider` (`@spi`), Filament-провайдер.
-  Мета-права D23 добавляются автоматически.
-- Коллизия одного ключа из разных провайдеров с разными метаданными → boot-ошибка (не молчаливая дедупликация).
-- Каталог строится лениво один раз на процесс, замораживается вместе с реестром; `azguard:catalog:cache` пишет
-  снимок в `bootstrap/cache/azguard.php` (аналог `config:cache`), без сканирования ФС в production.
-- Обнаружение `*Policy.php`/`*Permission.php` по файловой системе, `#[GateAbility]`, `#[GuardPolicy]`, `#[RoleOnly]`
-  удаляются (N17, N19); метаданные права — атрибут `#[Describe(label:, group:, description:)]` на enum case.
+**Решение.** `PermissionCatalogBuilder` (`@spi`, имя сохраняется) — вклад в каталог панели: `EnumCatalogBuilder`,
+`ClassCatalogBuilder`, `ConfigCatalogBuilder`, мета-права (`azguard/access`), плагины, Filament. Коллизия ключа с
+разными метаданными → `DuplicatePermissionException`. `azguard:catalog:cache` — снимок каталогов и реестров.
+Удаляются сканирование `*Policy.php`/`*Permission.php`, `#[GateAbility]`, `#[GuardPolicy]`, `#[RoleOnly]`; метаданные —
+`#[Describe(label:, group:, description:)]`.
 
 ---
 
 <a id="d37"></a>
 ### D37 — Исключения: иерархия и стабильные коды · T1
 
-**Решение.** База `AzGuard\Exceptions\AzGuardException` (`code(): string` — `snake_case`, как в Vaulter D29).
-Ветки: `ConfigurationException` (boot), `DefinitionException` (realm/каталог/роли), `InvalidIdentityException`
-(грамматика), `AccessManagementException` (запись; `…DeniedException extends AuthorizationException`),
-`AuthorizationEngineException` (ошибки источника/constraint). Отказ доступа — стандартный
-`Illuminate\Auth\Access\AuthorizationException` (Gate). Таблица кодов — [05 §9](05-php-api.md#9-исключения).
+**Кратко:** у каждой ошибки есть стабильный машинный код; отказ в доступе — стандартное исключение Laravel.
+
+**Решение.** База `AzGuardException` (`code(): string`, `snake_case` — общее инженерное правило экосистемы). Ветки:
+`ConfigurationException`, `DefinitionException`, `InvalidIdentityException`, `AccessManagementException`
+(`…DeniedException extends AuthorizationException`), `AuthorizationEngineException`, `StorageException`, `PluginException`.
+Таблица — [05 §10](05-php-api.md#10-исключения).
 
 ---
 
 <a id="d38"></a>
-### D38 — Эксплуатация: команды `azguard:<area>:<verb>`, doctor, планировщик · T1
+### D38 — Команды `azguard:<area>:<verb>`, doctor, планировщик · T1
 
-**Решение.** Детали — [12-operations-and-release.md](12-operations-and-release.md). Префикс `azguard:` (было `guard:`,
-`make:guard-*`), генераторы `azguard:make:*`; `azguard:doctor` с расширяемыми проверками (`DoctorCheck`), `--json`,
-кодом выхода ≠ 0 при ошибке; планировщик регистрирует `azguard:assignments:prune` при
-`azguard.schedule.enabled = true`. Все пишущие команды — через `AccessManager::asSystem('cli: …')`.
+**Кратко:** все команды начинаются с `azguard:`, doctor проверяет каждую панель и каждое хранилище, плагины могут
+добавлять свои проверки.
+
+**Решение.** Детали — [12](12-operations-and-release.md). Пишущие команды — через `->manage()->asSystem('cli: …')` с
+`--panel`; `azguard:doctor` с `DoctorCheck` от ядра и плагинов, `--json`, код выхода; планировщик —
+`azguard:assignments:prune` по всем панелям.
 
 ---
 
 <a id="d39"></a>
-### D39 — Тестовый kit и контрактные наборы · T1
+### D39 — Тестовый набор и контрактные наборы · T1
 
-**Решение.** `AzGuard\Testing\InteractsWithAzGuard` (`actingAsWithPermissions()`, `givePermissions()`, `assignRole()` —
-через `asSystem('test')`), `AzGuardFake` с однозначными ассертами (`assertRoleAssigned`, `assertGrantIssued`,
-`assertGrantRevoked`, `assertChecked`, `assertDecided`); контрактные наборы для авторов расширений:
-`PermissionSourceContractTests`, `ConstraintContractTests`, `SubjectResolverContractTests`, `ContextResolverContractTests`.
-Production-код не импортирует `Testing\` (arch-тест). Тестовый режим кэша: probes показывают, что под
-`RefreshDatabase` кэш не исполнялся (P10b) — после D24 он исполняется.
+**Кратко:** хост тестирует свои права простыми хелперами; авторы плагинов и интеграций — готовыми наборами
+проверок против настоящего AzGuard.
+
+**Решение.** `InteractsWithAzGuard` (`actingAsWithPermissions()`, `assignRole()` — через `asSystem('test')`),
+`AzGuardFake` с однозначными ассертами (`assertRoleAssigned`, `assertPermissionGranted`, `assertPermissionRevoked`,
+`assertChecked`, `assertDecided`); контрактные наборы: `GrantSourceContractTests`, `RestrictionContractTests`,
+`PluginContractTests`, `ChangePipeContractTests`, `SubjectResolverContractTests`, `ContextResolverContractTests`,
+`IntegrationContractTests` (D51).
 
 ---
 
 <a id="d40"></a>
 ### D40 — Установка · T1
 
-**Решение.** `azguard:install`: публикует конфиг, спрашивает соединение/`host_keys`/платформенного superadmin,
-показывает **pending-миграции AzGuard**, по умолчанию **не** запускает `migrate` (`--migrate` запускает с
-предупреждением «Laravel выполнит все pending-миграции», в production требует `--force`), пропагирует код выхода,
-в конце печатает `azguard:doctor`. «Star on GitHub» удаляется (или ведёт на верный репозиторий — [Q9](15-owner-questions.md)).
+**Кратко:** установка не запускает чужие миграции без спроса и честно сообщает об ошибке.
+
+**Решение.** `azguard:install`: публикует конфиг, спрашивает соединение/`host_keys`, предлагает создать первую панель,
+показывает pending-миграции AzGuard, `migrate` — только с `--migrate` (в production + `--force`), пропагирует код
+выхода, в конце — `azguard:doctor`. Ссылка «Star on GitHub» — только на верный репозиторий ([Q9](15-owner-questions.md)).
 
 ---
 
 <a id="d41"></a>
 ### D41 — Совместимость и релиз · T1
 
-**Решение.** Lockstep-теги; `api-manifest.json` (D12) + семантические снимки (конфиг-схема, события, команды и опции,
-схема БД, грамматика, коды исключений) с 0.9.0; Roave BC Check — с 1.0.0 против последнего тега; consumer-фикстуры
-на собранных архивах (core; core+filament) × prefer-lowest/stable × Laravel 11/12/13 × Filament 5 minors; отчёт
-мутаций с denominator и списком исключений. Детали — [12 §4–§5](12-operations-and-release.md#4-релиз-и-артефакты).
+**Кратко:** случайно сломать публичный контракт нельзя — это ловит CI.
+
+**Решение.** Lockstep-теги; `api-manifest.json` + семантические снимки (конфиг, события, команды, схема, грамматика,
+коды ошибок, стадии пайплайнов) с 0.9.0; Roave BC Check с 1.0.0; consumer-фикстуры на собранных архивах (ядро;
+ядро + filament; ядро + пример интеграции); матрица PHP × Laravel × СУБД × Filament minors. [12 §4–§5](12-operations-and-release.md#4-релиз-и-артефакты).
 
 ---
 
 <a id="d42"></a>
 ### D42 — Документация следует за кодом · T1
 
-**Решение.** README/`docs/` переписываются после канона; каждый PHP-пример — исполняемый рецепт
-(`tests/Recipes`); противоречия N01/N09 (super-admin per panel, `hasPermission` «current panel», `can:admin…`)
-закрываются тестами-рецептами; внутренние коды задач (`C-11`, `P1.4 review`, `D27`) удаляются из docblock'ов `src`.
+**Кратко:** документация начинается с понятий простыми словами, каждый пример кода проверяется тестом.
+
+**Решение.** Раздел «Concepts» по [00-overview](00-overview.md); рецепты `tests/Recipes`; отдельные руководства
+«Панели», «Плагины», «Пайплайны», «Хранилища и свои поля», «Интеграция вашего пакета»; противоречия N01/N09
+закрываются тестами-рецептами; внутренние коды задач удаляются из docblock'ов `src`.
 
 ---
 
 <a id="d43"></a>
-### D43 — Экосистема: общие конвенции с Vaulter и контракт моста · T1
+### D43 — Экосистема: общие инженерные правила, свои предметные слова · T1
 
-**Решение.** Детали — [10-ecosystem-vaulter.md](10-ecosystem-vaulter.md).
+**Кратко:** AzGuard и Vaulter одинаково устроены «снаружи» (конфиги, команды, события, ошибки, тесты), но говорят на
+своих языках: авторизация и хранилище — разные предметы.
 
-- Общий документ конвенций (ADR «Ecosystem conventions» в обоих репозиториях, одинаковый текст): Actor/ActorRef,
-  `actingAs/asSystem`, `ids.host_keys`, `database.connection/table_prefix`, конфиг на пакет + typed config,
-  событие с `eventId/occurredAt/actor/correlationId` и `EventType noun.verb_past`, коды исключений `snake_case`,
-  команды `<pkg>:<area>:<verb>`, doctor, `Testing\` с контрактными наборами, грамматика ключей реестров.
-- Общий код **не** выносится в отдельный пакет (связывание релизов без выигрыша) — T2 при третьем потребителе.
-- Мост: Vaulter переименовывает `vaulter-azgard` → **`vaulter-azguard`** (`Vaulter\AzGuard\`), требует
-  `axioma-studio/azguard:^0.4`, использует `Authorizer::decideMany()` с `ContextRef` из `OwnerRef` drive и
-  квалифицированными ключами из карты, проверяемой при boot по каталогу AzGuard; кэширует с `StateToken`.
+**Решение.** Детали — [10-integrations.md](10-integrations.md).
+
+- **Общие инженерные правила** (ADR «Ecosystem conventions», один текст в репозиториях экосистемы): структура конфига
+  и нормализатор, `ids.host_keys`, `storages/database` с `connection` и префиксом, команды `<pkg>:<area>:<verb>` и
+  doctor, конверт события (`eventId/occurredAt/actor/correlationId`, `EventType noun.verb_past`), коды ошибок
+  `snake_case`, `Testing\` с контрактными наборами, стиль API `actingAs()/asSystem()` для «от чьего имени».
+- **Предметные слова — свои**: AzGuard — Panel, Permission, Role, RoleAssignment, DirectGrant, Context, Subject,
+  Restriction; Vaulter — Drive, Node, Profile, Owner, NodeGrant, Share link. Совпадение слов не требуется и не
+  подгоняется; Profile Vaulter ≠ Panel AzGuard.
+- Мост к Vaulter разрабатывает Vaulter (`vaulter-azguard` в его монорепо); AzGuard обязуется держать контракт
+  интеграции (D51) и сообщает найденные несовпадения моста как **заметки** для Vaulter, а не как решения.
 
 ---
 
 <a id="d44"></a>
 ### D44 — Бюджет производительности · T1
 
-**Решение.** Нормативные бюджеты (проверяются тестами с `DB::listen`, [14](14-verification.md)):
+**Кратко:** известно, сколько запросов к БД стоит каждая проверка, и это проверяется тестами.
 
 | Сценарий | Бюджет запросов |
 |---|---|
-| Первая проверка `(subject, realm, context)` в request, холодный кэш | ≤ 3 (ревизия, назначения ролей, гранты) + 1 на DB-роли |
+| Первая проверка `(subject, panel, context)` в request, холодный кэш | ≤ 3 (версия панели, назначения ролей, прямые права) + 1 на права DB-ролей |
 | Повторная проверка того же набора в request | 0 |
-| Первая проверка при тёплом межзапросном кэше | 1 (ревизия; 0 при `state_refresh=request` после первой) |
-| `Gate::before` для чужой ability | 0, O(1) по памяти (индекс realm-префиксов + хэш каталога) |
-| `decideMany()` на N ресурсов одного субъекта и realm | ≤ 3 + число разных контекстов/100 (батчи `IN`) |
+| Первая проверка при тёплом межзапросном кэше | 1 (версия; 0 после первой при `state_refresh = request`) |
+| `Gate::before` для чужой ability | 0, O(1) (индекс префиксов панелей + хэш каталога) |
+| `decideMany()` на N ресурсов одного субъекта и панели | ≤ 3 + число разных контекстов / 100 |
+| Шаг «ограничения» | 0 запросов движка; ограничения плагинов объявляют свой бюджет (doctor показывает) |
 | Boot в production с `azguard:catalog:cache` | 0 обращений к ФС сверх include кэш-файла |
 
-Плюс нагрузочный бенчмарк (R17): p95/p99 проверки, конкуренция записей на строке `azg_state`.
+---
+
+<a id="d45"></a>
+### D45 — Настройки панели: что можно задать и откуда берутся значения · T1
+
+**Кратко:** почти всё можно настроить отдельно для каждой панели; по умолчанию берётся общий конфиг; есть
+несколько гарантий, которые не отключаются никакой настройкой.
+
+**Решение.** Эффективная настройка панели = **значение из провайдера панели** → иначе **вклад плагина** (в порядке
+подключения; конфликт двух плагинов → boot-ошибка) → иначе **значение по умолчанию** из `config/azguard.php`.
+
+| Группа | Что на панели | Метод `PanelBuilder` |
+|---|---|---|
+| Идентичность | id, label, описание | `id()`, `label()`, `description()` |
+| Каталог | enum, классы, построители каталога | `permissions()`, `catalogBuilders()` |
+| Роли | code-роли, разрешены ли DB-роли | `roles()`, `databaseRoles(bool)` |
+| Субъекты | guard, модели, резолвер, директория | `subjects()` |
+| Контексты | политика, резолверы, членство, директория | `contexts()`, `contextResolvers()`, `membership()` |
+| Хранилище и модели | хранилище, классы моделей, поля для решения | `storage()`, `models()`, `decisionAttributes()` |
+| Проверка | ограничения, режим Gate, суперадмин | `restrict()`, `gate()`, `superadmin()` |
+| Изменения | делегирование, кто администрирует панель, шаги пайплайна изменений | `delegation()`, `administeredBy()`, `onChange()` |
+| Кэш и консистентность | store, ttl, generation, `reads`, `state_refresh` | `cache()`, `consistency()` |
+| Возможности | прямые права, контексты, аудит (встроенные плагины) | `plugins()`, `withoutPlugin()` |
+| Интерфейс | метки групп, иконки (для Filament) | `presentation()` |
+
+**Не настраиваются (инварианты):** грамматика ключей и кодек идентичности; атомарность «запись + версия»;
+учёт сроков выдач; «ошибка = отказ» на шагах сбора и ограничений; только-запрещающий характер ограничений;
+проверка каталога при выдаче.
+
+---
+
+<a id="d46"></a>
+### D46 — Хранилища панелей, свои модели и свои поля · T1
+
+**Кратко:** панель может хранить данные в общих таблицах или в своих; может использовать свои классы моделей с
+дополнительными полями; поля можно проверять при выдаче и использовать в решении.
+
+**Решение.**
+
+- **Хранилище** (`AzGuard\Storage\Storage`): `connection`, `table_prefix`, `host_keys`, классы моделей. Виды:
+  `Storage::named('default')` (общее, по умолчанию), `Storage::named('backoffice')` (именованное из конфига),
+  `Storage::own(prefix: 'admin_', connection: 'backoffice')` (собственное). Несколько панелей могут делить хранилище —
+  строки различаются колонкой `panel`; у каждой панели — своя строка версии состояния.
+- **Модели панели**: `->models(role: AdminRole::class, assignment: AdminRoleAssignment::class, directGrant: …, rolePermission: …)`.
+  Классы наследуют базовые модели AzGuard; можно добавлять поля, касты, связи, scopes, accessors; нельзя менять
+  идентификационные колонки и методы (они `final` в базовых моделях). Если у панели собственное хранилище,
+  `$table/$connection` класса обязаны совпадать с хранилищем — проверка при boot.
+- **Свои поля**:
+  - настоящие колонки — в миграции хранилища (общего — отдельной миграцией хоста, nullable; собственного — прямо
+    в сгенерированной миграции);
+  - лёгкие поля — колонка `meta` (JSON), типизируется кастом модели;
+  - запись — `->assignRole(..., attributes: ['department_id' => 7])`; валидация — правила модели
+    (`azguardRules(): array`) и шаги `Validate` плагинов; неизвестное поле → ошибка валидации (не молчаливый пропуск);
+  - чтение — `->for($user)->assignments()` возвращает объекты моделей панели;
+  - участие в решении — поля, перечисленные в `decisionAttributes([...])`, загружаются вместе с выдачами, кэшируются
+    вместе с набором прав и доступны ограничениям через `Contribution::attributes()`.
+- Все обращения к данным — только через `Storage` панели (arch-тест). Это отличие от удалённого в Vaulter режима
+  «своих таблиц»: там рантайм обращался к глобальным моделям; здесь глобальных моделей в рантайме нет.
+
+---
+
+<a id="d47"></a>
+### D47 — Плагины панели · T1
+
+**Кратко:** плагин — класс, который подключают к панели и который может принести права, роли, источники прав,
+ограничения, шаги изменений, поля моделей, проверки doctor и расширения Filament. Встроенные функции AzGuard —
+тоже плагины.
+
+**Решение.**
+
+```php
+interface Plugin                                  // AzGuard\Contracts\Plugins\Plugin (@spi)
+{
+    public function id(): string;                 // 'vendor/name'
+    public function register(PanelBuilder $panel): void;   // объявить вклад, до заморозки
+    public function boot(Panel $panel): void;               // рантайм-связи после заморозки (без изменения панели)
+}
+```
+
+- Подключение: `$panel->plugins([...])`, `$panel->plugin(X::make()->option(...))`; извне — через `configurePanel()` (D50).
+- Один плагин можно подключить к нескольким панелям; каждый экземпляр видит только свою панель.
+- Зависимости: `DependsOnPlugins::requires(): list<string>` — отсутствие → boot-ошибка с подсказкой.
+- Встроенные плагины (включены по умолчанию, можно выключить `withoutPlugin()`): `azguard/roles` (роли и назначения),
+  `azguard/direct-grants`, `azguard/contexts`, `azguard/superadmin`, `azguard/access` (мета-права и делегирование);
+  выключен по умолчанию: `azguard/audit`. Пример: панель `api` — `withoutPlugin('azguard/roles')` + плагин с
+  источником прав из способностей Sanctum-токена.
+- Плагин не может: отключить инварианты D45, добавить права вне шага «сбор», изменить решение на шаге
+  «наблюдение», писать в хранилище вне пайплайна изменений.
+- Порядок плагинов входит в отпечаток политики (D25).
+
+---
+
+<a id="d48"></a>
+### D48 — Пайплайн доступа: пять шагов с разными правами · T1
+
+**Кратко:** проверка — это цепочка шагов; каждый шаг умеет своё; так плагины расширяют проверку, но не могут
+случайно её ослабить.
+
+| Шаг | Контракт (`@spi`) | Может | Не может |
+|---|---|---|---|
+| 1. Подготовка | `PreparesAccess::prepare(AccessRequest): AccessRequest` | дополнить запрос (контекст из ресурса, алиасы ключей) | решать |
+| 2. Суперадмин | `SuperadminPolicy::isSuperadmin(...)` | сократить сбор прав | обойти ограничения `bypassable = false` |
+| 3. Сбор прав | `GrantSource::contributions(...)` | добавить права (с происхождением и сроком) | запретить |
+| 4. Ограничения | `Restriction::check(...)` | запретить с причиной | разрешить |
+| 5. Наблюдение | `ObservesAccess::observe(AccessRequest, Decision)` | записать, посчитать | изменить решение |
+
+Реализация — внутренний цикл без замыканий на горячем пути (поведение — как у `Illuminate\Pipeline`, стоимость — нет).
+Исключение на шагах 1–4 → отказ (`RestrictionError`/исключение источника наружу); на шаге 5 — лог, решение не меняется.
+
+---
+
+<a id="d49"></a>
+### D49 — Пайплайн изменений: шесть шагов, отложенные изменения · T1
+
+**Кратко:** любое изменение прав проходит одинаковый путь; плагины могут добавить правила, значения по умолчанию,
+подтверждение вторым человеком, журнал и уведомления.
+
+| Шаг | Контракт | Может | Транзакция |
+|---|---|---|---|
+| 1. Полномочия | `DelegationPolicy` | запретить | до |
+| 2. Проверка | `ValidatesChange::validate(Change)` | запретить с ошибками валидации (в т. ч. своих полей) | до |
+| 3. Перехват | `InterceptsChange::intercept(Change, Closure $next): ChangeResult` (Laravel-pipe) | изменить (срок по умолчанию, поля), отложить (`ChangeResult::pending(...)` — заявка), отклонить | до |
+| 4. Запись | ядро | — | **в** транзакции |
+| 5. Журнал | `RecordsChange::record(AppliedChange)` | писать свои строки (аудит, история) | **в** той же транзакции |
+| 6. Уведомления | `NotifiesChange::notify(AppliedChange)` | события, письма, вебхуки | **после** commit |
+
+`Change` — неизменяемое описание операции (тип, панель, актор, субъект, роль/права, контекст, срок, поля). Результат
+операции менеджера — `ChangeResult` (`applied` | `pending` | `unchanged`). Отложенное изменение применяется позже той
+же операцией менеджера от имени подтвердившего актора (плагин хранит заявку сам; ядро даёт `ChangeResult::pending()`
+и повторную проверку полномочий на момент применения).
+
+---
+
+<a id="d50"></a>
+### D50 — Модули и сторонние пакеты внутри приложения · T1
+
+**Кратко:** Laravel-модуль может принести свою панель или дополнить существующую; какую именно — решает
+приложение; конфликты видны сразу при загрузке.
+
+**Решение.**
+
+- Своя панель модуля — обычный `PanelProvider`, регистрируется из провайдера модуля: `AzGuard::registerPanel(BlogPanelProvider::class)`
+  (до заморозки) — наравне с `azguard.panels.providers` в конфиге.
+- Дополнение чужой панели — `AzGuard::configurePanel('admin', fn (PanelBuilder $p) => $p->plugin(BlogAccessPlugin::make()))`;
+  несуществующая панель → boot-ошибка (не молчаливый пропуск). Хост может передать модулю id панели через конфиг
+  модуля — пакет не зашивает id.
+- Права модуля — enum с локальными ключами (`blog.posts.edit`), панель добавляет свой префикс (D05); плагин может
+  задать пространство имён (`->keyPrefix('blog')`) — ключи станут `admin.blog.…`. Коллизия ключей/ролей между
+  плагинами → `DuplicatePermissionException`/`DuplicateRoleException` с именами плагинов.
+- `azguard:panels:list` показывает панели, их плагины и откуда пришёл каждый вклад.
+
+---
+
+<a id="d51"></a>
+### D51 — Контракт для пакетов-интеграций (Vaulter и другие) · T1
+
+**Кратко:** любой пакет может опираться на AzGuard через небольшой стабильный набор возможностей; как он переводит
+свои понятия в понятия AzGuard — его дело.
+
+**Решение.** Детали — [10-integrations.md](10-integrations.md). AzGuard гарантирует (всё `@api`/`@spi`, в манифесте):
+
+| Потребность интеграции | Что даёт AzGuard |
+|---|---|
+| Спросить «можно ли» | `AzGuard::panel($id)->decide()/decideMany()/explain()`; `AzGuard::check()` по ключу |
+| Понять, что изменилось | `StateToken` панели (для своих кэшей) + события `AccessEvent` после commit |
+| Встроиться в панель | `Plugin` + `configurePanel()`; пакет поставляет плагин, хост выбирает панель |
+| Свои права и роли | enum/`PermissionCatalogBuilder`, `RoleDefinition` в плагине |
+| Свой источник прав или ограничение | `GrantSource`, `Restriction` |
+| Свои правила изменений | шаги `ValidatesChange`/`InterceptsChange`/`RecordsChange`/`NotifiesChange` |
+| Перевести свою сущность в контекст | `ContextRef::of(type, id)`; тип контекста объявляет панель |
+| Проверить себя | `IntegrationContractTests` + `PluginContractTests` против настоящего AzGuard |
+| Проверить конфигурацию у хоста | `DoctorCheck` из своего плагина |
+
+Правила для интеграций (публикуются в «Integrating your package»): не импортировать `Internal\`/`Storage\`/модели для
+записи; не зашивать id панели; не хранить права AzGuard у себя (спрашивать); кэшировать с `StateToken`; указывать
+`axioma-studio/azguard: ^0.4|^1.0` в `require`, а не `dev-main`.

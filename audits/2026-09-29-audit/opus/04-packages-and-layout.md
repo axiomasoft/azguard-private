@@ -1,174 +1,185 @@
-# 04 — Пакеты, зависимости, раскладка
+# 04 — Пакеты, зоны, раскладка кода
 
-Решения: [D02](02-decisions.md#d02), [D03](02-decisions.md#d03), [D12](02-decisions.md#d12).
+Решения: [D02](02-decisions.md#d02), [D03](02-decisions.md#d03), [D12](02-decisions.md#d12), [D46](02-decisions.md#d46),
+[D47](02-decisions.md#d47).
 
 ## 1. Пакеты
 
 | Пакет | Namespace | Требует | Назначение |
 |---|---|---|---|
-| `axioma-studio/azguard` | `AzGuard\` | `php ^8.3`, `illuminate/{contracts,support,database,console,http,routing,auth,cache,events}` `^11\|^12\|^13` | Движок, каталог, realm, контексты, администрирование, Laravel-адаптеры, тестовый kit |
-| `axioma-studio/azguard-filament` | `AzGuard\Filament\` | `axioma-studio/azguard: self.version`, `filament/filament ^5.0` | Админ-UI поверх Administration API, каталог Filament-ресурсов |
-
-`azguard-core`, `azguard-context` — `abandoned` → `axioma-studio/azguard` на Packagist; `replace` в новом
-`composer.json` не используется (разные namespace-обязательства после канона).
+| `axioma-studio/azguard` | `AzGuard\` | `php ^8.3`, `illuminate/*` `^11\|^12\|^13` | ядро, панели, пайплайны, хранилища, встроенные плагины (роли, прямые права, контексты, суперадмин, доступ, аудит), Laravel-адаптеры, тестовый набор |
+| `axioma-studio/azguard-filament` | `AzGuard\Filament\` | `axioma-studio/azguard: self.version`, `filament/filament ^5.0` | админ-UI поверх публичного API |
+| интеграции (`vaulter-azguard` и др.) | свои | `axioma-studio/azguard: ^0.4\|^1.0` | живут в своих репозиториях, опираются только на `@api`/`@spi` ([10](10-integrations.md)) |
 
 ```
-             ┌──────────────────────┐
-             │ axioma-studio/azguard│  ← host app, vaulter-azguard
-             └──────────▲───────────┘
-                        │ self.version
-          ┌─────────────┴──────────────┐
-          │ axioma-studio/azguard-     │
-          │ filament                   │
-          └────────────────────────────┘
+      ┌──────────────── хост-приложение ─────────────────┐
+      │  PanelProvider'ы, модули, свои плагины            │
+      └───────┬──────────────────┬────────────────┬──────┘
+              ▼                  ▼                ▼
+   axioma-studio/azguard   azguard-filament   vaulter-azguard, другие интеграции
+              ▲                  │                │
+              └──── @api/@spi ◄──┴────────────────┘
 ```
 
-Правила владения:
+## 2. Зоны ядра — что где лежит и почему
 
-1. **Ядро** владеет схемой, миграциями, моделями, ревизией, событиями, каталогом, реестрами, всеми контрактами.
-2. **Filament** не содержит доменной логики и моделей; пишет только через `AccessManager`, читает через
-   публичные модели (read) и `Authorizer`; поставляет `FilamentCatalogProvider`.
-3. Внешние мосты (например `vaulter-azguard`) зависят только от `@api`/`@spi` ядра.
-
-## 2. Слои ядра и направление зависимостей
+Идея «чистой архитектуры» здесь простая: **чем ближе к центру, тем меньше зависимостей**. В центре — понятия, которые
+не знают ни о Laravel, ни о базе данных; снаружи — всё, что связывает их с фреймворком и UI.
 
 ```
-Laravel\ (провайдер, фасад, Gate, middleware, команды, трейт) ──┐
-Filament (другой пакет) ────────────────────────────────────────┤
-                                                                ▼
-                       Contracts\ (@api/@spi интерфейсы)
-                     ▲           ▲             ▲
-        Authorization\   Administration\   Catalog\, Realms\, Context\
-                     ▲           ▲             ▲
-                     └───── Persistence\Eloquent\, Database\, State\
-                                        ▲
-                                     Kernel\  (без Illuminate, без app()/config())
+            ┌────────────────────────────────────────────────────────────┐
+            │ Laravel-адаптеры: фасад, Gate, middleware, трейт, команды  │
+            │ ┌────────────────────────────────────────────────────────┐ │
+            │ │ Плагины: встроенные (роли, прямые права, контексты,     │ │
+            │ │ суперадмин, доступ, аудит) и внешние                    │ │
+            │ │ ┌──────────────────────┐  ┌──────────────────────────┐ │ │
+            │ │ │ Authorization        │  │ Administration           │ │ │
+            │ │ │ пайплайн доступа     │  │ пайплайн изменений       │ │ │
+            │ │ └──────────┬───────────┘  └────────────┬─────────────┘ │ │
+            │ │            ▼   Panels, Catalog   ▼                      │ │
+            │ │        ┌────────────────────────────┐                   │ │
+            │ │        │ Kernel: ключи, ссылки,     │ ◄── Storage       │ │
+            │ │        │ решение, грамматика        │     (хранилища,   │ │
+            │ │        └────────────────────────────┘      модели, БД)  │ │
+            │ └────────────────────────────────────────────────────────┘ │
+            └────────────────────────────────────────────────────────────┘
 ```
 
-Arch-правила (Pest arch, обязательны в CI):
+| Зона | Простыми словами | Можно зависеть от | Нельзя |
+|---|---|---|---|
+| `Kernel\` | Словарь и арифметика прав: что такое ключ, шаблон, контекст, решение | только PHP | Laravel, Carbon, `app()`, `config()`, `now()` |
+| `Contracts\` | Разъёмы: интерфейсы для вызова (`@api`) и для расширения (`@spi`) | Kernel | реализации |
+| `Panels\`, `Catalog\` | Описание панелей и их каталогов прав | Kernel, Contracts | Storage, Administration |
+| `Authorization\` | Как отвечать на вопрос «можно ли» | Kernel, Contracts, Panels, Catalog | Administration (чтение не пишет) |
+| `Administration\` | Как менять права | всё выше + Storage | Laravel-адаптеры |
+| `Storage\` | Где и как лежат данные панелей | Kernel, Contracts, Panels | Authorization, Administration |
+| `Plugins\` | Готовые возможности, собранные из разъёмов | Contracts, Kernel, публичные классы зон | `Internal\` других зон |
+| `Laravel\` | Перевод между Laravel и ядром | всё | — (никто не зависит от него, кроме провайдера) |
+| `Testing\` | Помощники для тестов хоста, плагинов, интеграций | всё публичное | production-код не импортирует `Testing\` |
 
-| Правило | Проверка |
-|---|---|
-| `Kernel\` не импортирует `Illuminate\`, `Carbon\`, не вызывает `app()`, `config()`, `now()` | `arch()->expect('AzGuard\Kernel')->not->toUse(['Illuminate', 'Carbon'])` + запрет функций |
-| `Contracts\` не импортирует реализации (`Authorization`, `Administration`, `Persistence`) | arch |
-| `Authorization\` не импортирует `Administration\` (чтение не пишет) | arch |
-| Только `Database\`, `Persistence\` используют `DB`/`Schema`/`Connection`; фасад `DB` в `src` запрещён | arch |
-| `config('azguard…')` только в `Configuration\` | arch (grep-правило) |
-| Production-код не импортирует `Testing\` | arch |
-| `AzGuard\Filament\` импортирует из ядра только `Contracts\`, `Kernel\`, `Realms\Realm`, `Catalog\PermissionDefinition`, `Events\`, `Exceptions\`, `Persistence\Eloquent\Models\*` (read), `Facades\AzGuard` | arch по allowlist |
-| Внутренние коды задач (`C-11`, `P1.4`) в docblock'ах `src` запрещены | lint |
+Arch-правила (Pest arch, блокирующие в CI):
+
+| Правило |
+|---|
+| `Kernel\` не использует `Illuminate\`, `Carbon\`, `app()`, `config()`, `now()` |
+| `Contracts\` не импортирует реализации |
+| `Authorization\` не импортирует `Administration\` |
+| Только `Storage\` использует `DB`, `Schema`, `Connection` и **статические запросы к моделям AzGuard**; фасад `DB` в `src` запрещён |
+| Встроенные плагины (`Plugins\*`) используют только `Contracts\`, `Kernel\` и публичные классы зон — как внешний плагин (доказательство достаточности API) |
+| `config('azguard…')` — только в `Configuration\` |
+| Production-код не импортирует `Testing\` |
+| `AzGuard\Filament\` импортирует из ядра только `@api`/`@spi` (allowlist) |
+| Внутренние коды задач (`C-11`, `P1.4`) в docblock'ах `src` запрещены |
 
 ## 3. Раскладка `packages/core/src`
 
 ```
 packages/core/src/
-├── AzGuardServiceProvider.php            # регистрация модулей, freeze реестров на booted
-├── AzGuardManager.php                    # internal: корень фасада, без состояния
+├── AzGuardServiceProvider.php          # регистрирует зоны, морозит реестры на booted
+├── AzGuardManager.php                  # корень фасада, без состояния
 ├── Facades/AzGuard.php
-├── Kernel/                               # чистые значения и алгебра
-│   ├── Identity/   PermissionKey, PermissionPattern, RealmId, RoleKey, SubjectRef, ContextRef,
-│   │               Actor, ActorRef, IdentityCodec
+├── Kernel/
+│   ├── Identity/   PermissionKey, PermissionPattern, PanelId, RoleKey, SubjectRef, ContextRef,
+│   │               AnyContext, Actor, ActorRef, IdentityCodec
 │   ├── Grammar/    PermissionGrammar, PatternMatcher
 │   ├── Permissions/PermissionSet
 │   └── Decision/   AccessRequest, Decision, Effect, DecisionReason, DecisionSet, Contribution,
-│                   ConstraintResult, StateToken, Explanation
+│                   RestrictionResult, StateToken, Explanation
 ├── Contracts/
-│   ├── Authorization/  Authorizer (@api), PermissionSource (@spi), Constraint (@spi),
-│   │                   SuperadminPolicy (@spi), SubjectResolver (@spi), EvaluationContext (@api)
-│   ├── Administration/ AccessManager (@api), DelegationPolicy (@spi)
-│   ├── Catalog/        PermissionCatalog (@api), CatalogProvider (@spi)
-│   ├── Realms/         RealmRegistry (@api)
-│   ├── Context/        ContextResolver (@spi), ContextMembership (@spi), ContextDirectory (@spi)
+│   ├── Authorization/  Authorizer, PanelAuthorizer (@api), GrantSource, Restriction, SuperadminPolicy,
+│   │                   PreparesAccess, ObservesAccess, SubjectResolver (@spi), EvaluationContext (@api)
+│   ├── Administration/ AccessManager (@api), DelegationPolicy, ValidatesChange, InterceptsChange,
+│   │                   RecordsChange, NotifiesChange (@spi)
+│   ├── Catalog/        PermissionCatalog (@api), PermissionCatalogBuilder (@spi)
+│   ├── Contexts/       ContextResolver, ContextMembership, ContextDirectory (@spi)
 │   ├── Subjects/       SubjectDirectory (@spi)
-│   ├── Permissions/    Permission (@api, для классов-прав)
+│   ├── Plugins/        Plugin, DependsOnPlugins, PrefixesKeys, BasePlugin (@spi)
 │   ├── Roles/          RoleDefinition (@spi)
+│   ├── Diagnostics/    DoctorCheck (@spi)
+│   ├── Permission.php  (@api, класс-право)
 │   └── AzGuardSubject.php (@api)
-├── Realms/            Realm, RealmBuilder, RealmProvider, RealmRegistry, ContextPolicy
-├── Catalog/           Catalog, PermissionDefinition, Ownership, Providers/{Enum,Class,Config}CatalogProvider
-├── Context/           CurrentContext, WithinContext
-├── Authorization/     Authorizer, PermissionSetResolver, Evaluation, BatchEvaluation, Visibility,
-│                      Cache/PermissionSetCache, Sources/{RolesSource,GrantsSource},
-│                      Constraints/ContextMembershipConstraint, Superadmin/AssignmentSuperadminPolicy,
-│                      Subjects/ModelSubjectResolver
-├── Administration/    AccessManager, OperationContext, DefaultDelegationPolicy, EventRecorder,
-│                      Actions/{AssignRole,UnassignRole,SyncRoles,IssueGrant,RevokeGrant,RevokeGrants,
-│                               CreateRole,UpdateRole,DeleteRole,SetRolePermissions,
-│                               AssignPlatformSuperadmin,PruneExpired,ResetState}Action,
-│                      Data/*Input, *Result, PermissionSelection,
-│                      Roles/{RoleSyncPlanner,RoleSynchronizer}
-├── Database/          AzGuardDatabase, Schema/HostKeyColumns
-├── Persistence/Eloquent/
-│   ├── Models/        Role, RolePermission, RoleAssignment, Grant, AuditEntry
-│   └── Concerns/      GuardsDirectWrites, UsesAzGuardConnection
-├── State/             StateRevision, PolicyFingerprint
-├── Events/            AccessEvent, EventType, RoleCreated … AuthorizationStateReset, AccessDecided
-├── Exceptions/        AzGuardException + ветки (05 §9)
-├── Concerns/          HasAzGuard, ContextAware
-├── Attributes/        Realm, Describe
-├── Permissions/       AccessPermission (enum мета-прав D23)
-├── Configuration/     AzGuardConfig, ConfigNormalizer, sections/*
-├── Diagnostics/       Doctor, DoctorCheck (@spi), Checks/*
+├── Panels/            Panel, PanelBuilder, PanelProvider, PanelRegistry, CurrentPanel, PanelSettings
+├── Catalog/           PanelCatalog, PermissionDefinition, Ownership, Builders/{Enum,Class,Config}CatalogBuilder
+├── Authorization/     Authorizer, PanelAuthorizer, SubjectAccess, Visibility, BatchEvaluation,
+│                      Pipeline/{AccessPipeline, Stages/*}, Cache/PermissionSetCache
+├── Administration/    AccessManager, Change, ChangeResult, PendingChange, PermissionSelection,
+│                      Pipeline/{ChangePipeline, Stages/*},
+│                      Operations/{AssignRole,RevokeRole,SyncRoles,GrantPermission,RevokePermission,
+│                                  RevokePermissions,CreateRole,UpdateRole,DeleteRole,SetRolePermissions,
+│                                  PruneExpired,ResetState}Operation
+├── Storage/           Storage, StorageRegistry, StateRevision, Schema/HostKeyColumns,
+│                      Models/{Role,RolePermission,RoleAssignment,DirectGrant},
+│                      Concerns/{GuardsDirectWrites,BelongsToStorage}
+├── Plugins/           # встроенные плагины — так же, как написал бы сторонний автор
+│   ├── Roles/         RolesPlugin, RoleGrantSource, RoleSyncPlanner, RoleSynchronizer
+│   ├── DirectGrants/  DirectGrantsPlugin, DirectGrantSource
+│   ├── Contexts/      ContextsPlugin, ContextPolicy, CurrentContext, WithinContext,
+│   │                  MembershipRestriction, RouteParameterResolver
+│   ├── Superadmin/    SuperadminPlugin, SuperadminRole, RoleSuperadminPolicy, GlobalSuperadminPlugin
+│   ├── Access/        AccessPlugin, AccessPermission (enum мета-прав), DefaultDelegationPolicy
+│   └── Audit/         AuditPlugin, AuditEntry, RecordAuditEntry
+├── Events/            AccessEvent, EventType, RoleAssigned … AccessStateReset, AccessDecided
+├── Exceptions/
+├── Concerns/          HasAzGuard, ContextAware, BelongsToPanels
+├── Attributes/        Describe
+├── Roles/             CodeRole
+├── Configuration/     AzGuardConfig, ConfigNormalizer
+├── Diagnostics/       Doctor, Checks/*
 ├── Laravel/
 │   ├── Gate/GateBridge.php
-│   ├── Http/Middleware/{Authorize,ResolveContext}.php
+│   ├── Http/Middleware/{UsePanel, Authorize, ResolveContext}.php
 │   └── Console/{Commands/*, Scaffold/*}
-├── Testing/           InteractsWithAzGuard, AzGuardFake, FakeSubject, FakePermissionSource,
+├── Testing/           InteractsWithAzGuard, AzGuardFake, FakeSubject, FakeGrantSource,
 │                      RecordedCheck, RecordedChange, Contracts/*ContractTests
 └── Internal/          RequestMemo, …
-packages/core/database/migrations/
-├── 2026_10_01_000100_create_azguard_tables.php          # fresh-схема 0.4
-└── 2026_10_01_000200_upgrade_azguard_03_to_04.php       # no-op на свежей установке
-packages/core/config/azguard.php
-packages/core/stubs/{realm-provider,permissions-enum,role,constraint,source}.stub
+packages/core/database/migrations/        # общее хранилище default
+packages/core/stubs/                      # panel-provider, permissions-enum, role, plugin, restriction,
+                                          # grant-source, panel-models, storage-migration
 ```
 
-`Roles\CodeRole` (abstract, `@api`) живёт в `Roles\` рядом с `Realms\`: это удобная база для `RoleDefinition`.
-
-## 4. Раскладка `packages/filament/src`
+## 4. Раскладка хоста (рекомендуемая, генераторы создают её)
 
 ```
-packages/filament/src/
-├── AzGuardFilamentServiceProvider.php
-├── AzGuardPlugin.php                          # состояние — в экземпляре; без записи в config()
-├── Authorization/{FilamentGate,PageAccess}.php
-├── Catalog/{FilamentCatalogProvider,ResourceDiscovery,KeySchema}.php
-├── Concerns/{AuthorizesPage,AuthorizesWidget}.php
-├── Resources/
-│   ├── RoleResource.php (+ Pages/, RelationManagers/RolePermissions, RoleHolders)
-│   ├── RoleAssignmentResource.php (+ Pages/)
-│   └── GrantResource.php (+ Pages/)
-├── Forms/{SubjectPicker,ContextPicker,PermissionPicker}.php   # поверх SubjectDirectory/ContextDirectory/каталога
-├── Pages/DoctorPage.php
-└── Console/GenerateFilamentPermissionsCommand.php   # azguard:filament:generate (enum-source)
+app/Authorization/
+├── Panels/
+│   ├── AdminPanelProvider.php
+│   └── SitePanelProvider.php
+├── Admin/
+│   ├── Permissions/OrderPermission.php        # enum, локальные ключи
+│   ├── Roles/SupportRole.php
+│   ├── Models/AdminRoleAssignment.php         # своя модель панели (поля department_id, approved_by)
+│   └── Restrictions/OfficeHours.php
+├── Site/…
+└── Plugins/ApprovalPlugin.php                 # свой плагин, подключаемый к панелям
+Modules/Blog/Authorization/                    # модуль: свой плагин или своя панель
+├── BlogAccessPlugin.php
+└── BlogPermission.php
 ```
 
-## 5. Провайдер ядра: порядок регистрации
+## 5. Провайдер ядра: порядок загрузки
 
 `register()`:
-1. merge `config/azguard.php`; `AzGuardConfig` (singleton, читает репозиторий конфига);
-2. `AzGuardDatabase`, `IdentityCodec`, `RealmRegistry`, `Catalog`, реестры источников/constraints (singleton,
-   заморозка на `booted`);
-3. scoped: `CurrentContext`, `RequestMemo`, `PermissionSetCache` (request-слой), `StateRevision` (memo);
-4. контракты → реализации (`Authorizer`, `AccessManager` — immutable handle factory, `DelegationPolicy`,
-   `SuperadminPolicy`, `SubjectResolver`, `SubjectDirectory`, `ContextMembership` — если задан).
+1. конфиг и `AzGuardConfig`;
+2. `StorageRegistry`, `PanelRegistry`, `IdentityCodec`, `Doctor` — singleton;
+3. scoped: `CurrentPanel`, `CurrentContext`, `RequestMemo`, request-слой кэша, memo версий состояния;
+4. контракты → реализации.
 
 `boot()`:
-1. `ConfigNormalizer` + валидация (исключения безопасности — во всех окружениях);
-2. провайдеры realm из `azguard.realms.providers` → `RealmRegistry`;
-3. миграции (`loadMigrationsFrom`), публикации (`azguard-config`, `azguard-migrations`, `azguard-stubs`);
-4. `Gate::before(GateBridge)` при `azguard.gate.enabled`; alias'ы `azguard.can`, `azguard.context`;
-5. планировщик (`azguard.schedule.enabled`), `about`, команды;
-6. `$app->booted(fn () => freeze реестров + вычислить PolicyFingerprint)`.
+1. `ConfigNormalizer` и проверки конфига;
+2. регистрация `PanelProvider`'ов из конфига (провайдеры модулей регистрируются сами);
+3. миграции общего хранилища, публикации (`azguard-config`, `azguard-migrations`, `azguard-stubs`);
+4. `Gate::before(GateBridge)`, middleware-alias'ы, планировщик, `about`, команды;
+5. `$app->booted(...)`: применить `configurePanel()`-колбэки → собрать панели (плагины `register()`) → проверить
+   (хранилища, модели, каталоги, коллизии, зависимости плагинов) → заморозить → плагины `boot()` → вычислить
+   отпечатки политики.
 
-Никаких слушателей Octane/Queue для «текущей панели» (понятие удалено); scoped-сервисы сбрасывает контейнер.
+## 6. Сравнение с Vaulter — только инженерная часть
 
-## 6. Сравнение с Vaulter
-
-| Аспект | Vaulter (D02 Vaulter) | AzGuard |
-|---|---|---|
-| Число пакетов | 6 + metapackage | 2 |
-| Точка входа Composer | `axioma-studio/vaulter` (metapackage) | `axioma-studio/azguard` |
-| Ядро владеет схемой | да | да |
-| Мосты без доменной логики | azgard, filament | filament |
-| Зависимости между пакетами | `self.version` | `self.version` |
-| Слой чистых значений | нет (Laravel-native) | `Kernel\` (алгебра прав выигрывает от детерминированных unit-тестов) |
+| Аспект | Vaulter | AzGuard | Комментарий |
+|---|---|---|---|
+| Точка входа Composer | `axioma-studio/vaulter` (metapackage) | `axioma-studio/azguard` | одинаковый опыт установки |
+| Версии пакетов внутри продукта | `self.version` | `self.version` | общее правило |
+| Ядро владеет схемой | да | да, по хранилищам | |
+| Именованные единицы конфигурации | профили (политики для drives) | панели (независимые пространства прав) | разные предметные понятия (D43) |
+| Слой чистых значений | нет | `Kernel\` | алгебра прав выигрывает от детерминированных unit-тестов |
+| Расширения | реестры по ключу | плагины панели + реестры по ключу | в AzGuard расширения собираются на уровне панели |

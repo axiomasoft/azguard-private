@@ -1,139 +1,150 @@
 # 07 — Конфигурация
 
-Решение: [D33](02-decisions.md#d33). Принципы — те же, что у Vaulter (Vaulter D26), чтобы хост настраивал оба пакета
-одинаково:
+Решения: [D33](02-decisions.md#d33), [D34](02-decisions.md#d34), [D45](02-decisions.md#d45), [D46](02-decisions.md#d46).
 
-1. **Файл на пакет**: `config/azguard.php` (ядро, включая бывший context) и `config/azguard-filament.php`.
-2. **Схемо-влияющие ключи** (`database.*`, `ids.host_keys`) фиксируются в `azg_state.schema` при установке; doctor
-   сравнивает. Их смена после миграции без upgrade — ошибка doctor.
-3. **Один канонический ключ на понятие**; `ConfigNormalizer` переводит старые ключи `az-guard.*` с
-   `E_USER_DEPRECATED` до 1.0; «старый и новый заданы по-разному» → `InvalidConfigurationException`.
-4. **Типизированный доступ**: readonly `AzGuard\Configuration\AzGuardConfig` читает через `Config\Repository` без
-   кэширования (тесты с `config()->set()` работают); `config('azguard…')` вне `Configuration\` запрещён arch-тестом.
-5. **Валидация при boot**: ключи безопасности — исключение во всех окружениях; наблюдаемость — warning.
-6. Замыкания в конфиге запрещены (`config:cache`); только скаляры, массивы, FQCN.
-7. **Инварианты не настраиваются**: нельзя выключить валидацию каталога, атомарность «запись + ревизия», проверку
-   сроков, грамматику идентичности (Codex, «configurable policies и стабильные invariants»).
+## 1. Где что настраивается — простыми словами
 
-## 1. `config/azguard.php`
+| Где | Что там | Пример |
+|---|---|---|
+| `config/azguard.php` | то, что **общее** для приложения: список панелей, хранилища, типы ключей хоста, расписание — и **значения по умолчанию** для всех панелей | `defaults.cache.ttl = 3600` |
+| `PanelProvider` панели | всё **особенное** для панели | у `site` кэш 6 часов и контексты магазина |
+| плагин | настройки, которые плагин приносит панели, если провайдер их не задал | плагин аудита включает наблюдение |
+| `config/azguard-filament.php` | значения по умолчанию для Filament-плагина | какую guard panel показывать |
+
+Эффективная настройка панели: **провайдер панели → плагины (в порядке подключения) → `defaults` из конфига**.
+Команда `azguard:panels:list --settings` показывает итоговое значение и откуда оно пришло.
+
+Принципы (общие инженерные правила экосистемы, D43):
+
+1. Файл на пакет: `config/azguard.php`, `config/azguard-filament.php`.
+2. Схемо-влияющие параметры (хранилища, `ids.host_keys`) фиксируются в таблице состояния хранилища; doctor
+   сравнивает с конфигом.
+3. Один канонический ключ на понятие; `ConfigNormalizer` переводит `az-guard.*` с `E_USER_DEPRECATED` до 1.0;
+   «старый и новый заданы по-разному» → `InvalidConfigurationException`.
+4. Типизированный доступ: readonly `AzGuardConfig` читает через `Config\Repository` без кэширования; `config('azguard…')`
+   вне `Configuration\` запрещён arch-тестом.
+5. Ошибки безопасности — исключение при boot во всех окружениях; наблюдаемость — warning.
+6. Замыкания в конфиге запрещены (`config:cache`); замыкания допустимы в коде провайдера панели.
+7. Инварианты не настраиваются ([D45](02-decisions.md#d45)).
+
+## 2. `config/azguard.php`
 
 ```php
 return [
-    'database' => [
-        'connection' => env('AZGUARD_DB_CONNECTION'),        // null = соединение по умолчанию (≙ vaulter.database.connection)
-        'table_prefix' => 'azg_',                              // ≙ vaulter.database.table_prefix ('v_')
-        'reads' => 'primary',                                   // primary | default — D24
+    'panels' => [
+        'providers' => [
+            // App\Authorization\Panels\AdminPanelProvider::class,
+            // App\Authorization\Panels\SitePanelProvider::class,
+        ],
+    ],
+
+    'storages' => [
+        'default' => [
+            'connection' => env('AZGUARD_DB_CONNECTION'),   // null = соединение по умолчанию
+            'table_prefix' => 'azg_',
+            'host_keys' => null,                             // null = ids.host_keys
+        ],
+        // 'backoffice' => ['connection' => 'backoffice', 'table_prefix' => 'azg_', 'host_keys' => 'uuid'],
     ],
 
     'ids' => [
-        'host_keys' => 'string',                                // string (varchar 64) | bigint | uuid | ulid — ≙ vaulter.ids.host_keys
+        'host_keys' => 'string',                             // string (varchar 64) | bigint | uuid | ulid
     ],
 
-    'realms' => [
-        'providers' => [
-            // App\Authorization\AppRealm::class,
+    'defaults' => [                                          // значения по умолчанию для всех панелей
+        'plugins' => [                                       // встроенные плагины, подключаемые к каждой панели
+            'azguard/roles', 'azguard/direct-grants', 'azguard/contexts', 'azguard/superadmin', 'azguard/access',
         ],
-    ],
-
-    'subjects' => [
-        'resolver' => \AzGuard\Authorization\Subjects\ModelSubjectResolver::class,
-        'types' => [],                                          // разрешённые morph-типы субъектов; пусто = любые
-        'guard' => null,                                        // auth guard для «текущего субъекта» и директории
-        'directory' => \AzGuard\Authorization\Subjects\GuardSubjectDirectory::class,
-        'label_column' => 'name',
-    ],
-
-    'contexts' => [
-        'resolvers' => [
-            // 'workspace' => ['route' => 'workspace', 'type' => 'workspace'],   // встроенный route-резолвер
-            // App\Authorization\CurrentWorkspaceResolver::class,
+        'models' => [
+            'role' => \AzGuard\Storage\Models\Role::class,
+            'role_permission' => \AzGuard\Storage\Models\RolePermission::class,
+            'role_assignment' => \AzGuard\Storage\Models\RoleAssignment::class,
+            'direct_grant' => \AzGuard\Storage\Models\DirectGrant::class,
         ],
-        'membership' => null,                                   // FQCN ContextMembership; обязателен, если realm требует членства
-        'directory' => null,                                    // FQCN ContextDirectory для UI/CLI
-    ],
-
-    'authorization' => [
-        'sources' => [
-            'azguard/roles' => \AzGuard\Authorization\Sources\RolesSource::class,
-            'azguard/grants' => \AzGuard\Authorization\Sources\GrantsSource::class,   // null — отключить гранты
+        'subjects' => [
+            'guard' => null,                                 // null = guard по умолчанию
+            'resolver' => \AzGuard\Authorization\Subjects\ModelSubjectResolver::class,
+            'directory' => \AzGuard\Authorization\Subjects\GuardSubjectDirectory::class,
+            'label_column' => 'name',
         ],
-        'constraints' => [
-            // 'acme/license' => App\Authorization\LicenseConstraint::class,
-        ],
-        'superadmin' => [
-            'policy' => \AzGuard\Authorization\Superadmin\AssignmentSuperadminPolicy::class,
-            'platform_role' => true,                            // роль *:superadmin (D19)
-            'bypass_constraints' => false,
+        'contexts' => [
+            'resolvers' => [],
         ],
         'gate' => [
-            'enabled' => true,
-            'mode' => 'authoritative',                          // authoritative | additive (deprecated к 1.0)
-            'superadmin_scope' => 'owned',                      // owned | all
+            'mode' => 'authoritative',                       // authoritative | additive (deprecated к 1.0)
+            'superadmin_scope' => 'owned',                   // owned | all
         ],
-        'trace_decisions' => false,                             // диспатч AccessDecided на каждую проверку (диагностика)
+        'superadmin' => [
+            'bypass_restrictions' => false,
+        ],
+        'administration' => [
+            'prevent_escalation' => true,
+            'direct_writes' => 'warn',                       // warn | throw (throw в local/testing)
+        ],
+        'cache' => [
+            'store' => null,                                 // null = только request-кэш
+            'ttl' => 3600,
+            'generation' => 1,
+        ],
+        'consistency' => [
+            'reads' => 'primary',                            // primary | default
+            'state_refresh' => 'request',                    // request | check
+        ],
+        'trace_decisions' => false,                          // AccessDecided на каждую проверку (диагностика)
     ],
 
-    'administration' => [
-        'delegation' => \AzGuard\Administration\DefaultDelegationPolicy::class,
-        'prevent_escalation' => true,
-        'direct_writes' => 'warn',                              // warn | throw — запись модели вне AccessManager (throw в local/testing по умолчанию)
-    ],
-
-    'cache' => [
-        'store' => null,                                        // null = только request-кэш; имя store = межзапросный
-        'ttl' => 3600,                                          // секунды; null запрещён на персистентном store
-        'generation' => 1,                                      // смена при деплое открывает новое пространство ключей
-        'state_refresh' => 'request',                           // request | check — D24
-    ],
-
-    'features' => [
-        'grants' => true,                                       // прямые гранты (UI/CLI/AccessManager)
-        'contexts' => true,                                     // назначения в контексте
-        'audit' => false,                                       // azg_audit_log в транзакции записи
-    ],
-
-    'catalog' => [
-        'providers' => [],                                      // глобальные CatalogProvider (realm-специфичные — в RealmBuilder)
-        'permissions' => [],                                    // 'realm' => ['realm.x.y', …] — каталог без кода
-        'cache_path' => null,                                   // null = bootstrap/cache/azguard.php
+    'gate' => [
+        'enabled' => true,                                   // регистрировать Gate::before
     ],
 
     'schedule' => [
-        'enabled' => true,                                      // ≙ vaulter.schedule.enabled
-        'prune_expired' => 'daily',                             // null — не регистрировать
+        'enabled' => true,
+        'prune_expired' => 'daily',                          // null — не регистрировать
     ],
 
-    'models' => [
-        'role' => \AzGuard\Persistence\Eloquent\Models\Role::class,
-        'role_permission' => \AzGuard\Persistence\Eloquent\Models\RolePermission::class,
-        'role_assignment' => \AzGuard\Persistence\Eloquent\Models\RoleAssignment::class,
-        'grant' => \AzGuard\Persistence\Eloquent\Models\Grant::class,
-        'audit_entry' => \AzGuard\Persistence\Eloquent\Models\AuditEntry::class,
+    'catalog' => [
+        'cache_path' => null,                                // null = bootstrap/cache/azguard.php
     ],
 
     'scaffold' => [
         'namespace' => 'App\\Authorization',
         'path' => 'app/Authorization',
     ],
-
-    'doctor' => [
-        'checks' => [],                                         // дополнительные DoctorCheck
-    ],
 ];
 ```
 
-## 2. `config/azguard-filament.php`
+## 3. Настройки в провайдере панели
+
+Полный список методов — [05 §3](05-php-api.md#3-панели). Типичный пример:
+
+```php
+public function panel(PanelBuilder $panel): PanelBuilder
+{
+    return $panel
+        ->id('site')
+        ->subjects(guard: 'web', models: [Customer::class])
+        ->permissions(ShopPermission::class)
+        ->contexts(ContextPolicy::inherit('store')->requireMembership(StoreMembership::class))
+        ->storage('default')
+        ->cache(ttl: 21600)
+        ->consistency(refresh: StateRefresh::Request)
+        ->gate(GateMode::Authoritative)
+        ->withoutPlugin('azguard/direct-grants');   // на сайте прямые права не выдаём
+}
+```
+
+## 4. `config/azguard-filament.php`
 
 ```php
 return [
-    // Значения по умолчанию для AzGuardPlugin; fluent-вызовы плагина побеждают и НЕ пишутся обратно в config.
-    'realm' => 'admin',                     // realm каталога Filament-ресурсов этой панели
-    'manages' => null,                      // realm'ы, видимые в админ-UI; null = все
+    // Значения по умолчанию для AzGuardPlugin; fluent-вызовы плагина побеждают и не пишутся обратно в config.
+    'guard_panel' => 'admin',
+    'manages' => null,                       // панели AzGuard, видимые в админке; null = все
     'enforce' => true,
-    'source' => 'database',                 // database | enum
+    'source' => 'database',                  // database | enum
     'abilities' => ['view_any', 'view', 'create', 'update', 'delete', 'restore', 'force_delete', 'replicate', 'reorder'],
-    'key' => '{realm}.{resource}.{ability}',
-    'resource_segment' => 'slug',           // slug (Resource::getSlug()) | model (morph alias) — не class_basename
+    'key' => '{panel}.{resource}.{ability}',
+    'resource_segment' => 'slug',            // slug (Resource::getSlug()) | model (morph alias)
     'pages' => ['ability' => 'view'],
     'widgets' => ['ability' => 'view'],
     'exclude' => ['resources' => [], 'pages' => [\Filament\Resources\Pages\CreateRecord::class], 'widgets' => []],
@@ -141,40 +152,40 @@ return [
 ];
 ```
 
-Удалены: `panel` (→ `realm`), `super_admin` (D19), `user_label_column` (→ `azguard.subjects.label_column`),
-`generation.policy_*` и source `policy` (D26).
+## 5. Карта устаревших ключей
 
-## 3. Карта устаревших ключей
-
-Полная карта — [03 §8](03-glossary-and-renames.md#8-конфигурация). Нормализатор обрабатывает автоматически:
+Полная карта — [03 §8](03-glossary-and-renames.md#8-конфигурация). Нормализатор:
 
 | Старый | Новый | Преобразование |
 |---|---|---|
-| `az-guard.column_names.morph_type` | `azguard.ids.host_keys` | `int→bigint`, `ulid→ulid`, `uuid→uuid` |
-| `az-guard.table_names.*` | `azguard.database.table_prefix` | только для upgrade-миграции (находит старые таблицы); в рантайме — warning |
-| `az-guard.cache.store = 'array'` | `azguard.cache.store = null` | |
-| `az-guard.cache.expiration_time` | `azguard.cache.ttl` | |
-| `az-guard.panels` | `azguard.realms.providers` | FQCN `PanelProvider` → ошибка с подсказкой (класс нужно переписать) |
-| `az-guard.grant_sources` (allowlist) | `azguard.authorization.sources` | исключённый встроенный → `null` |
-| `az-guard.features.direct_grants` | `azguard.features.grants` | |
-| `az-guard.features.audit_log` | `azguard.authorization.trace_decisions` | |
+| `az-guard.panels` | `azguard.panels.providers` | FQCN провайдеров переносятся; провайдер нужно переписать на `panel(PanelBuilder)` — ошибка с подсказкой |
+| `az-guard.column_names.morph_type` | `azguard.ids.host_keys` | `int→bigint`, `ulid`, `uuid` |
+| `az-guard.table_names.*` | `azguard.storages.default.table_prefix` | используется upgrade-миграцией для поиска старых таблиц |
+| `az-guard.models.*` | `azguard.defaults.models.*` | `scope` → `role_assignment` (с предупреждением: модель переписать) |
+| `az-guard.cache.store = 'array'` / `expiration_time` / `generation` | `azguard.defaults.cache.store = null` / `.ttl` / `.generation` | |
+| `az-guard.grant_sources` | `azguard.defaults.plugins` | отсутствие `DirectGrantSource` → убрать `azguard/direct-grants` |
+| `az-guard.features.direct_grants = false` | то же | |
+| `az-guard.features.audit_log` | `azguard.defaults.trace_decisions` | |
 | `az-guard.prune_expired_daily` | `azguard.schedule.prune_expired` | `true→'daily'`, `false→null` |
-| `az-guard-context.resolvers` | `azguard.contexts.resolvers` | |
-| `az-guard-context.merge_strategy` | — | ошибка с подсказкой: задать `ContextPolicy` на realm |
-| прочие удалённые (N20, D05, D18) | — | `E_USER_DEPRECATED` «ключ удалён, не действует» |
+| `az-guard-context.resolvers` | `azguard.defaults.contexts.resolvers` | |
+| `az-guard-context.merge_strategy` | — | ошибка с подсказкой: `ContextPolicy` на панели |
+| `az-guard.default_panel`, `strict_panels`, `require_permission_attributes`, `scope.*`, `middleware.*`, `manager`, `resolver`, `matcher`, `abilities_resolver`, `role_permission_validator`, `fail_on_source_exception`, `features.teams`, `teams.*`, `features.wildcard_permission`, `features.validate_role_permissions` | — | `E_USER_DEPRECATED` «ключ удалён, не действует» |
 
-## 4. Проверки при boot (исключение во всех окружениях)
+## 6. Проверки при boot (исключение во всех окружениях)
 
 | Проверка | Код |
 |---|---|
-| `ids.host_keys` ∉ {string,bigint,uuid,ulid} | `invalid_configuration.host_keys` |
-| `cache.ttl = null` при персистентном драйвере store | `invalid_configuration.cache_ttl` (как сейчас C-04) |
-| `database.reads` ∉ {primary, default}; `cache.state_refresh` ∉ {request, check}; `gate.mode`/`superadmin_scope` вне списка | `invalid_configuration.enum` |
-| модель в `models.*` не наследует базовую / другое соединение | `invalid_configuration.model` |
-| realm требует членства, а `contexts.membership = null` | `invalid_configuration.membership` |
-| ключ источника/constraint не `vendor/name` или класс не реализует контракт | `invalid_configuration.extension` |
+| `host_keys` вне списка (глобально или у хранилища) | `invalid_configuration.host_keys` |
+| `cache.ttl = null` при персистентном store (на любой панели) | `invalid_configuration.cache_ttl` |
+| enum-настройки вне списка (`reads`, `state_refresh`, `gate.mode`, `superadmin_scope`, `direct_writes`) | `invalid_configuration.enum` |
+| модель панели не наследует базовую / не совпадает с хранилищем | `storage_mismatch` |
+| панель ссылается на неизвестное хранилище | `invalid_configuration.storage` |
+| панель требует членства, а `ContextMembership` не задан | `invalid_configuration.membership` |
+| ключ плагина/источника/ограничения не `vendor/name` или класс не реализует контракт | `invalid_configuration.extension` |
+| конфликт настроек между плагинами панели | `plugin_conflict` |
+| отсутствует зависимость плагина | `plugin_dependency_missing` |
+| `configurePanel()` для незарегистрированной панели | `unknown_panel` |
 | старый и новый ключ заданы по-разному | `invalid_configuration.conflict` |
 
-Warning (лог + doctor): `database.reads = default` при настроенных read-хостах; `gate.mode = additive`;
-`administration.direct_writes = warn` в production при обнаруженных прямых записях; `cache.store` без
-`LockProvider` не нужен больше (эпох нет) — проверка удаляется.
+Warning (лог + doctor): `reads = default` при read-хостах; `gate.mode = additive`; обнаруженные прямые записи в
+production; панель `inherit` с контекстами без членства.
