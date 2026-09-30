@@ -7,7 +7,7 @@
 
 AzGuard отвечает на один вопрос: «может ли этот субъект сделать это действие здесь». Другим пакетам экосистемы
 (Vaulter с файлами и документами, в будущем — другие) нужен этот ответ. Ещё они могут принести в AzGuard свои права,
-роли, политики и механики.
+роли, политики и источники.
 
 **Мост к конкретному пакету пишет сам этот пакет.** Vaulter знает свои папки, документы и уровни доступа; как
 перевести их на язык AzGuard, решает Vaulter. Задача AzGuard — дать **небольшой и стабильный набор разъёмов** и не
@@ -23,7 +23,7 @@ AzGuard отвечает на один вопрос: «может ли этот 
           decideMany и │                  │ которую выбрало приложение
                трейт   ▼                  ▼
         ┌───────────────────────────────────────────┐
-        │  AzGuard: панели, механики, хуки, схема    │   ← стабильный контракт (@api/@spi)
+        │  AzGuard: панели, источники, хуки, схема   │   ← стабильный контракт (@api/@spi)
         └───────────────────────────────────────────┘
 ```
 
@@ -34,8 +34,8 @@ AzGuard отвечает на один вопрос: «может ли этот 
 | Уровень | Что делает пакет | Чем пользуется | Пример |
 |---|---|---|---|
 | **A. Спрашивает** | проверяет права перед своими действиями; права и роли описывает приложение | трейт, `decideMany`, Gate, `StateToken` | пакет чата проверяет `chat.moderate` |
-| **B. Приносит права** | поставляет плагин: enum прав, роли по умолчанию, политики, doctor-проверки; приложение подключает плагин к нужной панели | `Plugin`, `PanelBuilder`, `CodeRole`, `#[Decides]`, `keyPrefix` | Vaulter приносит `documents.view/edit/share` и роль «Редактор документов» |
-| **C. Приносит механики и реакции** | свой источник прав, ограничения, хуки; слушает события AzGuard | `GrantSource`, `Restriction`, хуки, события | пакет биллинга даёт права по оплаченному тарифу своим источником |
+| **B. Приносит права** | поставляет плагин: папку с доменами (enum прав + политики), роли по умолчанию, doctor-проверки; приложение подключает плагин к нужной панели | `Plugin`, `PanelBuilder::discover()`, `BaseRole`, `#[Domain]`, `prefixed` | Vaulter приносит `documents.view/edit/share` и роль «Редактор документов» |
+| **C. Приносит источники и реакции** | свой источник, ограничения, pipes; слушает события AzGuard | `Source` и его возможности, `#[AsSource]`, `Restriction`, pipes, события Laravel | пакет биллинга даёт права по оплаченному тарифу своим источником `billing` |
 
 ## 3. Что AzGuard гарантирует
 
@@ -47,14 +47,14 @@ AzGuard отвечает на один вопрос: «может ли этот 
 | Спросить «можно ли» | трейт `HasAzGuard`, `AzGuard::panel($id)->decide()/decideMany()/explain()` | [05 §1](05-php-api.md#1-модель-трейт-hasazguard), [05 §2](05-php-api.md#2-панель-azguardpanel) |
 | Понять, почему отказ | `Decision::$reason` (`NotGranted`, `Policy`, `Restricted`, …) | [05 §5](05-php-api.md#5-значения-ядра-azguardkernel) |
 | Знать, что права изменились | `state(): StateToken` для своих кэшей; события после commit | [08 §6](08-data-model-and-migration.md#6-каталог-событий), [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность) |
-| Встроиться в панель | `Plugin` + `AzGuard::configurePanel()`; пакет даёт плагин, **приложение выбирает панель** | [06 §1](06-extension-points.md#1-плагин), [06 §7](06-extension-points.md#7-модули-и-сторонние-пакеты-внутри-приложения) |
-| Свои права, роли, политики | enum с локальными именами + `keyPrefix`; `CodeRole`; `#[Decides]` | [05 §6](05-php-api.md#6-роли-в-коде), [05 §7](05-php-api.md#7-политики) |
-| Свой источник прав, ограничение, хук | `GrantSource`, `Restriction`, хуки | [06 §2](06-extension-points.md#2-свой-источник-прав), [06 §3](06-extension-points.md#3-хуки-проверки) |
+| Встроиться в панель | `Plugin` + `AzGuard::configurePanel()`; пакет даёт плагин, **приложение выбирает панель** | [06 §3](06-extension-points.md#3-плагины), [06 §8](06-extension-points.md#8-модули-и-сторонние-пакеты-внутри-приложения) |
+| Свои права, роли, политики | папка пакета с доменами (enum + политика, `#[Domain]`, `#[PolicyFor]`), `prefixed`; `BaseRole`; `->discover()` | [05 §6](05-php-api.md#6-роли-в-коде), [05 §7](05-php-api.md#7-домены-и-политики) |
+| Свой источник, ограничение, pipe | `Source` + `ProvidesGrants`/`ProvidesPermissions`/…, `AzGuard::sources()->extend()` или `#[AsSource]`, `Restriction`, pipes | [06 §1](06-extension-points.md#1-источники-фабрика), [06 §2](06-extension-points.md#2-свой-источник), [06 §4](06-extension-points.md#4-хуки-проверки), [06 §5](06-extension-points.md#5-хуки-изменений-pipes-и-события) |
 | Описать себя для интерфейсов | подписи и группы прав (`#[Describe]`), поля — попадают в `PanelSchema` | [05 §8](05-php-api.md#8-схема-панели) |
 | Перевести свою сущность в контекст | `ContextRef::of(type, id)`, `ContextAware` | [09 §3](09-authorization-semantics.md#3-политика-контекстов-панели) |
-| Выдать права от своего имени | `$user->inPanel($id)->assignRole(...)` внутри `AzGuard::actingAs('vaulter: share', …)` | [05 §3](05-php-api.md#3-фасад) |
-| Проверить себя | `IntegrationContractTests`, `PluginContractTests` против настоящего AzGuard | [06 §9](06-extension-points.md#9-контрактные-наборы-azguardtestingcontracts) |
-| Проверить конфигурацию у приложения | `DoctorCheck` в своём плагине → `azguard:doctor` | [06 §8](06-extension-points.md#8-doctor) |
+| Выдать права от своего имени | `$user->inPanel($id)->grantRole(...)` внутри `AzGuard::actingAs('vaulter: share', …)` | [05 §3](05-php-api.md#3-фасад) |
+| Проверить себя | `IntegrationContractTests`, `PluginContractTests`, `SourceContractTests` против настоящего AzGuard | [06 §10](06-extension-points.md#10-контрактные-наборы-azguardtestingcontracts) |
+| Проверить конфигурацию у приложения | `DoctorCheck` в своём плагине или источнике → `azguard:doctor` | [06 §9](06-extension-points.md#9-doctor) |
 
 AzGuard **не** обещает: классы в `Internal\`, модели и таблицы хранилища как способ записи, формат кэша. Опора на них
 ломается без предупреждения.
@@ -64,23 +64,25 @@ AzGuard **не** обещает: классы в `Internal\`, модели и т
 Минимальный пакет уровней A и B. Имена условные.
 
 ```php
-// 1. Права пакета — локальные имена, без id панели
-enum AcmePermission: string implements Permission
+// 1. Права пакета — enum ресурса с локальными именами, без id панели (структура D56)
+#[Domain(label: 'Документы')]
+enum DocumentPermission: string
 {
-    #[Describe('Смотреть документы', group: 'Документы')] case View = 'documents.view';
-    #[Describe('Редактировать документы', group: 'Документы')] case Edit = 'documents.edit';
+    #[Describe('Смотреть документы')] case View = 'documents.view';
+    #[Describe('Редактировать документы')] case Edit = 'documents.edit';
 }
 
 // 2. Плагин: что пакет приносит в панель
-final class AcmeAzGuardPlugin extends BasePlugin              // make() и keyPrefix() — из базы
+final class AcmeAzGuardPlugin extends BasePlugin              // make() и prefixed() — из базы
 {
     public function id(): string { return 'acme/azguard'; }
 
     public function register(PanelBuilder $panel): void
     {
-        $panel->permissions(AcmePermission::class)           // с keyPrefix('acme') → acme.documents.view
-            ->roles(AcmeEditorRole::class)                    // роль по умолчанию; появится в редакторах через схему
-            ->doctorChecks(AcmeContextTypeCheck::class);      // «панель принимает тип сущности acme_folder»
+        $panel->discover(__DIR__.'/Guards')                  // домены пакета: Documents/Permissions, Documents/Policies, Roles/
+            // с prefixed('acme') → acme.documents.view; у панели с префиксом admin → admin.acme.documents.view
+            ->doctorChecks([AcmeContextTypeCheck::class]);    // «панель принимает тип сущности acme_folder»
+        // роли пакета (Roles/) появятся в редакторах через схему панели
     }
 
     public function boot(Panel $panel): void
@@ -90,10 +92,10 @@ final class AcmeAzGuardPlugin extends BasePlugin              // make() и keyPr
 }
 
 // 3. Приложение решает, куда подключить
-$panel->plugin(AcmeAzGuardPlugin::make()->keyPrefix('acme'));   // в своём PanelProvider
+$panel->plugins([AcmeAzGuardPlugin::make()->prefixed('acme')]);   // в своём PanelProvider
 
 // 4. Пакет спрашивает — в панели, к которой его подключили
-$user->inPanel($panels->primary())->hasPermissionTo(AcmePermission::Edit, on: $folder);
+$user->inPanel($panels->primary())->hasPermission(DocumentPermission::Edit, on: $folder);
 ```
 
 Если плагин подключён к двум панелям, пакет обязан указать панель явно; иначе `AmbiguousPanelException`
@@ -123,7 +125,7 @@ use AzGuard\Testing\Contracts\IntegrationContractTests;
 uses(IntegrationContractTests::class);
 
 beforeEach(function () {
-    $this->azguardPanel('workspace', fn (PanelBuilder $p) => $p->default()->plugin(AcmeAzGuardPlugin::make()->keyPrefix('acme')));
+    $this->azguardPanel('workspace', fn (PanelBuilder $p) => $p->default()->plugins([AcmeAzGuardPlugin::make()->prefixed('acme')]));
     $this->azguardPanel('admin');                             // вторая панель — проверка независимости
 });
 ```
@@ -155,7 +157,7 @@ beforeEach(function () {
 
 | Тема | Vaulter | AzGuard |
 |---|---|---|
-| Установка | `axioma-studio/vaulter` | `axiomasoft/azguard` — vendor отличается ([Q23](15-owner-questions.md)) |
+| Установка | `axiomasoft/vaulter` (сейчас `axioma-studio/vaulter`, переход — задача Vaulter) | `axiomasoft/azguard` — единый vendor экосистемы (Q23) |
 | Версии пакетов внутри продукта | `self.version` | `self.version` |
 | Конфиг | файл на пакет, readonly `*Config`, проверки при загрузке, `config()` только в `Configuration\` | то же |
 | Ключи хоста | `vaulter.ids.host_keys` = string\|bigint\|uuid\|ulid | `azguard.ids.host_keys`, те же значения |
@@ -172,11 +174,11 @@ beforeEach(function () {
 
 | AzGuard | Что это | Похожее в Vaulter | Почему не одно слово |
 |---|---|---|---|
-| **Panel** | конструктор прав части приложения: субъекты, механики, настройки | **Profile** — набор политик для drives | панель описывает *кто и что может*, профиль — *как ведёт себя хранилище* |
+| **Panel** | конструктор прав части приложения: субъекты, источники, настройки | **Profile** — набор политик для drives | панель описывает *кто и что может*, профиль — *как ведёт себя хранилище* |
 | **Context** | сущность, в которой действует право (магазин, проект) | **Owner** drive, tenant | контекст выбирает выдачи, владелец/tenant изолирует данные |
-| **Direct permission** | право, выданное субъекту напрямую | **NodeGrant** — доступ к узлу дерева | у AzGuard — право на действие, у Vaulter — уровень доступа к файлу или папке |
-| **Policy** (AzGuard-механика) | метод Laravel Policy, решающий право | профиль выбирает драйвер прав | разные уровни: у AzGuard — одно право, у Vaulter — поведение drive |
-| **Role**, **Role assignment** | набор прав и его назначение | — | в Vaulter ролей нет, доступ задаётся уровнями |
+| **Permission grant** | выдача права субъекту без роли | **NodeGrant** — доступ к узлу дерева | у AzGuard — право на действие, у Vaulter — уровень доступа к файлу или папке |
+| **Policy** (второй уровень AzGuard) | метод политики домена, уточняющий выданное право | профиль выбирает драйвер прав | разные уровни: у AzGuard — одно право, у Vaulter — поведение drive |
+| **Role**, **Role grant** | набор прав и его выдача | — | в Vaulter ролей нет, доступ задаётся уровнями |
 
 Совпадение слов не подгоняется. Если понятие в двух пакетах действительно одно (актор, событие, ключ хоста), оно
 одинаково называется и кодируется. Если понятия похожи, но разные, у них разные имена.
@@ -192,14 +194,14 @@ beforeEach(function () {
 | Кто может работать с документами этого workspace и на каком уровне (читатель, комментатор, редактор, организатор, владелец) | **AzGuard** — по ролям и правам панели приложения в контексте владельца drive |
 | Кому расшарен конкретный файл или папка, публичные ссылки | **Vaulter** — NodeGrant, share links |
 | Как ведёт себя drive (квоты, версии, типы файлов) | **Vaulter** — профиль |
-| Суперадмин | **AzGuard** — `isSuperAdmin()` панели |
+| Суперадмин | **AzGuard** — роль с признаком суперадмина в панели, `isSuperAdmin()` |
 
 ### 9.2 Как это может выглядеть
 
 1. **Плагин `vaulter/azguard`** (в репозитории Vaulter) приносит в выбранную приложением панель:
    - enum прав уровней: `documents.read`, `documents.comment`, `documents.write`, `documents.organize`,
      `documents.own`, плюс `documents.create` для создания в drive;
-   - роли из кода «Читатель документов», «Редактор документов», «Организатор документов» (назначаются вручную,
+   - роли из кода «Читатель документов», «Редактор документов», «Организатор документов» (выдаются вручную,
      поэтому сразу появляются в редакторах Filament через схему панели);
    - doctor-проверку: панель принимает тип владельца drive как контекст (`ContextPolicy`), права есть в каталоге.
 2. **Драйвер прав Vaulter** (`PermissionDriver` — контракт Vaulter) переводит вопросы Vaulter в вопросы AzGuard:
@@ -208,12 +210,12 @@ beforeEach(function () {
    |---|---|
    | `resolve(subject, actor, scope)` | `decideMany` по пяти правам уровней в контексте `ContextRef::of(owner.type, owner.id)`; высший разрешённый уровень → `GrantLevel` |
    | `override(actor, scope)` | `$actor->inPanel($panel)->isSuperAdmin()` → allow |
-   | `subjectsFor(actor)` | `getRoleNames(on: owner)` → роли AzGuard как субъекты Vaulter. Тогда NodeGrant можно выдать роли: «папка доступна роли Редакторы» |
-   | `canCreateIn(actor, scope)` | `hasPermissionTo('documents.create', on: owner)` |
+   | `subjectsFor(actor)` | `roleNames(on: owner)` → роли AzGuard как субъекты Vaulter. Тогда NodeGrant можно выдать роли: «папка доступна роли Редакторы» |
+   | `canCreateIn(actor, scope)` | `hasPermission('documents.create', on: owner)` |
 
 3. **Кэш.** Листинг Vaulter кэширует решения с `$panel->state()` в ключе: любое изменение прав в панели делает кэш
    неактуальным без ручной очистки.
-4. **Панель** выбирает приложение: `->plugin(VaulterAzGuardPlugin::make()->keyPrefix('vaulter'))` в нужном
+4. **Панель** выбирает приложение: `->plugins([VaulterAzGuardPlugin::make()->prefixed('vaulter')])` в нужном
    `PanelProvider`; драйвер узнаёт id панели из `boot()` плагина. Если панелей с плагином несколько, профиль Vaulter
    указывает, какую использовать.
 5. **Проверка.** Мост прогоняет `IntegrationContractTests` AzGuard и контрактные тесты драйверов Vaulter против
@@ -239,6 +241,7 @@ beforeEach(function () {
 | V4 | `require axioma-studio/azguard-core: dev-main` — стабильный релиз моста невозможен | пакет `axiomasoft/azguard`, теги `1.0.0-beta.N` → `1.0.0` |
 | V5 | Написание `azgard` расходится с продуктом `AzGuard` | — (имя пакета моста выбирает Vaulter) |
 | V6 | Для совпадения morph-типов нужны три настройки (`vaulter.ids.default`, `corex.ids.strategy`, `AZ_GUARD_MORPH_TYPE`) | одна настройка `azguard.ids.host_keys` с теми же значениями, что у Vaulter ([D08](02-decisions.md#d08)) |
+| V7 | Vendor пакетов Vaulter — `axioma-studio/*`, у AzGuard — `axiomasoft/*` | владелец выбрал единый vendor `axiomasoft` (Q23); переименование пакетов Vaulter — задача Vaulter |
 
 Код Vaulter в этом аудите **не** менялся (границы задачи и `CLAUDE.md` Vaulter).
 
@@ -246,7 +249,7 @@ beforeEach(function () {
 
 | # | Действие | Зачем интеграциям |
 |---|---|---|
-| I1 | ядро, правило выбора панели, механики, `decideMany`, `StateToken`, схема панели ([13](13-workstreams.md)) | есть то, на что опираться |
+| I1 | ядро, правило выбора панели, источники и их фабрика, `decideMany`, `StateToken`, схема панели ([13](13-workstreams.md)) | есть то, на что опираться |
 | I2 | `IntegrationContractTests`, `PluginContractTests`, пример интеграции в CI | пакеты проверяют себя на настоящем AzGuard |
 | I3 | руководство «Интеграция вашего пакета» | правила §5 в одном месте |
 | I4 | тег `1.0.0-beta.1` пакета `axiomasoft/azguard` | стабильная версия для `require` |

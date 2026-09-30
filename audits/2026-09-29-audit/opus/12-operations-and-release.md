@@ -1,7 +1,7 @@
 # 12 — Эксплуатация, релиз, документация
 
 Решения: [D35](02-decisions.md#d35), [D38](02-decisions.md#d38)–[D42](02-decisions.md#d42), [D44](02-decisions.md#d44),
-[D51](02-decisions.md#d51).
+[D51](02-decisions.md#d51), [D56](02-decisions.md#d56), [D58](02-decisions.md#d58).
 
 ## 1. Команды
 
@@ -17,24 +17,30 @@
 |---|---|
 | `azguard:install [--migrate] [--force]` | D40: конфиг, вопросы (подключение, `host_keys`), предложение создать первую панель, список миграций AzGuard, doctor |
 | `azguard:doctor [--panel=] [--storage=] [--production] [--json]` | проверки ядра и плагинов (§2) |
-| `azguard:panels:list [--settings] [--sources] [--schema] [--json]` | панели; `--settings` — итоговые настройки и откуда взято значение; `--sources` — механики и что принёс каждый плагин; `--schema` — схема прав |
+| `azguard:panels:list [--settings] [--sources] [--schema] [--json]` | панели; `--settings` — итоговые настройки и откуда взято значение; `--sources` — источники панели и что принёс каждый источник и плагин; `--schema` — схема прав |
+| `azguard:sources:list [--json]` | имена в фабрике источников (`#[AsSource]`, `extend()`), класс, параметры из `config('azguard.sources')`, какие панели используют |
 | `azguard:storage:migration {storage}` | миграция для именованного или собственного хранилища (свой префикс, подключение) |
-| `azguard:catalog:list [--panel=] [--json]` | права: откуда пришли, подписи, как получаются (механики или политика) |
-| `azguard:catalog:cache` / `azguard:catalog:clear` | снимок каталогов, ролей из кода и привязок политик в `bootstrap/cache/azguard.php` |
-| `azguard:roles:list [--panel=]` | роли из кода и из БД, как назначаются, число держателей |
-| `azguard:roles:create {role} [--label=] [--permissions=…]` / `azguard:roles:delete {role}` | роли в БД |
-| `azguard:roles:permissions {role} [--set=…] [--add=…] [--remove=…]` | права роли из БД |
-| `azguard:roles:rename-key {role} {new}` | переименовать ключ роли из кода в назначениях (после смены `key()`) |
-| `azguard:roles:assign {subject} {role} [--on=type:id] [--expires=] [--field=key=value…]` / `azguard:roles:remove …` | назначения |
-| `azguard:permissions:give {subject} {permission} [--on=] [--expires=] [--field=…]` / `azguard:permissions:revoke …` | прямые права |
-| `azguard:assignments:list {subject} [--panel=]` | всё, что есть у субъекта: по панелям, роли, права, сущности, сроки, поля |
-| `azguard:assignments:prune [--panel=] [--before=]` | удаление истёкших (события `AssignmentExpired`) |
+| `azguard:catalog:list [--panel=] [--json]` | права: статичные и динамические, домен, откуда пришли, есть ли политика |
+| `azguard:catalog:cache` / `azguard:catalog:clear` | снимок найденного `FolderSource` (enum, политики, роли, `#[AsSource]`) и статичных каталогов в `bootstrap/cache/azguard.php`; вызываются из `php artisan optimize` / `optimize:clear` |
+| `azguard:roles:list [--panel=]` | статичные и динамические роли, как выдаются, суперадмин ли, число держателей |
+| `azguard:roles:create {role} [--label=] [--permissions=…] [--super-admin]` / `azguard:roles:delete {role}` | динамические роли |
+| `azguard:permissions:create {name} [--label=] [--group=]` / `azguard:permissions:delete {name}` | динамические права (панель с `dynamicPermissions`) |
+| `azguard:roles:permissions {role} [--set=…] [--add=…] [--remove=…]` | права динамической роли |
+| `azguard:roles:rename-key {role} {new}` | переименовать ключ статичной роли в выдачах (после смены `#[Role]`; прежний ключ — в `#[FormerKeys]`) |
+| `azguard:roles:grant {subject} {role} [--on=type:id] [--until=] [--field=key=value…]` / `azguard:roles:revoke …` | выдачи ролей |
+| `azguard:permissions:grant {subject} {permission} [--on=] [--until=] [--field=…]` / `azguard:permissions:revoke …` | выдачи прав |
+| `azguard:grants:list {subject} [--panel=]` | всё, что есть у субъекта: по панелям, роли, права, сущности, сроки, поля |
+| `azguard:grants:prune [--panel=] [--before=]` | удаление истёкших (события `GrantExpired`) |
 | `azguard:state:reset {panel} [--force]` | новая версия состояния панели (после ручного вмешательства в БД) |
 | `azguard:explain {subject} {permission} [--on=] [--json]` | объяснение решения по шагам ([09 §11](09-authorization-semantics.md#11-объяснение)) |
 | `azguard:permissions:show {subject} [--panel=] [--on=]` | итоговый набор прав по панелям |
-| `azguard:make:panel`, `azguard:make:permissions`, `azguard:make:role`, `azguard:make:policy` | генераторы: провайдер панели, enum прав, роль из кода, политика с `#[Decides]` |
-| `azguard:make:plugin`, `azguard:make:source`, `azguard:make:restriction`, `azguard:make:hook` | генераторы: плагин, источник прав, ограничение, хук |
-| `azguard:make:models {panel}` | свои модели панели (наследники базовых) + миграция колонок |
+| `azguard:make:panel {Panel}` | папка панели `app/Guards/{Panel}/`: провайдер, `Roles/`, запись в конфиг — как сегодня `make:guard-panel` |
+| `azguard:make:domain {Panel} {Domain} [--model=] [--policy] [--abilities]` | домен в папке панели: `{Domain}/Permissions`, `Policies`, `Abilities` — как сегодня `make:guard-domain` |
+| `azguard:make:permission`, `azguard:make:role`, `azguard:make:policy` | отдельные файлы в структуре панели; роль — сразу с `#[Role('<key>')]` |
+| `azguard:make:source {Name} [--panel=] [--shared]` | источник в `{Panel}/Sources/` или `Shared/Sources/` с `#[AsSource]` и выбранными возможностями (`--grants`, `--permissions`, `--roles`, `--policies`) |
+| `azguard:make:plugin`, `azguard:make:restriction`, `azguard:make:pipe` | плагин, ограничение (`Restrictions/`), pipe изменений (`Changes/`) |
+| `azguard:stubs` | опубликовать стабы генераторов, как `php artisan stub:publish` |
+| `azguard:make:models {panel}` | свои модели `DatabaseSource` в `{Panel}/Models/` (наследники базовых) + миграция колонок |
 | `azguard:filament:generate [--panel=] [--dry-run]` | enum прав Filament-ресурсов |
 
 `{subject}` — `type:id` (`user:42`) или просто id, если модель субъекта одна.
@@ -51,11 +57,15 @@ Doctor проверяет **каждую панель и каждое храни
 | `storage.migrated` | ядро, на хранилище | миграции выполнены | error |
 | `panels.valid` | ядро | id, провайдеры, модели наследуют базовые, хранилище существует, одна панель по умолчанию на модель | error |
 | `panels.plugins` | ядро, на панели | зависимости плагинов, конфликты настроек | error |
-| `panels.policies` | ядро, на панели | у каждого права не больше одной привязки; сигнатуры методов подходят; discovery нашёл то же, что в кэше | error / warning |
+| `panels.sources` | ядро, на панели | имена источников зарегистрированы; `id()` не повторяются; писатель не больше одного; источники с `ChecksHealth` прошли свои проверки | error |
+| `panels.policies` | ядро, на панели | у каждого права не больше одной привязки; сигнатуры методов подходят; автопоиск нашёл то же, что в кэше | error / warning |
+| `policies.complete` | ядро, на панели | у домена с политикой: кейс без метода и без `#[GrantsOnly]`; публичный метод, не совпавший ни с одним кейсом | warning |
+| `roles.keys` | ядро, на панели | статичная роль без `#[Role]` (ключ выведен из имени класса) | warning |
+| `routes.checks` | ядро, на панели | строгий режим: действия без `#[CheckPermission]`/`azguard.can`, Laravel `can`/`#[Authorize]` и без `#[SkipPermissionCheck]`; `#[CheckPermission]` с правом не своей панели | error |
 | `panels.relations` | ядро, на панели | связи существуют на моделях, роли из связей есть на панели | error |
-| `catalog.collisions` | ядро, на панели | коллизии имён между построителями и плагинами (с учётом `keyPrefix`) | error |
+| `catalog.collisions` | ядро, на панели | коллизии имён между источниками и плагинами (с учётом `prefixed`) | error |
 | `catalog.cached` | ядро | `--production`: снимок каталога есть и свежий | warning |
-| `roles.orphaned` | ядро, на панели | назначения ролей, которых больше нет в коде и в БД; ключ роли из БД совпал с ролью из кода | warning / error |
+| `roles.orphaned` | ядро, на панели | выдачи ролей, которых больше нет в коде и в БД; ключ роли из БД совпал с ролью из кода | warning / error |
 | `grants.dead` | ядро, на панели | выдачи с правами вне каталога, невыдаваемыми правами или непринятым типом сущности | warning |
 | `fields.meta` | ядро, на панели | поле из `decisionFields` лежит в `meta` | warning |
 | `membership.configured` | ядро, на панели | панель требует членства → членство задано | error |
@@ -68,9 +78,9 @@ Doctor проверяет **каждую панель и каждое храни
 
 ## 3. Планировщик и `about`
 
-`azguard.schedule.enabled = true` → `azguard:assignments:prune` по всем панелям по `schedule.prune_expired` (по
-умолчанию `daily`). `php artisan about` показывает версию, панели (механики, хранилище, по умолчанию ли), `host_keys`,
-cache store, версии состояния панелей.
+`azguard.schedule.enabled = true` → `azguard:grants:prune` по всем панелям по `schedule.prune_expired` (по
+умолчанию `daily`). `php artisan about` (`AboutCommand::add`) показывает версию, панели (источники, хранилище, по
+умолчанию ли), именованные источники, `host_keys`, cache store, свежесть кэша каталога, версии состояния панелей.
 
 ## 4. Релиз и артефакты
 
@@ -111,15 +121,18 @@ serialization / event / security tightening / docs.
 
 | Раздел | О чём |
 |---|---|
-| «Как устроен AzGuard» | панели-конструкторы, механики, роли, сущности, суперадмин — по-человечески (из [00](00-overview.md)) |
-| «Быстрый старт» | одна панель, трейт, `hasPermissionTo`, `assignRole` — как в Spatie |
+| «Как устроен AzGuard» | панели-конструкторы, источники, папка панели, роли, сущности, суперадмин — по-человечески (из [00](00-overview.md)) |
+| «Быстрый старт» | одна панель, трейт, `hasPermission`, `grantRole` — как в Spatie |
 | «Если вы пришли из Spatie Permission» | соответствие методов, чем отличаются панели и сущности |
 | «Панели» | создание, панель по умолчанию, middleware входа, несколько панелей у одной модели, `configurePanel` |
-| «Механики прав» | права всем, роли из кода, автоматические роли, политики и Gate, БД, связи, свой источник; как переносить право между механиками |
-| «Хуки и события» | before, restrict, after, changing, changed; рецепты (подтверждение, «не больше своего», срок по умолчанию) |
+| «Папка панели» | домены, enum, политики, роли, атрибуты; `Shared/`; генераторы; кэш каталога |
+| «Источники» | `FolderSource`, `DatabaseSource`, `RelationSource`, `GateSource`; свой источник и фабрика (`#[AsSource]`, `extend()`); как переносить право между источниками |
+| «Два уровня проверки» | выдачи и политика того же права; таблица «политика вернула → итог»; рабочие часы, «своё — всегда» |
+| «Хуки, pipes и события» | `before`/`after` как у Gate, ограничения, pipes `changing` как у Pipeline, Laravel-события; рецепты (подтверждение, «не больше своего», срок по умолчанию) |
+| «Маршруты и контроллеры» | `azguard.panel`, `#[CheckPermission]` (наследник Laravel `#[Middleware]`), `#[SkipPermissionCheck]`, строгий режим |
 | «Схема панели и свой интерфейс» | `PanelSchema`, Filament, свой UI на Inertia/Vue |
-| «Хранилища и свои поля» | именованные хранилища, свои модели, `azguardFields`, `meta`, `decisionFields` |
-| «Модули и плагины» | своя панель модуля или плагин в чужой, `keyPrefix` |
+| «База данных и свои поля» | настройки `DatabaseSource`: хранилища, свои модели, `azguardFields`, `meta`, `decisionFields`, динамические права |
+| «Модули и плагины» | своя панель модуля или плагин в чужой, `prefixed` |
 | «Интеграция вашего пакета» | контракт [10](10-integrations.md), правила, `IntegrationContractTests` |
 | «Смысл решений» и «Гарантии консистентности» | из [09](09-authorization-semantics.md), дословная гарантия отзыва |
 
