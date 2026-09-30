@@ -1,0 +1,34 @@
+PHPUnit 12.5.33 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.19
+Configuration: /home/user/azguard-private/phpunit.xml
+Random Seed:   1790702572
+
+...................                                               19 / 19 (100%)
+
+Time: 00:02.493, Memory: 50.50 MB
+
+/home/user/azguard-private/tests/Feature/OpusAuditContextProbesTest.php
+ ✔ it P05: hasPermissionIn() with an unqualified key and panelId null denies although the grant exists
+ ✔ it P06: DenyWithoutContext configured for the tenant panel also zeroes the admin panel
+ ✔ it P07: a grant in context (workspace, "a:7") is served for context ("workspace:a", 7) from the durable cache
+
+/home/user/azguard-private/tests/Feature/OpusAuditProbesTest.php
+ ✔ it P01a: a class role with * registered on panel "test" is superadmin on panel "admin"
+ ✔ it P01b: the same * stored on a DB role stays on its own panel (asymmetry)
+ ✔ it P01c: hasPermission() evaluates a foreign-panel key against the default panel set
+ ✔ it P02: a role class_name that no longer resolves makes every check of its holders throw
+ ✔ it P03: a restrictive az-guard.resolver is honoured by hasPermission() but not by the Gate
+ ✔ it P04a: without an authenticated user the scoped model query is unfiltered
+ ✔ it P04b: an authenticated user with no scoped rows sees every row
+ ✔ it P04c: two scoped assignments compose with AND and hide both projects
+ ✔ it P08: a DB role grants globally but not when assigned scoped; patterns are ignored when scoped
+ ✔ it P09: with two panels and no current panel the Gate abstains on a fully-qualified key
+ ✔ it P10: ten checks of a warm request cache still issue ten revision SELECTs
+ ✔ it P10b: inside any transaction on the connection the cache is bypassed and sources re-query
+ ✔ it P11: trait grant() emits no event, a no-op re-grant emits one, and events fire inside the transaction
+ ✔ it P13: assignRole() with an unknown role and a grant of an unknown key both "succeed"
+ ✔ it P14: a direct grant of * through the public fluent API makes the user superadmin
+ ✔ it P06b: hasPermission(..., $context) falls back to the global answer while hasPermissionIn() denies
+
+OK (19 tests, 41 assertions)
