@@ -58,14 +58,14 @@ return [
     ],
 
     'defaults' => [                                          // значения по умолчанию для всех панелей
-        'prefixed' => true,                                  // префикс имён прав: true (id панели, как сейчас) | false; свой — на панели
+        'resource_prefix' => true,                                  // префикс имён прав: true (id панели, как сейчас) | false; свой — на панели
         'models' => [                                        // модели DatabaseSource по умолчанию
             'role_grant' => \AzGuard\Storage\Models\RoleGrant::class,
             'permission_grant' => \AzGuard\Storage\Models\PermissionGrant::class,
             'permission' => \AzGuard\Storage\Models\Permission::class,        // динамические права
         ],
         'tenants' => ['resolvers' => []],                     // TenantPolicy по умолчанию none, required задаёт panel
-        'contexts' => [
+        'scopes' => [
             'resolvers' => [],
         ],
         'gate' => [
@@ -101,7 +101,7 @@ return [
         'permissions' => 'Permissions',                      // Permissions/{Group}/*Permission.php
         'policies' => 'Policies',                            // Policies/{Group}/*Policy.php
         'roles' => 'Roles',                                  // Roles/*Role.php
-        'contexts' => 'Contexts',                            // ContextDefinition; не произвольные business models
+        'scopes' => 'Scopes',                            // AssignmentScopeDefinition; не произвольные business models
         'abilities' => 'Abilities',                          // Abilities/{Group}/*Abilities.php
         'queries' => 'Queries',                              // Queries/{Group}; adapters подключаются явно
         'shared' => 'Shared',                                // app/Guards/Shared: не панель; здесь ищутся #[AsSource]
@@ -123,14 +123,14 @@ public function panel(PanelBuilder $panel): PanelBuilder
 {
     return $panel
         ->id('seller')                                     // имена прав: seller.orders.cancel (префикс по умолчанию)
-        ->for([User::class], guard: 'web')
+        ->for(model: User::class, guard: 'web')
         ->middleware(['web', 'auth:web'])
         ->entry('panel.access')
         ->permissions([
             RelationSource::make(Store::class, via: 'staff', role: 'pivot.role'),
             DatabaseSource::make()->rolesOnly()->storage('default'),   // только роли, без выдач отдельных прав
         ])
-        ->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')))
+        ->scopes(AssignmentScopePolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')))
         ->cache(ttl: 21600);
 }
 ```
@@ -169,7 +169,7 @@ return [
 | на панели два источника-писателя | `writer_conflict` |
 | два источника с одним `id()` на панели; права или роли разных источников сталкиваются | `duplicate_permission`, `duplicate_role` |
 | две панели по умолчанию для одной модели | `default_panel_conflict` |
-| панель требует членства, а `ContextMembership` не задан | `invalid_configuration.membership` |
+| панель требует членства, а `AssignmentScopeMembership` не задан | `invalid_configuration.membership` |
 | статичная роль из связи (`RelationSource::make(…, role: 'owner')`) не существует на панели | `unknown_role` |
 | право привязано к двум политикам | `duplicate_policy_binding` |
 | префикс панели повторяется или совпадает с первым сегментом локального имени | `prefix_conflict` |

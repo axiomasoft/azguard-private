@@ -122,7 +122,7 @@ InnoDB page size и collation входят в отчёт. Префиксные u
 | # | Правило | Где держится |
 |---|---|---|
 | I1 | Каждый read/write имеет явные panel и tenant_key; отсутствие tenant при required — ошибка | scope resolver, scoped repositories |
-| I2 | Context принадлежит выбранному tenant; resource принадлежит tenant и связан с выбранным context | `ContextDefinition::tenantOf`, `ResourceScopeResolver`; без resolver — отказ |
+| I2 | Context принадлежит выбранному tenant; resource принадлежит tenant и связан с выбранным context | `AssignmentScopeDefinition::tenantOf`, `ResourceScopeResolver`; без resolver — отказ |
 | I3 | Субъект принят панелью; membership tenant проверяется при доступе и, если настроено, при выдаче | tenant policy и change validators |
 | I4 | Role существует в static definitions или в этом tenant; configured binding контекста разрешён ролью; context_required запрещает tenant-wide выдачу; Assignment eligibility проверяется | финальная валидация под блокировкой |
 | I5 | Exact permission существует в scoped catalog; pattern покрывает >= 1 текущее право; нет голой звёздочки | грамматика, каталог |

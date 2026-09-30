@@ -8,7 +8,7 @@
 
 | # | Сценарий | Пункт | Probe |
 |---|---|---|---|
-| V01 | Property: для случайных `(type, id)` без `:` в типе `ContextRef::key()` однозначен; `of('w', 7) ≡ of('w', '7')`; `of('w:a', 7)` → `InvalidContextException` | P1.1 | P07 |
+| V01 | Property: для случайных `(type, id)` без `:` в типе `AssignmentScopeRef::key()` однозначен; `of('w', 7) ≡ of('w', '7')`; `of('w:a', 7)` → `InvalidAssignmentScopeException` | P1.1 | P07 |
 | V02 | Property: `PermissionKey::parse($k->full()) ≡ $k`; одно слово (`view`), верхний регистр, пробелы, голые `*`/`**` → `InvalidPermissionKeyException` | P1.1–P1.2 | P14 |
 | V03 | Таблица шаблонов: `orders.*` покрывает `orders.view`, но не `orders.a.b`; `orders.**` — всё под `orders.`; `**` не последним сегментом → ошибка | P1.2 | — |
 | V04 | Digest ключей кэша для разных `(panel, subject, contexts)` различен (1e5 случайных) | P1.1, P4.8 | P07 |
@@ -23,9 +23,9 @@
 | V64 | Свойство P9: для матрицы (субъект, имя права, явная панель, текущая панель, панель по умолчанию) трейт, `SubjectAccess`, фасад, Gate, Blade, `azguard.can`, `decideMany`, CLI выбирают одну панель | P2.2 | P01c, P09 |
 | V65 | Панель по умолчанию: одна панель у модели → она; `->default()` у двух панелей одной модели → `DefaultPanelConflictException`; `azguardDefaultPanel()` переопределяет; без панели → `PanelNotResolvedException`, а не отказ | P2.2 | P05 |
 | V08 | Два источника (или источник и плагин) с одним именем права и разными подписями → `DuplicatePermissionException` с id источников; одинаковые → ок | P2.5 | — |
-| V81 | Префикс: по умолчанию — id панели (`admin.orders.view`); `prefixed('backoffice')`; `prefixed(false)`; свойство P11 (смена префикса не меняет решений для enum и полных имён); повтор префикса или совпадение с первым сегментом локального имени → `PrefixConflictException`; плагин `prefixed('blog')` в панели с префиксом → `admin.blog.posts.edit` | P2.2 | — |
+| V81 | Префикс: по умолчанию — id панели (`admin.orders.view`); `resourcePrefix('backoffice')`; `resourcePrefix(false)`; свойство P11 (смена префикса не меняет решений для enum с guard: и stable panel:local; старый prefixed literal не alias); повтор префикса или совпадение с первым сегментом локального имени → `PrefixConflictException`; плагин `prefixed('blog')` в панели с префиксом → `admin.blog.posts.edit` | P2.2 | — |
 | V77 | Фабрика источников: `->permissions(['ldap'])` работает через `#[AsSource('ldap')]` и через `AzGuard::sources()->extend()` с параметрами из `config('azguard.sources.ldap')`; неизвестное имя → `unknown_source`; два писателя → `writer_conflict`; два источника с одним `id()` → ошибка; каждая панель получает свой экземпляр; свойство P12 (перестановка источников не меняет решений) | P2.7 | — |
-| V78 | Папка панели: сгенерированная `azguard:make:panel` + `make:permission --policy` панель находит enum в `Permissions/Orders`, политику в `Policies/Orders` по правилу same-root/same-relative-group D56, затем «метод = кейс» без `#[PolicyFor]`, роли в `Roles/`; `->discover()` добавляет папку; конфликтующие model/action bindings → `invalid_policy_structure`; nested permission names с разными сегментами допустимы при явном Decides; `azguard:catalog:cache` даёт тот же каталог, что живой автопоиск; `Shared/` не становится панелью | P2.8, P6.8 | — |
+| V78 | Папка панели: сгенерированная `azguard:make:panel` + `make:permission --policy` панель находит enum в `Permissions/Orders`, политику в `Policies/Orders` по правилу same-root/same-relative-group D56, затем обязательный #[Decides(enumCase)], имя метода свободное; без атрибута binding не выводится, роли в `Roles/`; `->discover()` добавляет папку; конфликтующие model/action bindings → `invalid_policy_structure`; nested permission names допустимы с Decides; удаление атрибута declared veto → compile error; `azguard:catalog:cache` даёт тот же каталог, что живой автопоиск; `Shared/` не становится панелью | P2.8, P6.8 | — |
 | V47 | Настройки: провайдер побеждает плагин, плагин — `configurePanels()`, тот — конфиг; `panels:list --settings` показывает источник; конфликт двух плагинов → `PluginConflictException`; гарантию D45 не отключить; context predicates из defaults/plugins/provider складываются AND, presentation имеет precedence | P2.3 | — |
 | V48 | Плагин без зависимости → `plugin_dependency_missing`; изменение панели в `boot()` → ошибка; смена порядка плагинов меняет отпечаток; один плагин на двух панелях видит каждую свою | P2.4 | — |
 | V85 | Плагин как Laravel-класс: `make()` создаёт экземпляр через контейнер (работают привязки и `#[Config]`); один плагин на двух панелях с разными настройками (`retention(days:)`) не делит состояние; плагин добавляет источник, ограничение и pipe в `register()`; миграции плагина — из его `ServiceProvider` | P2.4 | — |
@@ -61,7 +61,7 @@
 |---|---|---|---|
 | V12 | Таблица [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс) целиком (4 политики × 3 столбца) и таблица «`on:` → контекст и ресурс» | P4.6 | — |
 | V13 | `isolated(Store::class)` в `seller` и `none()` в `admin`: ambient `store:1` не применяется к none(); явный on: store в none() отклоняется | P4.6 | P06, P06b |
-| V14 | `withinContext()`: исключение внутри callback и исключение резолвера на входе → прежняя сущность восстановлена | P4.6 | Codex C02 |
+| V14 | `withinScope()`: исключение внутри callback и исключение резолвера на входе → прежняя сущность восстановлена | P4.6 | Codex C02 |
 | V16 | Tenant membership: Anna в A/B и outsider из [16](16-crm-and-workflows.md); исключение в членстве → `Deny(RestrictionError)` | P4.6 | — |
 
 ## Пайплайн проверки
@@ -94,7 +94,7 @@
 |---|---|---|---|
 | V70 | Рецепты «Если вы пришли из Spatie»: `grantRole`, `revokeRole`, `syncRoles`, `grantPermission`, `revokePermission`, `hasRole`, `hasAnyRole`, `hasPermission`, `roleNames` работают в панели по умолчанию и через `guard()` | P5.1 | — |
 | V20 | Изменение без актора проходит, в событии `actor = null`; `AzGuard::actingAs($user, …)` и текущий пользователь попадают в событие; в консоли актор — `system` с именем команды | P5.2 | — |
-| V21 | Проверка данных: опечатка в роли → `UnknownRoleException`, в праве → `UnknownPermissionException`; тип сущности не принят → `ContextNotAcceptedException`; панель без источника-писателя → `PanelNotWritableException` | P5.2 | P13 |
+| V21 | Проверка данных: опечатка в роли → `UnknownRoleException`, в праве → `UnknownPermissionException`; тип сущности не принят → `AssignmentScopeNotAcceptedException`; панель без источника-писателя → `PanelNotWritableException` | P5.2 | P13 |
 | V22 | Голые `*`/`**` не принимаются ни в роли БД, ни в прямом праве; суперадмин появляется только через роль с признаком суперадмина | P5.2, P4.7 | P14 |
 | V56 | Pipe `changing` (`handle($change, $next)`, создаётся контейнером) отменяет изменение → нет строки, нет события, версия не меняется; pipe ставит срок по умолчанию → сохраняется срок; слушатель `RoleGranted` получает событие только после commit | P5.2 | — |
 | V57 | DelegationPolicy приложения (scope/pattern/role/superadmin), а не literal hasPermission(pattern), (pipe из [06 §5](06-extension-points.md#5-хуки-изменений-pipes-и-события)) отклоняет выдачу; суперадмин проходит | P5.2 | — |
@@ -113,7 +113,7 @@
 | V36 | Проверки при загрузке из [07 §5](07-configuration.md#5-проверки-при-запуске) — каждая строка таблицы | P6.3 | — |
 | V37 | `azguard:install`: без `--migrate` не запускает `migrate`; ошибка `migrate` → код выхода ≠ 0 | P6.5 | Codex C10 |
 | V38 | Octane (стенд): два запроса разных субъектов, панелей и сущностей на одном воркере — нет утечки текущей панели, сущности и кэша | P4.6, P4.8 | — |
-| V39 | Queue: job без явной сущности не видит сущность прошлого job; действует панель запроса, поставившего job, иначе панель по умолчанию; `withinContext` в job | P4.6, P6.10 | — |
+| V39 | Queue: job без явной сущности не видит сущность прошлого job; действует панель запроса, поставившего job, иначе панель по умолчанию; `withinScope` в job | P4.6, P6.10 | — |
 
 ## Filament
 
@@ -161,8 +161,8 @@ V01–V85 остаются; новые случаи **V86–V116**. `Пункт`
 |---|---|---|
 | V86 | Один user в A/B, разные роли и повторяющиеся local project ids: View/Update не смешивают panel/tenant/context; явные conflicting panel hints -> error | P1.6, P2.2, P4.6 |
 | V87 | Две вкладки и два параллельных requests с A/B, immutable inTenant wrappers: выбор одного tenant не меняет другой request/модель | P4.6, P5.1 |
-| V88 | Required tenant/resource scope отсутствует или resource/project owner mismatch; even policy=true/hook=true/superadmin -> deny; explicit ContextRef в none не игнорируется | P4.1, P4.6 |
-| V89 | ProjectContext class и несколько code BaseRole bindings/typed filters; unknown/foreign/required context reject | P1.6, P4.2, P5.3 |
+| V88 | Required tenant/resource scope отсутствует или resource/project owner mismatch; even policy=true/hook=true/superadmin -> deny; explicit AssignmentScopeRef в none не игнорируется | P4.1, P4.6 |
+| V89 | ProjectScope class и несколько code BaseRole bindings/typed filters; unknown/foreign/required context reject | P1.6, P4.2, P5.3 |
 | V90 | Empty-permissions SuperAdmin RoleContribution действует только scope/expiry; source error после первого разрешающего source даёт deny при любой перестановке; relation pivot role разворачивается через core | P4.1, P4.5, P4.7 |
 | V91 | Один BaseRole catalogue в tenant A/B, разные scoped назначения; состав не DB; same key/class уникален; class/key normalization и stale removed role cleanup | P4.4, P5.3 |
 | V92 | Opt-in dynamic permission catalogue T fence, static shadow/prefix conflicts reject; exact action delete removes exact direct grants; patterns только Grants известных actions | P2.5, P4.4, P5.3 |
@@ -195,7 +195,7 @@ V01–V85 остаются; новые случаи **V86–V116**. `Пункт`
 | V110 | Native Eloquent whereHas/scopes/grouped OR, scalar EXISTS и full exact list/count/export; outside owner/key/common filters immutable; invalid from/connection/root join/builder replacement unsupported | P4.6, P4.12, P8.7 |
 | V111 | Actual BaseRole/user/actor/contribution inputs, nullable common/direct/policy-only; no roleModel/global binding/empty User resolution | P1.6, P4.6, P5.3, P8.7 |
 | V112 | Active/city/role-field change freshness, phase Access equality scalar/list/job; Assignment revalidation после pipes; inactive/expired/orphan Revocation разрешён delegated actor | P3.1, P4.6, P4.8, P5.3, P8.7 |
-| V113 | Typed ContextQueryFilter constructor/composition/class DI, PHP deployment fingerprint; UI cannot edit filters/roles; unknown removed class diagnostic/cleanup | P3.2, P4.2, P5.3, P8.7 |
+| V113 | Typed AssignmentScopeFilter constructor/composition/class DI, PHP deployment fingerprint; UI cannot edit filters/roles; unknown removed class diagnostic/cleanup | P3.2, P4.2, P5.3, P8.7 |
 | V114 | LookupContext directories/autocomplete/description используют target user/role/proposed fields+actor before LIMIT; Inspection/revoke list виден authority actor независимо от runtime eligibility | P5.5, P7.4, P8.7 |
 | V115 | Concrete named typed plugin factories, no inherited make/options bag; DTO subtype/model mismatch, two panels/shared recipe, DI/requires/listener/cache lifecycle | P2.4, P6.8, P8.4, P8.7 |
 | V116 | R01–R68 actual CRM/consumer suite на real SQL/UI/workers/qualified matrix; positive controls/expected ids/protected writes/query budgets/trace; statuses distinguish future/blocked/unsupported/passed | P8.7 |
@@ -209,7 +209,7 @@ readiness evidence, [18](18-contexts-and-runtime-inputs.md) — canonical operat
 | # | Сценарий | Пункт |
 |---|---|---|
 | V117 | PHP-only role definitions; code/relation/DB assignments; enum definitions без DB копии; RoleCatalog read-only; no roles/role_permissions/role_contexts storage | P1.6, P4.2, P4.4, P5.3, P8.7 |
-| V118 | Actual PHP named typed plugin factories/LSP, ContextQueryFilter objects/class DI, source model override subtype checks, no profile/options registries | P2.4, P4.6, P6.8, P8.7 |
+| V118 | Actual PHP named typed plugin factories/LSP, AssignmentScopeFilter objects/class DI, source model override subtype checks, no profile/options registries | P2.4, P4.6, P6.8, P8.7 |
 | V119 | Explicit PolicyOnly/RequiresGrant modes: true не bypass grants, null semantics, policy-only irrelevant DB outage, hooks BeforeResult, mode switch/assignment reject/exact visibility | P2.5, P4.1, P4.3, P4.12, P8.7 |
 | V120 | CodeStateToken vs StateToken, consumed-dependency mixed batch; process-map build/write/revoke/deploy/worker/UI/external sync gates; R61–R68 | P1.6, P4.8, P5.2, P6.8, P8.7 |
 

@@ -94,3 +94,10 @@ Primary sources: [PHP variance](https://www.php.net/manual/en/language.oop5.vari
 [Symfony voters](https://symfony.com/doc/current/security/voters.html).
 Explicit modes and code-owned roles are project decisions. No upstream implementation was vendored or added
 as a runtime dependency. Moving branches were observed on the review date, not promised as version-pinned APIs.
+
+
+### 2026-09-30 — точечное уточнение CRM public API
+
+- [Laravel Eloquent](https://laravel.com/docs/13.x/eloquent): fresh Builder/record lookup как основа ProjectScope.query/resolve.
+- [PHP attributes](https://www.php.net/manual/en/language.attributes.syntax.php): method-target attributes;
+  обязательный Decides — собственное решение пакета. Итог: [D84](../audits/2026-09-29-audit/opus/02-decisions.md#d84).

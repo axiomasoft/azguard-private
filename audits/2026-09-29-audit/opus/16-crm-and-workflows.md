@@ -17,14 +17,14 @@
   ├── tenant Organization A
   │    ├── Project P1 ── Role caller (класс) ── Анна
   │    ├── Project P2 ── Role caller (класс) ── Анна
-  │    └── Project P4 ── Role campaign-lead (БД) ── Борис
+  │    └── Project P4 ── Role caller (PHP-класс; назначение в БД) ── Борис
   └── tenant Organization B
        └── Project P3 ── Role analyst (класс) ── Анна
 
 Клиент -> его organization + его project -> соответствующая выдача -> policy -> restrictions
 ```
 
-Класс `ProjectContext` описывает **тип области назначения**, не отдельный проект и не новый Eloquent Project.
+Класс `ProjectScope` описывает **тип области назначения**, не отдельный проект и не новый Eloquent Project.
 Его экземпляры данных — проекты P1/P2/P3. Десять тысяч проектов не создают десять тысяч PHP-классов.
 Несколько ролей ссылаются на один класс. Другой пакет может принести собственный класс, реализующий тот же SPI.
 
@@ -36,7 +36,7 @@ app/Guards/Crm/
 ├── Permissions/Clients/ClientPermission.php
 ├── Policies/Clients/ClientPolicy.php
 ├── Queries/Clients/ClientVisibility.php
-├── Contexts/ProjectContext.php
+├── Scopes/ProjectScope.php
 ├── Roles/{Caller,Analyst}Role.php
 ├── Resolvers/ClientScopeResolver.php
 ├── Restrictions/AccountLockedRestriction.php
@@ -48,46 +48,45 @@ app/Models/{Organization,Project,Client,User}.php  # business models прило�
 `Permissions/Clients`, `Policies/Clients` и `Queries/Clients` находятся прямо в панели (D72).
 В этом примере P1/P2 организации A активны и находятся в городе Анны; P3 организации B может иметь другой город.
 Fixture ids/города в 17 заданы отдельно для приёмки, чтобы проверять несовместимые роли.
-`Contexts/` обнаруживается `FolderSource`, как `Roles/`. Обнаружение регистрирует descriptor и не включает
-его во все панели автоматически. `ContextPolicy` выбирает разрешённые классы явно. Никакая папка не заменяет
+`Scopes/` обнаруживается `FolderSource`, как `Roles/`. Обнаружение регистрирует descriptor и не включает
+его во все панели автоматически. `AssignmentScopePolicy` выбирает разрешённые классы явно. Никакая папка не заменяет
 tenant membership, grants и принадлежность самого ресурса.
 
-## 3. Свой контракт ProjectContext
+## 3. Свой контракт ProjectScope
 
-Контракт определён ядром как `AzGuard\Contracts\Contexts\ContextDefinition` (`@spi`).
-Короткая база `BaseContext` — удобство; контракт можно реализовать напрямую.
+Контракт определён ядром как `AzGuard\Contracts\Scopes\AssignmentScopeDefinition` (`@spi`).
+Короткая база `BaseAssignmentScope` — удобство; контракт можно реализовать напрямую.
 Каноническая сигнатура — [06 §7](06-extension-points.md#7-контексты-и-субъекты).
 
 ```php
-// app/Guards/Crm/Contexts/ProjectContext.php
-final class ProjectContext extends BaseContext
+// app/Guards/Crm/Scopes/ProjectScope.php
+final class ProjectScope extends BaseAssignmentScope
 {
     public static function make(): self { return new self(); }
     public function type(): string { return 'crm.project'; } // зарегистрированный стабильный alias, не FQCN
-    public function model(): ?string { return Project::class; }
-
-    public function exists(ContextRef $context): bool
+    public function query(): Builder
     {
-        return Project::withoutGlobalScopes()->whereKey($context->id())->exists();
+        return Project::withoutGlobalScopes();
     }
-
-    public function tenantOf(ContextRef $context): TenantRef
+    public function tenantOf(Model $record): TenantRef
     {
-        $project = Project::withoutGlobalScopes()->findOrFail($context->id());
-        return TenantRef::of('crm.organization', $project->organization_id);
+        if (!$record instanceof Project) { throw new InvalidArgumentException('Expected Project'); }
+        return TenantRef::of('crm.organization', $record->organization_id);
     }
 }
 ```
 
-Structural exists/tenantOf читают authoritative host rows без текущих Auth/active/city global scopes.
+query() задаёт structural набор без текущих Auth/active/city global scopes. BaseAssignmentScope.resolve()
+добавляет whereKey(ref.id()), загружает одну запись и вызывает tenantOf(record); record/tenant возвращаются
+в ResolvedAssignmentScope. model() в базе выводится из query()->getModel().
 Это не публичная выдача Project: core проверяет выбранный owner и membership, затем eligibility query.
 Soft-deleted/неактивный project не становится доступным от обхода scopes; Access query/host deletion policy
 применяются отдельно. Revocation использует сохранённый scope, даже если Project физически удалён.
 
-Core resolver проверяет type, existence и tenantOf перед использованием ref. Класс не выбирает текущего
-пользователя, панель, роли или права и не пишет выдачи. Поиск проектов для редактора — отдельный `ContextDirectory`
+Core resolver проверяет type, полученную identity/owner и выбранный tenant перед использованием ref. Класс не выбирает текущего
+пользователя, панель, роли или права и не пишет выдачи. Поиск проектов для редактора — отдельный `AssignmentScopeDirectory`
 со scope/actor, чтобы autocomplete не раскрывал проекты другой организации. Для внешнего проекта `model()`
-может вернуть null, а `exists`/`tenantOf` реализует adapter внешнего пакета; timeout даёт отказ.
+может вернуть null, а `resolve(ref): ?ResolvedAssignmentScope` реализует adapter внешнего пакета; timeout даёт отказ.
 Для горячего пути resolver memo/preloading сокращает повторные запросы, не отменяя declared freshness.
 
 Если локальные Project id повторяются в отдельных БД, пакеты преобразуют их в стабильную host identity либо
@@ -100,8 +99,8 @@ Core resolver проверяет type, existence и tenantOf перед испо
 #[Role('caller', label: 'Менеджер обзвона')]
 final class CallerRole extends BaseRole
 {
-    public function contexts(): array { return [ProjectContext::make()->query(new SellerProjects())]; }
-    public function contextRequired(): bool { return true; }
+    public function scopes(): array { return [ProjectScope::make()->filter(new SellerProjects())]; }
+    public function scopeRequired(): bool { return true; }
     public function permissions(): array
     {
         return [ClientPermission::ViewAny, ClientPermission::View, ClientPermission::Update];
@@ -110,15 +109,15 @@ final class CallerRole extends BaseRole
 #[Role('analyst', label: 'Аналитик проекта')]
 final class AnalystRole extends BaseRole
 {
-    public function contexts(): array { return [ProjectContext::class]; }
-    public function contextRequired(): bool { return true; }
+    public function scopes(): array { return [ProjectScope::class]; }
+    public function scopeRequired(): bool { return true; }
     public function permissions(): array { return [ClientPermission::ViewAny, ClientPermission::View]; }
 }
 ```
 
-Оба класса связаны с ProjectContext. Caller добавляет явный SellerProjects filter, Analyst — без city restriction;
+Оба класса связаны с ProjectScope. Caller добавляет явный SellerProjects filter, Analyst — без city restriction;
 common ActiveProjects действует на обе ветки. Empty contexts = tenant-wide only, required требует concrete context.
-ProjectContext/TeamContext class-string — FQCN известных definitions, не aliases реестра фильтров.
+ProjectScope/TeamScope class-string — FQCN известных definitions, не aliases реестра фильтров.
 Роли не создаются/не редактируются в БД; таблица хранит назначения этих классов и их stable keys.
 
 ## 5. Статичные действия и политика
@@ -136,10 +135,12 @@ enum ClientPermission: string
 
 final class ClientPolicy
 {
+    #[Decides(ClientPermission::ViewOwnProfile)]
     public function viewOwnProfile(User $user, Client $client): bool
     {
         return $client->owner_user_id === $user->getKey();
     }
+    #[Decides(ClientPermission::Update)]
     public function update(User $user, Client $client): ?bool
     {
         return $client->do_not_call ? false : null;
@@ -160,21 +161,22 @@ View/Update клиентов требуют role/direct grants в project scope.
 ```php
 final class CrmGuardPanelProvider extends PanelProvider
 {
+    public static function getId(): string { return 'crm'; }
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel
-            ->id('crm')
-            ->for([User::class], guard: 'web')
+            ->id(self::getId())
+            ->for(model: User::class, guard: 'web')
             ->tenants(TenantPolicy::required(Organization::class)
                 ->requireMembership(OrganizationMembership::class))
-            ->contexts(ContextPolicy::inherit(ProjectContext::make()
-                ->query(new ActiveProjects())
+            ->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()
+                ->filter(new ActiveProjects())
                 ->directory(ProjectDirectory::class)))
             ->resourceScopes([Client::class => ClientScopeResolver::class])
             ->permissions([DatabaseSource::make()->dynamicPermissions()])
             ->policies([
-                PolicyBinding::for(ClientPermission::Update, ClientPolicy::class, method: 'update'),
-                PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class, method: 'viewOwnProfile'),
+                PolicyBinding::for(ClientPermission::Update, ClientPolicy::class),
+                PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
             ])
             ->restrictions([AccountLockedRestriction::class])
             ->changing([AuthorizeCrmAccessChange::class]);
@@ -197,12 +199,12 @@ public function resolve(object $resource, ?AccessScope $selected = null): Access
     assert($resource instanceof Client); // production adapter валидирует тип, не полагается на assert
     return AccessScope::in(
         TenantRef::of('crm.organization', $resource->organization_id),
-        ContextRef::of('crm.project', $resource->project_id),
+        AssignmentScopeRef::of('crm.project', $resource->project_id),
     );
 }
 ```
 
-Существование project и совпадение его tenant с client tenant проверяет движок через ProjectContext.
+Существование project и совпадение его tenant с client tenant проверяет движок через ProjectScope.
 `selected` не позволяет переписать tenant клиента: mismatch -> Deny. Для списка ClientVisibility строит
 тот же ownership predicate в SQL. Для create атрибуты проверяются сервером до записи; project dropdown ограничен
 выбранным tenant, а payload с project другого tenant отклоняется повторной серверной валидацией.
@@ -332,14 +334,14 @@ Source Request/Volatile объявляет окно обновления. Тре
 
 | Потребность | Конфигурация / класс |
 |---|---|
-| Один project, много разных ролей | Каждый BaseRole.contexts ссылается на ProjectContext; stored assignments сохраняют context alias |
-| Назначение role на Project и Team | Две ContextDefinition; Role.contexts=[ProjectContext, TeamContext]; tenantOf каждой проверен |
+| Один project, много разных ролей | Каждый BaseRole.contexts ссылается на ProjectScope; stored assignments сохраняют context alias |
+| Назначение role на Project и Team | Две AssignmentScopeDefinition; Role.contexts=[ProjectScope, TeamScope]; tenantOf каждой проверен |
 | Client связан с несколькими Projects | Resolver подтверждает selected project или предоставляет полный набор candidate scopes; existential check оценивает **весь pipeline** на каждом witness; общие hard restrictions действуют на каждый |
-| Несколько обязательных измерений (project И region) | Project ContextRef + typed GrantCondition для region и exact query adapter; не union независимых scopes |
-| Owner организации видит все projects | Tenant-wide role, ContextPolicy inherit, membership и ownership сохраняются |
+| Несколько обязательных измерений (project И region) | Project AssignmentScopeRef + typed GrantCondition для region и exact query adapter; не union независимых scopes |
+| Owner организации видит все projects | Tenant-wide role, AssignmentScopePolicy inherit, membership и ownership сохраняются |
 | Все проекты в организации должны иметь отдельное членство | Контекстная membership restriction + paired query adapter; tenant-wide role не отменяет её |
 | Панель только на policies/relation | DatabaseSource не подключается; те же tenant/context contracts |
-| Пакет со своими projects | ContextDefinition с собственным alias, resource/query adapters, plugin namespaces; host выбирает panel |
+| Пакет со своими projects | AssignmentScopeDefinition с собственным alias, resource/query adapters, plugin namespaces; host выбирает panel |
 | Проекты переехали между tenants | Перенос business data под locks, revoke старых grants, новое явное назначение; cached Allow перепроверяется |
 | Tenant deactivated / external source outage | Hard restriction/source error; новые grants не открывают отключённый tenant |
 
@@ -356,7 +358,7 @@ resolver/relationship adapter с явной semantics. Они не возник�
 | C01 | Boot -> folders -> plugins -> sources -> freeze | Неповторяющиеся aliases/keys, immutable configs, scopes описаны до query | V77–V79, V102 |
 | C02 | HTTP auth -> panel -> tenant -> route-bound project/client | Не доверять id из URL, проверить membership и owner scope | V86–V88, V95 |
 | C03 | Subject -> guard -> inTenant -> decide | Все явные сигналы согласованы, wrapper не меняет модель | V86, V102 |
-| C04 | Static caller -> grant на project -> client View | Роль связывается с ContextDefinition, project tenant проверен | V89–V90 |
+| C04 | Static caller -> grant на project -> client View | Роль связывается с AssignmentScopeDefinition, project tenant проверен | V89–V90 |
 | C05 | Class role definition -> scoped assignment; optional dynamic action -> direct grant | Definition code-owned; grants/action catalogue tenant-scoped, no static shadow | V91–V92 |
 | C06 | Grant -> policy false/true/null/Response -> restrictions | Token/ownership не обходятся, denial Response не truthy | V93–V94 |
 | C07 | Auto roles / GrantedToAll / relation / external | RoleContribution со scope/сроком; source error не скрывается | V90, V94, V98 |
@@ -382,16 +384,16 @@ V86–V105 — критерии будущей PHP реализации; bounded
 ## 13. Явные классы фильтров и два authority modes
 
 ```php
-final class ActiveProjects implements ContextQueryFilter
+final class ActiveProjects implements AssignmentScopeFilter
 {
-    public function apply(Builder $query, ContextRuntime $runtime): void
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
     {
         $query->where('is_active', true);
     }
 }
-final class SellerProjects implements ContextQueryFilter
+final class SellerProjects implements AssignmentScopeFilter
 {
-    public function apply(Builder $query, ContextRuntime $runtime): void
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
     {
         $user = $runtime->user;
         if (!$user instanceof User || $user->city_id === null) { $query->whereRaw('1 = 0'); return; }

@@ -32,11 +32,11 @@
 |---|---|---|---|---|
 | Q23 | Выравнивать vendor в Composer? | да | единый vendor экосистемы `axiomasoft`; переход Vaulter — задача Vaulter (заметка V7) | [D03](02-decisions.md#d03), [10 §10](10-integrations.md#10-заметки-для-vaulter-по-текущему-мосту) |
 | Q24 | Имена методов как в Spatie? | не обязательно: выработать свою систему, взяв лучшее | своя система имён: вопросы для проверок, одна пара `grant`/`revoke` для ролей и прав, записи `RoleGrant`/`PermissionGrant`, правила для атрибутов, классов и папок; сравнение с Laravel, Spatie, Laratrust, Bouncer, Google Cloud IAM | [D57](02-decisions.md#d57), [03 §2](03-glossary-and-renames.md#2-правила-именования) |
-| Q25 | Минимум два сегмента в имени права? + метод префикса | да; и метод, который добавляет префикс кода панели или свой | ≥ 2 сегментов; `->prefixed()` — по умолчанию id панели (как сегодня `scopedByPanelId`), строка — свой, `false` — без префикса; префикс сам указывает на панель | [D05](02-decisions.md#d05), [09 §1](09-authorization-semantics.md#1-как-выбирается-панель) |
+| Q25 | Минимум два сегмента в имени права? + метод префикса | да; и метод, который добавляет префикс кода панели или свой | ≥ 2 сегментов; `->resourcePrefix()` — по умолчанию id панели (как сегодня `scopedByPanelId`), строка — свой, `false` — без префикса; префикс сам указывает на панель | [D05](02-decisions.md#d05), [09 §1](09-authorization-semantics.md#1-как-выбирается-панель) |
 | Q26 | Панель маршрута важнее панели по умолчанию? | решить, что правильнее архитектурно | да: как `Auth::shouldUse()` в `auth:guard` — маршрут меняет значение по умолчанию на время запроса; явное (полное имя, префикс, enum, `guard`) всегда сильнее; задачи в очереди помнят панель через `Context` | [D05](02-decisions.md#d05), [09 §1](09-authorization-semantics.md#1-как-выбирается-панель) |
 | Q27 | Выдавать ли в БД право, у которого есть политика? | у БД своя схема; совпадения — ответственность приложения; не нагружать код проверками | проверок нет: выдача — первый уровень, политика того же права — второй и сама решает, как учесть выдачу | [D53](02-decisions.md#d53) |
 | Q28 | Суперадмин проходит ограничения? | думаю, нет; поискать, как правильно | нет: ограничения действуют на любое «да», включая суперадмина; ограничение может само освободить его (`exemptsSuperAdmin()`), как ограничение членства. Так в AWS IAM (explicit deny, SCP), Azure (deny assignments), Google Cloud (IAM Deny); Spatie советует `Gate::after`, когда есть запреты для всех; обход всего, как `system:masters` в Kubernetes, считается плохой практикой | [D19](02-decisions.md#d19), [D20](02-decisions.md#d20) |
-| Q29 | Автопоиск политик в папке? | да; главное — чёткая структура политик и enum | панель — папка; `FolderSource` находит enum в `Permissions/{Group}`, политики в `Policies/{Group}` (метод = кейс), роли в `Roles/`; нарушения структуры — ошибки при загрузке и предупреждения doctor; результат в кэше каталога | [D56](02-decisions.md#d56) |
+| Q29 | Автопоиск политик в папке? | да; главное — чёткая структура политик и enum | панель — папка; `FolderSource` находит enum в `Permissions/{Group}`, политики в `Policies/{Group}` (методы с #[Decides(enumCase)]), роли в `Roles/`; нарушения структуры — ошибки при загрузке и предупреждения doctor; результат в кэше каталога | [D56](02-decisions.md#d56) |
 
 **Отзывы по ходу четвёртого прохода**
 
@@ -64,9 +64,9 @@
 
 | Запрос | Принято в доработке | Где |
 |---|---|---|
-| Пройти цепочки CRM: несколько организаций, своя роль в каждой, доступ только к назначенным projects | TenantRef отдельно от ContextRef; AccessScope во всех adapters; 22 цепочки | D59, 16 §12 |
-| Project описывается классом в папке панели; разные классы ролей связываются с этим классом | Contexts/ProjectContext, BaseRole.contexts/contextRequired, code-owned context bindings | D60, 16 §3–§7 |
-| У ProjectContext свой контракт | ContextDefinition @spi: type, model, exists, tenantOf; optional BaseContext | 06 §7 |
+| Пройти цепочки CRM: несколько организаций, своя роль в каждой, доступ только к назначенным projects | TenantRef отдельно от AssignmentScopeRef; AccessScope во всех adapters; 22 цепочки | D59, 16 §12 |
+| Project описывается классом в папке панели; разные классы ролей связываются с этим классом | Scopes/ProjectScope, BaseRole.contexts/scopeRequired, code-owned context bindings | D60, 16 §3–§7 |
+| У ProjectScope свой контракт | AssignmentScopeDefinition @spi: type, model, exists, tenantOf; optional BaseAssignmentScope | 06 §7 |
 | Частично policies, частично динамика | Scoped Caller/AnalystRole assignments + optional dynamic action; RequiresGrant policy veto, отдельный PolicyOnly action | 16 §5–§8 |
 | Tenant может быть сущностью другого пакета и работать с несколькими внешними systems | SPI adapters + provider/installation mappings интеграции; origin/revision на sync | D67, 16 §10 |
 | Сохранить понравившиеся имена, улучшить надежность | Названия Panel/Source/Role/Policy/Context сохранены; новые слова лишь для отсутствовавших dimensions | 03, D59–D69 |
@@ -84,7 +84,7 @@ Permissions/<Group>, параллельные Policies/<Group> и Queries/<Group
 Различие subject/resource/context разъяснено в 00 §13; D56 задаёт discovery/pairing; V106 проверяет stubs/cache.
 
 Владельцу не нравится Domain, также предложена замена subjects на for. Сохранены metadata #[Resource]
-и PanelBuilder::for([...]) (D71), SubjectRef и schema subjects; Relations — связи в RelationSource.
+и PanelBuilder::for(model: ...) (D71), SubjectRef и schema subjects; Relations — связи в RelationSource.
 Первоначальное предложение Resources после первых Perplexity запросов пересмотрено по выбору владельца.
 Третий запрос сравнил Resources layout, параллельные корни типов и все классы под Permissions; вывод о naming
 не выдаётся за нормативную рекомендацию Laravel. Предпочтение type-first подтверждено владельцем.

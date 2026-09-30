@@ -27,7 +27,7 @@
 внутри, панель сама находит enum, политики и роли (D56). Выдача — первый уровень проверки, политика того же права
 уточняет (D53). Плагины, хуки, проверки на маршрутах и фабрика построены на механизмах Laravel (D47, D55, D58). Своя
 система имён для методов, атрибутов, классов и папок: «выдать / забрать» (`grant` / `revoke`) для ролей и прав
-одинаково (D57). Префикс имён прав панели (`->prefixed()`) сам указывает на панель (D05). Суперадмин — свойство роли;
+одинаково (D57). Префикс имён прав панели (`->resourcePrefix()`) сам указывает на панель (D05). Суперадмин — свойство роли;
 он получает все права, но общие ограничения действуют и на него (D19, D20). БД не проверяет, решает ли право политика
 (D53). Единый vendor `axiomasoft` (D03).
 
@@ -111,7 +111,7 @@ Laravel и Filament — внешние слои, которые только п�
 
 **Решение.** Полный словарь — [03](03-glossary-and-renames.md).
 
-Почему не Guard. Панель ссылается на auth guard Laravel (`for([User::class], guard: 'web')`). При этом на одном
+Почему не Guard. Панель ссылается на auth guard Laravel (`for(model: User::class, guard: 'web')`). При этом на одном
 guard'е `web` живут сразу «личный кабинет» и «кабинет продавца». Если назвать панель Guard, получится
 `->guard('web')` внутри guard'а `cabinet` и путаница с `config/auth.php`. У Spatie роли разделены именно по auth
 guard'ам (`guard_name`), поэтому разделить кабинет и кабинет продавца там нельзя. Если владелец всё же выберет
@@ -121,10 +121,10 @@ Guard, это механическая замена имён ([Q1](15-owner-ques
 |---|---|---|
 | Пространство прав со своими настройками и источниками | **Panel** | язык продукта; как панели Filament |
 | Что можно разрешить | **Permission** | без изменений |
-| Набор прав | **Role** | из кода или из БД (D14) |
+| Набор прав | **Role** | PHP-класс; назначения из кода/связей/БД (D14) |
 | Выдача (роли или права) субъекту | **Grant**: `RoleGrant`, `PermissionGrant` | одно слово для «выдать» и для записи о выдаче (D57); вместо `model_has_roles`/`ModelHasScope`/`ContextRole` |
 | У кого права | **Subject** | пользователь или любая сущность (D11) |
-| Где действует право | **Context** | конкретная сущность: проект, магазин, страница |
+| Где действует назначение | **Assignment scope** | конкретная сущность: проект, магазин, страница |
 | Класс, из которого панель берёт права, роли, выдачи или политики | **Source** | папка панели, БД, связи, Gate, свои (D52) |
 | Готовый набор дополнений панели | **Plugin** | D47 |
 | Правило-метод, решающее право | **Policy** | Laravel Policy с привязкой к праву (D53) |
@@ -148,8 +148,8 @@ Guard, это механическая замена имён ([Q1](15-owner-ques
 - **Локальное имя** права — сегменты через точку, **минимум два** (`orders.view`, `pages.billing`). Одиночные слова
   (`view`, `update`) остаются Laravel-политикам моделей, AzGuard их не перехватывает (Q25).
 - **Префикс панели** (Q25) — развитие сегодняшнего `scopedByPanelId()`. По умолчанию, как сейчас, префикс — id
-  панели (`admin.orders.view`); `->prefixed('backoffice')` — свой префикс (`backoffice.orders.view`);
-  `->prefixed(false)` — без префикса (удобно, когда панель одна). Общее значение по умолчанию — `defaults.prefixed`
+  панели (`admin.orders.view`); `->resourcePrefix('backoffice')` — свой префикс (`backoffice.orders.view`);
+  `->resourcePrefix(false)` — без префикса (удобно, когда панель одна). Общее значение по умолчанию — `defaults.resource_prefix`
   в конфиге.
   - Префикс — один сегмент, уникален среди панелей и не совпадает с первым сегментом ни одного локального имени в
     приложении (иначе `PrefixConflictException` при загрузке). Поэтому имя с префиксом однозначно указывает на панель.
@@ -163,7 +163,7 @@ Guard, это механическая замена имён ([Q1](15-owner-ques
 - **Правило выбора панели** (одно, в `Panels\PanelResolver`, для всех входов: трейт, фасад, Gate, middleware, Blade,
   CLI):
   1. **явно**: полное имя `admin:…`; имя с префиксом панели; enum с одной панелью; `->guard('admin')`; аргумент
-     `panel:`;
+     `guard:` (id панели в model check);
   2. **по умолчанию для запроса**: панель, которую middleware маршрута (`azguard.panel:seller`) или Filament сделали
      панелью по умолчанию на время запроса, если субъект ей принадлежит;
   3. **по умолчанию для модели** (D11);
@@ -212,7 +212,7 @@ N09, P01c, P09). Одно правило с понятным порядком у
 
 **Кратко:** идентичность одна в SQL, кэше и событиях; разные организации, источники и проекты не смешиваются.
 
-`SubjectRef`, `TenantRef`, `ContextRef` — readonly значения. Type — зарегистрированный стабильный alias
+`SubjectRef`, `TenantRef`, `AssignmentScopeRef` — readonly значения. Type — зарегистрированный стабильный alias
 `^[a-z0-9][a-z0-9_.-]{0,127}$`, обозначающий identity domain, не произвольный FQCN.
 Id — непустая ASCII строка <=64 bytes без whitespace/control bytes; int 7 и string '7' равны.
 В string HK '007' сохраняется как другая identity; при bigint такое неканоническое значение отклоняется,
@@ -221,7 +221,7 @@ Unicode/длинные внешние ключи преобразует explicit
 
 Reference key = `type:id`; global ref = `global`. Двоеточие в type запрещено, составные cache keys строятся
 JSON массивом, не конкатенацией без границ. AccessScope = `(tenant, context)`; global context внутри tenant
-не равен global tenant. TenantRef, ContextRef и SubjectRef одного alias/id различаются видом ref в сериализации.
+не равен global tenant. TenantRef, AssignmentScopeRef и SubjectRef одного alias/id различаются видом ref в сериализации.
 IdentityCodec version включена в schema_state/cache. Источник с совпадающим внешним id=7 другого installation
 не становится тем же субъектом/tenant: namespace/mapping обязателен. P07 и V86/V98/V105.
 
@@ -387,7 +387,7 @@ Scope panel+tenant+context+origin, actors/expiry/conditions/state сохраня
 - Автоматическая роль реализует `GrantedAutomatically::appliesTo(Model $subject, AccessScope $scope): bool`.
 - Ручная выдача возможна для любой роли без `#[NotGrantable]` (иначе `RoleNotGrantableException`). Лишних проверок
   нет: если автоматическая роль выдана ещё и вручную, права просто складываются.
-- Роль объявляет `contexts(): array` конфигурируемых ContextDefinition (class-string — shorthand) и `contextRequired(): bool`; назначение на project проверяет связь с классом и tenant (D60).
+- Роль объявляет `scopes(): array` конфигурируемых AssignmentScopeDefinition (class-string — shorthand) и `scopeRequired(): bool`; назначение на project проверяет связь с классом и tenant (D60).
 - Новые роли описываются PHP-классами; UI/RoleCatalog не создают и не меняют definitions.
   Различные назначения одной роли в A/B не меняют её code-owned состав (D80).
 - Ключ роли — `^[a-z0-9][a-z0-9-]{0,63}$`, полное имя `panel:key`. Смена ключа — `#[FormerKeys]` + команда
@@ -400,11 +400,11 @@ Scope panel+tenant+context+origin, actors/expiry/conditions/state сохраня
 <a id="d15"></a>
 ### D15 — Классы контекстов и configurable bindings ролей
 
-**Кратко:** ContextDefinition описывает identity/owner, ContextQueryFilter ограничивает подходящие rows.
-ProjectContext в Contexts/ панели задаёт стабильный type и host model/owner; BaseRole.contexts возвращает
+**Кратко:** AssignmentScopeDefinition описывает identity/owner, AssignmentScopeFilter ограничивает подходящие rows.
+ProjectScope в Scopes/ панели задаёт стабильный type и host model/owner; BaseRole.contexts возвращает
 configured objects или descriptor classes. Common и role filters конфигурируются в PHP, без string profiles/JSON DSL.
-Назначения на проект могут храниться в БД или вычисляться code/relation source. contextRequired запрещает tenant-wide
-assignment этой роли. query(new SellerProjects(...)) получает ContextRuntime user/actual BaseRole/actor/scope/grant.
+Назначения на проект могут храниться в БД или вычисляться code/relation source. scopeRequired запрещает tenant-wide
+assignment этой роли. filter(new SellerProjects(...)) получает AssignmentScopeRuntime user/actual BaseRole/actor/scope/grant.
 
 <a id="d16"></a>
 ### D16 — Тенант, контекст и ресурс в проверке
@@ -413,8 +413,8 @@ assignment этой роли. query(new SellerProjects(...)) получает Co
 **Кратко:** scope ресурса подтверждает tenant/project; текущая организация запроса не приписывается чужому объекту.
 
 `on:` принимает контекст либо ресурс. ResourceScopeResolver/ProvidesAccessScope возвращает AccessScope;
-явный/current tenant и project сравниваются с ним, а ContextDefinition подтверждает owner tenant/existence.
-Неподтверждённый ресурс tenant-панели -> отказ; explicit ContextRef non-accepted не игнорируется.
+явный/current tenant и project сравниваются с ним, а AssignmentScopeDefinition подтверждает owner tenant/existence.
+Неподтверждённый ресурс tenant-панели -> отказ; explicit AssignmentScopeRef non-accepted не игнорируется.
 Current scope хранится scoped с panel identity и восстанавливается finally. Jobs передают scope явно,
 на исполнении references загружаются и авторизуются повторно. [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс).
 
@@ -740,7 +740,7 @@ FormerKeys/contexts и wildcard expansion до выдачи новых actions. 
 **Решение.** `InteractsWithAzGuard` (`actingAsWithPermissions()`, `actingAsSuperAdmin()`), `AzGuardFake` с
 ассертами (`assertRoleGranted`, `assertPermissionGranted`, `assertPermissionRevoked`, `assertChecked`,
 `assertDecided`); контрактные наборы: `SourceContractTests`, `RestrictionContractTests`, `HookContractTests`,
-`PluginContractTests`, `SubjectResolverContractTests`, `ContextResolverContractTests`, `IntegrationContractTests`.
+`PluginContractTests`, `SubjectResolverContractTests`, `AssignmentScopeResolverContractTests`, `IntegrationContractTests`.
 
 ---
 
@@ -825,12 +825,12 @@ Context query predicates — additive AND D75, не заменяемые scalar 
 
 | Группа | Что на панели | Методы `PanelBuilder` |
 |---|---|---|
-| Идентичность | id, название, описание, по умолчанию ли, префикс имён | `id()`, `label()`, `description()`, `default()`, `prefixed()` |
-| Субъекты | модели, auth guard, директория | `for([...], guard:)` |
+| Идентичность | id, название, описание, по умолчанию ли, префикс имён | `id()`, `label()`, `description()`, `default()`, `resourcePrefix()` |
+| Субъекты | модели, auth guard, директория | `for(model: [...], guard:)` |
 | Маршруты | middleware входа, право входа, ответ при отказе, строгий режим | `middleware([...])`, `entry()`, `onDenied()`, `requireRouteChecks()` |
 | **Описание прав** | enum definitions и источники прав/ролей/выдач/политик (D52/D73) | `permissions([...])` |
 | Роли, политики вне папки | дополнительно к найденным в папке; enum входят в permissions выше | `roles([...])`, `policies([...])` |
-| Тенант и контексты | независимые политики, descriptors, ресурсные resolvers, членство | `tenants()`, `tenantResolvers([...])`, `contexts()`, `contextResolvers([...])`, `resourceScopes([...])` |
+| Тенант и контексты | независимые политики, descriptors, ресурсные resolvers, членство | `tenants()`, `tenantResolvers([...])`, `scopes()`, `scopeResolvers([...])`, `resourceScopes([...])` |
 | Хуки | before, ограничения, after, pipes изменений | `before()`, `restrictions([...])`, `after()`, `changing([...])` |
 | Gate | режим | `gate()` |
 | Кэш и консистентность | store, ttl, generation, `reads`, `state_refresh` | `cache()`, `consistency()` |
@@ -885,7 +885,7 @@ DatabaseSource::make()
 
 **Кратко:** у каждого plugin свой понятный constructor/make; общая база определяет lifecycle, не options bag.
 Plugin SPI: id(), register(PanelBuilder, PluginContext), boot(Panel, PluginContext). BasePlugin не объявляет make()
-или options()/withOptions(), поэтому concrete make(models: CrmModels, projects: ProjectContext, ...) не конфликтует
+или options()/withOptions(), поэтому concrete make(models: CrmModels, projects: ProjectScope, ...) не конфликтует
 с LSP. CrmModels — DTO plugin с named subject/organization/project/client и class-string validation; generic model
 role-name registry отсутствует. AuditTrailPlugin::make(retentionDays: 90) — отдельный точный параметр.
 Конфигурация immutable, runtime inputs передаются capabilities; source/runtime services resolve per operation.
@@ -948,7 +948,7 @@ Retry-safe pipes не делают HTTP/email. UI/CLI/server использую�
 | Свои права, роли, политики | enum, `BaseRole`, привязка политик в плагине |
 | Свой источник или ограничение | `Source` и его возможности (`ProvidesGrants`, …), `Restriction`, pipes изменений |
 | Описать себя для UI | вклад в `PanelSchema` (группы, подписи, поля) |
-| Перевести свою сущность в контекст | `ContextRef::of(type, id)`, `ContextAware` |
+| Перевести свою сущность в контекст | `AssignmentScopeRef::of(type, id)`, `ContextAware` |
 | Проверить себя | `IntegrationContractTests` против настоящего AzGuard |
 
 Правила: не импортировать `Internal\`/`Storage\`; не зашивать id панели; не копировать права AzGuard к себе;
@@ -1054,7 +1054,7 @@ Grants policy может отсутствовать; declared missing binding/me
 | `roles()` | ключ, подпись; PHP class; definitions read-only; stable build fingerprint; выдаётся вручную, автоматически или обоими способами; права |
 | `fields()` | свои поля выдач ролей и прав: тип, подпись, правила, откуда (модель, плагин) |
 | `tenants()` | типы tenants и текущий scoped overlay, способ поиска |
-| `contexts()` | зарегистрированные ContextDefinition, role context bindings; типы сущностей: подпись, как искать (директория) |
+| `scopes()` | зарегистрированные AssignmentScopeDefinition, role context bindings; типы сущностей: подпись, как искать (директория) |
 | `subjects()` | модели субъектов, подпись, как искать |
 | `writable()` | есть ли на панели источник, принимающий изменения (если нет — редакторы не показываются) |
 
@@ -1089,7 +1089,7 @@ app/Guards/Admin/
 ├── Abilities/Orders/OrderAbilities.php
 ├── Queries/Orders/OrderVisibility.php
 ├── Roles/
-├── Contexts/
+├── Scopes/
 ├── Resolvers/
 ├── Sources/
 ├── Restrictions/
@@ -1099,7 +1099,7 @@ app/Guards/Admin/
 ```
 
 FolderSource ищет enums только под Permissions/, policies только под Policies/, DTO под Abilities/;
-role/context definitions — под Roles/Contexts. Подкаталоги групп могут быть вложенными:
+role/context definitions — под Roles/Scopes. Подкаталоги групп могут быть вложенными:
 Permissions/Sales/Orders соответствует Policies/Sales/Orders. Группа Sources под Permissions не мешает
 механизму Sources в корне. Корень панели не сканируется как каталог предметных групп.
 
@@ -1112,14 +1112,15 @@ Permissions/Sales/Orders соответствует Policies/Sales/Orders. Гр�
 3. Без явной привязки один enum группы Permissions/<relative path> и одна не привязанная явно policy в
    Policies/<тот же relative path> **этого root** образуют пару. Несколько кандидатов без точной привязки —
    InvalidPolicyStructureException; отсутствующий обязательный case method — тоже ошибка, кроме RequiresGrant.
-4. Pairing method=case регистрирует обязательные PolicyOnly actions. Optional RequiresGrant veto требует
-   explicit PolicyBinding; compiler проверяет class/method даже после удаления метода. Окончательный registry использует enum FQCN и PermissionKey,
+4. Каждый package policy method обязан иметь #[Decides(enumCase)]. Имя метода свободное, inference по
+   case name отсутствует. Optional RequiresGrant veto требует explicit PolicyBinding(action, policy class);
+   compiler проверяет наличие одного attributed method даже после удаления implementation/атрибута. Окончательный registry использует enum FQCN и PermissionKey,
    а не basename или имя папки. Повтор binding одного права — DuplicatePolicyBindingException с origin roots.
 5. Queries/<Group> — место paired visibility adapters, не автоматическая регистрация произвольных Query классов.
    Адаптер подключается явно через существующий FiltersAccessQueries/ResourceScopeResolver contract.
 
-Permissions/Users — действия над User; User из for([...]) — субъект. Models/ панели — storage extensions.
-Contexts/ProjectContext — descriptor области; Permissions/Projects — действия над проектами. Эти позиции
+Permissions/Users — действия над User; User из for(model: ...) — субъект. Models/ панели — storage extensions.
+Scopes/ProjectScope — descriptor области; Permissions/Projects — действия над проектами. Эти позиции
 одной модели не подразумеваются друг из друга.
 
 Генераторы панели/permission/policy/Filament и module stubs используют один layout. Discovery roots и настройки
@@ -1173,7 +1174,7 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 | класс роли | `#[NotGrantable]` | только автоматически, вручную не выдаётся | — | `grantable(): bool` |
 | метод контроллера | `#[CheckPermission(Perm::X, on: 'order')]` | проверка права (наследник Laravel `#[Authorize]`) | `#[CheckPermission]` | `azguard.can` |
 | метод контроллера | `#[SkipPermissionCheck]` | явно без проверки в строгом режиме | `#[SkipGuardCheck]` | — |
-| модель | `#[ContextFrom('store')]` | из какой связи брать сущность ресурса | — | `azguardContext()` |
+| модель | `#[AssignmentScopeFrom('store')]` | из какой связи брать сущность ресурса | — | `azguardAssignmentScope()` |
 | класс источника | `#[AsSource('ldap')]` | регистрация источника по имени | — | `AzGuard::extend()` |
 
 **Классы и папки.** Провайдер — `{Panel}GuardPanelProvider` (не путается с `AdmguardProvider` Filament); enum —
@@ -1245,7 +1246,7 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 ### D59 — Тенант отделён от контекста
 
 **Кратко:** Organization — граница данных; Project — область роли внутри неё.
-TenantPolicy required/none и AccessScope `(TenantRef, ContextRef)` обязательны для reads/writes/events/schema/cache.
+TenantPolicy required/none и AccessScope `(TenantRef, AssignmentScopeRef)` обязательны для reads/writes/events/schema/cache.
 Global context означает tenant-wide, global tenant не наследуется в организации. Только explicit allowGlobalRoles
 подключает platform RootRole. Resource owner boundary не освобождает суперадмина.
 Dynamic definitions принадлежат tenant, static definitions панели доступны для scoped назначения.
@@ -1254,9 +1255,9 @@ Dynamic definitions принадлежат tenant, static definitions панел
 <a id="d60"></a>
 ### D60 — Классы контекстов и связь с кодовыми ролями
 
-**Кратко:** несколько BaseRole классов ссылаются на один ProjectContext descriptor и свои typed filters.
-ContextDefinition SPI: stable type/model/exists/tenantOf. RoleGrant хранит stable role/context aliases, не FQCN,
-не роль/filters в JSON. contexts default [] = tenant-wide only; contextRequired=true требует конкретный context.
+**Кратко:** несколько BaseRole классов ссылаются на один ProjectScope descriptor и свои typed filters.
+AssignmentScopeDefinition SPI: stable type/model/resolve; query/tenantOf у Eloquent adapter. RoleGrant хранит stable role/context aliases, не FQCN,
+не роль/filters в JSON. contexts default [] = tenant-wide only; scopeRequired=true требует конкретный context.
 Common active AND role-specific city applies before OR contributions. BaseRole actual instance — runtime role input.
 [CRM](16-crm-and-workflows.md), [18](18-contexts-and-runtime-inputs.md).
 
@@ -1355,7 +1356,7 @@ Laravel 11/12 атрибут CheckPermission не наследует отсут�
 **Кратко:** группы действий всегда внутри корней типов классов; роли сущности определяются контрактом.
 Владелец указал на коллизии Orders/ с Sources/ и неоднозначность Users/. Первоначальное предложение
 Resources уточнено его последующим выбором D72: Permissions/<Group>, Policies/<Group>, Queries/<Group>.
-Subject models задаются for(), context types — ContextDefinition. Project может быть объектом действий,
+Subject models задаются for(), context types — AssignmentScopeDefinition. Project может быть объектом действий,
 областью назначения роли или субъектом тарифных прав в разных вызовах.
 Discovery/generators/modules/cache используют одну раскладку; прямые root группы не поддерживаются.
 
@@ -1363,13 +1364,13 @@ Discovery/generators/modules/cache используют одну расклад�
 
 ### D71 — Metadata Resource вместо Domain и PanelBuilder::for
 
-**Кратко:** #[Resource(label:, model:)] описывает объект действий; for([...]) задаёт получателей прав.
+**Кратко:** #[Resource(label:, model:)] описывает объект действий; for(model: ...) задаёт получателей прав.
 По уточнению владельца Domain не используется в целевых публичных именах. Resource — metadata на enum,
 а не имя папки или дополнительный обязательный descriptor класс. Имена OrderPermission и подобных enums
 сохраняются. Окончательная раскладка и команды — D72; первоначальный make:resource заменён make:permission.
 Relations означает связи объектов/субъектов, которые читает RelationSource.
 
-PanelBuilder::for(array<class-string<Model>>, guard:, directory:) задаёт принимаемые типы.
+PanelBuilder::for(model: class-string<Model>|list<class-string<Model>>, guard:, directory:) задаёт принимаемые типы.
 PanelAccess::for(Model|Authenticatable|SubjectRef) создаёт wrapper конкретного субъекта; это разные receivers.
 SubjectRef/SubjectDirectory/schema subjects сохраняют точное обозначение позиции в запросе.
 Это выбор проекта; внешние источники не предписывают название for() для нашего API.
@@ -1381,7 +1382,7 @@ SubjectRef/SubjectDirectory/schema subjects сохраняют точное об
 Подтверждение 2026-09-30 следует после обсуждения альтернатив; Resources как контейнер убран.
 Это улучшение структуры проекта: на один уровень меньше при сохранении изоляции механизмов и групп.
 Все классы политики/query не складываются в Permissions; каждый находится в корне своего типа.
-Abilities/<Group>, Roles/, Contexts/, Sources/, Resolvers/, Restrictions/, Changes/, Models/, Plugins/
+Abilities/<Group>, Roles/, Scopes/, Sources/, Resolvers/, Restrictions/, Changes/, Models/, Plugins/
 сохраняют отдельные обязанности. Модели приложения находятся в host app/Models.
 
 FolderSource pairing — D56: конкретный discovery root + относительный путь группы, затем exact enum FQCN;
@@ -1428,8 +1429,8 @@ String-only override запрещён; custom override требует явног
 <a id="d75"></a>
 ### D75 — Общие context recipes и конфигурируемые ролевые bindings
 
-**Кратко:** ProjectContext::make()->query(...) работает и для панели, и для отдельной роли.
-BaseContext fluent settings immutable; class-string остаётся shorthand. Global defaults/plugin/provider predicates
+**Кратко:** ProjectScope::make()->filter(...) работает и для панели, и для отдельной роли.
+BaseAssignmentScope fluent settings immutable; class-string остаётся shorthand. Global defaults/plugin/provider predicates
 складываются AND, роль добавляет свои filters в собственную contribution; independent roles объединяются OR.
 Role binding не меняет alias/model/owner и не удаляет common filters. Presentation precedence отделён от authority.
 Схема публикует definition/filter class metadata, не runtime closures/models. [18 §2–4](18-contexts-and-runtime-inputs.md), V109.
@@ -1485,8 +1486,8 @@ zero authority и authorised cleanup. Уточняет D13/D14/D19/D60/D77, [19 
 <a id="d81"></a>
 ### D81 — Фильтры как конкретные классы и типизированные настройки
 
-**Кратко:** query(new SellerProjects(...)) показывает класс/constructor inputs; string profiles/JSON operators нет.
-ContextQueryFilter.apply(Builder, ContextRuntime), actual BaseRole/user/actor передаются отдельно. Exact FQCN filter
+**Кратко:** filter(new SellerProjects(...)) показывает класс/constructor inputs; string profiles/JSON operators нет.
+AssignmentScopeFilter.apply(Builder, AssignmentScopeRuntime), actual BaseRole/user/actor передаются отдельно. Exact FQCN filter
 принимается только если implements SPI, container resolve на operation. Common AND role branch AND/OR сохраняются.
 Concrete context factory собственная, base не диктует make/options; PHP config change требует new build.
 Нативные homogeneous lists/config/rules/declared fields arrays сохраняются, generic behavior bags не вводятся.
@@ -1513,6 +1514,48 @@ host business data. Exact adapters/schema/editors/mutations/deployment отра�
 Уточняет D48/D53/D55/D79; [19](19-oop-and-permission-authority.md), [20](20-process-map.md), R61–R68/V117–V120.
 
 
-Optional RequiresGrant business veto подключается явным PolicyBinding(action, class, method), не догадкой
-по присутствию метода. Missing declared method/class — compile error. PolicyOnly binding всегда обязателен;
+Optional RequiresGrant veto объявляет PolicyBinding(action, policy class); метод обязан иметь #[Decides(action)].
+Missing declared class/attributed method — compile error; имя метода можно менять с сохранением атрибута. PolicyOnly binding всегда обязателен;
 folder/PolicyFor/Decides pairing допустим при однозначной цели. Метод не переименовывается в silent no-policy pass.
+
+
+<a id="d84"></a>
+### D84 — Область назначения, query и явные связи API
+
+**Кратко:** ProjectScope / AssignmentScopeDefinition, scopes()/scopeRequired(), query(): Builder + filter();
+методы package policies обязаны иметь #[Decides(enumCase)]; model:/guard: и resourcePrefix() явны.
+
+- Assignment scope — проект/магазин, ограничивающий назначение. Это не ambient Laravel Context, не Eloquent local
+  scope и не AccessScope (полный tuple tenant+assignment scope). Короткое имя конкретного класса — ProjectScope;
+  общий SPI — AssignmentScopeDefinition. Папка — Scopes/. Tenant остаётся отдельной boundary.
+- QueryableAssignmentScopeDefinition.query() возвращает новый structural Builder; BaseAssignmentScope.resolve(ref)
+  добавляет exact key, читает одну authoritative запись, вызывает tenantOf(record), возвращает ResolvedAssignmentScope
+  или null. Filters не подменяют structural existence/owner. Common/role eligibility применяется затем AND.
+  Внешний descriptor реализует resolve() непосредственно; Eloquent query ему не навязывается.
+- query() не содержит active/current-user фильтров. filter(new ActiveProjects()) общий;
+  filter(new SellerProjects()) ролевой, с actual user/role/grant/actor через AssignmentScopeRuntime. Неподдержанная
+  форма Builder по-прежнему требует exact adapter. При revoke отсутствующего проекта читается stored grant scope.
+- for(model: User::class, guard: 'web') регистрирует субъект; model также принимает непустой список class-string.
+  Здесь guard — Laravel auth guard. hasPermission(enumCase, on: ..., guard: Panel::getId()) выбирает **id панели**;
+  это тот же resolver, что $user->guard('crm'). Явные conflicting hints отклоняются; wrapper не переключается скрытно.
+- Enum case — основной code API. Выбранная панель разрешает FQCN+case → local PermissionKey и сама добавляет
+  presentation prefix. Default resourcePrefix — id(); resourcePrefix('backoffice') заменяет его,
+  resourcePrefix(false) отключает. resourcePrefix(true) возвращает default. DB keys и enum не переписываются.
+  Shared enum в нескольких panels требует явный guard; неизвестный enum не угадывается по ->value.
+  Strings сохраняются для dynamic/external keys. Старый presentation-prefixed literal после rename не alias;
+  приложения используют enum или stable panel:local. Plugin.prefixed() — отдельный namespace локальных keys;
+  его смена меняет identity и требует migration, в отличие от panel.resourcePrefix().
+- #[Decides(enumCase)] обязателен на package policy methods, имя метода свободное. Folder/#[PolicyFor] выбирают
+  policy class, не выводят action по имени метода. Optional RequiresGrant veto дополнительно объявляется через
+  PolicyBinding::for(enumCase, Policy::class): declaration ожидает exactly one attributed public implementation.
+  Removal метода/атрибута → compile error, rename с сохранением атрибута допустим. Это не два разных policy bindings.
+  Native foreign Laravel policies не требуют package attributes.
+
+Это переименование целевого PHP API, не миграция существующей 0.3. Alias crm.project и SQL context_type/context_id
+в draft storage сохраняют identity области; они внутренние storage поля, а не имя public descriptor.
+Owning items: P2.2/P2.8/P4.3/P4.6; qualification — V78/V81/R05/R19/R50/R67.
+[05](05-php-api.md), [06 §7](06-extension-points.md#7-контексты-и-субъекты),
+[16](16-crm-and-workflows.md), [evidence](evidence/narrow-api-review.md).
+
+К D84: PanelProvider::getId(): string — explicit stable id приложения; builder получает его до panel().
+App\Guards\Admin\Panel может быть самим provider. Check использует его getId(), а не строковый prefix.

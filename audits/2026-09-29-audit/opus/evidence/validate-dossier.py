@@ -13,7 +13,7 @@ def anchors(text):
  return a
 issues=[];count=0
 documentation=[f for f in sorted(root.glob('*.md')) if f.name!='01-review.md']
-documentation += [root/'evidence'/name for name in ('design-review.md','rename-consistency.md','flexibility-review.md','oop-review.md')]
+documentation += [root/'evidence'/name for name in ('design-review.md','rename-consistency.md','flexibility-review.md','oop-review.md','narrow-api-review.md')]
 for f in documentation:
  if f.name=='01-review.md':continue
  text=f.read_text()
@@ -27,7 +27,7 @@ for f in documentation:
 print(f'{count} local documentation links examined')
 print('\n'.join(issues) if issues else 'All local links and anchors resolve')
 d=(root/'02-decisions.md').read_text();v=(root/'14-verification.md').read_text();c=(root/'16-crm-and-workflows.md').read_text()
-for name,got,expected in [('D',re.findall(r'^### D(\d+) ',d,re.M),set(range(1,84))),('V',re.findall(r'^\| V(\d+) \|',v,re.M),set(range(1,121))-{40,41,42}),('R',re.findall(r'^\| R(\d+) \|',(root/'17-crm-acceptance-tests.md').read_text(),re.M),set(range(1,69))),('F',re.findall(r'^\| F(\d+) \|',(root/'20-process-map.md').read_text(),re.M),set(range(1,25))),('C',re.findall(r'^\| C(\d+) \|',c,re.M),set(range(1,23)))]:
+for name,got,expected in [('D',re.findall(r'^### D(\d+) ',d,re.M),set(range(1,85))),('V',re.findall(r'^\| V(\d+) \|',v,re.M),set(range(1,121))-{40,41,42}),('R',re.findall(r'^\| R(\d+) \|',(root/'17-crm-acceptance-tests.md').read_text(),re.M),set(range(1,69))),('F',re.findall(r'^\| F(\d+) \|',(root/'20-process-map.md').read_text(),re.M),set(range(1,25))),('C',re.findall(r'^\| C(\d+) \|',c,re.M),set(range(1,23)))]:
  nums=[int(x) for x in got]; bad=set(nums)^expected
  duplicates=sorted(n for n in set(nums) if nums.count(n)>1)
  print(name, 'missing/extra',sorted(bad),'duplicates',duplicates)
@@ -87,5 +87,16 @@ plugin_base=re.search(r'abstract class BasePlugin.*?\{(.*?)^\}',extensions,re.M|
 if not plugin_base or re.search(r'function (?:make|options|withOptions)\(',plugin_base[1]):issues.append('BasePlugin must not impose generic factory/options')
 if 'roleModel' in (root/'18-contexts-and-runtime-inputs.md').read_text().split('## 10.')[1]:issues.append('Runtime input keeps removed roleModel')
 print('D80-D83 code roles, typed configuration and authority contracts checked')
+# D84 current public names; historical evidence/probes are intentionally excluded.
+for f in root.glob('*.md'):
+ if f.name=='01-review.md':continue
+ content=f.read_text()
+ code='\n'.join(re.findall(r'^```[^\n]*\n(.*?)^```',content,re.M|re.S))
+ if re.search(r'\b(?:ProjectContext|BaseContext|ContextDefinition)\b|(?:->|function )contexts\(|contextRequired\(|public function exists\(AssignmentScopeRef', code):
+  issues.append(f.name+': obsolete D84 scope API')
+ if re.search(r'->for\(\[|->id\([^\n]+?->prefixed\(', code):issues.append(f.name+': obsolete D84 panel recipe')
+for signature in ('resourcePrefix(string|bool $prefix = true)', 'for(string|array $model', '?string $guard = null): bool', 'query(): Builder', 'resolve(AssignmentScopeRef $ref): ?ResolvedAssignmentScope'):
+ if signature not in api:issues.append('Missing D84 signature '+signature)
+print('D84 scopes/query, named model/guard and prefix contracts checked')
 if issues: print('\n'.join(issues))
 raise SystemExit(bool(issues))

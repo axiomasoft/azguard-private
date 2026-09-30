@@ -37,7 +37,7 @@ Laravel Context переносит в queue лишь panel hint; tenant/context 
    Все explicit hints согласуются. Static definition содержит ровно один authority mode.
    Dynamic lookup при отсутствии static key допустим только opt-in; dynamic authority = Grants.
 1. Resolve resource scope, owner/member/common eligibility; captured now/build id.
-   TenantRequired / TenantMismatch / ContextMismatch / ResourceScopeMissing -> Deny.
+   TenantRequired / TenantMismatch / AssignmentScopeMismatch / ResourceScopeMissing -> Deny.
 2. Все preliminary before checks: Deny/error -> отказ, Continue -> следующий шаг.
    Before не может дать authority. Ни Allow shortcut, ни порядок sources не скрывают ошибки.
 3a. Policy mode: не resolve/read grants/roles/writer/panel_state.
@@ -90,13 +90,13 @@ Unknown identity/configuration ошибки direct API выбрасывает; �
 
 ## 3. Тенант, контекст и ресурс
 
-`TenantRef` — организация/граница данных. `ContextRef` — проект/магазин/документ внутри неё.
+`TenantRef` — организация/граница данных. `AssignmentScopeRef` — проект/магазин/документ внутри неё.
 `AccessScope` содержит **оба**; `context=global` значит «весь выбранный tenant».
 `tenant=global` значит режим без тенанта/системный scope, а не все организации сразу.
 
 Панель описывает `TenantPolicy::none()` или `required(Organization::class)` и зарегистрированные
-`ContextDefinition` (например ProjectContext) в `ContextPolicy`. Required tenant без выбранного tenant -> отказ,
-а не fallback на глобальные права. ContextPolicy и TenantPolicy независимы.
+`AssignmentScopeDefinition` (например ProjectScope) в `AssignmentScopePolicy`. Required tenant без выбранного tenant -> отказ,
+а не fallback на глобальные права. AssignmentScopePolicy и TenantPolicy независимы.
 
 Разрешение scope:
 
@@ -104,7 +104,7 @@ Unknown identity/configuration ошибки direct API выбрасывает; �
 2. `ResourceScopeResolver`/`ProvidesAccessScope` получает tenant и context из самого объекта.
    Если есть явный/текущий tenant, он должен совпасть с owner tenant ресурса; выбранный context должен быть связан
    с resource по resolver. Разногласие -> отказ. Тенант из URL/header — лишь кандидат, не доказательство членства.
-3. Для `on: $project` или ContextRef проверить `ContextDefinition::tenantOf` и existence. Для ContextRef,
+3. Для `on: $project` или AssignmentScopeRef проверить `AssignmentScopeDefinition::resolve` → structural snapshot с identity/owner. Для AssignmentScopeRef,
    требующего модель в политике, модель загрузить доверенным resolver; отсутствующая -> отказ, без вызова с null.
 4. Для resource в tenant-панели отсутствие authoritative resource resolver -> ResourceScopeMissing.
    Нельзя приписать неизвестный объект текущей организации. Для collection/create resource отсутствует;
@@ -112,17 +112,17 @@ Unknown identity/configuration ошибки direct API выбрасывает; �
 
 ### Какие выдачи применяются
 
-| ContextPolicy | Context global | Context C выбранного tenant | Непринятый ContextRef |
+| AssignmentScopePolicy | Context global | Context C выбранного tenant | Непринятый AssignmentScopeRef |
 |---|---|---|---|
-| inherit | tenant-wide | tenant-wide ∪ C | Deny(ContextNotAccepted) |
-| isolated | tenant-wide | только C | Deny(ContextNotAccepted) |
-| required | Deny(ContextRequired) | tenant-wide ∪ C | Deny(ContextNotAccepted) |
-| none | tenant-wide | Deny(ContextNotAccepted) | Deny(ContextNotAccepted) |
+| inherit | tenant-wide | tenant-wide ∪ C | Deny(AssignmentScopeNotAccepted) |
+| isolated | tenant-wide | только C | Deny(AssignmentScopeNotAccepted) |
+| required | Deny(AssignmentScopeRequired) | tenant-wide ∪ C | Deny(AssignmentScopeNotAccepted) |
+| none | tenant-wide | Deny(AssignmentScopeNotAccepted) | Deny(AssignmentScopeNotAccepted) |
 
 Глобальный ordinary grant другого tenant не включается ни в одном режиме.
 `requireMembership()` контекста остаётся необязательным. Для tenant membership required-панели включён по умолчанию;
 его SPI проверяет активное членство, а не наличие произвольной role grant. Освобождение tenant admin от membership
-явно задаётся; принадлежность resource tenant не обходится. Старый режим «игнорировать переданный ContextRef» снят.
+явно задаётся; принадлежность resource tenant не обходится. Старый режим «игнорировать переданный AssignmentScopeRef» снят.
 
 Один client может принадлежать нескольким projects. Тогда resolver обязан выбрать подтверждённый project
 (например из nested route) или задать явное правило exists по кандидатам. Нельзя независимо объединять permissions
@@ -135,7 +135,7 @@ CRM-рецепт использует один project на client; many-to-many
 
 | Назначение | Область |
 |---|---|
-| tenant=A, context=global | Всё внутри A, если ContextPolicy наследует tenant-wide |
+| tenant=A, context=global | Всё внутри A, если AssignmentScopePolicy наследует tenant-wide |
 | tenant=A, context=project:P | Только P внутри A |
 | tenant=global, панель без тенантов | Вся эта панель |
 | tenant=global, панель required | Не переносится в tenant автоматически |
@@ -353,7 +353,7 @@ resource, затем update и commit. Это тот же lock order, что у 
 [18](18-contexts-and-runtime-inputs.md) — дополнение D75–D78. Common predicates действуют до любого Allow,
 включая hook/policy/superadmin. Role predicates — AND внутри квалификации одной RoleContribution до OR всех
 выдач; direct role-less grant не имеет скрытого BaseRole. Фильтр сужает область, не выдаёт permission.
-Global false -> ContextIneligible; query error -> ContextFilterError. False role binding удаляет только её вклад.
+Global false -> AssignmentScopeIneligible; query error -> AssignmentScopeFilterError. False role binding удаляет только её вклад.
 
 Один Eloquent context query plan используется для scalar EXISTS, batch, exact visibleTo, Assignment directories
 и final validation; user/BaseRole/actor/proposed fields передаются явно. Access phase одна для record/list/count/
@@ -379,6 +379,6 @@ Compiled active build fence обеспечивается host deployment/runtime
 check перед записью и согласованный host protocol. In-flight requests не отменяются автоматически.
 
 
-Optional RequiresGrant business veto подключается явным PolicyBinding(action, class, method), не догадкой
-по присутствию метода. Missing declared method/class — compile error. PolicyOnly binding всегда обязателен;
+Optional RequiresGrant veto объявляет PolicyBinding(action, policy class); метод обязан иметь #[Decides(action)].
+Missing declared class/attributed method — compile error; имя метода можно менять с сохранением атрибута. PolicyOnly binding всегда обязателен;
 folder/PolicyFor/Decides pairing допустим при однозначной цели. Метод не переименовывается в silent no-policy pass.

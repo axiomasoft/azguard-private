@@ -112,7 +112,7 @@ RoleResource — read-only catalogue. Stale assignment form fingerprint вклю
 
 - Таблицы читают scoped `GrantManager::page/find` **panel+tenant+origin** (включая поля своих моделей вроде AdminRoleGrant); произвольный Eloquent builder не служит API редактора. Фильтры: панель,
   роль или право, сущность, «истекает до», «кто выдал», свои поля. Подпись субъекта — `SubjectDirectory::describe()`,
-  сущности — `ContextDirectory::describe()`.
+  сущности — `AssignmentScopeDirectory::describe()`.
 - Создание: панель → субъект (поиск через директорию панели, лимит 50, без загрузки всех пользователей) → роль (те,
   что выдаются вручную) или право (статичное или динамическое) → сущность (типы, которые принимает панель) → срок →
   свои поля.
@@ -194,7 +194,7 @@ Filament tenant selection устанавливает scoped default текуще
 не разрешает global grants, superadmin flag, wildcard namespace или другой tenant.
 Каждый Livewire create/edit/delete/bulk/attach action повторяет проверку. При отсутствии actor/panel/tenant — отказ.
 
-Role catalogue показывает allowed ContextDefinition classes/filters и required; assignment пишет stable role/context aliases.
+Role catalogue показывает allowed AssignmentScopeDefinition classes/filters и required; assignment пишет stable role/context aliases.
 Grant form: target panel -> tenant -> subject -> role -> допустимый context type -> project текущего tenant -> срок/fields.
 Directories получают actor и AccessScope. Смена tenant очищает сохранённые project/role/fields/fingerprint.
 Find record id проверяет полный scope+origin; чужой id не отдаётся форме и не отзывается bulk API.

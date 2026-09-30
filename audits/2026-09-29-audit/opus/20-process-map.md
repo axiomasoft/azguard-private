@@ -34,8 +34,8 @@ Policy branch не вызывает grant-store reader/writer/state fence. Host 
 | Сборка | PanelProvider + concrete plugins + compiler | typed config/classes → validated frozen metadata | boot Auth/DB role CRUD |
 | Identity | Kernel codec/refs + Laravel resolver | trusted resolved class/model или validated id → exact refs | tenant из произвольного meta |
 | Role definitions | BaseRole classes/RoleCatalog | permissions/contexts/flags → read-only role schema | roleModel/JSON filter profiles |
-| Context owner | ContextDefinition + host resolver | ContextRef → existence/TenantRef | фильтр current user вместо owner |
-| Eligibility | ContextQueryFilter + Eloquent adapter | fresh Builder + ContextRuntime → extra predicate group | выдача права/query sandbox |
+| Context owner | AssignmentScopeDefinition + host resolver | AssignmentScopeRef → ResolvedAssignmentScope через query/resolve | фильтр current user вместо owner |
+| Eligibility | AssignmentScopeFilter + Eloquent adapter | fresh Builder + AssignmentScopeRuntime → extra predicate group | выдача права/query sandbox |
 | Authority | mode dispatcher + grants/policy step | compiled mode + scoped inputs → candidate/reason | policy OR DB fallback |
 | Visibility | exact adapters/coordinator | same supported predicate plan → constrained query | filter-after-page/general PHP-to-SQL compiler |
 | Read state | source-specific fence + dependency contracts | consumed sources/build → typed evidence | один token всех host/external данных |

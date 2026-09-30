@@ -36,19 +36,19 @@
 | **Policy** | Метод политики домена: код, который выполняется перед доступом и уточняет выданное | PolicyOnly: sole authority; RequiresGrant: true/null pass, false veto; `#[PolicyFor]`, `#[Decides]` | `Policies\PolicyFor`, `Policies\Decides` |
 | **Relation source** | Права из связи моделей приложения | `RelationSource::make(Project::class, via:, role:)` | `Sources\Relation\RelationSource` |
 | **Gate source** | Существующая ability Laravel как второй уровень права | `GateSource::make()->map(Perm::X, 'ability')` | `Sources\Gate\GateSource` |
-| **Tenant** | Организация — граница данных | TenantRef; global не означает все организации | `Kernel\Identity\TenantRef`, `Contexts\TenantPolicy` |
-| **Access scope** | Тенант и проект вместе | Immutable `(TenantRef, ContextRef)`; не Eloquent scope | `Kernel\Identity\AccessScope` |
-| **Context definition** | Класс типа проекта в папке панели | ContextDefinition SPI: alias, model, exists, tenantOf; роль ссылается через contexts() | `Contracts\Contexts\ContextDefinition`, `Contexts\BaseContext` |
+| **Tenant** | Организация — граница данных | TenantRef; global не означает все организации | `Kernel\Identity\TenantRef`, `Scopes\TenantPolicy` |
+| **Access scope** | Тенант и проект вместе | Immutable `(TenantRef, AssignmentScopeRef)`; не Eloquent scope | `Kernel\Identity\AccessScope` |
+| **Assignment scope definition** | Класс типа проекта в папке панели | AssignmentScopeDefinition SPI: alias/model/resolve; Eloquent query/tenantOf; роль ссылается через scopes() | `Contracts\Scopes\AssignmentScopeDefinition`, `Scopes\BaseAssignmentScope` |
 | **Role contribution** | Роль, выданная источником | Scope + role + source/origin + expiresAt; superadmin не требует permissions | `Kernel\Decision\RoleContribution` |
 | **Grant condition** | Условие одной выдачи | AND внутри grant до OR между grants | `Contracts\Authorization\GrantCondition` |
 | **Origin** | Владелец сохранённого вклада | manual или partition importer; sync/revoke не удаляет чужой origin | `Change::$origin`, grant record |
-| **Context** | Сущность внутри тенанта: проект, магазин | `global` внутри выбранного tenant или `{type}:{id}` | `Kernel\Identity\ContextRef` |
+| **Assignment scope** | Сущность внутри тенанта: проект, магазин | `global` внутри выбранного tenant или `{type}:{id}` | `Kernel\Identity\AssignmentScopeRef` |
 | **Resource** | Объект, о котором спрашивают (заказ); передаётся политикам | Модель из `on:`, не являющаяся контекстом | `AccessRequest::$resource` |
-| **Context policy** | Как панель относится к сущностям | `inherit` / `isolated` / `required` / `none` (+ членство) | `Contexts\ContextPolicy` |
+| **Assignment scope policy** | Как панель относится к сущностям | `inherit` / `isolated` / `required` / `none` (+ членство) | `Scopes\AssignmentScopePolicy` |
 | **Subject** | У кого права | Любая модель с трейтом: пользователь, проект, команда | `Kernel\Identity\SubjectRef`, `Concerns\HasAzGuard` |
 | **Actor** | Кто меняет права (если известен) | Пользователь или system с причиной | `Kernel\Identity\ActorRef` |
 | **Super admin** | Тот, кому в панели (или в сущности) разрешено всё; ограничения действуют | Держатель scoped роли класса #[SuperAdmin]; policy/common boundaries остаются | `Roles\BaseRole`, `Storage\Models\RoleGrant` |
-| **Prefix** | Добавка к именам прав панели, указывающая на панель | по умолчанию id панели: `admin.orders.view`; `->prefixed('x')`, `->prefixed(false)` | `PanelBuilder::prefixed()` |
+| **Prefix** | Добавка к именам прав панели, указывающая на панель | по умолчанию id панели: `admin.orders.view`; `->resourcePrefix('x')`, `->resourcePrefix(false)` | `PanelBuilder::resourcePrefix()` |
 | **Resource definition** | Enum действий над объектом с metadata; связанные policy/query классы | `Permissions/{Group}` (enum) + `Policies/{Group}` + `Abilities/{Group}` | `Permissions\Resource`, `Policies\PolicyFor` |
 | **Panel folder** | Папка панели: провайдер, роли, домены, свои источники, ограничения, pipes, модели | каталог класса провайдера; её читает `FolderSource` | `Panels\PanelProvider`, `Sources\Folder\PanelDiscovery` |
 | **Shared folder** | `app/Guards/Shared/`: общее для нескольких панелей | не панель; роли, источники, плагины | — |
@@ -66,7 +66,7 @@
 | **Decision** | Ответ | `Effect` + причина + `StateToken` | `Kernel\Decision\Decision` |
 | **State token** | Версия прав панели | `{storageId, panel, incarnation, version, generation, fingerprint}` | `Kernel\Decision\StateToken` |
 | **Ability** | Строка Laravel Gate | Для AzGuard — локальное или полное имя права | только `Laravel\Gate\GateBridge` |
-| **Visibility** | Какие записи окончательно доступны | Exact query plan; unsupported -> error | `Authorization\Visibility`, `Contexts\ContextAware` |
+| **Visibility** | Какие записи окончательно доступны | Exact query plan; unsupported -> error | `Authorization\Visibility`, `Scopes\ContextAware` |
 
 Слова, которые не используются в публичных именах: **scope** (кроме AccessScope и Eloquent), **ability** (кроме Gate и DTO
 `…Abilities`), **guard** (кроме auth guard, суффикса `…GuardPanelProvider` и `guardPanel` в Filament-пакете), **rank**,
@@ -116,7 +116,7 @@
 | Было | Стало |
 |---|---|
 | `axioma-studio/azguard-core` (`AzGuard\`) | `axiomasoft/azguard` (`AzGuard\`) |
-| `axioma-studio/azguard-context` (`AzGuard\Context\`) | влит в ядро: `AzGuard\Contexts\` |
+| `axioma-studio/azguard-context` (`AzGuard\Context\`) | влит в ядро: `AzGuard\Scopes\` |
 | `axioma-studio/azguard-filament` (`AzGuard\Filament\`) | `axiomasoft/azguard-filament` |
 
 ## 4. Классы: core
@@ -152,7 +152,7 @@
 | `Permissions\InteractsWithPanel` | `Concerns\BelongsToPanels` | enum знает свои панели |
 | `Contracts\Permission` | — | enum прав — обычный string-backed enum: значение — локальное имя; домен — по папке или `#[Resource]` |
 | `Panels\Panel` | `Panels\PanelBuilder` (описание) + `Panels\Panel` (readonly) | |
-| `Panel::scopedByPanelId()` | `PanelBuilder::prefixed(true\|string\|false)` | по умолчанию включён (id панели), как сейчас; можно свой или выключить |
+| `Panel::scopedByPanelId()` | `PanelBuilder::resourcePrefix(true\|string\|false)` | по умолчанию включён (id панели), как сейчас; можно свой или выключить |
 | `Panel::permissionEnums([...])`, `roleClasses([...])` | `PanelBuilder::permissions([...])`, `roles([...])` | дополнительно к найденным в папке; permissions принимает enums и источники по D73 |
 | `Panel::path()`, `namespace()`, `basePath()` | папка и namespace провайдера (как сейчас определяются автоматически) | `->discover($path)` — другая папка |
 | `Panels\PanelProvider` | `Panels\PanelProvider` | метод `panel(PanelBuilder)` |
@@ -177,7 +177,7 @@
 | `Contracts\ContextGuard`, `ContextGrantBuilder`, `ContextGrantBuilderFactory`, `PermissionContext` | — | сущность — аргумент `on:` |
 | `Contracts\ScopeInterface` | — | `Authorization\Visibility` |
 | `Contracts\AbilitiesResolver`, `Abilities\AbilitiesDto` | `Abilities\AbilitiesDto` (остаётся) | DTO домена для фронтенда; внутри — `SubjectAccess::abilities()` |
-| `Attributes\GateAbility` | `Policies\Decides` | явная привязка метода к праву; в папке домена хватает соглашения «метод = кейс» |
+| `Attributes\GateAbility` | `Policies\Decides` | явная привязка метода к праву; обязателен на package policy method; папка не заменяет атрибут |
 | — | `Permissions\Resource` | подпись и модель домена на enum прав (D56) |
 | `Attributes\GuardPolicy(model:)` | `Policies\PolicyFor(Enum::class)` + `Permissions\Resource(model:)` | `PolicyFor` — для политики вне однозначного pairing D56; модель — у домена |
 | `Attributes\CheckPermission` | `Attributes\CheckPermission` (остаётся) | `arguments` → `on:`; наследник Laravel `#[Middleware]` — применяет роутер |
@@ -210,11 +210,11 @@
 
 | Было | Стало |
 |---|---|
-| `AuthorizationContext` | `Kernel\Identity\ContextRef` (без `panelId`) |
-| `AuthorizationContextManager` | `Contexts\CurrentContext` (scoped) |
-| `ContextGuard`, `ContextPermissionLayer`, `ContextGrantBuilder(Factory)`, `ContextNotSetException` | — (сущность — аргумент `on:`, выдачи — трейт, применение — пайплайн) |
-| `Contracts\MergeStrategy`, `Strategies\*` | `Contexts\ContextPolicy` (`inherit`/`isolated`/`required`/`none`) |
-| `Contracts\ResolvesContext` | `Contracts\Contexts\ContextResolver` |
+| `AuthorizationContext` | `Kernel\Identity\AssignmentScopeRef` (без `panelId`) |
+| `AuthorizationContextManager` | `Scopes\CurrentContext` (scoped) |
+| `ContextGuard`, `ContextPermissionLayer`, `ContextGrantBuilder(Factory)`, `AssignmentScopeNotSetException` | — (сущность — аргумент `on:`, выдачи — трейт, применение — пайплайн) |
+| `Contracts\MergeStrategy`, `Strategies\*` | `Scopes\AssignmentScopePolicy` (`inherit`/`isolated`/`required`/`none`) |
+| `Contracts\ResolvesContext` | `Contracts\Scopes\AssignmentScopeResolver` |
 | `Middleware\SetAuthorizationContext` | часть `azguard.panel` (резолверы панели) |
 | `Models\ContextRole` | `Storage\Models\PermissionGrant` с сущностью |
 | `Events\ContextGrantGiven/Revoked` | `Events\PermissionGranted/PermissionRevoked` (с `context`) |
@@ -250,16 +250,16 @@
 | `AzGuard::registerGrantSource()`, `registerCatalogBuilder()` | на панели: `->permissions([...])`; по имени — `AzGuard::sources()->extend()` или `#[AsSource]`; или плагин |
 | `AzGuard::forUser($u)->on($p)->ttl()->grant($k)` | `$u->guard($p)->grantPermission($k, until:)` |
 | `…->revoke($k)`, `->revokeAll()`, `->grants()` | `revokePermission()`, `syncPermissions([])`, `->guard($p)->permissionGrants()` |
-| `…->inContext($t, $id)` | `on: $model` или `on: ContextRef::of($t, $id)` |
+| `…->inContext($t, $id)` | `on: $model` или `on: AssignmentScopeRef::of($t, $id)` |
 | `$user->hasPermission($perm, $panel, $context)` | `$user->hasPermission($perm, on: $c)`; панель — `guard()`, префикс или полное имя |
-| `$user->hasPermissionIn($type, $id, $perm, $panel)` | `$user->hasPermission($perm, on: ContextRef::of($type, $id))` |
+| `$user->hasPermissionIn($type, $id, $perm, $panel)` | `$user->hasPermission($perm, on: AssignmentScopeRef::of($type, $id))` |
 | `$user->checkPermission(...)`, `flushPermissions()`, `hasContextGuard()` | — |
 | `$user->permissionSet($panel)`, `permissions($panel)` | `$user->permissionSet(on:)`, `$user->azguard()->permissions()` |
 | `$user->isSuperAdmin($panel)` | `$user->isSuperAdmin()` (панель по правилу выбора) |
 | `$user->hasRole($role)` | `$user->hasRole($role, on:)` |
 | `$user->assignRole/removeRole/syncRoles(...)` | `grantRole/revokeRole/syncRoles` + `on:`, `until:`, `fields:` |
 | `$user->assignScopedRole($role, $entity, $panel)` | `$user->guard($panel)->grantRole($role, on: $entity)` |
-| `$user->removeScopedRole(...)`, `removeScopedRoleEverywhere(...)` | `revokeRole($role, on: $entity)`, `revokeRole($role, on: AnyContext::all())` |
+| `$user->removeScopedRole(...)`, `removeScopedRoleEverywhere(...)` | `revokeRole($role, on: $entity)`, `revokeRole($role, on: AnyAssignmentScope::all())` |
 | `$user->hasScopedRole/hasScopedPermission(...)` | `hasRole/hasPermission(..., on: $entity)` |
 | `$user->grant/revoke($perm, $panel)`, `grants()`, `hasGrant()` | `grantPermission/revokePermission`, `->permissionGrants()`; `hasGrant` удаляется |
 | `$user->roles()`, `scopes()`, `directGrants()`, `getRoleNames()` | `->guard($p)->roleGrants()`, `roleNames(on:)` |
@@ -283,8 +283,8 @@
 | `fail_on_source_exception`, `features.wildcard_permission`, `features.teams`, `teams.*`, `features.validate_role_permissions` | — |
 | `features.audit_log` | `defaults.trace_decisions` |
 | `prune_expired_daily` | `schedule.prune_expired` |
-| `az-guard-context.merge_strategy` | `ContextPolicy` на панели |
-| `az-guard-context.resolvers` | `->contextResolvers()` / `defaults.contexts.resolvers` |
+| `az-guard-context.merge_strategy` | `AssignmentScopePolicy` на панели |
+| `az-guard-context.resolvers` | `->scopeResolvers()` / `defaults.contexts.resolvers` |
 | `az-guard-filament.panel`, `user_label_column`, `super_admin` | `AzGuardPlugin::guardPanel()`, директория субъектов панели, роль с `#[SuperAdmin]` |
 
 ## 9. Таблицы и колонки (общее хранилище, префикс `azg_`)
@@ -370,24 +370,24 @@
 ## 13. Дополнения пятого прохода (D59–D69)
 
 Новые публичные классы, а не aliases 0.3: TenantRef, AccessScope, RoleContribution, TenantPolicy,
-ContextDefinition, BaseContext, ModelContextDefinition, ModelTenantDefinition, ResourceScopeResolver,
+AssignmentScopeDefinition, BaseAssignmentScope, ModelAssignmentScopeDefinition, ModelTenantDefinition, ResourceScopeResolver,
 ProvidesAccessScope, TenantMembership, TenantDirectory, TenantResolver, GrantCondition, FiltersAccessQueries,
 AccessPredicate, ProvidesRoleGrants, GrantManager, GrantFilter, GrantPage, GrantRecord.
-TenantOption/ContextOption/SubjectOption — typed значения display lookup; ContextTypeSchema/TenantTypeSchema —
-definitions для редактора. Request/Model адаптеры находятся в Contracts\Contexts, чистые значения — Kernel.
+TenantOption/AssignmentScopeOption/SubjectOption — typed значения display lookup; AssignmentScopeTypeSchema/TenantTypeSchema —
+definitions для редактора. Request/Model адаптеры находятся в Contracts\Scopes, чистые значения — Kernel.
 
-Методы: inTenant(), SubjectAccess::fromOrigin(), BaseRole::contexts()/contextRequired(),
+Методы: inTenant(), SubjectAccess::fromOrigin(), BaseRole::scopes()/scopeRequired(),
 PanelBuilder::tenants()/tenantResolvers()/resourceScopes()/grantConditions(), DecisionSet::states().
-Папки: Contexts/ (типы областей), Resolvers/ (tenant/resource adapters), Queries/{Group}/ (paired visibility).
+Папки: Scopes/ (типы областей), Resolvers/ (tenant/resource adapters), Queries/{Group}/ (paired visibility).
 
 Исключения: ConflictingPanelException, TenantRequiredException, TenantMismatchException,
-ContextRequiredException, ResourceScopeMissingException, VisibilityNotSupportedException,
+AssignmentScopeRequiredException, ResourceScopeMissingException, VisibilityNotSupportedException,
 InvalidSourceContributionException, RecursionDetectedException, ConsistencyException — стабильный snake_case code.
 Коды отказов перечислены в [05](05-php-api.md); configuration/change exceptions direct API не скрываются.
 
 
-D70/D72: Permissions/Users = действия над User; for([User::class]) = User как обладатель прав.
-Permissions/Projects = действия над Project; Contexts/ProjectContext = область назначений; Project как subject
+D70/D72: Permissions/Users = действия над User; for(model: User::class) = User как обладатель прав.
+Permissions/Projects = действия над Project; Scopes/ProjectScope = область назначений; Project как subject
 в панели features = обладатель tariff permissions. Эти роли business entity не подразумеваются друг из друга.
 Root Sources/ — механика, Permissions/Sources/ — допустимая группа действий. Автопоиск их не смешивает.
 Policies/<Group>, Queries/<Group>, Abilities/<Group> — параллельные корни; контейнера Resources нет.
@@ -407,8 +407,8 @@ PanelAccess::permissions() — scoped manager данных, PanelSchema::permiss
 D74: селектор модели HasAzGuard::guard(array|string $guarded) возвращает native Model для array, SubjectAccess для string;
 SubjectPanels::guard(string) создаёт SubjectAccess без перегрузки; native Eloquent конфликт — 18 §1.
 Panel/PanelAccess/PanelBuilder остаются понятиями authorization panels; for(...guard:) — auth guard Laravel.
-D75–D78 уточнены D80–D83: BaseContext.make/query/label/directory — immutable config. Нет using/profiles/options.
-BaseRole — реальный PHP-класс, без roleModel/field/JSON config. ContextRuntime/LookupContext/ChangeContext явно
+D75–D78 уточнены D80–D83: BaseAssignmentScope.make/filter/label/directory — immutable config. Нет using/profiles/options.
+BaseRole — реальный PHP-класс, без roleModel/field/JSON config. AssignmentScopeRuntime/LookupContext/ChangeContext явно
 передают runtime target/actor/scope/contribution/phase; PluginContext только build metadata.
 Concrete plugin make имеет named typed parameters; CrmModels — DTO конкретного plugin, BasePlugin factory нет.
 BeforeResult Continue/Deny не является native Gate shortcut. PermissionAuthority Policy/Grants задаётся явно

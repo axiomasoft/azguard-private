@@ -121,7 +121,7 @@ app/Guards/
 │   ├── Abilities/Orders/OrderAbilities.php   DTO для фронтенда
 │   ├── Queries/Orders/OrderVisibility.php    парная фильтрация списка
 │   ├── Roles/ManagerRole.php            наборы прав
-│   ├── Contexts/ProjectContext.php      типы областей назначения
+│   ├── Scopes/ProjectScope.php      типы областей назначения
 │   ├── Sources/                         откуда приходят права
 │   ├── Restrictions/                    общие запреты
 │   ├── Changes/                         pipes изменений доступа
@@ -139,14 +139,16 @@ enum OrderPermission: string
     #[Describe('Вернуть деньги')]      case Refund = 'orders.refund';
 }
 
-// лежит в Policies/Orders — привязан к OrderPermission сам; метод = кейс
+// лежит в Policies/Orders; связь метода с action задаётся #[Decides]
 final class OrderPolicy
 {
+    #[Decides(OrderPermission::View)]
     public function view(User $user, Order $order): ?bool
     {
         return $order->user_id === $user->id ? true : null;        // PolicyOnly: своё разрешено, null/чужое запрещено
     }
 
+    #[Decides(OrderPermission::Refund)]
     public function refund(User $user, Order $order): ?bool
     {
         return now()->between('09:00', '18:00') ? null : false;    // вне 9–18 — нет, даже если выдано
@@ -158,7 +160,7 @@ Grant-side veto привязан явно, чтобы исчезновение �
 
 ```php
 $panel->policies([
-    PolicyBinding::for(OrderPermission::Refund, OrderPolicy::class, method: 'refund'),
+    PolicyBinding::for(OrderPermission::Refund, OrderPolicy::class),
 ]);
 ```
 
@@ -173,7 +175,7 @@ qualified role/direct/fixed/relation assignment; policy true/null только �
 // app/Guards/Admin/AdminGuardPanelProvider.php
 return $panel
     ->id('admin')
-    ->for([User::class], guard: 'web')
+    ->for(model: User::class, guard: 'web')
     ->permissions([
         DatabaseSource::make()->dynamicPermissions(),       // назначения PHP-ролей/прав и opt-in дополнительные actions
         'ldap',                                             // свой источник по имени
@@ -237,7 +239,7 @@ public function refund(Order $order) { … }
 
 **Префикс имён.** Как и сейчас, панель добавляет к именам своих прав свой id: `admin.orders.refund`. Такое имя само
 указывает на панель, поэтому его удобно писать в Blade, в общем коде и на фронтенде. Префикс можно заменить своим
-(`->prefixed('backoffice')` → `backoffice.orders.refund`) или выключить (`->prefixed(false)`). В БД и в enum
+(`->resourcePrefix('backoffice')` → `backoffice.orders.refund`) или выключить (`->resourcePrefix(false)`). В БД и в enum
 хранится имя без префикса, так что префикс можно поменять в любой момент.
 
 Сейчас в коде четыре разных правила выбора панели, и часть проверок отвечает не про ту панель. Одно правило убирает
@@ -394,23 +396,23 @@ AzGuard — фундамент для пакетов экосистемы: Vault
 ## 12. Самый сложный пример: CRM, организации и проекты
 
 У Анны две организации: в A она менеджер обзвона проектов P1/P2, в B — аналитик P3.
-Организация — **tenant**, проект — **context** внутри неё. Класс проекта описывает этот тип области,
+Организация — **tenant**, проект — **assignment scope**: область действия назначения внутри неё. Класс проекта описывает этот тип области,
 класс роли ссылается на него, а назначения связывают пользователя с конкретными проектами.
 
 ```php
-// app/Guards/Crm/Contexts/ProjectContext.php
-final class ProjectContext extends BaseContext // реализует собственный ContextDefinition SPI
+// app/Guards/Crm/Scopes/ProjectScope.php
+final class ProjectScope extends BaseAssignmentScope // реализует собственный AssignmentScopeDefinition SPI
 {
     public function type(): string { return 'crm.project'; }
-    public function model(): ?string { return Project::class; }
-    public function exists(ContextRef $context): bool
+    public static function make(): self { return new self(); }
+    public function query(): Builder
     {
-        return Project::withoutGlobalScopes()->whereKey($context->id())->exists();
+        return Project::withoutGlobalScopes(); // исходный набор проектов; key/owner проверяет ядро
     }
-    public function tenantOf(ContextRef $context): TenantRef
+    public function tenantOf(Model $record): TenantRef
     {
-        $project = Project::withoutGlobalScopes()->findOrFail($context->id());
-        return TenantRef::of('crm.organization', $project->organization_id);
+        if (!$record instanceof Project) { throw new InvalidArgumentException('Expected Project'); }
+        return TenantRef::of('crm.organization', $record->organization_id);
     }
 }
 
@@ -418,17 +420,18 @@ final class ProjectContext extends BaseContext // реализует собст�
 #[Role('caller', label: 'Менеджер обзвона')]
 final class CallerRole extends BaseRole
 {
-    public function contexts(): array { return [ProjectContext::class]; }
-    public function contextRequired(): bool { return true; }
+    public function scopes(): array { return [ProjectScope::make()->filter(new SellerProjects())]; }
+    public function scopeRequired(): bool { return true; }
     public function permissions(): array
     {
         return [ClientPermission::View, ClientPermission::Update];
     }
 }
 
-// Второй уровень: разрешение выдано на проект, но клиент запретил звонки.
+// RequiresGrant: назначение выдано на проект, но клиент запретил звонки.
 final class ClientPolicy
 {
+    #[Decides(ClientPermission::Update)]
     public function update(User $user, Client $client): ?bool
     {
         return $client->do_not_call ? false : null;
@@ -436,12 +439,14 @@ final class ClientPolicy
 }
 
 // app/Guards/Crm/CrmGuardPanelProvider.php, внутри panel():
-return $panel->id('crm')->for([User::class], guard: 'web')
+// CrmGuardPanelProvider::getId() возвращает 'crm'; compiler задаёт builder id из него.
+return $panel->id(self::getId())->for(model: User::class, guard: 'web')
     ->tenants(TenantPolicy::required(Organization::class)
         ->requireMembership(OrganizationMembership::class))
-    ->contexts(ContextPolicy::inherit(ProjectContext::class))
+    ->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(new ActiveProjects())))
     ->resourceScopes([Client::class => ClientScopeResolver::class])
     ->permissions([DatabaseSource::make()->dynamicPermissions()])
+    ->policies([PolicyBinding::for(ClientPermission::Update, ClientPolicy::class)])
     ->restrictions([AccountLockedRestriction::class])
     ->changing([AuthorizeCrmAccessChange::class]);
 
@@ -458,10 +463,11 @@ $crmA->hasPermission(ClientPermission::View, on: $clientB3);   // нет: tenant
 $crmA->hasPermission(ClientPermission::Update, on: $clientA1); // нет, если do_not_call=true
 ```
 
-`ProjectContext` не заменяет business model `Project`, не хранит записи проектов и не становится самой ролью.
-У него **свой контракт ContextDefinition**: стабильный тип, модель, существование и принадлежность тенанту.
+`ProjectScope` не заменяет business model `Project`, не хранит записи проектов и не становится самой ролью.
+У него **свой контракт AssignmentScopeDefinition**. Для Eloquent база реализует resolve() через query():
+одна загрузка проекта подтверждает существование и его tenant. Дополнительные filter() задают active/city.
 Роли CallerRole, AnalystRole и другие PHP-классы ролей могут использовать его одновременно.
-Другой пакет приносит свой ContextDefinition и mapping tenant identities, используя те же разъёмы.
+Другой пакет приносит свой AssignmentScopeDefinition и mapping tenant identities, используя те же разъёмы.
 
 ClientScopeResolver берёт организацию/проект **из клиента**, а не из выбранной вкладки браузера.
 Текущая организация проверяется на совпадение; это исключает смешивание роли A и проекта B.
@@ -475,9 +481,9 @@ UI выдачи роли повторно проверяет actor, target tenan
 ## 13. Почему Permissions/Users, а не Users/ в корне
 
 `Permissions/Users/UserPermission.php` содержит **действия над пользователями**: показать профиль,
-заблокировать пользователя. `for([User::class])` задаёт **того, кому назначаются права**.
+заблокировать пользователя. `for(model: User::class)` задаёт **того, кому назначаются права**.
 Business model User остаётся в приложении. `Models/` панели — свои модели хранения выдач.
-`Permissions/Projects` описывает действия над проектами; `Contexts/ProjectContext` — область назначения роли.
+`Permissions/Projects` описывает действия над проектами; `Scopes/ProjectScope` — область назначения роли.
 Группа `Permissions/Sources` не конфликтует с механизмом `Sources/` в корне.
 
 Для каждой группы классы разложены по виду: `Permissions/Clients`, `Policies/Clients`, `Queries/Clients`,
@@ -485,20 +491,21 @@ Business model User остаётся в приложении. `Models/` пане
 Политика и enum связываются по правилу D56, query adapter подключается явно.
 `#[Resource(model:)]` остаётся метаданными объекта доступа на enum, а не указанием на папку Resources.
 
-Конструктор читается `->for([User::class], guard: 'web')`: эти модели могут быть субъектами панели.
+Конструктор читается `->for(model: User::class, guard: 'web')`: эти модели могут быть субъектами панели.
 `AzGuard::panel('crm')->for($anna)` выбирает конкретного субъекта. SubjectRef остаётся именем позиции в запросе;
 Relations обозначает связи, читаемые RelationSource. Владелец подтвердил эту раскладку — D72.
 
-## 14. Контекст настраивается для панели и роли
+<a id="14-контекст-настраивается-для-панели-и-роли"></a>
+## 14. Область назначения настраивается для панели и роли
 
-Панель задаёт общий ProjectContext::make()->query(is_active), роль возвращает свой configured
-ProjectContext::make()->query(city filter). Common правила действуют для всех; правила роли — только для
-её выдачи. Callback получает query, target user, actual BaseRole и ContextRuntime; не нужно читать глобальный Auth.
+Панель задаёт ProjectScope::make()->filter(new ActiveProjects()), роль возвращает
+ProjectScope::make()->filter(new SellerProjects()). Common правила действуют для всех; правила роли — только для
+её выдачи. Callback получает query, target user, actual BaseRole и AssignmentScopeRuntime; не нужно читать глобальный Auth.
 BaseRole — настоящий PHP-класс данной contribution; его permissions/filters меняются только в коде. Direct grant имеет role=null.
 
 Плагин получает typed models/context/settings через собственную named factory; PluginContext содержит build metadata;
 runtime user/role/actor/grant идут в его filters/hooks/pipes при вызове. Defaults/settings не захватывают
 текущего пользователя при загрузке worker. Подробности — [18](18-contexts-and-runtime-inputs.md).
 Вызов на модели теперь user->guard('crm')->inTenant(organization); guard('crm') выбирает authorization panel,
-а for([...], guard: 'web') — Laravel authentication guard. Контексты не требуют новых PHP-классов на каждый project.
+а for(model: User::class, guard: 'web') — Laravel authentication guard. Контексты не требуют новых PHP-классов на каждый project.
 Готовность проверяется реальными CRM flows, описанными отдельно в [17](17-crm-acceptance-tests.md), а не числом unit tests.

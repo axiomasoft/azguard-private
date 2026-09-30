@@ -15,16 +15,17 @@
 // app/Guards/Cabinet/CabinetGuardPanelProvider.php — личный кабинет: папка панели и связи, БД нет
 final class CabinetGuardPanelProvider extends PanelProvider
 {
+    public static function getId(): string { return 'cabinet'; }
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel
-            ->id('cabinet')->label('Личный кабинет')->default()   // имена прав: cabinet.orders.view
-            ->for([User::class], guard: 'web')
+            ->id(self::getId())->label('Личный кабинет')->default()   // имена прав: cabinet.orders.view
+            ->for(model: User::class, guard: 'web')
             ->middleware(['web', 'auth:web'])
             ->permissions([
                 RelationSource::make(Project::class, via: 'members', role: 'pivot.role'),   // роли editor/viewer — из Roles/
             ])
-            ->contexts(ContextPolicy::inherit(Project::class));
+            ->scopes(AssignmentScopePolicy::inherit(Project::class));
             // папка app/Guards/Cabinet/ читается всегда; права «всем» — #[GrantedToAll] на кейсах enum
             // DatabaseSource нет — нет таблиц и редактирования
     }
@@ -33,28 +34,30 @@ final class CabinetGuardPanelProvider extends PanelProvider
 // app/Guards/Seller/SellerGuardPanelProvider.php — кабинет продавца
 final class SellerGuardPanelProvider extends PanelProvider
 {
+    public static function getId(): string { return 'seller'; }
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel
-            ->id('seller')                                         // имена прав: seller.orders.cancel (префикс по умолчанию)
-            ->for([User::class], guard: 'web')
+            ->id(self::getId())                                         // имена прав: seller.orders.cancel (префикс по умолчанию)
+            ->for(model: User::class, guard: 'web')
             ->entry('panel.access')                                // войти может только продавец (право даёт SellerRole)
             ->permissions([
                 RelationSource::make(Store::class, via: 'staff', role: 'pivot.role'),
                 DatabaseSource::make()->rolesOnly(),               // владелец магазина выдаёт роли; отдельных прав не выдаём
             ])
-            ->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')));
+            ->scopes(AssignmentScopePolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')));
     }
 }
 
 // app/Guards/Admin/AdminGuardPanelProvider.php — админка: роли и права в БД, редактируются в Filament
 final class AdminGuardPanelProvider extends PanelProvider
 {
+    public static function getId(): string { return 'admin'; }
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel
-            ->id('admin')->prefixed('backoffice')                  // свой префикс: backoffice.orders.refund
-            ->for([User::class], guard: 'web')
+            ->id(self::getId())->resourcePrefix('backoffice')                  // свой префикс: backoffice.orders.refund
+            ->for(model: User::class, guard: 'web')
             ->entry('panel.access')
             ->requireRouteChecks()                                 // у каждого действия — #[CheckPermission] или явный пропуск
             ->permissions([
@@ -79,13 +82,18 @@ final class LdapSource implements Source, ProvidesRoleGrants { /* группы L
 // app/Providers/AppServiceProvider.php — общее для всех панелей
 AzGuard::configurePanels(fn (PanelBuilder $panel) => $panel->roles([RootRole::class]));   // суперадмин «по флагу»
 
-// Проверки — панель по умолчанию (cabinet), панель маршрута или явная
-$user->hasPermission(OrderPermission::View, on: $order);        // enum кабинета: выдачи + OrderPolicy::view()
+// Проверки — imports в файле приложения, где вызываются проверки
+use App\Guards\Admin\Panel;
+use App\Guards\Seller\Panel as SellerPanel;
+
+// Панель по умолчанию (cabinet), панель маршрута или явная
+$user->hasPermission(OrderPermission::View, on: $order);        // enum кабинета: explicit authority mode
 $user->can('update', $order);                                    // Laravel-стиль: домен объявил модель Order
-$user->hasPermission('seller.orders.cancel', on: $store);       // префикс указывает на панель seller
-$user->hasPermission('backoffice.orders.refund');               // свой префикс панели admin
+$user->hasPermission(SellerOrderPermission::Cancel, on: $store, guard: SellerPanel::getId()); // префикс подставляет пакет
+$user->hasPermission(AdminOrderPermission::Refund, on: $order, guard: Panel::getId()); // resourcePrefix не меняет вызов
 $user->guard('admin')->hasRole('manager');
-$user->hasPermission('admin:orders.refund');                    // полное имя работает всегда
+// Строки — для dynamic actions и external/native Gate API; panel:local стабилен при смене resourcePrefix.
+$user->hasPermission('reports.quarterly', guard: Panel::getId());
 
 // Изменения — через источник-писатель панели (DatabaseSource)
 $user->guard('seller')->grantRole('store-manager', on: $store);
@@ -103,28 +111,28 @@ namespace AzGuard\Concerns;
 trait HasAzGuard            // реализует AzGuard\Contracts\AzGuardSubject; подходит любой модели
 {
     // Права (панель по правилу D05)
-    public function hasPermission(string|UnitEnum $permission, Model|ContextRef|null $on = null): bool;
+    public function hasPermission(string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;
     /** @param list<string|UnitEnum> $permissions */
-    public function hasAnyPermission(array $permissions, Model|ContextRef|null $on = null): bool;
-    public function hasAllPermissions(array $permissions, Model|ContextRef|null $on = null): bool;
-    public function permissionSet(Model|ContextRef|null $on = null): PermissionSet;
-    /** @return Collection<int, string> */ public function permissionNames(Model|ContextRef|null $on = null): Collection;
+    public function hasAnyPermission(array $permissions, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;
+    public function hasAllPermissions(array $permissions, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;
+    public function permissionSet(Model|AssignmentScopeRef|null $on = null, ?string $guard = null): PermissionSet;
+    /** @return Collection<int, string> */ public function permissionNames(Model|AssignmentScopeRef|null $on = null, ?string $guard = null): Collection;
 
     // Роли
-    public function hasRole(string|UnitEnum|array $roles, Model|ContextRef|null $on = null): bool;   // массив = любая
-    public function hasAnyRole(array $roles, Model|ContextRef|null $on = null): bool;
-    public function hasAllRoles(array $roles, Model|ContextRef|null $on = null): bool;
-    /** @return Collection<int, string> */ public function roleNames(Model|ContextRef|null $on = null): Collection;
+    public function hasRole(string|UnitEnum|array $roles, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;   // массив = любая
+    public function hasAnyRole(array $roles, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;
+    public function hasAllRoles(array $roles, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;
+    /** @return Collection<int, string> */ public function roleNames(Model|AssignmentScopeRef|null $on = null, ?string $guard = null): Collection;
 
-    public function isSuperAdmin(Model|ContextRef|null $on = null): bool;   // есть ли роль с признаком суперадмина (D19)
+    public function isSuperAdmin(Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;   // есть ли роль с признаком суперадмина (D19)
 
     // Изменения (через источник-писатель панели, обычно DatabaseSource)
-    public function grantRole(string|UnitEnum|array $roles, Model|ContextRef|null $on = null, ?DateTimeInterface $until = null, array $fields = []): ChangeResult;
-    public function revokeRole(string|UnitEnum $role, Model|ContextRef|AnyContext|null $on = null): ChangeResult;
-    public function syncRoles(array $roles, Model|ContextRef|null $on = null): ChangeResult;
-    public function grantPermission(string|UnitEnum|array $permissions, Model|ContextRef|null $on = null, ?DateTimeInterface $until = null, array $fields = []): ChangeResult;
-    public function revokePermission(string|UnitEnum $permission, Model|ContextRef|AnyContext|null $on = null): ChangeResult;
-    public function syncPermissions(array $permissions, Model|ContextRef|null $on = null): ChangeResult;
+    public function grantRole(string|UnitEnum|array $roles, Model|AssignmentScopeRef|null $on = null, ?DateTimeInterface $until = null, array $fields = []): ChangeResult;
+    public function revokeRole(string|UnitEnum $role, Model|AssignmentScopeRef|AnyAssignmentScope|null $on = null): ChangeResult;
+    public function syncRoles(array $roles, Model|AssignmentScopeRef|null $on = null): ChangeResult;
+    public function grantPermission(string|UnitEnum|array $permissions, Model|AssignmentScopeRef|null $on = null, ?DateTimeInterface $until = null, array $fields = []): ChangeResult;
+    public function revokePermission(string|UnitEnum $permission, Model|AssignmentScopeRef|AnyAssignmentScope|null $on = null): ChangeResult;
+    public function syncPermissions(array $permissions, Model|AssignmentScopeRef|null $on = null): ChangeResult;
 
     // Панели
     public function inTenant(Model|TenantRef $tenant): SubjectAccess; // текущая/явная панель
@@ -137,6 +145,9 @@ trait HasAzGuard            // реализует AzGuard\Contracts\AzGuardSubje
 ```
 
 - `$on` — сущность: контекст (тип объявлен панелью) или ресурс для политик и ограничений ([D16](02-decisions.md#d16)).
+- `guard:` в проверке — id панели, а `for(model:, guard:)` — имя auth guard Laravel.
+- Enum передаётся как case, без ->value/добавления префикса. FQCN+case разрешается в каталоге выбранной панели.
+- SubjectAccess уже фиксирует панель: guard:null/тот же id допустимы; другой guard → PanelMismatchException.
 - Имя роли или права без панели относится к панели по правилу D05; полное имя (`admin:manager`) — к указанной.
 - `$user->can('orders.view', $order)` работает через Gate ([D26](02-decisions.md#d26)).
 - Ошибки конфигурации не глотаются: неизвестное право → `UnknownPermissionException`, неопределимая панель →
@@ -150,10 +161,10 @@ final readonly class SubjectAccess          // $user->guard('admin'), AzGuard::p
     public function fromOrigin(string $origin): self;
     public function inTenant(Model|TenantRef $tenant): self; // новый immutable wrapper
     public function scope(): AccessScope;
-    public function decide(string|UnitEnum $permission, Model|ContextRef|null $on = null): Decision;
-    /** @return array<string, bool> */ public function abilities(array $permissions, Model|ContextRef|null $on = null): array;  // для фронтенда
-    /** @return Collection<int, RoleGrant> модели панели со своими полями */ public function roleGrants(Model|ContextRef|AnyContext|null $on = null): Collection;
-    /** @return Collection<int, PermissionGrant> */ public function permissionGrants(Model|ContextRef|AnyContext|null $on = null): Collection;
+    public function decide(string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null): Decision;
+    /** @return array<string, bool> */ public function abilities(array $permissions, Model|AssignmentScopeRef|null $on = null): array;  // для фронтенда
+    /** @return Collection<int, RoleGrant> модели панели со своими полями */ public function roleGrants(Model|AssignmentScopeRef|AnyAssignmentScope|null $on = null): Collection;
+    /** @return Collection<int, PermissionGrant> */ public function permissionGrants(Model|AssignmentScopeRef|AnyAssignmentScope|null $on = null): Collection;
 }
 
 final readonly class SubjectPanels          // $user->azguard()
@@ -210,7 +221,7 @@ interface RoleCatalog // immutable роли PHP-классов; назначен
 Все managers привязаны к immutable `(panel, tenant)`; не принимают tenant через `fields`.
 `SubjectAccess::fromOrigin(string $origin): self` выбирает partition назначения (по умолчанию manual);
 изменение внешнего origin требует policy/pipe приложения. Actor и origin — разные понятия.
-`syncRoles`/`syncPermissions` работают только в точном scope и origin. `AnyContext::all()` расширяет
+`syncRoles`/`syncPermissions` работают только в точном scope и origin. `AnyAssignmentScope::all()` расширяет
 только contexts выбранного tenant; операции «все tenants» нет в обычном API.
 `permissionSet`/`roleNames` без scope не агрегируют скрытно все организации.
 
@@ -241,10 +252,10 @@ GrantFilter/GrantPage — typed значения pagination, вида grant, sub
  * @method static void registerPanel(class-string<PanelProvider> $provider)                // до заморозки
  * @method static void configurePanel(string $id, Closure(PanelBuilder): mixed $callback)  // до заморозки
  * @method static void configurePanels(Closure(PanelBuilder): mixed $callback)            // для всех панелей
- * @method static bool check(mixed $subject, string|UnitEnum $permission, Model|ContextRef|null $on = null)
- * @method static void authorize(mixed $subject, string|UnitEnum $permission, Model|ContextRef|null $on = null)
- * @method static mixed withinContext(Model|ContextRef $context, Closure $callback)
- * @method static ContextRef|null currentContext()
+ * @method static bool check(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
+ * @method static void authorize(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
+ * @method static mixed withinScope(Model|AssignmentScopeRef $context, Closure $callback)
+ * @method static AssignmentScopeRef|null currentScope()
  * @method static mixed actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure $callback)  // кто выдаёт; строка — system с причиной
  */
 final class AzGuard extends Facade
@@ -259,11 +270,37 @@ final class AzGuard extends Facade
 
 ## 4. Описание панели: `PanelProvider` и `PanelBuilder`
 
+Класс панели приложения может называться `Panel` в namespace своей панели. getId() — явное static значение;
+compiler использует его как id при создании builder. Если provider вызывает ->id(), значение должно совпасть
+с getId(), иначе DefinitionException. Имя класса/namespace не преобразуется в id автоматически.
+Прежние имена …GuardPanelProvider допустимы с тем же контрактом.
+
+```php
+// app/Guards/Admin/Panel.php
+namespace App\Guards\Admin;
+
+use AzGuard\Panels\PanelProvider;
+use AzGuard\Panels\PanelBuilder;
+
+final class Panel extends PanelProvider
+{
+    public static function getId(): string { return 'admin'; }
+    public function panel(PanelBuilder $panel): PanelBuilder
+    {
+        return $panel->resourcePrefix('backoffice')->for(model: \App\Models\User::class, guard: 'web');
+    }
+}
+```
+
+Этот App\Guards\Admin\Panel — definition/provider приложения, а AzGuard\Panels\Panel ниже — immutable
+runtime definition. В прикладном коде guard: Panel::getId() не зависит от resourcePrefix.
+
 ```php
 namespace AzGuard\Panels;
 
 abstract class PanelProvider extends \Illuminate\Support\ServiceProvider   // как в Filament; папка провайдера = папка панели
 {
+    abstract public static function getId(): string; // stable id класса панели приложения
     abstract public function panel(PanelBuilder $panel): PanelBuilder;
 }
 
@@ -274,9 +311,9 @@ final class PanelBuilder
     public function label(string $label): static;
     public function description(?string $description): static;
     public function default(bool $default = true): static;                // панель по умолчанию для своих моделей
-    public function prefixed(string|bool $prefix = true): static;         // по умолчанию включён (id панели); строка — свой; false — выключить
-    // субъекты и вход
-    public function for(array $models, ?string $guard = null, ?string $directory = null): static;
+    public function resourcePrefix(string|bool $prefix = true): static;         // по умолчанию включён (id панели); строка — свой; false — выключить
+    // субъекты и вход; string = class-string<Model>, array = непустой список таких классов
+    public function for(string|array $model, ?string $guard = null, ?string $directory = null): static;
     public function middleware(array $middleware): static;                // что выполняется при входе в панель
     public function entry(string|UnitEnum|null $permission): static;     // право входа (у суперадмина есть)
     public function onDenied(Closure|string|null $response): static;     // 403 по умолчанию; редирект и т. п.
@@ -292,8 +329,8 @@ final class PanelBuilder
     // tenant и context — независимые dimensions
     public function tenants(TenantPolicy $policy): static;
     public function tenantResolvers(array $resolvers): static;
-    public function contexts(ContextPolicy $policy): static;
-    public function contextResolvers(array $resolvers): static;
+    public function scopes(AssignmentScopePolicy $policy): static;
+    public function scopeResolvers(array $resolvers): static;
     /** @param array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> $resolvers */
     public function resourceScopes(array $resolvers): static; // class-string ресурса -> ResourceScopeResolver
     public function grantConditions(array $conditions): static; // AND условий одной grant
@@ -325,7 +362,7 @@ final readonly class Panel                    // после сборки неи�
     public function settings(): PanelSettings;                 // итоговые значения и откуда взято каждое
     /** @return list<SourceDescription> */ public function sources(): array; // immutable metadata; factories internal
     public function writer(): ?StoresGrants;                   // resolve runtime adapter текущего request/job, null для read-only
-    public function contextPolicy(): ContextPolicy;
+    public function contextPolicy(): AssignmentScopePolicy;
     public function tenantPolicy(): TenantPolicy;
     public function isWritable(): bool;
     /** @return list<string> */ public function pluginIds(): array;
@@ -382,7 +419,7 @@ final class DatabaseSource implements Source, ProvidesPermissions, ProvidesGrant
 
 final class RelationSource implements Source, ProvidesRoleGrants, FiltersQueries, DescribesSchema
 {
-    public static function make(string $model, string $via, string|Closure $role, ?Closure $scope = null): static; // модель или ContextDefinition; scope дополнительно сужает выбранный tenant
+    public static function make(string $model, string $via, string|Closure $role, ?Closure $scope = null): static; // модель или AssignmentScopeDefinition; scope дополнительно сужает выбранный tenant
 }
 
 final class GateSource implements Source, ProvidesPolicies, DescribesSchema
@@ -424,7 +461,7 @@ final readonly class PermissionPattern                                 // тол
 
 final readonly class RoleKey { public static function of(string $panel, string $key): self; public static function parse(string $full): self; public function panel(): string; public function key(): string; }
 final readonly class SubjectRef { public static function of(string $type, int|string $id): self; public function type(): string; public function id(): string; public function equals(self $o): bool; }
-final readonly class ContextRef { public static function of(string $type, int|string $id): self; public static function global(): self; public function isGlobal(): bool; public function key(): string; public function type(): ?string; public function id(): ?string; }
+final readonly class AssignmentScopeRef { public static function of(string $type, int|string $id): self; public static function global(): self; public function isGlobal(): bool; public function key(): string; public function type(): ?string; public function id(): ?string; }
 final readonly class TenantRef
 {
     public static function of(string $type, int|string $id): self;
@@ -433,8 +470,8 @@ final readonly class TenantRef
 }
 final readonly class AccessScope
 {
-    public static function in(TenantRef $tenant, ?ContextRef $context = null): self;
-    public TenantRef $tenant; public ContextRef $context; // null в factory нормализуется в global
+    public static function in(TenantRef $tenant, ?AssignmentScopeRef $context = null): self;
+    public TenantRef $tenant; public AssignmentScopeRef $context; // null в factory нормализуется в global
 }
 final readonly class RoleContribution
 {
@@ -442,7 +479,7 @@ final readonly class RoleContribution
     public ?DateTimeImmutable $expiresAt;
     /** @return array<string, mixed> только decisionFields */ public function fields(): array;
 }
-final readonly class AnyContext { public static function all(): self; }    // «во всех сущностях» — только для отзыва
+final readonly class AnyAssignmentScope { public static function all(): self; }    // «во всех сущностях» — только для отзыва
 
 final readonly class ActorRef { public const string SYSTEM_TYPE = 'azguard.system'; public ?string $type; public ?string $id; public ?string $reason; }
 
@@ -450,7 +487,7 @@ final readonly class AccessRequest
 {
     public static function for(SubjectRef $subject, PermissionKey $permission): self;
     public function inTenant(TenantRef $tenant): self;
-    public function on(?ContextRef $context, ?object $resource = null): self; // ContextRef::global() явно; null не отменяет required tenant
+    public function on(?AssignmentScopeRef $context, ?object $resource = null): self; // AssignmentScopeRef::global() явно; null не отменяет required tenant
     public function inScope(AccessScope $scope, ?object $resource = null): self;
     public function traced(bool $trace = true): self;
 }
@@ -461,12 +498,12 @@ enum DecisionReason: string
 {
     case Granted = 'granted';               case SuperAdmin = 'super_admin';        case Hook = 'hook';
     case Policy = 'policy';                 case NotGranted = 'not_granted';        case NotApplicable = 'not_applicable';
-    case ContextRequired = 'context_required'; case ContextNotAccepted = 'context_not_accepted';
-    case ContextIneligible = 'context_ineligible'; case ContextFilterError = 'context_filter_error';
+    case AssignmentScopeRequired = 'context_required'; case AssignmentScopeNotAccepted = 'context_not_accepted';
+    case AssignmentScopeIneligible = 'context_ineligible'; case AssignmentScopeFilterError = 'context_filter_error';
     case Restricted = 'restricted';         case SourceError = 'source_error';      case PolicyError = 'policy_error';
     case RestrictionError = 'restriction_error'; case HookError = 'hook_error';
     case TenantRequired = 'tenant_required'; case TenantMismatch = 'tenant_mismatch';
-    case ContextMismatch = 'context_mismatch'; case ResourceScopeMissing = 'resource_scope_missing';
+    case AssignmentScopeMismatch = 'context_mismatch'; case ResourceScopeMissing = 'resource_scope_missing';
     case ConditionError = 'condition_error'; case ConsistencyError = 'consistency_error';
 }
 
@@ -493,7 +530,7 @@ final readonly class DecisionSet implements Countable, IteratorAggregate { publi
 final readonly class PermissionSet { public function patterns(): array; public function covers(PermissionKey $key): bool; public function validUntil(): ?DateTimeImmutable; }
 ```
 
-`Kernel\` не зависит от Laravel. Модели в `ContextRef` переводит Laravel-слой; все методы с `Model|ContextRef` принимают
+`Kernel\` не зависит от Laravel. Модели в `AssignmentScopeRef` переводит Laravel-слой; все методы с `Model|AssignmentScopeRef` принимают
 модель напрямую.
 
 ## 6. Роли в коде
@@ -509,8 +546,8 @@ abstract class BaseRole
     /** @return list<string> */ public function formerKeys(): array;   // из #[FormerKeys]
     public function grantable(): bool;                         // false, если #[NotGrantable]
     public function superAdmin(): bool;                        // true, если #[SuperAdmin] (D19)
-    /** @return list<ContextDefinition|class-string<ContextDefinition>> */ public function contexts(): array; // configured definitions; [] = tenant-wide
-    public function contextRequired(): bool; // default false; true требует contexts и on:
+    /** @return list<AssignmentScopeDefinition|class-string<AssignmentScopeDefinition>> */ public function scopes(): array; // configured definitions; [] = tenant-wide
+    public function scopeRequired(): bool; // default false; true требует contexts и on:
     public function level(): int;                              // из #[Role(level:)]; 0 по умолчанию
 }
 
@@ -611,7 +648,7 @@ final readonly class PolicyFor                                  // точная 
 }
 
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
-final readonly class Decides                                    // явная привязка метода к праву (сегодня #[GateAbility])
+final readonly class Decides                                    // обязательная привязка package policy метода к праву (сегодня #[GateAbility])
 {
     public function __construct(public UnitEnum|string $permission) {}
 }
@@ -671,7 +708,7 @@ final readonly class PanelSchema implements JsonSerializable
     /** @return list<RoleSchema> */ public function roles(): array;
     /** @return list<FieldSchema> */ public function fields(FieldTarget $target): array;   // Role | RoleGrant | PermissionGrant
     /** @return list<TenantTypeSchema> */ public function tenants(): array;
-    /** @return list<ContextTypeSchema> */ public function contexts(): array;
+    /** @return list<AssignmentScopeTypeSchema> */ public function scopes(): array;
     /** @return list<SubjectTypeSchema> */ public function subjects(): array;
     public function toArray(): array;
 }
@@ -694,9 +731,9 @@ final readonly class RoleSchema
     public bool $editable = false;           // definition меняется только в PHP
     public bool $grantable;                  // можно выдавать вручную
     public bool $automatic;                  // выдаётся правилом (может быть одновременно с grantable)
-    public bool $contextRequired;
-    /** @var list<string> aliases допустимых ContextDefinition */ public array $contextTypes;
-    /** @var list<ContextBindingSchema> */ public array $contextBindings; // alias/filter class metadata, без runtime models/closures
+    public bool $scopeRequired;
+    /** @var list<string> aliases допустимых AssignmentScopeDefinition */ public array $contextTypes;
+    /** @var list<AssignmentScopeBindingSchema> */ public array $contextBindings; // alias/filter class metadata, без runtime models/closures
     public bool $superAdmin;                 // держатель — суперадмин
     /** @var list<PermissionPattern> */ public array $permissions;
 }
@@ -716,7 +753,7 @@ final readonly class FieldSchema
 - Повторная выдача того же в полном ключе panel/tenant/context/origin — `Unchanged`, без события. Выдача с новым сроком или полями — обновление строки.
 - Свои поля (`fields:`) проверяются по `azguardFields()` модели панели и pipes `changing`; неизвестное поле →
   `InvalidChangeFieldsException`.
-- Отзыв во всех сущностях — `on: AnyContext::all()`.
+- Отзыв во всех сущностях — `on: AnyAssignmentScope::all()`.
 
 ## 10. Исключения
 
@@ -733,9 +770,9 @@ final readonly class FieldSchema
 | `SubjectNotAcceptedException` | `subject_not_accepted` | `DefinitionException` | модель не является субъектом панели |
 | `DuplicatePermissionException`, `DuplicateRoleException`, `DuplicatePolicyBindingException` | `duplicate_permission`, `duplicate_role`, `duplicate_policy_binding` | `DefinitionException` | коллизии вкладов (с именами плагинов) |
 | `PluginDependencyMissingException`, `PluginConflictException` | `plugin_dependency_missing`, `plugin_conflict` | `PluginException` | сборка панели |
-| `InvalidPanelIdException`, `InvalidPermissionKeyException`, `InvalidRoleKeyException`, `InvalidContextException` | `invalid_panel_id`, `invalid_permission_key`, `invalid_role_key`, `invalid_context` | `InvalidIdentityException` | грамматика |
+| `InvalidPanelIdException`, `InvalidPermissionKeyException`, `InvalidRoleKeyException`, `InvalidAssignmentScopeException` | `invalid_panel_id`, `invalid_permission_key`, `invalid_role_key`, `invalid_context` | `InvalidIdentityException` | грамматика |
 | `StorageMismatchException`, `UnsupportedDirectWriteException` | `storage_mismatch`, `unsupported_direct_write` | `StorageException` | хранилище |
-| `UnknownPermissionException`, `UnknownRoleException`, `RoleNotGrantableException`, `RoleNotEditableException`, `ContextNotAcceptedException`, `PanelNotWritableException`, `InvalidChangeFieldsException`, `StaleSelectionException`, `ChangeCancelledException` | `unknown_permission`, `unknown_role`, `role_not_grantable`, `role_not_editable`, `context_not_accepted`, `panel_not_writable`, `invalid_change_fields`, `stale_selection`, `change_cancelled` | `ChangeException` | пайплайн изменений |
+| `UnknownPermissionException`, `UnknownRoleException`, `RoleNotGrantableException`, `RoleNotEditableException`, `AssignmentScopeNotAcceptedException`, `PanelNotWritableException`, `InvalidChangeFieldsException`, `StaleSelectionException`, `ChangeCancelledException` | `unknown_permission`, `unknown_role`, `role_not_grantable`, `role_not_editable`, `context_not_accepted`, `panel_not_writable`, `invalid_change_fields`, `stale_selection`, `change_cancelled` | `ChangeException` | пайплайн изменений |
 
 Отказ в доступе — `Illuminate\Auth\Access\AuthorizationException`; `$e->response()->code()` = `DecisionReason::value`.
 Ошибки источников, политик, ограничений и хуков при проверке не выбрасываются наружу: они дают отказ с причиной
@@ -745,7 +782,7 @@ final readonly class FieldSchema
 ## 11. Контракты tenant/context и версии adapters
 
 Tenant/context refs codec и owner boundary — 08/09. BaseRole.contexts default [] = tenant-wide only;
-contextRequired default false. Никаких роли/filters в БД; RoleCatalog read-only registered classes.
+scopeRequired default false. Никаких роли/filters в БД; RoleCatalog read-only registered classes.
 GrantManager readers/writers scoped panel+tenant+origin. Revocation orphan rows использует stored scope/actor authority.
 ResourceScopeResolver и Query adapters сохраняют immutable owner/common predicates. PolicyOnly не вызывает
 assignment store, Decision evidence typed CodeStateToken либо consumed DB StateToken. Exact Eloquent adapter
@@ -757,29 +794,32 @@ assignment store, Decision evidence typed CodeStateToken либо consumed DB St
 HasAzGuard guard(array|string) сохраняет native Eloquent behavior; string выбирает панель, for(...guard:) — auth guard.
 
 ```php
-namespace AzGuard\Contexts;
-abstract class BaseContext implements ConfigurableContextDefinition
+namespace AzGuard\Scopes;
+abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition
 {
-    /** @param ContextQueryFilter|class-string<ContextQueryFilter>|Closure $filter */
-    public function query(ContextQueryFilter|string|Closure $filter): static;
+    abstract public function query(): Builder;
+    abstract public function tenantOf(Model $record): TenantRef;
+    public function model(): ?string; // из query()->getModel()
+    public function resolve(AssignmentScopeRef $ref): ?ResolvedAssignmentScope; // одна структурная загрузка
+    /** @param AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure $filter */
+    public function filter(AssignmentScopeFilter|string|Closure $filter): static;
     public function label(string $label): static;
-    /** @param class-string<ContextDirectory> $class */ public function directory(string $class): static;
-    public function settings(): ContextSettings;
+    /** @param class-string<AssignmentScopeDirectory> $class */ public function directory(string $class): static;
+    public function settings(): AssignmentScopeSettings;
 }
-namespace AzGuard\Permissions;
-#[RequiresGrant]
+namespace AzGuard\Kernel\Decision;
 enum PermissionAuthority: string { case Policy = 'policy'; case Grants = 'grants'; }
 ```
 
-query(new SellerProjects(...)) передаёт объект с именованными constructor args. Class-string означает ровно
-класс ContextQueryFilter и разрешается Laravel container на operation; не имя профиля/драйвера. Closure получает
+filter(new SellerProjects(...)) передаёт объект с именованными constructor args. Class-string означает ровно
+класс AssignmentScopeFilter и разрешается Laravel container на operation; не имя профиля/драйвера. Closure получает
 reserved operation inputs; current user/role/actor не сохраняются в configuration. Все fluent setters clone.
-BaseRole в ContextRuntime — настоящий зарегистрированный класс, common/direct path role=null.
+BaseRole в AssignmentScopeRuntime — настоящий зарегистрированный класс, common/direct path role=null.
 BaseRole не имеет model()/field()/fields(): регион/другие параметры описывает конкретный PHP-класс типизированными
 методами либо отдельный typed filter constructor. Grant fields — данные конкретного назначения, не изменение роли.
-ContextBindingSchema: contextType + filter class metadata + display + exactSupport. ContextTypeSchema содержит
+AssignmentScopeBindingSchema: contextType + filter class metadata + display + exactSupport. AssignmentScopeTypeSchema содержит
 label/model/directory. JSON bindings/profiles в БД нет; settings меняются review/deploy + build fingerprint.
-ContextPolicy inherit/isolated/required принимает definitions или class-string; role bindings только из кода.
+AssignmentScopePolicy inherit/isolated/required принимает definitions или class-string; role bindings только из кода.
 
 BasePlugin не объявляет make(options:), options()/withOptions(). Конкретный plugin объявляет собственную factory
 с named typed parameters; register/boot совместимы с Plugin SPI. PluginContext — panel/plugin/build/dependencies,
@@ -820,12 +860,13 @@ pipes. Constructor только ограничивает shape; identity/mode н
 namespace AzGuard\Policies;
 final readonly class PolicyBinding
 {
-    public static function for(UnitEnum|string $permission, string $policy, string $method): self;
+    public static function for(UnitEnum|string $permission, string $policy): self;
 }
 ```
 
-PolicyBinding.for targets exact action + concrete class + public method, validates DI/model inputs at compilation.
+PolicyBinding.for declares expected action + concrete policy class. Implementation method must carry
+#[Decides(theAction)]; compiler validates exactly one public attributed method, DI and model inputs.
 Для RequiresGrant это обязательное явное declaration optional veto: missing class/method не становится pass.
-Folder pairing/PolicyFor/Decides помогают найти PolicyOnly binding; без итогового binding PolicyOnly compile error.
+Folder discovery/PolicyFor выбирают классы; обязательный Decides связывает PolicyOnly method/action; без итогового binding PolicyOnly compile error.
 Автопоиск policy method не подключает optional grant-side veto скрыто. Role/policy/generator stubs публикуют
-объявленные bindings отдельно от implementation, поэтому случайный rename метода обнаруживается.
+объявленные bindings отдельно от implementation, поэтому удаление метода/атрибута обнаруживается. Rename метода с сохранением #[Decides] допустим.

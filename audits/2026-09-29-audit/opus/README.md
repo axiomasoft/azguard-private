@@ -21,7 +21,7 @@
 | [00-overview.md](00-overview.md) | **владелец, все** | Архитектура простыми словами, примеры панелей и кода |
 | [01-review.md](01-review.md) | владелец, ревьюер | Проверка аудита и Codex; **24 находки N01–N24** о текущем коде |
 | [evidence/](evidence/README.md) | ревьюер, исполнитель | **исторические** 19 probes и baseline 0.3; findings пятого прохода и reference model отдельно |
-| [02-decisions.md](02-decisions.md) | все | Решения D01–D83; у каждого строка «Кратко» простыми словами |
+| [02-decisions.md](02-decisions.md) | все | Решения D01–D84; у каждого строка «Кратко» простыми словами |
 | [03-glossary-and-renames.md](03-glossary-and-renames.md) | все, исполнитель | Словарь, правила имён (методы, атрибуты, классы, папки), карта «было → стало» |
 | [04-packages-and-layout.md](04-packages-and-layout.md) | исполнитель | Пакеты, зоны кода и почему они такие, arch-правила, раскладка пакета и папок приложения |
 | [05-php-api.md](05-php-api.md) | исполнитель | Публичный API: трейт модели, панель, фасад, `PanelBuilder`, встроенные источники, роли, домены и политики, атрибуты, схема |
@@ -34,7 +34,7 @@
 | [12-operations-and-release.md](12-operations-and-release.md) | исполнитель, релиз | Команды, doctor, релиз, гейты совместимости, документация |
 | [13-workstreams.md](13-workstreams.md) | автор плана | Фазы F0–F8, пункты, зависимости |
 | [14-verification.md](14-verification.md) | исполнитель, QA | Сценарии проверки со ссылками на probes |
-| [16-crm-and-workflows.md](16-crm-and-workflows.md) | **владелец, исполнитель** | Полный CRM: ContextDefinition/ProjectContext, role bindings, tenant A/B, code role assignments/optional dynamic action, policy, SQL/UI/external; 22 цепочки |
+| [16-crm-and-workflows.md](16-crm-and-workflows.md) | **владелец, исполнитель** | Полный CRM: AssignmentScopeDefinition/ProjectScope, role bindings, tenant A/B, code role assignments/optional dynamic action, policy, SQL/UI/external; 22 цепочки |
 | [17-crm-acceptance-tests.md](17-crm-acceptance-tests.md) | **QA, исполнитель, владелец** | 68 реальных CRM acceptance cases; fixture/SQL/UI/workers, expected ids и критерии готовности |
 | [18-contexts-and-runtime-inputs.md](18-contexts-and-runtime-inputs.md) | **владелец, автор расширений** | Global/per-role configured contexts, native Builder, user/BaseRole/actor inputs, typed filters, plugins, guard compatibility |
 | [19-oop-and-permission-authority.md](19-oop-and-permission-authority.md) | **владелец, исполнитель** | PHP-only roles, typed filters/factories/DTO, PolicyOnly/RequiresGrant и ownership definitions |
@@ -93,7 +93,7 @@
     `Models/`, `Shared/` (D56);
   - **два уровня проверки**: выдачи и политика того же права; флаг динамических прав (D53, D52);
   - **суперадмин — признак роли**, ограничения действуют и на него (D19, D20; исследование в Q28);
-  - **префикс имён** `->prefixed()` по умолчанию id панели; панель маршрута — как `Auth::shouldUse()` (D05);
+  - **префикс имён** `->resourcePrefix()` по умолчанию id панели; панель маршрута — как `Auth::shouldUse()` (D05);
   - **механизмы Laravel** для плагинов, хуков, pipes, событий, атрибутов контроллеров (D47, D55, D58);
   - **своя система имён** для методов, атрибутов, классов и папок (D57); сохранены `#[CheckPermission]`, строгий
     режим, режимы Filament, Abilities DTO, генераторы.
@@ -121,8 +121,8 @@
 ## Пятый проход: CRM и надёжная композиция
 
 Самый сложный пример теперь есть в [00 §12](00-overview.md#12-самый-сложный-пример-crm-организации-и-проекты)
-и целиком в [16](16-crm-and-workflows.md). ProjectContext имеет **свой ContextDefinition SPI**, роли связываются
-с его классом, другие PHP-роли — с тем же descriptor. TenantRef + ContextRef сохраняются отдельно во всех границах.
+и целиком в [16](16-crm-and-workflows.md). ProjectScope имеет **свой AssignmentScopeDefinition SPI**, роли связываются
+с его классом, другие PHP-роли — с тем же descriptor. TenantRef + AssignmentScopeRef сохраняются отдельно во всех границах.
 
 H01–H14 закрыты на уровне проектирования: exact visibility, token cap, definitive Gate denies,
 role contributions/conditions, version fence/expiry, state-first mutation, origin/external mappings,
@@ -135,7 +135,7 @@ acceptance будущей реализации. Перечень реально 
 1. Создать план по протоколу проекта (`plans/ACTIVE.md`). Фазы и пункты взять из [13-workstreams.md](13-workstreams.md)
    без перенумерации.
 2. В `Execution Rules` перенести правила [13 §0](13-workstreams.md#0-правила-исполнения-переносятся-в-execution-rules-плана),
-   в `Decision Log` — ссылки на D01–D83 (не копировать тексты).
+   в `Decision Log` — ссылки на D01–D84 (не копировать тексты).
 3. Probes — регрессионные требования: каждый переписывается на новый API с обратным ожиданием в своём пункте.
 4. Пункты с маршрутизацией opus не отдавать младшим моделям без спецификации в `findings/`.
 5. Идею моста и заметки для Vaulter ([10 §9–§10](10-integrations.md#9-идея-моста-vaulter--azguard)) передать

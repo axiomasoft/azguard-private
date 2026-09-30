@@ -10,7 +10,7 @@ D80–D83 уточняют прежнюю расширенную схему. [18
 |---|---|---|
 | Право ClientPermission::Update | PHP enum/class, stable key/mode/policy | кому/на какой tenant/project/до какого срока назначено |
 | Роль SellerRole | PHP BaseRole: permissions/context/superAdmin | назначения этой роли; состав не редактируется |
-| ProjectContext/SellerProjects | PHP descriptor/filter с typed constructor | business Project/User данные; не DSL фильтра |
+| ProjectScope/SellerProjects | PHP descriptor/filter с typed constructor | business Project/User данные; не DSL фильтра |
 | Дополнительное campaigns.export | opt-in scoped dynamic catalogue | наличие/label и назначения; mode всегда Grants |
 | Plugin | собственная typed factory/class configuration | разрешённые business data, не произвольный plugin options JSON |
 
@@ -33,10 +33,12 @@ enum ClientPermission: string
 #[PolicyFor(ClientPermission::class)]
 final class ClientPolicy
 {
+    #[Decides(ClientPermission::Update)]
     public function update(User $user, Client $client): bool
     {
         return !$client->do_not_call; // pass/veto; без Update grant не разрешает
     }
+    #[Decides(ClientPermission::ViewOwnProfile)]
     public function viewOwnProfile(User $user, Client $client): bool
     {
         return $client->owner_user_id === $user->getKey(); // sole authority этого action
@@ -53,13 +55,13 @@ final class ClientPolicy
 
 ```php
 $panel->policies([
-    PolicyBinding::for(ClientPermission::Update, ClientPolicy::class, method: 'update'),
-    PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class, method: 'viewOwnProfile'),
+    PolicyBinding::for(ClientPermission::Update, ClientPolicy::class),
+    PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
 ]);
 ```
 
-Если update переименован/удалён, compiler выдаёт DefinitionException. Grant mode не угадывает наличие veto по
-случайно найденному методу. PolicyOnly допускает однозначный folder pairing, но binding обязателен в любом случае.
+Если update удалён или потерял #[Decides], compiler выдаёт DefinitionException. Rename метода с сохранением атрибута допустим. Grant mode не угадывает наличие veto по
+случайно найденному имени метода. Folder pairing выбирает policy class; метод всегда связывается через #[Decides], итоговый PolicyOnly binding обязателен.
 
 Для PolicyOnly matchingGrants/matchingRoles пусты, grant sources не вызываются; app business SQL/service DI внутри
 policy допустимы. «Без базы назначений» не означает запрет любых запросов к собственной CRM модели.
@@ -86,8 +88,8 @@ ConsultsGrants/recursive policy-to-grants fallback исключён из API. Po
 final class SellerRole extends BaseRole
 {
     public function permissions(): array { return [ClientPermission::View, ClientPermission::Update]; }
-    public function contexts(): array { return [ProjectContext::make()->query(new SellerProjects())]; }
-    public function contextRequired(): bool { return true; }
+    public function scopes(): array { return [ProjectScope::make()->filter(new SellerProjects())]; }
+    public function scopeRequired(): bool { return true; }
 }
 
 // С БД: определение уже в PHP, строка только назначает класс конкретному subject/project.
@@ -130,24 +132,24 @@ final class CrmAccessPlugin extends BasePlugin
 {
     private function __construct(
         private readonly CrmModels $models,
-        private readonly ConfigurableContextDefinition $projects,
+        private readonly ConfigurableAssignmentScopeDefinition $projects,
         private readonly string $membership,
         private readonly string $directory,
         private readonly string $clientScope,
     ) {}
 
     /** @param class-string<TenantMembership> $membership
-     *  @param class-string<ContextDirectory> $directory
+     *  @param class-string<AssignmentScopeDirectory> $directory
      *  @param class-string<ResourceScopeResolver> $clientScope */
     public static function make(
         CrmModels $models,
-        ConfigurableContextDefinition $projects,
+        ConfigurableAssignmentScopeDefinition $projects,
         string $membership,
         string $directory,
         string $clientScope,
     ): self {
         if (!is_a($membership, TenantMembership::class, true)) { throw new InvalidArgumentException('membership SPI'); }
-        if (!is_a($directory, ContextDirectory::class, true)) { throw new InvalidArgumentException('directory SPI'); }
+        if (!is_a($directory, AssignmentScopeDirectory::class, true)) { throw new InvalidArgumentException('directory SPI'); }
         if (!is_a($clientScope, ResourceScopeResolver::class, true)) { throw new InvalidArgumentException('clientScope SPI'); }
         if ($projects->model() !== $models->project) { throw new InvalidArgumentException('projects model mismatch'); }
         return new self($models, $projects, $membership, $directory, $clientScope);
@@ -155,9 +157,9 @@ final class CrmAccessPlugin extends BasePlugin
     public function id(): string { return 'acme/crm-access'; }
     public function register(PanelBuilder $panel, PluginContext $context): void
     {
-        $panel->for([$this->models->subject], guard: 'web')
+        $panel->for(model: $this->models->subject, guard: 'web')
             ->tenants(TenantPolicy::required($this->models->organization)->requireMembership($this->membership))
-            ->contexts(ContextPolicy::inherit($this->projects->directory($this->directory)))
+            ->scopes(AssignmentScopePolicy::inherit($this->projects->directory($this->directory)))
             ->resourceScopes([$this->models->client => $this->clientScope]);
         // Этот plugin предоставляет tenant/context wiring. Domain permissions/roles подключает app provider.
     }
@@ -169,7 +171,7 @@ CrmAccessPlugin::make(
         subject: User::class, organization: Organization::class,
         project: Project::class, client: Client::class,
     ),
-    projects: ProjectContext::make()->query(new ActiveProjects()),
+    projects: ProjectScope::make()->filter(new ActiveProjects()),
     membership: OrganizationMembership::class,
     directory: ProjectDirectory::class,
     clientScope: ClientScopeResolver::class,
@@ -229,3 +231,22 @@ ClientScopeResolver, переданный plugin, реализует host mappin
 разрешается на operation. CrmModels.client действительно участвует в resourceScopes binding. Resolver с hardcoded
 другой моделью/неверной organization/project схемой отклоняет host contract qualification; DTO сам по себе не
 обеспечивает совместимость колонок. Каждый вход factory имеет конкретное применение, не «на будущее».
+
+
+## 9. Уточнение public API
+
+D84 заменяет Context descriptor именем ProjectScope и AssignmentScopeDefinition: scopes()/scopeRequired()
+описывают области действия роли. query(): Builder задаёт structural lookup, filter(...) добавляет eligibility;
+local resolve() делается базой из одной записи, external resolve() реализуется своим классом.
+
+```php
+$panel->id('crm')->resourcePrefix('backoffice')->for(model: User::class, guard: 'web');
+use App\Guards\Crm\CrmGuardPanelProvider as Panel;
+
+$user->hasPermission(ClientPermission::Update, on: $client, guard: Panel::getId());
+```
+
+Изменение resourcePrefix или его отключение не меняет этот check. guard в for — authentication guard;
+guard в check — panel id. Оба однозначны по receiver/operation. Shared enum не выбирает случайную панель.
+Методы ClientPolicy выше имеют обязательные Decides; PolicyBinding объявляет ожидаемый action/class, compiler
+выбирает метод по атрибуту. Только его имя можно менять без изменения связи.

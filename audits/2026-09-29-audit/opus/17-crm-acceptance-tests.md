@@ -32,7 +32,7 @@ code-defined city-seller/campaign-lead classes; direct grants, relation membersh
 | P5 | A / Казань / true, R2 | C6 нормальный; дополнительные clients для pagination |
 
 Анна имеет seller на P1 и analyst на P2; в B analyst на P4. Seller binding ограничен city_id пользователя,
-общий ProjectContext — is_active. Борис получает SellerRole, whose SellerProjects — явный PHP filter. Для отдельных
+общий ProjectScope — is_active. Борис получает SellerRole, whose SellerProjects — явный PHP filter. Для отдельных
 кейсов добавляются direct grant и scoped superadmin; каждый case описывает собственный seed delta.
 Повтор local external project id в A/B нормализован в разные host refs; не создаётся неверный ambiguous Project::id.
 Clock фиксирован, экспирация проверяется без sleep. Параллельные workers/processes синхронизируются barriers.
@@ -50,7 +50,7 @@ Clock фиксирован, экспирация проверяется без s
 | R02 | CRM grant проверяют через guard('backoffice') | отказ; backoffice positive grant отдельно даёт доступ |
 | R03 | guard('crm')/azguard()->guard('crm') при web Auth; native guard(guarded: ['secret']), mergeGuarded, fill | Auth/default/subject не переключились; string wrappers immutable; array возвращает модель и сохраняет native mass-assignment защиту; custom guard override проверен consumer fixture |
 | R04 | Один User instance, независимые wrappers A/B; nested вызовы и exception | ранее созданные wrappers/ambient hints не изменились |
-| R05 | Полное имя backoffice:action внутри явно выбранной crm; prefix/enum conflicts | explicit conflict отклонён; hint маршрута не подменяет явную панель |
+| R05 | Полное имя backoffice:action внутри явно выбранной crm; prefix/enum conflicts; crm resourcePrefix id/custom/false; shared enum | explicit conflict отклонён; enum+guard неизменен при смене prefix; shared enum без guard ambiguous; hint маршрута не подменяет явную панель |
 | R06 | Outsider, удалённое membership, неизвестный tenant или forged resource owner | отказ через все поверхности; наличие policy allow/admin flag не исправляет boundary |
 | R07 | Project выбран из A, payload Client с tenant B либо project B | create/update отвергнуты сервером и FK; нет partial protected write |
 | R08 | Два providers/mappings используют один local external id | refs/clients/grants/queries разделены по installation/tenant; нет resolver fallback |
@@ -64,13 +64,13 @@ Clock фиксирован, экспирация проверяется без s
 | R11 | seller P1 и analyst P2 одновременно | seller город не ограничивает analyst: C1/C3 view; update C3 отказ |
 | R12 | Переставить grants/sources/plugins при одинаковых inputs, добавить independent role | ответы совпали; отрицательная ветка не испортила независимую разрешающую |
 | R13 | На одном Project несколько ролей/назначений с разными region fields и typed RegionCondition | Одни grant fields не используются другой contribution; city/region удовлетворены у одного witness |
-| R14 | Два PHP role classes с разными typed Project filters назначены через DB/relation | Один ProjectContext; actual BaseRole/target/actor конкретной ветки, никаких role models |
+| R14 | Два PHP role classes с разными typed Project filters назначены через DB/relation | Один ProjectScope; actual BaseRole/target/actor конкретной ветки, никаких role models |
 | R15 | Изменить user city/project active/grant condition fields; новые операции | host freshness соблюдена; DB grant version не выдаётся за актуальность host state |
 | R16 | Direct grant без роли; common callback и callback, требующий обязательную роль | common eligibility действует, role=null явно; отсутствие role не порождает случайную ORM модель |
 | R17 | isSuperAdmin роль с пустыми permissions и city binding | действует только подходящий scope/binding; inactive/чужой tenant/token cap сохраняют запреты |
 | R18 | Допустимые whereHas/local scope/группированный OR; попытки outer OR/from/connection/new builder | сложный допустимый фильтр работает; owner/common predicates не ослаблены; unsupported форма отклонена |
-| R19 | External context model=null, timeout и нет exact query adapter | scalar contract explicit; timeout deny; exact list unsupported, не все clients |
-| R20 | ContextResolver/owner/query service исключение, unknown binding/profile/type | отказ с reason/trace; нет fallback на global context и partial Allow |
+| R19 | External AssignmentScopeDefinition.resolve(ref), model=null, timeout и нет exact query adapter | scalar contract explicit; timeout deny; exact list unsupported, не все clients |
+| R20 | AssignmentScopeResolver/owner/query service исключение, unknown binding/profile/type | отказ с reason/trace; нет fallback на global context и partial Allow |
 
 ### Политики, динамика и администрирование
 
@@ -115,7 +115,7 @@ Clock фиксирован, экспирация проверяется без s
 | R47 | Runtime capability plugin получает user/BaseRole/proposed grant/actor/scope/phase | inputs соответствуют текущей ветке; сервис DI работает без global model rebinding |
 | R48 | Plugin disable/missing requires/duplicate id/prefix collision, повтор worker boot | предсказуемые build errors; listeners не дублируются и не остаются при новом lifecycle |
 | R49 | Typed plugin secret service refs и schema/cache/trace/export | Секреты/live models/container не раскрываются; deterministic metadata+build fingerprint |
-| R50 | External consumer со своим ContextDefinition, ContextQueryFilter и directory | Public SPI достаточен; enum actions/code roles рядом без зависимости на Internal namespaces |
+| R50 | External consumer со своим AssignmentScopeDefinition, AssignmentScopeFilter и directory | Public SPI достаточен; local scope query() свежий, resolve загружает один row с owner, filter не меняет structural lookup; external resolve не требует Eloquent; enum actions/code roles без Internal namespaces |
 
 ### Состояние, workers, масштаб и релиз
 
@@ -142,7 +142,7 @@ Clock фиксирован, экспирация проверяется без s
 | R64 | Mixed panel policy-only/view-own и assigned update, correlated tenant/project, exact lists | каждый action использует свой mode; бизнес SQL допустим; policy host error deny, assignment-only outage не ломает PolicyOnly |
 | R65 | Enum definitions + DB assignment без dynamicPermissions, затем runtime action creation | enum grant работает без копии enum в permissions; dynamic create rejected до opt-in; action mode immutable Grants |
 | R66 | Remove/rename code role и изменить mode Grants ↔ Policy; старые grants и workers | unknown/stale build deny; authorised cleanup работает; FormerKeys migration explicit; old assignment не переопределяет новый mode |
-| R67 | Wrong named factory arg/type, abstract/non-Model class, project descriptor/model mismatch | actionable boot errors; валидный consumer с собственными typed DTO/filter DI работает; no options parser |
+| R67 | Wrong named factory arg/type, abstract/non-Model class, project descriptor/model mismatch; policy method rename/remove/remove Decides | actionable boot errors; валидный consumer с собственными typed DTO/filter DI работает; no options parser; rename с сохранением Decides работает, потеря declared implementation/attribute — compile error |
 | R68 | Mixed decideMany PolicyOnly/Grants/code-only relation, two panels, one captured now | только consumed DB dependencies fenced; typed state map no fake version; original order/results сохранены |
 
 ## 3. Как проверять результаты

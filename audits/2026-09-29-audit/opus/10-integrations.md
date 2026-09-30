@@ -16,7 +16,7 @@ AzGuard отвечает на один вопрос: «может ли этот 
 ```
         пакет-интеграция (Vaulter, другой пакет)
         ┌───────────────────────────────────────────┐
-        │  свои сущности → ContextRef / права        │   ← это пишет пакет
+        │  свои сущности → AssignmentScopeRef / права        │   ← это пишет пакет
         │  свой плагин для панели AzGuard            │
         └──────────────┬──────────────────┬──────────┘
              спрашивает│                  │ подключается к панели,
@@ -51,8 +51,8 @@ AzGuard отвечает на один вопрос: «может ли этот 
 | Свои права, роли, политики | папка пакета с доменами (enum + политика, `#[Resource]`, `#[PolicyFor]`), `prefixed`; `BaseRole`; `->discover()` | [05 §6](05-php-api.md#6-роли-в-коде), [05 §7](05-php-api.md#7-ресурсы-и-политики) |
 | Свой источник, ограничение, pipe | `Source` + `ProvidesGrants`/`ProvidesPermissions`/…, `AzGuard::sources()->extend()` или `#[AsSource]`, `Restriction`, pipes | [06 §1](06-extension-points.md#1-источники-фабрика), [06 §2](06-extension-points.md#2-свой-источник), [06 §4](06-extension-points.md#4-хуки-проверки), [06 §5](06-extension-points.md#5-хуки-изменений-pipes-и-события) |
 | Описать себя для интерфейсов | подписи и группы прав (`#[Describe]`), поля — попадают в `PanelSchema` | [05 §8](05-php-api.md#8-схема-панели) |
-| Свои проекты и внешние tenants | ContextDefinition, TenantMembership/Directory и ResourceScopeResolver; AccessScope | [06 §7](06-extension-points.md#7-контексты-и-субъекты) |
-| Перевести свою сущность в контекст | `ContextRef::of(type, id)`, `ContextAware` | [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс) |
+| Свои проекты и внешние tenants | AssignmentScopeDefinition, TenantMembership/Directory и ResourceScopeResolver; AccessScope | [06 §7](06-extension-points.md#7-контексты-и-субъекты) |
+| Перевести свою сущность в контекст | `AssignmentScopeRef::of(type, id)`, `ContextAware` | [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс) |
 | Выдать права от своего имени | `$user->guard($id)->grantRole(...)` внутри `AzGuard::actingAs('vaulter: share', …)` | [05 §3](05-php-api.md#3-фасад) |
 | Проверить себя | `IntegrationContractTests`, `PluginContractTests`, `SourceContractTests` против настоящего AzGuard | [06 §10](06-extension-points.md#10-контрактные-наборы-azguardtestingcontracts) |
 | Проверить конфигурацию у приложения | `DoctorCheck` в своём плагине или источнике → `azguard:doctor` | [06 §9](06-extension-points.md#9-doctor) |
@@ -75,7 +75,7 @@ enum DocumentPermission: string
 }
 
 // 2. Плагин: что пакет приносит в панель
-final class AcmeAzGuardPlugin extends BasePlugin              // make() и prefixed() — из базы
+final class AcmeAzGuardPlugin extends BasePlugin              // собственная make(); prefixed() — clone helper базы
 {
     public function id(): string { return 'acme/azguard'; }
 
@@ -113,7 +113,7 @@ $user->guard($panels->primary())->hasPermission(DocumentPermission::Edit, on: $f
 | Спрашивать окончательное решение каждый раз; кэшировать только contributions с full scope/revision/expiry contract | Копировать права AzGuard в свои таблицы | копия отстаёт от отзыва права — дыра в безопасности |
 | Для пачки проверок использовать `decideMany` | Делать N проверок в цикле | validated authority по группе; число queries учитывает chunks/definitions/fence |
 | Менять права только через API AzGuard | Писать в модели и таблицы AzGuard напрямую | обход проверок, событий и версии состояния |
-| Переводить свои сущности в `ContextRef` через morph alias | Использовать `:` в типе, составные id | ключ сущности однозначен только при этих правилах ([D07](02-decisions.md#d07)) |
+| Переводить свои сущности в `AssignmentScopeRef` через morph alias | Использовать `:` в типе, составные id | ключ сущности однозначен только при этих правилах ([D07](02-decisions.md#d07)) |
 | Реагировать на события AzGuard | Опрашивать таблицы AzGuard | таблицы — не контракт |
 | Считать любой `Deny` отказом и показывать `reason` в диагностике | Трактовать ошибку как разрешение | ошибка = отказ |
 | Указывать `axiomasoft/azguard: ^1.0` | Требовать `dev-main` | стабильный релиз пакета невозможен с `dev-main` |
@@ -170,7 +170,7 @@ beforeEach(function () {
 | Команды | `vaulter:<area>:<verb>`, `vaulter:make:*`, `vaulter:doctor --json` | `azguard:<area>:<verb>`, `azguard:make:*`, `azguard:doctor --json` |
 | Ключи расширений | `vendor/name` | `vendor/name` |
 | Тесты для потребителей | `Vaulter\Testing\` + контрактные наборы | `AzGuard\Testing\` + контрактные наборы |
-| Ссылки на сущности хоста | morph alias + id строкой | morph alias + id строкой (`SubjectRef`, `ContextRef`) |
+| Ссылки на сущности хоста | morph alias + id строкой | morph alias + id строкой (`SubjectRef`, `AssignmentScopeRef`) |
 
 ### 8.2 Свои предметные слова
 
@@ -205,12 +205,12 @@ beforeEach(function () {
      `documents.own`, плюс `documents.create` для создания в drive;
    - роли из кода «Читатель документов», «Редактор документов», «Организатор документов» (выдаются вручную,
      поэтому сразу появляются в редакторах Filament через схему панели);
-   - doctor-проверку: панель принимает тип владельца drive как контекст (`ContextPolicy`), права есть в каталоге.
+   - doctor-проверку: панель принимает тип владельца drive как контекст (`AssignmentScopePolicy`), права есть в каталоге.
 2. **Драйвер прав Vaulter** (`PermissionDriver` — контракт Vaulter) переводит вопросы Vaulter в вопросы AzGuard:
 
    | Метод Vaulter | Что спрашивает у AzGuard |
    |---|---|
-   | `resolve(subject, actor, scope)` | `decideMany` по пяти правам уровней в контексте `ContextRef::of(owner.type, owner.id)`; высший разрешённый уровень → `GrantLevel` |
+   | `resolve(subject, actor, scope)` | `decideMany` по пяти правам уровней в контексте `AssignmentScopeRef::of(owner.type, owner.id)`; высший разрешённый уровень → `GrantLevel` |
    | `override(actor, scope)` | `$actor->guard($panel)->isSuperAdmin()` → allow |
    | `subjectsFor(actor)` | `roleNames(on: owner)` → роли AzGuard как субъекты Vaulter. Тогда NodeGrant можно выдать роли: «папка доступна роли Редакторы» |
    | `canCreateIn(actor, scope)` | `hasPermission('documents.create', on: owner)` |
@@ -270,7 +270,7 @@ beforeEach(function () {
 
 ## 13. Тенантные пакеты и полные scopes
 
-Пакет не обязан наследовать конкретную Organization хоста. Он реализует ContextDefinition/TenantDirectory/
+Пакет не обязан наследовать конкретную Organization хоста. Он реализует AssignmentScopeDefinition/TenantDirectory/
 TenantMembership/ResourceScopeResolver и связывает внешние `(provider,installation,external_id)` с TenantRef.
 Mapping и credentials принадлежат пакету; [CRM §10](16-crm-and-workflows.md#10-несколько-внешних-систем-одного-тенанта).
 

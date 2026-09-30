@@ -66,7 +66,7 @@ interface StoresGrants extends Source                               // писа�
 
 interface FiltersQueries extends Source                             // для visibleTo(): какие сущности типа $type дают право
 {
-    public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): ?ContextSelection;
+    public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): ?AssignmentScopeSelection;
 }
 
 interface DescribesSchema extends Source                            // для схемы панели (D54): что может дать, свои поля
@@ -84,7 +84,7 @@ interface EvaluationContext                     // @api — что движок 
 {
     public function panel(): Panel;
     public function scope(): AccessScope;
-    public function contexts(): array;          // применимые ContextRef
+    public function scopes(): array;          // применимые AssignmentScopeRef
     public function resource(): ?object;
     public function state(): CodeStateToken|StateToken;
     public function now(): DateTimeImmutable;   // одно значение на проверку / на decideMany
@@ -292,7 +292,7 @@ final class AuditTrailPlugin extends BasePlugin
 каждого плагина в порядке подключения → сборка источников (§1.2) и проверки → заморозка → `boot()`.
 
 Если плагин реализует `PrefixesKeys`, `PanelBuilder` добавляет префикс к локальным именам прав и ролей этого плагина:
-`posts.edit` → `blog.posts.edit`, роль `editor` → `blog-editor`. Префикс панели (`->prefixed()` на панели, D05)
+`posts.edit` → `blog.posts.edit`, роль `editor` → `blog-editor`. Префикс панели (`->resourcePrefix()` на панели, D05)
 добавляется снаружи: `admin.blog.posts.edit`.
 
 Правила: один плагин можно подключить к нескольким панелям, каждый экземпляр видит свою; конфликт двух плагинов по
@@ -429,35 +429,49 @@ Panel-wide Restriction не используется вместо условий
 
 ## 7. Контексты и субъекты
 
-Контракт **ProjectContext** и других классов типов областей — `@spi`, принадлежит ядру:
+Контракт **ProjectScope** и других классов типов областей — `@spi`, принадлежит ядру:
 
 ```php
-namespace AzGuard\Contracts\Contexts;
+namespace AzGuard\Contracts\Scopes;
 
-interface ContextDefinition
+interface AssignmentScopeDefinition
 {
     public function type(): string; // стабильный зарегистрированный alias, уникальный в панели
     /** @return class-string<Model>|null */ public function model(): ?string;
-    public function exists(ContextRef $context): bool;
-    public function tenantOf(ContextRef $context): TenantRef; // authoritative owner, не current tenant
+    public function resolve(AssignmentScopeRef $ref): ?ResolvedAssignmentScope;
 }
 
-interface ConfigurableContextDefinition extends ContextDefinition
+interface QueryableAssignmentScopeDefinition extends AssignmentScopeDefinition
 {
-    public function query(ContextQueryFilter|string|Closure $filter): static; // string = validated class-string<ContextQueryFilter>
+    public function query(): Builder; // fresh structural query, до common/role filters
+    public function tenantOf(Model $record): TenantRef; // owner уже загруженной записи
+}
+
+final readonly class ResolvedAssignmentScope
+{
+    public function __construct(
+        public AssignmentScopeRef $ref,
+        public TenantRef $tenant,
+        public ?Model $record = null,
+    ) {}
+}
+
+interface ConfigurableAssignmentScopeDefinition extends AssignmentScopeDefinition
+{
+    public function filter(AssignmentScopeFilter|string|Closure $filter): static; // string = validated class-string<AssignmentScopeFilter>
     public function label(string $label): static;
     public function directory(string $class): static;
-    public function settings(): ContextSettings;
+    public function settings(): AssignmentScopeSettings;
 }
-interface ContextQueryFilter
+interface AssignmentScopeFilter
 {
-    public function apply(Builder $query, ContextRuntime $runtime): void;
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void;
 }
-interface ContextAccessAdapter
+interface AssignmentScopeAccessAdapter
 {
-    public function allows(ContextRef $ref, ContextRuntime $runtime): bool;
-    public function allowsMany(array $refs, ContextRuntime $runtime): array;
-    public function constrain(Builder $contextQuery, ContextRuntime $runtime): Builder;
+    public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool;
+    public function allowsMany(array $refs, AssignmentScopeRuntime $runtime): array;
+    public function constrain(Builder $contextQuery, AssignmentScopeRuntime $runtime): Builder;
 }
 // Adapter query относится к модели context; core ставит outer identity/owner predicates.
 
@@ -473,32 +487,40 @@ interface TenantDirectory
     public function search(string $term, LookupContext $lookup, int $limit): array;
     public function describe(TenantRef $tenant, LookupContext $lookup): ?TenantOption;
 }
-interface ContextDirectory
+interface AssignmentScopeDirectory
 {
     public function search(string $type, string $term, LookupContext $lookup, int $limit): array;
-    public function describe(ContextRef $context, LookupContext $lookup): ?ContextOption;
+    public function describe(AssignmentScopeRef $context, LookupContext $lookup): ?AssignmentScopeOption;
 }
 interface SubjectDirectory
 {
     public function search(string $term, LookupContext $lookup, int $limit, ?string $type = null): array;
     public function describe(SubjectRef $subject, LookupContext $lookup): ?SubjectOption;
 }
-interface ContextResolver { public function resolve(Request $request): ?ContextRef; }
-interface ContextMembership { public function isMember(SubjectRef $subject, ContextRef $context): bool; }
+interface AssignmentScopeResolver { public function resolve(Request $request): ?AssignmentScopeRef; }
+interface AssignmentScopeMembership { public function isMember(SubjectRef $subject, AssignmentScopeRef $context): bool; }
 interface SubjectResolver { public function resolve(mixed $subject): SubjectRef; public function model(SubjectRef $ref): ?Model; }
-interface ProvidesContext { public function azguardContext(): ?ContextRef; } // только non-tenant shortcut
+interface ProvidesAssignmentScope { public function azguardAssignmentScope(): ?AssignmentScopeRef; } // только non-tenant shortcut
 ```
 
-`AzGuard\Contexts\BaseContext implements ContextDefinition` — удобная база. `ProjectContext` лежит
-в `Contexts/` панели; FolderSource регистрирует его, ContextPolicy подключает явно.
-`BaseRole::contexts()` возвращает classes или configured recipes; bindings находятся в PHP, stored grants хранят aliases;
-empty contexts разрешает только tenant-wide выдачу. `contextRequired=true` запрещает global context.
+query(): Builder — structural набор, filter(...) — predicate configuration; сигнатуры не перегружены.
+BaseAssignmentScope.resolve(ref) проверяет type, использует fresh query()->whereKey(ref.id())->first(),
+выводит модель и tenant из этой же записи. Core сверяет returned ref/model key/tenant с запросом;
+null означает отсутствие, exception — отказ. query не вызывается дважды для existence + owner.
+Filters применяются отдельно; исходный Builder/connection не хранится между requests. Внешний descriptor
+реализует resolve(ref) сам и может возвращать snapshot с record=null; дальнейшие model-required policies
+требуют явного загрузчика, отсутствие модели не заменяется null argument.
+
+`AzGuard\Scopes\BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition` — удобная база. `ProjectScope` лежит
+в `Scopes/` панели; FolderSource регистрирует его, AssignmentScopePolicy подключает явно.
+`BaseRole::scopes()` возвращает classes или configured recipes; bindings находятся в PHP, stored grants хранят aliases;
+empty contexts разрешает только tenant-wide выдачу. `scopeRequired=true` запрещает global context.
 Doctor сверяет binding классов и aliases. Role/context FQCN не сохраняются в grants.
 
-Non-tenant `ContextPolicy::inherit(Project::class)` — shortcut через ModelContextDefinition с global TenantRef.
+Non-tenant `AssignmentScopePolicy::inherit(Project::class)` — shortcut через ModelAssignmentScopeDefinition с global TenantRef.
 В tenant-панели нужен descriptor или явный owner resolver; одного имени модели недостаточно.
 `ContextAware` умеет legacy azguardContext для non-tenant и `ProvidesAccessScope` для tenant resource.
-Непринятый ContextRef не игнорируется. External descriptor с model=null допускает refs, но policy с обязательной
+Непринятый AssignmentScopeRef не игнорируется. External descriptor с model=null допускает refs, но policy с обязательной
 Eloquent-моделью требует отдельного ModelResolver; без него сборка binding отклоняется.
 
 `TenantPolicy::required(Organization::class)` использует зарегистрированный ModelTenantDefinition/morph alias;
@@ -574,7 +596,7 @@ interface DoctorCheck { public function key(): string; /** @return iterable<Doct
 | `PluginContractTests` | авторы плагинов | плагин собирается на чистой панели и на двух панелях; не меняет панель в `boot()`; отключается без побочных эффектов |
 | `RestrictionContractTests` | авторы ограничений | нет записи; исключение ≠ pass |
 | `HookContractTests` | авторы хуков и pipes | `before` без побочных эффектов; pipe не пишет в БД в обход писателя; отменённое изменение не оставляет следов |
-| `SubjectResolverContractTests`, `ContextResolverContractTests` | авторы резолверов | идемпотентность, кодек, нет `:` в типе |
+| `SubjectResolverContractTests`, `AssignmentScopeResolverContractTests` | авторы резолверов | идемпотентность, кодек, нет `:` в типе |
 | `IntegrationContractTests` | пакеты-интеграции ([10](10-integrations.md)) | решение одинаково через трейт, `decideMany` и Gate; `StateToken` меняется при изменении; события после commit |
 
 ## 11. Истории расширения — проверка, что границы достаточно
@@ -589,12 +611,12 @@ interface DoctorCheck { public function key(): string; /** @return iterable<Doct
 | Права, созданные в админке без релиза | `DatabaseSource::make()->dynamicPermissions()` | ничего |
 | Панель API пользователя, ограниченная токеном | grants пользователя + TokenAbilitiesRestriction; service principal capabilities отдельно | ничего |
 | LDAP-группы → роли | свой источник с `#[AsSource('ldap')]` (`Volatility::Request`) | ничего |
-| Права у проектов (тариф) | панель `features` с `for([Project::class])` + свой источник | ничего |
+| Права у проектов (тариф) | панель `features` с `for(model: Project::class)` + свой источник | ничего |
 | Модуль Blog со своими правами в админке | плагин с `discover(__DIR__)` + `configurePanel()` | ничего |
 | Поле `department_id` у выдачи роли и правило «только свой отдел» | модель в `Models/` + `azguardFields()` + `Restriction` | ничего |
 | Подтверждение изменений вторым человеком | pipe `changing` + своя таблица заявок | ничего |
-| CRM: CallerRole/AnalystRole/optional dynamic action на Projects разных Organizations | ProjectContext implements ContextDefinition + TenantPolicy + scoped grants + ClientPolicy/query adapter | ничего |
-| «Только сотрудники магазина» | `ContextMembership` + `requireMembership()` | ничего |
+| CRM: CallerRole/AnalystRole/optional dynamic action на Projects разных Organizations | ProjectScope implements AssignmentScopeDefinition + TenantPolicy + scoped grants + ClientPolicy/query adapter | ничего |
+| «Только сотрудники магазина» | `AssignmentScopeMembership` + `requireMembership()` | ничего |
 | Суперадмины во всех панелях по флагу пользователя | `RootRole` с `#[SuperAdmin]` в `Shared/Roles/` + `AzGuard::configurePanels(fn ($p) => $p->roles([RootRole::class]))` | ничего |
 | Суперадмин одного магазина | роль с `#[SuperAdmin]`, выданная `on: $store` | ничего |
 | Отдельная БД для прав админки | `DatabaseSource::make()->storage(Storage::own(connection: 'backoffice'))` + `azguard:storage:migration` | ничего |
@@ -616,10 +638,10 @@ interface DoctorCheck { public function key(): string; /** @return iterable<Doct
 
 ## 11. Явные inputs расширений и настройки контекстов
 
-[18](18-contexts-and-runtime-inputs.md) задаёт ContextRuntime/LookupContext/ChangeContext,
+[18](18-contexts-and-runtime-inputs.md) задаёт AssignmentScopeRuntime/LookupContext/ChangeContext,
 [19](19-oop-and-permission-authority.md) — строгий OOP API и authority modes.
 Плагин получает конфигурацию через собственные именованные typed parameters, не через общий options bag.
-query принимает объект ContextQueryFilter, exact filter class-string или Closure; string profile registry отсутствует.
+filter принимает объект AssignmentScopeFilter, exact filter class-string или Closure; string profile registry отсутствует.
 BaseRole — реальный класс; настройки role/context в PHP, в БД только назначения. Сервисы фильтра из container
 разрешаются на operation, build recipe не удерживает User/Request/Builder.
 Pipeline остаётся handle(Change, Closure next); ChangeContext пересоздаётся после with/final validation/retry.

@@ -86,3 +86,10 @@ Dossier validator включает D01–D83, V01–V120 (retired V40–V42), C0
 
 [oop-contracts.php](oop-contracts.php) — выполненный PHP probe typed factories/DTO/DI;
 границы проверки и результат: [oop-review.md](oop-review.md#проверка-и-её-границы).
+
+
+## Точечное уточнение API
+
+[narrow-api-review.md](narrow-api-review.md) — D84: ProjectScope/query/filter, обязательные Decides,
+resourcePrefix, enum+guard и for(model:). Текущий validator включает D01–D84; прежние probes выше сохраняют
+свои исторические contracts. Qualification этого изменения — документация; CRM runtime cases ещё future.

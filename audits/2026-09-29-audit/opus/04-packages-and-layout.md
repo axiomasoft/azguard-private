@@ -38,7 +38,7 @@
             │ │ │пайплайн      │ │ пайплайн │ │ описание│ │ Policies     │ │ │
             │ │ │проверки      │ │ изменений│ │ панели  │ │ фабрика      │ │ │
             │ │ └──────┬───────┘ └────┬─────┘ └────┬────┘ └──────┬───────┘ │ │
-            │ │        ▼  Panels, Catalog, Contexts ▼             ▼         │ │
+            │ │        ▼  Panels, Catalog, Scopes ▼             ▼         │ │
             │ │          ┌────────────────────────────┐                     │ │
             │ │          │ Kernel: имена, ссылки,     │ ◄── Storage         │ │
             │ │          │ решение, грамматика        │     (хранилища, БД) │ │
@@ -50,11 +50,11 @@
 | Зона | Простыми словами | Можно зависеть от | Нельзя |
 |---|---|---|---|
 | `Kernel\` | Словарь и арифметика прав: имя, шаблон, сущность, решение | только PHP | Laravel, Carbon, `app()`, `config()`, `now()` |
-| `Contracts\` | Pure protocols и явно Laravel-facing adapters (Contexts/Subject/UI/Plugin/Change inputs) | Kernel + публичные immutable definitions; Laravel-facing — Model/Request/Builder | orchestration implementations |
-| `Panels\`, `Catalog\`, `Contexts\` | Описание панелей, их прав, правило выбора панели, политика сущностей | Kernel, Contracts | Storage, Changes |
+| `Contracts\` | Pure protocols и явно Laravel-facing adapters (Scopes/Subject/UI/Plugin/Change inputs) | Kernel + публичные immutable definitions; Laravel-facing — Model/Request/Builder | orchestration implementations |
+| `Panels\`, `Catalog\`, `Scopes\` | Описание панелей, их прав, правило выбора панели, политика сущностей | Kernel, Contracts | Storage, Changes |
 | `Sources\` | Источники и их фабрика: папка панели (автопоиск), БД, связи, Gate | Kernel, Contracts, Panels; `Database\` — ещё Storage | Changes, Authorization |
 | `Policies\` | Атрибуты и вызов политик доменов — второй уровень | Kernel, Contracts, Panels | Storage, Changes |
-| `Authorization\` | Как отвечать «можно ли» | Kernel, Contracts, Panels, Catalog, Contexts | Changes (проверка не пишет) |
+| `Authorization\` | Как отвечать «можно ли» | Kernel, Contracts, Panels, Catalog, Scopes | Changes (проверка не пишет) |
 | `Changes\` | Как менять права | всё выше + Storage | Laravel-слой |
 | `Schema\` | Описание панели для интерфейсов | Kernel, Contracts, Panels, Catalog | Storage, Changes |
 | `Storage\` | Где и как лежат данные панелей | Kernel, Contracts, Panels | Authorization, Changes |
@@ -86,7 +86,7 @@ packages/core/src/
 ├── AzGuardManager.php                  # корень фасада, без состояния
 ├── Facades/AzGuard.php
 ├── Kernel/
-│   ├── Identity/    PermissionKey, PermissionPattern, RoleKey, SubjectRef, ContextRef, AnyContext, ActorRef, IdentityCodec
+│   ├── Identity/    PermissionKey, PermissionPattern, RoleKey, SubjectRef, AssignmentScopeRef, AnyAssignmentScope, ActorRef, IdentityCodec
 │   ├── Grammar/     PermissionGrammar, PatternMatcher
 │   ├── Permissions/ PermissionSet
 │   └── Decision/    AccessRequest, Decision, Effect, DecisionReason, DecisionSet, Grant,
@@ -99,14 +99,14 @@ packages/core/src/
 │   │                  StoresGrants, FiltersQueries, DescribesSchema, ChecksHealth, Volatility,
 │   │                  PermissionDefinition, RoleDefinition, PolicyBinding, SourceDescription (@spi)
 │   ├── Authorization/ Restriction (@spi), EvaluationContext (@api)
-│   ├── Contexts/      ContextResolver, ContextMembership, ContextDirectory, ProvidesContext (@spi)
+│   ├── Scopes/      AssignmentScopeResolver, AssignmentScopeMembership, AssignmentScopeDirectory, ProvidesAssignmentScope (@spi)
 │   ├── Subjects/      SubjectResolver, SubjectDirectory (@spi)
 │   ├── Changes/       GrantManager, PermissionManager; Roles/RoleCatalog read-only (@api)
 │   ├── Plugins/       Plugin, DependsOnPlugins, PrefixesKeys (@spi)
 │   └── Diagnostics/   DoctorCheck (@spi)
 ├── Panels/            Panel, PanelBuilder, PanelProvider, PanelRegistry, PanelResolver, CurrentPanel, PanelSettings
 ├── Catalog/           PanelCatalog (статичная часть из источников + динамическая с версией)
-├── Contexts/          ContextPolicy, CurrentContext, WithinContext, MembershipRestriction,
+├── Scopes/          AssignmentScopePolicy, CurrentContext, WithinContext, MembershipRestriction,
 │                      RouteParameterResolver, ContextAware (trait)
 ├── Sources/
 │   ├── SourceManager.php               # Illuminate\Support\Manager: имена → источники; AsSource
@@ -120,7 +120,7 @@ packages/core/src/
 ├── Authorization/     Authorizer, SubjectAccess, SubjectPanels, Visibility, BatchEvaluation,
 │                      Pipeline/{AccessPipeline, Stages/*}, Cache/PermissionSetCache
 ├── Changes/           Change, ChangeResult, ChangePipeline (Illuminate\Pipeline), GrantManager, PermissionManager, Operations/*
-├── Schema/            PanelSchema, PermissionSchema, RoleSchema, FieldSchema, ContextTypeSchema,
+├── Schema/            PanelSchema, PermissionSchema, RoleSchema, FieldSchema, AssignmentScopeTypeSchema,
 │                      SubjectTypeSchema, Field, SchemaBuilder
 ├── Storage/           Storage, StorageRegistry, PanelState, Schema/HostKeyColumns,
 │                      Models/{RoleGrant,PermissionGrant,Permission},
@@ -158,7 +158,7 @@ app/Guards/
 ├── Cabinet/
 │   ├── CabinetGuardPanelProvider.php
 │   ├── Roles/ProjectEditorRole.php
-│   ├── Contexts/ProjectContext.php
+│   ├── Scopes/ProjectScope.php
 │   ├── Permissions/
 │   │   ├── Orders/OrderPermission.php
 │   │   └── Profile/ProfilePermission.php
@@ -174,7 +174,7 @@ app/Guards/
 │   ├── Abilities/Orders/OrderAbilities.php
 │   ├── Queries/Orders/OrderVisibility.php
 │   ├── Roles/{SuperAdmin,Manager}Role.php
-│   ├── Contexts/ProjectContext.php
+│   ├── Scopes/ProjectScope.php
 │   ├── Sources/LdapSource.php
 │   ├── Restrictions/{AccountLocked,TokenAbilities}Restriction.php
 │   ├── Changes/{RequireReason,AuthorizeAccessChange}.php
@@ -196,7 +196,7 @@ Modules/Blog/Guards/
 | `Permissions/{Group}/` | enum прав домена | автопоиск |
 | `Policies/{Group}/` | политика — второй уровень | pairing по D56 либо явный PolicyFor/Decides |
 | `Abilities/{Group}/` | DTO прав для фронтенда | автопоиск |
-| `Contexts/` | классы ContextDefinition (ProjectContext), на них ссылаются роли | автопоиск, явный выбор ContextPolicy |
+| `Scopes/` | классы AssignmentScopeDefinition (ProjectScope), на них ссылаются роли | автопоиск, явный выбор AssignmentScopePolicy |
 | `Resolvers/` | tenant и resource scope adapters | явно: tenantResolvers/resourceScopes |
 | `Queries/{Group}/` | парная query semantics policy | явно: FiltersAccessQueries adapter |
 | `Sources/` | свои источники | явно: `->permissions([...])` (порядок и настройки важны); имя из `#[AsSource]` |
@@ -239,8 +239,8 @@ Modules/Blog/Guards/
 
 ## 7. Границы пятого прохода
 
-TenantRef/AccessScope/RoleContribution/AccessPredicate — pure Kernel values. ContextDefinition/ResourceScopeResolver,
-Directories и BaseContext — Laravel-facing SPI/adapter, аналогично существующим model subjects.
+TenantRef/AccessScope/RoleContribution/AccessPredicate — pure Kernel values. AssignmentScopeDefinition/ResourceScopeResolver,
+Directories и BaseAssignmentScope — Laravel-facing SPI/adapter, аналогично существующим model subjects.
 При выборе namespace arch-правила проверяют реальную dependency closure: Panel readonly value допустим в SPI,
 ChangePipeline/Storage implementation — нет. Sources\Database — инфраструктурное исключение, не обещание,
 что Eloquent-писатель стороннего storage поддержан в 1.0.

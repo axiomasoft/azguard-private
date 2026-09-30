@@ -13,7 +13,7 @@ $user->guard('crm')->inTenant($organization)->grantRole('seller', on: $project);
 $user->azguard()->guard('crm'); // тот же SubjectAccess
 ```
 
-guard('admin') выбирает **панель авторизации AzGuard**. `PanelBuilder::for([User::class], guard: 'web')`
+guard('admin') выбирает **панель авторизации AzGuard**. `PanelBuilder::for(model: User::class, guard: 'web')`
 выбирает **Laravel authentication guard**, а `Auth::guard('web')` принадлежит Laravel. Имена этих пространств
 независимы: CRM-панель может использовать web guard, две панели — один web guard.
 Panel/PanelBuilder/PanelAccess, `AzGuard::panel()` и middleware panel hints сохраняют свои значения.
@@ -43,18 +43,18 @@ public function guard(array|string $guarded): static|SubjectAccess
 
 ```php
 // app/Guards/Crm/Queries/Projects/ActiveProjects.php
-final class ActiveProjects implements ContextQueryFilter
+final class ActiveProjects implements AssignmentScopeFilter
 {
-    public function apply(Builder $query, ContextRuntime $runtime): void
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
     {
         $query->where('is_active', true);
     }
 }
 
 // app/Guards/Crm/Queries/Projects/SellerProjects.php
-final class SellerProjects implements ContextQueryFilter
+final class SellerProjects implements AssignmentScopeFilter
 {
-    public function apply(Builder $query, ContextRuntime $runtime): void
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
     {
         $user = $runtime->user;
         if (!$user instanceof User || $user->city_id === null) {
@@ -65,42 +65,42 @@ final class SellerProjects implements ContextQueryFilter
     }
 }
 
-$panel->contexts(ContextPolicy::inherit(
-    ProjectContext::make()->query(new ActiveProjects())->directory(ProjectDirectory::class),
+$panel->scopes(AssignmentScopePolicy::inherit(
+    ProjectScope::make()->filter(new ActiveProjects())->directory(ProjectDirectory::class),
 ));
 
 #[Role('seller')]
 final class SellerRole extends BaseRole
 {
-    public function contexts(): array
+    public function scopes(): array
     {
-        return [ProjectContext::make()->query(new SellerProjects())];
+        return [ProjectScope::make()->filter(new SellerProjects())];
     }
-    public function contextRequired(): bool { return true; }
+    public function scopeRequired(): bool { return true; }
     public function permissions(): array { return [ClientPermission::View, ClientPermission::Update]; }
 }
 ```
 
-ProjectContext реализует structural ContextDefinition: type/model/exists/tenantOf. Identity и owner не зависят
+ProjectScope реализует structural AssignmentScopeDefinition: type/model/resolve; query/tenantOf у Eloquent adapter. Identity и owner не зависят
 от фильтров, текущего Auth или активного проекта. Query — настоящий Eloquent Builder; filters добавляют predicate.
 Сразу видно, кто задаёт active/city, где поля и откуда пользователь; реестра seller-city/произвольной SQL column нет.
 Чтобы фильтру нужны настройки, он объявляет typed constructor, например `new ProjectsInRegion(region: $region)`.
 Region — проверенный value object приложения; core не вводит произвольный field/operator JSON язык.
 
-query принимает ContextQueryFilter object, exact class-string этого SPI или Closure. Class-string — FQCN класса,
+filter принимает AssignmentScopeFilter object, exact class-string этого SPI или Closure. Class-string — FQCN класса,
 разрешаемого container на operation, не строковый alias профиля. Объект хранит только immutable config;
 если constructor требует request-scoped service, используется class-string/factory собственного класса, не
 объект с захваченным Request. Callable injection для Closure — native Container::call с reserved runtime inputs.
 Сервисные constructor dependencies class filter разрешаются на operation и не кешируются как build recipe.
 
-Concrete context::make() создаёт новую configuration; BaseContext не объявляет универсальную factory. query/label/directory возвращают clone. Class shorthand
-ProjectContext::class означает definition без role-specific добавлений. Role binding не меняет зарегистрированные
+Concrete context::make() создаёт новую configuration; BaseAssignmentScope не объявляет универсальную factory. filter/label/directory возвращают clone. Class shorthand
+ProjectScope::class означает definition без role-specific добавлений. Role binding не меняет зарегистрированные
 model/type/owner и не удаляет common predicates. Defaults/plugin/provider common filters добавляются AND;
 identity conflicts отклоняются. Label/directory presentation имеют явный precedence.
 
 ## 3. Что получает callback
 
-ContextRuntime — immutable operation input, создаваемый отдельно для common/direct/каждой role contribution.
+AssignmentScopeRuntime — immutable operation input, создаваемый отдельно для common/direct/каждой role contribution.
 
 | Вход | Значение |
 |---|---|
@@ -112,8 +112,8 @@ ContextRuntime — immutable operation input, создаваемый отдел�
 | runtime | все эти входы; query передаётся отдельно |
 
 ```php
-ProjectContext::make()->query(
-    function (Builder $query, User $user, ?BaseRole $role, ContextRuntime $runtime): void {
+ProjectScope::make()->filter(
+    function (Builder $query, User $user, ?BaseRole $role, AssignmentScopeRuntime $runtime): void {
         $query->where('city_id', $user->city_id);
         if ($role instanceof SellerRole) {
             // У класса есть явно объявленные methods/settings; нет roleModel/field('region_id').
@@ -123,7 +123,7 @@ ProjectContext::make()->query(
 ```
 
 Compiler проверяет nullable/type контракты. Container::call получает reserved значения по имени и однозначному
-типу; остальные сервисы — native DI. Нельзя глобально bind User/BaseRole/ContextRuntime или получить пустую ORM
+типу; остальные сервисы — native DI. Нельзя глобально bind User/BaseRole/AssignmentScopeRuntime или получить пустую ORM
 модель вместо отсутствующего target. Required non-null User/BaseRole при null/type mismatch — ошибка/отказ.
 Raw модели callback может читать, но не сохранять/мутировать. Readonly frame не делает Model immutable.
 Freshness host city/membership/active зависит от adapter/revision/чтения, а не одного panel state version.
@@ -153,12 +153,12 @@ Model global scopes не объявляются неизменяемой boundar
 
 Default contract: where/whereIn/whereHas/grouped OR/predicate-only local scopes, bound values. Terminal get/paginate/
 write, builder/model/from/connection replacement, select/order/limit/union/root joins требуют отдельного exact
-ContextAccessAdapter или отклоняются. PHP filter — trusted code, не sandbox. Arbitrary policy/external service/cross
+AssignmentScopeAccessAdapter или отклоняются. PHP filter — trusted code, не sandbox. Arbitrary policy/external service/cross
 DB/сложный join не обещаются автоматически exact. Unsupported query вызывает исключение, не широкий fallback.
 
 ## 5. Фазы: доступ, назначение и отзыв
 
-ContextPhase: Access, Assignment, Revocation, Inspection. Record/list/count/export/job используют Access при одном
+AssignmentScopePhase: Access, Assignment, Revocation, Inspection. Record/list/count/export/job используют Access при одном
 observed frame/now; фаза не зависит от surface. Assignment search и final write получают target user/BaseRole/
 proposed fields отдельно от actor. Фильтр autocomplete не заменяет validation под mutation lock после pipes.
 Revocation разрешён authorised scoped actor для inactive/expired/orphan grants по stored scope, без обязательной
@@ -170,10 +170,10 @@ protocol; panel_state сам по себе не блокирует перено�
 
 ```php
 // Definition и фильтры в PHP:
-final class ProjectsInRegion implements ContextQueryFilter
+final class ProjectsInRegion implements AssignmentScopeFilter
 {
     public function __construct(private readonly RegionCode $region) {}
-    public function apply(Builder $query, ContextRuntime $runtime): void
+    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
     {
         $query->where('region_code', $this->region->value);
     }
@@ -199,7 +199,7 @@ $panel->plugins([
             subject: User::class, organization: Organization::class,
             project: Project::class, client: Client::class,
         ),
-        projects: ProjectContext::make()->query(new ActiveProjects()),
+        projects: ProjectScope::make()->filter(new ActiveProjects()),
         membership: OrganizationMembership::class,
         directory: ProjectDirectory::class,
         clientScope: ClientScopeResolver::class,
@@ -215,7 +215,7 @@ BasePlugin не объявляет make, чтобы у factories были соб
 Plugin lifecycle id/register/boot и optional prefix helper. Model/context configuration не является authority.
 
 PluginContext — build id/panel/plugin/namespace/declared dependencies, без общего options getter/service locator.
-Plugin получает настройки из собственных typed полей. Runtime capabilities получают ContextRuntime/EvaluationContext/
+Plugin получает настройки из собственных typed полей. Runtime capabilities получают AssignmentScopeRuntime/EvaluationContext/
 LookupContext/ChangeContext на operation. Scope/user/BaseRole/grant/actor не читаются из boot Auth. Listener получает
 committed refs/scalars и при необходимости перечитывает данные; не cached Model/Request.
 Factories fresh и не мутируют recipe; custom binding returning shared mutable object отклоняется/явно изолируется.
@@ -256,15 +256,15 @@ External/cross-connection данные не объявляются одним sn
 ## 10. Формы входов и правило обновления
 
 ```php
-namespace AzGuard\Contexts;
-final readonly class ContextRuntime
+namespace AzGuard\Scopes;
+final readonly class AssignmentScopeRuntime
 {
     public Panel $panel; public AccessScope $scope; public SubjectRef $subject;
     public ?Model $user; public ?BaseRole $role; public Grant|RoleContribution|null $grant;
     public ActorRef $actor; public ?Model $actorModel;
-    public DateTimeImmutable $now; public ContextPhase $phase;
+    public DateTimeImmutable $now; public AssignmentScopePhase $phase;
 }
-enum ContextPhase: string
+enum AssignmentScopePhase: string
 {
     case Access = 'access'; case Assignment = 'assignment';
     case Revocation = 'revocation'; case Inspection = 'inspection';
@@ -276,7 +276,7 @@ final readonly class LookupContext
     public ActorRef $actor; public ?Model $actorModel;
     public ?SubjectRef $subject; public ?Model $user; public ?BaseRole $role;
     public array $proposed; // only schema-validated assignment fields/expiry, not role config
-    public ContextPhase $phase; public DateTimeImmutable $now;
+    public AssignmentScopePhase $phase; public DateTimeImmutable $now;
 }
 namespace AzGuard\Plugins;
 final readonly class PluginContext
@@ -291,7 +291,7 @@ final readonly class ChangeContext
     public Panel $panel; public AccessScope $scope;
     public ActorRef $actor; public ?Model $actorModel;
     public ?SubjectRef $subject; public ?Model $user; public ?BaseRole $role;
-    public ChangeType $operation; public ContextPhase $phase;
+    public ChangeType $operation; public AssignmentScopePhase $phase;
     public array $proposed; public DateTimeImmutable $now; public CodeStateToken|StateToken $state;
 }
 ```
@@ -303,6 +303,6 @@ references/dependencies. Delete/orphan role/subject не создаёт фикт
 Pipeline остаётся handle(Change, Closure next). Readonly моделей глубокую immutability не обещает.
 
 
-Optional RequiresGrant business veto подключается явным PolicyBinding(action, class, method), не догадкой
-по присутствию метода. Missing declared method/class — compile error. PolicyOnly binding всегда обязателен;
+Optional RequiresGrant veto объявляет PolicyBinding(action, policy class); метод обязан иметь #[Decides(action)].
+Missing declared class/attributed method — compile error; имя метода можно менять с сохранением атрибута. PolicyOnly binding всегда обязателен;
 folder/PolicyFor/Decides pairing допустим при однозначной цели. Метод не переименовывается в silent no-policy pass.

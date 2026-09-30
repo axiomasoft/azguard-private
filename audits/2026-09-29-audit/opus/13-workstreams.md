@@ -38,24 +38,24 @@
 
 | Пункт | Что | Разделы | Готово когда | Probe | Модель |
 |---|---|---|---|---|---|
-| P1.1 | `Kernel\Identity\*`: `PermissionKey`, `PermissionPattern`, `RoleKey`, `SubjectRef`, `ContextRef`, `AnyContext`, `ActorRef`, `IdentityCodec` | [05 §5](05-php-api.md#5-значения-ядра-azguardkernel), D07 | property-тесты однозначности и round-trip (V01–V04) | P07 | opus |
+| P1.1 | `Kernel\Identity\*`: `PermissionKey`, `PermissionPattern`, `RoleKey`, `SubjectRef`, `AssignmentScopeRef`, `AnyAssignmentScope`, `ActorRef`, `IdentityCodec` | [05 §5](05-php-api.md#5-значения-ядра-azguardkernel), D07 | property-тесты однозначности и round-trip (V01–V04) | P07 | opus |
 | P1.2 | Грамматика: `panel:local`, ≥ 2 сегментов, шаблоны `*`/`**`, без голых звёздочек | D18 | таблица грамматики как data-provider | P14 | sonnet |
 | P1.3 | Значения решения: `AccessRequest`, `Decision`, `DecisionReason`, `Grant`, `CodeStateToken`/`StateToken`, `BeforeResult`, `PermissionAuthority`, `Explanation`, `PermissionSet` | 05 §5 | unit-тесты значений | — | sonnet |
 | P1.4 | Arch-правила зон | [04 §2](04-packages-and-layout.md#2-зоны-ядра--что-где-лежит-и-почему), D02, D12 | arch-набор зелёный | — | sonnet |
-| P1.6 | TenantRef/AccessScope, ContextDefinition/ConfigurableContextDefinition/BaseContext, configured role binding/BaseRole/ContextRuntime/LookupContext/PluginContext/ChangeContext, RoleContribution/GrantCondition, Origin и новые typed query/record values; authority semantics до API freeze | D59–D83, 05/06/09 | V86, V89; contract snapshots scoped inputs | — | opus |
+| P1.6 | TenantRef/AccessScope, AssignmentScopeDefinition/ConfigurableAssignmentScopeDefinition/BaseAssignmentScope, configured role binding/BaseRole/AssignmentScopeRuntime/LookupContext/PluginContext/ChangeContext, RoleContribution/GrantCondition, Origin и новые typed query/record values; authority semantics до API freeze | D59–D83, 05/06/09 | V86, V89; contract snapshots scoped inputs | — | opus |
 
 ## F2 — Панели
 
 | Пункт | Что | Разделы | Готово когда | Probe | Модель |
 |---|---|---|---|---|---|
 | P2.1 | `PanelProvider`, `PanelBuilder`, `Panel`, `PanelRegistry` (заморозка, дубликаты, `replace`, `configure`, `configureAll`), `CurrentPanel` | [05 §4](05-php-api.md#4-описание-панели-panelprovider-и-panelbuilder), D06, D73–D74 | V05–V07, V107–V108 | — | opus |
-| P2.2 | `PanelResolver` — одно правило выбора панели; панель по умолчанию; `azguardDefaultPanel()`; префиксы `prefixed()` | [09 §1](09-authorization-semantics.md#1-как-выбирается-панель), D05, D11 | V64 (свойство P9), V65, V81 | P01c, P05, P09 | opus |
+| P2.2 | `PanelResolver` — одно правило выбора панели; панель по умолчанию; `azguardDefaultPanel()`; префиксы `resourcePrefix()` | [09 §1](09-authorization-semantics.md#1-как-выбирается-панель), D05, D11 | V64 (свойство P9), V65, V81 | P01c, P05, P09 | opus |
 | P2.3 | Настройки панели: провайдер → плагины → `configurePanels()` → конфиг; `PanelSettings` с источником значения; гарантии не настраиваются | D45, [07](07-configuration.md) | V47 | — | opus |
 | P2.4 | Плагины: `Plugin`, `DependsOnPlugins`, `BasePlugin`/`prefixed`, concrete named typed factory/PluginContext, explicit build/runtime inputs, instance isolation, lifecycle/conflicts/fingerprint D78 | [06 §3](06-extension-points.md#3-плагины), D47 | V48, V85, V115 | — | opus |
 | P2.5 | Каталог из источников (`ProvidesPermissions`): статичная часть + динамическая с версией, `#[Describe]`, O(1)-поиск, коллизии, `azguard:catalog:cache` | D36 | V08; бюджет D44 для чужой ability | — | opus |
 | P2.6 | Модули: `registerPanel()`, `configurePanel()`, `AmbiguousPanelException` | [06 §8](06-extension-points.md#8-модули-и-сторонние-пакеты-внутри-приложения), D50 | V55 | — | sonnet |
 | P2.7 | Фабрика источников: контракты `Source` и возможностей, `SourceManager` (`Illuminate\Support\Manager`), `#[AsSource]`, `config('azguard.sources')`, сборка источников панели, один писатель | [06 §1](06-extension-points.md#1-источники-фабрика), D52, D58, D73 | V77, V107; `SourceContractTests` на встроенных | — | opus |
-| P2.8 | `FolderSource`: папка провайдера и `discover()`, домены, атрибуты `#[Resource]`/`#[Describe]`/`#[RequiresGrant]`/`#[GrantedToAll]`, политики по соглашению «метод = кейс», роли с `#[Role]`, `Shared/`; кэш | [05 §6–§7](05-php-api.md#7-ресурсы-и-политики), D14, D56, D72 | V78, V79, V106 | — | opus |
+| P2.8 | `FolderSource`: папка провайдера и `discover()`, домены, атрибуты `#[Resource]`/`#[Describe]`/`#[RequiresGrant]`/`#[GrantedToAll]`, политики по соглашению «метод связан через #[Decides(action)]», роли с `#[Role]`, `Shared/`; кэш | [05 §6–§7](05-php-api.md#7-ресурсы-и-политики), D14, D56, D72 | V78, V79, V106 | — | opus |
 
 ## F3 — Хранилище
 
@@ -75,7 +75,7 @@
 | P4.3 | Mode-aware policies: explicit authority/veto (`FolderSource`), `#[Decides]`, `#[PolicyFor]`, `GateSource::map()`, перевод `can('update', $order)` в право домена | [05 §7](05-php-api.md#7-ресурсы-и-политики), [09 §5](09-authorization-semantics.md#5-политики-и-gate-внутри-проверки), D53 | V67, V68, V80 | P03 | opus |
 | P4.4 | `DatabaseSource`: назначения PHP-классов ролей и enum прав, без role definitions в БД, шаблоны, сроки, `rolesOnly()`, `dynamicPermissions()` + `PermissionManager`, писатель | D13, D46, D52 | `SourceContractTests` зелёный; V74, V82 | P08 | opus |
 | P4.5 | `RelationSource::make(model, via, role)`, видимость через `whereHas` | [06 §2.1](06-extension-points.md#21-связи-сущностей), D52 | V69 | — | opus |
-| P4.6 | Контексты: `ContextPolicy`, `on:` → контекст/ресурс, `ContextAware`, резолверы, `withinContext`, членство | [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс), D15, D16 | V12–V14, V16 | P06, P06b | opus |
+| P4.6 | Контексты: `AssignmentScopePolicy`, `on:` → контекст/ресурс, `ContextAware`, резолверы, `withinScope`, членство | [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс), D15, D16 | V12–V14, V16 | P06, P06b | opus |
 | P4.7 | Суперадмин — признак роли: `#[SuperAdmin]` класса, глобально и в сущности, `isSuperAdmin(on:)`; ограничения и `exemptsSuperAdmin()` | [09 §4](09-authorization-semantics.md#4-суперадмин), D19, D20 | V17 | P01a, P14 | sonnet |
 | P4.8 | Кэш наборов прав (запрос + store), `StateToken`, отпечаток, `Volatility`, `state_refresh`, `touch()` | [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность), D24, D25 | V18–V19, V49, бюджеты D44 | P10, P10b | opus |
 | P4.9 | `decideMany()` | [09 §9](09-authorization-semantics.md#9-пакетная-оценка), D27 | бюджет запросов D44 | — | opus |
@@ -151,7 +151,7 @@ F7 требует P5.1–P5.5;  P8.1 требует F4–F5
 
 P1.6 обязателен до P2.2/P3.2/P4.1. Tenant/context columns/grant identities/origin из 08 входят в **P3.2**,
 а не добавляются миграцией после реализации grants. P3.1 теперь state-first locks/root commit protocol;
-P4.1 — RoleContribution, per-grant conditions, all-before deny precedence; P4.6 — TenantPolicy/ContextDefinition
+P4.1 — RoleContribution, per-grant conditions, all-before deny precedence; P4.6 — TenantPolicy/AssignmentScopeDefinition
 и resource mismatch; P4.8/P4.9 — validated fence, expiry/incarnation, tokens map; P4.12 — exact visibility adapters.
 P5.2/P5.3 используют final validation/GrantManager scoped reads, code role/context schema + DB grant assignments.
 P7.2–P7.5 включают tenant-target authorization всех surfaces, а не только главной RoleResource формы.
