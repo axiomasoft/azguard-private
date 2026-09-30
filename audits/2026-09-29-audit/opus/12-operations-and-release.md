@@ -11,6 +11,7 @@
 - у команд, работающих с правами, есть `--panel=`. Без него действует правило выбора панели ([D05](02-decisions.md#d05)):
   полное имя (`admin:manager`) или панель по умолчанию; если панель не определить, команда завершается ошибкой, а не
   выбирает сама;
+- У required-tenant commands обязателен `--tenant=type:id`; `--on=` не заменяет tenant. Grants sync/revoke указывает origin (manual default); wildcard всех tenants не добавляется.
 - `--json` у читающих команд; код выхода ≠ 0 при ошибке; `--force` обязателен для необратимых действий в production.
 
 | Команда | Что делает |
@@ -22,10 +23,8 @@
 | `azguard:storage:migration {storage}` | миграция для именованного или собственного хранилища (свой префикс, подключение) |
 | `azguard:catalog:list [--panel=] [--json]` | права: статичные и динамические, домен, откуда пришли, есть ли политика |
 | `azguard:catalog:cache` / `azguard:catalog:clear` | снимок найденного `FolderSource` (enum, политики, роли, `#[AsSource]`) и статичных каталогов в `bootstrap/cache/azguard.php`; вызываются из `php artisan optimize` / `optimize:clear` |
-| `azguard:roles:list [--panel=]` | статичные и динамические роли, как выдаются, суперадмин ли, число держателей |
-| `azguard:roles:create {role} [--label=] [--permissions=…] [--super-admin]` / `azguard:roles:delete {role}` | динамические роли |
+| `azguard:roles:list [--panel=]` | PHP-классы ролей read-only, способы назначения, суперадмин ли, число scoped держателей |
 | `azguard:permissions:create {name} [--label=] [--group=]` / `azguard:permissions:delete {name}` | динамические права (панель с `dynamicPermissions`) |
-| `azguard:roles:permissions {role} [--set=…] [--add=…] [--remove=…]` | права динамической роли |
 | `azguard:roles:rename-key {role} {new}` | переименовать ключ статичной роли в выдачах (после смены `#[Role]`; прежний ключ — в `#[FormerKeys]`) |
 | `azguard:roles:grant {subject} {role} [--on=type:id] [--until=] [--field=key=value…]` / `azguard:roles:revoke …` | выдачи ролей |
 | `azguard:permissions:grant {subject} {permission} [--on=] [--until=] [--field=…]` / `azguard:permissions:revoke …` | выдачи прав |
@@ -35,8 +34,8 @@
 | `azguard:explain {subject} {permission} [--on=] [--json]` | объяснение решения по шагам ([09 §11](09-authorization-semantics.md#11-объяснение)) |
 | `azguard:permissions:show {subject} [--panel=] [--on=]` | итоговый набор прав по панелям |
 | `azguard:make:panel {Panel}` | папка панели `app/Guards/{Panel}/`: провайдер, `Roles/`, запись в конфиг — как сегодня `make:guard-panel` |
-| `azguard:make:domain {Panel} {Domain} [--model=] [--policy] [--abilities]` | домен в папке панели: `{Domain}/Permissions`, `Policies`, `Abilities` — как сегодня `make:guard-domain` |
-| `azguard:make:permission`, `azguard:make:role`, `azguard:make:policy` | отдельные файлы в структуре панели; роль — сразу с `#[Role('<key>')]` |
+| `azguard:make:permission {Panel} {Group} [--model=] [--policy] [--abilities]` | enum в `Permissions/{Group}`; опционально policy в `Policies/{Group}` и DTO в `Abilities/{Group}`; заменяет make:guard-domain и make:guard-permission одним генератором |
+| `azguard:make:role`, `azguard:make:policy` | отдельные файлы в структуре панели; роль — сразу с `#[Role('<key>')]`; policy использует явный enum либо однозначную группу D56 |
 | `azguard:make:source {Name} [--panel=] [--shared]` | источник в `{Panel}/Sources/` или `Shared/Sources/` с `#[AsSource]` и выбранными возможностями (`--grants`, `--permissions`, `--roles`, `--policies`) |
 | `azguard:make:plugin`, `azguard:make:restriction`, `azguard:make:pipe` | плагин, ограничение (`Restrictions/`), pipe изменений (`Changes/`) |
 | `azguard:stubs` | опубликовать стабы генераторов, как `php artisan stub:publish` |
@@ -59,20 +58,20 @@ Doctor проверяет **каждую панель и каждое храни
 | `panels.plugins` | ядро, на панели | зависимости плагинов, конфликты настроек | error |
 | `panels.sources` | ядро, на панели | имена источников зарегистрированы; `id()` не повторяются; писатель не больше одного; источники с `ChecksHealth` прошли свои проверки | error |
 | `panels.policies` | ядро, на панели | у каждого права не больше одной привязки; сигнатуры методов подходят; автопоиск нашёл то же, что в кэше | error / warning |
-| `policies.complete` | ядро, на панели | у домена с политикой: кейс без метода и без `#[GrantsOnly]`; публичный метод, не совпавший ни с одним кейсом | warning |
-| `roles.keys` | ядро, на панели | статичная роль без `#[Role]` (ключ выведен из имени класса) | warning |
+| `policies.complete` | ядро, на панели | кейс без метода и без RequiresGrant — error; непривязанный публичный метод — warning | error / warning |
+| `roles.keys` | ядро, на панели | нет explicit stable key через `#[Role]` или key() override | error |
 | `routes.checks` | ядро, на панели | строгий режим: действия без `#[CheckPermission]`/`azguard.can`, Laravel `can`/`#[Authorize]` и без `#[SkipPermissionCheck]`; `#[CheckPermission]` с правом не своей панели | error |
 | `panels.relations` | ядро, на панели | связи существуют на моделях, роли из связей есть на панели | error |
 | `catalog.collisions` | ядро, на панели | коллизии имён между источниками и плагинами (с учётом `prefixed`) | error |
 | `catalog.cached` | ядро | `--production`: снимок каталога есть и свежий | warning |
-| `roles.orphaned` | ядро, на панели | выдачи ролей, которых больше нет в коде и в БД; ключ роли из БД совпал с ролью из кода | warning / error |
+| `roles.orphaned` | ядро, на панели | выдачи ролей, которых больше нет в PHP-каталоге; cleanup разрешён | warning / error |
 | `grants.dead` | ядро, на панели | выдачи с правами вне каталога, невыдаваемыми правами или непринятым типом сущности | warning |
 | `fields.meta` | ядро, на панели | поле из `decisionFields` лежит в `meta` | warning |
 | `membership.configured` | ядро, на панели | панель требует членства → членство задано | error |
 | `consistency.reads` | ядро, на панели | `reads = default` при настроенных read-хостах | warning |
 | `cache.store` | ядро, на панели | постоянный store + `ttl = null` | error |
-| `gate.mode` | ядро, на панели | `additive` | warning |
-| `direct_writes` | ядро | обнаружены прямые записи моделей AzGuard | warning |
+| `gate.mode` | ядро, на панели | любое значение кроме authoritative | error |
+| `direct_writes` | ядро | попытки прямых model/mass writes отклонены; raw SQL требует reconcile | error |
 | `filament.plugin` | filament | `guardPanel` существует, ключи ресурсов уникальны, нет устаревших enum | error |
 | `<plugin-id>.*` | плагины | своя конфигурация плагина | как объявит плагин |
 
@@ -158,3 +157,39 @@ it('lets store managers cancel orders', function () {
 
 `InteractsWithAzGuard` работает и под `RefreshDatabase`: кэш исполняется, обход только при незакоммиченном изменении
 AzGuard в том же процессе ([D24](02-decisions.md#d24)).
+
+
+## 8. Эксплуатация tenant scope и честная матрица
+
+Doctor дополняется: contexts.registered/roles.contexts, tenants.membership, resources.scope,
+visibility.exact, sources.authority/origins, identity.domains/canonical, storage.physical_identity,
+state.incarnation/fresh_reads, gate.ownership/order, dynamic.collisions, imports.partial_revision.
+Некоторые нарушения проверяются статически, остальные — fixture/records sampling; doctor не объявляет proof
+всех внешних отношений. Secrets из sources config маскируются. State reset меняет incarnation на primary.
+
+Matrix строится по реально разрешимым Composer constraints: core может иметь несколько Laravel версий,
+Filament проверяется только с разрешёнными им PHP/Laravel; `self.version` требует CI consumer архивов.
+Min/latest каждой выбранной DB и supported Filament release воспроизводятся в CI до объявления поддержки.
+SQLite не доказывает FOR UPDATE/deadlock/replica semantics PG/MySQL. Read/write replication, внешние
+source outages, Octane/queue и cross-connection listing проверяются соответствующими consumers (V99–V105).
+
+Boot caches содержат только static definitions/build id, tenant dynamic catalog overlays читаются отдельно.
+Rolling deploy обязан выявлять collision static/dynamic keys до перехода readers; старые workers завершаются,
+cache namespace обновляется. Схема хранения, aliases и кодек не меняются silent runtime configuration.
+Audit run baseline/probes из evidence — исторический факт, не текущий зелёный release gate.
+
+## 6. Реальная приёмка возможностей
+
+Перед stable release обязательна [CRM acceptance suite](17-crm-acceptance-tests.md): R01–R68,
+реальные модели/storage/query/HTTP/UI/plugins/workers/consumer fixtures и qualification matrix.
+Report с actual statuses/SQL/trace/engine variants; Markdown/SQLite model green не равно готовности пакета.
+Doctor additions: context recipes/identity/profile schemas/options validity; callback input type/null contract;
+unsupported query shapes; plugin instance/build/runtime isolation; current guard selector и trait method conflicts;
+cache recipe recoverability/build id/secret refs. Conditions поля role включены в decisionFields projection.
+
+
+D80–D83: отсутствуют CLI/UI CRUD definitions ролей и profile registry. Enum rights работают с DB assignments без
+flag dynamicPermissions; PolicyOnly assignment rejected. Dynamic actions opt-in, mode Grants immutable.
+Doctor проверяет role class catalogue keys, typed model/filter/plugin contracts, authority/policy ownership,
+missing code bindings/active build fingerprints; PolicyOnly access не требует здоровой assignment DB.
+Readiness: R01–R68 + V117–V120, [19](19-oop-and-permission-authority.md), [20](20-process-map.md).

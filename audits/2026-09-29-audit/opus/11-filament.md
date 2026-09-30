@@ -28,13 +28,13 @@ Filament /admin ──guardPanel──► AzGuard admin   (кто может о�
 ## 2. Плагин
 
 ```php
-// app/Providers/Filament/AdminPanelProvider.php (Filament)
+// app/Providers/Filament/AdmguardProvider.php (Filament)
 ->plugin(
     AzGuardPlugin::make()
         ->guardPanel('admin')
-        ->manages(['admin', 'seller'])          // null = все панели AzGuard, в которых есть что редактировать
+        ->manages(['admin', 'seller'])          // allowlist типов panel, не разрешение actor на все tenant/records
         ->enforce()                             // ресурсы без права закрыты
-        ->source('database')                    // права ресурсов: database | enum | policy (§3), как сейчас
+        ->definitions(FilamentDefinitions::Enums) // Enums (default) | Resources; source of definitions, не authority
         ->abilities([...])
         ->resources(roles: true, roleGrants: true, permissionGrants: true, permissions: true, panels: true, doctor: true)
         ->formExtensions(ReasonFieldExtension::class)   // поля от плагинов (§6)
@@ -43,26 +43,32 @@ Filament /admin ──guardPanel──► AzGuard admin   (кто может о�
 
 - Состояние — только в экземпляре плагина; `config()` не перезаписывается (N18). Значения по умолчанию — из
   `config/azguard-filament.php` ([07 §4](07-configuration.md#4-configazguard-filamentphp)).
-- Права ресурсов Filament попадают в каталог панели AzGuard обычным путём — источником `FilamentSource`
-  (`ProvidesPermissions`), который Filament-плагин добавляет в `guardPanel` через `AzGuard::configurePanel()`. В
-  режимах `enum` и `policy` права лежат в папке панели, и их читает `FolderSource`.
+- В Enums definitions читает FolderSource из Permissions; Resources явно подключает FilamentSource
+  (`ProvidesPermissions`) для build-time definitions из PHP Resource classes. Они не становятся DB catalogue rows.
+  Assignments этих definitions может хранить DatabaseSource; dynamicPermissions для этого не требуется.
 - `checkPolicyExistence(false)` на классах ресурсов не вызывается (это общее статическое состояние). `FilamentGate`
-  отвечает на вопросы Gate по моделям ресурсов этой Filament-панели, поэтому отдельные политики не нужны (N19). Если
-  у ресурса есть домен с политикой (режим `policy`), она работает вторым уровнем (D53).
+  отвечает на вопросы Gate по моделям ресурсов этой Filament-панели, поэтому отдельные политики не нужны (N19). Authority задан
+  явно на definition: PolicyOnly sole policy, RequiresGrant assignment + optional policy veto (D83).
 - id Filament-плагина — `azguard`.
 
 ## 3. Права ресурсов, страниц, виджетов
 
-### 3.1 Три режима — как сейчас
+### 3.1 Definitions и authority задаются отдельно
 
-| Режим | Где права | Как меняются | Когда выбирать |
-|---|---|---|---|
-| `database` (по умолчанию) | строятся из ресурсов Filament при загрузке, выдаются в БД | новый ресурс — новые права сразу, без генерации | админка, где права раздают из UI |
-| `enum` | `azguard:filament:generate` создаёт домен в папке панели: `app/Guards/Admin/Orders/Permissions/OrderPermission.php` | как статичные права: в коде, под контролем ревью | права ресурсов должны быть в коде |
-| `policy` | как `enum` + политика домена `…/Orders/Policies/OrderPolicy.php` со вторым уровнем | код политики: «свои записи», «рабочие часы» | ресурсам нужна логика сверх выдач |
+```php
+enum FilamentDefinitions { case Enums; case Resources; }
+```
 
-Во всех режимах проверка одна и та же ([D48](02-decisions.md#d48)): режим меняет только то, откуда берутся права и
-есть ли второй уровень.
+| Definitions | Где описаны права | Authority |
+|---|---|---|
+| Enums (default) | Permissions/<Group>/<PermissionEnum> с явными RequiresGrant/PolicyOnly | mode enum/case; assignments optional DB/code/relation |
+| Resources (opt-in) | FilamentSource строит metadata из зарегистрированных PHP Resource/page/widget классов | explicit PermissionAuthority config на integration, по умолчанию Grants; Policy требует exact policy binding |
+
+Ни вариант «в БД», ни наличие policy method не выбирают mode скрыто. DB здесь может хранить assignments;
+дополнительные dynamic actions — отдельная opt-in функция core. Один resource/action = одна owned definition;
+двойной owner из FilamentSource и enum — compile conflict, не auto merge. Resources не редактирует PHP behaviour
+из UI. Для действий одной группы с разными modes используется Enums с явными case overrides.
+Существующий source('database'/'enum'/'policy') API в целевой 1.0 исключён: definitions enum typed, authority отдельно.
 
 ### 3.2 Ключи
 
@@ -84,36 +90,33 @@ Filament /admin ──guardPanel──► AzGuard admin   (кто может о�
 ## 5. Редакторы по схеме панели
 
 Все редакторы работают с **выбранной панелью AzGuard** из `manages`. Панель выбирается фильтром в таблицах и первым
-полем в формах. Всё остальное форма берёт из `AzGuard::panel($id)->schema()` ([D54](02-decisions.md#d54)): группы
+полем в формах. Всё остальное форма берёт из `AzGuard::panel($id)->inTenant($tenant)->schema()` ([D54](02-decisions.md#d54)): группы
 прав, какие права выдаются галочкой, какие роли редактируются, какие поля заполнять. При смене панели форма
 перестраивается. Панели без `DatabaseSource` в `manages` не показываются (редактировать нечего), но видны на странице
 «Панели».
 
 ### 5.1 `RoleResource`
 
-| Что | Статичная роль (класс) | Динамическая роль (БД) |
+| Объект | Что показывает UI | Что разрешено менять |
 |---|---|---|
-| ключ | только чтение | задаётся при создании, потом только чтение |
-| подпись, описание | только чтение (из кода) | редактируется |
-| суперадмин | только чтение (`#[SuperAdmin]` класса) | переключатель `is_super_admin` |
-| права | список из кода, только чтение | галочки по доменам схемы; у прав с политикой — подсказка «уточняется политикой»; динамические права — отдельной группой |
-| свои поля роли | — | по схеме (§6) |
-| как выдаётся | «вручную», «автоматически: правило в коде» или оба (`#[NotGrantable]` — только автоматически) | вручную |
-| удаление | нельзя (роль в коде) | `roles()->delete()` — вместе с выдачами, одной транзакцией |
-| держатели | список выдач; снятие — `revokeRole()` | то же |
+| BaseRole class | key/label/permissions/context filters/superAdmin из schema | ничего: code review/deploy |
+| RoleGrant | subject/роль/tenant/project/origin/expiry/declared fields | назначить/обновить поля/отозвать через GrantManager |
+| Enum permission | immutable key/authority/policy metadata | назначения только RequiresGrant |
+| PolicyOnly action | badge «решает PHP policy», current capability | grant checkbox отсутствует; raw grant payload rejected |
+| Opt-in dynamic action | tenant scoped key/label, mode Grants | создать/rename metadata/delete/назначить с actor validation |
 
-Сохранение прав роли — `roles()->syncPermissions($key, $permissions, expectedFingerprint: …)`: если права успели
-изменить в другой вкладке, форма просит обновить страницу. Поля `class_name` нет (N02): классов в данных нет вообще.
+RoleResource — read-only catalogue. Stale assignment form fingerprint включает code build и stored row revision;
+состав роли не сохраняется как JSON/галочки из этой формы. SubjectGrants editor — отдельная ответственность.
 
 ### 5.2 `RoleGrantResource` и `PermissionGrantResource`
 
-- Таблицы — модели **панели** (включая свои модели вроде `AdminRoleGrant`), только чтение. Фильтры: панель,
+- Таблицы читают scoped `GrantManager::page/find` **panel+tenant+origin** (включая поля своих моделей вроде AdminRoleGrant); произвольный Eloquent builder не служит API редактора. Фильтры: панель,
   роль или право, сущность, «истекает до», «кто выдал», свои поля. Подпись субъекта — `SubjectDirectory::describe()`,
   сущности — `ContextDirectory::describe()`.
 - Создание: панель → субъект (поиск через директорию панели, лимит 50, без загрузки всех пользователей) → роль (те,
   что выдаются вручную) или право (статичное или динамическое) → сущность (типы, которые принимает панель) → срок →
   свои поля.
-- Сохранение — `$subject->inPanel($id)->grantRole(..., on:, until:, fields:)` / `grantPermission(...)`. Свои
+- Сохранение — `$subject->guard($id)->grantRole(..., on:, until:, fields:)` / `grantPermission(...)`. Свои
   поля передаются в `fields:`, а не пишутся в модель.
 - Массовый отзыв — одна транзакция, одна новая версия, событие на каждую строку.
 - Редактирование строки — срок и свои поля.
@@ -161,9 +164,11 @@ interface FilamentFormExtension
 
 ## 7. Генерация (`azguard:filament:generate`)
 
-Для режимов `enum` и `policy`: создаёт домен ресурса в папке `guardPanel` — enum прав с `#[Domain(model:)]` и
-`#[Describe]`, в режиме `policy` ещё и политику с методами-заготовками (`return null;` — «как выдано»). Панель находит
-их автопоиском. Политика здесь не дублирует проверку, а добавляет второй уровень (N19 закрыт). Проверка «устаревший
+Генератор создаёт enum в Permissions с #[Resource]/#[Describe] и explicit authority flag `--authority=grants|policy`
+(default grants); `--with-policy` создаёт policy stub. Grants stub `return true` только pass; Policy stub
+`return false` denies до явной реализации. Выбор policy stub не меняет mode. PolicyOnly bindings находятся
+автопоиском; Grants `--with-policy` дополнительно генерирует explicit PolicyBinding в provider.
+Компилятор проверяет declared method; policy stub не заменяет отсутствующий grant (N19 закрыт). Проверка «устаревший
 домен» (домен есть, ресурса нет) — в doctor.
 
 ## 8. Тесты пакета (обязательные)
@@ -174,8 +179,36 @@ interface FilamentFormExtension
 | Две Filament-панели с разными `guardPanel` не влияют друг на друга (нет глобального конфига) | V24 |
 | Страница с `AuthorizesPage` закрыта для пользователя без права и без `AzGuardSubject` | V25 |
 | Поиск субъекта среди 10 000 пользователей — один запрос с `LIMIT` | V26 |
-| Редактор ролей строит галочки по доменам схемы; статичные роли только читаются; флаг суперадмина у динамической роли | V61 |
-| Три режима `database` / `enum` / `policy` дают одинаковые решения при одинаковых выдачах; `policy` добавляет второй уровень | V75 |
+| RoleResource показывает code roles read-only; grant editor разрешает только assignments RequiresGrant; policy mode badge/raw reject | V61 |
+| Enums/Resources definition modes отделены от authority; Grants с DB assignment без dynamic flag; PolicyOnly без store; generated stubs fail closed | V75 |
 | Динамическое право создаётся в `PermissionResource`, выдаётся и проверяется; удаление забирает выдачи | V76 |
 | Форма выдачи показывает поля своей модели и плагина; при смене панели набор меняется; неизвестное поле отклоняется | V62 |
 | Панель без `DatabaseSource` не показывается в редакторах, но видна на странице «Панели» | V63 |
+
+
+## 9. Тенанты, project bindings и все UI входы
+
+Filament tenant selection устанавливает scoped default текущей панели после аутентификации; client payload
+не может подменить target tenant. `manages` задаёт список панелей, а серверная policy приложения отдельно
+проверяет actor на выбранные target panel/tenant/subject/role/context/fields. Право открывать ресурс само по себе
+не разрешает global grants, superadmin flag, wildcard namespace или другой tenant.
+Каждый Livewire create/edit/delete/bulk/attach action повторяет проверку. При отсутствии actor/panel/tenant — отказ.
+
+Role catalogue показывает allowed ContextDefinition classes/filters и required; assignment пишет stable role/context aliases.
+Grant form: target panel -> tenant -> subject -> role -> допустимый context type -> project текущего tenant -> срок/fields.
+Directories получают actor и AccessScope. Смена tenant очищает сохранённые project/role/fields/fingerprint.
+Find record id проверяет полный scope+origin; чужой id не отдаётся форме и не отзывается bulk API.
+Definitions BaseRole не копируются в БД, UI читает их через PanelSchema.
+
+Resource list/global search/relations/widgets/counts/export фильтруются exact visibility по View до count/page.
+ViewAny только открывает страницу; Update/Delete/Restore/ForceDelete проверяются на actual/prospective resource;
+bulk action не использует один Allow для всех строк. Jobs экспорта передают scope, при исполнении повторно authorize.
+Два resources одной модели имеют разные resource permission keys; FilamentGate не угадывает slug из класса модели.
+Enforce policy распространяется на все эти surfaces; отсутствие exact query adapter — явная ошибка настройки.
+Проверки V94–V95; полный пример — [16](16-crm-and-workflows.md).
+
+Редакторы назначений контекстов/declared grant fields используют LookupContext с actor **и target subject/BaseRole/proposed fields**.
+Например admin из Самары выбирает проект для target seller из Казани: фильтр seller использует target city,
+а право открыть/сохранить редактор — admin delegation. RoleResource показывает allowed profile schemas/config;
+UI не сохраняет PHP/SQL и не меняет owner resolver. Для inspection/revoke отображаются authorised inactive/expired
+records, иначе нельзя исправить доступ после деактивации. Тесты настоящих UI flows — R36–R40 в [17](17-crm-acceptance-tests.md).

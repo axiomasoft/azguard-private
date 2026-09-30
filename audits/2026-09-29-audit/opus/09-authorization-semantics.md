@@ -1,280 +1,384 @@
 # 09 — Смысл проверки прав (нормативно)
 
-Решения: [D05](02-decisions.md#d05), [D15](02-decisions.md#d15)–[D20](02-decisions.md#d20), [D24](02-decisions.md#d24)–[D27](02-decisions.md#d27),
-[D29](02-decisions.md#d29), [D31](02-decisions.md#d31), [D48](02-decisions.md#d48), [D52](02-decisions.md#d52)–[D55](02-decisions.md#d55),
-[D58](02-decisions.md#d58).
-Простое объяснение — [00 §7](00-overview.md#7-как-проходит-проверка). Этот файл — спецификация движка; реализация
-сверяется с таблицами ниже тестами-свойствами ([14](14-verification.md)).
+Целевая 1.0. Основа — D05, D15–D20, D24–D27, D31, D48, D52–D55; уточнения D59–D83
+из [02](02-decisions.md). Сценарии — [CRM и цепочки](16-crm-and-workflows.md), проверки — [14](14-verification.md).
 
 ## 1. Как выбирается панель
 
-Одна функция `PanelResolver::resolve(subject, permission, explicitPanel?)` для всех входов: трейт, `SubjectAccess`,
-фасад, Gate, Blade, middleware, CLI, `decideMany`.
+Один `PanelResolver` для трейта, фасада, middleware, Gate, Blade, UI, CLI и `decideMany`.
 
-| Шаг | Условие | Панель |
+| Шаг | Сигнал | Результат |
 |---|---|---|
-| 1 | **явно**: полное имя `x:orders.view`; первый сегмент имени — префикс панели (`->prefixed()`); enum подключён ровно к одной панели; `inPanel('x')`; `panel:` в API | эта; если субъект ей не принадлежит → `SubjectNotAcceptedException` |
-| 2 | **по умолчанию для запроса**: middleware `azguard.panel` или Filament назначили панель запроса, и субъект ей принадлежит | она |
-| 3 | **по умолчанию для модели**: `azguardDefaultPanel()`, `->default()`, единственная панель модели | она |
-| 4 | иначе | `PanelNotResolvedException` |
+| 1 | `guard`, `panel:`, полное имя `x:orders.view`, зарегистрированный префикс, enum с единственной панелью | Собрать **все** явные сигналы; они должны согласоваться |
+| 2 | Нет явных сигналов: панель маршрута/Filament, принимающая модель субъекта | Текущая панель запроса |
+| 3 | Нет текущей: `azguardDefaultPanel`, default панели, единственная панель модели | Панель модели |
+| 4 | Не удалось выбрать | PanelNotResolvedException |
 
-- Префиксы собираются при загрузке в словарь «первый сегмент → панель»: поиск O(1). Префикс уникален и не совпадает
-  с первым сегментом ни одного локального имени в приложении (`PrefixConflictException`), поэтому шаг 1 однозначен.
-- После выбора панели имя приводится к локальному: `admin.orders.view` → `orders.view` для панели с префиксом `admin`;
-  `admin:orders.view` → `orders.view`.
-- Enum, подключённый к нескольким панелям, без явной панели → `AmbiguousPanelException` (шаг 1 не выбирает сам).
-- Локальное имя из одного сегмента (`view`) — не право AzGuard: Gate отвечает `null`, трейт → `InvalidPermissionKeyException`.
-- Шаг 2 устроен как `Auth::shouldUse()` в middleware `auth:guard`: маршрут меняет значение по умолчанию на время
-  запроса. Задача, поставленная в очередь из такого запроса, получает панель через скрытое значение `Context`
-  Laravel (`azguard.panel`); в остальных задачах и в консоли шага 2 нет. Общему коду (сервисы, слушатели, jobs) рекомендуется enum или имена с
-  префиксом — они не зависят от маршрута ([D05](02-decisions.md#d05)).
-- Выбор панели записывается в объяснение (`explain()`): «панель admin — из полного имени» или «cabinet — по
-  умолчанию для User».
+`guard('a')->hasPermission('b:orders.view')` -> `ConflictingPanelException`, без смены панели.
+Enum нескольких панелей требует явной панели; enum одной панели, вызванный через другую, конфликтует.
+Сначала проверяется принимаемый субъект; принадлежность **модели** панели не означает членства человека в tenant.
+
+Префикс уникален; его словарь ищет первый сегмент O(1). Конфликт с локальным namespace запрещён
+для статичного каталога при сборке и для dynamic name внутри mutation во всех тенантах.
+Полные имена с `:` всегда однозначны. Изолированные слова Gate остаются Laravel, кроме явного model binding.
+Модель одного домена в двух панелях требует явной/текущей панели; модель двух ресурсов **одной панели** требует
+явного имени права. Class argument (`Order::class` для `viewAny/create`) — binding модели без экземпляра.
+
+Явно квалифицированное имя зарегистрированной панели всегда принадлежит AzGuard, даже если action неизвестен:
+Gate возвращает отказ, direct API — UnknownPermissionException. Только действительно чужая ability -> null.
+Middleware восстанавливает прежние panel/tenant/context/actor в finally, включая sync jobs и вложенный вызов.
+Laravel Context переносит в queue лишь panel hint; tenant/context job передаёт явно и перепроверяет при исполнении.
 
 ## 2. Пайплайн проверки: алгоритм
 
 ```
-вход:    S (субъект), K (имя права), on? (модель или ContextRef), trace?
-панель:  P := resolve(S, K)                                          # §1
-снимок:  T := StateToken(P)                                          # один на проверку / на decideMany
-0. каталог:    key := P.catalog.find(K) ?? → NotApplicable            # Gate: null; трейт: UnknownPermissionException
-1. подготовка: (C, R) := context_and_resource(on, P)                 # §3: сущность-контекст и ресурс для политик
-               contexts := applicable(P.contextPolicy, C)            # может дать Deny(ContextRequired|ContextNotAccepted)
-2. before:     для H в before-хуках панели (порядок регистрации):
-                  r := H(S, key, C, R)                               # исключение → Deny(HookError, H)
-                  если r = true  → allow := Allow(Hook, H); перейти к 5
-                  если r = false → Deny(Hook, H)                     # окончательно, ограничения не нужны
-2a. суперадмин: если у S есть роль с признаком суперадмина глобально или в одной из contexts
-                → allow := Allow(SuperAdmin); перейти к 5                          # §4; роли — из всех источников
-3. выдачи:     g := ⋃ source.grants(S, contexts) по источникам ProvidesGrants    # первый уровень; кэш по (P, S, contexts, T)
-               исключение источника → Deny(SourceError, source)
-4. политика:   если key привязан к политике или Gate (ProvidesPolicies, D53):   # второй уровень, §5
-                  v := policy(S, R ?? C)                     # granted() внутри читает g, без повторного запроса
-                  исключение → Deny(PolicyError)
-                  v = true  → allow := Allow(Policy)         # расширить
-                  v = false → Deny(Policy)                   # сузить: «нет», даже если выдано
-                  v = null  → по выдачам
-               по выдачам: g.covers(key) → allow := Allow(Granted, grants = trace ? matching(g, key) : [])
-                           иначе → Deny(NotGranted)
-5. ограничения: для Q в restrictions(P) где Q.appliesTo:             # порядок регистрации; §6
-                  если allow.reason = SuperAdmin и Q.exemptsSuperAdmin() → пропустить Q
-                  исключение → Deny(RestrictionError, Q); deny → Deny(Restricted, Q); pass → дальше
-6. итог:       allow
-7. after:      для A в after-хуках: A(request, decision)              # исключение → лог; решение не меняется
-               + событие AccessDecided при трассировке
+вход: subject S, permission K, tenant?, context?, resource R?, trace
+0. Resolve panel/subject и static permission metadata без resolving assignment services.
+   Все explicit hints согласуются. Static definition содержит ровно один authority mode.
+   Dynamic lookup при отсутствии static key допустим только opt-in; dynamic authority = Grants.
+1. Resolve resource scope, owner/member/common eligibility; captured now/build id.
+   TenantRequired / TenantMismatch / ContextMismatch / ResourceScopeMissing -> Deny.
+2. Все preliminary before checks: Deny/error -> отказ, Continue -> следующий шаг.
+   Before не может дать authority. Ни Allow shortcut, ни порядок sources не скрывают ошибки.
+3a. Policy mode: не resolve/read grants/roles/writer/panel_state.
+    Вызвать единственную policy binding; true/Response::allow -> candidate;
+    false/null/Response::deny -> Deny(Policy); error -> deny.
+    Evidence CodeStateToken версии code catalogue, не фиктивный DB token.
+3b. Grants mode: собрать required assignment sources с их state/dependency fence.
+    Source error -> Deny(SourceError). Scope/expiry/conditions/context filters внутри одной contribution AND.
+    Actual BaseRole/user/grant относятся к этой ветке. Role contributions expand только Grants actions.
+    Qualified direct/fixed/relation/role grants OR scoped superadmin -> authority candidate.
+    Если authority отсутствует, Deny(NotGranted). Attached policy true/null -> pass, false -> veto.
+    Policy не заменяет grant и не обходится hook/superadmin. Relevant source failure не прячется allow.
+4. Candidate проходит owner/common/context/token boundaries и mandatory Restrictions.
+   Scope membership exemptions только explicit; immutable owner boundary не освобождает никого.
+5. Confirm code build / consumed source states по declared freshness protocol, вернуть Decision.
+   after/tracing только наблюдает; exception логируется, ответ не меняется.
 ```
 
-Свойства (property-тесты):
+RoleContribution — самостоятельное значение: ссылка на роль, scope, source/origin, срок и поля;
+это закрывает роль суперадмина с пустым `permissions()`. Источник может дать role contributions и direct grants.
+Ролевые contributions разворачиваются в grants централизованно по scoped role definition.
+Неизвестная удалённая роль даёт ноль прав и диагностику, а подмена scope/панели в ответе SPI — SourceError.
 
-- **P1 Монотонность сбора:** новая выдача в любом источнике не превращает Allow в Deny (при тех же политиках и хуках).
-- **P2 Ограничения обязательны:** любое Allow ⇒ каждое применимое ограничение дало `pass` (для суперадмина — кроме
-  ограничений с `exemptsSuperAdmin()`).
-- **P3 Независимость панелей:** решение по праву панели X не зависит от выдач, источников и настроек панели Y ≠ X
-  (кроме настроек, явно применённых к обеим через `configurePanels()`).
-- **P4 Изоляция сущности:** при `isolated`/`required` решение в сущности C не зависит от выдач в C₂ ≠ C.
-- **P5 Детерминизм:** одинаковые `(запрос, T, now)` и одинаковые ответы политик → одинаковое решение; `decideMany` =
-  поэлементный `decide` на одном T.
-- **P6 Однозначность ключей:** `ContextRef a ≠ b` ⇒ разные `key()` и разные ключи кэша (P07).
-- **P7 Сроки:** выдача с `expiresAt ≤ now` ничего не даёт; набор прав не кэшируется дольше ближайшего срока.
-- **P8 Ошибка = отказ:** исключение в источнике, политике, before-хуке или ограничении никогда не даёт Allow.
-- **P9 Одно правило выбора панели:** все входы (§1) выбирают одну и ту же панель для одинаковых входных данных.
-- **P10 Независимость от источника:** перенос права из `#[GrantedToAll]` в роль `DatabaseSource`, выданную всем тем же
-  субъектам, не меняет решений; то же для переноса между любыми источниками.
-- **P12 Порядок источников не важен для решения:** перестановка источников в `->sources([...])` не меняет решений
-  (объединение выдач коммутативно); порядок влияет только на объяснение и отпечаток.
-- **P11 Префикс не меняет смысла:** включение, выключение или смена префикса панели не меняет решений для enum и
-  полных имён; имя с префиксом и локальное имя внутри панели дают одно решение.
+В Grants mode все relevant assignment источники опрашиваются независимо от порядка.
+В Policy mode неиспользуемый assignment store/source не вызывается и не является dependency этого решения. Нельзя остановиться
+на разрешающем источнике, если следующий сообщает ошибку. Ошибка не превращается в `null`/NotApplicable.
+Unknown identity/configuration ошибки direct API выбрасывает; боевой middleware/Gate переводит их в отказ с логом.
+`after` — единственный наблюдающий шаг, исключение которого не меняет уже вычисленный доступ.
 
-## 3. Политика контекстов панели
+### Свойства движка
 
-`on:` → контекст и ресурс:
+| Свойство | Формулировка |
+|---|---|
+| P1 | Добавление валидной unconditional grant не уменьшает grant result при неизменных boundaries/policies/conditions |
+| P2 | Любое Allow прошло все применимые ограничения, token cap и неизменяемую границу tenant/resource |
+| P3 | Выдачи панели B не влияют на панель A; общий plugin code не хранит request state |
+| P4 | При isolated решение C не зависит от выдач C2; required требует C, но сохраняет inherit-семантику внутри одного tenant |
+| P5 | Одинаковые inputs, state, now и ответы внешних компонентов дают одинаковое решение |
+| P6 | Разные references/scope не смешиваются в identity, SQL, cache и events |
+| P7 | Истёкшая выдача не действует даже из request cache; expiresAt = now уже истекла |
+| P8 | Ошибка оцениваемого before/source/policy/condition/restriction -> отказ |
+| P9 | Одинаковые явные inputs через все adapters дают одно решение в authoritative режиме |
+| P10 | Перенос выдачи между источниками сохраняет смысл при одинаковых scope, сроках, условиях и role definitions |
+| P11 | Смена presentation prefix не меняет решения enum/full name |
+| P12 | Перестановка источников не меняет решения, включая ошибку и scoped superadmin |
+| P13 | Ни tenant-wide роль A, ни global ordinary grant не разрешают доступ в tenant B |
+| P14 | `visibleTo` в exact режиме возвращает ровно записи, разрешённые decide на том же authority state и decisionNow |
+| P15 | Условия одной grant нельзя удовлетворить полями разных grants |
+| P16 | Mutation no-op, rollback и неуспешная попытка не публикуют новую committed state |
 
-| `on:` | Контекст C | Ресурс R |
-|---|---|---|
-| нет | текущая сущность запроса (если её тип принят панелью), иначе глобальный | нет |
-| `ContextRef` или модель типа, принятого панелью | эта сущность | та же модель |
-| другая модель | `R->azguardContext()` (если `ContextAware`), иначе текущая сущность запроса, иначе глобальный | эта модель |
+## 3. Тенант, контекст и ресурс
 
-Какие выдачи учитываются:
+`TenantRef` — организация/граница данных. `ContextRef` — проект/магазин/документ внутри неё.
+`AccessScope` содержит **оба**; `context=global` значит «весь выбранный tenant».
+`tenant=global` значит режим без тенанта/системный scope, а не все организации сразу.
 
-| Политика | Без сущности | В сущности C (тип принят) | Тип не принят панелью |
+Панель описывает `TenantPolicy::none()` или `required(Organization::class)` и зарегистрированные
+`ContextDefinition` (например ProjectContext) в `ContextPolicy`. Required tenant без выбранного tenant -> отказ,
+а не fallback на глобальные права. ContextPolicy и TenantPolicy независимы.
+
+Разрешение scope:
+
+1. Взять явный `inTenant`/AccessRequest scope; иначе scope ресурса; иначе текущий scope **этой панели**.
+2. `ResourceScopeResolver`/`ProvidesAccessScope` получает tenant и context из самого объекта.
+   Если есть явный/текущий tenant, он должен совпасть с owner tenant ресурса; выбранный context должен быть связан
+   с resource по resolver. Разногласие -> отказ. Тенант из URL/header — лишь кандидат, не доказательство членства.
+3. Для `on: $project` или ContextRef проверить `ContextDefinition::tenantOf` и existence. Для ContextRef,
+   требующего модель в политике, модель загрузить доверенным resolver; отсутствующая -> отказ, без вызова с null.
+4. Для resource в tenant-панели отсутствие authoritative resource resolver -> ResourceScopeMissing.
+   Нельзя приписать неизвестный объект текущей организации. Для collection/create resource отсутствует;
+   prospective attributes/parent relation проверяет policy/validator, включая tenant всех связанных моделей.
+
+### Какие выдачи применяются
+
+| ContextPolicy | Context global | Context C выбранного tenant | Непринятый ContextRef |
 |---|---|---|---|
-| `inherit(types…)` | глобальные | глобальные + в C | `Deny(ContextNotAccepted)` |
-| `isolated(types…)` | глобальные | только в C | `Deny(ContextNotAccepted)` |
-| `required(types…)` | `Deny(ContextRequired)` | глобальные + в C | `Deny(ContextNotAccepted)` |
-| `none()` (по умолчанию) | глобальные | глобальные + предупреждение в объяснении | сущность игнорируется |
+| inherit | tenant-wide | tenant-wide ∪ C | Deny(ContextNotAccepted) |
+| isolated | tenant-wide | только C | Deny(ContextNotAccepted) |
+| required | Deny(ContextRequired) | tenant-wide ∪ C | Deny(ContextNotAccepted) |
+| none | tenant-wide | Deny(ContextNotAccepted) | Deny(ContextNotAccepted) |
 
-`requireMembership($membership)` добавляет ограничение `azguard/context-membership` для проверок в сущности:
-глобальная роль действует внутри магазина **только** для его сотрудников. Членство можно задать связью, классом или
-замыканием (Q11).
+Глобальный ordinary grant другого tenant не включается ни в одном режиме.
+`requireMembership()` контекста остаётся необязательным. Для tenant membership required-панели включён по умолчанию;
+его SPI проверяет активное членство, а не наличие произвольной role grant. Освобождение tenant admin от membership
+явно задаётся; принадлежность resource tenant не обходится. Старый режим «игнорировать переданный ContextRef» снят.
 
-Пример — кабинет продавца:
-
-```php
-->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreStaff::viaRelation('staff')))
-```
-
-| Субъект | Что есть | Проверка | Итог |
-|---|---|---|---|
-| Анна | связь `store.staff` с ролью `manager` в `store:1` | `orders.cancel` в `store:1` | Allow (`RelationSource`) |
-| Анна | то же | `orders.cancel` в `store:2` | Deny(NotGranted) |
-| Борис | роль `support` глобально (БД), сотрудник `store:2` | `orders.cancel` в `store:2` | Allow |
-| Борис | то же, **не** сотрудник `store:3` | `orders.cancel` в `store:3` | Deny(Restricted, `azguard/context-membership`) |
+Один client может принадлежать нескольким projects. Тогда resolver обязан выбрать подтверждённый project
+(например из nested route) или задать явное правило exists по кандидатам. Нельзя независимо объединять permissions
+по projects и остальные условия: Allow должен иметь **один целый witness** `(tenant, project, grant, conditions)`.
+CRM-рецепт использует один project на client; many-to-many вариант описан в [16](16-crm-and-workflows.md).
 
 ## 4. Суперадмин
 
-| Как задан | Где действует | Что проходит | Что его останавливает |
-|---|---|---|---|
-| роль с `#[SuperAdmin]` / флагом `is_super_admin`, выдана глобально (вручную или автоматически) | вся панель | выдачи и политики (у него есть всё) | before-хук «нет»; ограничения, кроме освободивших его |
-| та же роль, выдана в сущности (`on: $store`) | только проверки внутри этой сущности | то же | то же |
-| та же роль, подключённая к каждой панели через `configurePanels()` | каждая такая панель | то же | то же |
-| шаблон `orders.**` в роли или выдаче права | права под `orders.` | это обычная выдача, **не** суперадмин | всё, как у всех |
+Роль `#[SuperAdmin]` / BaseRole.superAdmin() учитывает tenant/context, срок и условия как всякая роль.
 
-`isSuperAdmin()` истинно в первой строке; `isSuperAdmin(on: $store)` — в первой и второй. У панели своего правила
-суперадмина нет: признак живёт в роли ([D19](02-decisions.md#d19)).
+| Назначение | Область |
+|---|---|
+| tenant=A, context=global | Всё внутри A, если ContextPolicy наследует tenant-wide |
+| tenant=A, context=project:P | Только P внутри A |
+| tenant=global, панель без тенантов | Вся эта панель |
+| tenant=global, панель required | Не переносится в tenant автоматически |
 
-Примеры ограничений:
-
-| Ограничение | Действует на суперадмина | Почему |
-|---|---|---|
-| «Аккаунт заблокирован» | да | запрет для всех |
-| «Режим только чтение» при обслуживании | да | запрет для всех |
-| «Лицензия на модуль истекла» | да | запрет для всех |
-| `azguard/context-membership` (только сотрудники магазина) | нет (`exemptsSuperAdmin()`, можно включить: `requireMembership(..., exemptSuperAdmin: false)`) | суперадмин платформы должен видеть все магазины |
-
-Обоснование — [D19](02-decisions.md#d19): так устроены AWS IAM (explicit deny, SCP), Azure (deny assignments),
-Google Cloud (IAM Deny); обход всего подряд, как у `system:masters` в Kubernetes, считается плохой практикой.
+Платформенный RootRole может пересекать tenant boundaries только как **явно разрешённая глобальная роль**
+`TenantPolicy::allowGlobalRoles([RootRole::class])`. Она всё равно работает на конкретном выбранном tenant,
+проверяет owner tenant/context resource, сроки, token restrictions и общие запреты. Global ordinary grants не
+становятся cross-tenant. `isSuperAdmin()` сообщает о роли в выбранном scope; это не окончательный ответ о доступе.
 
 ## 5. Политики и Gate внутри проверки
 
-Политика — **второй уровень** проверки того же права ([D53](02-decisions.md#d53)). Первый уровень — выдачи из всех
-источников панели (БД, статичные и автоматические роли, `#[GrantedToAll]`, связи, свои источники).
-
-| Выдачи (уровень 1) | Политика вернула (уровень 2) | Итог | Пример |
+| Authority | Assignment | Policy | Результат перед mandatory restrictions |
 |---|---|---|---|
-| есть | `null` | да | обычный доступ по выданному праву |
-| нет | `null` | нет | — |
-| есть | `false` | нет | вернуть деньги нельзя с 18:00 до 9:00, даже если право выдано |
-| нет | `true` | да | свой заказ смотреть можно без выдачи |
-| любое | `Response` | как `true`/`false` + сообщение | «доступно только в рабочие часы» |
+| Policy | не читается | true / allow Response | candidate Allow(Policy) |
+| Policy | не читается | false / null / deny Response | Deny(Policy) |
+| Grants | false | true / null / missing optional policy | Deny(NotGranted) |
+| Grants | true | true / null / missing optional policy | candidate Allow(Granted) |
+| Grants | любое | false / deny Response | Deny(Policy) |
 
-- Привязки собираются при загрузке из источников с `ProvidesPolicies`: `FolderSource` (политики из `*/Policies/` папки
-  панели, папок `->discover()` и `->policies([...])`) и `GateSource` (`->map(право, ability)`). Одно право — не
-  больше одной привязки (`DuplicatePolicyBindingException`).
-- Вызов: метод политики получает модель субъекта и `R ?? C`-модель (если метод их ожидает; сигнатура проверяется при
-  загрузке). Gate-привязка вызывает callback ability Laravel напрямую, минуя `Gate::before` (нет рекурсии).
-- `granted()` внутри политики возвращает ответ первого уровня, уже посчитанный на шаге 3: без повторных запросов, без
-  политик и хуков.
-- Результаты политик не кэшируются между запросами; внутри одного `decideMany` каждая пара (право, ресурс) вызывается
-  один раз.
-- Выдавать в БД право, у которого есть политика, не запрещено и не проверяется (Q27): у БД своя схема прав.
-- Динамические права (D52) политикой не решаются: у них нет enum.
-- Laravel-проверка по модели (`can('update', $order)`) для домена с моделью переводится в право домена
-  (`orders.update`) и проходит весь пайплайн; модели без домена AzGuard не трогает.
+Mode задаётся #[PolicyOnly]/#[RequiresGrant] на enum/case, не наличием policy method или DatabaseSource.
+Exact PolicyOnly action нельзя назначить или поместить в BaseRole.permissions; patterns расширяются только в
+Grants definitions и не становятся Authority Policy action. Dynamic action authority всегда Grants.
+GrantedToAll допустим только Grants и означает accepted subject в valid scope, не все tenants/anonymous.
+Declared policy binding/method missing — compile error; отсутствие optional grant-side policy — pass.
+ConsultsGrants/рекурсивный fallback policy OR grants отсутствует. User/resource/service DI нативный, Response
+проверяется через allowed(), denial status/message/code сохраняются. Error не превращается в Abstain/pass.
 
-## 6. Ограничения
+GateSource адаптирует ровно зарегистрированную external ability как policy; её результат трактуется по mode.
+Он не вызывает общий Gate::before заново и не делает mapped AzGuard-owned permission recursive.
+Native policy before semantics сохраняются внутри вызова policy, но не создают Grants authority и не обходят
+outer mandatory boundaries. Missing mapped ability/mode — build error; unsupported Laravel adapter — qualification
+failure. Owned bridge может быть обойдён более ранним host Gate::before — ограничение integration, не core.
 
-`restrictions(P)` = ограничения провайдера панели (`->restrictions([...])`), затем плагинов — в порядке подключения;
-ограничение членства — первым, если включено. Дубликат ключа → ошибка сборки. Порядок и состав входят в
-`StateToken::fingerprint`.
+Каждая операция вызывает business policy на актуальных observed inputs. Mode влияет также на exact query,
+cache dependencies, schema/editor и mutation validation; [19 §2](19-oop-and-permission-authority.md#2-для-одного-права--один-authority-mode).
 
-Ограничения проверяют **любое** «да»: от выдач, политики, before-хука и суперадмина. Освободить суперадмина может
-только само ограничение (`exemptsSuperAdmin()`), а не настройка панели.
+## 6. Условия выдач и общие ограничения
+
+`GrantCondition::allows(grant, request, context)` квалифицирует **одну** grant. Все её conditions — AND;
+grants — OR. Например, отдел и день недели должны подойти у одной выдачи. RoleContribution проходит conditions
+до применения superadmin. Истёкшие/неподходящие grants удаляются из matchingGrants.
+
+`Restriction` проверяет итоговый кандидат Allow: блокировка аккаунта, license, token cap, assigned-project boundary.
+`matchingGrants()` для PolicyOnly allow может быть пустым; restriction обязана определить этот случай явно.
+Scope/resource integrity — встроенная обязательная проверка, не отключаемая restriction с exemption.
+
+Порядок: обязательные scope boundaries, затем restrictions панели, затем plugins; одинаковые keys — ошибка.
+`before` возвращает BeforeResult::Continue/Deny; Continue не обходит policy/grants.
+Все relevant before checks проходят; Deny/error не скрывается другим Continue.
 
 ## 7. Gate Laravel
 
 ```
-Gate::before($user, $ability, $arguments):
-  если ability — одно слово (update) и первый аргумент — модель, объявленная доменом панели:
-      ability := '<домен>.' + snake(ability)                           # can('update', $order) → orders.update
-  иначе если ability — одно слово или не похожа на имя права → null   # Laravel-политики остальных моделей работают как без AzGuard
-  P := resolve($user, $ability)                                        # §1: полное имя, префикс, запрос, модель
-                                                                       # PanelNotResolved → null + предупреждение в логе
-  если P.catalog не содержит локальное имя → null
-  on := первый аргумент (модель или ContextRef), если есть
-  d := P.decide(AccessRequest($user, ability, on))
-  P.gate.mode = authoritative → d.toGateResult()  (Allow → true, Deny → false)
-  P.gate.mode = additive      → d.allowed() ? true : null
+Если явно наше full/prefixed имя -> ownership known до lookup каталога.
+Если одно слово + model/class -> найти однозначное binding выбранной панели.
+Если ability чужая -> null, без чтения выдач.
+Если owned, но panel/tenant/resource/catalog resolve ошибочны -> false/deny Response.
+d := direct pipeline (тот же tenant/context/resource и explicit authority mode)
+owned permission -> d.toGateResult() (Response сохраняется)
+foreign ability -> null (native Laravel продолжает свою проверку)
 ```
 
-Стоимость для чужой ability — разбор строки + поиск в хэше каталога: O(1), без запросов (сейчас — линейный обход
-каталога, N17).
+AzGuard-owned NotGranted/Policy denial не превращается в native fallback. Additive ownership mode исключён:
+он нарушал explicit RequiresGrant и позволял другому authorizer компенсировать отсутствующее назначение.
+Gate/direct parity относится к authoritative adapter при отсутствии раннего permissive host callback.
+
+Ранее зарегистрированный сторонний `Gate::before` с true может остановить Laravel до AzGuard.
+Пакет не может исправить это одним callback: хост обеспечивает порядок/ownership callbacks, doctor сообщает
+конфликт, consumer test проверяет реальные Gate registrations. Защищённые actions в CRM вызывают direct authorize;
+внешняя библиотека не получает обещания «любой Gate hook невозможно обойти».
+Два Filament resources одной модели проверяют явный resource permission, не угадываются по классу модели.
 
 ## 8. Кэш и консистентность
 
-| Слой | Ключ | Сброс | Срок |
-|---|---|---|---|
-| в пределах запроса | `digest(P, S, contexts, T)` | новый `T` панели | запрос / job |
-| между запросами (`cache.store` панели) | тот же digest + `generation` | новый `T` (версия, отпечаток, generation) | `min(ttl, validUntil)` |
-| версия панели | — | собственное изменение процесса | `state_refresh`: request или check |
+`StateToken = {storageId, panel, incarnation, version, generation, fingerprint}`.
+Scope не зашит в panel definition; ключ кэша также включает subjectRef, tenant, contexts, source partition и codec version.
+`fingerprint` содержит нормализованные definitions, bindings/config, deployment build id и plugin prefixes.
+Хэш одних FQCN не замечает изменения метода: при смене кода меняется build id, catalog cache пересобирается,
+Octane/queue workers перезапускаются. Registry static; opt-in dynamic permission catalogue — scoped overlay по DB version; BaseRole definitions только code build.
 
-Кэшируется только объединение выдач для источников с `Volatility::Stable` (в пределах запроса — и `Request`).
-Политики, Gate, хуки и ограничения выполняются при каждой проверке.
+### Чтение DB authority
 
-**Гарантия отзыва (в документации дословно):**
+Этот раздел применяется только если selected Grants path потребляет DatabaseSource. PolicyOnly не выполняет
+его state reads, а code/relation-only path использует свои revisions + CodeStateToken (16 ниже).
 
-> После успешного сохранения отзыва любая проверка **этой панели**, начавшая request/job после сохранения, видит
-> отзыв — при `consistency(reads: primary, refresh: request)`. При `refresh: check` — любая проверка, начавшаяся после
-> сохранения. Проверка, уже прочитавшая состояние до сохранения, может закончиться со старым результатом. При
-> `reads: default` гарантия ослабляется до задержки репликации.
+Холодная загрузка: fresh primary `T_before` -> scoped dynamic-action catalogue/grants -> fresh primary `T_after`.
+При равенстве токенов набор пригоден; при различии **весь DB набор** перечитывается, до 3 попыток,
+затем Deny(ConsistencyError). Нельзя поместить смесь версий в кэш под последним token.
+State reads для этого fence не берутся из request memo или старого repeatable-read snapshot приложения.
+Warm cache должен иметь точное T совпадение и проверенные абсолютные сроки.
+Динамический catalog lookup выполняется в том же validated чтении; статический miss не означает отказ
+до проверки dynamic overlay выбранного tenant.
 
-Процесс, выполнивший изменение, продвигает свою версию сразу после commit. Внутри незакоммиченного изменения кэш этой
-панели обходится только для этого процесса (P10b).
+При refresh=request warm DB authority token переиспользуется в request/job. Если новый cold load
+обнаружил более новую version, request memo продвигается и старые entries очищаются; старый token не выдаётся
+за исторический снимок, которого DB API не умеет читать. При refresh=check fresh state нужен перед каждым check.
+В собственной незакоммиченной mutation кэш обходится; tentative данные не публикуются ни в store, ни в общий memo.
+В приложенческой транзакции со старым snapshot строгий режим требует fresh authority connection либо явного
+совместного transaction protocol; если обеспечить его нельзя — configuration error, не ложная гарантия fresh reads.
+
+**Гарантия отзыва:** при primary/fresh authority новая request/job, начавшая проверку после root commit отзыва,
+не использует отозванные DB grants. При refresh=check это относится к следующей проверке текущего request.
+Уже начатая проверка может закончить со старым набором. Это не отменяет защищаемое действие (§14).
+`reads=default` с репликами даёт окно replication lag и **не гарантирует** freshness даже при version fence
+на одной отстающей реплике.
+
+### Что можно кэшировать
+
+| Компонент | Правило |
+|---|---|
+| Stable source | Межзапросно лишь при revision/expiry contract; DB version покрывает только DB authority |
+| Request source | Только request/job; срок проверяется при каждом check |
+| Volatile source | Каждый check, включая отзыв токена/внешний API; timeout -> отказ |
+| Policies, hooks, restrictions, GrantCondition | Каждый check; final Allow не кэшируется по одному StateToken |
+
+У relation source/автоматической роли данные хоста не меняются через Storage::mutate. Они Request по умолчанию;
+Stable требует dependency revision или touch при **каждом** влияющем изменении, включая bulk/delete/rollback.
+Полная гарантия мгновенного отзыва membership требует fresh/Volatile membership adapter либо общей revision authority.
+Одно permission revoke удаляет лишь конкретный DB вклад: тот же доступ может оставаться из другой роли/источника.
+Жёсткое прекращение доступа — общая restriction/suspension, а не воображаемая deny grant.
+
+Повторный grants read может стоить 0 запросов; полная проверка с live membership/policy по-прежнему выполняет
+их собственные запросы. `validUntil <= now` инвалидирует и request memo, не только cache store TTL.
+Reset/restore меняет incarnation; версии не сбрасываются на старое значение с прежним cache namespace.
 
 ## 9. Пакетная оценка
 
-`decideMany(requests)` группирует по `(S, P)`; одна загрузка выдач на объединение сущностей группы
-(`context_key IN (…)`, пачками по 100); `now` и `T` общие; порядок результатов = порядок входа. Политики и ограничения
-вызываются на каждый запрос; ограничение с запросами к БД может реализовать `BatchRestriction::checkMany()`.
+`decideMany` группирует по `(storageId, panel, subject, tenant)`, contexts режет пачками по 100.
+DB данные **всех пачек группы** читаются между одним T_before/T_after; retry перечитывает все пачки.
+Результаты возвращаются в исходном порядке. `now` один на batch; сверхбольшой batch делится вызывающим кодом,
+чтобы deadline не устаревал до действия. Decisions разных panels не имеют одного общего StateToken:
+`DecisionSet::states()` — map по storage/panel; каждая Decision несёт свой token/scope.
+
+Policies/restrictions/conditions вызываются для каждого request, включая два экземпляра одной модели
+с разными prospective changes; memo по `(permission, model id)` недопустим.
+`BatchRestriction` разрешён при контракте, равном поэлементному check. Один DB token не является snapshot
+удалённого LDAP, токена, хостовых membership и resource data: их согласованность объявляет adapter.
 
 ## 10. Видимость (`visibleTo`)
 
-```
-constrain(Q по модели M, S, K):
-  P := панель K; type := morph(M)
-  если суперадмин(S, P) → Q
-  если P.contextPolicy не принимает type → Q whereRaw('1 = 0')          # + пояснение в explain
-  если глобальные вклады покрывают K и политика inherit/required → Q    # видно всё
-  условия источников с FiltersQueries (OR):
-    database:  whereExists(role_grants: panel = P ∧ subject = S ∧ context = (type, M.key) ∧ роль даёт K ∧ не истекло)
-               OR whereExists(permission_grants: … ∧ permission покрывает K ∧ не истекло)
-    relation:  whereHas(связь, где субъект S с ролью, дающей K)
-    свои:      contextsCovering(S, K, type) → whereIn(M.key, …); источник без FiltersQueries → предупреждение «видимость неполна»
-  если K привязан к политике → предупреждение: видимость показывает выданное, политику нужно применять к элементам
-```
+`visibleTo` означает **окончательный** доступ к строкам, не «похожие grants». Строгий exact режим по умолчанию:
+если компоненты этого permission не дают эквивалентную query semantics — VisibilityNotSupportedException.
+Один warning о неполноте не разрешает выдачу клиентских данных.
 
-Нет субъекта (очередь без пользователя) → пусто, без чтения `Auth`. Таблицы — из хранилища панели P.
+Query plan повторяет scalar semantics: tenant owner AND scope integrity AND restrictions AND
+(Policy mode: policy allow; Grants mode: qualified grants/scoped superadmin AND policy not deny).
+Before checks только constraints. Policy null/true/false, exemptions и grant conditions
+компилируются явно; произвольный PHP callback в SQL автоматически не переводится.
+`FiltersQueries` описывает grants; `FiltersAccessQueries` описывает итоговую policy/restriction/condition логику.
+Query descriptor policy/before содержит раздельные allow/deny/abstain predicates, conditions получают
+конкретную Grant/RoleContribution; SQL NULL обрабатывается явно.
+Все relevant contributors должны иметь exact adapter, либо на request детерминированно дать empty/pass/deny.
+Неизвестный volatile ответ не заменяется false или true ради удобного SQL.
+
+- Predicate применяется **до** count/order/limit/pagination/export/aggregate; существующий WHERE не ослабляется
+  внешним OR: `(host filters) AND tenant AND (source1 OR source2) AND restrictions`.
+- Scope для Client строится через project relation, а не сравнением client.id с project context id.
+- Superadmin убирает только grant-предикат; tenant, token, resource integrity и обязательные ограничения остаются.
+- Нет субъекта -> пусто; явный неподдерживаемый scope -> ошибка/отказ. Auth глобально не читается.
+- `view_any` открывает страницу, `view` фильтрует её строки. Update/delete/export permissions проверяются отдельно.
+- SQL joins host/resource и grant tables возможны только при одном SQL connection; cross-connection ->
+  VisibilityNotSupported, либо явный bounded id adapter с указанными лимитами и consistency contract.
+- QueryResult вычисляется на фиксированном decisionNow; данные SQL используют свой snapshot.
+  При требовании совпадения нескольких count/data запросов вызывающий код берёт transaction snapshot.
+
+Для arbitrary policy есть отдельный `Visibility::candidates()` — **внутренний** grants prefilter, не безопасный
+список. Grants prefilter неполон, если policy/before может разрешить без grants: в этом случае допустим только
+полный bounded host dataset выбранного tenant или эквивалентный exact adapter. Consumers проверяют весь
+bounded candidate set до формирования ответа; total считается по разрешённому набору. Нельзя filter готовую страницу и сохранять исходный total; unbounded export этим способом запрещён.
+Предикаты CRM продублированы scalar/query адаптером и сверяются генеративными тестами P14.
 
 ## 11. Объяснение
 
-`explain(request)` выполняет **ту же** оценку с трассировкой и возвращает `Explanation` по шагам: как выбрана панель,
-сущность и ресурс, before-хуки (кто ответил), политика (какая, что вернула), выдачи (источник, роль, сущность,
-срок, поля решения), ограничения (`{key, result, reason}`), итог Gate (`true`/`false`/`null`), `state`.
-`azguard:explain` печатает то же (`--json`). Повторных запросов к источникам нет (C05).
+`explain` выполняет тот же pipeline, фиксирует выбранные panel/tenant/context/resource, role and grant origins,
+conditions, policy Response, constraints, now и state. Список доступных permissions не выдаётся за решение policy.
+Skipped component помечается skipped, не pass. Trace не перепрашивает источники и не пишет access mutations.
+Причины для внешнего HTTP ответа могут скрываться (404 для чужого объекта); полная trace защищена правом диагностики.
+Credentials внешних систем, токены и весь subject object в trace не сериализуются.
 
 ## 12. Среда исполнения
 
-| Среда | Гарантия |
+| Среда | Контракт |
 |---|---|
-| HTTP (FPM) | состояние запроса — scoped-сервисы; текущая панель и сущность — middleware панели |
-| Octane | scoped-сервисы сбрасываются; реестры панелей заморожены и не хранят данных запроса (arch-тест) |
-| Queue | панель запроса, поставившего задачу, приходит через `Context` Laravel; сущность — нет: job передаёт `ContextRef` явно; `withinContext()` восстанавливает в `finally` |
-| Console | как queue; изменения записываются с актором `system` и именем команды |
-| Fibers | текущая сущность **не** поддерживается (scoped ≠ fiber-local); явный `on:` работает |
+| FPM | scoped request state; defaults ставятся после auth и route binding |
+| Octane | immutable registry; sources/plugins не захватывают пользователя/tenant из boot-time контейнера |
+| Queue | explicit panel + tenant + context/resource ref; rehydrate и authorize в job, не доверять ранее сохранённому Allow |
+| Sync queue | стек scope восстанавливается после job, не сбрасывает request наружу |
+| CLI | tenant required задаётся --tenant; actor system с причиной; нет случайного Auth default |
+| Fibers | только явный AccessRequest/immutable SubjectAccess; ambient scope не поддержан |
 
-## 13. Что именно исключает каждое решение
+## 13. Как новые контракты закрывают старые дефекты
 
-| Решение | Опасное поведение сейчас | Почему невозможно после |
-|---|---|---|
-| D05 | `can('admin.users.ban')` в запросе другой панели → отказ; проверка по набору другой панели (P01c, P09); мост Vaulter всегда получает отказ (N05) | одно правило выбора панели; полное имя с `:`; неизвестная панель — ошибка, не тихий отказ |
-| D07 | право в `("workspace", "a:7")` действует в `("workspace:a", 7)` (P07) | `:` запрещён в типе, ключ однозначен |
-| D13 | роль из БД работает глобально, но не в сущности (P08) | один источник (`DatabaseSource`) читает все выдачи одинаково |
-| D14 | переименование класса роли роняет проверки держателей (P02) | идентичность — ключ; класса в данных нет |
-| D15 | строгая стратегия одной панели обнуляет другую (P06) | политика контекстов — на панели |
-| D16 | исключение между `set()` и `try` оставляет чужой контекст (C02) | сущность — аргумент; `withinContext` ставит внутри `try` |
-| D19 | роль с `*` одной панели — суперадмин в другой (P01a); `grant('*')` из публичного API (P14) | звёздочка невалидна; суперадмин — признак роли внутри панели |
-| D22 | удаление роли не сбрасывает кэш; не все входы шлют события (C04, N11) | один путь записи |
-| D24 | отзыв не виден из-за реплики (C03); N запросов версии на N проверок (P10) | primary; версия раз в запрос |
-| D26, D48 | подменённый resolver игнорируется Gate (P03); двойной путь Gate + сгенерированные политики (N19) | все входы идут через один пайплайн панели; политики — его шаг |
-| D30 | Filament пишет в роль произвольный класс (N02) | в данных нет класса; статичные роли не редактируются из UI |
-| D31 | очередь и пользователь без выдач видят все строки; две строки → ноль (P04) | явный фильтр, пусто без субъекта, OR по выдачам |
+N01/P01/P14 закрывают scoped role contributions и запрет bare wildcard; N04/P04 — exact visibility;
+N05/N09/P09 — единый resolver и conflict detection; P07 — единый codec;
+N07/P06 — tenant/context policy на панели; N08/P08 — DatabaseSource с одним scoped query;
+N11/P11 — общий mutation pipeline и root after-commit; N12/P02 — key вместо FQCN;
+C02 — scope stack finally; C03 — primary/fresh reads; C04 — mutation + version;
+N17/P10 — scoped memo с expiry; N19/P03 — authoritative adapter и один policy path.
+Новые архитектурные находки H01–H14 и границы доказательств — [evidence](evidence/design-review.md).
+
+## 14. Проверка и защищаемое действие
+
+`authorize()` не резервирует доступ. Между Allow и update resource могли перенести в другой tenant,
+membership отозвать или grant изменить. Для чувствительной записи хост использует одну transaction на общем
+connection: lock panel_state перед authority check, затем согласованные locks/revisions membership, project,
+resource, затем update и commit. Это тот же lock order, что у revoke. Actor/grant updates не должны иметь обратный порядок.
+Если изменение связано с несколькими панелями, их state locks сортируются до resource locks.
+
+При разных connections/внешнем authority такая атомарность недостижима одним API AzGuard. Интеграция фиксирует
+допустимую гонку или реализует собственный command/revision protocol. Ни Gate, ни StateToken, ни batch check
+не дают автоматической linearizability DB записи. Request-based read guarantees сформулированы только в §8.
+
+## 15. Настраиваемая context eligibility
+
+[18](18-contexts-and-runtime-inputs.md) — дополнение D75–D78. Common predicates действуют до любого Allow,
+включая hook/policy/superadmin. Role predicates — AND внутри квалификации одной RoleContribution до OR всех
+выдач; direct role-less grant не имеет скрытого BaseRole. Фильтр сужает область, не выдаёт permission.
+Global false -> ContextIneligible; query error -> ContextFilterError. False role binding удаляет только её вклад.
+
+Один Eloquent context query plan используется для scalar EXISTS, batch, exact visibleTo, Assignment directories
+и final validation; user/BaseRole/actor/proposed fields передаются явно. Access phase одна для record/list/count/
+export/queue. Inspection/Revocation не требуют runtime активности grant, но требуют actor authority по scoped row.
+Query callbacks не могут заменить outer owner/correlation; неподдержанная SQL shape не выдаёт широкий fallback.
+Context host dependencies заявляют freshness/revisions; query callbacks читают live либо declared input snapshot,
+а final Allow не кэшируется только по DB authority version. Cache recipes не сериализуют runtime callbacks/models.
+
+
+## 16. Code state и assignment state
+
+StateToken версии хранилища не обязателен для каждого права. CodeStateToken содержит panel/buildId/fingerprint
+compiled PHP catalogue. Decision.state(): CodeStateToken|StateToken: Grants с DatabaseSource возвращает consumed
+DB state с code fingerprint; PolicyOnly и code/relation-only Grants — CodeStateToken. Токен не версионирует
+host Project/User/policy/remote data; consumed dependency revisions/Volatility учитываются отдельно в frame/trace.
+PolicyOnly static mode определяется до вызова runtime DB source, поэтому сбой assignment connection не ломает
+его policy business check; сбой business connection всё ещё deny. Dynamic unknown lookup не выдаётся за PolicyOnly.
+Mixed decideMany batches partition по panel/mode/required store/dependencies, один now; map состояния использует
+keys code:<panel>:<buildId> и storage:<storageId>:<panel>, values typed union, не fake version=0.
+PanelAccess.state()/touch() остаются explicit DB management calls, не prerequisite policy-only authorize.
+Compiled active build fence обеспечивается host deployment/runtime lifecycle adapter независимо от assignment DB.
+Несогласованный rollout/старый worker нельзя объявить serializable PHP deploy; strict writes require build/revision
+check перед записью и согласованный host protocol. In-flight requests не отменяются автоматически.
+
+
+Optional RequiresGrant business veto подключается явным PolicyBinding(action, class, method), не догадкой
+по присутствию метода. Missing declared method/class — compile error. PolicyOnly binding всегда обязателен;
+folder/PolicyFor/Decides pairing допустим при однозначной цели. Метод не переименовывается в silent no-policy pass.

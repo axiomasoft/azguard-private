@@ -33,8 +33,8 @@ AzGuard отвечает на один вопрос: «может ли этот 
 
 | Уровень | Что делает пакет | Чем пользуется | Пример |
 |---|---|---|---|
-| **A. Спрашивает** | проверяет права перед своими действиями; права и роли описывает приложение | трейт, `decideMany`, Gate, `StateToken` | пакет чата проверяет `chat.moderate` |
-| **B. Приносит права** | поставляет плагин: папку с доменами (enum прав + политики), роли по умолчанию, doctor-проверки; приложение подключает плагин к нужной панели | `Plugin`, `PanelBuilder::discover()`, `BaseRole`, `#[Domain]`, `prefixed` | Vaulter приносит `documents.view/edit/share` и роль «Редактор документов» |
+| **A. Спрашивает** | проверяет права перед своими действиями в конкретном tenant/context; права и роли описывает приложение | трейт, scoped `decideMany`, authoritative Gate, `StateToken` | пакет чата проверяет `chat.moderate` |
+| **B. Приносит права** | поставляет плагин: папку с доменами (enum прав + политики), роли по умолчанию, doctor-проверки; приложение подключает плагин к нужной панели | `Plugin`, `PanelBuilder::discover()`, `BaseRole`, `#[Resource]`, `prefixed` | Vaulter приносит `documents.view/edit/share` и роль «Редактор документов» |
 | **C. Приносит источники и реакции** | свой источник, ограничения, pipes; слушает события AzGuard | `Source` и его возможности, `#[AsSource]`, `Restriction`, pipes, события Laravel | пакет биллинга даёт права по оплаченному тарифу своим источником `billing` |
 
 ## 3. Что AzGuard гарантирует
@@ -48,11 +48,12 @@ AzGuard отвечает на один вопрос: «может ли этот 
 | Понять, почему отказ | `Decision::$reason` (`NotGranted`, `Policy`, `Restricted`, …) | [05 §5](05-php-api.md#5-значения-ядра-azguardkernel) |
 | Знать, что права изменились | `state(): StateToken` для своих кэшей; события после commit | [08 §6](08-data-model-and-migration.md#6-каталог-событий), [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность) |
 | Встроиться в панель | `Plugin` + `AzGuard::configurePanel()`; пакет даёт плагин, **приложение выбирает панель** | [06 §3](06-extension-points.md#3-плагины), [06 §8](06-extension-points.md#8-модули-и-сторонние-пакеты-внутри-приложения) |
-| Свои права, роли, политики | папка пакета с доменами (enum + политика, `#[Domain]`, `#[PolicyFor]`), `prefixed`; `BaseRole`; `->discover()` | [05 §6](05-php-api.md#6-роли-в-коде), [05 §7](05-php-api.md#7-домены-и-политики) |
+| Свои права, роли, политики | папка пакета с доменами (enum + политика, `#[Resource]`, `#[PolicyFor]`), `prefixed`; `BaseRole`; `->discover()` | [05 §6](05-php-api.md#6-роли-в-коде), [05 §7](05-php-api.md#7-ресурсы-и-политики) |
 | Свой источник, ограничение, pipe | `Source` + `ProvidesGrants`/`ProvidesPermissions`/…, `AzGuard::sources()->extend()` или `#[AsSource]`, `Restriction`, pipes | [06 §1](06-extension-points.md#1-источники-фабрика), [06 §2](06-extension-points.md#2-свой-источник), [06 §4](06-extension-points.md#4-хуки-проверки), [06 §5](06-extension-points.md#5-хуки-изменений-pipes-и-события) |
 | Описать себя для интерфейсов | подписи и группы прав (`#[Describe]`), поля — попадают в `PanelSchema` | [05 §8](05-php-api.md#8-схема-панели) |
-| Перевести свою сущность в контекст | `ContextRef::of(type, id)`, `ContextAware` | [09 §3](09-authorization-semantics.md#3-политика-контекстов-панели) |
-| Выдать права от своего имени | `$user->inPanel($id)->grantRole(...)` внутри `AzGuard::actingAs('vaulter: share', …)` | [05 §3](05-php-api.md#3-фасад) |
+| Свои проекты и внешние tenants | ContextDefinition, TenantMembership/Directory и ResourceScopeResolver; AccessScope | [06 §7](06-extension-points.md#7-контексты-и-субъекты) |
+| Перевести свою сущность в контекст | `ContextRef::of(type, id)`, `ContextAware` | [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс) |
+| Выдать права от своего имени | `$user->guard($id)->grantRole(...)` внутри `AzGuard::actingAs('vaulter: share', …)` | [05 §3](05-php-api.md#3-фасад) |
 | Проверить себя | `IntegrationContractTests`, `PluginContractTests`, `SourceContractTests` против настоящего AzGuard | [06 §10](06-extension-points.md#10-контрактные-наборы-azguardtestingcontracts) |
 | Проверить конфигурацию у приложения | `DoctorCheck` в своём плагине или источнике → `azguard:doctor` | [06 §9](06-extension-points.md#9-doctor) |
 
@@ -65,7 +66,8 @@ AzGuard **не** обещает: классы в `Internal\`, модели и т
 
 ```php
 // 1. Права пакета — enum ресурса с локальными именами, без id панели (структура D56)
-#[Domain(label: 'Документы')]
+#[Resource(label: 'Документы')]
+#[RequiresGrant]
 enum DocumentPermission: string
 {
     #[Describe('Смотреть документы')] case View = 'documents.view';
@@ -77,15 +79,15 @@ final class AcmeAzGuardPlugin extends BasePlugin              // make() и prefi
 {
     public function id(): string { return 'acme/azguard'; }
 
-    public function register(PanelBuilder $panel): void
+    public function register(PanelBuilder $panel, PluginContext $context): void
     {
-        $panel->discover(__DIR__.'/Guards')                  // домены пакета: Documents/Permissions, Documents/Policies, Roles/
+        $panel->discover(__DIR__.'/Guards')                  // домены пакета: Permissions/Documents, Policies/Documents; Roles/
             // с prefixed('acme') → acme.documents.view; у панели с префиксом admin → admin.acme.documents.view
             ->doctorChecks([AcmeContextTypeCheck::class]);    // «панель принимает тип сущности acme_folder»
         // роли пакета (Roles/) появятся в редакторах через схему панели
     }
 
-    public function boot(Panel $panel): void
+    public function boot(Panel $panel, PluginContext $context): void
     {
         app(AcmeAzGuardPanels::class)->attach($panel->id());  // пакет запоминает, к каким панелям его подключили
     }
@@ -95,7 +97,7 @@ final class AcmeAzGuardPlugin extends BasePlugin              // make() и prefi
 $panel->plugins([AcmeAzGuardPlugin::make()->prefixed('acme')]);   // в своём PanelProvider
 
 // 4. Пакет спрашивает — в панели, к которой его подключили
-$user->inPanel($panels->primary())->hasPermission(DocumentPermission::Edit, on: $folder);
+$user->guard($panels->primary())->hasPermission(DocumentPermission::Edit, on: $folder);
 ```
 
 Если плагин подключён к двум панелям, пакет обязан указать панель явно; иначе `AmbiguousPanelException`
@@ -108,8 +110,8 @@ $user->inPanel($panels->primary())->hasPermission(DocumentPermission::Edit, on: 
 | Делать | Не делать | Почему |
 |---|---|---|
 | Хранить у себя локальные имена прав; id панели брать из подключения плагина или конфига приложения | Зашивать `admin`/`cabinet` в код пакета | приложение само решает, в какой панели живут права пакета |
-| Спрашивать AzGuard каждый раз (с кэшем по `StateToken`) | Копировать права AzGuard в свои таблицы | копия отстаёт от отзыва права — дыра в безопасности |
-| Для пачки проверок использовать `decideMany` | Делать N проверок в цикле | один снимок, одна выборка из БД |
+| Спрашивать окончательное решение каждый раз; кэшировать только contributions с full scope/revision/expiry contract | Копировать права AzGuard в свои таблицы | копия отстаёт от отзыва права — дыра в безопасности |
+| Для пачки проверок использовать `decideMany` | Делать N проверок в цикле | validated authority по группе; число queries учитывает chunks/definitions/fence |
 | Менять права только через API AzGuard | Писать в модели и таблицы AzGuard напрямую | обход проверок, событий и версии состояния |
 | Переводить свои сущности в `ContextRef` через morph alias | Использовать `:` в типе, составные id | ключ сущности однозначен только при этих правилах ([D07](02-decisions.md#d07)) |
 | Реагировать на события AzGuard | Опрашивать таблицы AzGuard | таблицы — не контракт |
@@ -209,7 +211,7 @@ beforeEach(function () {
    | Метод Vaulter | Что спрашивает у AzGuard |
    |---|---|
    | `resolve(subject, actor, scope)` | `decideMany` по пяти правам уровней в контексте `ContextRef::of(owner.type, owner.id)`; высший разрешённый уровень → `GrantLevel` |
-   | `override(actor, scope)` | `$actor->inPanel($panel)->isSuperAdmin()` → allow |
+   | `override(actor, scope)` | `$actor->guard($panel)->isSuperAdmin()` → allow |
    | `subjectsFor(actor)` | `roleNames(on: owner)` → роли AzGuard как субъекты Vaulter. Тогда NodeGrant можно выдать роли: «папка доступна роли Редакторы» |
    | `canCreateIn(actor, scope)` | `hasPermission('documents.create', on: owner)` |
 
@@ -264,3 +266,26 @@ beforeEach(function () {
   нескольких классов. Одинаковость держат ADR и контрактный тест формы событий. Вернуться к вопросу, если пакетов
   станет много.
 - **Одно слово для Panel и Profile, перенос ACL Vaulter в AzGuard или наоборот.** Понятия разные.
+
+
+## 13. Тенантные пакеты и полные scopes
+
+Пакет не обязан наследовать конкретную Organization хоста. Он реализует ContextDefinition/TenantDirectory/
+TenantMembership/ResourceScopeResolver и связывает внешние `(provider,installation,external_id)` с TenantRef.
+Mapping и credentials принадлежат пакету; [CRM §10](16-crm-and-workflows.md#10-несколько-внешних-систем-одного-тенанта).
+
+Вызов: `panel($configuredId)->inTenant($tenant)->for($subject)->hasPermission($localOrEnum, on: $resource)`.
+Prefix plugin применяется также к enum->local translation, Role.permissions и PolicyBinding; сохранённое
+reference origin указывает owning plugin. Schema/catalog и проверки не должны видеть разные имена одного enum.
+Один integration подключён к двум панелям — два definition/execution instance; actor/tenant не захватывается boot.
+
+DB StateToken недостаточен для кэша final Allow, если policy/restriction/token/host relation могут меняться.
+Событие best effort не служит единственным revoke channel. Mandatory external delivery — outbox интеграции.
+Одновременная запись application data и grant возможна атомарно только на одном connection и root transaction.
+Для SQL visibility на разных connections нужен bounded exact id adapter или отказ; N+1 удалённые checks
+и некорректный total не считаются поддержанным exact listing.
+
+Интеграция вправе принести configurable context definition, typed filters и directories и получает host model classes,
+owner/membership/filter configuration через named typed plugin parameters. Runtime capability inputs — explicit user/BaseRole/
+actor/grant/scope/phase, не plugin boot current user. Два потребителя пакета задают собственные модели без
+форка интеграции; role/filter definitions code-owned, assignment fields validated по FieldSchema. Consumer acceptance — R45–R50 из [17](17-crm-acceptance-tests.md).

@@ -17,7 +17,7 @@
 правильно (D01).
 
 **Основа — сегодняшний AzGuard.** Панели как папки с провайдером, домены с enum и политиками, статичные и
-динамические роли, прямые выдачи, роли в сущностях, `#[CheckPermission]`, режимы Filament, explain и doctor — идеи
+классы ролей, прямые выдачи, роли в сущностях, `#[CheckPermission]`, режимы Filament, explain и doctor — идеи
 владельца, и они сохраняются. Досье развивает их и исправляет найденные дефекты; что именно остаётся и как
 развивается — таблица в [00 §1](00-overview.md#что-остаётся-из-сегодняшнего-azguard).
 
@@ -66,7 +66,7 @@ Laravel и Filament — внешние слои, которые только п�
 | **Kernel** | словарь и арифметика прав: ключ, шаблон, субъект, контекст, решение | чистый PHP, без Laravel |
 | **Panels** | описание панели, настройки, реестр, выбор панели | панель неизменна после загрузки |
 | **Sources** | источники, из которых панель собирает права, роли, выдачи и политики: папка панели, БД, связи, Gate, свои; фабрика источников | каждый источник — отдельный класс на открытых контрактах |
-| **Policies** | второй уровень: вызов политик доменов и Gate | только вызывает, не регистрирует политики в Gate |
+| **Policies** | explicit PolicyOnly authority / RequiresGrant veto, включая Gate mappings | только вызывает, не регистрирует политики в Gate |
 | **Authorization** | пайплайн проверки, кэш, пакетная проверка, объяснение, видимость | только читает |
 | **Changes** | пайплайн изменения прав (роли и выдачи в БД) | единственный путь записи |
 | **Schema** | описание панели для интерфейсов: какие права, роли, поля и как их заполнять | только читает |
@@ -111,7 +111,7 @@ Laravel и Filament — внешние слои, которые только п�
 
 **Решение.** Полный словарь — [03](03-glossary-and-renames.md).
 
-Почему не Guard. Панель ссылается на auth guard Laravel (`subjects(User::class, guard: 'web')`). При этом на одном
+Почему не Guard. Панель ссылается на auth guard Laravel (`for([User::class], guard: 'web')`). При этом на одном
 guard'е `web` живут сразу «личный кабинет» и «кабинет продавца». Если назвать панель Guard, получится
 `->guard('web')` внутри guard'а `cabinet` и путаница с `config/auth.php`. У Spatie роли разделены именно по auth
 guard'ам (`guard_name`), поэтому разделить кабинет и кабинет продавца там нельзя. Если владелец всё же выберет
@@ -162,7 +162,7 @@ Guard, это механическая замена имён ([Q1](15-owner-ques
   требует явной панели, иначе `AmbiguousPanelException`.
 - **Правило выбора панели** (одно, в `Panels\PanelResolver`, для всех входов: трейт, фасад, Gate, middleware, Blade,
   CLI):
-  1. **явно**: полное имя `admin:…`; имя с префиксом панели; enum с одной панелью; `->inPanel('admin')`; аргумент
+  1. **явно**: полное имя `admin:…`; имя с префиксом панели; enum с одной панелью; `->guard('admin')`; аргумент
      `panel:`;
   2. **по умолчанию для запроса**: панель, которую middleware маршрута (`azguard.panel:seller`) или Filament сделали
      панелью по умолчанию на время запроса, если субъект ей принадлежит;
@@ -196,7 +196,7 @@ N09, P01c, P09). Одно правило с понятным порядком у
 - Папка панели — каталог класса провайдера (`app/Guards/Admin/AdminGuardPanelProvider.php` → `app/Guards/Admin/`),
   namespace — namespace провайдера. Так устроено и сейчас; это основа автопоиска (D56).
 - `PanelProvider::panel(PanelBuilder $panel): PanelBuilder`; результат сборки — `final readonly Panel`. Суффикс
-  `GuardPanelProvider` сохраняется: он не путается с `AdminPanelProvider` Filament.
+  `GuardPanelProvider` сохраняется: он не путается с `AdmguardProvider` Filament.
 - id панели: `^[a-z0-9][a-z0-9-]{0,63}$`.
 - `PanelRegistry`: повторный id → `DuplicatePanelException`; `replace()` — явная замена до заморозки;
   `configurePanel(id, fn)` — дополнение чужой панели (модули, D50); `configurePanels(fn)` — одна настройка для всех
@@ -207,34 +207,38 @@ N09, P01c, P09). Одно правило с понятным порядком у
 ---
 
 <a id="d07"></a>
-### D07 — Единый кодек идентичности: субъект, контекст, роль
+### D07 — Единый кодек идентичности: субъект, тенант, контекст, роль
 
-**Кратко:** «кто» и «где» кодируются одинаково везде — в БД, кэше и событиях. Два разных контекста никогда не
-превратятся в одну строку.
 
-**Решение.**
+**Кратко:** идентичность одна в SQL, кэше и событиях; разные организации, источники и проекты не смешиваются.
 
-- `SubjectRef(type, id)`, `ContextRef(type, id)` — readonly-значения. `type` — morph alias без `:`
-  (`^[A-Za-z0-9_.\\-]{1,128}$`); `id` — строка: число → десятичная строка, строка — без преобразований, ≤ 64 байт.
-  `7` и `'7'` — одна идентичность.
-- `ContextRef::key()` = `"{type}:{id}"` — однозначно, потому что в `type` нет `:`. Отсутствие контекста — ключ
-  `global`.
-- `RoleKey`, `PermissionKey` — `"{panel}:{local}"`.
-- `IdentityCodec` — единственное место кодирования; digest для кэша — sha256 от JSON-массива компонентов.
+`SubjectRef`, `TenantRef`, `ContextRef` — readonly значения. Type — зарегистрированный стабильный alias
+`^[a-z0-9][a-z0-9_.-]{0,127}$`, обозначающий identity domain, не произвольный FQCN.
+Id — непустая ASCII строка <=64 bytes без whitespace/control bytes; int 7 и string '7' равны.
+В string HK '007' сохраняется как другая identity; при bigint такое неканоническое значение отклоняется,
+uuid/ulid канонизируются codec до SQL/cache. HK проверяется одинаково на всех adapters.
+Unicode/длинные внешние ключи преобразует explicit mapping интеграции, не обрезка/hash без mapping.
 
-Закрывает P07 (право одного контекста выдавалось в другом из-за совпадения строк).
+Reference key = `type:id`; global ref = `global`. Двоеточие в type запрещено, составные cache keys строятся
+JSON массивом, не конкатенацией без границ. AccessScope = `(tenant, context)`; global context внутри tenant
+не равен global tenant. TenantRef, ContextRef и SubjectRef одного alias/id различаются видом ref в сериализации.
+IdentityCodec version включена в schema_state/cache. Источник с совпадающим внешним id=7 другого installation
+не становится тем же субъектом/tenant: namespace/mapping обязателен. P07 и V86/V98/V105.
+
 
 ---
 
 <a id="d08"></a>
-### D08 — Типы ключей хоста: `ids.host_keys`
+### D08 — Типы ключей хоста: ids.host_keys
 
-**Кратко:** колонки с id пользователей и сущностей по умолчанию строковые — подходят и для чисел, и для UUID/ULID.
-Тип можно выбрать явно.
 
-**Решение.** `azguard.ids.host_keys`: `string` (по умолчанию, `varchar(64)`) | `bigint` | `uuid` | `ulid` — те же
-значения, что у Vaulter (общее правило экосистемы, D43). Отдельное хранилище панели может задать свой тип.
-Применяется к `subject_id`, `context_id`, `actor_id`.
+**Кратко:** string подходит смешанным моделям; специализированный HK разрешён лишь без потери идентичности.
+
+`string` (ASCII varchar64), bigint, uuid, ulid. Один HK хранилища применяется к subject_id, tenant_id,
+context_id, actor_id; несовместимые модели требуют string/отдельного storage. System actor имеет alias
+azguard.system, id=null и reason; не записывает строку system в bigint. Identity codec и DDL/collation
+сверяются на реальных СУБД, не только через сравнение PHP строк. [08](08-data-model-and-migration.md).
+
 
 ---
 
@@ -242,7 +246,7 @@ N09, P01c, P09). Одно правило с понятным порядком у
 ### D09 — Публичный API: модель, панель, фасад
 
 **Кратко:** чаще всего работают с моделью (`$user->hasPermission('orders.view')`), как в Spatie. Для другой
-панели — `$user->inPanel('admin')`. Для всего про панель целиком — `AzGuard::panel('admin')`.
+панели — `$user->guard('admin')`. Для всего про панель целиком — `AzGuard::panel('admin')`.
 
 **Решение.** Нормативно — [05-php-api.md](05-php-api.md).
 
@@ -251,14 +255,14 @@ N09, P01c, P09). Одно правило с понятным порядком у
 $user->hasPermission('orders.view');
 $user->hasPermission(CabinetPermission::OrdersView, on: $order);
 $user->grantRole('editor', on: $project);
-$user->inPanel('admin')->hasRole('manager');
+$user->guard('admin')->hasRole('manager');
 $user->isSuperAdmin();
 
 // 2. Панель целиком
 $admin = AzGuard::panel('admin');
-$admin->roles()->create('support', label: 'Поддержка', permissions: [OrderPermission::View]);
+$admin->roles()->all(); // definitions read-only; SupportRole объявлена PHP классом
 $admin->schema();                               // описание для интерфейсов (D54)
-$admin->decideMany($requests);                  // пакетно, один снимок данных
+$admin->decideMany($requests);                  // пакетно, validated state каждой DB группы
 $admin->explain($request);
 
 // 3. Laravel как обычно
@@ -288,7 +292,7 @@ Gate::allows('orders.view');                    // правило выбора �
 | Роли | `hasRole()`, `hasAnyRole()`, `hasAllRoles()`, `roleNames()` |
 | Суперадмин | `isSuperAdmin()` |
 | Изменения | `grantRole()`, `revokeRole()`, `syncRoles()`, `grantPermission()`, `revokePermission()`, `syncPermissions()` |
-| Панели | `inPanel(string $id): SubjectAccess`, `azguard(): SubjectPanels` (все панели субъекта сразу) |
+| Панели | `guard(array\|string $guarded): static|SubjectAccess` (D74), `azguard(): SubjectPanels` (все панели субъекта сразу) |
 
 - У всех методов есть необязательный `on:` — сущность (контекст или ресурс, D16). У выдачи — `until:` (срок) и
   `fields:` (свои поля выдачи, D46).
@@ -310,7 +314,7 @@ Spatie (третий проход): владелец попросил свою �
 
 **Решение.**
 
-- `PanelBuilder::subjects(User::class, guard: 'web')` — какие модели бывают субъектами панели и из какого auth
+- `PanelBuilder::for(User::class, guard: 'web')` — какие модели бывают субъектами панели и из какого auth
   guard'а брать текущего субъекта (для middleware и UI). Моделей может быть несколько.
 - `->default()` — панель по умолчанию для своих моделей. Если модель входит в одну панель, эта панель и есть панель
   по умолчанию. Две панели с `default()` для одной модели → ошибка при загрузке.
@@ -336,72 +340,56 @@ Spatie (третий проход): владелец попросил свою �
 ---
 
 <a id="d13"></a>
-### D13 — Данные в БД: роли и выдачи
+### D13 — БД хранит назначения; definitions ролей принадлежат коду
 
-**Кратко:** в БД хранится только то, что меняется во время работы: роли, созданные в админке, и выдачи — ролей и
-прав. Всё с сущностью (где действует), сроком и тем, кто выдал.
-
-**Решение.** Таблицы — [08](08-data-model-and-migration.md):
-
-| Таблица | Строка означает |
-|---|---|
-| `{p}roles` | роль, созданная во время работы (в админке, командой, кодом через API) |
-| `{p}role_permissions` | права этой роли |
-| `{p}role_grants` | субъекту выдана роль (из кода или из БД) в сущности до даты |
-| `{p}permission_grants` | субъекту выдано право или шаблон в сущности до даты |
-| `{p}permissions` | права, созданные во время работы (только при `DatabaseSource::make()->dynamicPermissions()`, D52) |
-| `{p}panel_state` | версия состояния прав панели (для кэшей) |
-
-- Выдачи ролей ссылаются на роль по ключу (`panel`, `role`), а не по id строки: роли из кода не нужно копировать в БД,
-  команда синхронизации не нужна.
-- В идентичности нет NULL (`context_key = 'global'`), поэтому обычные уникальные индексы работают на всех СУБД.
-  `NullSafeUniqueIndex` и `AssignmentDeduplicator` (~1100 строк) не нужны.
-- У каждой строки — `meta` (JSON, nullable) для своих полей без миграций (D46).
-
----
+**Кратко:** role_grants/permission_grants — назначения; roles/role_permissions/role_contexts таблиц нет.
+Роли — зарегистрированные PHP-классы с code-owned permissions/context filters. Enum права назначаются из кода,
+relations или БД без копирования definitions. Opt-in permissions table хранит только дополнительные Grants actions.
+Scope panel+tenant+context+origin, actors/expiry/conditions/state сохраняются (08). Изменение класса — deploy/build,
+назначение — Change pipeline/version/events. Роль, отсутствующая в code catalogue, не даёт доступа; cleanup доступен.
 
 <a id="d14"></a>
 ### D14 — Роли: где определены × как выдаются
 
-**Кратко:** роль можно описать в коде (права не меняются из админки) или создать в БД (права редактируются). Выдать
-роль можно вручную (запись в БД) или автоматически по правилу в коде (например, «продавец — каждый, у кого есть
-магазин»). Способы складываются: автоматическую роль можно дополнительно выдать вручную.
+**Кратко:** роль определяется PHP-классом; состав прав и контексты меняются в коде. Назначение
+может храниться в БД или вычисляться правилом/связью. Автоматическую роль можно дополнительно выдать вручную,
+если её класс допускает это. Каждое назначение проходит собственные scope/expiry/conditions проверки.
 
 **Решение.**
 
 | | Выдаётся вручную (БД) | Выдаётся автоматически (правило) |
 |---|---|---|
 | **Роль в коде** (`BaseRole`, папка `Roles/`) | «Менеджер»: права в коде, кому — решает админ | «Покупатель»: всем с моделью `Customer`; «Продавец»: всем с `is_seller` |
-| **Роль в БД** (`DatabaseSource`) | «Поддержка», созданная в Filament | — (правило живёт в коде) |
 
 - Статичная роль — класс `BaseRole`, как сейчас; `FolderSource` находит её в `Roles/`. Права — метод `permissions()`
   (массив кейсов enum). Остальное — атрибутами на классе, у каждого есть метод с тем же смыслом:
 
   ```php
-  #[Role('manager', label: 'Менеджер', level: 10)]    // key(), label(), level(); без атрибута ключ — из имени класса, как сейчас
+  #[Role('manager', label: 'Менеджер', level: 10)]    // key(), label(), level(); без атрибута требуется explicit key()
   #[FormerKeys('shop-manager')]                        // formerKeys(): прежние ключи после переименования
   final class ManagerRole extends BaseRole
   {
       public function permissions(): array { return [OrderPermission::View, OrderPermission::Refund]; }
   }
 
+  #[Role('root')]
   #[SuperAdmin]                                        // superAdmin(): держатель — суперадмин (D19)
   #[NotGrantable]                                      // grantable(): только автоматически
   final class RootRole extends BaseRole implements GrantedAutomatically
   {
       public function permissions(): array { return []; }
-      public function appliesTo(Model $subject, ?ContextRef $context): bool { return (bool) $subject->is_root; }
+      public function appliesTo(Model $subject, AccessScope $scope): bool { return (bool) $subject->is_root; }
   }
   ```
 
 - Генератор `azguard:make:role` пишет `#[Role('<key>')]` сам: ключ зафиксирован в коде, переименование класса его не
-  меняет (N12). Без атрибута ключ выводится из имени класса (`ManagerRole` → `manager`), и doctor напоминает, что
-  тогда переименование класса меняет ключ.
-- Автоматическая роль реализует `GrantedAutomatically::appliesTo(Model $subject, ?ContextRef $context): bool`.
+  меняет (N12). Без атрибута требуется explicit stable key() override; inference из имени класса запрещён.
+- Автоматическая роль реализует `GrantedAutomatically::appliesTo(Model $subject, AccessScope $scope): bool`.
 - Ручная выдача возможна для любой роли без `#[NotGrantable]` (иначе `RoleNotGrantableException`). Лишних проверок
   нет: если автоматическая роль выдана ещё и вручную, права просто складываются.
-- Динамическая роль создаётся через `AzGuard::panel($id)->roles()` или Filament; ключ не может совпасть с ключом
-  статичной роли.
+- Роль объявляет `contexts(): array` конфигурируемых ContextDefinition (class-string — shorthand) и `contextRequired(): bool`; назначение на project проверяет связь с классом и tenant (D60).
+- Новые роли описываются PHP-классами; UI/RoleCatalog не создают и не меняют definitions.
+  Различные назначения одной роли в A/B не меняют её code-owned состав (D80).
 - Ключ роли — `^[a-z0-9][a-z0-9-]{0,63}$`, полное имя `panel:key`. Смена ключа — `#[FormerKeys]` + команда
   `azguard:roles:rename-key`.
 - `level` — необязательная подпись порядка: по ней сортируют роли в интерфейсе и на неё опираются свои pipes
@@ -410,43 +398,26 @@ Spatie (третий проход): владелец попросил свою �
 ---
 
 <a id="d15"></a>
-### D15 — Контексты: политика на панели
+### D15 — Классы контекстов и configurable bindings ролей
 
-**Кратко:** каждая панель сама решает, как права работают внутри сущностей: «глобальные права действуют везде и
-дополняются правами в сущности», «внутри сущности — только её права», «без сущности нельзя» или «сущностей нет».
-
-**Решение.**
-
-```php
-$panel->contexts(ContextPolicy::inherit(Project::class, Store::class));   // глобальные ∪ права в сущности
-$panel->contexts(ContextPolicy::isolated(Project::class));                // в сущности — только её права
-$panel->contexts(ContextPolicy::required(Store::class));                  // без сущности — отказ
-$panel->contexts(ContextPolicy::none());                                   // по умолчанию
-$panel->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreMembership::class));
-```
-
-- Таблица смысла — [09 §3](09-authorization-semantics.md#3-политика-контекстов-панели).
-- Тип, не объявленный панелью, → ошибка при записи и `Deny(ContextNotAccepted)` при проверке.
-- Членство (Q11): «глобальная роль действует внутри магазина только для его сотрудников» — необязательное ограничение
-  на панели. Реализация членства — любая: связь модели, свой класс `ContextMembership`, запрос.
-
----
+**Кратко:** ContextDefinition описывает identity/owner, ContextQueryFilter ограничивает подходящие rows.
+ProjectContext в Contexts/ панели задаёт стабильный type и host model/owner; BaseRole.contexts возвращает
+configured objects или descriptor classes. Common и role filters конфигурируются в PHP, без string profiles/JSON DSL.
+Назначения на проект могут храниться в БД или вычисляться code/relation source. contextRequired запрещает tenant-wide
+assignment этой роли. query(new SellerProjects(...)) получает ContextRuntime user/actual BaseRole/actor/scope/grant.
 
 <a id="d16"></a>
-### D16 — Контекст и ресурс в проверке
+### D16 — Тенант, контекст и ресурс в проверке
 
-**Кратко:** сущность передают прямо в проверку: `on: $project`. Если это заказ, а не проект, AzGuard сам узнаёт у
-заказа, в каком он магазине. В фоновых задачах контекст передают явно.
 
-**Решение.**
+**Кратко:** scope ресурса подтверждает tenant/project; текущая организация запроса не приписывается чужому объекту.
 
-- `on:` принимает модель или `ContextRef`. Модель типа, объявленного панелью как контекст, → контекст. Любая другая
-  модель → **ресурс**: передаётся в политики и ограничения, а контекст берётся из ресурса
-  (`ContextAware::azguardContext()`, например `$order->store`), иначе из текущего контекста запроса.
-- Текущий контекст запроса (`CurrentContext`, scoped) ставит middleware панели через её резолверы (например, из
-  параметра маршрута `{store}`).
-- `AzGuard::withinContext($context, fn)` — для кода без HTTP; ставит внутри `try`, восстанавливает в `finally` (C02).
-- Jobs передают `ContextRef` явно; текущий контекст в очередь не переносится.
+`on:` принимает контекст либо ресурс. ResourceScopeResolver/ProvidesAccessScope возвращает AccessScope;
+явный/current tenant и project сравниваются с ним, а ContextDefinition подтверждает owner tenant/existence.
+Неподтверждённый ресурс tenant-панели -> отказ; explicit ContextRef non-accepted не игнорируется.
+Current scope хранится scoped с panel identity и восстанавливается finally. Jobs передают scope явно,
+на исполнении references загружаются и авторизуются повторно. [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс).
+
 
 ---
 
@@ -469,45 +440,19 @@ $panel->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreMe
 панели» — это суперадмин, а не звёздочка.
 
 **Решение.** Сегмент `^[a-z0-9][a-z0-9_-]*$`; локальное имя — ≥ 2 сегментов, ≤ 255 символов; полное — `panel:local`.
-Шаблоны — только в выдаче (роль в БД, выдача права): `orders.*` — один сегмент, `orders.**` — всё глубже. Голые `*` и
+Шаблоны — в PHP BaseRole.permissions() или permission grant; DB role definition отсутствует: `orders.*` — один сегмент, `orders.**` — всё глубже. Голые `*` и
 `**` запрещены: «всё» даёт суперадмин (D19). Сменяемый `PermissionMatcher` удаляется: грамматика — часть данных.
 
 ---
 
 <a id="d19"></a>
-### D19 — Суперадмин — свойство роли
+### D19 — Суперадмин — признак класса роли
 
-**Кратко:** суперадмином человека делает роль. Роль из кода объявляет «держатель — суперадмин», у роли из БД для
-этого есть флаг. У панели своего правила суперадмина нет. Суперадмин получает все права, но общие запреты —
-ограничения — действуют и на него.
-
-**Решение.**
-
-- Роль из кода: атрибут `#[SuperAdmin]` (или метод `superAdmin(): bool`, по умолчанию `false`). Роль из БД: колонка `is_super_admin`,
-  `roles()->create('owner', superAdmin: true)`, флаг в редакторе Filament. AzGuard поставляет готовую роль
-  `SuperAdminRole` (ключ `superadmin`); панель подключает её явно, как любую роль.
-- Выдана глобально — субъект суперадмин всей панели. Выдана в сущности (`on: $store`) — у субъекта все права внутри
-  этой сущности; `isSuperAdmin(on: $store)` → `true`, `isSuperAdmin()` → `false`.
-- «Суперадмин по флагу пользователя» (`is_root`) — автоматическая роль (D14) с `#[SuperAdmin]`. «Суперадмин во
-  всех панелях» — та же роль, подключённая к каждой панели (`configurePanels()`). Отдельного механизма нет (Q10).
-- Суперадмин пропускает оба уровня (выдачи и политики): у него есть всё. Ограничения (D20) после этого
-  выполняются как для всех (Q28). Ограничение может явно освободить суперадмина (`exemptsSuperAdmin(): true`) — так
-  устроено встроенное ограничение членства: суперадмин платформы видит все магазины.
-- Звёздочка в правах роли или в выдаче права запрещена: «всё» даёт только признак суперадмина (N01, N13, P01, P14).
-- `isSuperAdmin()` на модели (панель по D05) и `->inPanel('admin')->isSuperAdmin()`.
-
-**Почему признак у роли.** Суперадмин — это то, *что выдано* человеку, а не настройка части приложения. Так его
-видно и меняют там же, где остальные роли: в коде, в БД, в Filament; работают сроки, сущности, события и журнал
-выдач.
-
-**Почему ограничения действуют (Q28).** В зрелых системах прав администратор получает всё, но явные запреты
-действуют и на него: explicit deny и SCP в AWS IAM ограничивают даже администраторов; deny assignments в Azure
-действуют и на Owner; IAM Deny в Google Cloud действует и на роль Owner. Spatie Permission советует `Gate::after`
-вместо `Gate::before` для суперадмина именно тогда, когда есть вещи, которые приложение не разрешает никому. Обратный
-пример — группа `system:masters` в Kubernetes: она обходит всю авторизацию, и её прямо рекомендуют не использовать,
-кроме аварийного доступа.
-
----
+**Кратко:** #[SuperAdmin]/BaseRole.superAdmin задаются в коде; БД только назначает известную роль.
+Scoped/expired/conditioned RoleContribution квалифицируется до применения superadmin. В Grants mode superadmin
+является authority candidate, но обязательные owner/eligibility/restrictions и attached policy deny остаются.
+PolicyOnly проверяет собственную политику; superadmin grant не заменяет её. Tenant boundary неизменяем.
+Для всех панелей один класс подключают явно/configurePanels; отдельного global superadmin engine нет.
 
 <a id="d20"></a>
 ### D20 — Ограничения: правила, которые умеют только запрещать
@@ -527,23 +472,24 @@ $panel->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreMe
 <a id="d21"></a>
 ### D21 — Сознательно отложено (после 1.0, без поломок)
 
-Наследование прав между панелями; иерархия контекстов (проект внутри workspace); явные запрещающие выдачи; граф
+Наследование прав между панелями; произвольная рекурсивная иерархия контекстов (tenant + project уже входят в 1.0, D59–D60); явные запрещающие выдачи; граф
 отношений; порт записи для чужого хранилища; outbox событий; готовый плагин подтверждения изменений вторым
 человеком (в 1.0 — рецепт на pipe изменений, D55).
 
 ---
 
 <a id="d22"></a>
-### D22 — Единственный путь записи
+### D22 — Единственный путь записи с окончательной валидацией
 
-**Кратко:** выдать или забрать права можно через модель, через панель или через Filament — но внутри это всегда один
-и тот же путь. Поэтому всегда обновляется кэш, всегда отправляются события.
 
-**Решение.** Трейт, `AzGuard::panel()->roles()`, `->for($s)`, команды и Filament вызывают пайплайн изменений (D49).
-Запись — в `Storage::mutate()` хранилища панели: транзакция → строки → +1 версия состояния панели → журнал (если
-включён) → commit → события. Базовые модели можно читать и наследовать; их `save()`/`delete()` в обход API →
-`UnsupportedDirectWriteException` в local/testing и предупреждение в production (Q14). Закрывает C04 (удаление роли
-без сброса кэша) и N11 (события не со всех входов).
+**Кратко:** любое изменение сериализуется, проверяется и публикует committed state одинаково.
+
+Все adapters -> ChangePipeline -> Storage::mutate. State lock **первый**, pipes и final validation
+внутри transaction, effective rows + version + audit -> root commit -> events. Предварительная проверка не
+заменяет финальную после изменения pipes. Прямые Eloquent save/delete/mass writes базовых моделей запрещены
+во всех environments; raw SQL вне контракта и требует reset/doctor. Это уточняет прежний Q14 warning в production:
+warning не мог обеспечить отзыв и теперь предложен strict invariant. Подробнее [08 §5](08-data-model-and-migration.md#5-порядок-блокировок-и-повторы), D63.
+
 
 ---
 
@@ -571,60 +517,57 @@ $panel->contexts(ContextPolicy::inherit(Store::class)->requireMembership(StoreMe
 ---
 
 <a id="d24"></a>
-### D24 — Версия состояния на панель и честная консистентность
+### D24 — Версия панели и проверенное чтение authority
 
-**Кратко:** у каждой панели свой счётчик изменений: изменения в админке не сбрасывают кэш кабинета. После отзыва
-права новая проверка его уже не увидит. Повторная проверка в том же запросе не ходит в БД.
 
-**Решение.**
+**Кратко:** счётчик не позволяет кэшировать смесь версий; guarantee относится к DB authority и указанной свежести.
 
-- `{p}panel_state` — строка на панель; +1 только внутри `mutate()` этой панели. `StateToken` = `{panel, version,
-  generation, fingerprint}` — публичное значение для кэшей интеграций (D51).
-- Q5: версия и встроенные источники читают **с primary** (`reads = primary`, по умолчанию; можно поменять на панели).
-  Это одна дешёвая выборка на запрос, а отзыв права не зависнет из-за задержки реплики (C03).
-- `state_refresh = request` (по умолчанию): версия читается раз на request/job; `check` — на каждую проверку.
-  Дословная гарантия отзыва — [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность).
-- Кэш обходится только при незакоммиченном изменении AzGuard в этом процессе (P10b).
+StateToken = storageId/panel/incarnation/version/generation/fingerprint. Version меняется в transaction;
+incarnation исключает cache resurrection после restore/reset. Primary/fresh state для reads; cold data читает
+Grants mode: T_before -> scoped DB action catalogue/grants -> T_after, retry mismatch до 3. Повтор с validated warm grants
+может не читать DB; live policies/restrictions всё равно работают. Refresh request/check и исключения старого
+application snapshot — [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность). Внешний LDAP/membership
+не получает strict revoke от одного DB token; adapter объявляет revision/freshness (D62/D64).
+
 
 ---
 
 <a id="d25"></a>
-### D25 — Кэш наборов прав
+### D25 — Кэш contributions, не окончательного Allow
 
-**Кратко:** кэшируется только «что у субъекта есть» из источников, которые это позволяют. Политики и Gate не
-кэшируются: они решают с учётом конкретного ресурса.
 
-**Решение.** Ключ `digest(panel, subjectRef, contextKeys, stateToken)`. `fingerprint` — хэш определения панели,
-каталога, ролей из кода, источников, хуков и их порядка: изменение кода не требует ручного сброса. Источник объявляет
-`Volatility`: `Stable` (кэшируется между запросами), `Request` (в пределах запроса), `Volatile` (не кэшируется).
-Результаты политик, ограничений и хуков не кэшируются.
+**Кратко:** сохраняется только то, что source разрешил кэшировать, со scope и абсолютным сроком.
+
+Digest включает panel/storage/state/codec/subject/tenant/context/source. Stable требует revision contract;
+Request ограничен lifecycle, Volatile выполняется каждый check. На каждом check проверяются deadlines даже
+request memo. Grants/roles source partitions не смешиваются с Volatile. Policy/conditions/hooks/restrictions
+и final Decision не кэшируются по одному token. Code fingerprint включает deployment build id;
+worker restart и catalog rebuild обязательны после изменений кода. [09 §8](09-authorization-semantics.md#8-кэш-и-консистентность).
+
 
 ---
 
 <a id="d26"></a>
-### D26 — Gate Laravel
+### D26 — Gate: owned permission имеет окончательный explicit-mode результат
 
-**Кратко:** `@can` и `Gate::allows()` работают с правами AzGuard как обычно. Если право принадлежит панели, отвечает
-AzGuard (он сам вызовет нужную политику). Если не принадлежит — AzGuard молчит, и Laravel решает как без него.
-
-**Решение (Q4).** `GateBridge` в `Gate::before`: имя → панель по правилу D05 → право есть в каталоге панели → ответ
-AzGuard `true`/`false`; иначе `null`. Laravel-проверки по модели (`$user->can('update', $order)`) тоже идут через
-AzGuard, если домен объявил модель (D56): ability `update` для `Order` → право `orders.update` панели → тот же
-пайплайн, включая ограничения. Для моделей без домена Laravel-политики работают как обычно. Режим по умолчанию — **authoritative**: это последовательно, потому что Policy и
-Gate сами являются частью панели (второй уровень, D53), и двух параллельных путей решения нет (N19). `additive` (AzGuard только
-разрешает, запрет отдаёт Laravel) — настройка панели для постепенного перехода. Первый аргумент Gate → `on:`.
-`PolicyAttributeRegistrar` (регистрация `Gate::define` на каждую ability) и `Gate::define('direct-grant')` удаляются.
-
----
+**Кратко:** PolicyOnly/RequiresGrant решает AzGuard; для чужих abilities Laravel продолжается нативно.
+Owned action result direct pipeline/Response возвращается окончательно; NotGranted не null/fallback.
+Additive mode исключён, потому что позволял external policy компенсировать отсутствие RequiresGrant assignment.
+Early host Gate.before всё ещё может сработать раньше adapter; authoritative direct API — protected-write boundary.
+Unknown owned action deny; truly foreign ability null. Adapter Laravel versions qualified consumers, не private API
+предположение. [09 §7](09-authorization-semantics.md#7-gate-laravel).
 
 <a id="d27"></a>
-### D27 — Пакетная проверка с общим снимком
+### D27 — Пакетная проверка с validated authority каждой группы
 
-**Кратко:** можно спросить про тысячу объектов одним вызовом — дёшево и согласованно (одна версия данных).
 
-**Решение.** `decideMany(iterable<AccessRequest>): DecisionSet` — один `StateToken`, одна загрузка из БД на
-`(subject, panel)`, контексты группируются; политики вызываются на каждый ресурс. Нужен листингам интеграций и
-таблицам Filament.
+**Кратко:** пачка согласованно читает DB grants каждой panel/tenant группы, а не притворяется единым snapshot мира.
+
+Группы (storage,panel,subject,tenant), contexts пачками по 100, общий now. Все chunks группы между T_before/T_after;
+retry перечитывает все. Policy/restriction/conditions на каждый request, без memo по одному model id.
+DecisionSet::states() отражает отдельный token каждой panel; внешние sources/host resource data имеют собственную
+consistency. [09 §9](09-authorization-semantics.md#9-пакетная-оценка).
+
 
 ---
 
@@ -656,27 +599,29 @@ N24).
 <a id="d30"></a>
 ### D30 — Filament: редакторы по схеме панели и три режима прав ресурсов
 
-**Кратко:** Filament показывает права и роли так, как их описала панель: что редактируется, что решается политикой,
-какие поля заполнять. Права ресурсов Filament, как и сейчас, работают в одном из трёх режимов: `database`
-(динамические, из ресурсов на лету), `enum` (статичные enum в папке панели) и `policy` (enum + политика домена).
-
-**Решение.** Детали — [11-filament.md](11-filament.md). `AzGuardPlugin::make()->guardPanel('admin')->manages([...])->source('database'|'enum'|'policy')`;
-формы строятся по `PanelSchema` (D54); записи — через API панели; поле `class_name` удаляется (N02); ключи ресурсов —
-по slug; страницы и виджеты закрыты, если права нет (N18). Кто может открыть редакторы — решают обычные права
-Filament-ресурсов (D23).
+**Кратко:** Filament показывает PHP definitions read-only и редактирует scoped assignments.
+Definitions typed enum FilamentDefinitions::Enums/Resources отдельно от authority PolicyOnly/RequiresGrant;
+состав роли, policy class/method и filters из UI не меняются. Generated resource metadata — code build source,
+не dynamic DB definitions. Enum assignments работают с DatabaseSource без dynamicPermissions.
+AzGuardPlugin.definitions(...) + guardPanel/manages/enforce настраивают integration; mode права explicit,
+generator --authority/--with-policy не смешивают definition source/authority. RoleResource read-only,
+GrantResources use central writer; PolicyOnly no checkbox/raw reject; [11](11-filament.md), D83.
 
 ---
 
 <a id="d31"></a>
-### D31 — Видимость записей: явный фильтр
+### D31 — Видимость записей: exact фильтр окончательного доступа
 
-**Кратко:** «покажи проекты, которые пользователь может видеть» — явный вызов. Без пользователя он показывает ничего,
-при нескольких выдачах — все нужные записи.
 
-**Решение.** Глобальный scope `HasScopedRoles` удаляется (N04, P04). `Project::query()->visibleTo($user, 'projects.view')`
-(трейт `ContextAware`) или `AzGuard::panel($id)->visibility()->constrain(...)`. Механики, которые умеют фильтровать
-запрос (БД, связи), дают условие; остальные — предупреждение в объяснении. Семантика —
-[09 §10](09-authorization-semantics.md#10-видимость-visibleto).
+**Кратко:** visibleTo возвращает безопасные строки до пагинации; arbitrary policy требует явного query adapter.
+
+Source FiltersQueries описывает grants. Итоговые policies/restrictions/hooks/conditions реализуют
+FiltersAccessQueries либо дают детерминированный pass/deny на запрос. Неподдержанный компонент ->
+VisibilityNotSupportedException. Tenant AND ownership AND qualified source OR AND restrictions;
+superadmin не снимает boundary. ViewAny отдельно от View; query scope resource может идти через project relation.
+Отдельный candidates() — internal prefilter, не безопасный response. Cross-connection SQL не обещается.
+[09 §10](09-authorization-semantics.md#10-видимость-visibleto), D66.
+
 
 ---
 
@@ -749,15 +694,17 @@ readonly `AzGuardConfig`; эффективные настройки панели
 ---
 
 <a id="d36"></a>
-### D36 — Каталог прав
+### D36 — Каталог: статичная схема и динамический scoped overlay
 
-**Кратко:** список прав панели собирается из enum, классов и плагинов один раз при загрузке. Одинаковое имя с разным
-описанием — ошибка. В production каталог читается из кэш-файла.
 
-**Решение.** `PermissionCatalogBuilder` (`@spi`): enum, классы, плагины, Filament. Метаданные права —
-`#[Describe(label:, group:, description:)]` на case и `#[Domain(...)]` на enum (D56). Коллизия имени →
-`DuplicatePermissionException`. `azguard:catalog:cache` — снимок каталогов, ролей из кода и привязок политик,
-включая найденное автопоиском (D56).
+**Кратко:** code definitions кэшируются на deploy, динамические actions загружаются по tenant и DB state.
+
+Folder/plugin/Filament static catalog immutable; dynamic catalog scoped (panel,tenant), входит в version fence.
+Static names зарезервированы во всех tenants; dynamic names проверяют prefix conflicts при mutation.
+Compiled cache не содержит DB rows разных tenants. Pattern grants открывают будущие имена namespace,
+удаление action очищает точные grants/role permissions и меняет version. Deploy revalidates collisions,
+FormerKeys/contexts и wildcard expansion до выдачи новых actions. D68; [08](08-data-model-and-migration.md).
+
 
 ---
 
@@ -844,19 +791,24 @@ Vaulter — Drive, Node, Profile, Owner, NodeGrant. Мост к Vaulter дела
 ---
 
 <a id="d44"></a>
-### D44 — Бюджет производительности
+### D44 — Бюджет производительности с границами измерения
 
-**Кратко:** известно, сколько запросов к БД стоит проверка, и это проверяется тестами.
 
-| Сценарий | Бюджет |
+**Кратко:** считаем запросы самого DB authority отдельно от live business checks; безопасность не снимает fence.
+
+| Сценарий | Бюджет ядра без политики/внешних adapters |
 |---|---|
-| Первая проверка `(subject, panel, context)` в запросе, холодный кэш, `DatabaseSource` | ≤ 3 запроса (версия, выдачи ролей, выдачи прав) + 1 на права ролей из БД |
-| Повторная проверка того же в запросе | 0 |
-| Первая проверка при тёплом межзапросном кэше | 1 (версия; 0 после первой при `state_refresh = request`) |
-| `Gate::before` для не своей ability | 0 запросов, O(1) |
-| `decideMany()` на N ресурсов одного субъекта и панели | ≤ 3 + число разных контекстов / 100 |
-| `FolderSource`, `GateSource` и политики | 0 запросов со стороны AzGuard; стоимость политики — её собственная |
-| Загрузка в production с `azguard:catalog:cache` | 0 обращений к ФС сверх подключения кэш-файла |
+| Cold scoped load, static catalog/roles | 2 state reads + 1 role grants + 1 direct grants; role permissions DB ещё <=1 батч |
+| Warm persistent contributions | 1 fresh state read при первом request/check + cache lookup |
+| Повторный grants read одного scope в request без expiry/change | 0 DB authority запросов |
+| Opt-in dynamic permission catalogue | Явно учтённые batched queries внутри того же fence; замер fixture, не скрытый N+1 |
+| decideMany, c batches по 100 scopes | 2 state reads + <=2c grants queries + batched role/catalog definitions |
+| Чужая неквалифицированная Gate ability | 0 DB authority queries; статичный O(1) ownership index |
+
+Live membership, token validity, resource tenantOf, policy, query predicate и retries имеют собственную стоимость
+и включаются в end-to-end p95/p99/SQL report. Deadline инвалидация и refresh=check увеличивают budget честно.
+Цель не утверждает «вся повторная авторизация = 0 запросов», если adapter обязан читать свежие данные.
+
 
 ---
 
@@ -869,15 +821,16 @@ Vaulter — Drive, Node, Profile, Owner, NodeGrant. Мост к Vaulter дела
 
 **Решение.** Эффективная настройка = **провайдер панели** → иначе **плагин** (в порядке подключения; конфликт двух
 плагинов → ошибка) → иначе `configurePanels()` → иначе **значение по умолчанию** из `config/azguard.php`.
+Context query predicates — additive AND D75, не заменяемые scalar settings: precedence не удаляет common filter.
 
 | Группа | Что на панели | Методы `PanelBuilder` |
 |---|---|---|
 | Идентичность | id, название, описание, по умолчанию ли, префикс имён | `id()`, `label()`, `description()`, `default()`, `prefixed()` |
-| Субъекты | модели, auth guard, директория | `subjects([...], guard:)` |
+| Субъекты | модели, auth guard, директория | `for([...], guard:)` |
 | Маршруты | middleware входа, право входа, ответ при отказе, строгий режим | `middleware([...])`, `entry()`, `onDenied()`, `requireRouteChecks()` |
-| **Источники** | откуда панель берёт права, роли, выдачи, политики (D52) | `sources([...])` |
-| Права, роли, политики вне папки | дополнительно к найденным в папке панели | `permissions([...])`, `roles([...])`, `policies([...])` |
-| Контексты | политика, резолверы, членство | `contexts()`, `contextResolvers([...])` |
+| **Описание прав** | enum definitions и источники прав/ролей/выдач/политик (D52/D73) | `permissions([...])` |
+| Роли, политики вне папки | дополнительно к найденным в папке; enum входят в permissions выше | `roles([...])`, `policies([...])` |
+| Тенант и контексты | независимые политики, descriptors, ресурсные resolvers, членство | `tenants()`, `tenantResolvers([...])`, `contexts()`, `contextResolvers([...])`, `resourceScopes([...])` |
 | Хуки | before, ограничения, after, pipes изменений | `before()`, `restrictions([...])`, `after()`, `changing([...])` |
 | Gate | режим | `gate()` |
 | Кэш и консистентность | store, ttl, generation, `reads`, `state_refresh` | `cache()`, `consistency()` |
@@ -887,7 +840,7 @@ Vaulter — Drive, Node, Profile, Owner, NodeGrant. Мост к Vaulter дела
 Настройки источника — у источника: `DatabaseSource::make()->storage('backoffice')->models(roleGrant: …)->dynamicPermissions()`
 (D46, D52). Панель не знает о таблицах, если у неё нет источника с таблицами.
 
-**Не настраивается:** грамматика имён и кодек идентичности; атомарность «запись + версия»; учёт сроков выдач;
+**Не настраивается:** tenant/resource owner integrity, exact scope/origin записей, final validation и fail-closed visibility; грамматика имён и кодек идентичности; атомарность «запись + версия»; учёт сроков выдач;
 «ошибка = отказ»; ограничения умеют только запрещать; проверка каталога при выдаче.
 
 ---
@@ -928,77 +881,38 @@ DatabaseSource::make()
 ---
 
 <a id="d47"></a>
-### D47 — Плагины: обычные Laravel-классы, подключаемые к любой панели
+### D47 — Плагины с именованными типизированными параметрами
 
-**Кратко:** плагин — класс, который приносит в панель готовый набор: источники, права, роли, хуки, поля, проверки
-doctor. Он не привязан к конкретной панели: один и тот же плагин подключают к разным панелям с разными настройками.
-Внутри — обычные механизмы Laravel: контейнер, конфиг, события, миграции.
-
-**Решение.**
-
-```php
-interface Plugin                                   // AzGuard\Contracts\Plugins\Plugin (@spi)
-{
-    public function id(): string;                  // 'vendor/name'
-    public function register(PanelBuilder $panel): void;   // добавить в панель источники, хуки, права…
-    public function boot(Panel $panel): void;               // после заморозки: слушатели, связи
-}
-```
-
-- **Как Filament-плагин:** `AuditPlugin::make()->retention(days: 90)`; `make()` создаёт экземпляр через контейнер
-  (`app(static::class)`), поэтому зависимости внедряются как в любой Laravel-класс, включая атрибуты контейнера
-  (`#[Config('audit.retention')]`).
-- **Laravel-пакет:** если плагину нужны миграции или конфиг, у него есть обычный `ServiceProvider` с `publishes()` и
-  `loadMigrationsFrom()`; к панели он подключается отдельно, в провайдере панели.
-- **Не заточен под панель:** экземпляр видит только ту панель, к которой подключён; настройки — на экземпляре.
-- **Пространство имён:** `->prefixed('blog')` (`BasePlugin`): права плагина становятся `blog.…` внутри панели;
-  префикс панели добавляется снаружи.
-- **Зависимости** — `DependsOnPlugins::requires()`; отсутствие → ошибка при загрузке.
-- **Папка плагина** устроена как папка панели (домены, роли); плагин добавляет её через `$panel->discover(__DIR__)`.
-- Плагин не может отключить гарантии D45 и писать в хранилище в обход пайплайна изменений.
-
----
+**Кратко:** у каждого plugin свой понятный constructor/make; общая база определяет lifecycle, не options bag.
+Plugin SPI: id(), register(PanelBuilder, PluginContext), boot(Panel, PluginContext). BasePlugin не объявляет make()
+или options()/withOptions(), поэтому concrete make(models: CrmModels, projects: ProjectContext, ...) не конфликтует
+с LSP. CrmModels — DTO plugin с named subject/organization/project/client и class-string validation; generic model
+role-name registry отсутствует. AuditTrailPlugin::make(retentionDays: 90) — отдельный точный параметр.
+Конфигурация immutable, runtime inputs передаются capabilities; source/runtime services resolve per operation.
+PHP/Laravel DI используется по типу/explicit parameters; no build CurrentUser/singleton runtime state (18/19).
 
 <a id="d48"></a>
-### D48 — Пайплайн проверки
+### D48 — Пайплайн проверки с явным authority dispatcher
 
-**Кратко:** проверка — цепочка шагов. Сначала выдачи из всех источников отвечают «есть ли право» (первый уровень),
-потом политика права уточняет ответ (второй уровень), потом ограничения могут запретить. Источники и хуки расширяют
-проверку, но не могут случайно её ослабить.
-
-| Шаг | Что происходит | Кто участвует |
-|---|---|---|
-| 1. Панель | выбрать панель по правилу D05 | ядро |
-| 2. Подготовка | сущность и ресурс из `on:`, политика контекстов | ядро, резолверы |
-| 3. Before-хуки | свои хуки: «да», «нет» (окончательно) или «не знаю» | D55 |
-| 4. Суперадмин | у субъекта роль с признаком суперадмина (глобально или в этой сущности) → «да», шаги 5–6 пропускаются | D19 |
-| 5. Первый уровень | объединение выдач всех источников (`ProvidesGrants`) с учётом сущности и срока | D52 |
-| 6. Второй уровень | у права есть политика или Gate (`ProvidesPolicies`): `null` — как решили выдачи, `false` — «нет», `true` — «да» | D53 |
-| 7. Ограничения | могут только запретить; проверяют любое «да» из шагов 3–6 | D20 |
-| 8. After-хуки и события | наблюдать, записывать | D55, D28 |
-
-Ошибка на шагах 2–7 → отказ; на шаге 8 → лог, решение не меняется. Алгоритм — [09 §2](09-authorization-semantics.md#2-пайплайн-проверки-алгоритм).
-Реализация — внутренний цикл без замыканий на горячем пути.
-
----
+**Кратко:** owner/common boundary -> typed preliminary checks -> selected Policy/Grants authority -> restrictions.
+Permission mode известен до разрешения assignment services. PolicyOnly обращается к policy без grant store;
+RequiresGrant квалифицирует contributions одной ветки AND, объединяет OR, затем policy only veto/pass.
+BeforeResult Continue не даёт authority, Deny/error отвергает; after наблюдает. Source error в relevant Grants
+path не скрывается первым Allow, а irrelevant DB source не вызывается Policy path.
+Decision evidence CodeStateToken либо consumed StateToken; code token не версионирует host data.
+Канонический алгоритм — [09 §2](09-authorization-semantics.md#2-пайплайн-проверки-алгоритм), D83.
 
 <a id="d49"></a>
-### D49 — Пайплайн изменений
+### D49 — Пайплайн изменений под блокировкой
 
-**Кратко:** любое изменение прав проходит одинаковый путь: проверка данных → pipes → запись → события. Pipes могут
-дополнить изменение или отменить его — так же, как middleware в Laravel.
 
-| Шаг | Что происходит | Транзакция |
-|---|---|---|
-| 1. Проверка | панель принимает модель; роль существует и выдаётся вручную; право есть в каталоге (защита от опечаток, N14); тип сущности принят; свои поля по правилам | до |
-| 2. Pipes `changing` | `Illuminate\Pipeline\Pipeline`: `handle(Change $change, Closure $next)` — изменить (срок, поля) или отменить (`ChangeCancelledException` с причиной) | до |
-| 3. Запись | источник-писатель панели (`StoresGrants`, обычно `DatabaseSource`): строки + версия панели + журнал (плагин) | **в** транзакции |
-| 4. События | Laravel-события (`RoleGranted` …) с `ShouldDispatchAfterCommit`, обычные слушатели | **после** commit |
+**Кратко:** после pipes повторно проверяется финальное изменение; сохранение и события связаны с root commit.
 
-`Change` — неизменяемое описание операции (тип, панель, субъект, роль или право, контекст, срок, поля, актор, если
-известен); pipe меняет его через `$change->with([...])`. Результат — `ChangeResult` (`applied` | `unchanged`).
-Подтверждение вторым человеком, запрет «выдавать больше своего», уведомления — pipes и слушатели (рецепты —
-[06 §5](06-extension-points.md#5-хуки-изменений-pipes-и-события)).
+Early validation даёт удобную ошибку; authority validation выполняется после state lock, pipes и чтения definitions.
+Pipe может менять разрешённые поля/срок, не panel/tenant/subject/actor/origin. Journal в той же transaction;
+after-commit best effort. Nested ChangeResult до root commit tentative; rollback не публикует token.
+Retry-safe pipes не делают HTTP/email. UI/CLI/server используют один pipeline (D63), [08 §5](08-data-model-and-migration.md#5-порядок-блокировок-и-повторы).
+
 
 ---
 
@@ -1038,7 +952,7 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
 | Проверить себя | `IntegrationContractTests` против настоящего AzGuard |
 
 Правила: не импортировать `Internal\`/`Storage\`; не зашивать id панели; не копировать права AzGuard к себе;
-кэшировать с `StateToken`; `require axiomasoft/azguard: ^1.0`.
+кэшировать contributions с `StateToken`; final Allow требует всех dependency revisions; `require axiomasoft/azguard: ^1.0`.
 
 ---
 
@@ -1053,7 +967,7 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
 **Решение.**
 
 ```php
-->sources([
+->permissions([
     DatabaseSource::make()->dynamicPermissions(),             // вся работа с БД: роли, выдачи, динамические права
     RelationSource::make(Project::class, via: 'members', role: 'pivot.role'),
     GateSource::make()->map(BetaPermission::Access, 'beta-access'),
@@ -1064,8 +978,8 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
 
 | Источник | За что отвечает | Меняется во время работы |
 |---|---|---|
-| `FolderSource` (всегда) | папка панели: enum прав (статичные права), политики доменов (второй уровень), статичные роли, автоматические роли, права «всем» (`#[GrantedToAll]`) — по атрибутам | нет (код) |
-| `DatabaseSource` | таблицы и модели, динамические роли, выдачи ролей и прав, динамические права, свои поля, миграции, запись | да |
+| `FolderSource` (всегда) | папка панели: enum прав (статичные права), explicit policy bindings, статичные роли, автоматические роли, права «всем» (`#[GrantedToAll]`) — по атрибутам | нет (код) |
+| `DatabaseSource` | таблицы и модели назначений классов ролей и прав, дополнительные динамические права, свои поля выдач, миграции, запись | да |
 | `RelationSource` | права из связей моделей приложения | через данные приложения |
 | `GateSource` | существующие Laravel Gate-abilities как второй уровень | нет |
 | свои | всё, что можно написать классом: токены, LDAP, конфиг-файл, внешний API (рецепты — [06 §2](06-extension-points.md#2-свой-источник)) | как решит автор |
@@ -1077,8 +991,9 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
 | `Source` | `id()`; базовый контракт | все |
 | `ProvidesPermissions` | права в каталог (статичные и динамические) | Folder (статичные), Database (динамические) |
 | `ProvidesRoles` | роли | Folder (статичные), Database (динамические) |
-| `ProvidesGrants` | выдачи субъекту — первый уровень проверки | Folder (автоматические роли, `#[GrantedToAll]`), Database, Relation, свои |
-| `ProvidesPolicies` | второй уровень проверки | Folder (политики доменов), Gate |
+| `ProvidesRoleGrants` | назначенные роли со scope, включая пустого SuperAdmin | Folder, Database, Relation |
+| `ProvidesGrants` | выдачи субъекту — первый уровень проверки | Folder (`#[GrantedToAll]`), Database (direct grants), свои |
+| `ProvidesPolicies` | PolicyOnly authority / RequiresGrant veto | Folder (политики доменов), Gate |
 | `StoresGrants` | запись: выдать, забрать, роли, динамические права | Database |
 | `FiltersQueries` | условие для `visibleTo` | Database, Relation |
 | `DescribesSchema` | подписи, поля, группы для схемы панели | все встроенные |
@@ -1088,18 +1003,18 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
   (`Illuminate\Support\Manager`), как драйверы кэша или файловых систем:
   `AzGuard::sources()->extend('ldap', fn (Application $app, array $config) => new LdapSource($config))` или атрибут
   `#[AsSource('ldap')]` на классе. Параметры — `config('azguard.sources.ldap')`. Каждая панель получает свой экземпляр.
-- **`FolderSource`** есть на каждой панели. Передать его в `->sources([...])` явно нужно, только чтобы настроить
+- **`FolderSource`** есть на каждой панели. Передать его в `->permissions([...])` явно нужно, только чтобы настроить
   (`FolderSource::make()->folders(...)`); тогда он заменяет неявный.
 - **Порядок** источников не влияет на решение: выдачи объединяются (свойство P12); порядок виден в объяснении и входит
   в отпечаток панели.
 - **Изменения** принимает источник с `StoresGrants`; такой источник на панели один (два → ошибка при загрузке). Нет
   такого источника — панель «только чтение» (`PanelNotWritableException` при попытке записи).
-- **Итог первого уровня** — объединение выдач всех источников с учётом сущности и срока; второй уровень — политики
-  (D53). Код проверок не зависит от источника: перенос права из `#[GrantedToAll]` в БД не меняет ни одной проверки
+- **RequiresGrant** объединяет qualified выдачи источников, затем explicit policy может наложить veto.
+  **PolicyOnly** вызывает свою policy без assignment sources (D53/D81). Код проверок не зависит от источника: перенос права из `#[GrantedToAll]` в БД не меняет ни одной проверки
   (Q18).
 - **Статичные и динамические права.** Права из enum — статичная схема: видны в коде, на них опираются политики.
   `DatabaseSource::make()->dynamicPermissions()` разрешает добавлять права во время работы (таблица `{p}permissions`);
-  динамическое право выдаётся и проверяется по имени, политикой не решается, с именем из enum совпасть не может;
+  динамическое право выдаётся и проверяется по имени в scoped tenant catalog; authority всегда Grants; code-defined business policy может только ограничить, с именем static enum совпасть не может;
   добавление или удаление меняет версию панели.
 - Встроенные источники написаны на тех же контрактах, что и свои (arch-тест): всё, что умеет AzGuard, может и автор
   стороннего источника.
@@ -1113,52 +1028,16 @@ interface Plugin                                   // AzGuard\Contracts\Plugins\
 ---
 
 <a id="d53"></a>
-### D53 — Политики: второй уровень проверки
+### D53 — Два явных authority modes права
 
-**Кратко:** выдачи (из любых источников) — первый уровень: есть ли у человека право. Политика того же права —
-второй уровень: код, который выполняется перед доступом и может сузить или расширить ответ. Например, право выдано в
-БД, а политика не пускает с 18:00 до 9:00. Или права нет, но свой заказ смотреть можно.
-
-**Решение.**
-
-```php
-// app/Guards/Cabinet/Orders/Policies/OrderPolicy.php — лежит в домене Orders и привязан к его enum автоматически
-final class OrderPolicy
-{
-    use ConsultsGrants;                                        // $this->granted(...) — ответ первого уровня
-
-    public function view(User $user, Order $order): ?bool     // ← OrderPermission::View (метод = кейс)
-    {
-        return $order->user_id === $user->id ? true : null;   // своё — всегда; чужое — как решили выдачи
-    }
-
-    #[Decides(OrderPermission::Refund)]                        // явная привязка, если имя метода другое
-    public function refundInWorkingHours(User $user, Order $order): ?bool
-    {
-        return now()->between('09:00', '18:00') ? null : false;   // вне рабочих часов — нет, даже если выдано
-    }
-}
-```
-
-| Политика вернула | Итог |
-|---|---|
-| `null` | решают выдачи: есть выдача — «да», нет — «нет» |
-| `false` | «нет», даже если выдано (сузить) |
-| `true` | «да», даже если не выдано (расширить) |
-| `Response` | как `true`/`false`, с сообщением |
-
-- **Привязка:** политика в папке домена привязана к enum домена по соглашению (метод = кейс: `viewAny` ↔ `ViewAny`).
-  Вне соглашения — `#[PolicyFor(OrderPermission::class)]` на классе и `#[Decides(Perm::X)]` на методе (сегодняшние
-  `#[GuardPolicy]` и `#[GateAbility]`).
-- `$this->granted(...)` — ответ первого уровня, уже посчитанный движком: без повторных запросов, без политик и хуков.
-- Проверок «можно ли выдавать в БД право, у которого есть политика» нет (Q27): у БД своя схема прав.
-- **Модель домена** (`#[Domain(model: Order::class)]`): Laravel-проверки по модели (`$user->can('update', $order)`)
-  переводятся в права домена (`orders.update`) и идут через весь пайплайн AzGuard. Отдельный `Gate::policy()` не
-  регистрируется: одна политика — один путь (N19).
-- **Gate:** `GateSource::make()->map(BetaPermission::Access, 'beta-access')` — существующая ability Laravel как второй
-  уровень для этого права.
-
----
+**Кратко:** PolicyOnly решает policy; RequiresGrant требует назначения, policy может только сузить.
+Атрибут на enum задаёт режим группы, на case — явное override. Compiler требует один итоговый mode.
+Policy mode не читает role/permission grants AzGuard и отвергает попытку их назначить. Policy может читать host
+business data через Laravel, это не dependency на storage назначения. RequiresGrant работает с class permissions и
+code/relation/DB assignments; attached policy true/null — pass, false — deny, без grant true не разрешает.
+Динамические actions — только Grants, opt-in. Два режима сочетаются в панели с общей scope/restriction защитой,
+но одно право не имеет union policy OR DB. Before hooks — deny/abstain/pass, не alternative authority.
+Grants policy может отсутствовать; declared missing binding/method — compile error. Конкретный пример — 19 §2.
 
 <a id="d54"></a>
 ### D54 — Схема панели для интерфейсов
@@ -1172,9 +1051,10 @@ final class OrderPolicy
 | Часть схемы | Что в ней |
 |---|---|
 | `permissions()` | имя (локальное, с префиксом, полное), подпись, домен, описание, статичное или динамическое; **как получается**: источники, которые могут дать право (`folder`, `database`, `relation`, …); решает ли его политика или Gate (подсказка для UI); в каких типах сущностей |
-| `roles()` | ключ, подпись; где определена (`static`/`dynamic`); редактируются ли права; выдаётся вручную, автоматически или обоими способами; права |
+| `roles()` | ключ, подпись; PHP class; definitions read-only; stable build fingerprint; выдаётся вручную, автоматически или обоими способами; права |
 | `fields()` | свои поля выдач ролей и прав: тип, подпись, правила, откуда (модель, плагин) |
-| `contexts()` | типы сущностей: подпись, как искать (директория) |
+| `tenants()` | типы tenants и текущий scoped overlay, способ поиска |
+| `contexts()` | зарегистрированные ContextDefinition, role context bindings; типы сущностей: подпись, как искать (директория) |
 | `subjects()` | модели субъектов, подпись, как искать |
 | `writable()` | есть ли на панели источник, принимающий изменения (если нет — редакторы не показываются) |
 
@@ -1183,79 +1063,74 @@ final class OrderPolicy
 ---
 
 <a id="d55"></a>
-### D55 — Хуки: `before`/`after` как у Gate, pipes изменений как у Laravel Pipeline, события
+### D55 — Хуки с ограниченным типизированным результатом
 
-**Кратко:** вмешаться в проверку или изменение можно без правки AzGuard, привычными средствами Laravel:
-`before`/`after` — как у `Gate`, pipes изменений — как у `Pipeline` и middleware, реакции — обычные события.
-
-**Решение.**
-
-| Хук | Когда | Может | Форма (как в Laravel) |
-|---|---|---|---|
-| `before` | до суперадмина и источников | «да», «нет» (окончательно) или «не знаю» | `fn (AccessRequest $r, EvaluationContext $c): ?bool` — как `Gate::before` |
-| `restrictions` | после решения | только запретить | класс `Restriction` (D20) |
-| `after` | после решения | наблюдать | `fn (AccessRequest $r, Decision $d): void` — как `Gate::after` |
-| `changing` | до записи | изменить или отменить изменение | pipe `handle(Change $change, Closure $next)` — как в `Illuminate\Pipeline\Pipeline` |
-| события | после commit | реагировать | `RoleGranted`, `PermissionRevoked` … — обычные Laravel-события и слушатели |
-
-- Хуки задаются на панели (замыкание или класс, классы создаются контейнером), плагином или для всех панелей через
-  `AzGuard::configurePanels()`.
-- Порядок — порядок регистрации. Свои before-хуки выполняются до проверки суперадмина: хук «нет» («аккаунт
-  заморожен») действует и на суперадмина. Ограничения проверяют любое «да», включая «да» от before-хука.
-- Pipe `changing` отменяет изменение, не вызывая `$next` (или исключением `ChangeCancelledException` с причиной).
-
----
+**Кратко:** before проверяет предварительные запреты, after наблюдает; authority определяет режим права.
+BeforeResult enum: Continue | Deny. Callable `(AccessRequest, EvaluationContext): BeforeResult`; failure -> deny.
+Нет Allow/true shortcut и bool-null ambiguity. Все relevant checks должны пройти; error не masked.
+After `(request, context, Decision): void`, exception логируется без изменения решения.
+Это package hooks на native DI/callable mechanisms, но не копия Gate::before return semantics. Laravel global
+Gate::before может перехватить ability до AzGuard; protected writes используют authoritative package path.
 
 <a id="d56"></a>
-### D56 — Папки: панель — папка; домены, роли, источники, плагины на своих местах
+### D56 — Папка панели: тип классов, затем группа действий
 
-**Кратко:** всё про панель лежит в её папке, как сейчас: провайдер, роли, домены (enum прав + политика + DTO для
-фронтенда), свои источники, ограничения, pipes, модели. Общее для нескольких панелей — в папке `Shared`. Панель сама
-находит enum, политики и роли в своей папке по атрибутам — перечислять их вручную не нужно (Q29).
+**Кратко:** Permissions/Orders, Policies/Orders, Queries/Orders; группы не лежат в корне панели.
+Это подтверждённая владельцем структура D72. Контейнер Resources отсутствует.
 
-**Решение.**
-
-```
-app/Guards/                                   ← корень (azguard.scaffold.path)
-├── Admin/                                    ← панель = папка провайдера
-│   ├── AdminGuardPanelProvider.php           id, субъекты, источники, плагины, хуки
-│   ├── Roles/                                статичные роли
-│   │   ├── ManagerRole.php                   #[Role(label: 'Менеджер', level: 10)]
-│   │   └── SuperAdminRole.php                #[SuperAdmin]
-│   ├── Orders/                               домен
-│   │   ├── Permissions/OrderPermission.php   #[Domain(model: Order::class)] — статичные права домена
-│   │   ├── Policies/OrderPolicy.php          второй уровень (D53)
-│   │   └── Abilities/OrderAbilities.php      DTO прав для фронтенда (необязательно)
-│   ├── Users/Permissions/UserPermission.php  домен без политики — только выдачи
-│   ├── Sources/                              свои источники этой панели
-│   ├── Restrictions/                         ограничения
-│   ├── Changes/                              pipes пайплайна изменений
-│   └── Models/                               свои модели выдач (DatabaseSource)
-├── Cabinet/ …
-└── Shared/                                   ← общее для нескольких панелей; не панель
-    ├── Roles/RootRole.php                    #[SuperAdmin] + GrantedAutomatically (is_root)
-    ├── Sources/LdapSource.php                #[AsSource('ldap')]
-    └── Plugins/AuditTrailPlugin.php
+```text
+app/Guards/Admin/
+├── AdminGuardPanelProvider.php
+├── Permissions/
+│   ├── Orders/OrderPermission.php
+│   ├── Users/UserPermission.php
+│   └── Sources/SourcePermission.php
+├── Policies/Orders/OrderPolicy.php
+├── Abilities/Orders/OrderAbilities.php
+├── Queries/Orders/OrderVisibility.php
+├── Roles/
+├── Contexts/
+├── Resolvers/
+├── Sources/
+├── Restrictions/
+├── Changes/
+├── Models/
+└── Plugins/
 ```
 
-- **Автопоиск** (`FolderSource`, всегда включён) в папке провайдера: `*/Permissions/*Permission.php` (enum) →
-  права; `*/Policies/*Policy.php` → второй уровень; `Roles/*Role.php` → статичные роли; `*/Abilities/*Abilities.php` →
-  DTO. Имена подпапок — в `config/azguard.php`. Источники, плагины, ограничения и pipes подключаются в провайдере
-  явно: у них важны порядок и настройки. Результат попадает в `azguard:catalog:cache`.
-- **Другие папки** той же структуры добавляются `->discover($path)` — так плагины, модули и пакеты приносят свои
-  домены.
-- **Домен:** значения enum — `orders.<действие>` с общим первым сегментом (иначе ошибка при загрузке), кейсы —
-  действия (`View`, `ViewAny`, `Refund`). Подпись домена — `#[Domain(label:)]` или имя папки. Если у домена есть
-  политика, doctor предупреждает о кейсах без метода; кейс, проверяемый только выдачами, помечается `#[GrantsOnly]`
-  (сегодня `#[RoleOnly]`).
-- **Генераторы** повторяют сегодняшние: `azguard:make:panel Admin` (папка, провайдер, `Roles/`, запись в конфиг),
-  `azguard:make:domain Admin Orders --model=Order [--policy] [--abilities]`, `azguard:make:role`,
-  `azguard:make:source`, `azguard:make:restriction`, `azguard:make:plugin`.
-- **Модуль Laravel** — такая же папка внутри модуля: своя панель или плагин, дополняющий чужую (D50).
+FolderSource ищет enums только под Permissions/, policies только под Policies/, DTO под Abilities/;
+role/context definitions — под Roles/Contexts. Подкаталоги групп могут быть вложенными:
+Permissions/Sales/Orders соответствует Policies/Sales/Orders. Группа Sources под Permissions не мешает
+механизму Sources в корне. Корень панели не сканируется как каталог предметных групп.
+
+Правило привязки enum и политики:
+
+1. Discovery root — конкретная папка провайдера или отдельный discover(path, namespace) модуля/плагина.
+   Roots сохраняют происхождение; совпавший путь группы двух разных roots не склеивается.
+2. Явные PolicyFor(enum FQCN)/Decides имеют точную цель. Они используются также для нескольких enums,
+   нескольких policies группы, политики вне соответствующей папки или групп со сложной раскладкой.
+3. Без явной привязки один enum группы Permissions/<relative path> и одна не привязанная явно policy в
+   Policies/<тот же relative path> **этого root** образуют пару. Несколько кандидатов без точной привязки —
+   InvalidPolicyStructureException; отсутствующий обязательный case method — тоже ошибка, кроме RequiresGrant.
+4. Pairing method=case регистрирует обязательные PolicyOnly actions. Optional RequiresGrant veto требует
+   explicit PolicyBinding; compiler проверяет class/method даже после удаления метода. Окончательный registry использует enum FQCN и PermissionKey,
+   а не basename или имя папки. Повтор binding одного права — DuplicatePolicyBindingException с origin roots.
+5. Queries/<Group> — место paired visibility adapters, не автоматическая регистрация произвольных Query классов.
+   Адаптер подключается явно через существующий FiltersAccessQueries/ResourceScopeResolver contract.
+
+Permissions/Users — действия над User; User из for([...]) — субъект. Models/ панели — storage extensions.
+Contexts/ProjectContext — descriptor области; Permissions/Projects — действия над проектами. Эти позиции
+одной модели не подразумеваются друг из друга.
+
+Генераторы панели/permission/policy/Filament и module stubs используют один layout. Discovery roots и настройки
+имён каталогов входят в fingerprint каталога; live и cached discovery дают одинаковые bindings. Legacy
+Resources и прямые Orders/ в корне не автосканируются. Metadata Resource(model:) не создаёт CRUD без enum.
+[04](04-packages-and-layout.md), [16](16-crm-and-workflows.md), V78/V106.
 
 ---
 
 <a id="d57"></a>
+
 ### D57 — Система имён: методы, атрибуты, классы, папки
 
 **Кратко:** имена строятся по нескольким правилам, взятым из лучшего в Laravel и в библиотеках прав (Spatie,
@@ -1275,7 +1150,7 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
    `PermissionRevoked`, `GrantExpired`.
 5. **Где и до когда — предлоги:** `on:` (сущность), `until:` (срок), `fields:` (свои поля).
 6. **Списки — существительные без `get`:** `roleNames()`, `permissionNames()`, `permissionSet()`.
-7. **Списки в описании панели — массивы:** `->sources([...])`, `->plugins([...])`, `->restrictions([...])` — как
+7. **Списки в описании панели — массивы:** `->permissions([...])`, `->plugins([...])`, `->restrictions([...])` — как
    `->resources([...])` в Filament.
 8. **Команды повторяют методы:** `azguard:roles:grant|revoke`, `azguard:permissions:grant|revoke`,
    `azguard:grants:list|prune`.
@@ -1286,11 +1161,11 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 
 | Где | Атрибут | Что значит | Сегодня | Вызов в коде |
 |---|---|---|---|---|
-| enum прав | `#[Domain(label:, model:)]` | домен: подпись, модель | папка, `#[GuardPolicy(model:)]` | `FolderSource` по папке |
+| enum прав | `#[Resource(label:, model:)]` | домен: подпись, модель | папка, `#[GuardPolicy(model:)]` | `FolderSource` по папке |
 | кейс enum | `#[Describe(label, group:, description:)]` | подпись и группа права | — | без атрибута — из имени кейса |
-| кейс enum | `#[GrantsOnly]` | проверяется только выдачами, без политики | `#[RoleOnly]` | — |
+| кейс enum | `#[RequiresGrant]` | проверяется только выдачами, без политики | `#[RoleOnly]` | — |
 | кейс enum | `#[GrantedToAll]` | право есть у каждого субъекта панели | — | автоматическая роль, `appliesTo()` → `true` |
-| класс политики | `#[PolicyFor(Enum::class)]` | привязка вне папки домена | `#[GuardPolicy]` | `->policies([...])` |
+| класс политики | `#[PolicyFor(Enum::class)]` | точная привязка enum вне однозначного pairing D56 | `#[GuardPolicy]` | `->policies([...])` |
 | метод политики | `#[Decides(Perm::X)]` | метод решает это право | `#[GateAbility]` | имя метода = кейс |
 | класс роли | `#[Role(key:, label:, level:)]` | ключ и подписи роли | `getName()`, `getLevel()` | методы `BaseRole` |
 | класс роли | `#[SuperAdmin]` | держатель — суперадмин | роль `SuperAdminRole` | `superAdmin(): bool` |
@@ -1301,8 +1176,8 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 | модель | `#[ContextFrom('store')]` | из какой связи брать сущность ресурса | — | `azguardContext()` |
 | класс источника | `#[AsSource('ldap')]` | регистрация источника по имени | — | `AzGuard::extend()` |
 
-**Классы и папки.** Провайдер — `{Panel}GuardPanelProvider` (не путается с `AdminPanelProvider` Filament); enum —
-`{Domain}Permission`; политика — `{Domain}Policy`; DTO — `{Domain}Abilities`; роль — `{Name}Role`; источник —
+**Классы и папки.** Провайдер — `{Panel}GuardPanelProvider` (не путается с `AdmguardProvider` Filament); enum —
+`{Resource}Permission`; политика — `{Resource}Policy`; DTO — `{Resource}Abilities`; роль — `{Name}Role`; источник —
 `{Name}Source`; плагин — `{Name}Plugin`; ограничение — `{Name}Restriction`. Папки — во множественном числе по роду
 классов (`Roles/`, `Permissions/`, `Policies/`, `Sources/`), домены — во множественном числе по сущности (`Orders/`).
 
@@ -1335,7 +1210,7 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 | Задача AzGuard | Механизм Laravel | Как выглядит |
 |---|---|---|
 | Фабрика источников, свои источники по имени | `Illuminate\Support\Manager` (как `Cache::extend`, `Storage::extend`, `Auth::provider`) | `AzGuard::sources()->extend('ldap', fn ($app, array $config) => new LdapSource($config))`, параметры — `config('azguard.sources.ldap')` |
-| Хуки проверки | `Gate::before` / `Gate::after` | `->before(fn (AccessRequest $r, EvaluationContext $c): ?bool => …)` |
+| Хуки проверки | `Gate::before` / `Gate::after` | `->before(fn (AccessRequest $r, EvaluationContext $c): BeforeResult => …)` |
 | Pipes изменений | `Illuminate\Pipeline\Pipeline` | `handle(Change $change, Closure $next)` |
 | Реакции на изменения | события, слушатели, `ShouldDispatchAfterCommit` | `Event::listen(RoleGranted::class, …)` |
 | Проверка на маршруте | атрибут контроллера `Illuminate\Routing\Attributes\Controllers\Middleware` | `#[CheckPermission]` — его наследник: middleware `azguard.can` вешает сам роутер Laravel; `#[Authorize]` Laravel тоже засчитывается в строгом режиме |
@@ -1362,3 +1237,282 @@ Laratrust, Bouncer, Google Cloud IAM) и из сегодняшних атриб�
 **Отвергнуто.** Своя система событий или хуков-наблюдателей (`changed()`): Laravel-события уже дают это, включая
 очереди и отправку после commit. Свой сканер атрибутов контроллеров: роутер Laravel уже читает наследников
 `#[Middleware]`.
+
+
+---
+
+<a id="d59"></a>
+### D59 — Тенант отделён от контекста
+
+**Кратко:** Organization — граница данных; Project — область роли внутри неё.
+TenantPolicy required/none и AccessScope `(TenantRef, ContextRef)` обязательны для reads/writes/events/schema/cache.
+Global context означает tenant-wide, global tenant не наследуется в организации. Только explicit allowGlobalRoles
+подключает platform RootRole. Resource owner boundary не освобождает суперадмина.
+Dynamic definitions принадлежат tenant, static definitions панели доступны для scoped назначения.
+[08](08-data-model-and-migration.md), [09 §3](09-authorization-semantics.md#3-тенант-контекст-и-ресурс).
+
+<a id="d60"></a>
+### D60 — Классы контекстов и связь с кодовыми ролями
+
+**Кратко:** несколько BaseRole классов ссылаются на один ProjectContext descriptor и свои typed filters.
+ContextDefinition SPI: stable type/model/exists/tenantOf. RoleGrant хранит stable role/context aliases, не FQCN,
+не роль/filters в JSON. contexts default [] = tenant-wide only; contextRequired=true требует конкретный context.
+Common active AND role-specific city applies before OR contributions. BaseRole actual instance — runtime role input.
+[CRM](16-crm-and-workflows.md), [18](18-contexts-and-runtime-inputs.md).
+
+<a id="d61"></a>
+### D61 — Условия одной выдачи и явные ролевые contributions
+
+**Кратко:** права разных строк можно объединять, условия разных строк — нельзя.
+ProvidesRoleGrants возвращает RoleContribution, даже если permissions роли пусты. Core проверяет role scope,
+expiry и GrantCondition прежде superadmin/expansion. Direct grants проходят ту же qualification.
+AND условий/context filters одной выдачи, OR выдач; common eligibility и общие Restriction проверяют любое Allow.
+Фильтр seller не ограничивает independent analyst contribution (D75–D76).
+Before Deny/error окончателен; Continue не является authority; source errors не скрываются shortcut Allow. [09 §2](09-authorization-semantics.md#2-пайплайн-проверки-алгоритм).
+
+<a id="d62"></a>
+### D62 — Источники: lifecycle, authority и origin
+
+**Кратко:** definition не хранит текущего пользователя; каждый сохранённый вклад имеет владельца.
+SourceManager использует Manager registry custom creators, но make не переиспользует глобальный driver cache.
+Runtime source с scoped зависимостями создаётся на request/job. Stable требует dependency revision, Request/Volatile
+объявляют window; panel token не версионирует LDAP/host relations. Origin входит в key grants; sync/revoke
+одного origin не удаляет соседний. Plugin prefix преобразует catalog, Role.permissions, policy bindings,
+Decides/enum references и schema согласованно, не только presentation strings.
+
+<a id="d63"></a>
+### D63 — Сериализованные изменения и scope административных операций
+
+**Кратко:** state lock первый; final validation внутри retry-safe transaction.
+Deletes/grants/sync/fingerprint checks сериализуются по panel_state до чтения dynamic definitions.
+Pipes не меняют security identity и не выполняют внешние side effects. Eloquent прямые writes запрещены
+во всех окружениях. Actor delegation — ответственность приложения; structural tenant integrity — ядра.
+Root commit публикует state, nested rollback не публикует. UI record lookup/bulk/search всегда scope+origin.
+[08 §5](08-data-model-and-migration.md#5-порядок-блокировок-и-повторы).
+
+<a id="d64"></a>
+### D64 — Честные снимки, сроки и restore
+
+**Кратко:** version fence проверяет целый набор DB, expiry проверяется каждый раз.
+T_before/T_after окружает все DB chunks и dynamic overlay; bounded retry или ConsistencyError.
+Token несёт storageId/incarnation/build fingerprint. DecisionSet.states — несколько tokens, не один глобальный.
+Final Allow нельзя кэшировать по DB token. Membership/resource/external data имеют собственную authority.
+Authorize не атомарен с защищаемым действием; TOCTOU protocol хоста описан в [09 §14](09-authorization-semantics.md#14-проверка-и-защищаемое-действие).
+
+<a id="d65"></a>
+### D65 — Gate и credentials не ослабляют boundary
+
+**Кратко:** user token ограничивает, definitive Deny не превращается в Laravel fallback.
+Sanctum abilities — Restriction, не independent permission source пользователя. Service principal capabilities
+отдельно с trust mapping. Response deny сохраняется. Qualified unknown owned key -> отказ; ambiguities -> error.
+Owned result окончателен; null только для чужой ability. Third-party earlier before hooks требуют host проверки
+порядка; sensitive actions используют direct pipeline. [09 §7](09-authorization-semantics.md#7-gate-laravel).
+
+<a id="d66"></a>
+### D66 — Exact видимость и парные query adapters
+
+**Кратко:** scalar decide и SQL list совпадают по поддержанным компонентам; неполный фильтр не выпускает данные.
+Source grant predicate плюс FiltersAccessQueries остальных компонентов составляют exact plan.
+Tenant/ownership/restrictions обязательны даже для superadmin. Фильтр до count/page/export;
+unsupported/cross-connection -> exception. Internal candidates не публичная безопасная коллекция.
+[09 §10](09-authorization-semantics.md#10-видимость-visibleto).
+
+<a id="d67"></a>
+### D67 — Внешние tenant providers и синхронизация
+
+**Кратко:** источники переводят свои identities в stable host refs; внешнее id не глобально уникально.
+Tenant/context directories и descriptors — SPI пакета. Host/integration owns
+(provider,installation,external_tenant_id) mappings, credentials отдельно. Origin/revision защищают imports;
+partial sync не отзывает отсутствующие страницы, старый webhook не возвращает право. У каждой связи declared
+authority и suspension rule. Нет обязательной универсальной таблицы organizations в AzGuard.
+[16 §10](16-crm-and-workflows.md#10-несколько-внешних-систем-одного-тенанта).
+
+<a id="d68"></a>
+### D68 — Scoped dynamic каталог и будущее шаблонных прав
+
+**Кратко:** dynamic definitions одного tenant не видны другому, wildcard расширяется при новом action сознательно.
+Static names/role keys зарезервированы во всех tenants. Dynamic policies допускают явную string binding;
+автогенерация PHP из DB запрещена. Delete exact action удаляет exact role/direct grants; patterns остаются.
+Deploy проверяет prefix/key/alias collisions и обновлённое wildcard покрытие. Шаблон означает нынешние и будущие
+actions namespace; UI это показывает, delegation policy отдельно разрешает такое расширение.
+
+<a id="d69"></a>
+### D69 — Границы adapters и доказательства качества
+
+**Кратко:** обещания API должны быть выполнимы на версии Laravel и конкретном SQL connection.
+Contracts разделяются на чистые protocol/value interfaces и Laravel-facing adapters; последние могут ссылаться
+на Model/Request и не притворяются pure Kernel. DatabaseSource reading/writing отделены: Changes owns orchestration,
+StoresGrants пишет validated Change под transaction, не запускает ChangePipeline рекурсивно.
+Laravel 11/12 атрибут CheckPermission не наследует отсутствующий класс Laravel13; используется version adapter
+с одинаковым public shape. Published constraints/fixtures проверяются по реально разрешимым сочетаниям версий,
+не декартовому произведению несовместимых releases. Evidence distinguishes static findings, model tests,
+старые 0.3 probes и будущие runtime 1.0 gates. [evidence](evidence/design-review.md).
+
+
+<a id="d70"></a>
+### D70 — Разделение механизмов и предметных групп; Users/Projects
+
+**Кратко:** группы действий всегда внутри корней типов классов; роли сущности определяются контрактом.
+Владелец указал на коллизии Orders/ с Sources/ и неоднозначность Users/. Первоначальное предложение
+Resources уточнено его последующим выбором D72: Permissions/<Group>, Policies/<Group>, Queries/<Group>.
+Subject models задаются for(), context types — ContextDefinition. Project может быть объектом действий,
+областью назначения роли или субъектом тарифных прав в разных вызовах.
+Discovery/generators/modules/cache используют одну раскладку; прямые root группы не поддерживаются.
+
+<a id="d71"></a>
+
+### D71 — Metadata Resource вместо Domain и PanelBuilder::for
+
+**Кратко:** #[Resource(label:, model:)] описывает объект действий; for([...]) задаёт получателей прав.
+По уточнению владельца Domain не используется в целевых публичных именах. Resource — metadata на enum,
+а не имя папки или дополнительный обязательный descriptor класс. Имена OrderPermission и подобных enums
+сохраняются. Окончательная раскладка и команды — D72; первоначальный make:resource заменён make:permission.
+Relations означает связи объектов/субъектов, которые читает RelationSource.
+
+PanelBuilder::for(array<class-string<Model>>, guard:, directory:) задаёт принимаемые типы.
+PanelAccess::for(Model|Authenticatable|SubjectRef) создаёт wrapper конкретного субъекта; это разные receivers.
+SubjectRef/SubjectDirectory/schema subjects сохраняют точное обозначение позиции в запросе.
+Это выбор проекта; внешние источники не предписывают название for() для нашего API.
+
+<a id="d72"></a>
+### D72 — Утверждённая структура Permissions/<Group> и параллельные корни
+
+**Кратко:** владелец подтвердил Permissions/Orders/ с параллельными Policies/Orders/ и Queries/Orders/.
+Подтверждение 2026-09-30 следует после обсуждения альтернатив; Resources как контейнер убран.
+Это улучшение структуры проекта: на один уровень меньше при сохранении изоляции механизмов и групп.
+Все классы политики/query не складываются в Permissions; каждый находится в корне своего типа.
+Abilities/<Group>, Roles/, Contexts/, Sources/, Resolvers/, Restrictions/, Changes/, Models/, Plugins/
+сохраняют отдельные обязанности. Модели приложения находятся в host app/Models.
+
+FolderSource pairing — D56: конкретный discovery root + относительный путь группы, затем exact enum FQCN;
+несколько кандидатов требуют PolicyFor/Decides, последний найденный класс не побеждает молча.
+Одинаковые Orders у двух плагинов или Sales/Orders и Support/Orders не смешиваются по короткому имени.
+Генератор azguard:make:permission {Panel} {Group} создаёт enum; --policy/--abilities добавляют параллельные файлы.
+Отдельного генератора make:resource и discovery.resources нет; фильтры подключаются явно.
+P2.8/P6.8/P8.4 и V78/V106 проверяют panel/module/plugin stubs, pairing, коллизии и cache equivalence.
+
+<a id="d73"></a>
+### D73 — PanelBuilder::permissions для enum definitions и источников
+
+**Кратко:** по запросу владельца метод подключения источников называется permissions([...]).
+Раньше permissions регистрировал только enums; теперь один метод принимает смешанный list:
+string-backed enum class-strings, Source objects и зарегистрированные имена SourceManager.
+Enum добавляется в FolderSource; источники подключаются к панели после FolderSource в порядке регистрации.
+Повтор enum FQCN из discovery/manual registration идемпотентен. Повтор source id или два писателя — ошибка.
+Повторные permissions calls добавляют элементы; plugins/configure используют ту же нормализацию.
+
+Не-enum class-string не становится источником только из-за имени класса: Source создаётся явно либо через
+зарегистрированную фабрику. Некорректный тип элемента — DefinitionException; неизвестная строка — UnknownSourceException.
+Bare action string здесь не создаёт право, dynamic actions создаёт scoped PermissionManager. Явный FolderSource
+может один раз настроить встроенный экземпляр; несколько явно заданных FolderSource — конфликт, не last-wins.
+
+PanelBuilder не имеет отдельного sources метода или второй permissions сигнатуры; старого alias нет (D01).
+Классы Source/FolderSource/DatabaseSource/RelationSource, папка Sources, config sources.*, фабрика AzGuard::sources()
+и getter Panel::sources() сохраняют значение механизма источников. Runtime PanelAccess::permissions() возвращает
+PermissionManager; BaseRole::permissions() возвращает permissions роли — это другие receivers.
+
+D73 уточняет D45/D52/D57. API/extension points/examples/config/rename table/workstreams используют единое имя.
+V77/V107 и P2.1/P2.7/P2.8/P6.8/P8.4 проверяют mixed input, manifests и generated consumers.
+
+
+<a id="d74"></a>
+### D74 — guard selector с сохранением native Eloquent guard
+
+**Кратко:** строка выбирает панель; массив сохраняет существующее mass-assignment поведение Eloquent.
+Владелец заменил inPanel на guard. Model::guard(array $guarded) уже существует, поэтому trait использует
+совместимую сигнатуру guard(array|string $guarded): static|SubjectAccess, array delegates parent; parameter name
+сохранён для named arguments. SubjectPanels::guard(string) — чистый selector без перегрузки.
+String-only override запрещён; custom override требует явного адаптера. Auth::guard/for(..., guard:) — auth guard,
+не панель. [18 §1](18-contexts-and-runtime-inputs.md#1-селектор-guard), V108/R03, P2.1/P5.1/P8.7.
+
+<a id="d75"></a>
+### D75 — Общие context recipes и конфигурируемые ролевые bindings
+
+**Кратко:** ProjectContext::make()->query(...) работает и для панели, и для отдельной роли.
+BaseContext fluent settings immutable; class-string остаётся shorthand. Global defaults/plugin/provider predicates
+складываются AND, роль добавляет свои filters в собственную contribution; independent roles объединяются OR.
+Role binding не меняет alias/model/owner и не удаляет common filters. Presentation precedence отделён от authority.
+Схема публикует definition/filter class metadata, не runtime closures/models. [18 §2–4](18-contexts-and-runtime-inputs.md), V109.
+
+<a id="d76"></a>
+### D76 — Native Eloquent query и один exact eligibility plan
+
+**Кратко:** callback получает настоящий Builder, а одинаковые predicates обслуживают scalar/batch/query/editor.
+Common is_active применяется до любого Allow; seller city/role region только в его ветке. Builder WHERE/whereHas/
+local scopes/grouped OR поддержаны; внешний tenant/key/common boundary добавляет core с grouping.
+Замена builder/model/connection/from, terminal calls/root joins/union/limit требуют отдельного exact adapter или
+отклоняются. PHP callbacks — trusted code, не sandbox. Predicate ограничивает, не выдаёт право.
+Unsupported exact query не возвращает широкий список. [18 §4](18-contexts-and-runtime-inputs.md), V110.
+
+<a id="d77"></a>
+### D77 — Явные operation inputs и фазы
+
+**Кратко:** target user, actual BaseRole, actor, grant, scope, now и phase передаются при каждой операции.
+Container::call получает reserved inputs; service DI native, нет global CurrentUser/Role binding/empty ORM model.
+Access/Assignment/Revocation/Inspection различаются: inactive/expired/orphan grant можно отозвать authorised actor;
+Assignment повторно проверяется после pipes. Конфигурация filters/roles — PHP typed objects, UI меняет только
+назначения/expiry/declared fields и opt-in dynamic actions. [18](18-contexts-and-runtime-inputs.md), V111–V114.
+
+<a id="d78"></a>
+### D78 — Плагины: собственная typed factory и runtime capabilities
+
+**Кратко:** CrmAccessPlugin::make(models: new CrmModels(...), projects: ...) явно получает зависимости.
+BasePlugin не задаёт универсальную factory. PluginContext содержит panel/plugin/build/dependencies/namespace,
+конфигурация принадлежит typed полям plugin. Если нужны DI сервисы — собственная factory makeWith с явными named
+parameters, не пустой app(static::class) singleton. Build configuration не удерживает request/user/role/Builder.
+Runtime capability получает user/actual BaseRole/grant/actor/scope при операции. Cache только metadata, provider
+восстанавливает PHP definitions; fingerprint включает deployed build id. [19](19-oop-and-permission-authority.md).
+
+<a id="d79"></a>
+### D79 — Готовность к проектам подтверждает реальная CRM-приёмка
+
+**Кратко:** 68 сценариев R01–R68 выполняются через реальный AzGuard на real consumer/SQL/HTTP/UI/workers.
+[Отдельное ТЗ](17-crm-acceptance-tests.md) задаёт fixture, expected ids, positive controls, concurrency barriers,
+query budgets, supported DB/Laravel matrix и отчёт passed/failed/blocked/unsupported.
+Mock core/model-only probes не заменяют эти тесты. До реализации случаев статус future, не green.
+P8.7 и V116 — обязательные ворота релиза; design model проверяет только формулу спецификации.
+
+
+<a id="d80"></a>
+### D80 — Роли только PHP-классы; назначения независимо от definitions
+
+**Кратко:** в 1.0 нет DB ролей, CRUD role definitions и role composition editing.
+BaseRole задаёт permissions/context filters/superAdmin/required; Folder/automatic/relation/DB могут назначать
+одну definition. DB хранит scoped role_grants/permission_grants, не roles/role_permissions/role_contexts.
+Enum права тоже назначаются в БД без копирования definitions. RoleCatalog read-only; неизвестный removed key
+zero authority и authorised cleanup. Уточняет D13/D14/D19/D60/D77, [19 §1/3/6](19-oop-and-permission-authority.md).
+
+<a id="d81"></a>
+### D81 — Фильтры как конкретные классы и типизированные настройки
+
+**Кратко:** query(new SellerProjects(...)) показывает класс/constructor inputs; string profiles/JSON operators нет.
+ContextQueryFilter.apply(Builder, ContextRuntime), actual BaseRole/user/actor передаются отдельно. Exact FQCN filter
+принимается только если implements SPI, container resolve на operation. Common AND role branch AND/OR сохраняются.
+Concrete context factory собственная, base не диктует make/options; PHP config change требует new build.
+Нативные homogeneous lists/config/rules/declared fields arrays сохраняются, generic behavior bags не вводятся.
+Уточняет D75–D77, [18](18-contexts-and-runtime-inputs.md).
+
+<a id="d82"></a>
+### D82 — Собственные named typed factories плагинов
+
+**Кратко:** CrmAccessPlugin::make(models: CrmModels, projects: definition, ...) — видимая PHP-сигнатура.
+BasePlugin/Plugin SPI не объявляют универсальный make/options, чтобы concrete factory не нарушала PHP LSP.
+Plugin-specific DTO validates class-string subtype/instantiability/contracts, shared config не mutable.
+PluginContext только build panel/plugin/dependencies/namespace; settings в typed полях plugin, runtime capabilities
+получают fresh inputs. Уточняет D47/D78, [19 §4](19-oop-and-permission-authority.md#4-плагин-параметры-видны-в-php).
+
+<a id="d83"></a>
+### D83 — Explicit authority mode и типизированные свидетельства состояния
+
+**Кратко:** PolicyOnly — policy без assignment DB; RequiresGrant — assignment с optional policy veto.
+Mode explicit на enum/case, custom definition возвращает PermissionAuthority. PolicyOnly grant запрещён, null deny;
+Grants policy true/null pass только при qualifying grant. Dynamic actions only Grants, opt-in; assignments enum
+работают без этого flag. BeforeResult Continue/Deny не выдаёт authority, superadmin только Grants, boundaries всегда.
+CodeStateToken отделён от DB StateToken; Policy-only dispatch не читает DB ради token. Code token не версионирует
+host business data. Exact adapters/schema/editors/mutations/deployment отражают тот же mode.
+Уточняет D48/D53/D55/D79; [19](19-oop-and-permission-authority.md), [20](20-process-map.md), R61–R68/V117–V120.
+
+
+Optional RequiresGrant business veto подключается явным PolicyBinding(action, class, method), не догадкой
+по присутствию метода. Missing declared method/class — compile error. PolicyOnly binding всегда обязателен;
+folder/PolicyFor/Decides pairing допустим при однозначной цели. Метод не переименовывается в silent no-policy pass.

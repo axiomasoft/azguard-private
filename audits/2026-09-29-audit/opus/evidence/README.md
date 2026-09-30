@@ -53,3 +53,36 @@ rm tests/Feature/OpusAudit*ProbesTest.php
 Не воспроизводилось исполняемо (только статически): эскалация через форму Filament целиком (N02 — показана
 DoS-часть через ту же запись), чтение ревизии с реплики (C03 — нужен стенд primary/replica, сценарий V-серии в
 [14-verification.md](../14-verification.md)), конкурентные гонки.
+
+## Доработка целевого дизайна — 2026-09-30
+
+[Design review](design-review.md) отделяет новые решения и ограниченную проверку модели от исторических
+runtime probes выше. [design-model.py](design-model.py) — SQLite/unittest модель CRM;
+[validate-dossier.py](validate-dossier.py) — целостность ссылок, нумерации и owning items целевых документов.
+Эти проверки не означают реализацию или прохождение будущих V86–V107 в пакете.
+
+[Сверка переименований](rename-consistency.md) фиксирует D71–D73 и согласованность builder API,
+метаданных Resource, путей D72, config/CLI/stubs и verification scenarios.
+
+
+## Настраиваемые контексты и реальные тесты CRM
+
+- [flexibility-review.md](flexibility-review.md) — H15–H21, дополнительные Perplexity/primary checks, native guard collision.
+- [guard-signature.php](guard-signature.php) — bounded native Eloquent signature probe; без БД, не новый runtime AzGuard.
+- [17-crm-acceptance-tests.md](../17-crm-acceptance-tests.md) — 68 **future** реальных кейсов готовности пакета.
+- [18-contexts-and-runtime-inputs.md](../18-contexts-and-runtime-inputs.md) — configured inputs/query/plugin contracts.
+
+Запуск signature probe: `php audits/2026-09-29-audit/opus/evidence/guard-signature.php`.
+Dossier validator включает D01–D83, V01–V120 (retired V40–V42), C01–C22, R01–R68 и F01–F24.
+
+
+## Пересмотр ООП и authority
+
+[oop-review.md](oop-review.md) документирует текущий проход и первичные OSS sources.
+[19](../19-oop-and-permission-authority.md)/[20](../20-process-map.md) заменяют прежние DB role/profile/policy-OR-grants
+гипотезы. [design-model.py](design-model.py) сохранён как историческая reference model предыдущей формулы; его
+8 tests не квалифицируют текущую authority semantics и не пересчитывались для этого пересмотра.
+Актуальная real runtime приёмка — R01–R68 / V01–V120 (retired V40–V42); все ещё future.
+
+[oop-contracts.php](oop-contracts.php) — выполненный PHP probe typed factories/DTO/DI;
+границы проверки и результат: [oop-review.md](oop-review.md#проверка-и-её-границы).

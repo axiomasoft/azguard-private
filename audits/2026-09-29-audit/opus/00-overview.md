@@ -1,7 +1,7 @@
 # 00 — AzGuard простыми словами
 
 Этот файл объясняет целевую архитектуру без технических деталей. Точные решения — в [02](02-decisions.md), API — в
-[05](05-php-api.md). Если что-то здесь расходится с 02, прав 02.
+[05](05-php-api.md). Нормативные границы и крайние случаи — в 08/09; журнал 02 фиксирует причины решений. При расхождении это дефект досье, который нужно исправить.
 
 ## 1. Что такое AzGuard в одном абзаце
 
@@ -18,17 +18,17 @@ AzGuard отвечает на вопрос «может ли этот субъе
 | Сегодня | В новой версии |
 |---|---|
 | Панели — отдельные пространства прав, `…GuardPanelProvider`, список панелей в конфиге | остаются; панель становится конструктором из источников |
-| Панель — папка: провайдер, `Roles/`, домены `{Domain}/Permissions`, `Policies`, `Abilities` | остаётся нормой; папку читает `FolderSource`, как сейчас читает автопоиск |
+| Панель — папка: провайдер, роли, права, политики | корни `Permissions/{Group}`, `Policies/{Group}`, `Abilities/{Group}` по D72; папку читает `FolderSource`, как сейчас читает автопоиск |
 | Enum прав с короткими именами; панель добавляет свой id (`scopedByPanelId`) | остаётся: префикс по умолчанию — id панели; можно свой или без префикса |
-| Политики с `#[GateAbility]` и `#[GuardPolicy(model)]`, `AuthorizesPermission` | остаются как второй уровень проверки: `#[Decides]`, `#[PolicyFor]`, `#[Domain(model:)]`, `ConsultsGrants` |
-| Статичные роли (классы `BaseRole`) и динамические (БД) | остаются; + автоматические роли; признак суперадмина у роли; атрибуты `#[Role]`, `#[SuperAdmin]` |
+| Политики с `#[GateAbility]` и `#[GuardPolicy(model)]`, `AuthorizesPermission` | явный PolicyOnly authority или RequiresGrant veto: `#[Decides]`, `#[PolicyFor]`, `#[Resource(model:)]`, `PolicyBinding` |
+| Статичные роли (классы `BaseRole`) и динамические (БД) | только PHP-классы ролей; назначения через БД/правило/связь; атрибуты `#[Role]`, `#[SuperAdmin]` |
 | Прямые выдачи прав со сроком (direct grants) | остаются как выдачи прав |
 | Роли и права внутри сущности (entity scopes, context-пакет) | остаются, объединены в один параметр `on:` и влиты в ядро |
 | Роль суперадмина | остаётся ролью; звёздочка `*` убирается |
 | Свои источники прав (`GrantSource`), построители каталога | становятся главным механизмом: фабрика источников, как драйверы в Laravel |
 | `#[CheckPermission]` на контроллерах, `#[SkipGuardCheck]`, строгий режим | остаются; `#[CheckPermission]` теперь применяет сам роутер Laravel |
-| `#[RoleOnly]` для прав без политики | остаётся как `#[GrantsOnly]` |
-| Filament: ресурсы ролей и выдач, режимы `database` / `enum` / `policy` | остаются; редакторы строятся по схеме панели |
+| `#[RoleOnly]` для прав без политики | остаётся как `#[RequiresGrant]` |
+| Filament: ресурсы ролей и выдач, typed definitions Enums/Resources + explicit authority | остаются; редакторы строятся по схеме панели |
 | Abilities DTO для фронтенда, `explain`, `doctor`, `AzGuardFake` | остаются, работают от той же проверки |
 
 **Добавляется:** фабрика источников (свои источники по имени, как драйверы кэша), связи сущностей и Gate как источники,
@@ -47,7 +47,7 @@ AzGuard отвечает на вопрос «может ли этот субъе
 | `cabinet` (по умолчанию) | покупатели | папка панели: права «всем» («каждый видит свой профиль»), политики («заказ — только свой») | нет |
 | `seller` | продавцы | роль «Продавец» автоматически всем, у кого есть магазин; доступ к конкретным магазинам через связь `store.staff` | частично: доступ к магазину даёт владелец магазина |
 | `admin` | сотрудники | роли и права в БД, редактируются в Filament; группы LDAP | да |
-| `api` | API-клиенты | способности токена Sanctum (свой источник) | нет |
+| `api` | API-клиенты | роли пользователя + ограничение способностями токена | как у панели пользователя |
 | `features` | проекты (не люди) | тарифный план проекта (свой источник) | через оплату |
 | `blog` (из модуля) | авторы | принёс Laravel-модуль Blog | как решил модуль |
 
@@ -59,19 +59,20 @@ AzGuard отвечает на вопрос «может ли этот субъе
 ## 3. Панель — конструктор из источников
 
 **Источник** — класс, который целиком отвечает за один способ получить права. Панель берёт из источников четыре
-вещи: какие права существуют, какие роли есть, что выдано человеку (первый уровень) и какой код уточняет ответ
-(второй уровень).
+вещи: определения прав и PHP-ролей, назначения человеку и явные policy bindings.
+Authority каждого action задаётся отдельно: PolicyOnly или RequiresGrant.
 
 | Источник | Что даёт | Пример |
 |---|---|---|
 | `FolderSource` — папка панели (есть всегда) | enum прав, роли-классы, автоматические роли, права «всем», политики доменов | «Менеджер»; «Продавец» — всем с магазином; «свой заказ — всегда» |
-| `DatabaseSource` — вся работа с БД | роли, созданные в админке; выдачи ролей и прав с сущностью и сроком; по флагу — права, созданные в админке | Анне выдана роль «редактор» в проекте 7 до конца месяца |
+| `DatabaseSource` — вся работа с БД | выдачи PHP-ролей и прав с сущностью и сроком; по флагу — дополнительные Grants права | Анне выдана роль «редактор» в проекте 7 до конца месяца |
 | `RelationSource` — связи сущностей | права из данных приложения | участник проекта с ролью `editor` в pivot-таблице |
-| `GateSource` — Laravel Gate | существующая ability Laravel как второй уровень | фича-флаг «бета-доступ» |
-| свой источник | всё, что можно написать классом | LDAP-группы, способности токена, тарифный план |
+| `GateSource` — Laravel Gate | явно mapped Laravel ability: PolicyOnly authority или RequiresGrant veto | фича-флаг «бета-доступ» |
+| свой источник | всё, что можно написать классом | LDAP-группы, capabilities отдельного service principal, тарифный план |
 
 Свой источник регистрируется так же, как свой драйвер кэша в Laravel: атрибутом `#[AsSource('ldap')]` на классе или
-`AzGuard::sources()->extend('ldap', …)`. После этого любая панель подключает его по имени: `->sources(['ldap'])`.
+`AzGuard::sources()->extend('ldap', …)`. После этого панель подключает его по имени: `->permissions(['ldap'])`.
+Тот же массив принимает enum class-strings; они добавляются к найденным в Permissions/ через FolderSource (D73).
 
 ```mermaid
 flowchart TB
@@ -79,15 +80,15 @@ flowchart TB
         direction TB
         P[AdminGuardPanelProvider<br/>id, субъекты, источники,<br/>хуки, плагины]
         F[FolderSource<br/>папка панели:<br/>enum, роли, политики]
-        D[DatabaseSource<br/>роли и выдачи в БД,<br/>динамические права]
+        D[DatabaseSource<br/>назначения в БД,<br/>opt-in Grants actions]
         L[LdapSource<br/>свой, по имени]
         PL[Плагины<br/>приносят источники,<br/>хуки, поля]
     end
     P --> F & D & L
     PL --> P
     F & D & L -- права и роли --> CAT[Каталог панели]
-    F & D & L -- выдачи --> G1[Первый уровень]
-    F -- политики --> G2[Второй уровень]
+    F & D & L -- выдачи --> G1[Назначения RequiresGrant]
+    F -- политики --> G2[PolicyOnly authority<br/>или RequiresGrant veto]
     CAT --> SCH[Схема панели → Filament, свои UI]
     G1 & G2 --> CHK[Проверка:<br/>hasPermission, can, @can,<br/>атрибут CheckPermission]
     D -- запись --> CH[Пайплайн изменений<br/>grantRole, revokeRole…]
@@ -106,41 +107,44 @@ flowchart TB
 ## 4. Панель — это папка
 
 Всё, что относится к панели, лежит в её папке: провайдер, роли, домены, свои источники, ограничения, модели. Так
-устроено и сейчас, и эта структура остаётся нормой. Панель сама находит в своей папке enum прав, политики и роли —
-перечислять их вручную не нужно. Общее для нескольких панелей лежит в `Shared/`.
+сохраняется принцип панели как папки; целевая раскладка уточнена в D72. Панель сама находит в своей папке enum прав, PolicyOnly bindings и роли.
+Optional RequiresGrant veto подключается явно через PolicyBinding, чтобы удаление метода не снимало запрет. Общее для нескольких панелей лежит в `Shared/`.
 
 ```
 app/Guards/
 ├── Admin/
-│   ├── AdminGuardPanelProvider.php       описание панели: из чего она собрана
-│   ├── Roles/ManagerRole.php             роли из кода (и роль суперадмина)
-│   ├── Orders/                           домен «Заказы»
-│   │   ├── Permissions/OrderPermission.php   права домена: orders.view, orders.view_any, orders.refund
-│   │   ├── Policies/OrderPolicy.php          код, который выполняется перед доступом
-│   │   └── Abilities/OrderAbilities.php      (необязательно) права для фронтенда
-│   ├── Users/Permissions/UserPermission.php
-│   ├── Sources/                          свои источники этой панели
-│   ├── Restrictions/                     «нельзя, даже если есть право»
-│   ├── Changes/                          pipes изменений: «без причины не выдавать»
-│   └── Models/                           свои модели выдач со своими полями
-└── Shared/                               общее: RootRole, LdapSource, плагины
+│   ├── AdminGuardPanelProvider.php
+│   ├── Permissions/                      группы действий над объектами
+│   │   ├── Orders/OrderPermission.php
+│   │   └── Users/UserPermission.php
+│   ├── Policies/Orders/OrderPolicy.php       решения по действиям
+│   ├── Abilities/Orders/OrderAbilities.php   DTO для фронтенда
+│   ├── Queries/Orders/OrderVisibility.php    парная фильтрация списка
+│   ├── Roles/ManagerRole.php            наборы прав
+│   ├── Contexts/ProjectContext.php      типы областей назначения
+│   ├── Sources/                         откуда приходят права
+│   ├── Restrictions/                    общие запреты
+│   ├── Changes/                         pipes изменений доступа
+│   └── Models/                          свои модели хранения grants
+└── Shared/                              явно подключаемые общие роли/источники/плагины
 ```
 
 ```php
-#[Domain(label: 'Заказы', model: Order::class)]
+#[Resource(label: 'Заказы', model: Order::class)]
+#[RequiresGrant]
 enum OrderPermission: string
 {
-    #[Describe('Смотреть заказ')]      case View = 'orders.view';
+    #[Describe('Смотреть заказ')]      #[PolicyOnly] case View = 'orders.view';
     #[Describe('Смотреть все заказы')] case ViewAny = 'orders.view_any';
     #[Describe('Вернуть деньги')]      case Refund = 'orders.refund';
 }
 
-// лежит в Orders/Policies — привязан к OrderPermission сам; метод = кейс
+// лежит в Policies/Orders — привязан к OrderPermission сам; метод = кейс
 final class OrderPolicy
 {
     public function view(User $user, Order $order): ?bool
     {
-        return $order->user_id === $user->id ? true : null;        // своё — всегда; чужое — как выдано
+        return $order->user_id === $user->id ? true : null;        // PolicyOnly: своё разрешено, null/чужое запрещено
     }
 
     public function refund(User $user, Order $order): ?bool
@@ -150,14 +154,18 @@ final class OrderPolicy
 }
 ```
 
-**Два уровня проверки одного права.** Первый уровень — **выдачи**: есть ли у человека право (из БД, из роли в
-коде, из связи, из своего источника). Второй — **политика** того же права: код, который выполняется перед доступом.
-Политика отвечает: `null` — «как решили выдачи», `false` — «нет, даже если выдано», `true` — «да, даже если не
-выдано». Так редактируемые в админке права и жёсткие правила в коде живут вместе.
+Grant-side veto привязан явно, чтобы исчезновение метода не отключало запрет:
 
-**Статичные и динамические права.** Права из enum — статичная схема: они в коде, на них опираются политики. Если
-панели нужно добавлять права прямо в админке, у `DatabaseSource` есть флаг: `DatabaseSource::make()->dynamicPermissions()`.
-Такие права хранятся в таблице, выдаются и проверяются как обычные.
+```php
+$panel->policies([
+    PolicyBinding::for(OrderPermission::Refund, OrderPolicy::class, method: 'refund'),
+]);
+```
+
+**Режим задан на праве.** PolicyOnly решает policy и не читает назначения. RequiresGrant требует
+qualified role/direct/fixed/relation assignment; policy true/null только пропускает, false ограничивает.
+Именно RequiresGrant подходит для «менеджер назначен на проект, но клиент запретил звонки». Политика не заменяет
+такое назначение. Dynamic actions опциональны и имеют только Grants mode. Подробнее — [19](19-oop-and-permission-authority.md).
 
 ## 5. Как это выглядит в коде
 
@@ -165,9 +173,9 @@ final class OrderPolicy
 // app/Guards/Admin/AdminGuardPanelProvider.php
 return $panel
     ->id('admin')
-    ->subjects([User::class], guard: 'web')
-    ->sources([
-        DatabaseSource::make()->dynamicPermissions(),       // роли и права из админки
+    ->for([User::class], guard: 'web')
+    ->permissions([
+        DatabaseSource::make()->dynamicPermissions(),       // назначения PHP-ролей/прав и opt-in дополнительные actions
         'ldap',                                             // свой источник по имени
     ])
     ->restrictions([AccountLocked::class])
@@ -186,7 +194,7 @@ $user->can('orders.view', $order);                    // обычный Laravel 
 @can('projects.edit', $project) … @endcan
 
 // Другая панель — явно
-$user->inPanel('admin')->hasPermission('orders.refund');
+$user->guard('admin')->hasPermission('orders.refund');
 $user->hasPermission('admin.orders.refund');          // префикс указывает на панель admin
 $user->hasPermission('admin:orders.refund');          // полное имя работает всегда
 
@@ -194,7 +202,7 @@ $user->hasPermission('admin:orders.refund');          // полное имя р�
 $user->grantRole('editor', on: $project, until: now()->addMonth());
 $user->revokeRole('editor', on: $project);
 $user->grantPermission('reports.export');
-$user->inPanel('admin')->grantRole('support');
+$user->guard('admin')->grantRole('support');
 
 // Суперадмин
 $user->isSuperAdmin();
@@ -207,8 +215,8 @@ public function refund(Order $order) { … }
 ## 6. Одна модель — несколько панелей
 
 У пользователя может быть несколько панелей: личный кабинет, кабинет продавца, админка. При загрузке приложения
-панели регистрируются, и для каждого пользователя его права собираются **в один общий набор, разделённый по
-панелям**:
+регистрируются определения панелей. При проверке вычисляются права выбранного субъекта **в выбранных
+панели и tenant/context**; все пользователи и организации при boot не загружаются. Для non-tenant примера:
 
 ```
 Анна
@@ -220,7 +228,7 @@ public function refund(Order $order) { … }
 Какая панель используется в проверке — одно правило для всех случаев:
 
 1. **Явно указанная:** полное имя `admin:orders.refund`; имя с префиксом панели `admin.orders.refund`; enum, который
-   знает свою панель; `->inPanel('admin')`.
+   знает свою панель; `->guard('admin')`.
 2. **Панель по умолчанию для запроса.** Группа маршрутов привязана к панели middleware `azguard.panel:seller`. Внутри
    неё короткие имена относятся к `seller`. Это как `auth:web` в Laravel, который меняет guard по умолчанию. Задачи
    в очереди, поставленные из этого запроса, помнят панель.
@@ -242,61 +250,62 @@ public function refund(Order $order) { … }
 
 ```mermaid
 flowchart LR
-    A[1. Панель<br/>по правилу выбора] --> B[2. Сущность<br/>проект, магазин,<br/>ресурс]
-    B --> C[3. Before-хуки<br/>да / нет / не знаю]
-    C --> D[4. Суперадмин?<br/>тогда всё есть]
-    D --> E[5. Выдачи<br/>из всех источников]
-    E --> F[6. Политика<br/>уточняет ответ]
+    A[1. Панель<br/>по правилу выбора] --> B[2. Tenant / context<br/>ownership ресурса]
+    B --> C[3. Before-хуки<br/>все запреты учитываются]
+    C --> E[4. Все источники<br/>scope / срок / условия]
+    E --> D[5. Grants / superadmin<br/>ошибка source даёт отказ]
+    D --> F[6. Политика<br/>null / true / false]
     F --> G[7. Ограничения<br/>могут только<br/>запретить]
     G --> H[8. After-хуки<br/>и события]
 ```
 
-- **Before-хуки** могут сразу сказать «нет» (например, «аккаунт заморожен» — даже для суперадмина) или «да».
-- **Суперадмин** получает все права без сбора.
-- **Выдачи** — первый уровень: право есть, если его дал хотя бы один источник панели.
-- **Политика** — второй уровень: если у права есть политика, она уточняет ответ: `null` — оставить, `false` —
-  запретить, `true` — разрешить.
+- **Before-хуки** возвращают Continue/Deny (например, замороженный аккаунт — Deny даже для суперадмина); они не разрешают доступ.
+- **Суперадмин** определяется из проверенных назначений ролей в выбранном tenant/context.
+- **RequiresGrant** требует проверенное назначение: direct/role/fixed/relation или scoped superadmin.
+  Явно привязанная политика может запретить; `true`/`null` не заменяют отсутствующее назначение.
+- **PolicyOnly** решается единственной политикой: `true` разрешает, `false`/`null` запрещают;
+  ядро не читает назначения/роли/их DB state для этого права.
 - **Ограничения** — «нельзя, даже если право есть»: пользователь заблокирован, режим «только чтение». Они действуют
   на **любое** «да», в том числе на суперадмина. Ограничение может само освободить суперадмина: так устроено
-  «только сотрудники магазина» — суперадмин платформы видит все магазины.
+  «только сотрудники магазина» — освобождение от членства явно настраивается; tenant/resource boundary остаётся.
 - **Ошибка на любом шаге = «нельзя».** Сломанный источник не превращается в доступ.
 - На вопрос «почему нет?» `explain()` покажет весь путь: какая панель, какой источник что дал, кто отказал.
 
 ## 8. Как проходит изменение прав
 
-Меняется только то, что хранит источник-писатель панели — обычно `DatabaseSource`: роли, созданные во время работы,
-выдачи ролей и прав, динамические права. Права из папки панели и политики меняются в коде.
+Меняется только то, что хранит источник-писатель панели — обычно `DatabaseSource`: выдачи PHP-ролей и прав,
+дополнительные opt-in Grants права. Права из папки панели и политики меняются в коде.
 
 ```mermaid
 flowchart LR
     A[1. Проверка данных<br/>роль и право существуют,<br/>поля заполнены верно] --> B[2. Pipes<br/>дополнить или отменить]
-    B --> C[3. Запись<br/>одна транзакция,<br/>новая версия прав панели]
+    B --> C[3. Запись<br/>одна транзакция,<br/>новая версия прав панели,<br/>final validation]
     C --> D[4. События Laravel<br/>после сохранения]
 ```
 
 - Проверка данных ловит опечатки: неизвестная роль или право — ошибка, а не тихая запись.
-- Лишних проверок нет: у БД своя схема прав. Если в БД выдано право, у которого есть политика, это не ошибка —
-  политика решает, как учесть выдачу.
+- PolicyOnly назначения запрещены. RequiresGrant назначение допускает explicit policy veto;
+  изменение данных не меняет authority mode права.
 - **Кто может менять права — решает приложение, а не AzGuard.** Страницу «Роли» в Filament защищает обычное право
   админки, как любую другую страницу. Правила «нельзя выдать то, чего нет у тебя» или «изменение подтверждает второй
   админ» — это pipes на шаге 2, устроенные как middleware в Laravel.
 
 ## 9. Суперадмин — это роль
 
-Суперадмином человека делает **роль**: роль из кода помечена атрибутом `#[SuperAdmin]`, у роли из БД для этого есть
-флаг (его видно и можно менять в Filament). Сколько суперадминов — не важно.
+Суперадмином человека делает **PHP-роль** с `#[SuperAdmin]` или superAdmin() override.
+БД хранит её назначение; этот признак не редактируется в Filament. Scope/expiry/boundaries и policy veto обязательны.
 
 - Роль выдана глобально — суперадмин всей панели. Выдана в сущности — все права только внутри неё («суперадмин
-  магазина 7»).
+  магазина 7»). Это authority только для RequiresGrant; PolicyOnly проверяется своей политикой.
 - «Суперадмин по флагу `is_root`» — автоматическая роль с `#[SuperAdmin]` в `Shared/Roles/`.
 - «Суперадмин во всех панелях» — та же роль, подключённая к каждой панели.
 - Метод `isSuperAdmin()` отвечает на вопрос прямо.
 
 ## 10. Схема панели и редакторы
 
-Панель умеет описать себя: какие права есть и по каким доменам сгруппированы, какие решаются политикой, какие роли
-редактируются, какие поля заполнять при выдаче. Каждый источник добавляет в схему своё. По этой **схеме** Filament
-строит редакторы ролей и выдач сам. Так же может построить форму любой свой интерфейс (Inertia, Vue, API).
+Панель умеет описать себя: какие права есть и по каким доменам сгруппированы, какие решаются политикой, какие PHP-роли
+можно назначать, какие поля заполнять при выдаче. Каждый источник добавляет в схему своё. По этой **схеме** Filament
+строит read-only каталог ролей и редакторы назначений. Так же может построить форму любой свой интерфейс (Inertia, Vue, API).
 
 Если у панели нет `DatabaseSource` (например, кабинет на одних политиках), редактировать в ней нечего. Схема всё
 равно есть: по ней видно, как устроены права.
@@ -308,7 +317,7 @@ AzGuard не придумывает своё там, где у Laravel уже е
 | Что | Как в Laravel |
 |---|---|
 | Свои источники по имени | как драйверы кэша: `Manager` и `extend()` |
-| `before` / `after` — сказать «да» или «нет» заранее, наблюдать | как `Gate::before` / `Gate::after` |
+| `before` / `after` — preliminary Continue/Deny, observation | native DI; typed BeforeResult, без Gate authority shortcut |
 | Pipes изменений — дополнить или отменить | как middleware и `Pipeline` |
 | Реакция на изменения | обычные события и слушатели: `RoleGranted`, `PermissionRevoked`, … — после сохранения |
 | Проверка на маршруте | `#[CheckPermission]` — наследник атрибута `#[Middleware]` Laravel |
@@ -336,8 +345,8 @@ AzGuard не придумывает своё там, где у Laravel уже е
 
 - **методы:** проверки — вопросы (`hasPermission`, `isSuperAdmin`), изменения — `grant` / `revoke` / `sync`,
   записи — `RoleGrant`, `PermissionGrant`, события — `RoleGranted`;
-- **атрибуты:** существительное — «что это» (`#[Domain]`, `#[Role]`), глагол — «что делает» (`#[Decides]`,
-  `#[CheckPermission]`), признак — «какое» (`#[SuperAdmin]`, `#[GrantsOnly]`, `#[GrantedToAll]`), `As…` —
+- **атрибуты:** существительное — «что это» (`#[Resource]`, `#[Role]`), глагол — «что делает» (`#[Decides]`,
+  `#[CheckPermission]`), признак — «какое» (`#[SuperAdmin]`, `#[RequiresGrant]`, `#[GrantedToAll]`), `As…` —
   регистрация по имени (`#[AsSource]`), как в Laravel и Symfony;
 - **классы:** по роду — `…Permission`, `…Policy`, `…Role`, `…Source`, `…Plugin`, `…Restriction`; провайдер —
   `…GuardPanelProvider`;
@@ -380,3 +389,116 @@ AzGuard — фундамент для пакетов экосистемы: Vault
 
 У AzGuard и Vaulter общие инженерные правила (vendor `axiomasoft`, конфиги, команды, события, ошибки, тесты), но свои
 предметные слова. Мост к Vaulter делает Vaulter; идея моста описана в [10](10-integrations.md#9-идея-моста-vaulter--azguard).
+
+
+## 12. Самый сложный пример: CRM, организации и проекты
+
+У Анны две организации: в A она менеджер обзвона проектов P1/P2, в B — аналитик P3.
+Организация — **tenant**, проект — **context** внутри неё. Класс проекта описывает этот тип области,
+класс роли ссылается на него, а назначения связывают пользователя с конкретными проектами.
+
+```php
+// app/Guards/Crm/Contexts/ProjectContext.php
+final class ProjectContext extends BaseContext // реализует собственный ContextDefinition SPI
+{
+    public function type(): string { return 'crm.project'; }
+    public function model(): ?string { return Project::class; }
+    public function exists(ContextRef $context): bool
+    {
+        return Project::withoutGlobalScopes()->whereKey($context->id())->exists();
+    }
+    public function tenantOf(ContextRef $context): TenantRef
+    {
+        $project = Project::withoutGlobalScopes()->findOrFail($context->id());
+        return TenantRef::of('crm.organization', $project->organization_id);
+    }
+}
+
+// app/Guards/Crm/Roles/CallerRole.php
+#[Role('caller', label: 'Менеджер обзвона')]
+final class CallerRole extends BaseRole
+{
+    public function contexts(): array { return [ProjectContext::class]; }
+    public function contextRequired(): bool { return true; }
+    public function permissions(): array
+    {
+        return [ClientPermission::View, ClientPermission::Update];
+    }
+}
+
+// Второй уровень: разрешение выдано на проект, но клиент запретил звонки.
+final class ClientPolicy
+{
+    public function update(User $user, Client $client): ?bool
+    {
+        return $client->do_not_call ? false : null;
+    }
+}
+
+// app/Guards/Crm/CrmGuardPanelProvider.php, внутри panel():
+return $panel->id('crm')->for([User::class], guard: 'web')
+    ->tenants(TenantPolicy::required(Organization::class)
+        ->requireMembership(OrganizationMembership::class))
+    ->contexts(ContextPolicy::inherit(ProjectContext::class))
+    ->resourceScopes([Client::class => ClientScopeResolver::class])
+    ->permissions([DatabaseSource::make()->dynamicPermissions()])
+    ->restrictions([AccountLockedRestriction::class])
+    ->changing([AuthorizeCrmAccessChange::class]);
+
+$crmA = $anna->guard('crm')->inTenant($organizationA);
+$crmA->grantRole('caller', on: $projectA1);
+$crmA->grantRole('caller', on: $projectA2);
+
+// Тот же PHP-класс может быть назначен Борису на другой проект:
+$boris->guard('crm')->inTenant($organizationA)->grantRole(CallerRole::class, on: $projectA4);
+
+$crmA->hasPermission(ClientPermission::View, on: $clientA1);   // да: назначена в P1
+$crmA->hasPermission(ClientPermission::View, on: $clientA4);   // нет: P4 не назначен
+$crmA->hasPermission(ClientPermission::View, on: $clientB3);   // нет: tenant B вместо A
+$crmA->hasPermission(ClientPermission::Update, on: $clientA1); // нет, если do_not_call=true
+```
+
+`ProjectContext` не заменяет business model `Project`, не хранит записи проектов и не становится самой ролью.
+У него **свой контракт ContextDefinition**: стабильный тип, модель, существование и принадлежность тенанту.
+Роли CallerRole, AnalystRole и другие PHP-классы ролей могут использовать его одновременно.
+Другой пакет приносит свой ContextDefinition и mapping tenant identities, используя те же разъёмы.
+
+ClientScopeResolver берёт организацию/проект **из клиента**, а не из выбранной вкладки браузера.
+Текущая организация проверяется на совпадение; это исключает смешивание роли A и проекта B.
+Список клиентов фильтруется exact query adapter **до** подсчёта/пагинации; политика Update не подменяет View.
+UI выдачи роли повторно проверяет actor, target tenant и project на сервере.
+
+Полный пример с enum, аналитиком, dynamic actions, external providers, SQL, Filament и
+обходом 22 рабочих цепочек — [16-crm-and-workflows.md](16-crm-and-workflows.md).
+
+
+## 13. Почему Permissions/Users, а не Users/ в корне
+
+`Permissions/Users/UserPermission.php` содержит **действия над пользователями**: показать профиль,
+заблокировать пользователя. `for([User::class])` задаёт **того, кому назначаются права**.
+Business model User остаётся в приложении. `Models/` панели — свои модели хранения выдач.
+`Permissions/Projects` описывает действия над проектами; `Contexts/ProjectContext` — область назначения роли.
+Группа `Permissions/Sources` не конфликтует с механизмом `Sources/` в корне.
+
+Для каждой группы классы разложены по виду: `Permissions/Clients`, `Policies/Clients`, `Queries/Clients`,
+`Abilities/Clients`. Все эти каталоги находятся прямо в панели; вложенного контейнера Resources нет.
+Политика и enum связываются по правилу D56, query adapter подключается явно.
+`#[Resource(model:)]` остаётся метаданными объекта доступа на enum, а не указанием на папку Resources.
+
+Конструктор читается `->for([User::class], guard: 'web')`: эти модели могут быть субъектами панели.
+`AzGuard::panel('crm')->for($anna)` выбирает конкретного субъекта. SubjectRef остаётся именем позиции в запросе;
+Relations обозначает связи, читаемые RelationSource. Владелец подтвердил эту раскладку — D72.
+
+## 14. Контекст настраивается для панели и роли
+
+Панель задаёт общий ProjectContext::make()->query(is_active), роль возвращает свой configured
+ProjectContext::make()->query(city filter). Common правила действуют для всех; правила роли — только для
+её выдачи. Callback получает query, target user, actual BaseRole и ContextRuntime; не нужно читать глобальный Auth.
+BaseRole — настоящий PHP-класс данной contribution; его permissions/filters меняются только в коде. Direct grant имеет role=null.
+
+Плагин получает typed models/context/settings через собственную named factory; PluginContext содержит build metadata;
+runtime user/role/actor/grant идут в его filters/hooks/pipes при вызове. Defaults/settings не захватывают
+текущего пользователя при загрузке worker. Подробности — [18](18-contexts-and-runtime-inputs.md).
+Вызов на модели теперь user->guard('crm')->inTenant(organization); guard('crm') выбирает authorization panel,
+а for([...], guard: 'web') — Laravel authentication guard. Контексты не требуют новых PHP-классов на каждый project.
+Готовность проверяется реальными CRM flows, описанными отдельно в [17](17-crm-acceptance-tests.md), а не числом unit tests.

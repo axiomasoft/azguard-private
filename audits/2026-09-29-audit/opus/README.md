@@ -1,7 +1,7 @@
 # AzGuard 1.0 — целевая архитектура (проработка Opus)
 
-Дата: **2026-09-29**. Основание: [исходный аудит](../../2026-09-29-audit.md) (Perplexity) и
-[исследовательский пакет Codex](../README.md). Код прочитан на `50fe4af` (прикладной код = `253cbf4`).
+Исходная дата: **2026-09-29**. Доработка scope/CRM: **2026-09-30**. Основание: [исходный аудит](../../2026-09-29-audit.md) (Perplexity) и
+[исследовательский пакет Codex](../README.md). Исходный проход Opus: код прочитан на `50fe4af` (прикладной код = `253cbf4`).
 Инженерные правила согласованы с проработкой Vaulter (`vaulter/audits/2026-09-29-stable-audit/opus/`, `a572121`).
 
 Это **целевая архитектура** для перевода в исполняемый план: понятия, имена, API, схема данных, смысл решений,
@@ -10,8 +10,8 @@
 ## С чего начать
 
 **Начните с [00-overview.md](00-overview.md).** Там простыми словами описано, как устроен AzGuard: панели как
-конструкторы прав, панель как папка, источники (папка панели, база данных, связи, Gate, свои) и их фабрика, два
-уровня проверки, короткий синтаксис проверок, панель по умолчанию, суперадмин, схема панели для редакторов, хуки на
+конструкторы прав, панель как папка, источники (папка панели, база данных, связи, Gate, свои) и их фабрика, явные
+режимы проверки, короткий синтаксис проверок, панель по умолчанию, суперадмин, схема панели для редакторов, хуки на
 механизмах Laravel, система имён. Остальные файлы — детали для исполнителей.
 
 ## Файлы
@@ -20,8 +20,8 @@
 |---|---|---|
 | [00-overview.md](00-overview.md) | **владелец, все** | Архитектура простыми словами, примеры панелей и кода |
 | [01-review.md](01-review.md) | владелец, ревьюер | Проверка аудита и Codex; **24 находки N01–N24** о текущем коде |
-| [evidence/](evidence/README.md) | ревьюер, исполнитель | **19 исполняемых probes** (все воспроизводят дефекты) + прогон базового набора (871 тест зелёный) |
-| [02-decisions.md](02-decisions.md) | все | Решения D01–D58; у каждого строка «Кратко» простыми словами |
+| [evidence/](evidence/README.md) | ревьюер, исполнитель | **исторические** 19 probes и baseline 0.3; findings пятого прохода и reference model отдельно |
+| [02-decisions.md](02-decisions.md) | все | Решения D01–D83; у каждого строка «Кратко» простыми словами |
 | [03-glossary-and-renames.md](03-glossary-and-renames.md) | все, исполнитель | Словарь, правила имён (методы, атрибуты, классы, папки), карта «было → стало» |
 | [04-packages-and-layout.md](04-packages-and-layout.md) | исполнитель | Пакеты, зоны кода и почему они такие, arch-правила, раскладка пакета и папок приложения |
 | [05-php-api.md](05-php-api.md) | исполнитель | Публичный API: трейт модели, панель, фасад, `PanelBuilder`, встроенные источники, роли, домены и политики, атрибуты, схема |
@@ -34,6 +34,15 @@
 | [12-operations-and-release.md](12-operations-and-release.md) | исполнитель, релиз | Команды, doctor, релиз, гейты совместимости, документация |
 | [13-workstreams.md](13-workstreams.md) | автор плана | Фазы F0–F8, пункты, зависимости |
 | [14-verification.md](14-verification.md) | исполнитель, QA | Сценарии проверки со ссылками на probes |
+| [16-crm-and-workflows.md](16-crm-and-workflows.md) | **владелец, исполнитель** | Полный CRM: ContextDefinition/ProjectContext, role bindings, tenant A/B, code role assignments/optional dynamic action, policy, SQL/UI/external; 22 цепочки |
+| [17-crm-acceptance-tests.md](17-crm-acceptance-tests.md) | **QA, исполнитель, владелец** | 68 реальных CRM acceptance cases; fixture/SQL/UI/workers, expected ids и критерии готовности |
+| [18-contexts-and-runtime-inputs.md](18-contexts-and-runtime-inputs.md) | **владелец, автор расширений** | Global/per-role configured contexts, native Builder, user/BaseRole/actor inputs, typed filters, plugins, guard compatibility |
+| [19-oop-and-permission-authority.md](19-oop-and-permission-authority.md) | **владелец, исполнитель** | PHP-only roles, typed filters/factories/DTO, PolicyOnly/RequiresGrant и ownership definitions |
+| [20-process-map.md](20-process-map.md) | **владелец, исполнитель** | 24 сквозных процесса: вход/классы/выход/ошибки/границы и реальные acceptance gates |
+| [evidence/oop-review.md](evidence/oop-review.md) | ревьюер | дополнительные полные Perplexity reviews, проверенные OSS/PHP/Laravel sources, устранённые противоречия и ограничения |
+| [evidence/design-review.md](evidence/design-review.md) | ревьюер | H01–H14: дефекты архитектуры, правки, первичные источники и границы проверок |
+| [evidence/flexibility-review.md](evidence/flexibility-review.md) | ревьюер | H15–H21: configured contexts/inputs/plugins, native guard collision, реальные CRM release gates |
+| [evidence/rename-consistency.md](evidence/rename-consistency.md) | исполнитель, ревьюер | согласованные имена D71–D73, API receivers, найденные остатки и границы проверки |
 | [15-owner-questions.md](15-owner-questions.md) | владелец | Ответы третьего и четвёртого проходов, отзывы и 4 открытых вопроса с решением по умолчанию |
 
 ## Главное — коротко
@@ -44,25 +53,25 @@
 2. **Панель собирается из источников.** Источник — класс, который целиком отвечает за один способ получить права:
    `FolderSource` (папка панели, есть всегда), `DatabaseSource` (вся работа с БД, динамические права по флагу),
    `RelationSource` (связи сущностей), `GateSource` (Laravel Gate), свои. Свои источники регистрируются фабрикой, как
-   драйверы кэша в Laravel: `#[AsSource('ldap')]` или `AzGuard::sources()->extend()`. Источники сочетаются и меняются
-   без изменения кода проверок.
-3. **Два уровня проверки:** выдачи из всех источников отвечают «есть ли право», политика того же права уточняет —
+   драйверы кэша в Laravel: `#[AsSource('ldap')]` или `AzGuard::sources()->extend()`. Панель подключает их через permissions([...]); enum в этом же массиве
+   дополняют FolderSource. Источники сочетаются без изменения кода проверок (D73).
+3. **Явные режимы проверки:** выдачи из всех источников отвечают «есть ли право», в RequiresGrant policy того же права только ограничивает —
    например, право выдано в БД, но с 18:00 до 9:00 возврат денег закрыт.
 4. **Проверки коротко:** `$user->hasPermission('orders.view', on: $order)`, `$user->grantRole('editor', on: $project)`.
-   Панель по умолчанию не указывают; другая — `inPanel('admin')`, префикс `admin.orders.view` или полное имя
+   Панель по умолчанию не указывают; другая — `guard('admin')`, префикс `admin.orders.view` или полное имя
    `admin:orders.view`. Одно правило выбора панели для всех входов.
 5. **Права бывают у любой модели:** пользователь, проект, команда. У модели несколько панелей; все её права
    собираются в один набор, разделённый по панелям.
 6. **Суперадмин — признак роли** (`#[SuperAdmin]` или флаг в БД); он получает все права, но общие ограничения
    действуют и на него, если ограничение само его не освободило.
-7. **На механизмах Laravel:** хуки — как `Gate::before/after`, изменения — через `Pipeline`, реакции — события,
+7. **На механизмах Laravel:** before/after — native callable DI, BeforeResult без authority shortcut, изменения — через `Pipeline`, реакции — события,
    `#[CheckPermission]` — наследник атрибута `#[Middleware]`, плагины — обычные Laravel-классы и пакеты.
 8. **Своя система имён:** проверки — вопросы, изменения — `grant`/`revoke`, записи — `RoleGrant`/`PermissionGrant`;
    атрибуты — существительное, глагол, признак или `As…`; классы и папки — по роду.
 9. **Кто может редактировать права — решает приложение.** AzGuard даёт **схему панели**, по которой Filament и любой
    свой интерфейс строят редакторы.
 10. **Надёжность:** ошибка на любом шаге = отказ; изменение — одна транзакция с новой версией прав панели; события
-    после сохранения; кэш не отдаёт отозванное право; повторная проверка — 0 запросов.
+    после root commit; validated version fence; scopes/expiry в кэше. Fresh DB отзыв гарантирован в режиме primary; стоимость live checks учитывается отдельно.
 11. **Без совместимости с 0.3:** пакет строится сразу правильно; найденные дефекты становятся регрессионными тестами.
     Пакет `axiomasoft/azguard`, выпуски `1.0.0-beta` → `1.0.0`.
 
@@ -99,23 +108,49 @@
 - **От Codex:** принимаю рамку «смысл раньше раскладки» и почти все C-находки, довожу их до решений и имён. Выбираю
   вариант B внутри одного дистрибутива, без отдельного порта хранилища в 1.0. C01 довожу до межзапросной утечки (P07).
 
-## Границы проработки
+## Границы исходной проработки и текущей доработки
 
 - Прочитаны все исходники трёх пакетов, миграции, конфиги, стабы, выборочно тесты и документация; мост Vaulter и
   решения Vaulter — для согласования.
-- **Запускались:** существующий набор тестов (871 зелёный, SQLite) и 19 probes (все воспроизводят дефекты), см.
+- **Исторический прогон исходной Opus-проработки (не повторён этим проходом):** существующий набор тестов (871 зелёный, SQLite) и 19 probes (все воспроизводят дефекты), см.
   [evidence](evidence/README.md). PHPStan и Rector не запускались (их загрузка закрыта политикой egress окружения).
 - **Не запускались:** PostgreSQL/MySQL, реплики, Redis, Octane, конкурентные сценарии, Filament-UI в браузере. Для
   них есть сценарии в [14](14-verification.md).
 - Код пакетов и Vaulter **не менялся**; probes лежат в `evidence/`, а не в `tests/`.
+
+## Пятый проход: CRM и надёжная композиция
+
+Самый сложный пример теперь есть в [00 §12](00-overview.md#12-самый-сложный-пример-crm-организации-и-проекты)
+и целиком в [16](16-crm-and-workflows.md). ProjectContext имеет **свой ContextDefinition SPI**, роли связываются
+с его классом, другие PHP-роли — с тем же descriptor. TenantRef + ContextRef сохраняются отдельно во всех границах.
+
+H01–H14 закрыты на уровне проектирования: exact visibility, token cap, definitive Gate denies,
+role contributions/conditions, version fence/expiry, state-first mutation, origin/external mappings,
+scoped factories и выполнимые adapters. API/схема/workstreams/проверки согласованы; новые V86–V107 —
+acceptance будущей реализации. Перечень реально выполненных проверок и их пределы —
+[evidence/design-review.md](evidence/design-review.md). Наличие design model не означает готовую runtime 1.0.
 
 ## Как превратить в план
 
 1. Создать план по протоколу проекта (`plans/ACTIVE.md`). Фазы и пункты взять из [13-workstreams.md](13-workstreams.md)
    без перенумерации.
 2. В `Execution Rules` перенести правила [13 §0](13-workstreams.md#0-правила-исполнения-переносятся-в-execution-rules-плана),
-   в `Decision Log` — ссылки на D01–D58 (не копировать тексты).
+   в `Decision Log` — ссылки на D01–D83 (не копировать тексты).
 3. Probes — регрессионные требования: каждый переписывается на новый API с обратным ожиданием в своём пункте.
 4. Пункты с маршрутизацией opus не отдавать младшим моделям без спецификации в `findings/`.
 5. Идею моста и заметки для Vaulter ([10 §9–§10](10-integrations.md#9-идея-моста-vaulter--azguard)) передать
    отдельной задачей в план Vaulter (пункт P8.6).
+
+
+Утверждённый layout D72: Permissions/<Group>, параллельные Policies/Queries/Abilities, механизмы в корне; generators/discovery/module
+fixtures и V106 входят в P2.8/P6.8/P8.4. Подробное различие Users/Projects как resource/subject/context —
+[00 §13](00-overview.md#13-почему-permissionsusers-а-не-users-в-корне).
+
+
+## Пересмотр ООП и authority
+
+Актуальные D80–D83: roles только PHP-классы, БД хранит назначения; дополнительные dynamic actions opt-in.
+Фильтры — конкретные классы/constructors, plugin factories — named typed parameters, никаких string profiles/
+generic options bags. PolicyOnly не читает assignment store, RequiresGrant не обходится policy true.
+CodeStateToken и DB StateToken имеют разные значения. Сквозная реализуемость/owners/gates — 20; новые реальные
+cases R61–R68 дополняют CRM acceptance. Это спецификация, runtime gate future.

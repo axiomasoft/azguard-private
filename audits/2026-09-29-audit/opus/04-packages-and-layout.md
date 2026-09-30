@@ -50,7 +50,7 @@
 | Зона | Простыми словами | Можно зависеть от | Нельзя |
 |---|---|---|---|
 | `Kernel\` | Словарь и арифметика прав: имя, шаблон, сущность, решение | только PHP | Laravel, Carbon, `app()`, `config()`, `now()` |
-| `Contracts\` | Разъёмы: `@api` (вызывать) и `@spi` (реализовывать) | Kernel | реализации |
+| `Contracts\` | Pure protocols и явно Laravel-facing adapters (Contexts/Subject/UI/Plugin/Change inputs) | Kernel + публичные immutable definitions; Laravel-facing — Model/Request/Builder | orchestration implementations |
 | `Panels\`, `Catalog\`, `Contexts\` | Описание панелей, их прав, правило выбора панели, политика сущностей | Kernel, Contracts | Storage, Changes |
 | `Sources\` | Источники и их фабрика: папка панели (автопоиск), БД, связи, Gate | Kernel, Contracts, Panels; `Database\` — ещё Storage | Changes, Authorization |
 | `Policies\` | Атрибуты и вызов политик доменов — второй уровень | Kernel, Contracts, Panels | Storage, Changes |
@@ -70,7 +70,7 @@ Arch-правила (Pest arch, блокирующие в CI):
 | `Contracts\` не импортирует реализации |
 | `Authorization\` и `Schema\` не импортируют `Changes\` |
 | Только `Storage\` использует `DB`, `Schema`, `Connection` и статические запросы к моделям AzGuard; из источников `Storage\` использует только `Sources\Database\` |
-| Встроенные источники (`Sources\*`) и плагины используют только `Contracts\`, `Kernel\` и публичные классы зон — как внешний автор |
+| Источники/плагины используют @api/@spi; DatabaseSource может использовать Storage как внутренний built-in adapter, это явное исключение. Внешние источники не импортируют внутренний Storage |
 | Писать выдачи может только `StoresGrants`, и только из `Changes\ChangePipeline` |
 | Все входы выбирают панель только через `Panels\PanelResolver` |
 | `config('azguard…')` — только в `Configuration\` |
@@ -90,7 +90,7 @@ packages/core/src/
 │   ├── Grammar/     PermissionGrammar, PatternMatcher
 │   ├── Permissions/ PermissionSet
 │   └── Decision/    AccessRequest, Decision, Effect, DecisionReason, DecisionSet, Grant,
-│                    RestrictionResult, StateToken, Explanation
+│                    RestrictionResult, BeforeResult, PermissionAuthority, CodeStateToken, StateToken, Explanation
 ├── Contracts/
 │   ├── PanelAccess.php, AzGuardSubject.php                             (@api)
 │   ├── Panels/        PanelRegistry (@api)
@@ -101,7 +101,7 @@ packages/core/src/
 │   ├── Authorization/ Restriction (@spi), EvaluationContext (@api)
 │   ├── Contexts/      ContextResolver, ContextMembership, ContextDirectory, ProvidesContext (@spi)
 │   ├── Subjects/      SubjectResolver, SubjectDirectory (@spi)
-│   ├── Changes/       RoleManager, PermissionManager (@api)
+│   ├── Changes/       GrantManager, PermissionManager; Roles/RoleCatalog read-only (@api)
 │   ├── Plugins/       Plugin, DependsOnPlugins, PrefixesKeys (@spi)
 │   └── Diagnostics/   DoctorCheck (@spi)
 ├── Panels/            Panel, PanelBuilder, PanelProvider, PanelRegistry, PanelResolver, CurrentPanel, PanelSettings
@@ -111,19 +111,19 @@ packages/core/src/
 ├── Sources/
 │   ├── SourceManager.php               # Illuminate\Support\Manager: имена → источники; AsSource
 │   ├── Folder/        FolderSource, PanelDiscovery (папка провайдера: */Permissions/, */Policies/, Roles/ — D56)
-│   ├── Database/      DatabaseSource (динамические роли и права, выдачи, запись, свои модели)
+│   ├── Database/      DatabaseSource (классы ролей, назначения и дополнительные динамические права, выдачи, запись, свои модели)
 │   ├── Relation/      RelationSource, RelationBinding
 │   └── Gate/          GateSource
-├── Permissions/       Domain, Describe, GrantsOnly, GrantedToAll (атрибуты enum прав)
-├── Policies/          PolicyFor, Decides, ConsultsGrants, PolicyDecider
+├── Permissions/       Resource, Describe, RequiresGrant, PolicyOnly, GrantedToAll (атрибуты enum прав)
+├── Policies/          PolicyFor, Decides, PolicyDecider
 ├── Roles/             BaseRole, GrantedAutomatically, SuperAdminRole, Attributes/{Role,SuperAdmin,NotGrantable,FormerKeys}
 ├── Authorization/     Authorizer, SubjectAccess, SubjectPanels, Visibility, BatchEvaluation,
 │                      Pipeline/{AccessPipeline, Stages/*}, Cache/PermissionSetCache
-├── Changes/           Change, ChangeResult, ChangePipeline (Illuminate\Pipeline), RoleManager, PermissionManager, Operations/*
+├── Changes/           Change, ChangeResult, ChangePipeline (Illuminate\Pipeline), GrantManager, PermissionManager, Operations/*
 ├── Schema/            PanelSchema, PermissionSchema, RoleSchema, FieldSchema, ContextTypeSchema,
 │                      SubjectTypeSchema, Field, SchemaBuilder
 ├── Storage/           Storage, StorageRegistry, PanelState, Schema/HostKeyColumns,
-│                      Models/{Role,RolePermission,RoleGrant,PermissionGrant,Permission},
+│                      Models/{RoleGrant,PermissionGrant,Permission},
 │                      Concerns/{GuardsDirectWrites,BelongsToStorage}      # используется только DatabaseSource
 ├── Plugins/           BasePlugin, Audit/{AuditPlugin, AuditEntry}
 ├── Events/            AccessEvent, EventType, RoleGranted … PanelStateTouched, AccessDecided
@@ -140,7 +140,7 @@ packages/core/src/
 │                      RecordedCheck, RecordedChange, Contracts/*ContractTests
 └── Internal/          RequestMemo, …
 packages/core/database/migrations/        # общее хранилище default
-packages/core/stubs/                      # panel-provider, domain (enum + policy + abilities), role, source, plugin,
+packages/core/stubs/                      # panel-provider, permission, policy, abilities, role, source, plugin,
                                           # restriction, change-pipe, panel-models, storage-migration
 ```
 
@@ -149,52 +149,57 @@ packages/core/stubs/                      # panel-provider, domain (enum + polic
 
 ## 4. Раскладка приложения: панель — папка
 
-Структура та же, что создаёт генератор сегодня ([D56](02-decisions.md#d56)), с новыми папками для источников и pipes.
+Целевая структура утверждена в [D72](02-decisions.md#d72); правила обнаружения — [D56](02-decisions.md#d56). Генераторы 1.0 создают её, текущие генераторы 0.3 ещё требуют перевода.
 Папка панели — каталог её провайдера; всё, что относится к панели, лежит внутри; enum прав, политики и роли панель
 находит сама. Общее для нескольких панелей — в `Shared/`.
 
 ```
 app/Guards/
 ├── Cabinet/
-│   ├── CabinetGuardPanelProvider.php         # ->sources([RelationSource::make(Project::class, …)])
-│   ├── Roles/ProjectEditorRole.php           # роль editor для связи project.members
-│   ├── Orders/
-│   │   ├── Permissions/OrderPermission.php   # #[Domain(model: Order::class)]: orders.view, orders.view_any…
-│   │   └── Policies/OrderPolicy.php          # view() — «своё всегда»
-│   └── Profile/Permissions/ProfilePermission.php   # #[GrantedToAll] на кейсе View
+│   ├── CabinetGuardPanelProvider.php
+│   ├── Roles/ProjectEditorRole.php
+│   ├── Contexts/ProjectContext.php
+│   ├── Permissions/
+│   │   ├── Orders/OrderPermission.php
+│   │   └── Profile/ProfilePermission.php
+│   └── Policies/Orders/OrderPolicy.php
 ├── Seller/
-│   ├── SellerGuardPanelProvider.php          # RelationSource + DatabaseSource::make()->rolesOnly()
-│   ├── Roles/SellerRole.php                  # автоматическая роль
-│   ├── Orders/{Permissions,Policies}/…
-│   └── Products/Permissions/ProductPermission.php
+│   ├── SellerGuardPanelProvider.php
+│   ├── Roles/SellerRole.php
+│   └── Permissions/{Orders,Products}/…
 ├── Admin/
-│   ├── AdminGuardPanelProvider.php           # DatabaseSource::make()->dynamicPermissions(), 'ldap'
-│   ├── Roles/{SuperAdmin,Manager}Role.php    # #[SuperAdmin], #[Role('manager', level: 10)]
-│   ├── Orders/
-│   │   ├── Permissions/OrderPermission.php
-│   │   ├── Policies/OrderPolicy.php          # refund(): вне 9–18 — нет, даже если выдано
-│   │   └── Abilities/OrderAbilities.php      # (необязательно) набор прав для фронтенда
-│   ├── Users/Permissions/UserPermission.php
-│   ├── Sources/TokenAbilitiesSource.php      # свой источник только этой панели
-│   ├── Restrictions/{AccountLocked,Weekdays}Restriction.php
-│   ├── Changes/{RequireReason,NoEscalation}.php   # pipes изменений
-│   └── Models/AdminRoleGrant.php             # своя модель выдачи: department_id, weekdays
-└── Shared/                                   # не панель: общее для нескольких панелей
-    ├── Roles/RootRole.php                    # #[SuperAdmin] + GrantedAutomatically (is_root)
-    ├── Sources/LdapSource.php                # #[AsSource('ldap')]
+│   ├── AdminGuardPanelProvider.php
+│   ├── Permissions/{Orders,Users}/…
+│   ├── Policies/Orders/OrderPolicy.php
+│   ├── Abilities/Orders/OrderAbilities.php
+│   ├── Queries/Orders/OrderVisibility.php
+│   ├── Roles/{SuperAdmin,Manager}Role.php
+│   ├── Contexts/ProjectContext.php
+│   ├── Sources/LdapSource.php
+│   ├── Restrictions/{AccountLocked,TokenAbilities}Restriction.php
+│   ├── Changes/{RequireReason,AuthorizeAccessChange}.php
+│   └── Models/AdminRoleGrant.php
+└── Shared/
+    ├── Roles/RootRole.php
+    ├── Sources/LdapSource.php
     └── Plugins/AuditTrailPlugin.php
-Modules/Blog/Guards/                          # модуль: своя панель (Blog/BlogGuardPanelProvider.php) — такая же папка;
-                                              # или плагин + домены, подключаемые к чужой панели
+Modules/Blog/Guards/
+├── Permissions/Posts/PostPermission.php
+├── Policies/Posts/PostPolicy.php
+└── BlogAccessPlugin.php
 ```
 
 | Папка | Что внутри | Как попадает в панель |
 |---|---|---|
 | `{Panel}GuardPanelProvider.php` | описание панели | `config('azguard.panels')` или `AzGuard::registerPanel()` |
 | `Roles/` | статичные роли | автопоиск (`FolderSource`) |
-| `{Domain}/Permissions/` | enum прав домена | автопоиск |
-| `{Domain}/Policies/` | политика домена — второй уровень | автопоиск |
-| `{Domain}/Abilities/` | DTO прав для фронтенда | автопоиск |
-| `Sources/` | свои источники | явно: `->sources([...])` (порядок и настройки важны); имя из `#[AsSource]` |
+| `Permissions/{Group}/` | enum прав домена | автопоиск |
+| `Policies/{Group}/` | политика — второй уровень | pairing по D56 либо явный PolicyFor/Decides |
+| `Abilities/{Group}/` | DTO прав для фронтенда | автопоиск |
+| `Contexts/` | классы ContextDefinition (ProjectContext), на них ссылаются роли | автопоиск, явный выбор ContextPolicy |
+| `Resolvers/` | tenant и resource scope adapters | явно: tenantResolvers/resourceScopes |
+| `Queries/{Group}/` | парная query semantics policy | явно: FiltersAccessQueries adapter |
+| `Sources/` | свои источники | явно: `->permissions([...])` (порядок и настройки важны); имя из `#[AsSource]` |
 | `Restrictions/` | ограничения | явно: `->restrictions([...])` |
 | `Changes/` | pipes изменений | явно: `->changing([...])` |
 | `Models/` | свои модели выдач | явно: `DatabaseSource::make()->models(...)` |
@@ -206,7 +211,7 @@ Modules/Blog/Guards/                          # модуль: своя пане�
 `register()`:
 1. конфиг и `AzGuardConfig`;
 2. `StorageRegistry`, `PanelRegistry`, `IdentityCodec`, `Doctor` — singleton;
-3. scoped: `CurrentPanel`, `CurrentContext`, `RequestMemo`, кэш запроса, память версий;
+3. scoped: `CurrentPanel`, `CurrentTenant`, `CurrentContext`, runtime sources с request dependencies, `RequestMemo`, кэш запроса, память версий;
 4. контракты → реализации.
 
 `boot()`:
@@ -215,7 +220,7 @@ Modules/Blog/Guards/                          # модуль: своя пане�
 3. миграции общего хранилища, публикации (`azguard-config`, `azguard-migrations`, `azguard-stubs`);
 4. `Gate::before(GateBridge)`, middleware-alias'ы, планировщик, команды;
 5. `$app->booted(...)`: `configurePanels()` и `configurePanel()` → сборка панелей (`register()` плагинов, источники:
-   `FolderSource` первым, затем `->sources([...])` через `SourceManager`) → проверки (хранилища, модели, каталоги,
+   `FolderSource` первым, затем Source/name элементы `->permissions([...])` через `SourceManager`; enum элементы входят в FolderSource) → проверки (хранилища, модели, каталоги,
    коллизии, писатель, зависимости, панели по умолчанию) → заморозка → `boot()` плагинов → отпечатки панелей;
 6. `optimizes(optimize: 'azguard:catalog:cache', clear: 'azguard:catalog:clear')` и раздел в `php artisan about`.
 
@@ -230,3 +235,17 @@ Modules/Blog/Guards/                          # модуль: своя пане�
 | Драйверы | драйвер прав на профиль | источники на панель, в любом сочетании, через `Manager` Laravel | у AzGuard источники складываются |
 | Слой чистых значений | нет | `Kernel\` | алгебра прав выигрывает от детерминированных unit-тестов |
 | Расширения | реестры по ключу | плагины панели + реестры по ключу | в AzGuard расширения собираются на уровне панели |
+
+
+## 7. Границы пятого прохода
+
+TenantRef/AccessScope/RoleContribution/AccessPredicate — pure Kernel values. ContextDefinition/ResourceScopeResolver,
+Directories и BaseContext — Laravel-facing SPI/adapter, аналогично существующим model subjects.
+При выборе namespace arch-правила проверяют реальную dependency closure: Panel readonly value допустим в SPI,
+ChangePipeline/Storage implementation — нет. Sources\Database — инфраструктурное исключение, не обещание,
+что Eloquent-писатель стороннего storage поддержан в 1.0.
+
+StoresGrants::apply принимает уже validated Change и пишет под transaction; orchestration/pipes/events owns Changes.
+Он не вызывает обратно ChangePipeline: иначе текущие стрелки Sources -> Changes -> Sources образуют цикл.
+SourceManager хранит factories, runtime instances со scoped зависимостями создаёт execution scope.
+Version-specific controller attribute adapter не extends missing Laravel13 class на Laravel11/12.

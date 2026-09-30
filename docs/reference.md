@@ -41,3 +41,56 @@ against primary documentation. Key sources: [Laravel 13 authorization](https://l
 [OWASP Multi Tenant Security](https://cheatsheetseries.owasp.org/cheatsheets/Multi_Tenant_Security_Cheat_Sheet.html),
 [Cedar authorization](https://docs.cedarpolicy.com/auth/authorization.html), and
 [Composer path repositories](https://getcomposer.org/doc/05-repositories.md#path).
+
+## Opus design hardening — CRM, 2026-09-30
+
+Three Perplexity queries explored scoped tenant/project RBAC, panel layout/builder naming,
+and object-first versus parallel type-first roots,
+with the problem described explicitly rather than assuming knowledge of AzGuard.
+Primary documentation was opened directly. Findings, project choices and proof boundaries:
+[design review](../audits/2026-09-29-audit/opus/evidence/design-review.md).
+
+Sources: [OpenFGA organization context](https://openfga.dev/docs/modeling/organization-context-authorization),
+[OpenFGA search with permissions](https://openfga.dev/docs/interacting/search-with-permissions),
+[PostgreSQL 13 isolation](https://www.postgresql.org/docs/13/transaction-iso.html),
+[SpiceDB consistency](https://authzed.com/docs/spicedb/concepts/consistency),
+[Laravel 13 authorization](https://laravel.com/docs/13.x/authorization),
+[Laravel 13 Sanctum](https://laravel.com/docs/13.x/sanctum), and
+[Filament 5 resources](https://filamentphp.com/docs/5.x/resources/overview).
+The initial Resources layout was replaced by the owner-approved Permissions/<Group> with parallel
+Policies/Queries/Abilities (D72). That layout and for(...) are project decisions, not an API prescribed
+by those sources.
+
+
+## Opus configured contexts and real CRM acceptance — 2026-09-30
+
+Two additional Perplexity queries explicitly described global/per-role Eloquent context predicates,
+subject/actor/actual role inputs, assignment/revoke phases, plugin options/DI/lifecycle/cache and panel isolation.
+Primary verification and limits: [flexibility review](../audits/2026-09-29-audit/opus/evidence/flexibility-review.md).
+Sources: [Laravel 13 Container](https://laravel.com/docs/13.x/container),
+[Eloquent scopes](https://laravel.com/docs/13.x/eloquent),
+[Query Builder logical grouping](https://laravel.com/docs/13.x/queries#logical-grouping),
+[Octane lifecycle](https://laravel.com/docs/13.x/octane).
+The native Model::guard(array) collision was verified directly in local framework v13.33.0 source;
+a bounded PHP probe validates the proposed compatible overload. Naming and eligibility composition are
+project decisions. The 60 CRM acceptance cases are future runtime qualification requirements.
+
+
+## Opus OOP/authority redesign and process feasibility — 2026-09-30
+
+Three Perplexity requests covered typed factories/config vs inherited signatures, the full architecture and lifecycle,
+and concrete OSS comparison. Full structure included panel layout, code-only roles/DB assignments, two permission
+modes, contexts/query limits, plugin DI, storage/locks/tokens, host ownership, editors/workers/import and test gates.
+Leads were verified directly; incomplete synthesizer sections were not treated as evidence.
+[OOP review and limits](../audits/2026-09-29-audit/opus/evidence/oop-review.md).
+
+Primary sources: [PHP variance](https://www.php.net/manual/en/language.oop5.variance.php),
+[named arguments](https://www.php.net/manual/en/functions.arguments.php),
+[Filament 5 Plugin interface](https://raw.githubusercontent.com/filamentphp/filament/5.x/packages/panels/src/Contracts/Plugin.php),
+[Filament 5 plugins](https://filamentphp.com/docs/5.x/plugins/panel-plugins),
+[Spatie PermissionRegistrar](https://raw.githubusercontent.com/spatie/laravel-permission/main/src/PermissionRegistrar.php),
+[Bouncer implementation](https://raw.githubusercontent.com/JosephSilber/bouncer/master/src/Bouncer.php),
+[Laravel 13 authorization](https://laravel.com/docs/13.x/authorization),
+[Symfony voters](https://symfony.com/doc/current/security/voters.html).
+Explicit modes and code-owned roles are project decisions. No upstream implementation was vendored or added
+as a runtime dependency. Moving branches were observed on the review date, not promised as version-pinned APIs.
