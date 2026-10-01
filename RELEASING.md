@@ -1,23 +1,23 @@
 # Releasing AzGuard
 
-AzGuard is developed as a monorepo and published as three standalone Composer
+AzGuard is developed as a monorepo and published as two standalone Composer
 packages:
 
 | Package | Path | Packagist |
 | --- | --- | --- |
-| `axioma-studio/azguard-core` | `packages/core` | core RBAC engine |
-| `axioma-studio/azguard-filament` | `packages/filament` | Filament admin UI |
+| `axiomasoft/azguard` | `packages/core` | panel-based authorization core |
+| `axiomasoft/azguard-filament` | `packages/filament` | Filament editors |
 
 ## Versioning: lockstep
 
-All three packages share **one version**. A release tags the monorepo and
-splits the same tag into every package repo, so `azguard-core`,
-`azguard-filament` and `azguard-context` always advance together.
+Both packages share **one version**. A release tags the monorepo and
+splits the same tag into every package repo, so `azguard` and
+`azguard-filament` always advance together.
 
 Consequences:
 
-- Satellites require the core at the **same major**: `"axioma-studio/azguard-core": "^0.3"`.
-- A breaking change in any package bumps the major for all three.
+- The Filament package requires the core as `"axiomasoft/azguard": "self.version"`.
+- A breaking change in any package bumps the major for both.
 - Never tag a single package independently — always tag the monorepo.
 
 The package `composer.json` files intentionally carry **no `version` field**:
@@ -34,12 +34,12 @@ Composer derives the version from the git tag the split action pushes.
    reviewed release notes from `[Unreleased]` into a `## [x.y.z] - YYYY-MM-DD` section
    in the root `CHANGELOG.md` in the **candidate commit** (not after the tag).
    Update the root path-repository versions, the root `^x.y` requirements,
-   both satellite packages' core requirements, and all three `dev-main`
-   aliases together; validate every manifest and resolve the three packages
+   the Filament package's `self.version` core requirement, and both `dev-main`
+   aliases together; validate every manifest and resolve both packages
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 0.4.0 HEAD
+   bash bin/release-preflight.sh 1.0.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -47,8 +47,8 @@ Composer derives the version from the git tag the split action pushes.
 4. After explicit owner approval, create and push an annotated tag from that
    commit:
    ```bash
-   git tag -a v0.4.0 -m "v0.4.0 — release summary"
-   git push origin v0.4.0
+   git tag -a v1.0.0 -m "v1.0.0 — release summary"
+   git push origin v1.0.0
    ```
 5. CI takes over:
    - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
@@ -61,7 +61,7 @@ Composer derives the version from the git tag the split action pushes.
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.
 
-Local resolution of the `^0.3` constraints between packages is handled by the
+Local resolution of the `self.version` and `^1.0` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
 the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
 
@@ -73,9 +73,9 @@ default through the repository variable guard.
 
 ## One-time setup (before enabling split)
 
-1. Create three empty repos under the org: `azguard-core`, `azguard-filament`,
-   `azguard-context`. They are **read-only mirrors** — never push to them by hand.
-2. Create a fine-grained PAT (or a deploy setup) with push access to all three and
+1. Create two empty repos under the `axiomasoft` org: `azguard` and
+   `azguard-filament`. They are **read-only mirrors** — never push to them by hand.
+2. Create a fine-grained PAT (or a deploy setup) with push access to both and
    add it as the `MONOREPO_SPLIT_TOKEN` repository secret.
 3. Submit each mirror to [Packagist](https://packagist.org/packages/submit) and
    enable the GitHub service hook so new tags auto-update.

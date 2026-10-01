@@ -1,6 +1,6 @@
 {
-    "name": "axioma-studio/azguard-monorepo",
-    "description": "Development monorepo for AzGuard — Laravel RBAC core, Filament UI, and multi-workspace context packages.",
+    "name": "axiomasoft/azguard-monorepo",
+    "description": "Development monorepo for AzGuard 1.0: panel-based authorization core for Laravel and its Filament editors.",
     "license": "MIT",
     "type": "project",
     "authors": [

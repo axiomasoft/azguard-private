@@ -1,14 +1,27 @@
 {
     "name": "axiomasoft/azguard-filament",
-    "description": "Filament 5 integration for AzGuard.",
+    "description": "Filament 5 editors for AzGuard panels, built from the panel schema",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "filament",
+        "authorization",
+        "permissions",
+        "roles",
+        "admin"
+    ],
+    "homepage": "https://github.com/axiomasoft/azguard",
     "authors": [
         {
             "name": "Dmitry Vostrikov",
             "email": "dv.vostrikov@gmail.com"
         }
     ],
+    "support": {
+        "issues": "https://github.com/axiomasoft/azguard/issues",
+        "source": "https://github.com/axiomasoft/azguard"
+    },
     "require": {
         "php": "^8.3",
         "axiomasoft/azguard": "self.version",
@@ -20,6 +33,9 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
+        },
         "laravel": {
             "providers": [
                 "AzGuard\\Filament\\AzGuardFilamentServiceProvider"

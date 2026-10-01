@@ -10,6 +10,8 @@
 
 > 🇬🇧 English version — [README.md](README.md).
 
+> **Статус:** идёт перестройка AzGuard 1.0 (PLAN2). Описание ниже относится к 0.3; код 0.3 — `legacy/0.3/`.
+
 ---
 
 ## Почему AzGuard, а не Spatie?

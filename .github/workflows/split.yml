@@ -7,7 +7,7 @@ name: Split packages
 # by creating the repository variable SPLIT_ENABLED=true.
 #
 # One-time setup (see RELEASING.md):
-#   1. Create the three target repos under the org (azguard-core/-filament/-context).
+#   1. Create the two target repos under the org (azguard, azguard-filament).
 #   2. Add a MONOREPO_SPLIT_TOKEN secret with push access to them.
 #   3. Submit each split repo to Packagist and enable the GitHub webhook.
 
@@ -26,9 +26,8 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - { dir: core, name: azguard-core }
+          - { dir: core, name: azguard }
           - { dir: filament, name: azguard-filament }
-          - { dir: context, name: azguard-context }
 
     steps:
       - name: Checkout
@@ -43,7 +42,7 @@ jobs:
         with:
           tag: ${{ github.ref_name }}
           package_directory: packages/${{ matrix.package.dir }}
-          repository_organization: axioma-studio
+          repository_organization: axiomasoft
           repository_name: ${{ matrix.package.name }}
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'

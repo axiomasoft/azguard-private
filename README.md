@@ -11,6 +11,8 @@
 
 > 🇷🇺 Русская версия — [README.ru.md](README.ru.md).
 
+> **Status:** AzGuard is being rebuilt as 1.0 (PLAN2). The description below refers to 0.3; the 0.3 code lives in `legacy/0.3/`.
+
 ---
 
 ## Why AzGuard, not Spatie?

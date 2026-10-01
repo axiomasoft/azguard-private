@@ -10,7 +10,7 @@ body:
     attributes:
       label: Package
       description: Which package is affected?
-      placeholder: azguard-core / azguard-filament / azguard-context
+      placeholder: axiomasoft/azguard / axiomasoft/azguard-filament
     validations:
       required: true
   - type: input
@@ -18,7 +18,7 @@ body:
     attributes:
       label: Versions
       description: AzGuard, Laravel and PHP versions.
-      placeholder: "azguard 0.x, Laravel 12, PHP 8.3"
+      placeholder: "azguard 1.x, Laravel 12, PHP 8.3"
     validations:
       required: true
   - type: textarea

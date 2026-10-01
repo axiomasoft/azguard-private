@@ -21,6 +21,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **repo:** Метаданные распространения переведены на `axiomasoft/*`: пакеты `axiomasoft/azguard` и `axiomasoft/azguard-filament` (`self.version`), репозиторий `github.com/axiomasoft/azguard`, линия `1.0.x-dev`; split и release работают с двумя пакетами, `context` из них убран (план 2026.10.01-№1-AZGUARD-V1 P0.4).
 - **repo:** Код и тесты 0.3 заморожены в `legacy/0.3/` (только справочник, вне autoload, Pest, PHPStan, Pint, Rector и CI; удаляется в PLAN2.P6.9). Пакет `context` в сборке не воссоздаётся (план 2026.10.01-№1-AZGUARD-V1 P0.5).
 - **core:** Grant-source exceptions now propagate and abort authorization; the previous `fail_on_source_exception=false` setting no longer skips a failed source. Remove that option from published config (plan P2.3 / D13).
 - **filament:** Creating a direct grant with a past expiry now fails validation instead of converting it into a permanent grant; future expiry is stored as the exact absolute instant (plan P1.2 / D3).

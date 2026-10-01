@@ -39,10 +39,10 @@ jobs:
             echo "::endgroup::"
           done
 
-      - name: Fail if satellites still pin core with a wildcard
+      - name: Fail if the Filament package does not pin core to self.version
         run: |
-          if grep -REn '"axioma-studio/azguard-core"[[:space:]]*:[[:space:]]*"\*"' packages/*/composer.json; then
-            echo "::error::A satellite still requires azguard-core with '*'. Pin it to a real constraint (e.g. ^0.3)."
+          if ! grep -Eq '"axiomasoft/azguard"[[:space:]]*:[[:space:]]*"self\.version"' packages/filament/composer.json; then
+            echo "::error::axiomasoft/azguard-filament must require axiomasoft/azguard as self.version."
             exit 1
           fi
 
