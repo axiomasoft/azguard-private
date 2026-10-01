@@ -1,5 +1,9 @@
 {
     "preset": "laravel",
+    "exclude": [
+        "legacy",
+        "audits"
+    ],
     "rules": {
         "blank_line_before_statement": {
             "statements": [

@@ -7,7 +7,6 @@ packages:
 | --- | --- | --- |
 | `axioma-studio/azguard-core` | `packages/core` | core RBAC engine |
 | `axioma-studio/azguard-filament` | `packages/filament` | Filament admin UI |
-| `axioma-studio/azguard-context` | `packages/context` | multi-workspace context |
 
 ## Versioning: lockstep
 

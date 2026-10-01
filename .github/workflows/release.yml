@@ -33,7 +33,7 @@ jobs:
       - name: Validate every package manifest
         run: |
           composer validate --strict --no-check-version
-          for pkg in packages/core packages/filament packages/context; do
+          for pkg in packages/core packages/filament; do
             echo "::group::composer validate $pkg"
             composer validate --strict --no-check-version --no-check-lock --working-dir="$pkg"
             echo "::endgroup::"

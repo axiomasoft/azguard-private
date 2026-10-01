@@ -21,7 +21,7 @@ EOF
 fi
 
 if (($# == 0)); then
-    packages=(core filament context)
+    packages=(core filament)
 else
     packages=("$@")
 fi
@@ -47,13 +47,6 @@ run_package() {
             ignored='Commands,Resources,Pages'
             min_score=99
             ;;
-        context)
-            path='packages/context/src'
-            # Console entrypoints are declarative adapters; mutate the context
-            # domain layer rather than generated command plumbing.
-            ignored='Commands'
-            min_score=99
-            ;;
         *)
             echo "[mutation-gate] unknown package: $package" >&2
             exit 2
@@ -67,7 +60,8 @@ run_package() {
     if ((${#AZGUARD_COVERAGE_PHP_ARGS[@]})); then
         passthru_php="${AZGUARD_COVERAGE_PHP_ARGS[*]} ${passthru_php}"
     fi
-    XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=1G vendor/bin/pest \
+    local output status=0
+    output="$(XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=1G vendor/bin/pest \
         --mutate \
         --parallel \
         --processes=4 \
@@ -76,7 +70,17 @@ run_package() {
         --ignore="$ignored" \
         --covered-only \
         --min="$min_score" \
-        --no-cache
+        --no-cache 2>&1)" || status=$?
+    printf '%s\n' "$output"
+
+    # A package without mutable code has no score to enforce. Line coverage is
+    # still gated separately by bin/coverage-gate.sh.
+    if ((status != 0)) && grep -q 'No mutations created' <<<"$output" && ! grep -q 'Mutations: [1-9]' <<<"$output"; then
+        echo "[mutation-gate] $package: no mutable code yet — nothing to enforce." >&2
+        status=0
+    fi
+
+    return "$status"
 }
 
 for package in "${packages[@]}"; do

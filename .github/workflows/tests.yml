@@ -135,6 +135,8 @@ jobs:
 
   test-redis:
     name: Redis · cross-process cache
+    # Disabled until the 1.0 cache layer exists; PLAN2.P4.8 enables it.
+    if: false
     runs-on: ubuntu-latest
     services:
       redis:

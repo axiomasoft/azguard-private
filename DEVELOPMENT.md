@@ -1,5 +1,20 @@
 # AzGuard — Development
 
+## State of 1.0
+
+The repository is being rebuilt as AzGuard 1.0 (PLAN2). The 0.3 code is frozen and is not part of any build.
+
+| Path | What it is |
+|---|---|
+| `packages/core` | `axiomasoft/azguard`, namespace `AzGuard\` (1.0 code, grows phase by phase) |
+| `packages/filament` | `axiomasoft/azguard-filament`, namespace `AzGuard\Filament\` |
+| `tests/` | Pest suites `Arch`, `Unit`, `Feature`, `Regression` on Orchestra Testbench |
+| `legacy/0.3/` | Frozen 0.3 packages, tests, and reports; reference only, removed in PLAN2.P6.9 |
+
+`legacy/` is excluded from autoload, Pest, PHPStan, Pint, Rector, coverage, and CI. The `context` package is not
+recreated; its behavior moves into the core package. Package documentation under `docs/` still describes 0.3
+until it is rewritten in P8.2.
+
 ## Local development
 
 Test the package against a real Laravel app via a path repository.
@@ -14,7 +29,7 @@ Test the package against a real Laravel app via a path repository.
     }
 ],
 "require": {
-    "axioma-studio/azguard-core": "@dev"
+    "axiomasoft/azguard": "@dev"
 }
 ```
 
@@ -27,7 +42,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer test` | Pest | Run the test suite |
 | `composer test:parallel` | Pest / ParaTest | Run the SQLite suite in parallel with random order intact |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
-| `composer analyse` | PHPStan / Larastan | Static analysis (level 6) |
+| `composer analyse` | PHPStan / Larastan | Static analysis (level 8, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
 | `composer mutate` | Pest mutate | Per-package mutation testing |
@@ -99,7 +114,7 @@ is a hard failure, not a silent pass.
 
 ## Conventions
 
-- `declare(strict_types=1)` in every PHP file; PHPStan level 6; Pest 4.
+- `declare(strict_types=1)` in every PHP file; PHPStan level 8; Pest 4.
 - Permissions and roles are referenced by **enums and classes**, never magic
   strings (see the docs).
 - Role contract: a panel-scoped code role uses a persisted name such as

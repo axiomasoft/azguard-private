@@ -1,16 +1,15 @@
 includes:
   - vendor/larastan/larastan/extension.neon
-  # Pre-existing errors (mostly Eloquent/Filament framework magic) are captured
-  # here so CI stays green; the baseline should shrink over time.
-  - phpstan-baseline.neon
 
 parameters:
   paths:
     - packages/core/src
-    - packages/context/src
     - packages/filament/src
 
-  level: 6
+  excludePaths:
+    - legacy
+
+  level: 8
 
   checkModelProperties: true
   checkPhpDocMissingReturn: true

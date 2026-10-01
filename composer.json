@@ -11,9 +11,8 @@
     ],
     "require": {
         "php": "^8.3",
-        "axioma-studio/azguard-core": "^0.3",
-        "axioma-studio/azguard-filament": "^0.3",
-        "axioma-studio/azguard-context": "^0.3"
+        "axiomasoft/azguard": "^1.0",
+        "axiomasoft/azguard-filament": "^1.0"
     },
     "require-dev": {
         "laravel/pint": "^1.13",
@@ -28,8 +27,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "AzGuard\\Tests\\": "tests/",
-            "AzGuard\\Tests\\Stubs\\": "tests/Stubs/"
+            "AzGuard\\Tests\\": "tests/"
         }
     },
     "repositories": [
@@ -38,9 +36,8 @@
             "url": "packages/*",
             "options": {
                 "versions": {
-                    "axioma-studio/azguard-core": "0.3.0",
-                    "axioma-studio/azguard-filament": "0.3.0",
-                    "axioma-studio/azguard-context": "0.3.0"
+                    "axiomasoft/azguard": "1.0.0",
+                    "axiomasoft/azguard-filament": "1.0.0"
                 }
             }
         }
@@ -59,11 +56,6 @@
         "test:coverage": "vendor/bin/pest --coverage --min=85",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature",
-        "test:api-snapshot": "vendor/bin/pest tests/Unit/ApiBoundaryTest.php",
-        "test:api-snapshot:update": [
-            "@putenv AZ_UPDATE_API_SNAPSHOT=1",
-            "vendor/bin/pest tests/Unit/ApiBoundaryTest.php"
-        ],
         "test:pgsql": [
             "@putenv DB_CONNECTION=pgsql",
             "php -d memory_limit=1G vendor/bin/pest"
@@ -72,9 +64,7 @@
             "@putenv DB_CONNECTION=mysql",
             "php -d memory_limit=1G vendor/bin/pest"
         ],
-        "test:redis": [
-            "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped tests/Feature/PermissionCacheCrossProcessRaceTest.php tests/Feature/PermissionRevisionCrossProcessTest.php tests/Feature/JobProcessingPanelResetTest.php tests/Feature/PermissionStateRevisionProtocolTest.php tests/Feature/Context/ContextCrossRequestCacheInvalidationTest.php"
-        ],
+        "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "lint": "vendor/bin/pint",
         "lint:check": "vendor/bin/pint --test",
         "refactor": "vendor/bin/rector process",
@@ -85,7 +75,6 @@
         "mutate": "bash bin/mutation-gate.sh",
         "mutate:core": "bash bin/mutation-gate.sh core",
         "mutate:filament": "bash bin/mutation-gate.sh filament",
-        "mutate:context": "bash bin/mutation-gate.sh context",
         "mutate:all": "bash bin/mutation-gate.sh",
         "mutate:diff": "bash bin/mutation-gate.sh",
         "docs:parity": "bash bin/docs-parity-gate.sh",

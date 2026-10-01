@@ -1,0 +1,29 @@
+{
+    "name": "axiomasoft/azguard-filament",
+    "description": "Filament 5 integration for AzGuard.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dmitry Vostrikov",
+            "email": "dv.vostrikov@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "axiomasoft/azguard": "self.version",
+        "filament/filament": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AzGuard\\Filament\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AzGuard\\Filament\\AzGuardFilamentServiceProvider"
+            ]
+        }
+    }
+}

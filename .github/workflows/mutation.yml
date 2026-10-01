@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [core, filament, context]
+        package: [core, filament]
 
     steps:
       - name: Checkout
