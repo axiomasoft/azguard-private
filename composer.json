@@ -77,6 +77,8 @@
         "mutate:filament": "bash bin/mutation-gate.sh filament",
         "mutate:all": "bash bin/mutation-gate.sh",
         "mutate:diff": "bash bin/mutation-gate.sh",
+        "api:manifest": "php bin/api-manifest.php --write",
+        "api:check": "php bin/api-manifest.php --check",
         "docs:parity": "bash bin/docs-parity-gate.sh",
         "docs:php": "bash bin/docs-php-version-gate.sh",
         "check": [

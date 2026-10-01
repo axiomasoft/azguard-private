@@ -15,6 +15,7 @@
 composer test        # Все тесты
 composer lint        # Стиль кода
 composer analyse     # Статический анализ
+composer api:check   # Манифест публичного API; после изменения @api/@spi — composer api:manifest
 ```
 
 4. Создайте Pull Request в ветку `develop`.
