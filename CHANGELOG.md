@@ -8,6 +8,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **docs:** ADR 0001 «Ecosystem conventions» (`docs/adr`, EN/RU): общие инженерные правила экосистемы `axiomasoft` и предметный словарь AzGuard (план 2026.10.01-№1-AZGUARD-V1 P0.1).
+- **core:** Каркас 1.0: пустые пакеты `axiomasoft/azguard` (`packages/core`) и `axiomasoft/azguard-filament` (`packages/filament`) с service provider-ами, Pest/Testbench-набором `Arch`/`Unit`/`Feature`/`Regression`, PHPStan level 8 без baseline (план 2026.10.01-№1-AZGUARD-V1 P0.5).
 - **docs:** Архитектурный аудит от 2026-09-29 дополнен самостоятельными находками, вариантами redesign и Research с первичными источниками и воспроизводимыми probes.
 - **core:** `PermissionSet::validUntil()` / `withValidUntil()` carry an optional absolute grant deadline. Request and durable caches reject a hit at that instant and store a strict `{version, keys, valid_until}` envelope; a custom source without a deadline still follows the configured TTL (plan P1.2 / D3).
 - **core:** Role-permission edits go through one transactional synchronizer. Filament edits only the rendered catalog keys and rejects a stale fingerprint; CLI add/remove stay one-key and `sync --panel` replaces that panel (plan P2.1 / D13).
@@ -19,6 +21,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **repo:** Код и тесты 0.3 заморожены в `legacy/0.3/` (только справочник, вне autoload, Pest, PHPStan, Pint, Rector и CI; удаляется в PLAN2.P6.9). Пакет `context` в сборке не воссоздаётся (план 2026.10.01-№1-AZGUARD-V1 P0.5).
 - **core:** Grant-source exceptions now propagate and abort authorization; the previous `fail_on_source_exception=false` setting no longer skips a failed source. Remove that option from published config (plan P2.3 / D13).
 - **filament:** Creating a direct grant with a past expiry now fails validation instead of converting it into a permanent grant; future expiry is stored as the exact absolute instant (plan P1.2 / D3).
 - **core:** Scope assignment identity is an exact cross-engine unique index. Fresh `panel_id` is `VARCHAR(128)`. Recorded databases upgrade through `000006`, which rejects overlong panel ids and unsupported MySQL/MariaDB profiles before DDL. `roles.class_name` gains a nullable unique index. Context `000010` uses the configured table for both directions (plan P6.2 / D14).
