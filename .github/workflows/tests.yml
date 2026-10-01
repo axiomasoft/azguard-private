@@ -203,3 +203,26 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  consumer-fixture:
+    name: Consumer fixture · built archives
+    # Non-blocking for now; PLAN2.P8.3 makes it blocking.
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_sqlite, sqlite3, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Core archive in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh --laravel=13
+
+      - name: Core and Filament archives in a clean Laravel 13 app
+        run: bash bin/consumer-fixture.sh --laravel=13 --with-filament
