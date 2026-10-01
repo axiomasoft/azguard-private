@@ -8,6 +8,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **core:** Грамматика `AzGuard\Kernel\Grammar`: `PermissionGrammar` (сегмент, локальный ключ ≥ 2 сегментов и ≤ 255 байт, полный ключ `panel:local`, шаблон с `*`/`**` только последним сегментом, id панели и ключ роли `^[a-z0-9][a-z0-9-]{0,63}$`) и `PatternMatcher::covers()` по массивам сегментов; голые `*`/`**` отклоняются. База исключений `AzGuardException` с `code()` и ветками D37, `InvalidIdentityException` и её грамматические наследники (план 2026.10.01-№1-AZGUARD-V1 P1.2).
 - **docs:** ADR 0001 «Ecosystem conventions» (`docs/adr`, EN/RU): общие инженерные правила экосистемы `axiomasoft` и предметный словарь AzGuard (план 2026.10.01-№1-AZGUARD-V1 P0.1).
 - **core:** Каркас 1.0: пустые пакеты `axiomasoft/azguard` (`packages/core`) и `axiomasoft/azguard-filament` (`packages/filament`) с service provider-ами, Pest/Testbench-набором `Arch`/`Unit`/`Feature`/`Regression`, PHPStan level 8 без baseline (план 2026.10.01-№1-AZGUARD-V1 P0.5).
 - **docs:** Архитектурный аудит от 2026-09-29 дополнен самостоятельными находками, вариантами redesign и Research с первичными источниками и воспроизводимыми probes.
