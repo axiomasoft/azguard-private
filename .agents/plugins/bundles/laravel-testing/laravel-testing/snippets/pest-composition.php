@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| 1. Переиспользуемый setUp-трейт (композиция вместо наследования)
+| 1. Reused setUp-trait (composition instead of inheritance)
 |    tests/Support/Concerns/ActsAsUser.php
 |--------------------------------------------------------------------------
-| Вместо того чтобы раздувать TestCase или плодить подклассы под каждый
-| сценарий доступа, поведение упаковывается в трейт. TestCase подключает
-| только то, что нужно сьюту: `use ActsAsUser;` — и хелперы доступны во
-| всех Pest-замыканиях (они забиндены на класс TestCase).
+| Instead of inflating TestCase or create subclasses for each
+| access script, behavior is packaged in a trait. TestCase connects
+| just what the suite needs: `use ActsAsUser;` — and helpers are available in
+| all Pest-closures (they are bound to the class TestCase).
 */
 
 namespace Tests\Support\Concerns;
@@ -22,7 +22,7 @@ use App\Models\User;
 trait ActsAsUser
 {
     /**
-     * Создаёт пользователя и назначает роль.
+     * Creates a user and assigns a role.
      *
      * @param  array<string, mixed>  $attributes
      */
@@ -35,7 +35,7 @@ trait ActsAsUser
     }
 
     /**
-     * Авторизует пользователя с ролью и возвращает модель — частый префикс теста.
+     * Authorizes a user with a role and returns a model, a common test prefix.
      *
      * @param  array<string, mixed>  $attributes
      */
@@ -50,8 +50,8 @@ trait ActsAsUser
 
 /*
 |--------------------------------------------------------------------------
-| Второй фикстур-трейт: SeedsUserRoles — узкая ответственность, не дублирует
-| общий DatabaseSeeder; подключается только в сьютах, завязанных на роли.
+| Second fixture trait: SeedsUserRoles — narrow responsibility, no duplication
+| general DatabaseSeeder; is connected only in suites tied to roles.
 |    tests/Support/Concerns/SeedsUserRoles.php
 |--------------------------------------------------------------------------
 */
@@ -71,12 +71,12 @@ trait SeedsUserRoles
 
 /*
 |--------------------------------------------------------------------------
-| 2. TestCase = композиция трейтов (не глубокая иерархия наследования)
+| 2. TestCase = composition of traits (not deep inheritance hierarchy)
 |    tests/TestCase.php
 |--------------------------------------------------------------------------
-| TestCase остаётся тонким: подключает фикстур-трейты и держит guard
-| изоляции БД. Новое поведение добавляется новым трейтом, а не новым
-| подклассом TestCase.
+| TestCase remains subtle: connects fixture traits and holds guard
+| DB isolation. New behavior is added by a new trait, not a new one
+| subclass TestCase.
 */
 
 namespace Tests;
@@ -90,28 +90,28 @@ abstract class TestCase extends BaseTestCase
     use ActsAsUser;
     use SeedsUserRoles;
 
-    // guard изоляции тестовой БД — см. секцию «Изоляция тестовой БД»
+    // guard test database isolation - see section «Test database isolation»
 }
 
 /*
 |--------------------------------------------------------------------------
-| 3. tests/Pest.php — единая «гигиена окружения» через beforeEach,
-|    привязанная к директориям, а не повторяемая в каждом файле
+| 3. tests/Pest.php — single «environmental hygiene» via beforeEach,
+|    bound to directories, not repeated in each file
 |--------------------------------------------------------------------------
-| Детерминизм времени и сети задаётся ОДИН раз на сьют:
-|   - Http::preventStrayRequests() — любой неподделанный HTTP-вызов = падение
-|     теста (а не молчаливый поход во внешний API)
-|   - Sleep::fake() — sleep() в коде не тормозит прогон
-|   - freezeTime() — Carbon::now() заморожен, ассерты времени стабильны
-|   - Str::createRandomStringsNormally()/createUuidsNormally() — сбрасывают
-|     возможный фейк из предыдущего теста (изоляция)
+| Time and network determinism is set ONCE per suite:
+|   - Http::preventStrayRequests() — any unadulterated HTTP-call = fall
+|     test (and not a silent march to the outer API)
+|   - Sleep::fake() — sleep() in the code does not slow down the run
+|   - freezeTime() — Carbon::now() frozen, time assertions stable
+|   - Str::createRandomStringsNormally()/createUuidsNormally() — reset
+|     possible fake from the previous test (insulation)
 */
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 
-// Feature: полная БД (RefreshDatabase) + фейки сети/времени.
+// Feature: full database (RefreshDatabase) + network fakes/time.
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->beforeEach(function () {
@@ -119,7 +119,7 @@ pest()->extend(Tests\TestCase::class)
         Str::createUuidsNormally();
 
         Http::fake([
-            // dev-сервер ассетов: гасим, чтобы не плодить stray-запросы
+            // dev-asset server: shut down so as not to create more stray-requests
             '127.0.0.1:5173/*' => Http::response(''),
         ]);
         Http::preventStrayRequests();
@@ -129,7 +129,7 @@ pest()->extend(Tests\TestCase::class)
     })
     ->in('Feature');
 
-// Unit: те же фейки сети/времени, но БЕЗ RefreshDatabase (чистая логика).
+// Unit: the same network fakes/time, but WITHOUT RefreshDatabase (pure logic).
 pest()->extend(Tests\TestCase::class)
     ->beforeEach(function () {
         Str::createRandomStringsNormally();
@@ -143,7 +143,7 @@ pest()->extend(Tests\TestCase::class)
 
 /*
 |--------------------------------------------------------------------------
-| 4. Кастомные expectations и хелперы — расширяют API, не наследуют классы
+| 4. Custom expectations and helpers - expand API, do not inherit classes
 |--------------------------------------------------------------------------
 */
 
@@ -155,12 +155,12 @@ expect()->extend('toHaveOrderStatus', function (OrderStatus $status) {
 
 /*
 |--------------------------------------------------------------------------
-| 5. Датасет: один тест-сценарий × множество входов через ->with()
+| 5. Dataset: one test script × many inputs via ->with()
 |    tests/Feature/Order/OrderEndpointAccessTest.php
 |--------------------------------------------------------------------------
-| Параметризация вместо копипасты тела теста. Именованный dataset() делает
-| вывод падений читабельным («with data set "orders.cancel"»). Каждая
-| строка — [route, payload]; тело теста одно.
+| Parameterization instead of copy-pasting the test body. Named dataset() does
+| crash output is readable («with data set "orders.cancel"»). Each
+| line - [route, payload]; there is one test body.
 */
 
 dataset('order_guest_endpoints', [
@@ -169,17 +169,17 @@ dataset('order_guest_endpoints', [
     'reassign' => ['orders.reassign', ['assignee_id' => 1]],
 ]);
 
-it('закрывает endpoint от гостя', function (string $route, array $payload) {
-    // фабрика Eloquent + фикстур-хелпер из трейта (композиция в действии)
+it('closes endpoint by guest', function (string $route, array $payload) {
+    // factory Eloquent + fixture helper from trait (composition in action)
     $order = Order::factory()->pending()->create();
 
     $this->post(route($route, $order), $payload)
         ->assertRedirect(route('login'));
 })->with('order_guest_endpoints');
 
-// Инлайн-датасет прямо в тесте — когда набор локален и не переиспользуется.
-it('запрещает действие не той роли', function (UserRole $role) {
-    $this->actingAsRole($role);            // хелпер из трейта ActsAsUser
+// Inline dataset directly in the test - when the set is local and is not reused.
+it('prohibits action of the wrong role', function (UserRole $role) {
+    $this->actingAsRole($role);            // helper from trait ActsAsUser
     $order = Order::factory()->create();
 
     $this->post(route('orders.confirm', $order))->assertForbidden();

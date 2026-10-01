@@ -1,7 +1,7 @@
 // Source: anonymized production Laravel project
-// server-блок vite.config.js для работы в Docker-контейнере.
-// Принцип: внутри контейнера слушаем 0.0.0.0, но HMR-сокет браузер открывает
-// с хоста — поэтому hmr.host = localhost. CORS — строго origin приложения.
+// server-block vite.config.js to work in Docker-container.
+// Principle: inside the container we listen to 0.0.0.0, but HMR-socket browser opens
+// from the host - therefore hmr.host = localhost. CORS — strictly origin applications.
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -10,11 +10,11 @@ export default defineConfig(({ mode }) => {
   const appOrigin = env.APP_URL || "http://localhost:8080";
 
   return {
-    // Docker: 0.0.0.0 внутри контейнера; HMR/hot — localhost; CORS — origin приложения (APP_URL).
+    // Docker: 0.0.0.0 inside the container; HMR/hot — localhost; CORS — origin applications (APP_URL).
     server: {
       host: "0.0.0.0",
       port: vitePort,
-      strictPort: true, // не уезжать молча на соседний порт — проброс в compose жёсткий
+      strictPort: true, // do not leave silently to a neighboring port - forwarding to compose hard
       hmr: {
         host: "localhost",
         port: vitePort,
@@ -24,6 +24,6 @@ export default defineConfig(({ mode }) => {
         credentials: true,
       },
     },
-    // ...plugins (laravel-vite-plugin и т.д.) — вне рамок этого сниппета
+    // ...plugins (laravel-vite-plugin etc.) — is outside the scope of this snippet
   };
 });

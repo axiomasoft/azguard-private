@@ -1,30 +1,28 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/review.md
-Canonical SHA-256: sha256:c04416db5b4c7e82a9fc2194453ea1c4c05809ef6fd0f425a1f0f929c315d40c
+Canonical SHA-256: sha256:cd4c5f775b74c069edf6b4ca1cf483d970d14dbcd114f6a6dc015e2ae51b7b90
 Adapter: task.codex-command/1.0.17
 -->
-Это read-only review: «$ARGUMENTS». Файлы не меняй.
+This is a read-only review of `$ARGUMENTS`. Do not modify files.
 
-Сначала определи артефакт и наблюдаемый риск, затем выбери глубину сам:
+Identify the artifact and observable risk, then select depth:
 
-- **quick** — документация, конфиг или малый локальный diff: один проход по correctness и явно
-  применимым правилам проекта;
-- **standard** — обычный кодовый diff: correctness/security/performance по затронутому срезу,
-  подходящие целевые проверки;
-- **adversarial** — security/auth, destructive migration, payment/accounting, concurrency/shared
-  state, irreversible external effect или public API/schema: конкретные failure scenarios и, если
-  отдельная точка зрения реально нужна, один независимый finder/verifier.
+- `quick`: docs, config, or a small local diff; one correctness pass plus applicable project rules.
+- `standard`: an ordinary code diff; correctness, security, and performance in the affected slice, with
+  relevant targeted checks.
+- `adversarial`: security/auth, destructive migration, payments/accounting, concurrency/shared state,
+  irreversible external effects, or public API/schema; test concrete failure scenarios and use one independent
+  finder/verifier only when a separate perspective is justified.
 
-Используй diff как основной контекст. Открывай manifests, локальные инструкции и skills только
-когда они относятся к изменённому стеку или поведению. Не сканируй весь registry, glossary,
-callers или тестовый набор ради полноты. Смежные правила проверяй одним проходом; 1–2 применимых
-skills проверяй сам без fan-out. Меняющуюся внешнюю предпосылку сверяй с первичным источником.
+Use the diff as primary context. Open manifests, local instructions, and skills only when they apply to the
+changed stack or behavior. Do not scan the full registry, glossary, caller graph, or test suite for completeness.
+Check adjacent rules in one pass and handle one or two applicable skills yourself. Verify changing external
+premises against primary sources.
 
-Для каждой подтверждённой находки укажи severity (`Blocker|Major|Minor|Nit`), confidence,
-`file:line`, конкретный failure scenario и основание (правило проекта или
-correctness/security/performance). Severity определяется влиянием, а не строгостью формулировки
-правила. Отсекай совпадения без воспроизводимого влияния. Если находок нет, скажи это прямо и
-назови только существенный непроверенный риск, если он остался.
+For each confirmed finding, report severity (`Blocker|Major|Minor|Nit`), confidence, `file:line`, the concrete
+failure scenario, and its correctness, security, performance, or project-rule basis. Severity reflects impact,
+not wording strength. Discard matches without reproducible impact. If there are no findings, say so and name
+only material residual risk.
 
-Запускай статический анализ или тесты лишь когда они проверяют гипотезу review. Сохраняй dirty
-baseline и передавай исправления исполнителю.
+Run static analysis or tests only when they test a review hypothesis. Preserve the dirty baseline and route
+fixes to the implementer.

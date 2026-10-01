@@ -51,6 +51,6 @@ Prove package behavior with Pest 4, Orchestra Testbench, and the local `tests/Te
 - Testing implementation details when observable package behavior is available.
 - Keeping throwaway scaffolding experiment tests in the package test suite.
 
-## Ссылки
+## Links
 
-- Скилл `quality/test-strategy` — стратегия пирамиды и coverage policy
+- Skill `quality/test-strategy` — pyramid strategy and coverage policy

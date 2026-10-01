@@ -1,7 +1,7 @@
 # Source: anonymized production Laravel project
-# Prod-compose: заранее собранный образ (make image) вместо build,
-# named volumes для артефактов сборки (public/build, public/filament, vendor),
-# чтобы bind-mount исходников не затирал их.
+# Prod-compose: pre-built image (make image) instead build,
+# named volumes for build artifacts (public/build, public/filament, vendor),
+# to bind-mount did not overwrite the sources.
 services:
   app:
     image: <app>/app:latest
@@ -13,7 +13,7 @@ services:
     volumes:
       - ./:/var/www/html
       - frontend_build:/var/www/html/public/build
-      # frontend_filament — только если есть отдельная admin-сборка (pnpm run build:admin)
+      # frontend_filament — only if there is a separate admin-assembly (pnpm run build:admin)
       - frontend_filament:/var/www/html/public/filament
       - vendor_data:/var/www/html/vendor
     ports:

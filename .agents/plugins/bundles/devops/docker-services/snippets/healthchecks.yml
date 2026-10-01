@@ -1,8 +1,8 @@
 # Source: anonymized production Laravel project
-# Паттерны healthcheck + depends_on для Laravel-стека в compose.
+# Patterns healthcheck + depends_on for Laravel-stack in compose.
 
-# 1) Веб-приложение: Laravel health-эндпоинт /up (Laravel 11+).
-#    start_period даёт время на прогрев фреймворка перед первым отсчётом retries.
+# 1) Web application: Laravel health-endpoint /up (Laravel 11+).
+#    start_period gives time for the framework to warm up before the first countdown retries.
 app:
   healthcheck:
     test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up >/dev/null || exit 1"]
@@ -11,7 +11,7 @@ app:
     retries: 5
     start_period: 40s
 
-# 2) Воркер без порта: проверка живости процесса по pgrep (prod).
+# 2) Worker without port: checking process aliveness by pgrep (prod).
 queue:
   healthcheck:
     test: ["CMD-SHELL", "pgrep -af 'artisan queue:work' >/dev/null || exit 1"]
@@ -28,7 +28,7 @@ scheduler:
     retries: 3
     start_period: 30s
 
-# 3) Websocket-сервер: TCP-проба порта средствами php (curl не нужен).
+# 3) Websocket-server: TCP-testing the port using means php (curl not needed).
 reverb:
   healthcheck:
     test:
@@ -41,7 +41,7 @@ reverb:
     retries: 10
     start_period: 30s
 
-# 4) Инфраструктура: pg_isready / redis-cli ping.
+# 4) Infrastructure: pg_isready / redis-cli ping.
 pgsql:
   healthcheck:
     test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
@@ -56,16 +56,16 @@ redis:
     timeout: 5s
     retries: 10
 
-# --- depends_on-паттерны ---
+# --- depends_on-patterns ---
 
-# Ждать ГОТОВНОСТИ зависимости, а не просто запуска:
+# Wait for the dependency to be READY, not just run:
 worker_depends_on:
   depends_on:
     app: { condition: service_healthy }
     pgsql: { condition: service_healthy }
     redis: { condition: service_healthy }
 
-# Ждать УСПЕШНОГО ЗАВЕРШЕНИЯ init-контейнера (сборка статики, миграции):
+# WAIT FOR SUCCESSFUL COMPLETION init-container (build statics, migrations):
 static_depends_on:
   depends_on:
     docs-init:

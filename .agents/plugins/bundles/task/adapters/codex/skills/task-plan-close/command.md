@@ -13,7 +13,7 @@ the owner-authorized scope in this root. If that scope is complete, report the e
 recommendation for this chat; a final answer does not require a new `codex` process. A command, phase, directory, local repair, or ordinary test failure is not a session
 boundary.
 
-At a fresh-session boundary, keep Batch/Model/Thinking/Context/Суть in the metadata table,
+At a fresh-session boundary, keep Batch/Model/Thinking/Context/The bottom line in the metadata table,
 but never put the command in a table
 cell or column. Immediately after the table print `**Native Codex command:**` and a fenced `bash`
 block which explicitly pins the repository cwd, mapped model, reasoning effort, approval policy,

@@ -3,37 +3,37 @@
   "snippets": [
     {
       "file": "read-repository.php",
-      "description": "Read-side репозиторий: queryForUser через VisibilityService, findByIdOrFail, пагинация, компоновка scopes + eager load",
+      "description": "Read-side repository: queryForUser via VisibilityService, findByIdOrFail, pagination, layout scopes + eager load",
       "tags": ["repository", "read", "visibility"]
     },
     {
       "file": "store-repository.php",
-      "description": "Write-side репозиторий: persistFromForm(Form, User) с updateOrCreate, sync приватного отношения; без истории/событий/транзакций",
+      "description": "Write-side repository: persistFromForm(Form, User) with updateOrCreate, sync private relationship; no history/events/transactions",
       "tags": ["repository", "write", "dto"]
     },
     {
       "file": "member-store-repository.php",
-      "description": "Sync-операция write-side, возвращающая delta-DTO: syncRoleMembers -> MembersDelta",
+      "description": "Sync-operation write-side, returning delta-DTO: syncRoleMembers -> MembersDelta",
       "tags": ["repository", "write", "sync", "delta"]
     },
     {
       "file": "members-delta.php",
-      "description": "Delta-DTO результата sync-операции: final readonly, added/removed, isEmpty",
+      "description": "Delta-DTO result sync-operations: final readonly, added/removed, isEmpty",
       "tags": ["dto", "delta"]
     },
     {
       "file": "repository-facade.php",
-      "description": "Опциональный фасад-агрегатор read-методов: чистое делегирование в read-репозиторий",
+      "description": "Optional facade aggregator read-methods: pure delegation in read-repository",
       "tags": ["repository", "facade"]
     },
     {
       "file": "model-scopes.php",
-      "description": "Доменные scopes модели: scopeWithListRelations, scopeWithStatus(es), scopeForUser; именованные срезы отношений",
+      "description": "Domain scopes models: scopeWithListRelations, scopeWithStatus(es), scopeForUser; named relationship slices",
       "tags": ["model", "scope", "eloquent"]
     },
     {
       "file": "visibility-service.php",
-      "description": "VisibilityService::apply(Builder, ?User, bool $ignorePermissions): единственное место правил видимости в SQL",
+      "description": "VisibilityService::apply(Builder, ?User, bool $ignorePermissions): the only place for visibility rules in SQL",
       "tags": ["visibility", "authorization", "service"]
     }
   ]

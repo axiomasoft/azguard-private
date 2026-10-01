@@ -3,22 +3,22 @@
   "snippets": [
     {
       "file": "value-object.php",
-      "description": "Value Object: final readonly значение с инвариантом в конструкторе, равенством по значению и поведением (Email, Money)",
+      "description": "Value Object: final readonly value with constructor invariant, value equality and behavior (Email, Money)",
       "tags": ["pattern", "value-object", "immutability", "invariant"]
     },
     {
       "file": "dto.php",
-      "description": "Голый DTO без spatie/laravel-data: final readonly структура для переноса данных между слоями, без поведения; delta-DTO для sync",
+      "description": "Naked DTO without spatie/laravel-data: final readonly structure for transferring data between layers, without behavior; delta-DTO for sync",
       "tags": ["pattern", "dto", "data-transfer", "delta"]
     },
     {
       "file": "pipeline.php",
-      "description": "Pipeline: последовательная трансформация значения цепочкой шагов-стадий (handle/next), переставляемых и тестируемых в изоляции",
+      "description": "Pipeline: sequential transformation of a value by a chain of steps-stages (handle/next), rearranged and tested in isolation",
       "tags": ["pattern", "pipeline", "transformation", "stage"]
     },
     {
       "file": "specification.php",
-      "description": "Specification: композируемый предикат isSatisfiedBy с and/or/not для in-memory бизнес-правил",
+      "description": "Specification: composable predicate isSatisfiedBy with and/or/not for in-memory business rules",
       "tags": ["pattern", "specification", "predicate", "composition"]
     }
   ]

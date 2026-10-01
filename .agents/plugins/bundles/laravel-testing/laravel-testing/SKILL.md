@@ -55,7 +55,7 @@ protected function assertIsolatedTestDatabase(): void
     $database = DB::connection()->getDatabaseName();
 
     if (! str_ends_with($database, '_test')) {
-        throw new RuntimeException("Тесты подключены к '{$database}', ожидалась '<app>_test'. Прогон остановлен.");
+        throw new RuntimeException("Tests connected to '{$database}', expected '<app>_test'. Run stopped.");
     }
 }
 ```
@@ -81,9 +81,9 @@ Each repeated test prefix = one trait in `tests/Support/Concerns/` with a narrow
 // tests/TestCase.php
 abstract class TestCase extends BaseTestCase
 {
-    use ActsAsUser;       // хелперы доступа
-    use SeedsUserRoles;   // справочник ролей
-    // + guard изоляции тестовой БД (см. секцию выше)
+    use ActsAsUser;       // access helpers
+    use SeedsUserRoles;   // role directory
+    // + guard test database isolation (see section above)
 }
 ```
 
@@ -94,14 +94,14 @@ Set net/time determinism ONCE per directory, not per file. Bind via `->in('Featu
 
 ```php
 pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)   // только Feature
+    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)   // only Feature
     ->beforeEach(function () {
-        Str::createRandomStringsNormally();   // сброс возможного фейка из прошлого теста
+        Str::createRandomStringsNormally();   // resetting a possible fake from the previous test
         Str::createUuidsNormally();
-        Http::fake(['127.0.0.1:5173/*' => Http::response('')]);   // гасим dev-ассеты
-        Http::preventStrayRequests();         // любой неподделанный HTTP = падение
-        Sleep::fake();                        // sleep() в коде не тормозит прогон
-        $this->freezeTime();                  // Carbon::now() заморожен
+        Http::fake(['127.0.0.1:5173/*' => Http::response('')]);   // extinguish dev-assets
+        Http::preventStrayRequests();         // any unadulterated HTTP = fall
+        Sleep::fake();                        // sleep() in the code does not slow down the run
+        $this->freezeTime();                  // Carbon::now() frozen
     })
     ->in('Feature');
 ```
@@ -117,8 +117,8 @@ dataset('order_guest_endpoints', [
     'confirm' => ['orders.confirm', []],
 ]);
 
-it('закрывает endpoint от гостя', function (string $route, array $payload) {
-    $order = Order::factory()->pending()->create();   // фабрика Eloquent + states
+it('closes endpoint by guest', function (string $route, array $payload) {
+    $order = Order::factory()->pending()->create();   // factory Eloquent + states
     $this->post(route($route, $order), $payload)->assertRedirect(route('login'));
 })->with('order_guest_endpoints');
 ```

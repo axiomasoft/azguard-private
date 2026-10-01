@@ -1,7 +1,7 @@
-# Шаблон path-scoped правила — .claude/rules/<topic>.md
+# Template path-scoped rules - .claude/rules/<topic>.md
 
-Скопируйте в `.claude/rules/` проекта (например `.claude/rules/filament.md`).
-Правило загрузится в контекст только когда Claude читает файлы, совпадающие с glob.
+Copy to `.claude/rules/` project (for example `.claude/rules/filament.md`).
+The rule will be loaded into the context only when Claude reads files matching glob.
 
 ```markdown
 ---
@@ -12,16 +12,16 @@ paths:
 
 # Filament
 
-- Scaffold только через `php artisan make:filament-*`, не вручную.
-- Actions импортировать из `Filament\Actions\*` (не `Filament\Tables\Actions`).
-- Labels/headings — на языке проекта.
+- Scaffold only via `php artisan make:filament-*`, not manually.
+- Actions import from `Filament\Actions\*` (not `Filament\Tables\Actions`).
+- Labels/headings — in the project language.
 ```
 
-Глоб-паттерны: `**/*.ts` (все .ts), `src/**/*` (всё под src/), `src/**/*.{ts,tsx}` (brace expansion).
-Правило БЕЗ `paths:` грузится каждую сессию — как второй CLAUDE.md. Используйте это
-сознательно только для правил, нужных всегда.
+Glob patterns: `**/*.ts` (all .ts), `src/**/*` (all under src/), `src/**/*.{ts,tsx}` (brace expansion).
+Rule WITHOUT `paths:` is loaded every session - like the second CLAUDE.md. Use this
+deliberately only for rules that are always needed.
 
-Правила можно шарить между проектами симлинками:
+Rules can be shared between projects using symlinks:
 
 ```bash
 ln -s ~/shared-claude-rules .claude/rules/shared

@@ -1,7 +1,7 @@
 # Source: anonymized production project
-# CI-шаг E2E: установка браузеров, изолированная тестовая БД как service,
-# миграции, прогон Playwright с env-изоляцией, публикация отчёта/трейсов при падении.
-# Фрагмент для GitHub Actions (job в .github/workflows/e2e.yml).
+# CI-step E2E: installation of browsers, isolated test database as service,
+# migrations, run Playwright with env-isolation, report publication/traces when crashed.
+# Fragment for GitHub Actions (job in .github/workflows/e2e.yml).
 name: e2e
 
 on: [push, pull_request]
@@ -12,9 +12,9 @@ jobs:
 
     services:
       db:
-        image: postgres:16            # или mysql:8 — под стек проекта
+        image: postgres:16            # or mysql:8 — under the project stack
         env:
-          POSTGRES_DB: app_e2e        # отдельная тестовая база, НЕ боевая
+          POSTGRES_DB: app_e2e        # separate test base, NOT combat
           POSTGRES_USER: app
           POSTGRES_PASSWORD: secret
         ports: ['5432:5432']
@@ -25,7 +25,7 @@ jobs:
     env:
       CI: 'true'
       E2E_BASE_URL: http://127.0.0.1:8000
-      # Изоляция данных/медиа — webServer передаст это поднятому приложению.
+      # Data isolation/media - webServer will pass this on to the elevated application.
       DB_DATABASE: app_e2e
       DB_HOST: 127.0.0.1
       MEDIA_DISK: media-test
@@ -41,7 +41,7 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      # Кэш браузеров между прогонами + установка только нужного движка.
+      # Browser cache between runs + installation of only the required engine.
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -50,15 +50,15 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      # Готовим тестовую БД (миграции/сидинг). Команда — под стек проекта.
+      # Preparing a test database (migrations/siding). Team - under the project stack.
       - name: Prepare test database
         run: npm run migrate:e2e
 
-      # webServer из playwright.config поднимет приложение сам.
+      # webServer from playwright.config will launch the application itself.
       - name: Run E2E
         run: npx playwright test
 
-      # Артефакты для разбора падений: HTML-отчёт, трейсы, скриншоты, видео.
+      # Artifacts for analyzing crashes: HTML-report, traces, screenshots, video.
       - name: Upload report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

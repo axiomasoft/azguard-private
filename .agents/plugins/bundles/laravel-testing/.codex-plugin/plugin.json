@@ -1,6 +1,6 @@
 {
   "name": "laravel-testing",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Laravel testing: Pest feature/unit, DB isolation guard, Dusk browser tests, health checks",
   "skills": [
     "./health-checks",

@@ -26,7 +26,7 @@
     },
     {
       "file": "gitlab-ci-practices.md",
-      "description": "Стандарты и лучшие практики написания .gitlab-ci.yml пайплайнов",
+      "description": "Writing Standards and Best Practices.gitlab-ci.yml pipelines",
       "tags": [
         "gitlab",
         "ci"
@@ -34,7 +34,7 @@
     },
     {
       "file": "github-actions-security.yml",
-      "description": "Security-job для GitHub Actions: composer audit + npm audit + Trivy скан образа, блок только на HIGH/CRITICAL",
+      "description": "Security-job for GitHub Actions: composer audit + npm audit + Trivy image scan, block only on HIGH/CRITICAL",
       "tags": [
         "ci",
         "security",
@@ -44,7 +44,7 @@
     },
     {
       "file": "github-actions-coverage-gate.yml",
-      "description": "Coverage-job для GitHub Actions: pcov + artisan test --coverage + gate-скрипт из php/laravel-testing, глобальный и critical-dir пороги",
+      "description": "Coverage-job for GitHub Actions: pcov + artisan test --coverage + gate-script from php/laravel-testing, global and critical-dir thresholds",
       "tags": [
         "ci",
         "coverage",

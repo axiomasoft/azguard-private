@@ -9,17 +9,17 @@ use Spatie\Health\Notifications\Notifiable;
 use Spatie\Health\ResultStores\CacheHealthResultStore;
 
 /*
- * config/health.php — конфиг пакета spatie/laravel-health.
+ * config/health.php — package config spatie/laravel-health.
  *
- * Store, уведомления и проектные секции для кастомных проверок.
- * Сам список проверок регистрируется НЕ здесь, а через Health::checks([...])
- * в bootstrap-провайдере (см. блок «ОБВЯЗКА» внизу файла).
+ * Store, notifications and project sections for custom checks.
+ * The list of checks itself is NOT registered here, but through Health::checks([...])
+ * in bootstrap-provider (see block «BINDING» at the bottom of the file).
  */
 
 return [
     /*
-     * Где хранятся результаты последнего прогона. Endpoint readiness
-     * отдаёт именно сохранённый результат, а не гоняет проверки на каждый запрос.
+     * Where the results of the last run are stored. Endpoint readiness
+     * returns exactly the saved result, and does not run checks for each request.
      */
     'result_stores' => [
         CacheHealthResultStore::class => [
@@ -30,13 +30,13 @@ return [
     ],
 
     /*
-     * Уведомления при падении проверок. throttle защищает от шторма писем.
+     * Notifications when checks fail. throttle protects against email storm.
      */
     'notifications' => [
         'enabled' => env('HEALTH_NOTIFICATIONS_ENABLED', false),
 
         'notifications' => [
-            CheckFailedNotification::class => ['mail'], // или ['mail', 'slack']
+            CheckFailedNotification::class => ['mail'], // or ['mail', 'slack']
         ],
 
         'notifiable' => Notifiable::class,
@@ -44,7 +44,7 @@ return [
         'throttle_notifications_for_minutes' => 60,
         'throttle_notifications_key' => 'health:latestNotificationSentAt:',
 
-        // true — слать только при 'failed', warning игнорировать.
+        // true — send only when 'failed', warning ignore.
         'only_on_failure' => false,
 
         'mail' => [
@@ -62,17 +62,17 @@ return [
     ],
 
     /*
-     * Код ответа readiness-endpoint при упавшей проверке — его читает probe/балансировщик.
+     * Response code readiness-endpoint when the check fails - reads it probe/balancer.
      */
     'json_results_failure_status' => env('HEALTH_JSON_FAILURE_STATUS', 503),
 
     /*
-     * Секрет для защищённого доступа к endpoint (заголовок X-Secret-Token).
+     * Secret for secure access to endpoint (header X-Secret-Token).
      */
     'secret_token' => env('HEALTH_SECRET_TOKEN'),
 
     /*
-     * Внешний мониторинг: пинг heartbeat-URL при успешном прогоне.
+     * External monitoring: ping heartbeat-URL on success.
      */
     'oh_dear_endpoint' => [
         'enabled' => false,
@@ -82,8 +82,8 @@ return [
     ],
 
     /*
-     * Проектные секции для кастомных проверок — пороги/таймауты через env,
-     * чтобы переносить между окружениями без правки кода.
+     * Design sections for custom checks - thresholds/timeouts via env,
+     * to transfer between environments without editing the code.
      */
     'scheduler' => [
         'heartbeat_url' => env('SCHEDULE_HEARTBEAT_URL'),
@@ -99,36 +99,36 @@ return [
 
 /*
  * =========================================================================
- * ОБВЯЗКА (живёт в других файлах проекта — здесь для полноты картины).
+ * BINDING (lives in other project files - here for completeness).
  * =========================================================================
  *
- * --- app/Providers/AppServiceProvider::boot() — регистрация проверок ---
+ * --- app/Providers/AppServiceProvider::boot() — registration of checks ---
  *
  * Health::checks([
  *     DatabaseConnectionCheck::new(),
  *     CacheStoreCheck::new(),
  *     QueueConnectionCheck::new(),
  *     SchedulerHeartbeatCheck::new(),
- *     // параметризуемая проверка — фабрика + уникальное имя:
+ *     // parameterizable check - factory + unique name:
  *     DiskWriteCheck::forDisk('media', 'health/media')->name('disk_media_write'),
  *     DiskWriteCheck::forDisk('local', 'health/local')->name('disk_local_write'),
  *     ServiceTcpConnectionCheck::new(),
- *     // встроенные проверки пакета — берём как есть, не дублируем кастомом:
+ *     // built-in package checks - take it as is, do not duplicate it with custom:
  *     UsedDiskSpaceCheck::new()->warnWhenUsedSpaceIsAbovePercentage(70),
  *     DebugModeCheck::new(),
  *     EnvironmentCheck::new(),
  * ]);
  *
- * --- routes/web.php — endpoint'ы liveness / readiness / дашборд ---
+ * --- routes/web.php — endpoint's liveness / readiness / dashboard ---
  *
  * Route::get('/health/live', SimpleHealthCheckController::class)->name('health.live');
  * Route::get('/health/ready', HealthCheckJsonResultsController::class)->name('health.ready');
- * Route::get('/health', HealthCheckResultsController::class)->name('health.dashboard'); // Blade-дашборд
- * // (для Filament — регистрируется страница пакета в панели, отдельный роут не нужен)
+ * Route::get('/health', HealthCheckResultsController::class)->name('health.dashboard'); // Blade-dashboard
+ * // (for Filament — the package page is registered in the panel, a separate route is not needed)
  *
- * --- routes/console.php — расписание прогона + heartbeat шедулера ---
+ * --- routes/console.php — run schedule + heartbeat scheduler ---
  *
- * Schedule::command('health:check')->everyMinute(); // прогон проверок → сохранение в store
+ * Schedule::command('health:check')->everyMinute(); // run checks → save to store
  * Schedule::call(function (): void {
  *     cache()->forever('health:scheduler:last_heartbeat', now()->toIso8601String());
  * })->name('health-scheduler-heartbeat')->everyMinute();

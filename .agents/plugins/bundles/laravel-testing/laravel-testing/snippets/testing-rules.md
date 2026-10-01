@@ -1,56 +1,56 @@
 <!-- Source: anonymized production Laravel project -->
 # Testing Rules
 
-## Перед началом задачи: Docker или локальный PHP
+## Before starting the task: Docker or local PHP
 
-**Не используйте `DB_CONNECTION` для выбора режима:** и в Docker, и без него обычно **`pgsql`** (или `mysql`).
+**Do not use `DB_CONNECTION` to select mode:** and in Docker, and without it usually **`pgsql`** (or `mysql`).
 
-**Признаки работы через Docker Compose** (типичный dev-стек):
-- **`DB_HOST=pgsql`** — имя сервиса базы данных из `docker-compose.yml` (не резолвится с хоста как БД).
-- Дополнительно часто **`REDIS_HOST=redis`**.
+**Signs of operation through Docker Compose** (typical dev-stack):
+- **`DB_HOST=pgsql`** — database service name from `docker-compose.yml` (does not resolve from the host as a database).
+- Additionally often **`REDIS_HOST=redis`**.
 
-**Признаки локального PHP без Docker** (БД на машине):
-- **`DB_HOST=127.0.0.1`**, **`localhost`** или другой **IP/hostname** вашей машины.
+**Signs of local PHP without Docker** (DB on the machine):
+- **`DB_HOST=127.0.0.1`**, **`localhost`** or other **IP/hostname** of your machine.
 
-**Команды:**
+**Commands:**
 
-| Действие | Docker | Без Docker |
+| Action | Docker | Without Docker |
 |----------|--------|------------|
 | Artisan, Composer | `docker compose exec app php artisan …` | `php artisan …` |
-| Тесты Pest/PHPUnit | `docker compose exec app php artisan test` | `php artisan test` или `vendor/bin/pest` |
+| Tests Pest/PHPUnit | `docker compose exec app php artisan test` | `php artisan test` or `vendor/bin/pest` |
 | pnpm / Vite | `docker compose exec vite pnpm …` | `pnpm …` |
 
-При сомнении: **`docker compose ps`** — если контейнеры запущены, ориентируйтесь на работу через Docker.
+When in doubt: **`docker compose ps`** — if containers are running, focus on working through Docker.
 
-**Основная БД приложения** (`DB_DATABASE` в `.env`) при прогоне тестов **не должна** использоваться: см. раздел ниже и `tests/TestCase.php`.
+**Main application database** (`DB_DATABASE` in `.env`) when running tests **should not** used: see section below and `tests/TestCase.php`.
 
 ## Database Safety
 
-- **Никогда** не направляйте Pest/PHPUnit на основную базу из `.env`. `RefreshDatabase` и Dusk делают **`migrate:fresh`** на тестовой БД.
-- **Критично для агента:** запрещено выполнять `migrate:fresh` / `db:wipe` без явного тестового окружения. Разрешён только вариант с `--env=testing`.
-- Тесты используют только БД **`{{project_name}}_test`**: это задано в `phpunit.xml` и `tests/bootstrap.php`.
+- **Never** do not send Pest/PHPUnit to the main database from `.env`. `RefreshDatabase` and Dusk do **`migrate:fresh`** on the test database.
+- **Agent critical:** not allowed to execute `migrate:fresh` / `db:wipe` without an explicit test environment. Only option with `--env=testing`.
+- Tests use only the database **`{{project_name}}_test`**: this is set in `phpunit.xml` and `tests/bootstrap.php`.
 
-### Изоляция БД: дыры вне PHPUnit/Pest (обязательно для агента)
+### DB isolation: holes out PHPUnit/Pest (required for agent)
 
-`TestEnvironmentGuard` срабатывает только при загрузке приложения из **`tests/TestCase`** / **`DuskTestCase`** в режиме `test`. Любая команда, которая поднимает Laravel из **обычного `.env`**, пишет в **основную БД**, если явно не переопределить окружение.
+`TestEnvironmentGuard` only fires when the application is loaded from **`tests/TestCase`** / **`DuskTestCase`** in mode `test`. Any command that raises Laravel from **regular `.env`**, writes in **main database**, unless you explicitly override the environment.
 
-**Запрещено без явного перевода на тестовую БД (`APP_ENV=testing`):**
+**Prohibited without explicit transfer to the test database (`APP_ENV=testing`):**
 
-| Действие | Почему опасно |
+| Action | Why it's dangerous |
 |----------|----------------|
-| `php artisan tinker` / однострочный `tinker --execute` | Фабрики, `create()`, сиды — мутируют основную БД |
-| `php artisan db:seed`, `migrate`, `migrate:fresh`, `db:wipe` | Прямая мутация схемы/данных |
-| MCP / инструменты **database-query** с INSERT/UPDATE/DELETE | Целевая БД задаётся конфигом приложения |
-| **Dusk** с `DUSK_ENV_MODE=current` | Guard и `migrate:fresh` отключены |
+| `php artisan tinker` / one-liner `tinker --execute` | Factories, `create()`, seeds - mutate the main database |
+| `php artisan db:seed`, `migrate`, `migrate:fresh`, `db:wipe` | Direct mutation of the circuit/data |
+| MCP / tools **database-query** with INSERT/UPDATE/DELETE | The target database is specified by the application config |
+| **Dusk** with `DUSK_ENV_MODE=current` | Guard and `migrate:fresh` disabled |
 
-**Разрешённые паттерны:**
+**Allowed patterns:**
 
-1. Отладка домена — **добавить временный интеграционный тест** и вызвать `php artisan test …` (предпочтительно).
-2. Если без REPL нельзя — только с переопределением окружения на тестовое:
+1. Debugging domain - **add temporary integration test** and call `php artisan test …` (preferred).
+2. If without REPL is not possible - only with redefining the environment to test:
 ```bash
 docker compose exec -e APP_ENV=testing -e DB_DATABASE={{project_name}}_test app php artisan tinker
 ```
-3. **Чтение** из основной БД (SELECT, MCP read-only) для диагностики — допустимо только по явному запросу пользователя.
+3. **Read** from the main database (SELECT, MCP read-only) for diagnostics - only allowed upon explicit user request.
 
 ## Test Types
 
@@ -65,8 +65,8 @@ docker compose exec -e APP_ENV=testing -e DB_DATABASE={{project_name}}_test app 
 ### Browser Tests (`tests/Browser/`) — Laravel Dusk
 - Full end-to-end with Chromium. Extend `Tests\DuskTestCase` (not `TestCase`).
 - **Do NOT use `RefreshDatabase`** — `DuskTestCase::setUp()` runs `migrate:fresh --seed` automatically.
-- Run (хост, Pest): `php artisan pest:dusk` (не `artisan dusk`).
-- Конфиг: `phpunit.dusk.xml`; при прогоне команда подменяет `.env` содержимым `.env.dusk.local`.
+- Run (host, Pest): `php artisan pest:dusk` (not `artisan dusk`).
+- Config: `phpunit.dusk.xml`; when running, the command replaces `.env` content `.env.dusk.local`.
 - Debug (headful): `php artisan pest:dusk --browse`.
 
 ## Conventions
@@ -74,7 +74,7 @@ docker compose exec -e APP_ENV=testing -e DB_DATABASE={{project_name}}_test app 
 - All tests use Pest syntax.
 - Run: `php artisan test` / `docker compose exec app php artisan test`.
 - Filter: `php artisan test --filter=TestName`.
-- Проверки Node/pnpm вынесены в отдельный skill: `.ai/skills/node-pnpm-preflight/SKILL.md`.
+- Checks Node/pnpm are moved to a separate skill: `.ai/skills/node-pnpm-preflight/SKILL.md`.
 - Write tests for every code change.
 
 ## Feature Test Template

@@ -129,6 +129,33 @@ Unknown identity/configuration ошибки direct API выбрасывает; �
 по projects и остальные условия: Allow должен иметь **один целый witness** `(tenant, project, grant, conditions)`.
 CRM-рецепт использует один project на client; many-to-many вариант описан в [16](16-crm-and-workflows.md).
 
+### 3.1. Вход в интерфейс панели
+
+Базовый admission маршрутов azguard.panel и Filament одинаков: authenticated accepted subject + valid tenant/member
++ **хотя бы одно действующее назначение зарегистрированной PHP-роли выбранной панели**. Наличие класса роли
+в каталоге без назначения пользователю не достаточно. Подходят DB, GrantedAutomatically и RelationSource
+role contributions; применяется scope/owner, expiry, grant conditions, common и role-specific eligibility.
+Неизвестная/удалённая роль или ошибка relevant source не дают входа. Superadmin проходит как qualified role.
+
+- Tenant-wide role подходит для выбранного tenant по своим условиям. При явно выбранном project подходят роли
+  этого project и разрешённые tenant-wide contributions согласно AssignmentScopePolicy.
+- Если project ещё не выбран, admission проверяет наличие **одной целой подходящей role contribution** в
+  разрешённой области выбранного tenant. Так CallerRole на P1 позволяет открыть CRM и выбрать P1, несмотря на
+  scopeRequired(). Это специальная проверка допуска в UI, не hasRole(on:null) и не глобальная permission выдача.
+  Роли другого tenant/panel и неактивные/чужие/неподходящие projects не участвуют. Sources должны поддержать
+  scoped role lookup для admission; unsupported adapter — явный отказ, не снятие фильтров.
+- entry default null. Если entry задан enum case, результат его обычного authority pipeline дополнительно AND.
+  Entry permission проверяется в выбранном request scope, не приписывается найденному project автоматически.
+  Tenant-wide entry action можно назначить отдельно; project-level entry требует выбрать соответствующий project.
+- Direct permission или PolicyOnly allow не заменяют role admission. PolicyOnly check сам остаётся без чтения
+  assignments; UI admission — отдельная операция, читающая роли. Policy-only UI может определить автоматическую
+  PHP MemberRole, не создавая grant store. Direct API/service checks не получают скрытого требования иметь роль.
+- Admission не разрешает действия/клиентов: View/Update и SQL visibility всё равно проверяются в точном scope.
+  Tenant selection до входа обеспечивает приложение; наличие роли в A не открывает B.
+
+Один общий evaluator обслуживает middleware и Filament; его role reads используют обычные freshness/state fences.
+Owning items P6.2/P7.2, future tests V73/R39.
+
 ## 4. Суперадмин
 
 Роль `#[SuperAdmin]` / BaseRole.superAdmin() учитывает tenant/context, срок и условия как всякая роль.

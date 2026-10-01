@@ -1,10 +1,10 @@
 #!/bin/sh
 # Source: anonymized production Laravel project
 #
-# ВАРИАНТ 1 — init-скрипт: docker/postgres/init/01-test-db.sh
-# Монтируется в /docker-entrypoint-initdb.d (:ro) и создаёт вторую БД <app>_test —
-# фундамент изоляции тестов (phpunit.xml: DB_DATABASE=<app>_test).
-# ВАЖНО: выполняется только при ПЕРВОМ создании тома pgsql_data.
+# OPTION 1 - init-script: docker/postgres/init/01-test-db.sh
+# Mounted in /docker-entrypoint-initdb.d (:ro) and creates a second database <app>_test —
+# test isolation foundation (phpunit.xml: DB_DATABASE=<app>_test).
+# IMPORTANT: only executed the FIRST time the volume is created pgsql_data.
 set -eu
 
 psql -v ON_ERROR_STOP=1 \
@@ -13,9 +13,9 @@ psql -v ON_ERROR_STOP=1 \
   -c "CREATE DATABASE <app>_test OWNER \"${POSTGRES_USER}\";"
 
 # ---------------------------------------------------------------------------
-# ВАРИАНТ 2 — backfill для УЖЕ существующего volume: docker/postgres/create-test-db.sh
-# Init выше не запускался (том не пустой) — создаём базу в работающем контейнере.
-# Идемпотентно: если база есть, выходит 0. Вызывается make-целью db-create-test:
+# OPTION 2 - backfill for ALREADY existing volume: docker/postgres/create-test-db.sh
+# Init above did not run (volume is not empty) — create a database in a running container.
+# Idempotent: if there is a base, 0 is output. Called make-target db-create-test:
 #   bash docker/postgres/create-test-db.sh        # dev
 #   bash docker/postgres/create-test-db.sh prod   # docker-compose.prod.yml
 #

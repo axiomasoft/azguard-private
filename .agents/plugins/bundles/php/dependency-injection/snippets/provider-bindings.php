@@ -5,21 +5,21 @@
 declare(strict_types=1);
 
 // ============================================================================
-// ПО УМОЛЧАНИЮ ЭТОТ ФАЙЛ НЕ НУЖЕН.
+// BY DEFAULT THIS FILE IS NOT REQUIRED.
 //
-// Контейнер Laravel резолвит КОНКРЕТНЫЕ классы zero-config: если у класса
-// type-hinted конструктор, никаких биндингов писать не надо. В эталонном
-// проекте AppServiceProvider::register() не содержит ни одного bind()
-// для доменных классов — и это норма.
+// Container Laravel resolves SPECIFIC classes zero-config: if the class
+// type-hinted constructor, no need to write any bindings. In reference
+// project AppServiceProvider::register() does not contain any bind()
+// for domain classes - and this is the norm.
 //
-// Интерфейс + биндинг заводят ТОЛЬКО при реальной вариативности реализаций:
-//   - драйверы (несколько взаимозаменяемых реализаций: SMS-шлюзы, хранилища);
-//   - внешние интеграции (HTTP-клиент, который в тестах подменяется фейком);
-//   - подмена сложной зависимости в тестах, когда mock конкретного класса
-//     неудобен (final, тяжелая инициализация).
+// Interface + binding is started ONLY when there is real variability in implementations:
+//   - drivers (several interchangeable implementations: SMS-gateways, storage);
+//   - external integrations (HTTP-client, which is replaced by a fake in tests);
+//   - replacing a complex dependency in tests when mock specific class
+//     inconvenient (final, heavy initialization).
 //
-// «Интерфейс на каждый сервис» — карго-культ: лишний файл, лишний биндинг,
-// прыжок при навигации, и всё ради единственной реализации.
+// «Interface for each service» — cargo cult: extra file, extra binding,
+// jump during navigation, all for the sake of a single implementation.
 // ============================================================================
 
 namespace App\Contracts\Notification;
@@ -27,7 +27,7 @@ namespace App\Contracts\Notification;
 use App\Models\User;
 
 /**
- * Контракт оправдан: есть минимум две реальные реализации (шлюз + лог-заглушка).
+ * The contract is justified: there are at least two real implementations (gateway + log stub).
  */
 interface SmsGatewayContract
 {
@@ -51,7 +51,7 @@ final class DomainServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        // 1. Обычный bind: реализация выбирается конфигом (драйверная вариативность).
+        // 1. Normal bind: implementation is selected by the config (driver variability).
         $this->app->bind(
             abstract: SmsGatewayContract::class,
             concrete: fn (): SmsGatewayContract => config('services.sms.enabled')
@@ -59,12 +59,12 @@ final class DomainServiceProvider extends ServiceProvider
                 : $this->app->make(LogSmsGateway::class),
         );
 
-        // 2. Singleton — только для дорогих в создании stateless-сервисов
-        //    (держит соединение, кэширует конфиг). НЕ дефолт.
+        // 2. Singleton — only for those who are expensive to create stateless-services
+        //    (holds the connection, caches the config). NOT default.
         $this->app->singleton(abstract: ChromiumPdfRenderer::class);
 
-        // 3. Контекстуальный биндинг: один потребитель получает особую реализацию,
-        //    остальные — дефолтную. Применять точечно, это исключение.
+        // 3. Contextual binding: one consumer gets a specific implementation,
+        //    the rest - default. To apply it pointwise is an exception.
         $this->app->when(ExportService::class)
             ->needs(PdfRendererContract::class)
             ->give(WkhtmlPdfRenderer::class);

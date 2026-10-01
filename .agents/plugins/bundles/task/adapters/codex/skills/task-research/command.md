@@ -1,28 +1,22 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/research.md
-Canonical SHA-256: sha256:496ce8ae1b95b6df6c4f25578178abc103713742d8080edf91606597ba7d82c6
+Canonical SHA-256: sha256:43772c5691365eca22094bba0b59a5dad35a208bb0af0c6df530d05fa5bba195
 Adapter: task.codex-command/1.0.17
 -->
-Это задача ИССЛЕДОВАНИЯ. Ввод пользователя: «$ARGUMENTS».
-Модель/effort запинены (frontier/high) — не переключай вручную.
+This is a RESEARCH task. User input: `$ARGUMENTS`. The route is pinned to frontier/high.
 
-Результат — ответ на исследовательский вопрос с проверенными источниками и конкретным следующим
-шагом. Workflow нужен только при действительной необходимости оркестрации; само исследование не
-включает design/dev lifecycle и не разрешает реализацию.
+Return an answer supported by verified sources and one concrete next step. Use a workflow only when real
+orchestration is required. Research alone does not activate design or development and grants no implementation
+authority.
 
-Профиль `research`:
-1. **Формулируй запросы по дисциплине `query-craft`** (никогда не голый «как сделать X» без версии+контекста);
-   выбор движка — `mcp-advisor` (context7 для доков библиотек → Perplexity → WebSearch). Тяжёлый запрос —
-   дроби на узкие.
-2. **Fan-out оправдан** (breadth-first): независимые искатели (implementation) по разным граням + adversarial-verify;
-   синтез (frontier) с явными цитатами/источниками. Reduce-фаза отделена от discovery.
-   **Кап делегирования:** искатель — только под крупную, реально независимую и параллелимую грань.
-   Что доделаешь сам за несколько тул-вызовов — не делегируй; хватает одного искателя — запускай
-   одного, а не нескольких; число спавнов держи низким. Субагент «перепроверь мою же работу»
-   запрещён; adversarial-verify ЧУЖИХ находок под кап не попадает — это независимая проверка,
-   а не самопроверка.
-   Оркестрация мультиагентным `*.js`-скриптом → сначала скилл `general/workflow-craft` (матчинг 4
-   канонических шаблонов + обязательные стадии design vs dev) и конструктор
-   `packages/task/workflows/README.md`, не изобретай оркестрацию с нуля.
-3. **Внешние факты верифицируй до фиксации** (`verify-claims`); не утверждай по памяти.
-4. Значимые источники — в провенанс (`docs/reference.md`, если есть).
+Profile `research`:
+
+1. Form queries with `query-craft`, including version and context. Select retrieval through `mcp-advisor`:
+   context7 for library docs, then Perplexity, then WebSearch. Split broad questions into narrow ones.
+2. Use breadth-first fan-out only for large independent facets. Separate discovery from synthesis and cite
+   sources explicitly. Delegate the smallest useful number of searches; do locally what needs only a few tool
+   calls. Do not ask a subagent to recheck the same work. Adversarial verification of another worker's findings
+   is independent verification. Before multi-agent JavaScript orchestration, use `general/workflow-craft` and
+   the canonical templates in `packages/task/workflows/README.md`.
+3. Verify changing external claims before recording them through `verify-claims`; do not rely on memory.
+4. Record material sources in provenance (`docs/reference.md` when present).

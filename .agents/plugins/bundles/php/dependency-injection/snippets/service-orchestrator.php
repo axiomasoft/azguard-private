@@ -20,10 +20,10 @@ use App\Services\Document\Access\MemberAccessService;
 use App\Services\Document\UpdatedBroadcaster;
 
 /**
- * СЕРВИС-ОРКЕСТРАТОР: координирует три зависимости в один сценарий сохранения.
- * Сам не открывает транзакцию — атомарность обеспечивает вызывающий Action.
+ * SERVICE ORCHESTRATOR: Coordinates three dependencies into one persistence script.
+ * Doesn't open a transaction itself - atomicity is provided by the caller Action.
  *
- * Service инжектит Repository и другие Service — но не Actions и не Controller.
+ * Service injectitis Repository and others Service — but not Actions and not Controller.
  */
 final readonly class DocumentPersistenceService
 {
@@ -34,7 +34,7 @@ final readonly class DocumentPersistenceService
     ) {}
 
     /**
-     * Сохранение документа из формы: строка документа, участники, вложения.
+     * Saving a document from a form: document line, participants, attachments.
      */
     public function storeOrUpdate(Form $form, User $user, bool $syncMembers = true): Document
     {
@@ -55,11 +55,11 @@ final readonly class DocumentPersistenceService
 }
 
 /**
- * СЕРВИС С ДЕЛЕГИРОВАНИЕМ: запись делегирует репозиторию, права — access-сервису,
- * а сам отвечает за оркестрацию ролей, доменное событие и broadcast.
+ * SERVICE WITH DELEGATION: the record delegates to the repository, rights - access-service,
+ * and is responsible for role orchestration, domain event and broadcast.
  *
- * Event::dispatch / Model-события — инфраструктурные статики, их НЕ инжектят
- * (это не зависимости-коллабораторы). Broadcaster — обычный сервис, его инжектят.
+ * Event::dispatch / Model-events are infrastructure statics, they are NOT injected
+ * (these are not collaborating dependencies). Broadcaster — regular service, it will be injected.
  */
 final readonly class MemberSyncService
 {
@@ -71,7 +71,7 @@ final readonly class MemberSyncService
 
     public function syncByForm(Document $document, User $user, Members $members): void
     {
-        // Какие роли разрешено редактировать — решает отдельный access-сервис.
+        // Which roles are allowed to edit is decided by the individual access-service.
         $editPermissions = $this->memberAccessService->resolveEditPermissions(document: $document, actor: $user);
         $roleSyncConfig = [
             [
@@ -94,7 +94,7 @@ final readonly class MemberSyncService
         $added = [];
         $removed = [];
         foreach ($roleSyncConfig as $config) {
-            // Фактическую запись делегируем репозиторию, накапливаем дельту по всем ролям.
+            // We delegate the actual record to the repository, accumulate the delta for all roles.
             $changes = $config['enabled']
                 ? $this->memberStoreRepository->syncRoleMembers(
                     document: $document,
@@ -108,7 +108,7 @@ final readonly class MemberSyncService
         }
 
         if ($added !== [] || $removed !== []) {
-            // Доменное событие — через статический dispatch (инфраструктура, не зависимость).
+            // Domain event - via static dispatch (infrastructure, not dependency).
             MembersChanged::dispatch(
                 document: $document,
                 actor: $user,
@@ -116,13 +116,13 @@ final readonly class MemberSyncService
                 removedMembers: $removed,
             );
 
-            // Broadcast — через инжектированный сервис: это коллаборатор с логикой.
+            // Broadcast — via an injected service: this is a collaborator with logic.
             $this->documentUpdatedBroadcaster->queueByDocumentId(documentId: $document->id);
         }
     }
 
     /**
-     * Синхронизация одной роли без broadcast (для внешних интеграционных сценариев).
+     * Sync one role without broadcast (for external integration scripts).
      */
     public function syncByRoleWithoutBroadcast(Document $document, UserRole $role, array $userIds): MembersDelta
     {

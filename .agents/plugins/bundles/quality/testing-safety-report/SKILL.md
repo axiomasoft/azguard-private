@@ -40,14 +40,14 @@ Skip for small local edits with obvious coverage.
 
 ```text
 Safety Report: <short change name>
-Изменено структурно:
+Changed structure:
   - ...
-Прогнано: тесты (<команда> → ok/N упало), phpstan (ok/N), линтер (ok)
-Риски / не покрыто:
+Run: tests (<command> → ok/N fell), phpstan (ok/N), linter (ok)
+Risks / not covered:
   - ...
-Контроль / follow-up:
+Control / follow-up:
   - ...
-Откат: <revert | миграция down | feature flag | нечего>
+Rollback: <revert | migration down | feature flag | nothing>
 ```
 
 ## Quality checklist
@@ -63,7 +63,7 @@ Safety Report: <short change name>
 - `test-strategy` (quality) — test planning before the change.
 - `refactoring-plan` (quality) — plan of the change itself and its steps (this report records its execution).
 - `php/php-upgrade-checklist` — PHP upgrade checklist; report records the run result.
-- `php/static-analysis` — phpstan/linter whose outcomes go into the "Прогнано" line.
+- `php/static-analysis` — phpstan/linter whose outcomes go into the "Driven" line.
 - `laravel-testing/test-isolation-guard`, `devops/db-test-preflight` — safe test DB guarantees during the run.
 - `oss-dev/dependency-audit` — dependency upgrade as a trigger for the report.
 - `quality/code-review` — report attached to PR so reviewer sees safety boundaries.

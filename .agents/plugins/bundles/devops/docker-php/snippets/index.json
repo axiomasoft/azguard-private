@@ -3,22 +3,22 @@
   "snippets": [
     {
       "file": "Dockerfile.php-fpm",
-      "description": "Production PHP-FPM образ (alpine, nginx отдельно)",
+      "description": "Production PHP-FPM image (alpine, nginx separately)",
       "tags": ["dockerfile", "php", "production"]
     },
     {
       "file": "Dockerfile.php-cli",
-      "description": "PHP CLI образ для artisan/queue",
+      "description": "PHP CLI image for artisan/queue",
       "tags": ["dockerfile", "php", "cli"]
     },
     {
       "file": "Dockerfile.serversideup",
-      "description": "Всё-в-одном FPM+Nginx образ (serversideup/php:8.3-fpm-nginx) с entrypoint.d-хуком",
+      "description": "All-in-one FPM+Nginx image (serversideup/php:8.3-fpm-nginx) with entrypoint.d-hook",
       "tags": ["dockerfile", "php", "nginx", "serversideup", "production"]
     },
     {
       "file": "entrypoint-hook.sh",
-      "description": "Хук /etc/entrypoint.d/: автозапуск при старте контейнера, пример — права на public/media",
+      "description": "Hook /etc/entrypoint.d/: autorun when container starts, example - rights to public/media",
       "tags": ["entrypoint", "permissions", "serversideup"]
     },
     {

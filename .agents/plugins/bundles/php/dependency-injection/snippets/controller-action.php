@@ -26,15 +26,15 @@ use Inertia\Response;
 use function to_route;
 
 /**
- * ТОНКИЙ КОНТРОЛЛЕР: authorize → FormRequest → mapper → Action → redirect/Inertia.
+ * THIN CONTROLLER: authorize → FormRequest → mapper → Action → redirect/Inertia.
  *
- * Два канала DI в контроллере:
- * 1. Constructor injection — зависимости, нужные нескольким экшен-методам (mapper, read-репозиторий).
- * 2. Method injection — Action, нужный ровно одному экшен-методу контроллера.
- *    Контейнер резолвит параметры роутового метода так же, как конструктор.
+ * Two channels DI in the controller:
+ * 1. Constructor injection — dependencies required by several action methods (mapper, read-repository).
+ * 2. Method injection — Action, needed by exactly one controller action method.
+ *    The container resolves route method parameters in the same way as a constructor.
  *
- * Никакой бизнес-логики: валидация — в FormRequest, авторизация — в Policy
- * (атрибут #[CheckPermission] или $this->authorize), доменная работа — в Action.
+ * No business logic: validation - in FormRequest, authorization - in Policy
+ * (attribute #[CheckPermission] or $this->authorize), domain work - in Action.
  */
 final class DocumentsController extends Controller
 {
@@ -43,8 +43,8 @@ final class DocumentsController extends Controller
     ) {}
 
     /**
-     * Сохраняет документ и перенаправляет на карточку.
-     * Action попадает сюда через METHOD INJECTION — он нужен только этому методу.
+     * Saves the document and redirects to the card.
+     * Action gets here via METHOD INJECTION — only this method needs it.
      */
     public function store(
         StoreMainRequest $request,
@@ -52,7 +52,7 @@ final class DocumentsController extends Controller
     ): JsonResponse|RedirectResponse {
         $isUpdate = $request->filled(key: 'id');
 
-        // Request → DTO на границе HTTP: глубже Request не проходит.
+        // Request → DTO at the border HTTP: deeper Request does not work.
         $document = $action->execute(
             command: new StoreCommand(
                 form: $this->mapFormFromRequest(request: $request),
@@ -62,14 +62,14 @@ final class DocumentsController extends Controller
 
         return to_route(route: 'documents.show', parameters: ['document' => $document->id])
             ->withFlash(
-                message: $isUpdate ? 'Успешно сохранено' : 'Успешно создано',
+                message: $isUpdate ? 'Successfully saved' : 'Successfully created',
                 type: 'success',
             );
     }
 
     /**
-     * Завершает документ с положительным или отрицательным результатом.
-     * Авторизация — декларативно атрибутом, маппится на Policy.
+     * Ends the document with a positive or negative result.
+     * Authorization - declarative attribute, mapped to Policy.
      */
     #[CheckPermission(permission: CommonPermission::Finish, arguments: ['document'])]
     public function finish(
@@ -90,7 +90,7 @@ final class DocumentsController extends Controller
     }
 
     /**
-     * Чтение без Action: страница собирается из DTO формы, рендер — Inertia.
+     * Read without Action: page is assembled from DTO forms, render - Inertia.
      */
     #[CheckPermission(permission: CommonPermission::View, arguments: ['document'])]
     public function show(Document $document): Response
@@ -101,8 +101,8 @@ final class DocumentsController extends Controller
     }
 
     /**
-     * Валидированный payload → DTO формы. Mapper — constructor-зависимость:
-     * он нужен и store(), и register(), и другим методам записи.
+     * Validated payload → DTO forms. Mapper — constructor-dependency:
+     * it is needed and store(), and register(), and other recording methods.
      */
     private function mapFormFromRequest(StoreMainRequest $request): Form
     {

@@ -14,31 +14,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Повторяемые предикаты живут в модели как scopes с ДОМЕННЫМИ именами.
- * Репозиторий их компонует — where-цепочки не дублируются по кодовой базе.
+ * Repeatable predicates live in the model as scopes with DOMAIN names.
+ * The repository compiles them - where-chains are not duplicated across the codebase.
  */
 final class Document extends Model
 {
-    /** Все участники, отсортированные по приоритету. */
+    /** All participants, sorted by priority. */
     public function members(): HasMany
     {
         return $this->hasMany(related: Member::class)
             ->orderBy(column: 'priority');
     }
 
-    /** Участники с ролью «Эксперт» — именованный срез отношения. */
+    /** Members with role «Expert» — named relation slice. */
     public function experts(): HasMany
     {
         return $this->members()->where(column: 'role', operator: '=', value: UserRole::Expert);
     }
 
-    /** Участники с ролью «Ответственный». */
+    /** Members with role «Responsible». */
     public function responsibles(): HasMany
     {
         return $this->members()->where(column: 'role', operator: '=', value: UserRole::Responsible);
     }
 
-    /** Scope для загрузки всех связей, необходимых для отображения списка документов. */
+    /** Scope to load all the links needed to display the document list. */
     public function scopeWithListRelations(Builder $query): Builder
     {
         return $query
@@ -63,9 +63,9 @@ final class Document extends Model
     }
 
     /**
-     * Простой доменный предикат «документы пользователя» (создатель или участник).
-     * Это НЕ авторизация: ролевая видимость — в VisibilityService,
-     * scope лишь даёт переиспользуемый строительный блок для него.
+     * Simple domain predicate «user documents» (creator or contributor).
+     * This is NOT authorization: role visibility is in VisibilityService,
+     * scope just gives a reusable building block for it.
      */
     public function scopeForUser(Builder $query, User $user): Builder
     {

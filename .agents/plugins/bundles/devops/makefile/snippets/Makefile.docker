@@ -1,13 +1,13 @@
 # Source: anonymized production Laravel project
-# docker/Makefile — вся docker-логика проекта. Вызывается из корневого Makefile
-# через catch-all (см. Makefile.root), поэтому пути compose-файлов — от корня репо.
+# docker/Makefile — all docker-project logic. Called from root Makefile
+# via catch-all (see Makefile.root), so the paths compose-files - from the repo root.
 
 .PHONY: help up down build restart ps logs logs\:core shell artisan composer pnpm \
 	migrate db-fresh db-seed test db\:create-test clear-cache \
 	prod\:artisan prod\:migrate prod\:test prod\:clear-cache prod\:db\:create-test image
 
-# Dev compose должен подхватывать и .env (приложение), и .env.docker (порты/uid/gid).
-# Важно: при использовании --env-file docker compose перестаёт автоматически читать .env.
+# Dev compose should pick up and .env (application), and .env.docker (ports/uid/gid).
+# Important: when using --env-file docker compose stops automatically reading .env.
 DOCKER_COMPOSE_DEV := docker compose
 ifeq ($(wildcard .env.docker),.env.docker)
 DOCKER_COMPOSE_DEV := docker compose --env-file .env --env-file .env.docker
@@ -15,15 +15,15 @@ endif
 
 help:
 	@echo "DEV:"
-	@echo "  make up | make down | make build   — поднять / остановить / пересобрать стек"
-	@echo "  make shell                         — bash в контейнере app"
-	@echo "  make logs | make logs:core         — логи app / app+queue+scheduler+reverb"
-	@echo "  make artisan ARGS=\"...\"            — php artisan в контейнере"
+	@echo "  make up | make down | make build   — raise / stop / rebuild stack"
+	@echo "  make shell                         — bash in the container app"
+	@echo "  make logs | make logs:core         — logs app / app+queue+scheduler+reverb"
+	@echo "  make artisan ARGS=\"...\"            — php artisan in the container"
 	@echo "  make migrate | make db-fresh | make db-seed"
-	@echo "  make test                          — PHP-тесты в контейнере"
-	@echo "  make db:create-test                — создать БД <app>_test (volume уже существует)"
+	@echo "  make test                          — PHP-tests in a container"
+	@echo "  make db:create-test                — create database <app>_test (volume already exists)"
 	@echo "PROD (docker-compose.prod.yml):"
-	@echo "  make image                         — собрать образ <app>/app:latest"
+	@echo "  make image                         — build image <app>/app:latest"
 	@echo "  make prod:migrate | make prod:test | make prod:clear-cache | make prod:db:create-test"
 
 up:
@@ -74,12 +74,12 @@ test:
 clear-cache:
 	$(DOCKER_COMPOSE_DEV) exec app php artisan optimize:clear
 
-# Сборка production-образа (используется docker-compose.prod.yml)
+# Assembly production-image (is used docker-compose.prod.yml)
 image:
 	docker build -t <app>/app:latest -f docker/php/Dockerfile .
 
-# Тестовая БД для существующего volume (init-скрипт не запускался) —
-# идемпотентный скрипт, см. скилл docker-postgres (init-test-db.sh, вариант 2)
+# Test database for an existing volume (init-script did not run) —
+# idempotent script, see skill docker-postgres (init-test-db.sh, option 2)
 db\:create-test:
 	bash docker/postgres/create-test-db.sh dev
 

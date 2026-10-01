@@ -1,15 +1,15 @@
 # Source: anonymized production Laravel project
-# Локальные переопределения Docker Compose (не коммитятся).
+# Local overrides Docker Compose (are not committed).
 #
-# Скопируйте в корень репозитория:
+# Copy to the repository root:
 #   cp docker-compose.override.example.yml docker-compose.override.yml
 #
-# Когда нужен:
-# - WSL2 / Linux с bind-mount: vite должен писать в ./ от uid хоста,
-#   иначе Permission denied на node_modules и генерируемые файлы.
-# - На «чистом» Linux без override vite работает как www-data — файл не обязателен.
+# When needed:
+# - WSL2 / Linux with bind-mount: vite should write to ./ from uid host,
+#   otherwise Permission denied on node_modules and generated files.
+# - On «clean» Linux without override vite works like www-data — file is optional.
 #
-# PUID/PGID в .env.docker должны совпадать с id -u / id -g на хосте.
+# PUID/PGID in .env.docker must match id -u / id -g on the host.
 
 services:
   vite:

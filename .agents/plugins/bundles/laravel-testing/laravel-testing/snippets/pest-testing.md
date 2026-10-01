@@ -1,28 +1,28 @@
 <!-- Source: anonymized production Laravel project -->
-# Pest-тестирование
+# Pest-testing
 
-## Сначала прочитай
+## Read first
 
-1. **`testing-rules`** — изоляция БД `{{project_name}}_test`, Docker vs локальный PHP, Dusk, запрет опасных команд вне testing.
-2. Тип теста: для HTTP, API и сценариев доступа — Feature (`tests/Feature/`); для доменной модели и Actions — часто `tests/Feature/Document/`; чистая логика без БД — Unit (`tests/Unit/`).
+1. **`testing-rules`** — database isolation `{{project_name}}_test`, Docker vs local PHP, Dusk, prohibition of dangerous commands outside testing.
+2. Test type: for HTTP, API and access scripts - Feature (`tests/Feature/`); for the domain model and Actions — often `tests/Feature/Document/`; pure logic without a database - Unit (`tests/Unit/`).
 
-## Сценарий работы агента
+## Agent operation scenario
 
-1. Pre-flight: контейнеры и БД для тестов — см. **`testing-rules`** и cursor rule test-preflight (Docker `docker compose ps`, затем запуск из того же окружения, что и тесты).
-2. Открыть изменённые классы и при необходимости фабрики.
-3. Запуск только нужных тестов с фильтром: `php artisan test --filter=...` или через Docker из таблицы в **`testing-rules`**.
+1. Pre-flight: containers and databases for tests - see. **`testing-rules`** and cursor rule test-preflight (Docker `docker compose ps`, then run from the same environment as the tests).
+2. Open modified classes and, if necessary, factories.
+3. Running only the necessary tests with a filter: `php artisan test --filter=...` or via Docker from table to **`testing-rules`**.
 
-## Ожидания проекта
+## Project Expectations
 
-- По умолчанию Feature-тесты, если нет явной причины ограничиться Unit.
-- Данные через фабрики моделей.
-- Утверждения про поведение (HTTP-код, редирект, состояние БД, уведомления), а не про внутреннюю реализацию.
+- Default Feature-tests unless there is a clear reason to limit Unit.
+- Data via model factories.
+- Behavior Statements (HTTP-code, redirect, database state, notifications), and not about the internal implementation.
 
-## Команды
+## Commands
 
-Сначала определи окружение (**`testing-rules`**): при **`DB_HOST=pgsql`** выполняй команды в контейнере **`app`**.
+First determine the environment (**`testing-rules`**): when **`DB_HOST=pgsql`** execute commands in the container **`app`**.
 
-**Локальный PHP:**
+**Local PHP:**
 
 ```bash
 php artisan test
@@ -36,4 +36,4 @@ docker compose exec app php artisan test
 docker compose exec app ./vendor/bin/pest
 ```
 
-Тесты всегда используют БД **`{{project_name}}_test`** (`phpunit.xml`), не основную из `.env`.
+Tests always use the database **`{{project_name}}_test`** (`phpunit.xml`), not the main one `.env`.

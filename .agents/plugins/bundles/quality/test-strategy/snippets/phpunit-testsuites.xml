@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Source: a Laravel package phpunit.xml (anonymized) -->
-<!-- Композиция именованных сюитов: Arch гоняется первым/отдельно (без БД),
-     Unit/Feature разнесены, <exclude> убирает пересечения. Запуск:
-       vendor/bin/pest --testsuite=Arch        # быстрый барьер границ
+<!-- Composition of named suites: Arch is racing first/separately (without database),
+     Unit/Feature spaced, <exclude> removes intersections. Launch:
+       vendor/bin/pest --testsuite=Arch        # fast boundary barrier
        vendor/bin/pest --testsuite=Unit,Feature -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"

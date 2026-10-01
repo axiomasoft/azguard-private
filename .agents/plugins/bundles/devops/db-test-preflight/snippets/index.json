@@ -3,17 +3,17 @@
   "snippets": [
     {
       "file": "preflight.sh",
-      "description": "Пре-флайт shell-скрипт: cont., compose ps -> pg_isready -> гейт имени *_test -> существование/идемпотентное создание БД -> миграции; режимы docker и host",
+      "description": "Pre-flight shell-script: cont., compose ps -> pg_isready -> name gate *_test -> existence/idempotent database creation -> migrations; modes docker and host",
       "tags": ["preflight", "shell", "pg_isready", "postgres", "docker"]
     },
     {
       "file": "Makefile.test",
-      "description": "Фрагмент Makefile: цель test-preflight (ps, гейт *_test, pg_isready, делегирование в preflight.sh) как зависимость цели test",
+      "description": "Fragment Makefile: target test-preflight (ps, gate *_test, pg_isready, delegation to preflight.sh) as target dependency test",
       "tags": ["makefile", "preflight", "docker", "testing"]
     },
     {
       "file": "composer-scripts.json",
-      "description": "Фрагмент composer.json: пре-флайт встроен в скрипт test и в git-хук pre-push; провал скрипта прерывает запуск suite",
+      "description": "Fragment composer.json: pre-flight is built into the script test and in git-hook pre-push; script failure aborts startup suite",
       "tags": ["composer", "git-hook", "pre-push", "testing"]
     }
   ]

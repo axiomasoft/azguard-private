@@ -14,17 +14,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Write-side репозиторий: запись полей документа по DTO-команде (Form).
+ * Write-side repository: writing document fields by DTO-command (Form).
  *
- * Контракт:
- * - работает ВНУТРИ транзакции вызывающего Action — сам транзакций не открывает;
- * - НЕ пишет историю и НЕ диспатчит события — это ответственность Action/StateMachine;
- * - принимает DTO (Form), а не Request и не сырые массивы.
+ * Contract:
+ * - runs INSIDE the caller's transaction Action — does not open transactions itself;
+ * - DOES NOT write history and DO NOT dispatch events - this is a responsibility Action/StateMachine;
+ * - accepts DTO (Form), and not Request and not raw arrays.
  */
 final readonly class DocumentStoreRepository
 {
     /**
-     * Создаёт или обновляет строку документа по форме.
+     * Creates or updates a document line from a form.
      */
     public function persistFromForm(Form $form, User $user): Document
     {
@@ -41,9 +41,9 @@ final readonly class DocumentStoreRepository
             ]));
         }
 
-        // Типичная ошибка: вызвать здесь $document->recordHistory(...) или event(...).
-        // История изменений и доменные события пишутся из Action/StateMachine,
-        // которые знают бизнес-контекст операции; репозиторий знает только строки.
+        // Common error: call here $document->recordHistory(...) or event(...).
+        // Change history and domain events are written from Action/StateMachine,
+        // who know the business context of the operation; the repository only knows strings.
 
         $this->syncRelatedDocuments(document: $document, relatedDocuments: $form->related_documents);
 
@@ -58,8 +58,8 @@ final readonly class DocumentStoreRepository
     }
 
     /**
-     * Sync приватного отношения «связанные документы»: пары нормализуются
-     * (меньший id слева), upsert новых, удаление выпавших — идемпотентно.
+     * Sync private relationship «related documents»: pairs are normalized
+     * (smaller id left), upsert new ones, removing dropped ones is idempotent.
      *
      * @param  array<int, RelatedDocumentData>  $relatedDocuments
      */

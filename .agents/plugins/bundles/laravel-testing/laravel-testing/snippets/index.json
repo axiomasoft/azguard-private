@@ -32,7 +32,7 @@
     },
     {
       "file": "pest-composition.php",
-      "description": "Композиция Pest: setUp-трейты ActsAsUser/SeedsUserRoles, тонкий TestCase через use, beforeEach с preventStrayRequests/Sleep::fake/freezeTime для Feature и Unit, кастомный expectation, именованный и инлайн датасеты ->with() поверх фабрик Eloquent",
+      "description": "Composition Pest: setUp-traits ActsAsUser/SeedsUserRoles, thin TestCase via use, beforeEach with preventStrayRequests/Sleep::fake/freezeTime for Feature and Unit, custom expectation, named and inline datasets ->with() on top of factories Eloquent",
       "tags": [
         "pest",
         "testing",
@@ -43,7 +43,7 @@
     },
     {
       "file": "pest-testing.md",
-      "description": "Написание и правка тестов Pest (Feature/Unit), отладка падений",
+      "description": "Writing and editing tests Pest (Feature/Unit), debugging crashes",
       "tags": [
         "pest",
         "testing"
@@ -59,7 +59,7 @@
     },
     {
       "file": "testing-safety-report.md",
-      "description": "Безопасность тестовой среды: изоляция тестовой БД",
+      "description": "Test Environment Security: Test Database Isolation",
       "tags": [
         "testing",
         "database"
@@ -67,7 +67,7 @@
     },
     {
       "file": "phpunit.xml",
-      "description": "phpunit.xml с изолированной тестовой БД <app>_test: server + env force=true, array-драйверы, media-test диск",
+      "description": "phpunit.xml with an isolated test database <app>_test: server + env force=true, array-drivers, media-test disk",
       "tags": [
         "testing",
         "phpunit",
@@ -76,7 +76,7 @@
     },
     {
       "file": "coverage-gate-config.php",
-      "description": "coverage.php: baseline 70% общий, 55% для критических путей (Actions/Policies/Services/Middleware), env-переопределения",
+      "description": "coverage.php: baseline 70% general, 55% for critical paths (Actions/Policies/Services/Middleware), env-overrides",
       "tags": [
         "testing",
         "coverage"
@@ -84,7 +84,7 @@
     },
     {
       "file": "check-coverage-gate.php",
-      "description": "Скрипт-гейт покрытия: читает coverage/clover.xml, режимы report/soft/hard, пофайловая проверка критичных зон",
+      "description": "Coverage gate script: reads coverage/clover.xml, modes report/soft/hard, file-by-file check of critical areas",
       "tags": [
         "testing",
         "coverage",
@@ -93,7 +93,7 @@
     },
     {
       "file": "composer-test-scripts.json",
-      "description": "Composer-скрипты: test (config:clear + lint:check + artisan test), test:coverage, test:coverage:gate, test:critical",
+      "description": "Composer-scripts: test (config:clear + lint:check + artisan test), test:coverage, test:coverage:gate, test:critical",
       "tags": [
         "testing",
         "composer",

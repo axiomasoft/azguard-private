@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Gate;
 use InvalidArgumentException;
 
 /**
- * Единственное место, где правила видимости превращаются в SQL-ограничения.
- * Инжектируется в read-репозиторий; сам репозиторий авторизационных решений
- * не принимает. Декларативные таблицы «роль → статусы/отношение» вместо if-каскадов.
+ * The only place where visibility rules turn into SQL-restrictions.
+ * Injected into read-repository; the repository of authorization solutions itself
+ * does not accept. Declarative tables «role → statuses/attitude» instead if-cascades.
  */
 final class DocumentVisibilityService
 {
@@ -45,7 +45,7 @@ final class DocumentVisibilityService
     ];
 
     /**
-     * Применяет правила видимости документов к запросу.
+     * Applies document visibility rules to the request.
      *
      * @param  Builder<Document>  $query
      * @return Builder<Document>
@@ -57,7 +57,7 @@ final class DocumentVisibilityService
         }
 
         if (! $user instanceof User) {
-            throw new InvalidArgumentException('Для выборки документов требуется пользователь.');
+            throw new InvalidArgumentException('A user is required to select documents.');
         }
 
         if (Gate::forUser(user: $user)->allows(ability: CommonPermission::ViewAny->value)) {
@@ -85,7 +85,7 @@ final class DocumentVisibilityService
     }
 
     /**
-     * Узкая ролевая видимость: только «свои» документы и только в статусах этапа.
+     * Narrow Role Visibility: Only «theirs» documents and only in stage statuses.
      *
      * @param  array<int, DocumentStatus>  $statuses
      * @return Builder<Document>

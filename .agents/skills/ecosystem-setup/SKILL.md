@@ -3,53 +3,53 @@ name: ecosystem-setup
 description: "Use when changing project skills, plugins, memory scopes, roles, or environment connections in this ecosystem."
 ---
 
-# Настройка проекта `azguard` (узел academici)
+# Project setup `azguard` (node academici)
 
-Этот проект — узел экосистемы **academici**, подключённый к хабу **mAInd**. Файл управляется
-из maind (`templates/skills/ecosystem-setup/SKILL.md`) — правь там и `maind sync`, не в копии.
+This project is an ecosystem node **academici**, connected to the hub **mAInd**. File is managed
+from maind (`templates/skills/ecosystem-setup/SKILL.md`) — edit there and `maind sync`, not in copy.
 
-**Состояние проекта:** тип `php-package` · scope `project:azguard` · namespaces `axioma`.
+**Project status:** type `php-package` · scope `project:azguard` · namespaces `axioma`.
 
-## Главные правила (не нарушай)
+## General rules (do not violate)
 
-1. **Оптимально, не максимально.** Подбирай набор скиллов/плагинов под стек и роль проекта.
-   Не включай чужие роли (`php`/`python`/`mobile` на фронте, фронт на backend-пакете) — это шум.
-2. **Неочевидно → спроси.** Если оптимальный набор неясен (гибридный стек, спорные бакеты) —
-   спроси пользователя (2-3 курированных варианта), не угадывай и не ставь «на всякий случай».
-3. **Канал скиллов спрашивай всегда** (connect vs vendor) — он меняет, что коммитится в репо.
+1. **Optimal, not maximum.** Select a set of skills/plugins for the stack and project role.
+   Don't include other people's roles (`php`/`python`/`mobile` on the front, front on backend-package) — is noise.
+2. **Not obvious → ask.** If the optimal set is unclear (hybrid stack, controversial buckets) —
+   ask user (2-3 curated option), do not guess and do not bet «just in case».
+3. **Skill channel always ask** (connect vs vendor) — it changes what is committed to the repo.
 
-## Дерево решений (вопрос → варианты → действие)
+## Decision tree (question → options → action)
 
-**Тип проекта** (`php-package`) задаёт базовый профиль скиллов. Если тип `standalone` —
-он **не распознан**: не ставь всё, выбери профиль явно (`node-frontend`, `laravel-project`,
-`php-package`, `python-backend`, …) или спроси.
+**Project type** (`php-package`) sets the basic skill profile. If type `standalone` —
+he **not recognized**: don't put everything, select the profile explicitly (`node-frontend`, `laravel-project`,
+`php-package`, `python-backend`, …) or ask.
 
-| Решение | Варианты | Действие |
+| Solution | Options | Action |
 |:--|:--|:--|
-| **Память** | maind / native / off | `maind onboard azguard --memory <…>` (дефолт maind) |
-| **Namespaces** | общий (группа) + личный (изоляция) + `*` (инфра) | `--namespace a,b`; внутри ns память общая, между — изолирована |
-| **Канал скиллов** | connect (бакет, не в репо) / vendor (скиллы в репо + lock) | спросить; `skiller connect` или `.swissknifeman/config.json` + `skiller sync` |
-| **Бакеты ролей** | по профилю типа; CORE всегда | не «всё подряд»; неочевидно — спросить |
-| **Окружение** | permissions / MCP / auto-approve / brain | делегируется в `harness` |
-| **Код-граф** | Serena вкл/выкл | `--with-code` |
+| **Memory** | maind / native / off | `maind onboard azguard --memory <…>` (default maind) |
+| **Namespaces** | general (group) + personal (insulation) + `*` (infra) | `--namespace a,b`; inside ns memory is shared, between - isolated |
+| **Skill channel** | connect (bucket, not in repo) / vendor (skills in repo + lock) | ask; `skiller connect` or `.swissknifeman/config.json` + `skiller sync` |
+| **Role buckets** | by type profile; CORE always | not «everything in a row»; not obvious - ask |
+| **Environment** | permissions / MCP / auto-approve / brain | is delegated to `harness` |
+| **Code graph** | Serena on/off | `--with-code` |
 
-## Частые задачи
+## Frequent tasks
 
-- **Добавить роль/скиллы** → спроси канал; connect: `skiller connect --plugins <текущие>,<новый>`;
-  vendor: допиши в `.swissknifeman/config.json` → `skiller sync`.
-- **Сменить набор плагинов** → отредактируй `enabledPlugins` в `.claude/settings.local.json`
-  (оставь релевантные стеку), либо `skiller connect --plugins …` (перезаписывает).
-- **Поменять память/namespaces** → `maind onboard azguard --memory … --namespace …`.
-- **Перераскатать артефакты** → `maind sync --project azguard` (или `--only mcp,graph,…`).
-- **Проверить связь** → `maind health` (round-trip-гейт), `skiller status`, `maind doctor`.
-- **Проверить always-on бюджет** (перед добавлением скилла/агента/CLAUDE.md-блока/MCP-сервера) →
-  `skiller budget --first-turn` (per-project, target ≤7K/warn >10K); флот — `maind doctor --context`;
-  тренд по сессиям — `analyst sessions`.
+- **Add role/skills** → ask channel; connect: `skiller connect --plugins <current>,<new>`;
+  vendor: add in `.swissknifeman/config.json` → `skiller sync`.
+- **Change plugin set** → edit `enabledPlugins` in `.claude/settings.local.json`
+  (leave the relevant ones to the stack), or `skiller connect --plugins …` (overwrites).
+- **Change memory/namespaces** → `maind onboard azguard --memory … --namespace …`.
+- **Reroll artifacts** → `maind sync --project azguard` (or `--only mcp,graph,…`).
+- **Check connection** → `maind health` (round-trip-gate), `skiller status`, `maind doctor`.
+- **Check always-on budget** (before adding the skill/agent/CLAUDE.md-block/MCP-server) →
+  `skiller budget --first-turn` (per-project, target ≤7K/warn >10K); fleet - `maind doctor --context`;
+  trend by session - `analyst sessions`.
 
-Полное дерево всех слоёв — в доке maind «Дерево решений: настройка проекта»
+The complete tree of all layers is in the dock maind «Decision Tree: Project Setup»
 (`packages/maind/docs/guide/onboarding-decision-tree.md`).
 
-## Связи проекта
+## Project Communications
 
-- namespaces: `axioma` · scope: `project:azguard` · связан с: —.
-- актуальные связи: `maind graph --project azguard`.
+- namespaces: `axioma` · scope: `project:azguard` · linked to: —.
+- current connections: `maind graph --project azguard`.

@@ -3,54 +3,54 @@
 
 # Laravel DTO (Spatie LaravelData)
 
-## Buckets — пять типов DTO
+## Buckets — five types DTO
 
 ```
 app/Dto/
 ├── <Domain>/
-│   ├── Form/       ← редактируемые контракты (вход от пользователя)
-│   ├── View/       ← read-only проекции (список, detail)
-│   ├── Policy/     ← Abilities DTO для frontend (boolean-права)
-│   └── Mapper/     ← трансформация Model → View DTO
+│   ├── Form/       ← editable contracts (user login)
+│   ├── View/       ← read-only projections (list, detail)
+│   ├── Policy/     ← Abilities DTO for frontend (boolean-rights)
+│   └── Mapper/     ← transformation Model → View DTO
 └── Actions/
-    └── <Domain>/   ← Command DTO для use-cases
+    └── <Domain>/   ← Command DTO for use-cases
 ```
 
-| Bucket | Назначение | Примеры |
+| Bucket | Purpose | Examples |
 |:---|:---|:---|
-| `Form/` | Вход от пользователя, редактируемые контракты | `Form`, `Participants`, `AttachmentData` |
-| `View/` | Read-only проекции для UI | `ListItemView`, `DetailView`, `HistoryView` |
-| `Policy/` | Boolean-способности для frontend | `CommonAbilities`, `QuestionAbilities` |
-| `Mapper/` | Model → View DTO трансформация | `ViewMapper`, `ListMapper` |
-| `Actions/<Domain>/` | Command DTO для Action::execute() | `StoreCommand`, `WrittenReplyCommand` |
+| `Form/` | User login, editable contracts | `Form`, `Participants`, `AttachmentData` |
+| `View/` | Read-only projections for UI | `ListItemView`, `DetailView`, `HistoryView` |
+| `Policy/` | Boolean-abilities for frontend | `CommonAbilities`, `QuestionAbilities` |
+| `Mapper/` | Model → View DTO transformation | `ViewMapper`, `ListMapper` |
+| `Actions/<Domain>/` | Command DTO for Action::execute() | `StoreCommand`, `WrittenReplyCommand` |
 
 ---
 
-## Базовые правила
+## Basic Rules
 
 ```php
-// Всегда: final + declare(strict_types=1)
+// Always: final + declare(strict_types=1)
 final class ListItemView extends Data {}
 
-// Nested Data вместо raw arrays
+// Nested Data instead raw arrays
 // ✅
 public OrderParticipant $creator;
 // ❌
 public array $creator;
 
-// Типизированные коллекции вместо array
+// Typed collections instead array
 // ✅
 /** @var array<int, ParticipantView> */
 public array $participants;
 // ❌
-public array $participants; // без типизации элементов
+public array $participants; // without element typing
 ```
 
 ---
 
-## Factory: внутренняя сборка из модели
+## Factory: internal assembly from model
 
-Для сборки DTO внутри приложения (не из user input) — всегда через factory:
+For assembly DTO inside the application (not from user input) — always via factory:
 
 ```php
 public static function fromDb(Order $ticket): self
@@ -84,27 +84,27 @@ private static function buildPayload(Order $ticket): array
 
 ## Static factory methods
 
-Стандартные именованные конструкторы:
+Standard named constructors:
 
 ```php
-// Из Eloquent модели
+// From Eloquent models
 public static function fromModel(Model $model): self { ... }
 
-// Из БД (с eager-load внутри)
+// From the database (with eager-load inside)
 public static function fromDb(Order $ticket): self { ... }
 
-// Пустое состояние (для create-форм)
+// Empty state (for create-forms)
 public static function fromEmpty(): self { ... }
 
-// Из FormRequest
+// From FormRequest
 public static function fromRequest(OrderRequest $request): self { ... }
 ```
 
 ---
 
-## TypeScript генерация
+## TypeScript generation
 
-`#[TypeScript]` на классе или enum → авто-генерация TypeScript типов:
+`#[TypeScript]` on the class or enum → auto-generation TypeScript types:
 
 ```php
 #[TypeScript]
@@ -119,27 +119,27 @@ final class ListItemView extends Data
 }
 ```
 
-После изменений запустить:
+After the changes, run:
 
 ```bash
 php artisan typescript:transform
 ```
 
-Генерирует TypeScript interface/type, который используется во Vue-компонентах без ручного дублирования.
+Generates TypeScript interface/type, which is used in Vue-components without manual duplication.
 
 ---
 
-## toArray() — только при необходимости
+## toArray() — only if necessary
 
-Кастомный `toArray()` пишется только когда:
-- Нужен особый контракт (`false|array`, custom flattening)
-- Требуется контролируемая сериализация enum/union, не покрываемая дефолтом
+Custom `toArray()` is written only when:
+- Need a special contract (`false|array`, custom flattening)
+- Controlled serialization required enum/union, not covered by default
 
-В большинстве случаев — стандартная сериализация Spatie Data достаточна.
+In most cases - standard serialization Spatie Data is sufficient.
 
 ---
 
-## Form DTO — пример
+## Form DTO — example
 
 ```php
 #[TypeScript]
@@ -169,7 +169,7 @@ final class Form extends Data
 
 ---
 
-## View DTO — пример
+## View DTO — example
 
 ```php
 #[TypeScript]
@@ -202,9 +202,9 @@ final class ListItemView extends Data
 
 ## Checklist code review DTO
 
-- [ ] Класс `final` и `declare(strict_types=1)`
-- [ ] Нет «сырых» `array`, если можно выразить nested Data
-- [ ] `toArray()` отсутствует или обоснован доменной логикой
-- [ ] Factory-сборка через `withoutValidation()` / `withoutMagicalCreation()`
-- [ ] `#[TypeScript]` и `typescript:transform` после изменения контракта
-- [ ] Тест на shape payload при изменении внешнего контракта
+- [ ] Class `final` and `declare(strict_types=1)`
+- [ ] No «raw» `array`, if possible to express nested Data
+- [ ] `toArray()` missing or justified by domain logic
+- [ ] Factory-assembly via `withoutValidation()` / `withoutMagicalCreation()`
+- [ ] `#[TypeScript]` and `typescript:transform` after contract change
+- [ ] Test for shape payload when changing an external contract

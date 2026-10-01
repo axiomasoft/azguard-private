@@ -7,18 +7,18 @@ namespace App\Domain\ValueObject;
 use InvalidArgumentException;
 
 /**
- * Value Object: типобезопасное значение с инвариантом, проверяемым в конструкторе.
- * - final readonly — иммутабельность, без сеттеров;
- * - инвариант гарантирует, что НЕвалидного экземпляра не существует;
- * - равенство по значению (equals), не по идентичности;
- * - доменное существительное в имени (Email, Money), без суффикса -VO/-Object.
+ * Value Object: is a type-safe value with an invariant that is checked in the constructor.
+ * - final readonly — immutable, no setters; The
+ * - invariant ensures that an UNVALID instance does not exist;
+ * - equality by value (equals), not by identity;
+ * - domain noun in name (Email, Money), without suffix -VO/-Object.
  */
 final readonly class Email
 {
     public function __construct(public string $value)
     {
         if (! filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            throw new InvalidArgumentException(message: "Невалидный email: {$value}");
+            throw new InvalidArgumentException(message: "Invalid email: {$value}");
         }
     }
 
@@ -39,24 +39,24 @@ final readonly class Email
 }
 
 /**
- * VO с несколькими полями: инвариант связывает их (amount + currency).
- * Поведение (операции над значением) живёт в VO, а не размазано по сервисам.
+ * VO with multiple fields: an invariant links them (amount + currency).
+ * Behavior (operations on value) lives in VO, and not spread across services.
  */
 final readonly class Money
 {
     public function __construct(
-        public int $amount,        // в минимальных единицах (копейки/центы)
+        public int $amount,        // in minimum units (kopecks/cents)
         public string $currency,
     ) {
         if ($amount < 0) {
-            throw new InvalidArgumentException(message: 'Сумма не может быть отрицательной');
+            throw new InvalidArgumentException(message: 'Amount cannot be negative');
         }
     }
 
     public function add(self $other): self
     {
         if ($this->currency !== $other->currency) {
-            throw new InvalidArgumentException(message: 'Нельзя складывать разные валюты');
+            throw new InvalidArgumentException(message: 'You cannot add different currencies');
         }
 
         return new self(amount: $this->amount + $other->amount, currency: $this->currency);

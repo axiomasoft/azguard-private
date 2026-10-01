@@ -1,6 +1,6 @@
 # Source: anonymized production Laravel project
-# Dev-compose (корневой docker-compose.yml): build из контекста + bind-mount исходников.
-# .env читается из смонтированного файла — НЕ через build args (значение «замерзает» при create).
+# Dev-compose (root docker-compose.yml): build from context + bind-mount sources.
+# .env is read from the mounted file - NOT via build args (value «freezes» when create).
 services:
   app:
     build:
@@ -18,7 +18,7 @@ services:
       - "${APP_PORT:-8080}:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # Якорь &app_env: общий блок окружения, переиспользуется другими сервисами через *app_env
+    # Anchor &app_env: general environment block, reused by other services via *app_env
     environment: &app_env
       PUID: ${PUID:-0}
       PGID: ${PGID:-0}
@@ -26,7 +26,7 @@ services:
       APP_ENV: ${APP_ENV}
       APP_KEY: ${APP_KEY}
       APP_DEBUG: ${APP_DEBUG}
-      # APP_URL только из смонтированного .env: иначе значение «застывает» при create контейнера.
+      # APP_URL only from mounted .env: otherwise value «freezes» when create container.
       DB_CONNECTION: pgsql
       DB_HOST: pgsql
       DB_PORT: 5432
@@ -61,7 +61,7 @@ services:
     command: ["sh", "-lc", "pnpm install && pnpm run dev --host=0.0.0.0 --port=${VITE_PORT:-5173}"]
     volumes:
       - ./:/var/www/html
-      # node_modules — named volume, НЕ bind-mount (скорость + изоляция от хоста)
+      # node_modules — named volume, NOT bind-mount (speed + isolation from host)
       - vite_node_modules:/var/www/html/node_modules
     ports:
       - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"

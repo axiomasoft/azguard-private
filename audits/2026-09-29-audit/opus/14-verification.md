@@ -107,7 +107,7 @@
 
 | # | Сценарий | Пункт | Probe |
 |---|---|---|---|
-| V73 | `azguard.panel:seller`: пускает субъекта панели с правом входа и суперадмина; не пускает без права и субъекта другой модели; внутри короткие имена относятся к `seller` | P6.2 | — |
+| V73 | Panel admission: default entry=null пускает accepted subject с qualified code/DB/relation ролью; без роли/с direct grant only/чужой моделью отказ. Project-only CallerRole входит в выбранный tenant по eligible project witness, но не получает global права; expiry/inactive/другой tenant не подходят. Optional entry AND: allow не заменяет роль, deny/veto действует и на superadmin; middleware/Filament parity | P6.2, P7.2 | — |
 | V83 | `#[CheckPermission]` на методе и на классе (`only:`) — роутер Laravel вешает `azguard.can` без своего сканера; `on: 'order'` передаёт модель маршрута; строгий режим: действие без проверки → `MissingPermissionCheckException` в testing и 403 в production; Laravel `#[Authorize]` и `can` засчитываются; `#[SkipPermissionCheck]` пропускает; doctor `routes.checks` показывает то же заранее | P6.2 | — |
 | V84 | Механизмы Laravel: `php artisan optimize` строит кэш каталога, `optimize:clear` чистит; `about` показывает раздел AzGuard; job, поставленный из запроса `azguard.panel:admin`, относит короткие имена к `admin` (через `Context`), job из консоли — к панели по умолчанию | P6.10 | — |
 | V36 | Проверки при загрузке из [07 §5](07-configuration.md#5-проверки-при-запуске) — каждая строка таблицы | P6.3 | — |

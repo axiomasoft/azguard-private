@@ -1,6 +1,6 @@
 # Source: anonymized production Laravel project
-# Уровень max уже включён. Дальнейшая работа — сужать array в публичных API:
-# @return array{...}, @phpstan-type, типизированные DTO.
+# Level max is already enabled. Further work is to narrow down array in public API:
+# @return array{...}, @phpstan-type, typed DTO.
 includes:
     - vendor/larastan/larastan/extension.neon
 

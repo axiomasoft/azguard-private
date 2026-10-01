@@ -15,24 +15,24 @@ use Spatie\Health\Checks\Result;
 use Throwable;
 
 /**
- * Шаблон кастомной spatie/laravel-health проверки.
+ * Custom template spatie/laravel-health checks.
  *
- * Демонстрирует все ключевые приёмы:
- *  - run(): Result — никаких исключений наружу;
- *  - активная проверка ресурса (реальная запись/чтение), а не чтение конфига;
- *  - конфигурация через config(...) с дефолтами;
- *  - диагностика в ->meta([...]);
- *  - параметризация через приватный конструктор + статическую фабрику.
+ * Demonstrates all the key techniques:
+ *  - run(): Result — no exceptions outward;
+ *  - active resource check (real entry/read), rather than reading the config;
+ *  - configuration via config(...) with defaults;
+ *  - diagnostics in ->meta([...]);
+ *  - parameterization via private constructor + static factory.
  *
- * В реальном проекте раздели на несколько узких классов
+ * In a real project, divided into several narrow classes
  * (DiskWriteCheck, CacheStoreCheck, ServiceTcpConnectionCheck, ...).
- * Здесь они в одном файле только для наглядности паттерна.
+ * Here they are in one file only for clarity of the pattern.
  */
 final class ExampleCheck extends Check
 {
     /**
-     * Приватный конструктор + фабрика — когда проверку запускают
-     * для нескольких целей (например, для разных дисков).
+     * Private constructor + factory - when the check is run
+     * for multiple purposes (for example, for different disks).
      */
     public function __construct(
         private readonly string $disk = 'local',
@@ -45,43 +45,43 @@ final class ExampleCheck extends Check
     }
 
     /**
-     * run() ВСЕГДА возвращает Result. Любое исключение из I/O/сети/драйвера
-     * ловим и превращаем в ->failed(), иначе падает весь прогон проверок.
+     * run() ALWAYS returns Result. Any exception to I/O/networks/drivers
+     * we catch and turn into ->failed(), otherwise the entire check run crashes.
      */
     public function run(): Result
     {
-        // 1) Активная проверка диска: реальная запись → чтение → удаление.
+        // 1) Active disk check: real write → read → deletion.
         $filename = $this->directory.'/'.Str::uuid()->toString().'.txt';
         $payload = 'ok:'.now()->toIso8601String();
 
         try {
             Storage::disk($this->disk)->put($filename, $payload);
             $read = Storage::disk($this->disk)->get($filename);
-            Storage::disk($this->disk)->delete($filename); // временный артефакт убираем всегда
+            Storage::disk($this->disk)->delete($filename); // always remove temporary artifact
         } catch (Throwable $exception) {
             return Result::make()->failed($exception->getMessage());
         }
 
         if ($read !== $payload) {
-            return Result::make()->failed("Диск [{$this->disk}] вернул неожиданные данные.");
+            return Result::make()->failed("Disk [{$this->disk}] returned unexpected data.");
         }
 
-        // 2) Косвенная проверка через heartbeat: возраст метки против порога из конфига.
+        // 2) Indirect check via heartbeat: age of the label against the threshold from the config.
         $maxDelayMinutes = (int) config('health.scheduler.max_delay_minutes', default: 2);
         $timestamp = Cache::get('health:scheduler:last_heartbeat');
 
         if (! is_string($timestamp) || $timestamp === '') {
-            return Result::make()->failed('Отсутствует heartbeat шедулера.');
+            return Result::make()->failed('Missing heartbeat scheduler.');
         }
 
         $lastHeartbeatAt = CarbonImmutable::parse($timestamp);
         $minutesSince = $lastHeartbeatAt->diffInMinutes(now());
 
         if ($minutesSince > $maxDelayMinutes) {
-            return Result::make()->failed('Heartbeat шедулера устарел.');
+            return Result::make()->failed('Heartbeat scheduler is outdated.');
         }
 
-        // 3) Проверка TCP-порта внешнего сервиса: реальное соединение с таймаутом.
+        // 3) Verification TCP-external service port: real connection with timeout.
         $host = (string) config('health.service.host', default: '127.0.0.1');
         $port = (int) config('health.service.port', default: 6379);
         $timeout = (float) config('health.service.timeout_seconds', default: 2.0);
@@ -89,18 +89,18 @@ final class ExampleCheck extends Check
         $socket = @fsockopen($host, $port, $errno, $errstr, $timeout);
 
         if (! is_resource($socket)) {
-            return Result::make()->failed("TCP-порт сервиса недоступен: {$errno} {$errstr}");
+            return Result::make()->failed("TCP-service port unavailable: {$errno} {$errstr}");
         }
 
         fclose($socket);
 
-        // Успех: короткое сообщение + диагностика в meta.
+        // Success: short message + diagnostics in meta.
         return Result::make()
             ->meta([
                 'disk' => $this->disk,
                 'service' => "{$host}:{$port}",
                 'minutes_since_heartbeat' => $minutesSince,
             ])
-            ->ok('Все ресурсы доступны.');
+            ->ok('All resources are available.');
     }
 }

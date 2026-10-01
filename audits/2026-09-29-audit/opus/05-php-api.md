@@ -40,7 +40,6 @@ final class SellerGuardPanelProvider extends PanelProvider
         return $panel
             ->id(self::getId())                                         // имена прав: seller.orders.cancel (префикс по умолчанию)
             ->for(model: User::class, guard: 'web')
-            ->entry('panel.access')                                // войти может только продавец (право даёт SellerRole)
             ->permissions([
                 RelationSource::make(Store::class, via: 'staff', role: 'pivot.role'),
                 DatabaseSource::make()->rolesOnly(),               // владелец магазина выдаёт роли; отдельных прав не выдаём
@@ -58,7 +57,6 @@ final class AdminGuardPanelProvider extends PanelProvider
         return $panel
             ->id(self::getId())->resourcePrefix('backoffice')                  // свой префикс: backoffice.orders.refund
             ->for(model: User::class, guard: 'web')
-            ->entry('panel.access')
             ->requireRouteChecks()                                 // у каждого действия — #[CheckPermission] или явный пропуск
             ->permissions([
                 ReportPermission::class,                            // enum вне папки панели → FolderSource
@@ -315,7 +313,7 @@ final class PanelBuilder
     // субъекты и вход; string = class-string<Model>, array = непустой список таких классов
     public function for(string|array $model, ?string $guard = null, ?string $directory = null): static;
     public function middleware(array $middleware): static;                // что выполняется при входе в панель
-    public function entry(string|UnitEnum|null $permission): static;     // право входа (у суперадмина есть)
+    public function entry(string|UnitEnum|null $permission): static;     // optional дополнительный AND check; default null
     public function onDenied(Closure|string|null $response): static;     // 403 по умолчанию; редирект и т. п.
     public function requireRouteChecks(): static;                         // строгий режим: у каждого действия проверка или #[SkipPermissionCheck]
     // описание прав (D73): enum definitions + источники; FolderSource есть всегда
@@ -437,6 +435,12 @@ final class SourceManager extends \Illuminate\Support\Manager    // AzGuard::sou
 ```
 
 Контракты `Source` и его возможностей — [06 §2](06-extension-points.md#2-свой-источник).
+
+Базовый вход через azguard.panel/Filament требует действующего назначения PHP-роли этой панели.
+entry по умолчанию null; он добавляет ещё одну проверку, а не заменяет роль. Указать можно enum case:
+`->entry(PanelPermission::Access)`. Direct permission или PolicyOnly allow сами по себе не дают входа в UI.
+Проектная роль позволяет войти в tenant при наличии хотя бы одного подходящего проекта; это не выдаёт
+права на остальные проекты. Полный контракт входа — [09 §3.1](09-authorization-semantics.md#31-вход-в-интерфейс-панели).
 
 ## 5. Значения ядра (`AzGuard\Kernel\…`)
 

@@ -85,7 +85,7 @@ enum FilamentDefinitions { case Enums; case Resources; }
 | Ресурсы (viewAny, view, create, update, delete, …) | `FilamentGate` через `Gate::before`: ability Filament + модель → имя права → решение панели `guardPanel` | `false` при `enforce` |
 | Страницы | `AuthorizesPage::canAccess()` → `hasPermission()` в `guardPanel` | `false` при `enforce` (сейчас `true`, N18) |
 | Виджеты | `AuthorizesWidget::canView()` | `false` при `enforce` |
-| Вход в Filament-панель | `entry()` панели AzGuard (если задано) через `canAccessPanel()` | `false` |
+| Вход в Filament-панель | `canAccessPanel()` → общий entry evaluator: qualified role этой панели/tenant AND optional `entry()` | `false` |
 
 ## 5. Редакторы по схеме панели
 

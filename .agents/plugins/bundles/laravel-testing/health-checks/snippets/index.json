@@ -3,12 +3,12 @@
   "snippets": [
     {
       "file": "ExampleCheck.php",
-      "description": "Шаблон кастомной spatie/laravel-health проверки: run(): Result без исключений наружу, try/catch (Throwable), активная проверка ресурса (диск put/get/delete, heartbeat из кэша против порога, TCP-порт через fsockopen), конфиг через config() с дефолтами, диагностика в meta, приватный конструктор + статическая фабрика forDisk()",
+      "description": "Custom template spatie/laravel-health checks: run(): Result without exceptions outward, try/catch (Throwable), active resource check (disk put/get/delete, heartbeat from cache against threshold, TCP-port via fsockopen), config via config() with defaults, diagnostics in meta, private constructor + static factory forDisk()",
       "tags": ["check", "result", "custom-check", "disk", "tcp", "heartbeat", "factory"]
     },
     {
       "file": "config-health.php",
-      "description": "config/health.php: result store, уведомления (mail/slack, throttle, only_on_failure), json_results_failure_status, secret_token, Oh Dear, проектные секции (scheduler/service) через env; в комментарии — обвязка: Health::checks([...]) с фабриками и встроенными проверками, роуты liveness/readiness/дашборд, расписание health:check + heartbeat шедулера",
+      "description": "config/health.php: result store, notifications (mail/slack, throttle, only_on_failure), json_results_failure_status, secret_token, Oh Dear, project sections (scheduler/service) via env; in the comment - strapping: Health::checks([...]) with factories and built-in checks, routes liveness/readiness/dashboard, schedule health:check + heartbeat scheduler",
       "tags": ["config", "registration", "notifications", "endpoint", "schedule", "result-store"]
     }
   ]

@@ -1,23 +1,23 @@
 > Scope: this example belongs to the project-adopted pattern in `../SKILL.md`.
 > It does not impose this architecture on another project; preserve real access and transaction invariants.
 
-# Вынос общего кода: лестница ступеней
+# Takeaway of common code: ladder of steps
 
-Код выносится «вверх» только когда дублирование реально случилось (второй потребитель существует, а не предполагается). Каждая следующая ступень — больше абстракции и больше стоимость сопровождения; берём минимально достаточную.
+Code is displayed «up» only when duplication actually happened (second consumer exists, not assumed). Each subsequent stage is more abstraction and more maintenance costs; we take the minimum sufficient.
 
 ```
-1. Scope / метод модели          ← код нужен в двух местах одного домена
-2. Concern-трейт                 ← одинаковая примесь у классов разных доменов
-3. PHP-атрибут + resolver        ← декларативные метаданные вместо match-простыней
-4. Support/<Tech>-хелпер         ← статичный механизм без состояния
-5. Utils                         ← чистые функции без Laravel
-6. DTO вместо массива            ← общая структура данных между слоями
-7. Локальный пакет               ← код полезен за пределами проекта
+1. Scope / model method          ← code is needed in two places of the same domain
+2. Concern-trait                 ← same mixin for classes of different domains
+3. PHP-attribute + resolver        ← declarative metadata instead match-sheets
+4. Support/<Tech>-helper         ← static stateless mechanism
+5. Utils                         ← pure functions without Laravel
+6. DTO instead of an array            ← common data structure between layers
+7. Local package               ← code is useful outside the project
 ```
 
-## Ступень 1: scope / метод модели
+## Stage 1: scope / model method
 
-Логика принадлежит одной сущности — остаётся в модели:
+Logic belongs to one entity - remains in the model:
 
 ```php
 // app/Models/Order/Order.php
@@ -27,60 +27,60 @@ public function scopeActive(Builder $query): Builder
 }
 ```
 
-Не выноси в трейт/хелпер то, что используют только запросы по `Order`.
+Don't put it in trait/helper is something that only requests for `Order`.
 
-## Ступень 2: Concern-трейт
+## Stage 2: Concern-trait
 
-Одинаковая **примесь метаданных или поведения** нужна классам разных доменов — трейт в `app/Concerns/<Tech>/`, где `<Tech>` — механизм, а не домен:
+Same **metadata or behavior admixture** is needed by classes of different domains - trait in `app/Concerns/<Tech>/`, where `<Tech>` — mechanism, not domain:
 
 ```
-app/Concerns/Enums/HasLabelAttribute.php     ← метод getLabel() для любых enum
+app/Concerns/Enums/HasLabelAttribute.php     ← method getLabel() for any enum
 app/Concerns/Enums/HasColorAttribute.php
-app/Concerns/Media/HasMediaPathAttribute.php ← путь хранения медиа для моделей
+app/Concerns/Media/HasMediaPathAttribute.php ← media storage path for models
 ```
 
-Границы:
+Boundaries:
 
-- Concern — это примесь (accessor, метаданные, мелкое поведение), **НЕ бизнес-логика**. «Пошарить» правило согласования через трейт нельзя — это Service.
-- Трейт не знает о доменах: внутри нет `Order`, `Document` и т.п.
-- Группировка по механизму: `Concerns/Enums/`, `Concerns/Media/`, не `Concerns/Order/`.
+- Concern — is a mixin (accessor, metadata, small behavior), **NOT business logic**. «Fumble» the matching rule via trait is not possible - this is Service.
+- Trait does not know about domains: not inside `Order`, `Document` etc.
+- Grouping by mechanism: `Concerns/Enums/`, `Concerns/Media/`, not `Concerns/Order/`.
 
-## Ступень 3: PHP-атрибут + resolver
+## Stage 3: PHP-attribute + resolver
 
-`match`-простыни по кейсам enum (label, color, стадия) заменяются декларативными атрибутами над кейсом + reflection-резолвером:
+`match`-sheets in cases enum (label, color, stage) are replaced by declarative attributes above the case + reflection-resolver:
 
 ```
-app/Attributes/Common/Label.php                 ← универсальный атрибут
-app/Attributes/Order/Stage.php                  ← доменный атрибут
-app/Support/Enums/EnumCaseAttributeResolver.php ← единый резолвер
-app/Concerns/Enums/HasLabelAttribute.php        ← трейт-фасад над резолвером
+app/Attributes/Common/Label.php                 ← universal attribute
+app/Attributes/Order/Stage.php                  ← domain attribute
+app/Support/Enums/EnumCaseAttributeResolver.php ← single resolver
+app/Concerns/Enums/HasLabelAttribute.php        ← trait facade above the resolver
 ```
 
-Полный паттерн (атрибут, резолвер, трейт, доменные оси) — скилл `laravel-architecture/enum-attributes`.
+Full pattern (attribute, resolver, trait, domain axes) — skill `laravel-architecture/enum-attributes`.
 
-## Ступень 4: Support/<Tech>-хелпер
+## Stage 4: Support/<Tech>-helper
 
-Статичный механизм с reflection/регистрацией, нужный нескольким слоям — `app/Support/<Tech>/`:
+Static mechanism with reflection/registration, needed by several layers - `app/Support/<Tech>/`:
 
 ```
 app/Support/Enums/EnumCaseAttributeResolver.php
 app/Support/Auth/PolicyAttributeRegistrar.php
 ```
 
-**Когда Support, а когда Service:**
+**When Support, and when Service:**
 
-| | `Support/<Tech>/` | `Services/<Tech>/` или `Services/<Domain>/` |
+| | `Support/<Tech>/` | `Services/<Tech>/` or `Services/<Domain>/` |
 |---|---|---|
-| Состояние | Нет (статические методы) | Может быть |
-| Зависимости | Нет — не инжектируется, не дёргает контейнер | Инжектируется через конструктор (DI) |
-| Тестирование | Прямой вызов | Через контейнер/моки |
-| Пример | Reflection-резолвер атрибутов | `Broadcast/ChannelManager`, `Order/WorkflowService` |
+| Status | No (static methods) | Maybe |
+| Dependencies | No - does not inject, does not jerk the container | Injected via constructor (DI) |
+| Testing | Direct call | Via container/moki |
+| Example | Reflection-attribute resolver | `Broadcast/ChannelManager`, `Order/WorkflowService` |
 
-Если хелперу понадобилась зависимость (репозиторий, конфиг через DI, состояние) — это Service, переезд в `Services/`.
+If the helper needed a dependency (repository, config via DI, status) — this Service, moving to `Services/`.
 
-## Ступень 5: Utils
+## Stage 5: Utils
 
-Чистые функции без Laravel-зависимостей (даты, строки, общие операции над enum):
+Pure functions without Laravel-dependencies (dates, strings, general operations on enum):
 
 ```
 app/Utils/DateHelper.php
@@ -88,21 +88,21 @@ app/Utils/StrHelper.php
 app/Utils/EnumHelper.php
 ```
 
-Правило чистоты: не трогает БД, контейнер, request, auth. Если трогает — это не Utils.
+Cleanliness rule: do not touch the database, container, request, auth. If it touches, it's not Utils.
 
-## Ступень 6: DTO вместо массивов
+## Stage 6: DTO instead of arrays
 
-Общая структура данных между слоями (Action ↔ Controller ↔ фронтенд) — не ассоциативный массив, а типизированный DTO в `app/Dto/`:
+General data structure between layers (Action ↔ Controller ↔ frontend) — is not an associative array, but a typed one DTO in `app/Dto/`:
 
-- Command DTO для Action: `Dto/Actions/<Domain>/<Subprocess>/StoreCommand.php`
-- View DTO для фронтенда: `Dto/<Domain>/View/ListItemView.php`
-- UI-обвязка страницы: псевдодомен `Dto/Layout/View/SharedPageProps.php`
+- Command DTO for Action: `Dto/Actions/<Domain>/<Subprocess>/StoreCommand.php`
+- View DTO for the frontend: `Dto/<Domain>/View/ListItemView.php`
+- UI-page binding: pseudodomain `Dto/Layout/View/SharedPageProps.php`
 
-Бакеты Form/View/Command/Mapper и генерация TypeScript — `php/laravel` → `snippets/dto.md`.
+Buckets Form/View/Command/Mapper and generation TypeScript — `php/laravel` → `snippets/dto.md`.
 
-## Ступень 7: локальный пакет (path-repository)
+## Stage 7: local package (path-repository)
 
-Финальная ступень: код стабилен, не знает о проекте и полезен за его пределами (enum-коллекции, generic-резолверы) — выносится в `packages/<name>/` и подключается через composer path-repository с symlink:
+Final stage: the code is stable, unaware of the project and useful outside of it (enum-collections, generic-resolvers) — is placed in `packages/<name>/` and connects via composer path-repository with symlink:
 
 ```json
 "repositories": [
@@ -110,11 +110,11 @@ app/Utils/EnumHelper.php
 ]
 ```
 
-Шаблон подключения — `laravel-architecture/enum-attributes` → `snippets/composer-path-repo.json`; устройство пакета — скиллы `php/laravel-package-*`.
+Connection template - `laravel-architecture/enum-attributes` → `snippets/composer-path-repo.json`; package device - skills `php/laravel-package-*`.
 
-## Анти-паттерны выноса
+## Anti-takeout patterns
 
-- **Преждевременная абстракция**: трейт/хелпер «на будущее» при одном потребителе — держи код у потребителя.
-- **Трейт как контейнер бизнес-логики**: правило домена в Concern — должно быть Service в `Services/<Domain>/`.
-- **Доменное знание на технической оси**: `Support/`/`Utils/`/`Concerns/` с упоминанием конкретного домена — переезд в доменную папку.
-- **Хелпер-свалка**: `Utils/Helper.php` с десятком несвязанных методов — дроби по осям (Date, Str, Enum).
+- **Premature abstraction**: trait/helper «for the future» with one consumer - keep the code with the consumer.
+- **Trait as a business logic container**: domain rule in Concern — should be Service in `Services/<Domain>/`.
+- **Domain knowledge on the technical axis**: `Support/`/`Utils/`/`Concerns/` with a mention of a specific domain - moving to the domain folder.
+- **Dump Helper**: `Utils/Helper.php` with a dozen unrelated methods - fractions along the axes (Date, Str, Enum).

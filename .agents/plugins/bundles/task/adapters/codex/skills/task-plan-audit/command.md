@@ -1,6 +1,6 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/plan-audit.md
-Canonical SHA-256: sha256:03aec4d7e720de6c50f4c10b7d2ecf8d596cca9077d8b6940e096a255be06f83
+Canonical SHA-256: sha256:1f060e4a595f9a6eb197f2e9ec00d59148faa1f814d0a3afc330fe10c1280a0c
 Adapter: task.codex-command/1.0.17
 -->
 ## Native Codex launch-block — required only at a real user-facing boundary
@@ -13,7 +13,7 @@ the owner-authorized scope in this root. If that scope is complete, report the e
 recommendation for this chat; a final answer does not require a new `codex` process. A command, phase, directory, local repair, or ordinary test failure is not a session
 boundary.
 
-At a fresh-session boundary, keep Batch/Model/Thinking/Context/Суть in the metadata table,
+At a fresh-session boundary, keep Batch/Model/Thinking/Context/The bottom line in the metadata table,
 but never put the command in a table
 cell or column. Immediately after the table print `**Native Codex command:**` and a fenced `bash`
 block which explicitly pins the repository cwd, mapped model, reasoning effort, approval policy,
@@ -85,7 +85,7 @@ For `design`, first run `scripts/plan-work.py design-gate --plan-dir <dir>`. Req
 `finalize-design --finish` and audit the returned current fingerprint across every declared phase,
 item, dependency and execution-sheet row. Persist the audit journal event with that fingerprint
 using the existing `--fingerprint` field. A changed design input makes the verdict stale; after
-correction, repeat finish and the design audit. GREEN is the only result that opens plan execution.
+correction, repeat finish and the design audit. GREEN is the only result that satisfies a `Design Audit: required` gate; by default the design audit is optional.
 Before phase audit, consume one accepted, unsuperseded `audit-admission/v2` decision whose bounded
 residual-risk question, target phase, material candidate fingerprint, audit run, owner-message
 provenance, and scope digest all match. Foreign, stale, ambiguous, or already consumed consent does
@@ -114,4 +114,4 @@ typed continuation until a fresh terminal receipt and exact final fragment exist
 Persist a product finding as audit-attention (or audit-red) with decision action
 `return-owning-continuation`, evidence IDs, reason_code, scope_class=<owning item>,
 recovered=false, terminal=false,
-and exact exec-items/run-items owning continuation. Reviewer completion leaves the phase open.
+and exact run-items owning continuation. Reviewer completion leaves the phase open.

@@ -1,10 +1,10 @@
 <?php
 
-// Публикация скиллов из Laravel-пакета потребителю (vendor:publish).
+// Publishing skills from Laravel-package to the consumer (vendor:publish).
 //
-// Скиллы пакета лежат в resources/skills/, имя папки каждого скилла —
-// с префиксом пакета (my-package-security/), чтобы у потребителя не было
-// коллизий со скиллами из других источников.
+// The skills of the package are in resources/skills/, folder name of each skill -
+// with package prefix (my-package-security/), so that the consumer does not have
+// collisions with skills from other sources.
 //
 // vendor/acme/my-package/
 // └── resources/skills/
@@ -12,23 +12,23 @@
 //         ├── SKILL.md
 //         └── snippets/
 //
-// В ServiceProvider::boot():
+// B ServiceProvider::boot():
 
 if ($this->app->runningInConsole()) {
-    // Вариант A: агент-нейтральная раскладка
+    // Option A: agent-neutral layout
     $this->publishes([
         __DIR__.'/../resources/skills' => base_path('.ai/skills/vendor/my-package'),
     ], 'my-package-skills');
 
-    // Вариант B: плоская раскладка для Claude Code
-    // (.claude/skills/<name>/SKILL.md — вложенность не поддерживается)
+    // Option B: flat layout for Claude Code
+    // (.claude/skills/<name>/SKILL.md — nesting is not supported)
     $this->publishes([
         __DIR__.'/../resources/skills' => base_path('.claude/skills'),
     ], 'my-package-skills-claude');
 }
 
-// Потребитель после composer require:
+// Consumer after composer require:
 //   php artisan vendor:publish --tag=my-package-skills-claude
 //
-// Обновление скиллов при апгрейде пакета:
+// Updating skills when upgrading a package:
 //   php artisan vendor:publish --tag=my-package-skills-claude --force

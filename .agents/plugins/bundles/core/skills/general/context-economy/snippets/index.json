@@ -3,27 +3,27 @@
   "snippets": [
     {
       "file": "rules-example.md",
-      "description": "Шаблон path-scoped правила .claude/rules/ с paths: frontmatter",
+      "description": "Template path-scoped rules .claude/rules/ with paths: frontmatter",
       "tags": ["claude-code", "rules", "tokens"]
     },
     {
       "file": "command-prime.md",
-      "description": "Шаблон команды /prime — минимальная загрузка контекста сессии",
+      "description": "Command template /prime — minimum session context load",
       "tags": ["claude-code", "commands"]
     },
     {
       "file": "command-plan.md",
-      "description": "Шаблон команды /plan — план в файл без выполнения (Plan→Clear→Execute)",
+      "description": "Command template /plan — plan to file without execution (Plan→Clear→Execute)",
       "tags": ["claude-code", "commands", "workflow"]
     },
     {
       "file": "command-execute.md",
-      "description": "Шаблон команды /execute — выполнение плана из файла в чистой сессии",
+      "description": "Command template /execute — executing a plan from a file in a clean session",
       "tags": ["claude-code", "commands", "workflow"]
     },
     {
       "file": "claude-md-checklist.md",
-      "description": "Чеклист аудита CLAUDE.md: размер ≤200 строк, тесты на каждую строку, анти-паттерны",
+      "description": "Audit checklist CLAUDE.md: size ≤200 lines, tests for each line, anti-patterns",
       "tags": ["claude-code", "claude-md", "tokens"]
     }
   ]

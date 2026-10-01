@@ -8,7 +8,7 @@
     },
     {
       "file": "pest-arch-test.php",
-      "description": "Pest Arch-правила: strict types, запрет debug-хелперов, final actions, readonly DTO/VO/Events, contracts=interfaces, Actions/Repositories без Request",
+      "description": "Pest Arch-rules: strict types, ban debug-helpers, final actions, readonly DTO/VO/Events, contracts=interfaces, Actions/Repositories without Request",
       "tags": [
         "testing",
         "pest",
@@ -18,7 +18,7 @@
     },
     {
       "file": "phpunit-testsuites.xml",
-      "description": "phpunit.xml с именованными сюитами Arch/Unit/UnitFilament/Feature/Context (+ exclude) и строгими флагами прогона",
+      "description": "phpunit.xml with named suites Arch/Unit/UnitFilament/Feature/Context (+ exclude) and strict run flags",
       "tags": [
         "testing",
         "phpunit",

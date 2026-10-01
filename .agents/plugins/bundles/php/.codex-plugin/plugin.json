@@ -1,6 +1,6 @@
 {
   "name": "php",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "PHP and Laravel core: architecture, structure, conventions, DI, database, repositories, patterns, static analysis",
   "skills": [
     "./code-style-spatie",

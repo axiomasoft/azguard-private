@@ -3,43 +3,43 @@
 
 # Laravel DB Conventions
 
-> Настройка самой модели (атрибуты, fillable, casts) — в `eloquent-model.md`.
+> Setting up the model itself (attributes, fillable, casts) — in `eloquent-model.md`.
 
-## Схема именования таблиц
+## Table naming scheme
 
-Формула: `<domain>_<entity>`, snake_case, существительное во множественном числе.
+Formula: `<domain>_<entity>`, snake_case, plural noun.
 
-| Тип | Паттерн | Пример |
+| Type | Pattern | Example |
 |:---|:---|:---|
-| Основная модель домена | `<entities>` | `tickets`, `users`, `meetings` |
-| Дочерняя в домене | `<domain>_<entity>` | `ticket_messages`, `ticket_participants` |
+| Basic Domain Model | `<entities>` | `tickets`, `users`, `meetings` |
+| Child in domain | `<domain>_<entity>` | `ticket_messages`, `ticket_participants` |
 | History / audit | `<domain>_history` | `ticket_history` |
-| Pivot двух доменов | `<domain_a>_<domain_b>` (alphab.) | `meeting_ticket_agendas` |
+| Pivot two domains | `<domain_a>_<domain_b>` (alphab.) | `meeting_ticket_agendas` |
 | Self-ref pivot | `<domain>_related` | `ticket_related` |
 | Settings / config | `<domain>_settings` | `ticket_settings` |
 
-**Правило:** если сущность принадлежит домену `Order` — все её вспомогательные таблицы начинаются с `ticket_`.
+**Rule:** if the entity belongs to a domain `Order` — all its auxiliary tables begin with `ticket_`.
 
-## Модель как единственный источник имени таблицы
+## Model as the sole source of the table name
 
-Имя таблицы задаётся **один раз** — в `#[Table(name: '...')]` на модели. В миграциях — только через `getTable()`, никаких строковых хардкодов.
+The table name is specified **once** — in `#[Table(name: '...')]` on the model. In migrations - only through `getTable()`, no string hardcodes.
 
 ```php
-// ✅ Правильно — через модель
+// ✅ Correct - through the model
 Schema::create((new Participant())->getTable(), fn (Blueprint $table) => ...);
 
 $table->foreignId(column: 'participant_id')
     ->constrained(table: (new Participant())->getTable())
     ->cascadeOnDelete();
 
-// ❌ Неправильно — хардкод
+// ❌ Wrong - hardcode
 Schema::create('ticket_participants', ...);
 $table->foreignId('participant_id')->constrained('ticket_participants');
 ```
 
-**Зачем:** переименование таблицы = правка только `#[Table]` в модели, миграции не трогаем.
+**Why:** rename table = edit only `#[Table]` in the model, we do not touch migrations.
 
-## Шаблон миграции
+## Migration template
 
 ```php
 <?php
@@ -81,13 +81,13 @@ return new class extends Migration
 };
 ```
 
-## Правила cascade
+## Rules cascade
 
-| Связь | Cascade |
+| Communication | Cascade |
 |:---|:---|
-| Обязательный родитель | `->cascadeOnDelete()` |
-| Опциональный родитель | `->nullOnDelete()` |
-| Не удалять дочернее | `->restrictOnDelete()` |
+| Mandatory parent | `->cascadeOnDelete()` |
+| Optional parent | `->nullOnDelete()` |
+| Do not delete child | `->restrictOnDelete()` |
 
 ## Quickstart
 
@@ -95,6 +95,6 @@ return new class extends Migration
 php artisan make:model ModelName -m --no-interaction
 ```
 
-После генерации:
-1. Настроить модель → `eloquent-model.md`
-2. Написать миграцию по шаблону выше
+After generation:
+1. Set up model → `eloquent-model.md`
+2. Write a migration using the template above

@@ -3,74 +3,74 @@ name: ecosystem-mcp
 description: "Use to recall ecosystem decisions, choose memory/code-graph MCP tools, or diagnose missing project connections."
 ---
 
-# Экосистема academici — MCP-инструменты этого проекта
+# Ecosystem academici — MCP-tools for this project
 
-Этот проект (`azguard`) — узел экосистемы **academici**, подключённый к хабу **mAInd**. Через
-хаб проходят два независимых механизма связывания; оба раскатаны сюда как MCP-серверы (см.
-`.mcp.json`). Управляется этот файл из maind (`templates/skills/ecosystem-mcp/SKILL.md`) — правь
-там и `maind sync`, а не в копии проекта.
+This project (`azguard`) — ecosystem node The **academici**, connected to the hub **mAInd**. Via
+hub undergoes two independent binding mechanisms; both are rolled out here like MCP-servers (see
+`.mcp.json`). This file is managed from maind (`templates/skills/ecosystem-mcp/SKILL.md`) — correct
+there and `maind sync`, and not in the copy of the project.
 
-## Инструменты и когда их вызывать
+## Tools and when to call them
 
-| MCP-сервер | Что это | Когда вызывать |
+| MCP-server | What is this | When to call |
 |:--|:--|:--|
-| **agentmemory** | Явная долговременная память. Приватный scope проекта — `project:azguard`; общий scope задаётся отдельно | Вызывать, когда прошлое решение или handoff может изменить работу. Для continuity писать один `active-handoff`; прогресс хранить в репозитории |
-| **serena** (код-граф) | Граф **кода внутри** проекта: символы, ссылки, реализации, обзор файла (движок Serena) | Для **навигации по коду** — `find_symbol`, `find_referencing_symbols`, `get_symbols_overview` вместо чтения файлов целиком (экономит токены). Доступен, если в `.mcp.json` есть сервер кода (обычно `serena`); нет — навигируй обычным поиском. Не путать с межпроектным maind-графом |
-| **maind** | Сам хаб (топология **между** проектами, статус связи) | Когда нужны связи проекта с другими узлами экосистемы или сводка состояния |
+| **agentmemory** | Explicit long-term memory. Private scope project - `project:azguard`; general scope is set separately | Call when past decision or handoff may change operation. For continuity write one `active-handoff`; progress stored in the repository |
+| **serena** (code graph) | Graph **code inside** project: symbols, links, implementations, file overview (engine Serena) | For **code navigation** — `find_symbol`, `find_referencing_symbols`, `get_symbols_overview` instead of reading entire files (saves tokens). Available if `.mcp.json` there is a code server (usually `serena`); no - navigate with regular search. Not to be confused with cross-project maind-graph |
+| **maind** | The hub itself (topology **between** projects, connection status) | When you need project connections to other ecosystem nodes or a status summary |
 
-Обычный recall остаётся в приватном scope проекта. Graph namespaces не дают автоматического
-доступа к памяти: общий `ns:<имя>` читается и пишется только при явном scope и разрешённом
-`memory_namespaces`. Не дублируй в память то, что уже есть в коде, плане или git.
+Normal recall remains private scope project. Graph namespaces do not automatically
+memory access: shared `ns:<name>` is read and written only when explicitly scope and allowed
+`memory_namespaces`. Do not duplicate into memory what is already in the code, plan or git.
 
-**Автозагрузка по умолчанию выключена (`MODE=manual`).** mAInd остаётся доступен через MCP,
-а память поднимается по запросу. `MODE=maind` с SessionStart digest включается только после
-измеренного подтверждения пользы.
+**Autoload is disabled by default (`MODE=manual`).** mAInd remains available via MCP,
+and memory rises upon request. `MODE=maind` with SessionStart digest is enabled only after
+measured evidence of benefit.
 
-## Межпроектная задача (2+ проекта)
+## Cross-project task (2+ project)
 
-Задача касается сразу нескольких проектов экосистемы (например «проанализируй X и Y и улучши
-общее между ними») — подними межпроектный контекст явно, тремя шагами:
+The task concerns several ecosystem projects at once (for example «analyze X and Y and improve
+common between them») — raise the cross-project context explicitly, in three steps:
 
-1. **Связи** — какие проекты вообще связаны: `maind graph --project azguard` (CLI) или
-   `maind_graph_path`/`maind_graph_neighbors` (MCP) — путь/соседи между узлами графа.
-2. **Контекст группы** — поднять общую память namespace явно (её нет в дайджесте по умолчанию):
-   `maind memory recall --scope ns:<имя>` (CLI) или `maind_memory_recall` c этим scope (MCP).
-3. **Вывод пишется в общий scope**, не в приватный проекта — иначе следующий проект группы его
-   не увидит: `maind memory remember --scope ns:<имя> "<факт>"` (CLI, `--scope` = прямой адрес
-   бакета — не путать с `--project --share`, у которого другое назначение: приватный + группа
-   разом) или `maind_memory_store` с `scope: "ns:<имя>"` (MCP).
+1. **Connections** — what projects are generally related: `maind graph --project azguard` (CLI) or
+   `maind_graph_path`/`maind_graph_neighbors` (MCP) — path/neighbors between graph nodes.
+2. **Group context** — raise shared memory namespace explicit (it is not in the digest by default):
+   `maind memory recall --scope ns:<name>` (CLI) or `maind_memory_recall` c with this scope (MCP).
+3. **The output is written to the general scope**, not in a private project - otherwise the next project of the group will be his
+   will not see: `maind memory remember --scope ns:<name> "<fact>"` (CLI, `--scope` = direct address
+   bucket - not to be confused with `--project --share`, which has a different purpose: private + group
+   at once) or `maind_memory_store` with `scope: "ns:<name>"` (MCP).
 
-## Правило: сначала граф/символы, потом широкий поиск
+## Rule: graph first/characters, then broad search
 
-Перед широким `grep`/чтением многих файлов — сначала спроси структуру, это дешевле по токенам:
+Before wide `grep`/reading many files - first ask for the structure, it's cheaper in terms of tokens:
 
-- **навигация по коду** → serena: `get_symbols_overview` (обзор файла), `find_symbol` (тело по имени),
-  `find_referencing_symbols` (кто ссылается) — вместо чтения файлов целиком;
-- **связи между проектами** → `maind graph query`/`neighbors` — соседи узла вместо grep по манифестам.
+- **code navigation** → serena: `get_symbols_overview` (file overview), `find_symbol` (body by name),
+  `find_referencing_symbols` (who refers) — instead of reading entire files;
+- **connections between projects** → `maind graph query`/`neighbors` — neighbors of a node instead grep by manifests.
 
-**Оговорка:** maind-граф пересобирается ВРУЧНУЮ (watcher'а нет) — может устареть. Если результат
-выглядит неполным/устаревшим → `maind sync --only graph`, затем повтори; либо фолбэк на обычный поиск.
-serena-код-граф (LSP) актуален на лету — оговорка к нему не относится.
+**Disclaimer:** maind-the graph is rebuilt MANUALLY (watcher'but no) — may be out of date. If the result
+looks incomplete/obsolete → `maind sync --only graph`, then repeat; or a fallback to a regular search.
+serena-code graph (LSP) is relevant on the fly - the disclaimer does not apply to it.
 
-## Связи проекта
+## Project Communications
 
-- **scope памяти:** `project:azguard`; экосистемные факты — в scope `global`.
-- **namespaces:** `axioma` (внутри группы — общее, между группами — изолировано).
-- **связан с:** —.
-- посмотреть актуальные связи: `maind graph --project azguard`.
+- **scope memory:** `project:azguard`; ecosystem facts - in scope `global`.
+- **namespaces:** `axioma` (within a group - general, between groups - isolated).
+- **linked to:** —.
+- see current connections: `maind graph --project azguard`.
 
-Если что-то ломается в связанном проекте — помни, что связь существует: изменения здесь могут
-влиять на соседей по namespace, и об этом стоит предупредить пользователя.
+If something breaks in a linked project, remember that the link exists: changes here can
+influence neighbors namespace, and the user should be warned about this.
 
-## Если связь сломана
+## If the connection is broken
 
-Инструменты выше работают только при поднятой связи с хабом. Если MCP-вызовы памяти/графа не
-отвечают или память пустая:
+The tools above only work when the connection to the hub is up. If MCP-memory calls/column not
+respond or memory is empty:
 
-1. Проверь: `maind health --cwd` (read-only) или `maind health --cwd --deep` при реальном симптоме;
-   `maind verify` проверяет, наполняется ли память/граф по всей экосистеме или всё поднято
-   «вхолостую». Память глазами — вьюер `http://127.0.0.1:3113`.
-2. При статусе `partial` / `standalone` — почини: `maind health --cwd --fix` (поднимет демон
-   памяти и допишет MCP-серверы хаба в проект).
-3. **Сообщи пользователю**: пока статус не `connected`, изменения этой сессии **не попадут** в
-   общую память и граф — в истории экосистемы появится невосстановимый пробел.
+1. Check: `maind health --cwd` (read-only) or `maind health --cwd --deep` with a real symptom;
+   `maind verify` checks if memory is full/graph across the entire ecosystem or everything is raised
+   «idle». Memory through the eyes - viewer `http://127.0.0.1:3113`.
+2. When status `partial` / `standalone` — fix: `maind health --cwd --fix` (will raise the demon
+   memory and add MCP-hub servers into the project).
+3. **Notify user**: status not yet `connected`, changes to this session **will not hit** in
+   shared memory and graph - an irreparable gap will appear in the history of the ecosystem.

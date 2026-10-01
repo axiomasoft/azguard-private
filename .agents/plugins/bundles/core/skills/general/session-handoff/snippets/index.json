@@ -3,7 +3,7 @@
   "snippets": [
     {
       "file": "handoff-template.md",
-      "description": "Шаблон handoff-документа: состояние, решения, незакрытые вопросы, следующие шаги",
+      "description": "Template handoff-document: status, solutions, open questions, next steps",
       "tags": ["handoff", "context"]
     }
   ]

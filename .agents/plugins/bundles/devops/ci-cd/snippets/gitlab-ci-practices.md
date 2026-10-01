@@ -1,16 +1,16 @@
 # GitLab CI/CD Best Practices
 
-Этот документ описывает стандарты и лучшие практики по написанию `.gitlab-ci.yml` пайплайнов для проектов.
+This document describes standards and best practices for writing `.gitlab-ci.yml` pipelines for projects.
 
-## Основные Принципы
+## Basic Principles
 
-1.  **Скорость:** Пайплайн должен проходить максимально быстро. Используйте кэширование зависимостей и Docker образов.
-2.  **Надежность:** Тесты и линтеры должны выполняться изолированно и не зависеть от состояния окружения.
-3.  **Безопасность:** Секреты и пароли должны храниться только в GitLab CI/CD Variables (желательно с флагами `Masked` и `Protected`), никогда в коде.
+1.  **Speed:** The pipeline should move as quickly as possible. Use dependency caching and Docker images.
+2.  **Reliability:** Tests and linters should be executed in isolation and not depend on the state of the environment.
+3.  **Security:** Secrets and passwords should only be stored in GitLab CI/CD Variables (preferably with flags `Masked` and `Protected`), never in code.
 
-## Структура Пайплайна (Stages)
+## Pipeline Structure (Stages)
 
-Стандартное разделение стадий:
+Standard division of stages:
 ```yaml
 stages:
   - lint
@@ -19,23 +19,23 @@ stages:
   - deploy
 ```
 
-## Правила (Rules) вместо Only/Except
+## Rules (Rules) instead Only/Except
 
-Используйте `rules` для контроля запуска джобов. Это современный и более гибкий механизм по сравнению с устаревшими `only` и `except`.
+Use `rules` to control the launch of jobs. This is a modern and more flexible mechanism compared to outdated ones `only` and `except`.
 
 ```yaml
 .standard_rules:
   rules:
-    # Запускать при Merge Request
+    # Run when Merge Request
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    # Запускать на дефолтной ветке (main/master)
+    # Run on default branch (main/master)
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 ```
 
-## Кэширование (Caching)
+## Caching (Caching)
 
-Кэшируйте папки с зависимостями (например, `vendor/` для PHP, `node_modules/` для Node.js, `.venv/` для Python), чтобы ускорить сборку.
-Ключ кэша лучше привязывать к файлу блокировки (`composer.lock`, `package-lock.json`, `poetry.lock`).
+Cache dependency folders (for example, `vendor/` for PHP, `node_modules/` for Node.js, `.venv/` for Python), to speed up the build.
+It is better to bind the cache key to the lock file (`composer.lock`, `package-lock.json`, `poetry.lock`).
 
 ```yaml
 cache:
@@ -48,8 +48,8 @@ cache:
 
 ## Docker in Docker (dind)
 
-Для сборки Docker-образов внутри GitLab CI используйте сервис `docker:dind`.
-Старайтесь использовать `docker buildx` с кэшированием слоев (`--cache-from` и `--cache-to`).
+For assembly Docker-images inside GitLab CI use the service `docker:dind`.
+Try to use `docker buildx` with layer caching (`--cache-from` and `--cache-to`).
 
 ```yaml
 build_image:
@@ -65,10 +65,10 @@ build_image:
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
 ```
 
-## Оптимизация и Трюки
+## Optimization and Tricks
 
--   **Interruptible:** Устанавливайте `interruptible: true` для стадий `lint` и `test`. Если разработчик запушит новый коммит до того, как закончится пайплайн старого, старый пайплайн будет отменен, что сэкономит ресурсы раннеров.
--   **Needs:** Используйте ключевое слово `needs`, чтобы строить Directed Acyclic Graphs (DAG). Это позволяет джобам начинаться сразу после завершения нужных предыдущих джобов, не дожидаясь окончания всей стадии.
+-   **Interruptible:** Install `interruptible: true` for stages `lint` and `test`. If a developer pushes a new commit before the old one's pipeline ends, the old pipeline will be reverted, saving runners' resources.
+-   **Needs:** Use keyword `needs`, to build Directed Acyclic Graphs (DAG). This allows jobs to start immediately after the desired previous jobs have completed, without waiting for the entire stage to finish.
 
 ```yaml
 test_backend:
@@ -80,15 +80,15 @@ test_backend:
 
 ## Coverage-gate job
 
-Порог покрытия — отдельный job поверх общего `.php-base` (сборка PHP-расширений,
-ожидание Postgres, миграции). Парсер/конфиг порога — в скилле `laravel-testing/laravel-testing`
-(`coverage.php` + `check-php-coverage-gate.php`); CI лишь вызывает их с env-порогами.
+Coverage threshold - separate job on top of the general `.php-base` (assembly PHP-extensions,
+waiting Postgres, migrations). Parser/threshold config - in skill `laravel-testing/laravel-testing`
+(`coverage.php` + `check-php-coverage-gate.php`); CI only calls them with env-thresholds.
 
 ```yaml
 variables:
-  COVERAGE_GATE_MODE: hard         # hard => exit 1 ниже порога; report/soft — не блокируют
-  COVERAGE_GLOBAL_MIN: "70.0"      # общий минимум по строкам
-  COVERAGE_CRITICAL_MIN: "55.0"    # ужесточённый для критичных директорий (Actions/Policies/Services)
+  COVERAGE_GATE_MODE: hard         # hard => exit 1 below threshold; report/soft — do not block
+  COVERAGE_GLOBAL_MIN: "70.0"      # total minimum by row
+  COVERAGE_CRITICAL_MIN: "55.0"    # toughened for critical directories (Actions/Policies/Services)
 
 .php-base:
   stage: test
@@ -101,7 +101,7 @@ variables:
   before_script:
     - apt-get update -qq && apt-get install -y -qq git unzip libpq-dev libicu-dev $PHPIZE_DEPS postgresql-client
     - docker-php-ext-install -j "$(nproc)" intl pdo_pgsql zip
-    - pecl install pcov && docker-php-ext-enable pcov   # pcov быстрее xdebug
+    - pecl install pcov && docker-php-ext-enable pcov   # pcov faster xdebug
     - printf 'pcov.directory=app\n' > /usr/local/etc/php/conf.d/pcov.ini
     - curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --no-interaction --prefer-dist
@@ -124,6 +124,6 @@ php-coverage:
     expire_in: 1 week
 ```
 
-Принцип: быстрый `php-tests` (без покрытия) даёт ранний fail; `php-coverage` отдельным
-job считает Clover и валит merge только при `hard` ниже порога. Покрытие — нижняя
-граница риска, не цель (качество тестов — `quality/mutation-testing`).
+Principle: fast `php-tests` (uncoated) gives early fail; `php-coverage` separate
+job believes Clover and goes down merge only when `hard` below threshold. Coverage - bottom
+risk boundary, not goal (test quality - `quality/mutation-testing`).

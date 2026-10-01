@@ -1,63 +1,63 @@
-# Шаблон корневого CLAUDE.md
+# Root template CLAUDE.md
 
-Скелет для нового проекта или для переразметки существующего раздутого файла. Секции —
-фиксированная структура; текст внутри `[FILL: ...]` — свобода проекта (пиши как есть, коротко).
-Каждая секция уже прошла тест факт-vs-процедура (см. основной SKILL.md) — если для твоего проекта
-раздел тянет на процедуру/чеклист/шаблон промпта, НЕ пиши его здесь: заведи скилл/команду
-(`.claude/skills/<name>/SKILL.md` или `.claude/commands/<name>.md`) и оставь в этой секции только
-ссылку на неё. Managed-блок хаба скиллов (маркеры `swissknifeman:hub:start/end`) — НЕ часть этого
-шаблона, его пишет `generate-hub.sh`/`skiller sync` сам, не трогать руками.
+Skeleton for a new project or for re-partitioning an existing bloated file. Sections -
+fixed structure; text inside `[FILL: ...]` — project freedom (write as it is, briefly).
+Each section has already passed the fact testvs-procedure (see main SKILL.md) — if for your project
+section draws on the procedure/checklist/prompt template, DO NOT write it here: create a skill/command
+(`.claude/skills/<name>/SKILL.md` or `.claude/commands/<name>.md`) and leave in this section only
+link to it. Managed-skill hub block (markers `swissknifeman:hub:start/end`) — NOT part of this
+template, it writes `generate-hub.sh`/`skiller sync` itself, do not touch it with your hands.
 
 ```markdown
-# CLAUDE.md — [FILL: имя проекта]
+# CLAUDE.md — [FILL: project name]
 
-[FILL: одна строка — что это за проект/домен]. [FILL: стек: язык+версия, фреймворк+версия, БД,
-очереди/кэш, ключевые внешние сервисы].
+[FILL: one line - what kind of project is this/domain]. [FILL: stack: language+version, framework+version, database,
+queues/cache, key external services].
 
-[FILL, если применимо: где источник истины AI-контекста, если не сам этот файл — напр. .ai/guidelines/*
-+ правило "правь там, а не здесь"; если авто-композиции нет — одна строка об этом].
+[FILL, if applicable: where is the source of truth AI-context, if not the file itself - e.g. .ai/guidelines/*
++ rule "edit there, not here"; if there is no auto-composition - one line about it].
 
-## Domain map (или "Structure" для не-доменных проектов)
+## Domain map (or "Structure" for non-domain projects)
 
-[FILL: 3-7 пунктов — доменные модули/bounded context'ы и их короткие префиксы/папки, ЕСЛИ они
-есть; иначе — просто карта верхнеуровневых директорий и что за ответственность у каждой].
-Полная структура по слоям (Models/Services/...) — [FILL: ссылка на docs/, если он есть и детальнее;
-иначе оставь здесь, но не дублируй в другом месте].
+[FILL: 3-7 items - domain modules/bounded context's and their short prefixes/folders IF they
+is; otherwise, it’s just a map of top-level directories and what responsibilities each has].
+Full structure by layers (Models/Services/...) — [FILL: link to docs/, if it exists and in more detail;
+otherwise leave here, but do not duplicate elsewhere].
 
-## Naming canon (короткий)
+## Naming canon (short)
 
-[FILL: только то, что реально нестандартно/специфично проекту — 3-6 строк: доменная
-сущность→переменная, если это не очевидно из кода; глаголы методов, если отличаются от общего
-скилла `naming-conventions`]. Полный глоссарий — [FILL: ссылка, если есть отдельный docs-файл].
+[FILL: only what is really non-standard/project specific - 3-6 lines: domain
+entity→variable if it is not obvious from the code; verbs of methods, if different from the general
+skill `naming-conventions`]. Full glossary - [FILL: link, if there is a separate docs-file].
 
-## Operating policies (запреты, не-дефолтные решения)
+## Operating policies (bans, non-default solutions)
 
-[FILL: 3-6 пунктов — то, что "удивит опытного разработчика, нового в репо": нестандартные решения
-против дефолта фреймворка, жёсткие запреты, специфика Docker/runtime]. НЕ пиши сюда то, что модель
-и так знает из обучения (стандартные паттерны фреймворка) или aspirational-советы ("пиши чистый
-код").
+[FILL: 3-6 points - that "will surprise an experienced developer new to the repo": non-standard solutions
+against framework default, strict prohibitions, specifics Docker/runtime]. DO NOT write here that the model
+already knows from training (standard patterns of the framework) or aspirational-tips ("write clean
+code").
 
-## Куда за деталями (router)
+## Where to get parts (router)
 
-| Ситуация | Файл/скилл |
+| Situation | File/skill |
 |---|---|
-| [FILL: типовые ситуации проекта → docs/ или skill `name`] | |
-| Тесты | skill `<test-skill>` |
-| Коммиты | skill `git-commit-rules` |
-| Сложная многошаговая задача | skill `complex-task-orchestrator` |
+| [FILL: typical project situations → docs/ or skill `name`] | |
+| Tests | skill `<test-skill>` |
+| Commits | skill `git-commit-rules` |
+| Complex multi-step task | skill `complex-task-orchestrator` |
 
-<!-- ниже — managed-блок хаба скиллов, пишет generate-hub.sh, не редактировать руками -->
+<!-- below - managed-skill hub block, writes generate-hub.sh, do not edit manually -->
 ```
 
-## Как применять
+## How to use
 
-- **Новый проект**: скопировать скелет, заполнить `[FILL: ...]`, убрать секции, которые для
-  проекта не нужны (лучше пусто, чем натянутое заполнение).
-- **Существующий раздутый CLAUDE.md**: прогнать `snippets/claude-md-checklist.md` по каждому
-  разделу файла → для каждого решить факт (остаётся, сжать до сути) / процедура (вынести в скилл,
-  оставить строку в router-таблице) / дубликат с docs (заменить на ссылку) / устарело (проверить
-  по актуальному коду перед переносом, не копировать вслепую — см.
+- **New project**: copy skeleton, fill `[FILL: ...]`, remove sections that are for
+  project are not needed (better empty than tense filling).
+- **Existing bloated CLAUDE.md**: drive away `snippets/claude-md-checklist.md` for each
+  section of the file → for each solve the fact (remains, condensed to the essence) / procedure (put in the skill,
+  leave the line in router-table) / duplicate with docs (replace with link) / deprecated (check
+  according to the current code before transferring, do not copy blindly - see.
   `snippets/claude-md-fact-vs-procedure-examples.md`).
-- Итог всегда меньше исходного, но не любой ценой: если после честного прогона чек-листа факт
-  остаётся фактом — он остаётся, даже если это значит не влезть в 200 строк. Раздутость — сигнал
-  искать процедуры/дубли, а не повод резать факты произвольно.
+- The result is always less than the original, but not at any cost: if after an honest run of the checklist it is a fact
+  remains a fact - it remains, even if it means not fitting into 200 lines. Bloating is a signal
+  search for procedures/duplicates, and not a reason to cut facts arbitrarily.

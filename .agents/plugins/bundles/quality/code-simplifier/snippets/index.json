@@ -3,7 +3,7 @@
   "snippets": [
     {
       "file": "simplify-on-push.yml",
-      "description": "Шаблон GitHub Actions: фоновый агент-упроститель по диффу PR, предложения комментарием",
+      "description": "Template GitHub Actions: background simplification agent by diff PR, suggestions by comment",
       "tags": ["github-actions", "background-agent"]
     }
   ]

@@ -7,8 +7,8 @@ declare(strict_types=1);
 namespace App\Dto\Document\Repository;
 
 /**
- * Дельта изменений участников после sync-операции write-side репозитория.
- * Размещение: app/Dto/<Домен>/Repository/ — DTO принадлежит контракту репозитория.
+ * Delta of member changes after sync-operations write-side repository.
+ * Location: app/Dto/<Domain>/Repository/ — DTO belongs to the repository contract.
  *
  * @phpstan-type MemberChange array{role: string, user_id: int}
  */

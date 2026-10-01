@@ -10,12 +10,12 @@ use Illuminate\Foundation\Application;
 use RuntimeException;
 
 /**
- * Страж изоляции тестового окружения.
+ * Test environment isolation guard.
  *
- * Вызывается из TestCase::createApplication() сразу после поднятия приложения и
- * АВАРИЙНО прерывает прогон, если активная БД или медиа-диск — не тестовые.
- * Это последний рубеж: даже если phpunit.xml/bootstrap.php сломаны или подменён .env,
- * тест упадёт ДО первого запроса и не запустит migrate:fresh по боевой/dev базе.
+ * Called from TestCase::createApplication() immediately after raising the application and
+ * Aborts the run if the active database or media disk is not a test one.
+ * This is the final frontier: even if phpunit.xml/bootstrap.php are broken or replaced.env,
+ * test will fail BEFORE the first request and will not run migrate:fresh on combat/dev database.
  */
 final class TestEnvironmentGuard
 {
@@ -39,9 +39,9 @@ final class TestEnvironmentGuard
     }
 
     /**
-     * БД активного подключения обязана заканчиваться на `_test`.
+     * The active connection database must end with `_test`.
      *
-     * RefreshDatabase выполняет migrate:fresh — запуск по основной БД уничтожит данные.
+     * RefreshDatabase executes migrate:fresh — running on the main database will destroy the data.
      */
     public static function assertIsolatedTestDatabase(Application $app): void
     {
@@ -52,14 +52,14 @@ final class TestEnvironmentGuard
 
         if (! str_ends_with((string) $database, '_test')) {
             throw new RuntimeException(sprintf(
-                "ИЗОЛЯЦИЯ ТЕСТОВ НАРУШЕНА: активная БД не является тестовой.\n".
+                "TEST ISOLATION BROKEN: the active database is not a test database.\n".
                     "  connection: [%s], database: [%s]\n".
-                    "Тесты должны работать только с БД, имя которой заканчивается на `_test`, ".
-                    "потому что RefreshDatabase вызывает migrate:fresh и СОТРЁТ данные основной БД.\n".
-                    "Как починить:\n".
-                    "  1. Убедитесь, что phpunit.xml содержит APP_ENV=testing и DB_DATABASE=<app>_test.\n".
-                    "  2. Проверьте tests/bootstrap.php — он должен выставлять DB_DATABASE до vendor/autoload.\n".
-                    "  3. Создайте тестовую БД (например app_test) тем же OWNER, что и DB_USERNAME в .env.",
+                    "Tests should only work against databases whose name ends with `_test`, ".
+                    "because RefreshDatabase calls migrate:fresh and WILL ERASE the main database data.\n".
+                    "How to fix:\n".
+                    "  1. Make sure that phpunit.xml contains APP_ENV=testing and DB_DATABASE=<app>_test.\n".
+                    "  2. Check tests/bootstrap.php — it should set DB_DATABASE to vendor/autoload.\n".
+                    "  3. Create a test database (for example app_test) the same OWNER, as DB_USERNAME in .env.",
                 $default,
                 is_string($database) ? $database : (string) json_encode($database)
             ));
@@ -67,9 +67,9 @@ final class TestEnvironmentGuard
     }
 
     /**
-     * Активный медиа-диск обязан быть тестовым (`media-test`).
+     * The active media disk must be a test disk (`media-test`).
      *
-     * Иначе тесты пишут загруженные файлы в боевой/dev стор.
+     * Otherwise, the tests write the downloaded files to the combat/dev side.
      */
     public static function assertIsolatedTestMediaDisk(Application $app): void
     {
@@ -80,12 +80,12 @@ final class TestEnvironmentGuard
 
         if ($mediaDisk !== 'media-test' || ! is_array($mediaDiskConfig)) {
             throw new RuntimeException(sprintf(
-                "ИЗОЛЯЦИЯ ТЕСТОВ НАРУШЕНА: медиа-диск не является тестовым.\n".
+                "TEST ISOLATION BROKEN: The media disk is not a test disk.\n".
                     "  media-library.disk_name: [%s]\n".
-                    "Тесты должны использовать диск `media-test`, чтобы не писать файлы в боевой стор.\n".
-                    "Как починить:\n".
-                    "  1. В phpunit.xml/tests/bootstrap.php выставьте MEDIA_DISK=media-test.\n".
-                    "  2. Опишите диск filesystems.disks.media-test (локальный, изолированный root).",
+                    "Tests must use disk `media-test`, so as not to write files to the combat side.\n".
+                    "How to fix:\n".
+                    "  1. B phpunit.xml/tests/bootstrap.php set MEDIA_DISK=media-test.\n".
+                    "  2. Describe the disk filesystems.disks.media-test (local, isolated root).",
                 $mediaDisk
             ));
         }

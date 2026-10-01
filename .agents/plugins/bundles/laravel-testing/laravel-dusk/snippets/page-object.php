@@ -9,12 +9,12 @@ namespace Tests\Browser\Pages;
 use Laravel\Dusk\Browser;
 use Laravel\Dusk\Page as BasePage;
 
-// --- Базовый Page (tests/Browser/Pages/Page.php) ---
+// --- Basic Page (tests/Browser/Pages/Page.php) ---
 
 abstract class Page extends BasePage
 {
     /**
-     * Глобальные шорткаты элементов для всего сайта.
+     * Global shortcuts of elements for the entire site.
      *
      * @return array<string, string>
      */
@@ -26,7 +26,7 @@ abstract class Page extends BasePage
     }
 }
 
-// --- Конкретная страница (tests/Browser/Pages/DocumentListPage.php) ---
+// --- Specific page (tests/Browser/Pages/DocumentListPage.php) ---
 
 final class DocumentListPage extends Page
 {
@@ -35,7 +35,7 @@ final class DocumentListPage extends Page
         return '/documents';
     }
 
-    /** Проверка, что браузер действительно на этой странице. */
+    /** Verifying that the browser is actually on this page. */
     public function assert(Browser $browser): void
     {
         $browser->assertPathIs($this->url())
@@ -43,7 +43,7 @@ final class DocumentListPage extends Page
     }
 
     /**
-     * Шорткаты: в тестах пишем @create-button вместо хрупких CSS-селекторов.
+     * Shortcuts: we write in tests @create-button instead of fragile CSS-selectors.
      *
      * @return array<string, string>
      */
@@ -56,7 +56,7 @@ final class DocumentListPage extends Page
         ];
     }
 
-    /** Повторяющиеся действия страницы — методы Page Object. */
+    /** Repeating page actions - methods Page Object. */
     public function searchFor(Browser $browser, string $term): void
     {
         $browser->type('@search', $term)
@@ -65,12 +65,12 @@ final class DocumentListPage extends Page
     }
 }
 
-// --- Использование в тесте ---
+// --- Test use ---
 //
 // $this->browse(function (Browser $browser): void {
 //     $browser->loginAs(User::factory()->create())
 //         ->visit(new DocumentListPage)       // url() + assert()
-//         ->click('@create-button');          // шорткат из elements()
+//         ->click('@create-button');          // shortcut from elements()
 //
 //     (new DocumentListPage)->searchFor($browser, 'annual report');
 // });

@@ -13,7 +13,7 @@
     },
     {
       "file": "code-review.md",
-      "description": "Ревью кода и PR: границы слоёв Action/Service, тикеты, тесты, безопасность",
+      "description": "Code review and PR: layer boundaries Action/Service, tickets, tests, security",
       "tags": [
         "code-review",
         "laravel"

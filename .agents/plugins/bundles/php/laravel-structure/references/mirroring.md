@@ -1,23 +1,23 @@
 > Scope: this example belongs to the project-adopted pattern in `../SKILL.md`.
 > It does not impose this architecture on another project; preserve real access and transaction invariants.
 
-# Правило зеркала
+# Mirror Rule
 
-**Одна таксономия доменов во всех слоях.** Если домен называется `Order` в `Models/`, он называется `Order` в `Enums/`, `Policies/`, `Repositories/`, `database/factories/`, `tests/Feature/` — везде. Подпроцессы (`Common/`, `Review/`, `Application/`) — одинаковые подпапки в `Actions/`, `Dto/Actions/`, `Enums/<Domain>/Permissions/`, `Policies/<Domain>/`.
+**One domain taxonomy in all layers.** If the domain is called `Order` in `Models/`, it's called `Order` in `Enums/`, `Policies/`, `Repositories/`, `database/factories/`, `tests/Feature/` — everywhere. Subprocesses (`Common/`, `Review/`, `Application/`) — identical subfolders in `Actions/`, `Dto/Actions/`, `Enums/<Domain>/Permissions/`, `Policies/<Domain>/`.
 
-Зеркало — это навигация: зная один файл сущности, разработчик (и агент) вычисляет пути всех остальных без поиска.
+Mirror is navigation: knowing one entity file, developer (and agent) calculates the paths of all others without searching.
 
-## Одна сущность Order — все её файлы по слоям
+## One entity Order — all her files by layers
 
-| Слой | Путь |
+| Layer | Path |
 |---|---|
-| Модель | `app/Models/Order/Order.php` |
-| Фабрика | `database/factories/Order/OrderFactory.php` |
-| Сидер | `database/seeders/OrderSeeder.php` |
-| Миграция | `database/migrations/2026_01_01_000000_create_order_orders_table.php` |
-| Enum (статус) | `app/Enums/Order/OrderStatus.php` |
-| Enum (права) | `app/Enums/Order/Permissions/CommonPermission.php` |
-| Контроллер | `app/Http/Controllers/Order/OrdersController.php` |
+| Model | `app/Models/Order/Order.php` |
+| Factory | `database/factories/Order/OrderFactory.php` |
+| Cider | `database/seeders/OrderSeeder.php` |
+| Migration | `database/migrations/2026_01_01_000000_create_order_orders_table.php` |
+| Enum (status) | `app/Enums/Order/OrderStatus.php` |
+| Enum (rights) | `app/Enums/Order/Permissions/CommonPermission.php` |
+| Controller | `app/Http/Controllers/Order/OrdersController.php` |
 | Form Request | `app/Http/Requests/Order/StoreOrderRequest.php` |
 | API Resource | `app/Http/Resources/Order/OrderResource.php` |
 | Policy | `app/Policies/Order/CommonPolicy.php` |
@@ -29,79 +29,79 @@
 | Listener | `app/Listeners/Order/Notifications/SendStatusChanged.php` |
 | Notification | `app/Notifications/Order/Notification.php` |
 | Exception | `app/Exceptions/Order/OrderAccessException.php` |
-| DTO (форма) | `app/Dto/Order/Form/Form.php` |
+| DTO (form) | `app/Dto/Order/Form/Form.php` |
 | DTO (view) | `app/Dto/Order/View/ListItemView.php` |
 | DTO (mapper) | `app/Dto/Order/Mapper/ViewMapper.php` |
 | DTO (command) | `app/Dto/Actions/Order/Common/StoreCommand.php` |
 | Action | `app/Actions/Order/Common/StoreAction.php` |
 | Filament Resource | `app/Filament/Resources/Order/Orders/OrderResource.php` |
-| Feature-тест | `tests/Feature/Order/StoreOrderTest.php` |
-| Unit-тест | `tests/Unit/Order/WorkflowServiceTest.php` |
+| Feature-test | `tests/Feature/Order/StoreOrderTest.php` |
+| Unit-test | `tests/Unit/Order/WorkflowServiceTest.php` |
 
-## Зеркало `database/`
+## Mirror `database/`
 
 ```
 database/
 ├── factories/
-│   ├── Order/                  ← зеркалит app/Models/Order/
+│   ├── Order/                  ← mirrors app/Models/Order/
 │   │   ├── OrderFactory.php
 │   │   ├── ItemFactory.php
 │   │   └── HistoryFactory.php
 │   ├── Document/
-│   └── UserFactory.php         ← одиночная модель без доменной папки в Models — допустимо и в factories
+│   └── UserFactory.php         ← single model without domain folder in Models — is also valid in factories
 ├── seeders/
 │   ├── DatabaseSeeder.php
-│   ├── OrderSeeder.php         ← плоско, префикс = домен
+│   ├── OrderSeeder.php         ← flat, prefix = domain
 │   └── UserRolesSeeder.php
-└── migrations/                 ← плоско (порядок по времени), имя таблицы с доменным префиксом: order_orders, order_items
+└── migrations/                 ← flat (order by time), table name with domain prefix: order_orders, order_items
 ```
 
-Фабрика лежит в той же доменной подпапке, что и модель: `Models/Order/Item.php` ↔ `factories/Order/ItemFactory.php`.
+The factory is located in the same domain subfolder as the model: `Models/Order/Item.php` ↔ `factories/Order/ItemFactory.php`.
 
-## Зеркало `tests/`
+## Mirror `tests/`
 
 ```
 tests/
 ├── Feature/
-│   ├── Order/                  ← HTTP/use-case тесты домена
+│   ├── Order/                  ← HTTP/use-case domain tests
 │   ├── Document/
 │   ├── User/
-│   ├── Auth/                   ← технические Feature-домены допустимы (Auth, Health, Layout)
+│   ├── Auth/                   ← technical Feature-domains are allowed (Auth, Health, Layout)
 │   └── Health/
 ├── Unit/
-│   ├── Order/                  ← сервисы, DTO, enum домена
+│   ├── Order/                  ← services, DTO, enum domain
 │   ├── User/
-│   └── Broadcast/              ← техническая ось зеркалится тоже: Services/Broadcast → Unit/Broadcast
+│   └── Broadcast/              ← the technical axis is also mirrored: Services/Broadcast → Unit/Broadcast
 ├── Browser/                    ← E2E (Dusk): Pages/, Components/
-└── Support/                    ← инфраструктура тестов
+└── Support/                    ← test infrastructure
     ├── Assertions/
     ├── Concerns/
     └── Factories/
 ```
 
-Правило: тест ищется по тому же домену, что и тестируемый класс. `app/Services/Order/WorkflowService.php` → `tests/Unit/Order/WorkflowServiceTest.php`; `POST /orders` → `tests/Feature/Order/StoreOrderTest.php`.
+Rule: the test is searched for the same domain as the class being tested. `app/Services/Order/WorkflowService.php` → `tests/Unit/Order/WorkflowServiceTest.php`; `POST /orders` → `tests/Feature/Order/StoreOrderTest.php`.
 
-## Чеклист «добавляю новый домен»
+## Checklist «adding a new domain»
 
-Минимальный комплект (создавать только то, что нужно сейчас, без пустых папок):
+Minimum kit (create only what is needed now, without empty folders):
 
-- [ ] `app/Models/<Domain>/<Entity>.php` — модель в доменной папке с первого дня
-- [ ] `database/migrations/*_create_<domain>_<entities>_table.php` — таблица с доменным префиксом
+- [ ] `app/Models/<Domain>/<Entity>.php` — model in the domain folder from day one
+- [ ] `database/migrations/*_create_<domain>_<entities>_table.php` — table with domain prefix
 - [ ] `database/factories/<Domain>/<Entity>Factory.php`
-- [ ] `app/Enums/<Domain>/` — статусы/типы, если есть
-- [ ] `app/Http/Controllers/<Domain>/` + `Requests/<Domain>/` — если есть HTTP-слой
-- [ ] `app/Policies/<Domain>/CommonPolicy.php` — если есть авторизация
-- [ ] `tests/Feature/<Domain>/` — первый тест вместе с первым эндпоинтом
-- [ ] Имя домена одинаково во всех слоях (единственное число, PascalCase)
-- [ ] Нет файлов домена в плоских корнях (`app/Models/X.php`, `app/Exceptions/XException.php`)
+- [ ] `app/Enums/<Domain>/` — statuses/types, if any
+- [ ] `app/Http/Controllers/<Domain>/` + `Requests/<Domain>/` — if available HTTP-layer
+- [ ] `app/Policies/<Domain>/CommonPolicy.php` — if there is authorization
+- [ ] `tests/Feature/<Domain>/` — first test along with the first endpoint
+- [ ] Domain name is the same in all layers (singular, PascalCase)
+- [ ] No domain files in flat roots (`app/Models/X.php`, `app/Exceptions/XException.php`)
 
-## Чеклист «добавляю подпроцесс»
+## Checklist «adding a subprocess»
 
-Подпроцесс (например, `Review`) появляется синхронно в четырёх местах:
+Subprocess (for example, `Review`) appears synchronously in four places:
 
-- [ ] `app/Actions/<Domain>/Review/` — действия подпроцесса
-- [ ] `app/Dto/Actions/<Domain>/Review/` — их Command DTO
-- [ ] `app/Enums/<Domain>/Permissions/ReviewPermission.php` — права подпроцесса
-- [ ] `app/Policies/<Domain>/ReviewPolicy.php` — политика подпроцесса
-- [ ] При наличии стадий: `app/Enums/<Domain>/Workflow/ReviewStage.php`
-- [ ] Имя подпроцесса одинаково во всех четырёх слоях
+- [ ] `app/Actions/<Domain>/Review/` — subprocess actions
+- [ ] `app/Dto/Actions/<Domain>/Review/` — them Command DTO
+- [ ] `app/Enums/<Domain>/Permissions/ReviewPermission.php` — subprocess rights
+- [ ] `app/Policies/<Domain>/ReviewPolicy.php` — subprocess policy
+- [ ] If there are stages: `app/Enums/<Domain>/Workflow/ReviewStage.php`
+- [ ] Subprocess name is the same in all four layers

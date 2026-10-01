@@ -13,14 +13,14 @@ use App\Models\Document\Document;
 use Illuminate\Support\Facades\DB;
 
 /**
- * COMPOSITE ACTION: многошаговый сценарий = Action, инжектирующий атомарные Actions.
+ * COMPOSITE ACTION: multi-step script = Action, injecting atomic Actions.
  *
- * Вместо «use-case Service» с десятком методов — один execute(), одна внешняя
- * транзакция, композиция атомарных шагов. Вложенные DB::transaction внутри
- * дочерних Actions безопасны: Laravel сводит их к savepoint'ам.
+ * Instead «use-case Service» with a dozen methods - one execute(), one external
+ * transaction, composition of atomic steps. Nested DB::transaction inside
+ * children Actions are safe: Laravel reduces them to savepoint'am.
  *
- * Регистрация документа через форму: сохранение, затем либо письменный ответ,
- * либо перевод в статус "registered".
+ * Registration of a document through the form: saving, then either a written response,
+ * or transfer to status "registered".
  */
 final readonly class RegisterStoreAction
 {
@@ -32,13 +32,13 @@ final readonly class RegisterStoreAction
 
     public function execute(BaseStoreCommand $command): Document
     {
-        // Одна внешняя транзакция на весь сценарий: либо документ сохранен
-        // И переведен в целевой статус, либо ничего не произошло.
+        // One external transaction for the entire scenario: either the document is saved
+        // And transferred to target status, or nothing happened.
         return DB::transaction(callback: function () use ($command): Document {
             $document = $this->storeAction->execute(command: $command);
 
             if ($document->written_reply) {
-                // Ветка быстрого завершения: сразу письменный ответ.
+                // Quick completion thread: immediate written response.
                 $this->writtenReplyAction->execute(
                     command: new WrittenReplyCommand(
                         document: $document,
@@ -50,7 +50,7 @@ final readonly class RegisterStoreAction
                 return $document;
             }
 
-            // Обычная ветка: фиксация регистрации (история + статус + событие).
+            // Regular thread: commit registration (history + status + event).
             $this->registeredAction->execute(document: $document, user: $command->user);
 
             return $document;

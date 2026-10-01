@@ -1,25 +1,25 @@
 <!-- Source: anonymized production Laravel project -->
-# Безопасность тестовой среды в {{project_name}}
+# Test environment security in {{project_name}}
 
-## Как устроена изоляция
+## How insulation works
 
-В {{project_name}} тесты используют отдельную PostgreSQL базу **`{{project_name}}_test`**. Основная рабочая база задаётся в `.env` как **`DB_DATABASE`** (часто `{{project_name}}`).
+B {{project_name}} tests use a separate PostgreSQL database **`{{project_name}}_test`**. The main working base is set in `.env` like **`DB_DATABASE`** (often `{{project_name}}`).
 
-- `phpunit.xml` и `tests/bootstrap.php` принудительно задают **`DB_DATABASE={{project_name}}_test`** (и `APP_ENV=testing`).
-- **`DB_HOST` / порт / пользователь / пароль** наследуются из окружения: в Docker это тот же хост **`pgsql`**, что и у приложения; локально — **`127.0.0.1`** и значения из `.env`.
-- `RefreshDatabase` запускает `migrate:fresh` **только** на подключении с базой **`{{project_name}}_test`**.
-- Рабочая база (`{{project_name}}` и т.п.) **не должна** использоваться тестами; при нарушении падает `tests/TestCase::assertIsolatedTestDatabase`.
+- `phpunit.xml` and `tests/bootstrap.php` is forced **`DB_DATABASE={{project_name}}_test`** (and `APP_ENV=testing`).
+- **`DB_HOST` / port / user / password** are inherited from the environment: in Docker is the same host **`pgsql`**, same as the application; locally - **`127.0.0.1`** and values from `.env`.
+- `RefreshDatabase` starts `migrate:fresh` **only** on connection with the database **`{{project_name}}_test`**.
+- Working base (`{{project_name}}` etc.) **should not** used by tests; falls when violated `tests/TestCase::assertIsolatedTestDatabase`.
 
-## Две базы в Docker
+## Two bases in Docker
 
-В контейнере Postgres создаются **`DB_DATABASE`** (из `.env`) и **`{{project_name}}_test`** (init-скрипт `docker/postgres/init/01-{{project_name}}-test.sh` при **первом** создании тома). Старый том без `{{project_name}}_test`: см. `docs/docker/development.md` или `docs/docker/troubleshooting.md`.
+In the container Postgres are created **`DB_DATABASE`** (from `.env`) and **`{{project_name}}_test`** (init-script `docker/postgres/init/01-{{project_name}}-test.sh` when **first** volume creation). Old volume without `{{project_name}}_test`: see `docs/docker/development.md` or `docs/docker/troubleshooting.md`.
 
-## Проверка перед запуском
+## Pre-launch check
 
-**Локально (Postgres на хосте):**
+**Local (Postgres on host):**
 
 ```bash
-# Убедиться, что тестовая БД существует (подставьте пользователя/порт из .env)
+# Make sure the test database exists (substitute user/port from .env)
 psql -h 127.0.0.1 -p 5432 -U {{project_name}} -d postgres -c "\l" | grep {{project_name}}_test
 ```
 
@@ -29,20 +29,20 @@ psql -h 127.0.0.1 -p 5432 -U {{project_name}} -d postgres -c "\l" | grep {{proje
 docker compose exec pgsql psql -U {{project_name}} -d postgres -c "\l" | grep {{project_name}}_test
 ```
 
-Если нет — создать:
+If not, create:
 
 ```bash
-# Docker (из корня репозитория, контейнер pgsql запущен)
+# Docker (from repository root, container pgsql started)
 make db-create-test
-# или: bash docker/postgres/create-{{project_name}}-test-db.sh
+# or: bash docker/postgres/create-{{project_name}}-test-db.sh
 
-# Хост (Postgres без Docker)
+# Host (Postgres without Docker)
 psql -h 127.0.0.1 -U {{project_name}} -d postgres -c 'CREATE DATABASE {{project_name}}_test OWNER {{project_name}};'
 ```
 
-## Запуск тестов
+## Running tests
 
-**Хост:**
+**Host:**
 
 ```bash
 php artisan test
@@ -57,17 +57,17 @@ php artisan dusk
 docker compose exec app php artisan test
 docker compose exec app php artisan test tests/Feature/Document/
 docker compose exec app php artisan test --filter=DocumentActionsTest
-# Dusk — если настроен в образе:
+# Dusk — if configured in the image:
 docker compose exec app php artisan dusk
 ```
 
-## Что НЕЛЬЗЯ делать
+## What NOT to do
 
-- Менять `phpunit.xml` так, чтобы тесты ходили в основную `DB_DATABASE` из рабочего `.env`.
-- Убирать проверку `assertIsolatedTestDatabase` без замены другой гарантией.
-- Запускать `migrate:fresh` вручную против рабочей БД без явного намерения (тесты делают fresh только на `{{project_name}}_test`).
-- Запускать **`tinker`**, **`db:seed`**, MCP с мутациями без явного перевода на **`{{project_name}}_test`** — см. **`testing-rules`**, раздел «Изоляция БД: дыры вне PHPUnit/Pest».
+- Change `phpunit.xml` so that the tests go to the main `DB_DATABASE` from working `.env`.
+- Remove check `assertIsolatedTestDatabase` without replacement by another warranty.
+- Run `migrate:fresh` manually against production DB without explicit intent (tests are done fresh only on `{{project_name}}_test`).
+- Run **`tinker`**, **`db:seed`**, MCP with mutations without explicit translation into **`{{project_name}}_test`** — see **`testing-rules`**, section «DB isolation: holes out PHPUnit/Pest».
 
-## Режим Docker vs хост
+## Mode Docker vs host
 
-См. навык **`testing-rules`**: ориентир **`DB_HOST=pgsql`** (Docker) vs **`127.0.0.1`** / IP (локально).
+See skill **`testing-rules`**: landmark **`DB_HOST=pgsql`** (Docker) vs **`127.0.0.1`** / IP (locally).

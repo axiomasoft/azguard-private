@@ -57,7 +57,7 @@
     },
     {
       "file": "actions.md",
-      "description": "Action/UseCase паттерн — final readonly class, Command DTO, DB::transaction()",
+      "description": "Action/UseCase pattern - final readonly class, Command DTO, DB::transaction()",
       "tags": [
         "laravel",
         "action"
@@ -65,7 +65,7 @@
     },
     {
       "file": "authorization.md",
-      "description": "3-layer auth — PermissionEnum + Policy с #[GateAbility] + Abilities DTO для frontend",
+      "description": "3-layer auth — PermissionEnum + Policy with #[GateAbility] + Abilities DTO for frontend",
       "tags": [
         "laravel",
         "authorization"
@@ -73,7 +73,7 @@
     },
     {
       "file": "db-conventions.md",
-      "description": "Соглашения по именованию таблиц (domain prefix) и миграциям через model reference",
+      "description": "Table naming conventions (domain prefix) and migrations via model reference",
       "tags": [
         "laravel",
         "database"
@@ -81,7 +81,7 @@
     },
     {
       "file": "dto.md",
-      "description": "Spatie LaravelData DTO — Form/View/Policy/Mapper/Command buckets + TypeScript генерация",
+      "description": "Spatie LaravelData DTO — Form/View/Policy/Mapper/Command buckets + TypeScript generation",
       "tags": [
         "laravel",
         "dto"
@@ -89,7 +89,7 @@
     },
     {
       "file": "eloquent-model.md",
-      "description": "Настройка Eloquent-модели — PHP атрибуты, fillable, casts, accessors, relations",
+      "description": "Settings Eloquent-models - PHP attributes, fillable, casts, accessors, relations",
       "tags": [
         "laravel",
         "eloquent"
@@ -97,7 +97,7 @@
     },
     {
       "file": "layer-boundaries.md",
-      "description": "Строгие границы слоёв Action/Service/Repository/Controller/Policy в Laravel",
+      "description": "Strict layer boundaries Action/Service/Repository/Controller/Policy in Laravel",
       "tags": [
         "laravel",
         "architecture"
@@ -105,7 +105,7 @@
     },
     {
       "file": "routes-organization.md",
-      "description": "Организация routes/web.php: Route::controller()->prefix()->name()->group(), доменные подпрефиксы (documents/{document}/review), middleware группы, precognitive, минимальный api.php с throttle:30,1",
+      "description": "Organization routes/web.php: Route::controller()->prefix()->name()->group(), domain subprefixes (documents/{document}/review), middleware groups, precognitive, minimum api.php with throttle:30,1",
       "tags": [
         "laravel",
         "routing"

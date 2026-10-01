@@ -14,9 +14,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Фасад-агрегатор read-методов: единая точка для контроллеров/компонентов,
- * когда read-методов много. Чистое делегирование — никакой логики.
- * Опционален: при 2-3 методах инжектируйте DocumentReadRepository напрямую.
+ * Aggregator facade read-methods: single point for controllers/components, There are many
+ * when read-methods. Pure delegation - no logic.
+ * Optional: for 2-3 methods, inject DocumentReadRepository directly.
  */
 final class Repository
 {
@@ -25,7 +25,7 @@ final class Repository
     ) {}
 
     /**
-     * @param  bool  $ignorePermissions  true — все записи (админские обзоры)
+     * @param  bool  $ignorePermissions  true — all entries (admin reviews)
      * @return Builder<Document>
      */
     public function queryForUser(?User $user = null, bool $ignorePermissions = false): Builder

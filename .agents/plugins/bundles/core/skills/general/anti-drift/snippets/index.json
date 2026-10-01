@@ -3,7 +3,7 @@
   "snippets": [
     {
       "file": "claude-md-anti-drift.md",
-      "description": "Готовый блок anti-drift правил для CLAUDE.md/AGENTS.md целевого проекта",
+      "description": "Finished block anti-drift rules for CLAUDE.md/AGENTS.md target project",
       "tags": ["claude-md", "discipline"]
     }
   ]

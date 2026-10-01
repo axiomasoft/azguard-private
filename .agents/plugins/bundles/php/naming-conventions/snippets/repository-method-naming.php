@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /**
- * Рефакторинг репозитория: россыпь findByX...OrFail → scopes + критерий.
- * Демонстрирует переход от «метод-на-поле» к именованию по намерению.
+ * Repository refactoring: scattering findByX...OrFail → scopes + criterion.
+ * Demonstrates the transition from «method-on-field» to naming by intent.
  */
 
 // ════════════════════════════════════════════════════════════════════════════
-// БЫЛО: каждый новый способ поиска = новый метод, where-логика дублируется
+// WAS: every new search method = new method, where-logic is duplicated
 // ════════════════════════════════════════════════════════════════════════════
 final class DocumentRepositoryBefore
 {
@@ -32,10 +32,10 @@ final class DocumentRepositoryBefore
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// СТАЛО: предикаты — в model scopes по намерению; репозиторий их компонует
+// NOW: predicates - in model scopes by intent; the repository compiles them
 // ════════════════════════════════════════════════════════════════════════════
 
-// app/Models/Document.php — scope-имена выражают бизнес-смысл, не колонку
+// app/Models/Document.php — scope-names express business meaning, not column
 final class Document extends Model
 {
     public function scopeActive(Builder $query): Builder
@@ -53,7 +53,7 @@ final class Document extends Model
         return $query->where('status', $status);
     }
 
-    // не-id ключ для route model binding: поиск по slug делает Laravel сам
+    // not-id key for route model binding: search by slug does Laravel himself
     public function getRouteKeyName(): string
     {
         return 'slug';
@@ -63,13 +63,13 @@ final class Document extends Model
 // app/Repositories/Document/DocumentReadRepository.php
 final class DocumentReadRepository
 {
-    // ОДИН канонический lookup поверх видимости (см. скилл repositories)
+    // ONE canonical lookup over visibility (see skill repositories)
     public function findByIdOrFail(int $id, ?User $user = null): Document
     {
         return $this->queryForUser($user)->active()->findOrFail($id);
     }
 
-    // именованный запрос — про намерение «черновики автора», а не findByAuthorIdAndStatus
+    // named query - about intent «author's drafts», and not findByAuthorIdAndStatus
     public function draftsOf(User $author): Collection
     {
         return $this->queryForUser($author)
@@ -80,7 +80,7 @@ final class DocumentReadRepository
     }
 }
 
-// В контроллере поиск по slug — вообще без метода репозитория:
-//   public function show(Document $document) { ... }   // binding по getRouteKeyName()
-// Разовый поиск по полю — штатный Eloquent:
+// In the controller, search by slug — without any repository method at all:
+//   public function show(Document $document) { ... }   // binding by getRouteKeyName()
+// One-time search by field - standard Eloquent:
 //   Document::active()->firstWhere('code', $code);

@@ -24,7 +24,7 @@
     },
     {
       "file": "boost-skill-publisher.php",
-      "description": "Публикация скиллов пакета потребителю через vendor:publish (агент-нейтральная и Claude Code раскладки)",
+      "description": "Publishing skills of the package to the consumer via vendor:publish (agent-neutral and Claude Code layouts)",
       "tags": [
         "boost",
         "laravel",

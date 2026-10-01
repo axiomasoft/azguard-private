@@ -10,7 +10,7 @@ Generated Codex adapter for semantic command `task:fix`.
 - Invocation: `$ task:fix <arguments>`
 - Routing: `implementation/medium -> gpt-6-sol/medium`
 - Canonical source: `packages/task/commands/fix.md`
-- Canonical SHA-256: `sha256:fbb5d186d8100ec8fd136b5b9d17aabc1d6b949bfc3ba4cc40c2947889d7e693`
+- Canonical SHA-256: `sha256:985bb315d8635899baf69d0ed9758e459128c9cbe4e20abb08c9db39d9bc9308`
 - Runtime projection: `command.md` (generated and provenance-locked; never edit it as source)
 
 Activate only when the owner explicitly invokes this Task command or skill. Task is not an

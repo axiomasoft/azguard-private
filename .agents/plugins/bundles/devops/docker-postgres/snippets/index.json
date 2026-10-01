@@ -3,22 +3,22 @@
   "snippets": [
     {
       "file": "postgres.conf",
-      "description": "Тюнинг параметров PostgreSQL",
+      "description": "Tuning parameters PostgreSQL",
       "tags": ["config"]
     },
     {
       "file": "init.sql",
-      "description": "SQL-инициализация: расширения",
+      "description": "SQL-initialization: extensions",
       "tags": ["sql", "init"]
     },
     {
       "file": "pgsql-service.yml",
-      "description": "Сервис pgsql в compose: healthcheck pg_isready, named volume, mount init-скриптов",
+      "description": "Service pgsql in compose: healthcheck pg_isready, named volume, mount init-scripts",
       "tags": ["compose", "postgres", "healthcheck", "volumes"]
     },
     {
       "file": "init-test-db.sh",
-      "description": "Создание тестовой БД <app>_test: init-скрипт для /docker-entrypoint-initdb.d + идемпотентный backfill для существующего volume",
+      "description": "Creating a test database <app>_test: init-script for /docker-entrypoint-initdb.d + idempotent backfill for existing volume",
       "tags": ["postgres", "init", "testing", "shell"]
     }
   ]

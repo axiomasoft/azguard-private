@@ -1,7 +1,7 @@
 # .github/workflows/security.yml
-# Security-гейты: аудит зависимостей (PHP + JS) и скан собранного образа.
-# Принцип: блокируем merge только на HIGH/CRITICAL; LOW/MEDIUM — в лог, не в блок.
-# SAST (PHPStan/psalm taint) живёт в основном lint-job — см. скилл php/static-analysis.
+# Security-gates: dependency audit (PHP + JS) and a scan of the assembled image.
+# Principle: block merge only on HIGH/CRITICAL; LOW/MEDIUM — to the log, not to the block.
+# SAST (PHPStan/psalm taint) lives mostly lint-job — see skill php/static-analysis.
 
 name: security
 
@@ -10,7 +10,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 6 * * 1'   # еженедельный ре-скан: новые CVE на старом коде
+    - cron: '0 6 * * 1'   # weekly re-scan: new CVE on old code
 
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
         with:
           php-version: '8.3'
 
-      # composer audit — известные CVE в PHP-зависимостях. --no-dev: только рантайм-граф.
+      # composer audit — known CVE in PHP-dependencies. --no-dev: only runtime graph.
       - name: composer audit
         run: composer audit --no-dev --format=plain
 
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '22'
 
-      # npm audit гейтим на high; --omit=dev убирает шум dev-зависимостей.
+      # npm audit gate on high; --omit=dev removes noise dev-dependencies.
       - name: npm audit
         run: npm audit --omit=dev --audit-level=high
 
@@ -43,11 +43,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Образ собирается так же, как в build-job (см. devops/docker-php).
+      # The image is assembled in the same way as in build-job (see devops/docker-php).
       - name: Build image
         run: docker build -t app:scan .
 
-      # Trivy: CVE в base-слоях и пакетах ОС. exit-code=1 только на CRITICAL/HIGH.
+      # Trivy: CVE in base-OS layers and packages. exit-code=1 only on CRITICAL/HIGH.
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:

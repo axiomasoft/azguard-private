@@ -15,9 +15,9 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Read-side репозиторий: запросы, фильтры, пагинация, eager loading.
- * Никаких мутаций, никаких авторизационных решений — видимость делегируется
- * в DocumentVisibilityService.
+ * Read-side repository: queries, filters, pagination, eager loading.
+ * No mutations, no authorization decisions - visibility is delegated
+ * in DocumentVisibilityService.
  */
 final class DocumentReadRepository
 {
@@ -26,10 +26,10 @@ final class DocumentReadRepository
     ) {}
 
     /**
-     * Единая точка входа read-side: каждая выборка проходит через сервис видимости.
-     * Сигнатура явно сообщает потребителю, что результат отфильтрован по правам.
+     * Single point of entry read-side: each fetch goes through the visibility service.
+     * The signature explicitly tells the consumer that the result is filtered by rights.
      *
-     * @param  bool  $ignorePermissions  true — вернуть все записи (админские обзоры, счётчики «Все»)
+     * @param  bool  $ignorePermissions  true — return all records (admin reviews, counters «All»)
      * @return Builder<Document>
      */
     public function queryForUser(?User $user = null, bool $ignorePermissions = false): Builder
@@ -42,8 +42,8 @@ final class DocumentReadRepository
     }
 
     /**
-     * «Не найдено» и «нет доступа» намеренно неразличимы для потребителя:
-     * запрос строится поверх queryForUser, недоступная запись просто не находится.
+     * «Not found» and «no access» are intentionally indistinguishable to the consumer:
+     * request is built on top queryForUser, the unavailable record simply cannot be found.
      *
      * @throws DocumentAccessException
      */
@@ -61,8 +61,8 @@ final class DocumentReadRepository
     }
 
     /**
-     * Пагинация списка: доменный scope withListRelations + точечный eager load
-     * связей, нужных конкретно этому экрану.
+     * List pagination: domain scope withListRelations + spot eager load
+     * connections needed specifically for this screen.
      */
     public function paginate(?User $user = null, int $perPage = 20): LengthAwarePaginator
     {
@@ -73,7 +73,7 @@ final class DocumentReadRepository
     }
 
     /**
-     * Репозиторий КОМПОНУЕТ доменные scopes модели, а не дублирует where-цепочки.
+     * Repository COMPONENTS domain scopes model, not duplicate where-chains.
      *
      * @return Builder<Document>
      */
@@ -91,7 +91,7 @@ final class DocumentReadRepository
     }
 
     /**
-     * Поиск + scopes + пагинация в одной компонуемой цепочке.
+     * Search + scopes + pagination in one composable chain.
      */
     public function paginateBySearch(User $user, ?string $query, int $perPage = 20): LengthAwarePaginator
     {

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Specification;
 
 /**
- * Specification: композируемый предикат «удовлетворяет ли кандидат правилу».
- * - один метод isSatisfiedBy(): bool;
- * - элементарные спецификации комбинируются and/or/not без правки исходных;
- * - правило бизнес-логики становится first-class объектом (имя, тест, переиспользование).
+ * Specification: composable predicate «does the candidate satisfy the rule».
+ * - one method isSatisfiedBy(): bool;
+ * - elementary specifications are combined and/or/not without editing the original ones;
+ * - business logic rule becomes first-class object (name, test, reuse).
  *
- * Когда правило фильтрует выборку из БД — это model scope / queryForUser
- * (см. php/repositories), а не in-memory specification. Specification — для
- * проверки уже загруженного объекта или сложного решения «можно / нельзя».
+ * When a rule filters a sample from a database, it model scope / queryForUser
+ * (see php/repositories), and not in-memory specification. Specification — for
+ * checking an already loaded object or complex solution «you can / not possible».
  *
  * @template T of object
  */
@@ -61,8 +61,8 @@ final class AndSpecification extends CompositeSpecification
 
     public function isSatisfiedBy(object $candidate): bool
     {
-        // Позиционно, не именованно: имя параметра реализации isSatisfiedBy не
-        // фиксировано интерфейсом — named arg через интерфейс ломает полиморфизм.
+        // Positional, unnamed: implementation parameter name isSatisfiedBy not
+        // fixed by interface - named arg through the interface breaks polymorphism.
         return $this->left->isSatisfiedBy($candidate)
             && $this->right->isSatisfiedBy($candidate);
     }

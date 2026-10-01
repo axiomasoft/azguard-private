@@ -5,12 +5,12 @@
 declare(strict_types=1);
 
 /**
- * Централизованные правила покрытия PHP-кода (coverage.php в корне проекта).
+ * Centralized coverage rules PHP-code (coverage.php in the project root).
  *
- * Использование:
- * - baseline и пороги читает `scripts/check-coverage-gate.php` (после прогона
- *   с PCOV/Xdebug и генерацией `coverage/clover.xml`);
- * - переменная окружения `COVERAGE_GATE_MODE`: report | soft | hard (см. скрипт).
+ * Usage:
+ * - baseline and reads thresholds `scripts/check-coverage-gate.php` (after run
+ *   with PCOV/Xdebug and generation `coverage/clover.xml`);
+ * - environment variable `COVERAGE_GATE_MODE`: report | soft | hard (see script).
  *
  * @return array{
  *     baseline_total_percent: float,
@@ -22,18 +22,18 @@ declare(strict_types=1);
  * }
  */
 return [
-    /** Базовый ориентир; подтверждать полным прогоном с PCOV в CI */
+    /** Baseline; confirm with a full run with PCOV in CI */
     'baseline_total_percent' => 70.0,
 
     /**
-     * Минимальная доля покрытых строк по проекту (line-rate в Clover).
-     * По умолчанию закреплена на baseline, чтобы gate работал без доп. env.
+     * Minimum percentage of covered lines for the project (line-rate in Clover).
+     * Pinned to by default baseline, to gate worked without additional. env.
      */
     'global_minimum_percent' => (float) (getenv('COVERAGE_GLOBAL_MIN') !== false
         ? getenv('COVERAGE_GLOBAL_MIN')
         : 70.0),
 
-    /** Минимум по «критичным» префиксам (используется в coverage gate). */
+    /** Minimum «critical» prefixes (is used in coverage gate). */
     'critical_directories_minimum_percent' => (float) (getenv('COVERAGE_CRITICAL_MIN') !== false
         ? getenv('COVERAGE_CRITICAL_MIN')
         : 55.0),
@@ -48,7 +48,7 @@ return [
         'bootstrap/cache/',
     ],
 
-    /** Префиксы путей файлов в Clover для проверки критичных зон. */
+    /** File path prefixes in Clover to check critical areas. */
     'critical_path_prefixes' => [
         'app/Http/Middleware',
         'app/Policies',

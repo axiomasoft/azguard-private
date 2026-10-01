@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Pipeline;
 
 /**
- * Pipeline: последовательная трансформация одного значения цепочкой шагов.
- * Каждый шаг — самостоятельный, тестируемый, переставляемый объект/замыкание.
- * Подходит, когда обработка распадается на этапы (нормализация → обогащение → расчёт).
+ * Pipeline: sequential transformation of one value by a chain of steps.
+ * Each step is an independent, testable, rearranged object/closure.
+ * Suitable when processing is divided into stages (normalization → enrichment → calculation).
  *
- * В Laravel есть встроенный Illuminate\Pipeline\Pipeline и фасад Pipeline —
- * используй его; этот класс показывает контракт, когда фреймворковый недоступен
- * или зависимость нежелательна.
+ * B Laravel has a built-in Illuminate\Pipeline\Pipeline and facade Pipeline —
+ * use it; this class shows the contract when the framework one is not available
+ * or the dependency is undesirable.
  */
 
 interface PipeStage
@@ -34,8 +34,8 @@ final class Pipeline
 
     public function process(mixed $payload): mixed
     {
-        // handle() вызывается позиционно: имена параметров реализации шага не
-        // фиксированы интерфейсом PipeStage — named arg через интерфейс ломает полиморфизм.
+        // handle() is called positionally: the step implementation parameter names are not
+        // fixed by interface PipeStage — named arg through the interface breaks polymorphism.
         $chain = array_reduce(
             array: array_reverse($this->stages),
             callback: fn (callable $next, PipeStage $stage): callable
@@ -48,8 +48,8 @@ final class Pipeline
 }
 
 /**
- * Пример шага: чистый, без побочных эффектов на чужие данные, можно тестировать в изоляции.
- * Вызов в Action: (new Pipeline())->through([new TrimName(), new Capitalize()])->process($data);
+ * Example step: clean, no side effects on other people's data, can be tested in isolation.
+ * Call to Action: (new Pipeline())->through([new TrimName(), new Capitalize()])->process($data);
  */
 final class TrimName implements PipeStage
 {

@@ -1,27 +1,23 @@
 <!-- Generated Codex runtime projection; do not edit as source.
 Canonical source: packages/task/commands/design.md
-Canonical SHA-256: sha256:06f407bd9341ea0fe1973a9f857e2c529e457fe6cbf325b0a64c59c30d12d3c1
+Canonical SHA-256: sha256:81e4e2f560866742472f4738d726e42b06f31d413effc02d6f1e5d9666ab7ef2
 Adapter: task.codex-command/1.0.17
 -->
-Это задача ПРОЕКТИРОВАНИЯ — выход артефакты, НЕ код. Ввод пользователя: «$ARGUMENTS».
-Применяй общий opt-in контракт `references/intent-routing.md` из установленного пакета Task.
-Активируй этот workflow только по явному запросу проектирования; обычная реализация
-и исправление не становятся дизайном из-за масштаба, риска или найденного старого плана.
-Модель/effort запинены (frontier/high) — не переключай вручную.
+This is a DESIGN task: produce durable artifacts, not implementation. User input: `$ARGUMENTS`.
+Apply the shared opt-in contract in `references/intent-routing.md` from the installed Task package.
+Activate this workflow only for an explicit design request. Scale, risk, or an existing plan does not
+turn ordinary implementation or repair into design. The route is pinned to frontier/high; do not switch it.
 
-Профиль `design`:
-1. Делегируй только независимый исследовательский трек, пока сам выполняешь полезную работу.
-   Глубина исследования зависит от неизвестных решений и риска. Для небольшого дизайна достаточно
-   одного исполнителя; отдельный workflow нужен только при реальной потребности в оркестрации.
-2. **Выход — durable файл, достаточный для реализации после потери сессии:** цель, принятые решения,
-   границы, затронутые пути, критерии приёмки и проверки. Добавляй точный текст/схемы там, где от них
-   зависит контракт; не расписывай очевидные действия и не требуй максимального объёма.
-   Спорные решения объясни в `## Обсуждение` с рекомендуемым вариантом. В хендоффе дай ссылку,
-   выбранного исполнителя и конкретный следующий шаг; исполнение начинается по запросу владельца.
-3. **Верифицируй внешние факты** (версии/API библиотек, «ещё актуально», возможности чужого сервиса) через
-   RAG до фиксации — дисциплина `decision-verification`/`verify-claims` (context7 → Perplexity → WebSearch).
-   **RAG-ступень держи там, где доступен `perplexity-web`** — не делегируй проверку тул-бедному субагенту
-   (WebSearch-only), он молча роняет лестницу.
-4. Значимые внешние источники, на которые опирался, — занеси в провенанс (`docs/reference.md`, если есть).
-5. Уточняй только недостающий продуктовый выбор или границу полномочий. Разрешённые обратимые
-   проектные решения принимай самостоятельно; повторное одобрение метода или плана не требуется.
+Profile `design`:
+
+1. Delegate only an independent research track while continuing useful work. Match research depth to
+   unresolved decisions and risk; small designs need no orchestration.
+2. Produce a durable file sufficient for implementation after session loss: objective, decisions,
+   boundaries, affected paths, acceptance criteria, and verification. Include exact text or schemas only
+   where the contract depends on them. Put disputed choices and the recommendation under `## Discussion`.
+   The handoff names the artifact, executor, and concrete next step; implementation starts only on owner request.
+3. Verify changing external facts before recording them through `decision-verification`/`verify-claims`
+   (context7, then Perplexity, then WebSearch). Keep retrieval on a worker that has the required tools.
+4. Record material external sources in provenance (`docs/reference.md` when present).
+5. Ask only for a missing product choice or authority boundary. Make authorized reversible design decisions
+   directly; do not request repeated approval of the method or plan.

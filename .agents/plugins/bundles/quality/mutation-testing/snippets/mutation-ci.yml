@@ -1,13 +1,13 @@
 # Source: anonymized production project
-# Мутационный гейт качества тестов в CI.
-# Две стратегии запуска: инкремент на PR (быстро) + полный прогон на main (advisory).
+# Mutation gate for test quality CI.
+# Two launch strategies: increment by PR (fast) + full run on main (advisory).
 name: Mutation Testing
 
 on:
-  pull_request:        # инкремент: мутируем только изменённые строки
+  pull_request:        # increment: mutate only changed lines
   push:
-    branches: [main]   # полный прогон при merge — advisory, не блокер
-  workflow_dispatch:   # ручной запуск полного прогона
+    branches: [main]   # full run with merge — advisory, is not a blocker
+  workflow_dispatch:   # manual start of full run
 
 jobs:
   infection:
@@ -18,14 +18,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # нужна полная история для --git-diff-lines
+          fetch-depth: 0   # need full history for --git-diff-lines
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, pdo, pdo_sqlite, sqlite3
-          coverage: xdebug          # драйвер покрытия обязателен для Infection
+          coverage: xdebug          # coverage driver is required for Infection
           tools: composer:v2
         env:
           XDEBUG_MODE: coverage
@@ -33,14 +33,14 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      # Покрытие генерируем отдельным шагом и переиспользуем в Infection,
-      # чтобы не прогонять весь набор тестов дважды.
+      # The coverage is generated in a separate step and reused in Infection,
+      # to avoid running the entire test suite twice.
       - name: Generate coverage
         run: vendor/bin/pest --coverage-xml=build/coverage/xml --min=0
         env:
           XDEBUG_MODE: coverage
 
-      # PR: мутируем только diff к origin/main — держим планку на новом коде.
+      # PR: mutate only diff to origin/main — we keep the bar on the new code.
       - name: Infection (incremental, on PR)
         if: github.event_name == 'pull_request'
         run: |
@@ -53,7 +53,7 @@ jobs:
             --coverage=build/coverage/xml \
             --no-progress
 
-      # main / manual: полный прогон. Дорого — потому advisory, вне PR-блокировки.
+      # main / manual: full run. Expensive - because advisory, out PR-locks.
       - name: Infection (full, on main)
         if: github.event_name != 'pull_request'
         run: |

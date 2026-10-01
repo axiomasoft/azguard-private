@@ -6,13 +6,13 @@ declare(strict_types=1);
 
 namespace Tests;
 
-// --- Часть 1. Базовый DuskTestCase (tests/DuskTestCase.php) ---
-// Ключевые правила:
-//   * Dusk-тесты наследуют DuskTestCase (Laravel\Dusk\TestCase), НЕ TestCase.
-//   * НИКОГДА RefreshDatabase: транзакция теста невидима для процесса сервера.
-//     Вместо этого migrate:fresh --seed в setUp() на изолированной БД app_test.
-//   * DUSK_ENV_MODE=test (default) — изоляция + сброс; current — текущее
-//     окружение без мутаций (только смоук-сценарии).
+// --- Part 1. Basic DuskTestCase (tests/DuskTestCase.php) ---
+// Key rules:
+//   * Dusk-tests inherit DuskTestCase (Laravel\Dusk\TestCase), NOT TestCase.
+//   * NEVER RefreshDatabase: test transaction is not visible to the server process.
+//     Instead migrate:fresh --seed in setUp() on an isolated database app_test.
+//   * DUSK_ENV_MODE=test (default) — insulation + reset; current — current
+//     environment without mutations (smoke scripts only).
 
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
@@ -31,12 +31,12 @@ abstract class DuskTestCase extends BaseTestCase
         parent::setUp();
 
         if (static::isTestEnvironmentMode()) {
-            // Guard: убедиться, что подключение реально смотрит в app_test,
-            // прежде чем сносить схему.
+            // Guard: make sure that the connection actually looks into app_test,
+            // before tearing down the circuit.
             $database = (string) config('database.connections.'.config('database.default').'.database');
 
             if (! str_ends_with($database, '_test')) {
-                throw new RuntimeException("Dusk требует изолированную БД *_test, получено: {$database}");
+                throw new RuntimeException("Dusk requires isolated database *_test, received: {$database}");
             }
 
             Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
@@ -47,10 +47,10 @@ abstract class DuskTestCase extends BaseTestCase
     public static function prepare(): void
     {
         if (! file_exists(dirname(__DIR__).'/.env.dusk.local')) {
-            throw new RuntimeException('.env.dusk.local не найден. Создайте его из .env.dusk.local.example.');
+            throw new RuntimeException('.env.dusk.local not found. Create it from .env.dusk.local.example.');
         }
 
-        // В Docker ChromeDriver работает на хосте: DUSK_START_CHROMEDRIVER=false.
+        // B Docker ChromeDriver runs on the host: DUSK_START_CHROMEDRIVER=false.
         if (! static::runningInSail() && static::envBool('DUSK_START_CHROMEDRIVER', true)) {
             static::startChromeDriver(['--port=9515']);
         }
@@ -66,7 +66,7 @@ abstract class DuskTestCase extends BaseTestCase
         ]));
 
         return RemoteWebDriver::create(
-            // Из Docker: http://host.docker.internal:9515
+            // From Docker: http://host.docker.internal:9515
             $_ENV['DUSK_DRIVER_URL'] ?? env('DUSK_DRIVER_URL') ?? 'http://localhost:9515',
             DesiredCapabilities::chrome()->setCapability(ChromeOptions::CAPABILITY, $options),
         );
@@ -83,19 +83,19 @@ abstract class DuskTestCase extends BaseTestCase
     }
 }
 
-// --- Часть 2. Пример браузерного теста (tests/Browser/AdminLoginTest.php, Pest) ---
+// --- Part 2. Browser test example (tests/Browser/AdminLoginTest.php, Pest) ---
 //
 // use Laravel\Dusk\Browser;
 //
 // test('admin logs in without redirect to internal port', function () {
 //     $this->browse(function (Browser $browser): void {
 //         $browser->visit('/admin/login')
-//             // Динамический UI — всегда waitFor, не assertSee сразу.
+//             // Dynamic UI — always waitFor, not assertSee immediately.
 //             ->waitFor(selector: 'input[type="email"]', seconds: 15)
 //             ->type(field: 'input[type="email"]', value: 'admin@example.com')
 //             ->type(field: 'input[type="password"]', value: 'secret')
-//             ->press(button: 'Войти')
-//             // Произвольное условие с поллингом вместо sleep.
+//             ->press(button: 'Login')
+//             // Arbitrary condition with polling instead sleep.
 //             ->waitUsing(
 //                 seconds: 25,
 //                 interval: 200,

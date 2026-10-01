@@ -3,27 +3,27 @@
   "snippets": [
     {
       "file": "docker-compose.yml",
-      "description": "Минимальный каркас compose (базовая версия)",
+      "description": "Minimal framework compose (basic version)",
       "tags": ["compose"]
     },
     {
       "file": "docker-compose.dev.yml",
-      "description": "Полный dev-compose: build из контекста, bind-mount исходников, якорь &app_env, healthcheck /up",
+      "description": "Full dev-compose: build from context, bind-mount sources, anchor &app_env, healthcheck /up",
       "tags": ["compose", "dev", "laravel", "anchor"]
     },
     {
       "file": "docker-compose.prod.yml",
-      "description": "Prod-compose: image <app>/app:latest + named volumes для public/build, public/filament, vendor",
+      "description": "Prod-compose: image <app>/app:latest + named volumes for public/build, public/filament, vendor",
       "tags": ["compose", "prod", "laravel", "volumes"]
     },
     {
       "file": "docker-compose.override.yml",
-      "description": "Минимальный локальный оверрайд (базовая версия)",
+      "description": "Minimum local override (basic version)",
       "tags": ["compose", "dev"]
     },
     {
       "file": "docker-compose.override.example.yml",
-      "description": "Шаблон локального оверрайда: WSL2/Linux user 1000:1000 для vite",
+      "description": "Local override template: WSL2/Linux user 1000:1000 for vite",
       "tags": ["compose", "override", "wsl2", "permissions"]
     },
     {
@@ -33,7 +33,7 @@
     },
     {
       "file": "Makefile",
-      "description": "Базовые make-цели up/down/build",
+      "description": "Basic make-targets up/down/build",
       "tags": ["make"]
     }
   ]

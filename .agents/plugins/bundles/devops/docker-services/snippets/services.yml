@@ -1,6 +1,6 @@
 # Source: anonymized production Laravel project
-# Полный сервисный стек Laravel из ОДНОГО образа: app/queue/scheduler/reverb (+docs).
-# Каждый процесс — свой контейнер, различается только command.
+# Full service stack Laravel from ONE image: app/queue/scheduler/reverb (+docs).
+# Each process is its own container, the only difference is command.
 services:
   app:
     build:
@@ -48,7 +48,7 @@ services:
     container_name: app_queue
     restart: unless-stopped
     working_dir: /var/www/html
-    # --max-time: воркер сам завершается раз в час и подхватывает новый код после рестарта
+    # --max-time: the worker terminates itself once an hour and picks up new code after restart
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
     volumes:
       - ./:/var/www/html
@@ -69,7 +69,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
-    # serversideup-образ: для CLI-команды вместо FPM+Nginx используем базовый entrypoint
+    # serversideup-image: for CLI-commands instead FPM+Nginx use the basic one entrypoint
     entrypoint: ["/usr/local/bin/docker-php-serversideup-entrypoint"]
     command: ["php", "artisan", "schedule:work"]
     environment: *app_env
@@ -101,8 +101,8 @@ services:
     networks:
       - app_network
 
-  # --- Опционально: статическая документация (VitePress и т.п.) ---
-  # init-контейнер: собирает статику и завершается
+  # --- Optional: static documentation (VitePress etc.) ---
+  # init-container: collects static and exits
   docs-init:
     build:
       context: .
@@ -119,7 +119,7 @@ services:
     networks:
       - app_network
 
-  # nginx раздаёт собранную статику read-only, стартует после успешного init
+  # nginx distributes collected static read-only, starts after successful init
   docs:
     image: nginx:alpine
     container_name: app_docs
@@ -147,4 +147,4 @@ networks:
 
 volumes:
   docs_node_modules:
-# pgsql/redis — см. скиллы docker-postgres и docker-dev-prod
+# pgsql/redis — see skills docker-postgres and docker-dev-prod

@@ -3,17 +3,17 @@
   "snippets": [
     {
       "file": "playwright.config.ts",
-      "description": "Конфиг E2E: baseURL из env, webServer с reuseExistingServer и env-изоляцией, projects-браузеры, отдельный project setup для логина через storageState, testIdAttribute, артефакты при падении",
+      "description": "Config E2E: baseURL from env, webServer with reuseExistingServer and env-insulation, projects-browsers, separate project setup for login via storageState, testIdAttribute, artifacts when dropped",
       "tags": ["config", "webserver", "storage-state", "projects"]
     },
     {
       "file": "example.spec.ts",
-      "description": "auth.setup.ts (одноразовый логин → storageState) + order-checkout.spec.ts: залогиненный сценарий, многошаговая форма, getByTestId, загрузка файла, уникальные данные через Date.now, авто-вэйтинг без sleep",
+      "description": "auth.setup.ts (one-time login → storageState) + order-checkout.spec.ts: logged in script, multi-step form, getByTestId, file upload, unique data via Date.now, auto-waiting without sleep",
       "tags": ["spec", "setup", "storage-state", "data-testid", "flow"]
     },
     {
       "file": "ci-step.yml",
-      "description": "GitHub Actions job: установка/кэш браузеров, тестовая БД как service, миграции, env-изоляция данных/медиа, прогон playwright test, публикация отчёта и трейсов",
+      "description": "GitHub Actions job: installation/browser cache, test database as service, migrations, env-data isolation/media, run playwright test, publishing report and traces",
       "tags": ["ci", "github-actions", "browsers", "isolation"]
     }
   ]

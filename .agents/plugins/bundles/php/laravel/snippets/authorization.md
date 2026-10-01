@@ -3,19 +3,19 @@
 
 # Laravel Authorization
 
-## Трёхслойная авторизация
+## Three-layer authorization
 
 ```
 PermissionEnum  →  Policy (Gate)  →  Abilities DTO (frontend)
 ```
 
-Каждый слой имеет свою ответственность. Добавление нового права = обновление всех трёх.
+Each layer has its own responsibilities. Adding a new right = update of all three.
 
 ---
 
-## Слой 1: PermissionEnum
+## Layer 1: PermissionEnum
 
-Gate ability identifier — строковое значение enum.
+Gate ability identifier — string value enum.
 
 ```
 app/Enums/<Domain>/Permissions/<Subprocess>Permission.php
@@ -38,21 +38,21 @@ enum CommonPermission: string
 }
 ```
 
-Значение enum (`'ticket.view'`) = строка, которую принимает `Gate::allows()` и `$this->authorize()`.
+Meaning enum (`'ticket.view'`) = string that is accepted `Gate::allows()` and `$this->authorize()`.
 
 ---
 
-## Слой 2: Policy
+## Layer 2: Policy
 
 ```
 app/Policies/<Domain>/<Subprocess>Policy.php
 ```
 
-Правила:
-- Класс: `final class <Subprocess>Policy`
-- Методы: `can<Action>(User $user, Model $model): bool`
-- Атрибут `#[GateAbility(permission: PermissionEnum::Case)]` на каждом методе
-- Никакой persistence, никаких side effects
+Rules:
+- Class: `final class <Subprocess>Policy`
+- Methods: `can<Action>(User $user, Model $model): bool`
+- Attribute `#[GateAbility(permission: PermissionEnum::Case)]` on each method
+- None persistence, none side effects
 
 ```php
 <?php
@@ -95,7 +95,7 @@ final class CommonPolicy
 }
 ```
 
-### Регистрация Gate (AppServiceProvider)
+### Registration Gate (AppServiceProvider)
 
 ```php
 Gate::define(
@@ -104,26 +104,26 @@ Gate::define(
 );
 ```
 
-### Проверки в коде
+### Checks in code
 
 ```php
-// В Controller
+// B Controller
 $this->authorize(ability: CommonPermission::Edit->value, arguments: $ticket);
 
-// В коде напрямую
+// In code directly
 Gate::allows(ability: CommonPermission::Edit->value, arguments: $ticket);
 if (Gate::denies(...)) { abort(403); }
 ```
 
 ---
 
-## Слой 3: Abilities DTO (frontend projection)
+## Layer 3: Abilities DTO (frontend projection)
 
 ```
 app/Dto/<Domain>/Policy/<Subprocess>Abilities.php
 ```
 
-Serializable DTO с boolean свойствами — транслирует Gate-чеки в Inertia props.
+Serializable DTO with boolean properties - broadcasts Gate-checks in Inertia props.
 
 ```php
 <?php
@@ -161,10 +161,10 @@ final class CommonAbilities extends Data
 }
 ```
 
-### Передача в Inertia
+### Transfer to Inertia
 
 ```php
-// В Controller
+// B Controller
 return Inertia::render('Orders/Show', [
     'ticket' => OrderResource::make($ticket),
     'abilities' => CommonAbilities::fromOrder(ticket: $ticket),
@@ -172,26 +172,26 @@ return Inertia::render('Orders/Show', [
 ```
 
 ```ts
-// Во Vue (типизированный через #[TypeScript])
+// In Vue (typed via #[TypeScript])
 const props = defineProps<{ abilities: CommonAbilities }>();
 
-if (props.abilities.edit) { /* показать кнопку */ }
+if (props.abilities.edit) { /* show button */ }
 ```
 
 ---
 
-## Чеклист: добавление нового права
+## Checklist: adding a new right
 
-1. Добавить case в `PermissionEnum`
-2. Добавить метод `can<Action>()` в Policy + `#[GateAbility]` атрибут
-3. Зарегистрировать в `Gate::define()` (AppServiceProvider или ServiceProvider домена)
-4. Добавить boolean поле в Abilities DTO
-5. Добавить проверку `Gate::allows()` в Abilities DTO `fromOrder()` / `fromModel()`
-6. Запустить `php artisan typescript:transform` (если `#[TypeScript]` есть)
+1. Add case in `PermissionEnum`
+2. Add method `can<Action>()` in Policy + `#[GateAbility]` attribute
+3. Register in `Gate::define()` (AppServiceProvider or ServiceProvider domain)
+4. Add boolean field in Abilities DTO
+5. Add check `Gate::allows()` in Abilities DTO `fromOrder()` / `fromModel()`
+6. Run `php artisan typescript:transform` (if `#[TypeScript]` yes)
 
 ---
 
-## Структура файлов (пример)
+## File structure (example)
 
 ```
 app/

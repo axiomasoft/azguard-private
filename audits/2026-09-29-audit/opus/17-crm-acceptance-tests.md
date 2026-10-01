@@ -99,7 +99,7 @@ Clock фиксирован, экспирация проверяется без s
 | R36 | Context autocomplete с target seller/analyst, разные города/тенанты | показываются варианты Assignment нужного subject/role, не текущего admin; LIMIT после eligibility |
 | R37 | Прямая подстановка grant/role/project id из B в A UI, stale tenant form | отказ IDOR; membership/options пересчитываются сервером; форма не перенесла старые fields |
 | R38 | RoleResource catalogue/SubjectGrants editor/PolicyOnly badge | Code roles/filters read-only; только RequiresGrant assignments editable; raw forged definition change rejected |
-| R39 | Реальные HTTP controller/Gate/@can/middleware/Filament дают решение на тех же inputs | совпадают direct/authoritative answers/status; ранний сторонний Gate::before фиксируется consumer test |
+| R39 | Реальные HTTP controller/Gate/@can/middleware/Filament; admission с default entry=null/optional enum entry | direct/authoritative action parity; без роли admission deny даже с direct grant/PolicyOnly allow; CallerRole на eligible P1 входит только в A, действия остаются scoped; expired/inactive/чужая роль deny; optional entry AND и superadmin veto; ранний сторонний Gate::before фиксируется consumer test |
 | R40 | Лид обзвона: открыть список → карточка → отметить звонок → запрет do_not_call → export | реальные Client writes разрешены лишь своему project; refusal не создал запись/событие звонка |
 
 ### Источники, плагины и интеграции

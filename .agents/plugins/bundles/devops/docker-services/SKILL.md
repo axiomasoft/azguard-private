@@ -8,7 +8,7 @@ persona: operator
 tags: ["docker", "devops", "compose", "laravel", "queue", "websocket"]
 requires: ["docker-php", "docker-postgres"]
 produces_for: []
-outputs: ["docker-compose.yml (сервисы app/queue/scheduler/reverb/docs)"]
+outputs: ["docker-compose.yml (services app/queue/scheduler/reverb/docs)"]
 snippets: ["services.yml", "healthchecks.yml"]
 adapters: [claude, cursor, fable]
 sha256: ""

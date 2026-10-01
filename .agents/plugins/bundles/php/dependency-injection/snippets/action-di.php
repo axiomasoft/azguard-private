@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * ПРОСТОЙ Action: одна зависимость, одна транзакция, Command DTO.
+ * SIMPLE Action: one dependency, one transaction, Command DTO.
  *
- * Канон класса: final readonly + promoted properties в конструкторе.
- * Конструктор = зависимости (сервисы), параметры execute() = данные (DTO, флаги).
+ * Class Canon: final readonly + promoted properties in the constructor.
+ * Constructor = dependencies (services), parameters execute() = data (DTO, flags).
  */
 final readonly class StoreAction
 {
@@ -31,13 +31,13 @@ final readonly class StoreAction
     ) {}
 
     /**
-     * Создает или обновляет документ по форме и при необходимости синхронизирует состав участников.
+     * Creates or updates a document based on a form and, if necessary, synchronizes the participants.
      */
     public function execute(BaseStoreCommand $command, bool $syncMembers = true): Document
     {
         return DB::transaction(function () use ($command, $syncMembers): Document {
-            // Создание/обновление и связанная синхронизация состава должны быть атомарными,
-            // чтобы не оставить документ в частично сохраненном состоянии.
+            // Creation/update and associated composition synchronization must be atomic,
+            // to avoid leaving the document in a partially saved state.
             return $this->persistence->storeOrUpdate(
                 form: $command->form,
                 user: $command->user,
@@ -48,8 +48,8 @@ final readonly class StoreAction
 }
 
 /**
- * СРЕДНИЙ Action: две зависимости (StateMachine + репозиторий записи),
- * бизнес-валидация через ValidationException (НЕ abort()), ветвление сценария.
+ * MEDIUM Action: two dependencies (StateMachine + entry repository),
+ * business validation via ValidationException (NOT abort()), script branch.
  */
 final readonly class SummaryReplyAction
 {
@@ -59,17 +59,17 @@ final readonly class SummaryReplyAction
     ) {}
 
     /**
-     * Сохраняет сводный ответ и при отправке переводит документ на этап утверждения.
+     * Saves the summary response and moves the document to the approval stage when submitted.
      *
      * @throws ValidationException
      */
     public function execute(SummaryReplyCommand $command): void
     {
-        // Бизнес-правило проверяется ДО транзакции: при отправке на утверждение
-        // обязателен хотя бы один утверждающий, иначе процесс зависнет.
+        // The business rule is checked BEFORE the transaction: when submitted for approval
+        // at least one approver is required, otherwise the process will hang.
         if ($command->send && $command->document->approvers()->count() === 0) {
             throw ValidationException::withMessages([
-                'send' => 'Не задан ни один утверждающий',
+                'send' => 'No approvers specified',
             ]);
         }
 
@@ -77,8 +77,8 @@ final readonly class SummaryReplyAction
             $previousReply = $command->document->summary_reply;
 
             if ($command->send) {
-                // В режиме "send" одновременно фиксируем новую версию ответа,
-                // пишем diff в историю и переводим документ в UnderApproval.
+                // In mode "send" simultaneously fix the new version of the answer,
+                // write diff into history and transfer the document to UnderApproval.
                 $this->stateMachine->transition(
                     document: $command->document,
                     user: $command->user,
@@ -95,13 +95,13 @@ final readonly class SummaryReplyAction
                     ),
                 );
 
-                // После перехода отдельное сохранение не нужно:
-                // summary_reply уже записан через attributes transitionData.
+                // After the transition, a separate save is not necessary:
+                // summary_reply has already been recorded via attributes transitionData.
                 return;
             }
 
-            // В черновом режиме обновляем только текст ответа
-            // без смены статуса и без запуска цикла согласования.
+            // In draft mode, we update only the response text
+            // without changing the status and without starting the approval cycle.
             $this->storeRepository->saveSummaryReply(
                 document: $command->document,
                 user: $command->user,

@@ -3,30 +3,30 @@
 
 # Laravel Actions
 
-## Концепция
+## Concept
 
-**Action** — единственная точка входа в use-case. Одна операция, одна транзакция.
+**Action** — the only entry point into use-case. One operation, one transaction.
 
-- `final readonly class` (всегда)
-- Один публичный `execute()` — принимает Command DTO, возвращает Domain object
-- `DB::transaction()` оборачивает всю мутацию
-- Не принимает `Illuminate\Http\Request`
+- `final readonly class` (always)
+- One public `execute()` — accepts Command DTO, returns Domain object
+- `DB::transaction()` wraps the entire mutation
+- Does not accept `Illuminate\Http\Request`
 
-## Нейминг
+## Naming
 
-| Артефакт | Шаблон | Пример |
+| Artifact | Template | Example |
 |:---|:---|:---|
-| Action класс | `VerbNounAction` | `StoreAction`, `RegisteredAction`, `WrittenReplyAction` |
+| Action class | `VerbNounAction` | `StoreAction`, `RegisteredAction`, `WrittenReplyAction` |
 | Command DTO | `VerbNounCommand` | `StoreCommand`, `WrittenReplyCommand` |
 
-## Расположение файлов
+## File locations
 
 ```
 app/Actions/<Domain>/<Subprocess>/VerbNounAction.php
 app/Dto/Actions/<Domain>/<Subprocess>/VerbNounCommand.php
 ```
 
-Пример для ticket-домена:
+Example for ticket-domain:
 ```
 app/Actions/Order/Common/StoreAction.php
 app/Actions/Order/Question/WrittenReplyAction.php
@@ -34,7 +34,7 @@ app/Dto/Actions/Order/Common/StoreCommand.php
 app/Dto/Actions/Order/Question/WrittenReplyCommand.php
 ```
 
-## Шаблон Action
+## Template Action
 
 ```php
 <?php
@@ -72,7 +72,7 @@ final readonly class StoreAction
 }
 ```
 
-## Шаблон Command DTO
+## Template Command DTO
 
 ```php
 <?php
@@ -104,7 +104,7 @@ final readonly class StoreCommand
 
 ## Composite Action
 
-Когда сценарий состоит из нескольких атомарных шагов — Action составляется из других Actions. **Не через Service-оркестратор.**
+When a script consists of several atomic steps − Action is compiled from other Actions. **Not via Service-orchestrator.**
 
 ```php
 final readonly class RegisterStoreAction
@@ -127,25 +127,25 @@ final readonly class RegisterStoreAction
 }
 ```
 
-## Правила транзакций
+## Transaction rules
 
-1. **Action** = единственная транзакционная граница use-case.
-2. `Service`, `StateMachine`, `*StoreRepository` работают **внутри** уже открытой транзакции Action.
-3. Доменные события — `ShouldDispatchAfterCommit` (публикуются после commit, не до).
-4. Самостоятельная транзакция в Service — только для автономных integration/batch сценариев (не ticket use-case).
+1. **Action** = single transactional boundary use-case.
+2. `Service`, `StateMachine`, `*StoreRepository` work **inside** transaction already open Action.
+3. Domain events - `ShouldDispatchAfterCommit` (are published after commit, not up to).
+4. Self-transaction in Service — for standalone only integration/batch scripts (not ticket use-case).
 
-## Нарушения бизнес-правил
+## Business rule violations
 
 ```php
-// Бросать ValidationException, не abort()
+// Throw ValidationException, not abort()
 throw ValidationException::withMessages([
-    'status' => 'Переход из текущего статуса невозможен.',
+    'status' => 'Transition from the current status is not possible.',
 ]);
 ```
 
-## Архитектурные guardrails (тесты)
+## Architectural guardrails (tests)
 
-Контрактные тесты защищают структуру Actions:
-- Action класс должен быть `final`
-- Один публичный метод `execute()`
-- `execute()` не принимает `Request`
+Contract tests protect the structure Actions:
+- Action class should be `final`
+- One public method `execute()`
+- `execute()` does not accept `Request`

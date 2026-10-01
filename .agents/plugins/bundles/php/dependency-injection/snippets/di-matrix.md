@@ -1,44 +1,44 @@
 > Scope: this example belongs to the project-adopted pattern in `../SKILL.md`.
 > It does not impose this architecture on another project; preserve real access and transaction invariants.
 
-# Матрица инъекций: кто кого инжектит
+# Injection matrix: who injects whom
 
 Source: anonymized production Laravel project.
 
-Constructor injection — единственный канал зависимостей доменного кода.
-Конструктор = зависимости (коллабораторы), параметры метода = данные (модели, DTO, примитивы).
+Constructor injection — is the only domain code dependency channel.
+Constructor = dependencies (collaborators), method parameters = data (models, DTO, primitives).
 
-## Разрешённые направления
+## Allowed directions
 
-| Слой | Может инжектить | Не может инжектить | Примечание |
+| Layer | Can inject | Cannot inject | Note |
 |:---|:---|:---|:---|
-| **Controller** | Action, Mapper, ReadRepository, View-сервисы | Service записи напрямую (мимо Action) | Action — через method injection в экшен-метод (если нужен одному методу) или constructor (если нескольким) |
-| **Action** | Service, Repository, другие Actions | Controller, Request | Композиция Actions = composite action, одна транзакция |
-| **Service** | Repository, другие Service | Action, Controller, Request | Оркестрация и делегирование |
-| **Repository** | Только узкие сервисы-фильтры (VisibilityService) | Service-оркестраторы, Action | Репозиторий — нижний слой, почти без зависимостей |
-| **Policy** | Service (read-only evaluators) | Repository записи, Action | Policy только читает и отвечает bool |
-| **FormRequest** | — (правила через rules()) | Доменные сервисы в конструктор | Сервис для правила — резолв в rules() допустим, это HTTP-граница |
+| **Controller** | Action, Mapper, ReadRepository, View-services | Service records directly (past Action) | Action — via method injection to action method (if needed by one method) or constructor (if several) |
+| **Action** | Service, Repository, others Actions | Controller, Request | Composition Actions = composite action, one transaction |
+| **Service** | Repository, others Service | Action, Controller, Request | Orchestration and delegation |
+| **Repository** | Only narrow filter services (VisibilityService) | Service-orchestrators, Action | Repository - bottom layer, almost no dependencies |
+| **Policy** | Service (read-only evaluators) | Repository records, Action | Policy only reads and responds bool |
+| **FormRequest** | — (rules via rules()) | Domain services in the constructor | Service for rule - resolve in rules() let's say this HTTP-border |
 
-**НИКТО не инжектит Controller или Request.** Request заканчивается на границе HTTP:
-контроллер маппит его в DTO и передаёт данные параметрами метода.
+**NO ONE injects Controller or Request.** Request ends at the border HTTP:
+controller maps it into DTO and passes data as method parameters.
 
-## Что НЕ считается зависимостью (инжектить не нужно)
+## What is NOT considered a dependency (no need to inject)
 
-Инфраструктурные статики — не коллабораторы, их вызов из доменного кода допустим:
+Infrastructure statics are not collaborators; calling them from domain code is acceptable:
 
-- `DB::transaction(...)` — границы атомарности;
-- `Event::dispatch(...)` / `SomethingChanged::dispatch(...)` — публикация доменных событий;
-- `Gate::allows(...)` — проверка прав в контроллере/представлении.
+- `DB::transaction(...)` — atomicity boundaries;
+- `Event::dispatch(...)` / `SomethingChanged::dispatch(...)` — publish domain events;
+- `Gate::allows(...)` — checking permissions in the controller/representation.
 
-Граница простая: у коллаборатора есть своя логика и его хочется подменить/протестировать
-отдельно — инжектим. Транспорт фреймворка — зовём статически.
+The line is simple: the collaborator has his own logic and wants to replace him/test
+separately - inject. Framework transport - let's call it static.
 
-## Антипаттерны
+## Antipatterns
 
-### 1. `app()` / `resolve()` / фасадный резолв в доменном коде
+### 1. `app()` / `resolve()` / façade resolve in domain code
 
 ```php
-// ПЛОХО: скрытая зависимость — не видна в сигнатуре, не подменяется в тесте
+// BAD: hidden dependency - not visible in the signature, not replaced in the test
 final readonly class StoreAction
 {
     public function execute(StoreCommand $command): Document
@@ -48,31 +48,31 @@ final readonly class StoreAction
     }
 }
 
-// ХОРОШО: зависимость объявлена в конструкторе
+// GOOD: dependency declared in constructor
 final readonly class StoreAction
 {
     public function __construct(private DocumentPersistenceService $persistence) {}
 }
 ```
 
-### 2. Инъекция Request в Service/Action
+### 2. Injection Request in Service/Action
 
 ```php
-// ПЛОХО: доменный код привязан к HTTP, нетестируем без запроса
+// BAD: domain code is tied to HTTP, untestable without request
 final readonly class StoreDocumentService
 {
-    public function __construct(private Request $request) {} // <-- запрещено
+    public function __construct(private Request $request) {} // <-- prohibited
 }
 
-// ХОРОШО: контроллер маппит Request → DTO, глубже идут только данные
+// GOOD: mappit controller Request → DTO, only data goes deeper
 $action->execute(command: new StoreCommand(form: $form, user: $request->user()));
 ```
 
-### 3. Циклическая зависимость
+### 3. Circular dependency
 
-`ServiceA → ServiceB → ServiceA` — контейнер упадёт на резолве, но сама попытка
-означает неверную границу: общая логика принадлежит третьему классу. Выдели
-`ServiceC`, который инжектят оба.
+`ServiceA → ServiceB → ServiceA` — the container will crash on resolution, but the attempt itself
+means an invalid boundary: the overall logic belongs to the third class. Highlight
+`ServiceC`, which both inject.
 
 ### 4. Cohesion signals
 
@@ -80,8 +80,8 @@ Many constructor dependencies, or a collaborator used by only one method, warran
 cohesion. They do not automatically require splitting a class; follow actual responsibilities.
 A controller can use method injection for an operation-specific collaborator.
 
-### 6. Интерфейс без второй реализации
+### 6. Interface without second implementation
 
-`FooServiceInterface + FooService + bind()` ради единственной реализации — шум.
-Конкретный класс резолвится контейнером zero-config. Интерфейс — только при
-реальной вариативности (драйверы, внешние интеграции, подмена в тестах).
+`FooServiceInterface + FooService + bind()` for the sake of the only implementation - noise.
+The concrete class is resolved by the container zero-config. Interface - only when
+real variability (drivers, external integrations, substitution in tests).

@@ -1,25 +1,25 @@
-# Шаблон команды /plan — скопировать в .claude/commands/plan.md проекта
+# Command template /plan — copy to .claude/commands/plan.md project
 
 ```markdown
 ---
-description: План задачи в файл — без выполнения (первая сессия паттерна Plan→Clear→Execute)
+description: Task plan to file - without execution (first pattern session Plan→Clear→Execute)
 model: opus
-argument-hint: <описание задачи>
+argument-hint: <task description>
 ---
 
-Задача: $ARGUMENTS
+Task: $ARGUMENTS
 
-Составь план реализации БЕЗ выполнения:
+Create an implementation plan WITHOUT execution:
 
-1. Изучи затронутый код (только чтение).
-2. Запиши план в `.claude/plans/<kebab-имя-задачи>.md`:
-   - Контекст: зачем и что меняем;
-   - Шаги с конкретными файлами;
-   - Инварианты (что нельзя сломать);
-   - Верификация: команды проверки.
-3. План должен быть самодостаточным: выполняться будет в НОВОЙ сессии,
-   без доступа к текущему обсуждению.
-4. Выведи путь к файлу плана и остановись. Не начинай реализацию.
+1. Examine the affected code (read only).
+2. Write the plan in `.claude/plans/<kebab-task-name>.md`:
+   - Context: why and what we are changing;
+   - Steps with specific files;
+   - Invariants (that cannot be broken);
+   - Verification: verification commands.
+3. The plan must be self-contained: it will be executed in a NEW session,
+   without access to the current discussion.
+4. Print the path to the plan file and stop. Don't start implementation.
 
-После этого: `/clear`, затем `/execute <путь к плану>`.
+After this: `/clear`, then `/execute <path to plan>`.
 ```

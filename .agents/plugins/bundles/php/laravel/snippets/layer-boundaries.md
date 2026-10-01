@@ -3,11 +3,11 @@
 
 # Laravel Layer Boundaries
 
-## Карта слоёв
+## Layer map
 
-| Слой | Путь | Ответственность |
+| Layer | Path | Responsibility |
 |:---|:---|:---|
-| **Action** | `app/Actions/` | Единственная точка мутации domain entity |
+| **Action** | `app/Actions/` | Single mutation point domain entity |
 | **Service** | `app/Services/` | Evaluator / read-side / side-effect |
 | **Repository** | `app/Repositories/` | Data-access: read-side + write-side |
 | **Controller** | `app/Http/Controllers/` | HTTP-only: auth → validate → action → respond |
@@ -17,13 +17,13 @@
 
 ## Action
 
-**Единственная транзакционная граница use-case.**
+**Single transactional boundary use-case.**
 
-- Один публичный `execute()`.
-- Принимает модели, DTO, примитивы — **не `Request`**.
-- Вся мутация обёрнута в `DB::transaction()`.
-- Нарушение бизнес-правил — через `ValidationException`.
-- Доменные события (`dispatch`) — из Action или model observer.
+- One public `execute()`.
+- Accepts models DTO, primitives - **not `Request`**.
+- The entire mutation is wrapped in `DB::transaction()`.
+- Violation of business rules - through `ValidationException`.
+- Domain events (`dispatch`) — from Action or model observer.
 
 ```php
 final readonly class StoreAction
@@ -46,11 +46,11 @@ final readonly class StoreAction
 
 ---
 
-## Service — три допустимых подтипа
+## Service — three valid subtypes
 
 ### 1. Domain evaluator (read-only)
 
-Вычисления, предикаты, бизнес-правила — без записи в БД.
+Calculations, predicates, business rules - without recording in the database.
 
 ```php
 final class WorkflowService
@@ -62,7 +62,7 @@ final class WorkflowService
 
 ### 2. Read-side facade
 
-Сборка view-model / DTO для UI из нескольких источников.
+Assembly view-model / DTO for UI from several sources.
 
 ```php
 final class StageViewService
@@ -71,9 +71,9 @@ final class StageViewService
 }
 ```
 
-### 3. Side-effect без бизнес-решения
+### 3. Side-effect without business solution
 
-Инфраструктурные обёртки (отправка уведомлений, broadcast). Не принимает решений о том, кому и когда.
+Infrastructure wrappers (sending notifications, broadcast). Doesn't make decisions about who or when.
 
 ```php
 final class NotificationService
@@ -82,23 +82,23 @@ final class NotificationService
 }
 ```
 
-**Service не может:**
-- Выполнять mutation domain entity
-- Принимать `Illuminate\Http\Request`
-- Открывать транзакцию как основную границу use-case
-- Делать `abort()` / `abort_if()` — это Controller / Gate
+**Service cannot:**
+- Execute mutation domain entity
+- Accept `Illuminate\Http\Request`
+- Open transaction as primary boundary use-case
+- Do `abort()` / `abort_if()` — this Controller / Gate
 
 ---
 
 ## Repository
 
-| Тип | Суффикс | Ответственность |
+| Type | Suffix | Responsibility |
 |:---|:---|:---|
-| Read-side | `*ReadRepository` | `Builder`, фильтры, пагинация, eager-load |
-| Write-side | `*StoreRepository` | Mutations, sync-операции |
+| Read-side | `*ReadRepository` | `Builder`, filters, pagination, eager-load |
+| Write-side | `*StoreRepository` | Mutations, sync-operations |
 
-- Write-side **не открывает самостоятельную транзакцию** — работает внутри транзакции вызывающего Action.
-- Повторяемые query-предикаты → model scopes, не копипаст.
+- Write-side **does not open a self-transaction** — runs inside the caller's transaction Action.
+- Repeatable query-predicates → model scopes, is not a copy-paste.
 
 ```php
 // Read
@@ -124,7 +124,7 @@ final class OrderStoreRepository
 
 ## Controller
 
-**Только HTTP-слой.** Никакой бизнес-логики.
+**Only HTTP-layer.** No business logic.
 
 ```
 authorize → validate (FormRequest) → call Action → response/redirect
@@ -149,7 +149,7 @@ final class OrdersController
 
 ## Policy
 
-Только проверки авторизации. Никакой persistence. Никаких side effects.
+Authorization checks only. None persistence. None side effects.
 
 ```php
 final class CommonPolicy
@@ -167,47 +167,47 @@ final class CommonPolicy
 
 ## Forbidden Matrix
 
-| Действие | Action | Service | Repository | Controller | Policy |
+| Action | Action | Service | Repository | Controller | Policy |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| Принять `Request` | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Мутация domain entity | ✅ | ❌ | ✅ | ❌ | ❌ |
-| Открыть транзакцию (use-case) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Бизнес-решения | ✅ | ✅ (evaluator) | ❌ | ❌ | ✅ |
+| Accept `Request` | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Mutation domain entity | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Open transaction (use-case) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Business Solutions | ✅ | ✅ (evaluator) | ❌ | ❌ | ✅ |
 | `abort()` / `abort_if()` | ❌ | ❌ | ❌ | ✅ | ❌ |
 | dispatch Event | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Уведомления | через Service | ✅ (side-effect) | ❌ | ❌ | ❌ |
+| Notifications | via Service | ✅ (side-effect) | ❌ | ❌ | ❌ |
 
 ---
 
 ## Anti-patterns
 
 ```php
-// ❌ Request в Action
+// ❌ Request in Action
 class StoreAction {
     public function execute(Request $request): Order { ... }
 }
 
-// ❌ Мутация в Service
+// ❌ Mutation in Service
 class OrderService {
     public function save(Order $ticket): void {
-        $ticket->save(); // mutation в Service!
+        $ticket->save(); // mutation in Service!
     }
 }
 
-// ❌ Бизнес-логика в Controller
+// ❌ Business logic in Controller
 class OrdersController {
     public function store(Request $request): Response {
-        if ($request->user()->hasRole('admin')) { // решение в HTTP-слое!
+        if ($request->user()->hasRole('admin')) { // solution in HTTP-layer!
             Order::create(...);
         }
     }
 }
 
-// ❌ Два write-вызова из Controller без транзакции
+// ❌ Two write-call from Controller without transaction
 class OrdersController {
     public function approve(Order $ticket): Response {
-        $ticket->update(['status' => 'approved']);     // мутация 1
-        $this->historyService->log($ticket, 'approved'); // мутация 2 — не в транзакции!
+        $ticket->update(['status' => 'approved']);     // mutation 1
+        $this->historyService->log($ticket, 'approved'); // mutation 2 - not in a transaction!
     }
 }
 ```

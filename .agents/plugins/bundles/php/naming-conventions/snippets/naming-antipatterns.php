@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 /**
- * Сводная галерея именования Laravel/PHP: плохо → хорошо.
- * Принцип: имя раскрывает НАМЕРЕНИЕ, а не реализацию и не тип.
+ * Naming summary gallery Laravel/PHP: bad → good.
+ * Principle: The name reveals the INTENT, not the implementation or the type.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Методы репозитория: НЕ метод-на-поле
+// 1. Repository methods: NOT method-on-field
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ❌ комбинаторный взрыв: каждая колонка порождает свой *OrFail
+// ❌ combinatorial explosion: each column generates its own *OrFail
 final class OrderRepository
 {
     public function findByCodeOrFail(string $code): Order { /* ... */ }
@@ -20,16 +20,16 @@ final class OrderRepository
     public function getAllActiveOrdersList(): Collection { /* ... */ }
 }
 
-// ✅ scope по намерению + штатные методы Eloquent; один канонический lookup
+// ✅ scope by intent + standard methods Eloquent; one canonical lookup
 final class OrderReadRepository
 {
-    // route model binding / firstWhere покрывают поиск по полю — метод не нужен.
+    // route model binding / firstWhere cover field searches - no method needed.
     public function findByIdOrFail(int $id, ?User $user = null): Order
     {
         return $this->queryForUser($user)->findOrFail($id);
     }
 
-    // именованный запрос по бизнес-смыслу, а не по колонке
+    // named query by business sense, not by column
     public function pendingForReview(?User $user = null): Collection
     {
         return $this->queryForUser($user)->pending()->get();
@@ -37,10 +37,10 @@ final class OrderReadRepository
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Классы: роль, а не «менеджер чего-то»
+// 2. Classes: role, not «manager of something»
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ❌ свалка без ответственности              // ✅ роль в имени
+// ❌ dump without responsibility              // ✅ role in name
 final class OrderManager {}                    final class CreateOrder {}          // Action
 final class UserHelper {}                      final class UserRegistrar {}        // Service
 final class DataProcessor {}                   final class CsvOrderImporter {}     // Importer
@@ -50,13 +50,13 @@ final class StringUtils {}                     final class Slugifier {}
 // 3. DTO / VO / Enum
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ❌ суффикс типа = шум                       // ✅
+// ❌ type suffix = noise                       // ✅
 final class OrderDTO {}                         final class OrderData {}            // spatie/laravel-data
-final class OrderObject {}                      final class CreateOrderForm {}      // вход команды
-// VO — доменное существительное без суффикса: Money, EmailAddress, DateRange
+final class OrderObject {}                      final class CreateOrderForm {}      // command input
+// VO — domain noun without suffix: Money, EmailAddress, DateRange
 
-enum OrderStatuses: string {}                   // ❌ имя во мн.ч.
-enum OrderStatus: string                        // ✅ единственное, кейсы PascalCase
+enum OrderStatuses: string {}                   // ❌ plural name
+enum OrderStatus: string                        // ✅ the only thing, cases PascalCase
 {
     case Pending = 'pending';
     case Shipped = 'shipped';
@@ -66,11 +66,11 @@ enum OrderStatus: string                        // ✅ единственное,
 // 4. Event / Job / Listener
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Event — факт в прошедшем времени:        OrderShipped, InvoicePaid
-// Job/Listener — императив (что сделать):   ProcessPayment, SendShipmentNotification
+// Event — fact in past tense:        OrderShipped, InvoicePaid
+// Job/Listener — imperative (what to do):   ProcessPayment, SendShipmentNotification
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Action: один публичный метод, императив + объект
+// 5. Action: one public method, imperative + object
 // ─────────────────────────────────────────────────────────────────────────────
 
 final readonly class PublishDocument
@@ -79,7 +79,7 @@ final readonly class PublishDocument
 
     public function __invoke(Document $document, User $actor): Document
     {
-        // happy path последним, early returns — см. code-style-spatie
+        // happy path last, early returns — see code-style-spatie
         return DB::transaction(fn () => $document->publish($actor));
     }
 }

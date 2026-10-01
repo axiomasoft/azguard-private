@@ -636,10 +636,14 @@ Laravel, поэтому его применяет сам роутер. Стро�
 
 **Решение.**
 
-- `azguard.panel:{id}` — вход в панель: субъект из auth guard'а панели; субъект принадлежит панели; если задано
-  право входа (`->entry('panel.access')`), оно есть (у суперадмина есть); делает панель панелью по умолчанию для
-  запроса (D05, как `Auth::shouldUse()`) и кладёт её в `Context` для очередей; определяет текущую сущность
-  (резолверы панели). Иначе 403 или редирект, как задано на панели.
+- `azguard.panel:{id}` — вход в интерфейс панели: resolve auth subject, tenant и scope, проверить accepted model,
+  owner/membership и хотя бы одно действующее назначение зарегистрированной PHP-роли этой панели.
+  Назначения могут быть DB/code/relation; чужой tenant/panel, expiry или ineligible project не подходят.
+  `entry()` по умолчанию null; если задано `->entry(PanelPermission::Access)`, его обычный decision pipeline
+  добавляется AND после проверки роли. Даже policy allow не пускает пользователя без роли; scoped superadmin
+  не обходит policy veto/boundaries. Затем панель становится request default (D05), hint переносится в Laravel
+  Context; при отказе 403/настроенный redirect. Tenant chooser до выбора организации — отдельный host flow,
+  не глобальный доступ ко всем tenants. [09 §3.1](09-authorization-semantics.md#31-вход-в-интерфейс-панели).
 - `#[CheckPermission(OrderPermission::Refund, on: 'order', status: 403, message: …)]` — сегодняшний атрибут, теперь
   `extends Illuminate\Routing\Attributes\Controllers\Middleware`: роутер Laravel сам вешает
   `azguard.can:{permission},{on}`. Можно на методе и на классе (с `only:`/`except:`, как у Laravel), можно несколько.

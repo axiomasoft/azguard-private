@@ -3,12 +3,12 @@
   "snippets": [
     {
       "file": "infection.json5",
-      "description": "Конфиг Infection: source.directories + excludes (Commands/Facades/миграции/UI), testFramework, профиль мутаторов @default + точечные, logs (text/html/summary/json), гейты minMsi/minCoveredMsi, timeout/threads",
+      "description": "Config Infection: source.directories + excludes (Commands/Facades/migrations/UI), testFramework, mutator profile @default + point, logs (text/html/summary/json), gates minMsi/minCoveredMsi, timeout/threads",
       "tags": ["infection", "config", "mutators", "msi-gate", "excludes"]
     },
     {
       "file": "mutation-ci.yml",
-      "description": "CI-workflow Infection: инкремент --git-diff-lines на PR + полный advisory-прогон на main, отдельная генерация --coverage-xml и переиспользование через --coverage, гейты --min-msi/--min-covered-msi, драйвер покрытия и fetch-depth:0",
+      "description": "CI-workflow Infection: increment --git-diff-lines on PR + full advisory-run on main, separate generation --coverage-xml and reuse via --coverage, gates --min-msi/--min-covered-msi, coverage driver and fetch-depth:0",
       "tags": ["ci", "github-actions", "git-diff-lines", "incremental", "coverage"]
     }
   ]

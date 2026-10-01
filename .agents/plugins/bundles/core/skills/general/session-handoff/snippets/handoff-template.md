@@ -1,37 +1,37 @@
-# Handoff: [тема] — [YYYY-MM-DD]
+# Handoff: [topic] — [YYYY-MM-DD]
 
-## Задача
+## Task
 
-Одним абзацем: что делаем и зачем. Ссылка на ТЗ/тикет, если есть.
+In one paragraph: what we do and why. Link to technical specifications/ticket, if available.
 
-## Состояние (по `git status` / `git diff --stat`)
+## Status (by `git status` / `git diff --stat`)
 
-- Закоммичено: [коммиты этой сессии, по `git log --oneline`]
-- В работе (не закоммичено): [файлы и суть правок]
-- Ветка: [имя], база: [main/develop]
+- Committed: [commits for this session, by `git log --oneline`]
+- In progress (not committed): [files and the essence of the changes]
+- Thread: [name], database: [main/develop]
 
-## Принятые решения
+## Resolved decisions
 
-| Решение | Почему | Что отвергли |
+| Solution | Why | What was rejected |
 |---|---|---|
 | ... | ... | ... |
 
-## Незакрытые вопросы
+## Open questions
 
-- [ ] [вопрос] — блокирует: [что]
+- [ ] [question] — blocks: [what]
 - [ ] ...
 
-## Следующие шаги (по приоритету)
+## Next steps (by priority)
 
-1. [действие] — файлы: [пути], проверка: [команда]
+1. [action] — files: [paths], check: [command]
 2. ...
 
-## Верификация
+## Verification
 
 ```bash
-# команды, подтверждающие текущее состояние (тесты, линт, сборка)
+# commands confirming the current state (tests, lint, build)
 ```
 
-## Грабли сессии
+## Session rake
 
-Что пробовали и не сработало — чтобы следующий агент не повторял.
+What we tried and didn’t work - so that the next agent doesn’t repeat it.

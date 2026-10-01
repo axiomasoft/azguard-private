@@ -5,13 +5,13 @@
 declare(strict_types=1);
 
 /**
- * Гейт покрытия по Clover после `php artisan test --coverage --coverage-clover=coverage/clover.xml`.
- * Кладётся в scripts/check-coverage-gate.php; пороги читает из coverage.php (см. coverage-gate-config.php).
+ * Coverage gate by Clover after `php artisan test --coverage --coverage-clover=coverage/clover.xml`.
+ * Placed in scripts/check-coverage-gate.php; thresholds reads from coverage.php (see coverage-gate-config.php).
  *
- * Переменные окружения:
- * - COVERAGE_GATE_MODE: report | soft | hard (по умолчанию hard)
- * - COVERAGE_GLOBAL_MIN: переопределение минимума в процентах (строки)
- * - COVERAGE_CRITICAL_MIN: переопределение минимума для критичных директорий
+ * Environment variables:
+ * - COVERAGE_GATE_MODE: report | soft | hard (default hard)
+ * - COVERAGE_GLOBAL_MIN: override minimum percentage (lines)
+ * - COVERAGE_CRITICAL_MIN: override the minimum for critical directories
  */
 $root = dirname(__DIR__);
 $cloverPath = $root.'/coverage/clover.xml';
@@ -19,7 +19,7 @@ $mode = getenv('COVERAGE_GATE_MODE') ?: 'hard';
 
 $configPath = $root.'/coverage.php';
 if (! is_file($configPath)) {
-    fwrite(STDERR, "coverage.php не найден.\n");
+    fwrite(STDERR, "coverage.php not found.\n");
 
     exit(1);
 }
@@ -31,7 +31,7 @@ $minPercent = getenv('COVERAGE_GLOBAL_MIN') !== false
     : (float) ($config['global_minimum_percent'] ?? 0.0);
 
 if (! is_file($cloverPath)) {
-    $message = "Clover не найден: {$cloverPath}. Запустите тесты с PCOV/Xdebug и --coverage.\n";
+    $message = "Clover not found: {$cloverPath}. Run tests with PCOV/Xdebug and --coverage.\n";
     if ($mode === 'hard') {
         fwrite(STDERR, $message);
 
@@ -44,7 +44,7 @@ if (! is_file($cloverPath)) {
 
 $xml = @simplexml_load_file($cloverPath);
 if ($xml === false || $xml->project->metrics === null) {
-    fwrite(STDERR, "Не удалось прочитать metrics из {$cloverPath}\n");
+    fwrite(STDERR, "Failed to read metrics from {$cloverPath}\n");
 
     exit(1);
 }
@@ -68,9 +68,9 @@ if ($minPercent <= 0.0 || $mode === 'report') {
     exit(0);
 }
 
-// Общий порог не пройден.
+// General threshold failed.
 if ($lineRate + 0.005 < $minPercent) {
-    $msg = sprintf("Покрытие %.2f%% ниже порога %.2f%%.\n", $lineRate, $minPercent);
+    $msg = sprintf("Coating %.2f%% below threshold %.2f%%.\n", $lineRate, $minPercent);
     if ($mode === 'soft') {
         echo $msg;
 
@@ -81,7 +81,7 @@ if ($lineRate + 0.005 < $minPercent) {
     exit(1);
 }
 
-// Проверка «критичных» зон пофайлово (app/Actions, app/Policies, app/Services, app/Http/Middleware).
+// Verification «critical» zones per file (app/Actions, app/Policies, app/Services, app/Http/Middleware).
 $criticalMinPercent = getenv('COVERAGE_CRITICAL_MIN') !== false
     ? (float) getenv('COVERAGE_CRITICAL_MIN')
     : (float) ($config['critical_directories_minimum_percent'] ?? 0.0);
@@ -125,7 +125,7 @@ if ($criticalFailures === []) {
     exit(0);
 }
 
-$criticalMessage = "Критичные файлы ниже порога:\n - ".implode("\n - ", $criticalFailures)."\n";
+$criticalMessage = "Critical files below threshold:\n - ".implode("\n - ", $criticalFailures)."\n";
 if ($mode === 'soft') {
     echo $criticalMessage;
 

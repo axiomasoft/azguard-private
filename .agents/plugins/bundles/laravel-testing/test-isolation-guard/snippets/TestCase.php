@@ -11,17 +11,17 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Tests\Support\TestEnvironmentGuard;
 
 /**
- * Базовый TestCase. Переопределяет createApplication(), чтобы прогнать страж
- * изоляции на КАЖДОМ поднятии приложения — до того, как выполнится хоть один
- * запрос к БД или запишется файл.
+ * Basic TestCase. Overrides createApplication(), to drive away the guard
+ * isolation on EVERY application launch - before even one is executed
+ * query to the database or a file will be written.
  */
 abstract class TestCase extends BaseTestCase
 {
     /**
      * {@inheritdoc}
      *
-     * Падает сразу, если тесты подключились к основной БД/боевому медиа-диску
-     * (RefreshDatabase выполняет migrate:fresh — это уничтожило бы данные).
+     * Fails immediately if tests are connected to the main database/combat media disk
+     * (RefreshDatabase executes migrate:fresh — this would destroy the data).
      */
     public function createApplication(): Application
     {
@@ -39,24 +39,24 @@ abstract class TestCase extends BaseTestCase
 }
 
 /*
- * Безопасное применение RefreshDatabase (в каждом тесте, который трогает БД):
+ * Safe use RefreshDatabase (in every test that touches the database):
  *
  *   use Illuminate\Foundation\Testing\RefreshDatabase;
  *
  *   final class OrderTest extends \Tests\TestCase
  *   {
- *       use RefreshDatabase; // безопасно: createApplication() уже гарантировал БД `*_test`
+ *       use RefreshDatabase; // safe: createApplication() has already guaranteed the DB `*_test`
  *   }
  *
- * Pest-вариант (tests/Pest.php):
+ * Pest-option (tests/Pest.php):
  *
  *   pest()->extend(Tests\TestCase::class)
  *       ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
  *       ->in('Feature');
  *
- * Порядок гарантий:
- *   1. tests/bootstrap.php       — выставляет DB_DATABASE=*_test, MEDIA_DISK=media-test до autoload.
- *   2. TestCase::createApplication — serial guard сверяет resolved config с canonical DB.
+ * Warranty policy:
+ *   1. tests/bootstrap.php       — sets DB_DATABASE=*_test, MEDIA_DISK=media-test to autoload.
+ *   2. TestCase::createApplication — serial guard checks resolved config with canonical DB.
  *   3. ParallelTestingIsolation::setUpTestDatabaseBeforeMigrating — exact worker DB after switch.
- *   4. RefreshDatabase           — migrate:fresh, только после обеих границ.
+ *   4. RefreshDatabase           — migrate:fresh, only after both boundaries.
  */

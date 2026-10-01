@@ -1,6 +1,6 @@
 # Source: anonymized production Laravel project
-# Всё-в-одном образ: PHP-FPM + Nginx (serversideup), production-ready.
-# Один образ для app/queue/scheduler/reverb/vite — различается только command в compose.
+# All-in-one image: PHP-FPM + Nginx (serversideup), production-ready.
+# One image for app/queue/scheduler/reverb/vite — differs only command in compose.
 FROM serversideup/php:8.3-fpm-nginx
 
 USER root
@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagickwand-dev \
     libpq-dev \
     libzip-dev \
-    # Node.js + pnpm — если фронтенд (vite) работает из этого же образа
+    # Node.js + pnpm — if frontend (vite) works from the same image
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && npm install -g pnpm \
@@ -31,22 +31,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /var/www/html
 
-# Каталоги Laravel, которые должны существовать до первого запуска
+# Catalogs Laravel, which must exist before the first launch
 RUN mkdir -p storage/framework/sessions \
     storage/framework/views \
     storage/framework/cache \
     bootstrap/cache \
     && chown -R www-data:www-data /var/www/html
 
-# Кастомный nginx-конфиг (root public/, fastcgi на 127.0.0.1:9000, порт 8080)
+# Custom nginx-config (root public/, fastcgi on 127.0.0.1:9000, port 8080)
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Хук entrypoint.d: автоматически выполняется при старте контейнера (см. entrypoint-hook.sh)
+# Hook entrypoint.d: is automatically executed when the container starts (see entrypoint-hook.sh)
 COPY docker/php/entrypoint.d/20-init-media-permissions.sh /etc/entrypoint.d/20-init-media-permissions.sh
 RUN chmod +x /etc/entrypoint.d/20-init-media-permissions.sh
 
 USER www-data
 
-# Healthcheck вешается в docker-compose на Laravel-эндпоинт /up:
+# Healthcheck is hung in docker-compose on Laravel-endpoint /up:
 #   test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/up >/dev/null || exit 1"]
 #   interval: 10s / timeout: 5s / retries: 5 / start_period: 40s

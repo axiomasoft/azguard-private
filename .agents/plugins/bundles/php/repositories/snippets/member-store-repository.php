@@ -13,15 +13,15 @@ use App\Models\Document\Document;
 use App\Models\Document\Member;
 
 /**
- * Низкоуровневая запись участников документа (без событий и broadcast).
- * Кто и о чём уведомлять по дельте — решает вызывающий Action.
+ * Low-level recording of document participants (without events and broadcast).
+ * Who and what to notify via delta is decided by the caller Action.
  */
 final readonly class MemberStoreRepository
 {
     /**
-     * Синхронизирует участников одной роли и возвращает дельту изменений.
-     * Delta-DTO вместо void: Action узнаёт, кого добавили/убрали,
-     * не перечитывая базу и не сравнивая состояния сам.
+     * Synchronizes members of the same role and returns the delta of changes.
+     * Delta-DTO instead void: Action finds out who was added/removed,
+     * without re-reading the database and without comparing the states myself.
      *
      * @param  array<int, int|string>  $userIds
      */
@@ -74,7 +74,7 @@ final readonly class MemberStoreRepository
     }
 
     /**
-     * Точечная мутация статуса участника — тоже write-side, тоже без событий.
+     * Point mutation of participant status - also write-side, also without events.
      */
     public function saveReviewDecision(Member $member, bool $decision, string $comment): void
     {

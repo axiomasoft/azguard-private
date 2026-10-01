@@ -1,6 +1,6 @@
 // Source: anonymized production project
-// playwright.config.ts — конфиг E2E: webServer поднимает приложение, projects-браузеры,
-// отдельный project "setup" для одноразового логина через storageState, изоляция данных через webServer.env.
+// playwright.config.ts — config E2E: webServer raises the application, projects-browsers,
+// separate project "setup" for one-time login via storageState, data isolation via webServer.env.
 import { defineConfig, devices } from '@playwright/test';
 
 const BASE_URL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:8000';
@@ -8,51 +8,51 @@ const STORAGE_STATE = 'playwright/.auth/user.json';
 
 export default defineConfig({
   testDir: './e2e',
-  // В CI ловим случайно закоммиченный test.only и даём ретраи на флейки.
+  // B CI catching accidentally committed test.only and give retrays to the flakes.
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // Один воркер в CI, если E2E делят общую БД; локально — параллельно.
+  // One worker per CI, if E2E share a common database; locally - in parallel.
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
 
   use: {
     baseURL: BASE_URL,
-    // Действия-якоря цепляем за data-testid, а не за классы/текст.
+    // We hook anchor actions to data-testid, and not for classes/text.
     testIdAttribute: 'data-testid',
-    // Артефакты только при падении — диагностика без раздувания.
+    // Artifacts only when dropped - diagnostics without bloat.
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
 
   projects: [
-    // 1) Одноразовый логин: проходит форму и сохраняет сессию в storageState.
+    // 1) One-time login: goes through the form and saves the session in storageState.
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
 
-    // 2) Сценарии залогиненного пользователя — стартуют уже с сессией.
+    // 2) Scripts for a logged-in user - start already with a session.
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], storageState: STORAGE_STATE },
       dependencies: ['setup'],
-      // Флоу без авторизации (регистрация, публичные страницы) держим отдельно.
+      // Flow without authorization (registration, public pages) are kept separately.
       testIgnore: /.*\.public\.spec\.ts/,
     },
     {
       name: 'chromium-public',
-      use: { ...devices['Desktop Chrome'] }, // без storageState
+      use: { ...devices['Desktop Chrome'] }, // without storageState
       testMatch: /.*\.public\.spec\.ts/,
     },
-    // Доп. браузеры включай по необходимости:
+    // Add. Enable browsers as needed:
     // { name: 'firefox', use: { ...devices['Desktop Firefox'], storageState: STORAGE_STATE }, dependencies: ['setup'] },
   ],
 
-  // Поднимаем приложение перед прогоном; локально переиспользуем уже запущенный сервер.
+  // Raise the application before running; locally we reuse an already running server.
   webServer: {
     command: 'npm run serve:e2e',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    // Изоляция: приложение пишет в тестовую БД и тестовый диск медиа, не в боевые.
+    // Isolation: the application writes to the test database and test media disk, not to the combat ones.
     env: {
       APP_ENV: 'testing',
       DB_DATABASE: process.env.E2E_DB_DATABASE ?? 'app_e2e',

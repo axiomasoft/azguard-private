@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Source: anonymized production Laravel project -->
-<!-- Дуальная схема БД: основная `app` (из .env) и тестовая `app_test`. -->
-<!-- Замените `app_test` на `<имя_вашей_бд>_test`. -->
+<!-- Dual database schema: main `app` (from .env) and test `app_test`. -->
+<!-- Replace `app_test` on `<name_your_db>_test`. -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="tests/bootstrap.php"
@@ -21,15 +21,15 @@
         </include>
     </source>
     <php>
-        <!-- $_SERVER читается Laravel/Dotenv первым (ServerConstAdapter). Docker инжектит DB_* сюда; переопределяем как и env. -->
-        <!-- DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD наследуются из окружения / .env (Docker: pgsql:5432; хост: 127.0.0.1). Подменяется только ИМЯ БД на app_test. -->
+        <!-- $_SERVER read Laravel/Dotenv first (ServerConstAdapter). Docker injectitis DB_* here; redefine as and env. -->
+        <!-- DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD are inherited from the environment / .env (Docker: pgsql:5432; host: 127.0.0.1). Only the DB NAME is replaced by app_test. -->
         <server name="APP_ENV" value="testing"/>
         <server name="DB_CONNECTION" value="pgsql"/>
         <server name="DB_DATABASE" value="app_test"/>
         <server name="CACHE_STORE" value="array"/>
         <server name="SESSION_DRIVER" value="array"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
-        <!-- force="true": Docker / хост могут задать эти переменные через getenv; PHPUnit ОБЯЗАН перебить их ради изолированной тестовой БД -->
+        <!-- force="true": Docker / hosts can set these variables via getenv; PHPUnit MUST kill them for the sake of an isolated test database -->
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_TIMEZONE" value="UTC"/>
         <env name="APP_LOCALE" value="en"/>

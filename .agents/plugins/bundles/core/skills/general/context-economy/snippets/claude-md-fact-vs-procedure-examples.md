@@ -1,22 +1,22 @@
-# CLAUDE.md: факт vs процедура — тест и примеры
+# CLAUDE.md: fact vs procedure - test and examples
 
-Один вопрос на каждый раздел: **нужно ли это Claude в КАЖДОЙ сессии, просто чтобы понимать
-проект, или только когда делается конкретная задача X?** Каждую сессию → факт → CLAUDE.md.
-Только для X → процедура → скилл (`.claude/skills/<name>/SKILL.md`, лениво грузится по
-`description`, не резидентно).
+One question per section: **is this necessary? Claude in EVERY session, just to be clear
+project, or only when a specific task is being done X?** Every session → fact → CLAUDE.md.
+Only for X → procedure → skill (`.claude/skills/<name>/SKILL.md`, is loading lazily
+`description`, non-resident).
 
-Второй, эквивалентный вопрос: **это декларативно (что ЕСТЬ) или процедурно (что ДЕЛАТЬ)?**
-Декларативное — факт. Процедурное (нумерованные шаги, шаблоны промптов, чеклисты запуска) —
-скилл.
+Second, equivalent question: **this is declarative (what IS) or procedurally (what to DO)?**
+Declarative - fact. Procedural (numbered steps, prompt templates, launch checklists) —
+skill.
 
-**Важная оговорка:** `@import` в CLAUDE.md НЕ даёт ленивую загрузку — импортированные файлы
-разворачиваются целиком при старте сессии (см. основной SKILL.md, раздел про мифы). Реальная
-экономия — не в организации текста через `@import`, а в переносе процедурного контента в скилл
-(там резидентны только `name`+`description`, тело — по триггеру).
+**Important Disclaimer:** `@import` in CLAUDE.md DOES NOT allow lazy loading - imported files
+are expanded entirely at the start of the session (see main SKILL.md, section about myths). Real
+savings - not in organizing the text through `@import`, and in the transfer of procedural content to the skill
+(are only resident there `name`+`description`, body - by trigger).
 
-## Пример 1 — шаблоны промптов задач → скилл
+## Example 1 - task prompt templates → skill
 
-**Плохо** (в CLAUDE.md, резидентно каждую сессию):
+**Bad** (in CLAUDE.md, resident every session):
 
 ```markdown
 ## Task templates
@@ -30,14 +30,14 @@ Add minimal tests for the changed behavior: one happy path, one negative case.
 Run: php artisan test --compact --filter=...
 ```
 
-**Хорошо** — вынести в `.claude/skills/task-templates/SKILL.md` (лениво грузится по
-description "Canned prompts for code review / test generation / ..."), в CLAUDE.md — ничего
-(скилл подключится сам по задаче) либо одна строка-указатель, если это не самоочевидно.
+**Okay** — put in `.claude/skills/task-templates/SKILL.md` (is loading lazily
+description "Canned prompts for code review / test generation / ..."), in CLAUDE.md — nothing
+(skill will connect itself according to the task) or a single pointer line if this is not self-evident.
 
-## Пример 2 — доменный runbook (пайплайн/шаги/команды) → скилл
+## Example 2 - domain runbook (pipeline/steps/commands) → skill
 
-**Плохо** (120 строк: таблица стадий, dependency map, тестовые команды, PR-чеклист — всё
-резидентно, даже когда задача не касается этого пайплайна):
+**Bad** (120 lines: stage table, dependency map, test commands, PR-checklist - everything
+is resident even when the task does not touch this pipeline):
 
 ```markdown
 ## Parsing pipeline
@@ -52,14 +52,14 @@ description "Canned prompts for code review / test generation / ..."), в CLAUDE
 make test-preflight && make test-php
 ```
 
-**Хорошо** — весь раздел в `.claude/skills/parsing-pipeline-dev/SKILL.md` с
-`paths: "app/Services/Parsing/**"` (или по триггеру description), в CLAUDE.md остаётся максимум
-одна строка в reference-таблице: «работа с пайплайном парсинга → скилл `parsing-pipeline-dev`».
+**Okay** — entire section in `.claude/skills/parsing-pipeline-dev/SKILL.md` with
+`paths: "app/Services/Parsing/**"` (or by trigger description), in CLAUDE.md maximum remains
+one line per reference-table: «working with the parsing pipeline → skill `parsing-pipeline-dev`».
 
-## Пример 3 — доменный глоссарий → сократить, детали унести
+## Example 3 - Domain Glossary → cut down, remove details
 
-**Плохо** (80 строк: полный канон сущностей, глаголов, тестового нейминга — резидентно, хотя
-нужно только при именовании/ревью):
+**Bad** (80 lines: full canon of entities, verbs, test naming - resident, although
+is only needed for naming/review):
 
 ```markdown
 ## Glossary
@@ -68,15 +68,15 @@ make test-preflight && make test-php
 ... (60 more lines: verbs, test naming, exceptions)
 ```
 
-**Хорошо** — оставить только то, что реально нужно знать КАЖДУЮ сессию без домена (например,
-таблица «короткий префикс таблицы ↔ полное доменное имя» — это факт про структуру БД), а
-подробный канон сущностей/глаголов/нейминга — в `docs/glossary.md` (референс) или в скилл,
-триггерящийся на именование/ревью.
+**Okay** — leave only what you really need to know EVERY session without a domain (for example,
+table «short table prefix ↔ fully qualified domain name» — this is a fact about the database structure), a
+detailed entity canon/verbs/naming - in `docs/glossary.md` (reference) or in skill,
+triggered by naming/review.
 
-## Что остаётся фактом (не трогать)
+## What remains a fact (do not touch)
 
-- Карта доменов/слоёв («домен X → папка `app/Models/X/`») — факт о структуре кода, нужен
-  каждую сессию для маршрутизации правок.
-- Нестандартные команды сборки/теста, если они не угадываются по фреймворку.
-- Явные запреты («не хардкодь имя таблицы в миграции — используй `getTable()`»).
-- Reference-таблица «ситуация → куда читать» (сама она и есть роутер, см. основной SKILL.md).
+- Domain Map/layers («domain X → folder `app/Models/X/`») — fact about the code structure, needed
+  every session to route edits.
+- Non-standard build commands/test if they are not guessed by the framework.
+- Explicit prohibitions («do not hardcode the table name in the migration - use `getTable()`»).
+- Reference-table «situation → where to read» (it itself is a router, see main SKILL.md).

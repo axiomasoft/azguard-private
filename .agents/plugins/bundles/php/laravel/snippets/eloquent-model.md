@@ -3,9 +3,9 @@
 
 # Laravel Eloquent Model
 
-> Нейминг таблиц и шаблон миграции — в `db-conventions.md`.
+> Table naming and migration template - in `db-conventions.md`.
 
-## Шаблон новой модели
+## New model template
 
 ```php
 <?php
@@ -53,12 +53,12 @@ final class Order extends Model
 
 ---
 
-## PHP атрибуты на классе
+## PHP attributes on the class
 
-| Атрибут | Когда |
+| Attribute | When |
 |:---|:---|
-| `#[Table(name: '...')]` | Всегда — явное имя таблицы (единственный источник) |
-| `#[ObservedBy(Observer::class)]` | Если у домена есть Observer |
+| `#[Table(name: '...')]` | Always - explicit table name (single source) |
+| `#[ObservedBy(Observer::class)]` | If the domain has Observer |
 
 ```php
 #[Table(name: 'ticket_participants')]
@@ -70,22 +70,22 @@ final class Participant extends Model {}
 
 ## Mass assignment
 
-Предпочтительно — явный `$fillable`:
+Preferably - explicit `$fillable`:
 
 ```php
-// ✅ Явный список — видно что assignable
+// ✅ Explicit list - it is clear that assignable
 protected $fillable = ['subject', 'status', 'creator_id'];
 
-// Альтернатива — если нужны все поля (осторожно)
+// Alternative - if all fields are needed (carefully)
 protected $guarded = [];
 ```
 
 ---
 
-## casts() — приоритет над $casts
+## casts() — priority over $casts
 
 ```php
-// ✅ Метод casts() — предпочтительно (Laravel 11+)
+// ✅ Method casts() — preferred (Laravel 11+)
 protected function casts(): array
 {
     return [
@@ -97,16 +97,16 @@ protected function casts(): array
     ];
 }
 
-// ❌ Устаревший $casts массив
+// ❌ Deprecated $casts array
 protected $casts = ['status' => OrderStatus::class];
 ```
 
 ---
 
-## Accessors и mutators
+## Accessors and mutators
 
 ```php
-// ✅ Новый стиль — Attribute::make()
+// ✅ New style - Attribute::make()
 protected function fullName(): Attribute
 {
     return Attribute::make(
@@ -123,44 +123,44 @@ protected function slug(): Attribute
     );
 }
 
-// ❌ Устаревший стиль
+// ❌ Outdated style
 public function getFullNameAttribute(): string { ... }
 public function setSlugAttribute(string $value): void { ... }
 ```
 
-### Правила Attribute::make()
+### Rules Attribute::make()
 
-- **Видимость `protected`** — методы-аксессоры всегда `protected`, не `public`.
-- **Имя метода — camelCase без префикса `get`**; Laravel сам приводит к
-  snake_case для доступа: `fullName()` → `$model->full_name`,
+- **Visibility `protected`** — accessor methods are always `protected`, not `public`.
+- **Method name - camelCase without prefix `get`**; Laravel itself leads to
+  snake_case to access: `fullName()` → `$model->full_name`,
   `isActive()` → `$model->is_active`.
-- **Возвращаемый тип `: Attribute`** объявляется всегда; импорт —
+- **Return type `: Attribute`** is always declared; import -
   `use Illuminate\Database\Eloquent\Casts\Attribute;`.
-- **Короткие замыкания** (`fn`) для простых аксессоров; полное замыкание с
-  телом — когда нужна логика. Сигнатура замыкания: `fn ($value, $attributes)`
-  (`$value` — сырое значение из БД, `$attributes` — все атрибуты модели).
-- **Позиция в классе** — блок аксессоров после связей (relations) и перед
-  скоупами (scopes).
+- **Short circuits** (`fn`) for simple accessors; full circuit with
+  body - when logic is needed. Closure signature: `fn ($value, $attributes)`
+  (`$value` — raw value from the database, `$attributes` — all model attributes).
+- **Class position** — accessor block after connections (relations) and before
+  scopes (scopes).
 
-### Миграция с legacy-аксессоров
+### Migration from legacy-accessors
 
-1. Удали `getXxxAttribute()` / `setXxxAttribute()`.
-2. Добавь `protected function xxx(): Attribute { return Attribute::make(...); }`.
-3. Добавь импорт `Attribute`, если его нет.
-4. Прогони тесты — поведение доступа должно остаться прежним.
+1. Delete `getXxxAttribute()` / `setXxxAttribute()`.
+2. Add `protected function xxx(): Attribute { return Attribute::make(...); }`.
+3. Add import `Attribute`, if it is not there.
+4. Run the tests - the access behavior should remain the same.
 
 ---
 
 ## $hidden
 
 ```php
-// Поля, которые не должны попадать в JSON / toArray()
+// Fields that should not be included in JSON / toArray()
 protected $hidden = ['password', 'remember_token', 'api_token'];
 ```
 
 ---
 
-## Relations — именование и named arguments
+## Relations — naming and named arguments
 
 ```php
 public function creator(): BelongsTo
@@ -186,11 +186,11 @@ public function tags(): BelongsToMany
 
 ---
 
-## $with — eager load по умолчанию
+## $with — eager load default
 
 ```php
-// Только если связь нужна в 95%+ случаев
-// Осторожно: увеличивает нагрузку на list-запросы
+// Only if communication is needed in 95%+ cases
+// Caution: Increases stress on list-requests
 protected $with = ['creator'];
 ```
 
@@ -205,16 +205,16 @@ public function scopeActive(Builder $query): Builder
     return $query->where(column: 'is_active', operator: true);
 }
 
-// Использование: Order::query()->active()->get()
+// Usage: Order::query()->active()->get()
 ```
 
 ---
 
-## Чеклист новой модели
+## Checklist for the new model
 
-- [ ] `#[Table(name: '...')]` — явное имя таблицы
-- [ ] `final class` — нет наследования без явной причины
-- [ ] `$fillable` — явный список mass-assignable полей
-- [ ] `casts()` — enum, datetime, json, boolean типизированы
-- [ ] `#[ObservedBy]` — если нужен Observer
-- [ ] Relations — named arguments, через `getTable()` для pivot
+- [ ] `#[Table(name: '...')]` — explicit table name
+- [ ] `final class` — no inheritance without explicit reason
+- [ ] `$fillable` — explicit list mass-assignable fields
+- [ ] `casts()` — enum, datetime, json, boolean typed
+- [ ] `#[ObservedBy]` — if needed Observer
+- [ ] Relations — named arguments, via `getTable()` for pivot
