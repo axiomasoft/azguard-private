@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-02
-inputs_sha256: 9ca14cc91ffc4067fe1c90b42d9dfbf24f4dc83b7bbad25edd11b5f1ee217d23
+inputs_sha256: 5fd425075c78908b5ad2eb61497fd07c50f29216fe4ffc04cee40b6a8ab168f0
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 2/10 | 🟡 In progress |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 3/10 | 🟡 In progress |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -61,7 +61,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P2.1 | PanelProvider, PanelBuilder, Panel, PanelRegistry, CurrentPanel | 🟢 Done | 2026-10-02 |
 | P2.2 | PanelResolver: одно правило выбора панели и префиксы | 🟢 Done | 2026-10-02 |
-| P2.3 | Настройки панели и PanelSettings | ⬜ Not started | — |
+| P2.3 | Настройки панели и PanelSettings | 🟢 Done | 2026-10-02 |
 | P2.4 | Плагины: typed factories, PluginContext, изоляция, конфликты | ⬜ Not started | — |
 | P2.5 | Каталог из источников, коллизии, O(1)-поиск, catalog:cache | ⬜ Not started | — |
 | P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | ⬜ Not started | — |
@@ -187,6 +187,9 @@ generated_by: task plan-views status
 | 2026-10-02 | claude | plan-run · no-op · write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-02 | claude | plan-run · in-progress · — |
 | 2026-10-02 | claude | plan-run · closed-green · PanelResolver, словарь префиксов, индекс enum, replace() при сборке (D9), arch-правило доказанно краснеет; P01c, P05, P09 covered; PermissionKey::prefixed() не создан по D9; 8 гейтов GREEN
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-02 | claude | plan-run · in-progress · — |
+| 2026-10-02 | claude | plan-run · closed-green · PanelSettings с происхождением значений, cache/gate/consistency, порядок провайдер → плагины → configurePanels → defaults, PluginConflictException, проверки enum и ttl при сборке; V47 на записях рецепта; 8 гейтов GREEN
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates

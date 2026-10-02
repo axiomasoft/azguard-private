@@ -858,6 +858,28 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "string"
+                },
+                {
+                    "name": "failing",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "check",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "message",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
                 }
             ],
             "stability": "api",
@@ -995,6 +1017,31 @@
             "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\PluginConflictException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\PluginException",
             "interfaces": [
                 "Stringable",
                 "Throwable"
@@ -3640,6 +3687,80 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Panels\\GateMode",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Authoritative",
+                    "value": "authoritative"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Panels\\Panel",
             "kind": "class",
             "final": true,
@@ -3677,8 +3798,8 @@
                             "hasDefault": false
                         },
                         {
-                            "name": "prefix",
-                            "type": "?string",
+                            "name": "settings",
+                            "type": "AzGuard\\Panels\\PanelSettings",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -3735,6 +3856,13 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "?string"
+                },
+                {
+                    "name": "settings",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\PanelSettings"
                 },
                 {
                     "name": "subjectModels",
@@ -3804,6 +3932,38 @@
                     "return": "static"
                 },
                 {
+                    "name": "cache",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "store",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "ttl",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "generation",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
                     "name": "changing",
                     "static": false,
                     "abstract": false,
@@ -3814,6 +3974,30 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "consistency",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "reads",
+                            "type": "AzGuard\\Panels\\Reads",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "AzGuard\\Panels\\Reads::Primary"
+                        },
+                        {
+                            "name": "refresh",
+                            "type": "AzGuard\\Panels\\StateRefresh",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "AzGuard\\Panels\\StateRefresh::Request"
                         }
                     ],
                     "return": "static"
@@ -3906,6 +4090,22 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "gate",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "mode",
+                            "type": "AzGuard\\Panels\\GateMode",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "AzGuard\\Panels\\GateMode::Authoritative"
                         }
                     ],
                     "return": "static"
@@ -4160,6 +4360,336 @@
             ],
             "stability": "api",
             "via": "location"
+        },
+        {
+            "name": "AzGuard\\Panels\\PanelSettings",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [
+                "CACHE_GENERATION",
+                "CACHE_STORE",
+                "CACHE_TTL",
+                "DEFAULTS",
+                "GATE_MODE",
+                "READS",
+                "RESOURCE_PREFIX",
+                "STATE_REFRESH",
+                "TRACE_DECISIONS"
+            ],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resourcePrefix",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "gateMode",
+                            "type": "AzGuard\\Panels\\GateMode",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "cacheStore",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "cacheTtl",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "cacheGeneration",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reads",
+                            "type": "AzGuard\\Panels\\Reads",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "stateRefresh",
+                            "type": "AzGuard\\Panels\\StateRefresh",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "traceDecisions",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origins",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "cacheGeneration",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "int"
+                },
+                {
+                    "name": "cacheStore",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "cacheTtl",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?int"
+                },
+                {
+                    "name": "gateMode",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\GateMode"
+                },
+                {
+                    "name": "origin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "setting",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "string"
+                },
+                {
+                    "name": "reads",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\Reads"
+                },
+                {
+                    "name": "resourcePrefix",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "stateRefresh",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\StateRefresh"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "traceDecisions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Panels\\Reads",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Primary",
+                    "value": "primary"
+                },
+                {
+                    "name": "Default",
+                    "value": "default"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Panels\\StateRefresh",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Request",
+                    "value": "request"
+                },
+                {
+                    "name": "Check",
+                    "value": "check"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
         },
         {
             "name": "AzGuard\\Roles\\Attributes\\FormerKeys",

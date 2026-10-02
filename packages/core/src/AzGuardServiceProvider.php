@@ -8,6 +8,7 @@ use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
 use Illuminate\Contracts\Foundation\Application;
@@ -24,7 +25,10 @@ final class AzGuardServiceProvider extends ServiceProvider
             static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository($app->make('config')),
         );
 
-        $this->app->singleton(PanelRegistry::class, static fn (Application $app): PanelRegistry => new PanelRegistry($app));
+        $this->app->singleton(PanelRegistry::class, static fn (Application $app): PanelRegistry => new PanelRegistry(
+            $app,
+            new PanelCompiler(static fn (): array => $app->make(AzGuardConfig::class)->defaults()),
+        ));
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
         $this->app->scoped(CurrentPanel::class);

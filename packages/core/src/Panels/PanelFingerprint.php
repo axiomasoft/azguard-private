@@ -31,13 +31,17 @@ final class PanelFingerprint
         $hooks = [];
 
         foreach (PanelRecipe::HOOK_LISTS as $list) {
-            $hooks[$list] = array_map(self::name(...), $recipe->items($list));
+            $hooks[$list] = array_map(self::name(...), PanelCompiler::items($recipe, $list));
         }
 
         return [
             'id' => $panel->id(),
             'prefix' => $panel->prefix(),
             'default' => $panel->isDefault(),
+            'settings' => array_map(
+                static fn (array $setting): bool|int|string|null => $setting['value'],
+                $panel->settings()->toArray(),
+            ),
             'subjects' => $recipe->subjects(),
             'enums' => $recipe->enums(),
             'roles' => $recipe->roles(),
@@ -52,7 +56,7 @@ final class PanelFingerprint
                 static fn (mixed $scope): array => is_array($scope)
                     ? ['resource' => self::name($scope['resource'] ?? null), 'resolver' => self::name($scope['resolver'] ?? null)]
                     : [],
-                $recipe->items(PanelRecipe::RESOURCE_SCOPES),
+                PanelCompiler::items($recipe, PanelRecipe::RESOURCE_SCOPES),
             ),
         ];
     }

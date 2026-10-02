@@ -21,7 +21,7 @@ final readonly class Panel
         private string $id,
         private string $label,
         private bool $default,
-        private ?string $prefix,
+        private PanelSettings $settings,
         private array $subjectModels,
     ) {}
 
@@ -48,7 +48,15 @@ final readonly class Panel
      */
     public function prefix(): ?string
     {
-        return $this->prefix;
+        return $this->settings->resourcePrefix();
+    }
+
+    /**
+     * Effective settings of the panel and where each value came from.
+     */
+    public function settings(): PanelSettings
+    {
+        return $this->settings;
     }
 
     /**

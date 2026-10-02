@@ -184,3 +184,86 @@ replaces a panel nobody registered` (Testbench).
 | 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
 | 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 83 файла из 83 |
 | 8 | `git diff --check` | clean |
+
+## P2.3 — Настройки панели и PanelSettings (2026-10-02)
+
+Допуск: `P2.3` как новый workset — receipt остатка батча стал `BATCH_STALE`, потому что он привязан к digest
+`handoff.md`, а закрытие P2.2 переписало handoff. Маршрут — сохранённое route evidence сессии.
+
+### Настройка → слои → тест
+
+Scalar-настройку разрешает `PanelCompiler::pick()`: слой `provider` (включая `configure(id)`) → плагины → `configure`
+(`configurePanels`) → `default`; внутри слоя побеждает последняя запись.
+
+| Настройка (`PanelSettings::*`) | Builder | Ключ `defaults` | Проверка при сборке |
+|:--|:--|:--|:--|
+| `resource_prefix` | `resourcePrefix()` | `resource_prefix` (bool) | `true` → id панели, `false` → без префикса |
+| `gate.mode` | `gate()` | `gate.mode` | вне `GateMode` → `invalid_configuration.enum` |
+| `cache.store` | `cache(store:)` | `cache.store` | store задан, ttl `null` → `invalid_configuration.cache_ttl` |
+| `cache.ttl` | `cache(ttl:)` | `cache.ttl` | `< 1` → `invalid_configuration.enum` |
+| `cache.generation` | `cache(generation:)` | `cache.generation` | `< 1` → `invalid_configuration.enum` |
+| `consistency.reads` | `consistency()` | `consistency.reads` | вне `Reads` → `invalid_configuration.enum` |
+| `consistency.state_refresh` | `consistency()` | `consistency.state_refresh` | вне `StateRefresh` → `invalid_configuration.enum` |
+| `trace_decisions` | — | `trace_decisions` (bool) | только конфиг, происхождение всегда `default` |
+
+| Что проверено | Тест |
+|:--|:--|
+| V47: только конфиг → `default`; `configurePanels` → `configure`; запись плагина → `plugin:<id>`; провайдер → `provider`; все четыре → провайдер | `tests/Feature/Panels/PanelSettingsPrecedenceTest.php` — `takes a setting from the highest layer that sets it` (6 строк) |
+| два плагина, разные значения → `plugin_conflict`; провайдер задал → без ошибки; одинаковые значения → без ошибки, происхождение — первый плагин | `reports two plugins that set one setting to different values`, `lets the provider settle…`, `accepts plugins that agree…`, Feature `reports a conflict of two plugins unless the provider sets the value` |
+| `null` в `cache()` — «не задано на этом слое» | `treats a null cache argument as not set on this layer` |
+| значения вне enum и диапазона, store без ttl (8 случаев) | `rejects a value outside its enum or range when the panel is compiled` |
+| `origin()` неизвестной настройки → `DefinitionException` | `rejects the origin of a setting that does not exist` |
+| списки не заменяются слоем выше; порядок `provider`, плагины, `configure`; дубль class-string схлопывается | `keeps the items of every layer in a list and collapses a class named twice`, Feature `keeps list items of the provider and of configure for all panels in layer order after a boot` |
+| `presentation`: провайдер побеждает по ключу, остальные ключи плагина и `configure` сохраняются; конфликт плагинов по ключу | `merges presentation by key…`, `reports two plugins that disagree on a presentation key` |
+| префикс: `defaults.resource_prefix = false` → `Panel::prefix()` null; `resourcePrefix('backoffice')` побеждает; словарь префиксов читает итог | `resolves the prefix from the configuration default…` (5 строк), Feature `turns the prefix off for every panel from the configuration…` |
+| итоговые настройки входят в отпечаток, `label`/`presentation` — нет | `makes the effective settings part of the panel fingerprint` |
+| конфиг: неизвестные ключи `defaults` и групп, типы, целые из env строкой | `tests/Unit/Configuration/AzGuardConfigTest.php` |
+
+Слой плагинов проверен на записях рецепта с происхождением `plugin` (`PanelRecipe::during(PanelRecipe::plugin(id,
+order), …)`); сквозной сценарий через `plugins([...])` повторяет P2.4.
+
+### D45 «не настраивается» → чем подтверждено
+
+| Гарантия | Подтверждение |
+|:--|:--|
+| ни одного метода builder, отключающего проверки | `gives the builder no method that turns a guarantee off`: среди публичных методов нет имён `without…`, `disable…`, `skip…`, `allow…`, `permit…`, `unsafe…`, `bypass…`, `ignore…`; манифест `PanelBuilder` — 25 методов |
+| ни одного ключа конфига под гарантию | `defaults` принимает только `resource_prefix`, `gate`, `cache`, `consistency`, `trace_decisions`; `strict_writes`, `fail_closed`, `restrictions`, `gate.enabled` внутри `defaults` → `InvalidConfigurationException` (`rejects a key it does not know`) |
+| `gate.mode` — только `authoritative` | `GateMode` имеет один case; `permissive` → `invalid_configuration.enum` |
+| `PanelSettings` без замыканий и объектов | `holds plain values only`: `toArray()` — скаляры и пары «значение, происхождение» |
+
+Остальные гарантии D45 (integrity tenant/resource, точные scope/origin записей, fail-closed, атомарность «запись +
+версия», сроки выдач, «ошибка = отказ», проверка каталога при выдаче) реализуют P3–P5; здесь закреплено только то,
+что для них нет ни метода, ни ключа.
+
+### Решения исполнения и отклонения от `Files`
+
+- Значения по умолчанию при отсутствии ключа в конфиге — `PanelSettings::DEFAULTS` (одно место): `mergeConfigFrom`
+  сливает только верхний уровень, приложение с частичной секцией `defaults` получает остальное отсюда.
+  `AzGuardConfig::defaults()` отдаёт только заданные ключи; enum-значения остаются строками (зона `Configuration`
+  не зависит от `Panels`), проверяет их компилятор.
+- Конфиг читается лениво, при сборке панелей: компилятор получает замыкание. Иначе модуль, поднявший реестр из
+  своего `register()`, зафиксировал бы конфиг до того, как Testbench потребителя его задал.
+- Целые из окружения (`'3600'`) принимаются как числа.
+- Изменены два файла вне `Files` пункта: `packages/core/src/Exceptions/InvalidConfigurationException.php` (код с
+  уточнением после точки требует Implementation Rules) и `packages/core/src/AzGuardServiceProvider.php` (передача
+  `defaults` компилятору — без этого секция конфига не доходит до панелей). Перечень `Files` в спецификации неполон.
+- Имена настроек — константы `PanelSettings` (публичные, их принимает `origin()`); `PanelRecipe` не менялся.
+
+### Diff манифеста ядра
+
+`+` `Panels\{PanelSettings,GateMode,Reads,StateRefresh}` (`@api`), `PluginConflictException`; `~` `PanelBuilder`:
+`+cache`, `+gate`, `+consistency`; `~` `Panel`: `+settings`, конструктор принимает `PanelSettings` вместо префикса;
+`~` `InvalidConfigurationException`: `+failing`.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Panels tests/Feature/Panels tests/Unit/Configuration` | GREEN: 544 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 55 passed, `config('azguard…')` читается только в `Configuration\` |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `composer test` | GREEN: 1074 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 88 файлов из 88 |
+| 8 | `git diff --check` | clean |

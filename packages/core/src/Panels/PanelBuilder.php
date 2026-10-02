@@ -308,6 +308,46 @@ final class PanelBuilder
     }
 
     /**
+     * How the panel answers Laravel Gate for the abilities it owns.
+     *
+     * @throws RegistryFrozenException
+     */
+    public function gate(GateMode $mode = GateMode::Authoritative): static
+    {
+        return $this->record(PanelSettings::GATE_MODE, $mode);
+    }
+
+    /**
+     * Cache of permission sets; an argument left null is not set here and comes from a lower layer.
+     *
+     * @param  string|null  $store  name of a Laravel cache store
+     * @param  int|null  $ttl  seconds a permission set stays in the store
+     * @param  int|null  $generation  part of every cache key; raising it drops the cached sets of the panel
+     *
+     * @throws RegistryFrozenException
+     */
+    public function cache(?string $store = null, ?int $ttl = null, ?int $generation = null): static
+    {
+        foreach ([PanelSettings::CACHE_STORE => $store, PanelSettings::CACHE_TTL => $ttl, PanelSettings::CACHE_GENERATION => $generation] as $setting => $value) {
+            if ($value !== null) {
+                $this->recipe->record($setting, $value);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Which connection decisions read from and how often the state version is re-read.
+     *
+     * @throws RegistryFrozenException
+     */
+    public function consistency(Reads $reads = Reads::Primary, StateRefresh $refresh = StateRefresh::Request): static
+    {
+        return $this->record(PanelSettings::READS, $reads)->record(PanelSettings::STATE_REFRESH, $refresh);
+    }
+
+    /**
      * Adds resolvers of the current tenant, tried in the order they were added.
      *
      * @param  list<TenantResolver|class-string<TenantResolver>>  $resolvers
