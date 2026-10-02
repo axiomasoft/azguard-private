@@ -33,6 +33,7 @@ tests/temp/
 .cursorrules
 .mcp.json
 .codex/state/
+.codex/config.toml
 .codex/hooks.pre-telemetry-*/
 .cursor/state/
 .cursor/logs/

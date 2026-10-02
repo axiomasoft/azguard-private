@@ -6,7 +6,7 @@ command = "maind"
 args = ["mcp", "--scope", "project:azguard"]
 
 [mcp_servers.perplexity]
-command = "/home/vostrikov/projects/packages/perplexity-web-mcp/start.sh"
+command = "<PATH_TO_PERPLEXITY_MCP>/start.sh"
 args = ["--pool=default"]
 [plugins."ai@swissknifeman"]
 enabled = false
