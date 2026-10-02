@@ -22,6 +22,9 @@ final class PanelRegistry implements PanelRegistryContract
     /** @var array<string, class-string<PanelProvider>> */
     private array $providers = [];
 
+    /** @var array<string, class-string<PanelProvider>> */
+    private array $replacements = [];
+
     /** @var array<string, list<Closure(PanelBuilder): mixed>> */
     private array $configure = [];
 
@@ -36,6 +39,12 @@ final class PanelRegistry implements PanelRegistryContract
 
     /** @var array<string, string> */
     private array $fingerprints = [];
+
+    /** @var array<string, string> prefix => panel id */
+    private array $prefixes = [];
+
+    /** @var array<class-string, list<string>> permission enum => ids of the panels it is attached to */
+    private array $enums = [];
 
     private bool $frozen = false;
 
@@ -101,13 +110,8 @@ final class PanelRegistry implements PanelRegistryContract
     public function replace(string $providerClass): void
     {
         $this->assertOpen('replace a panel');
-        $id = $this->idOf($providerClass);
 
-        if (! isset($this->providers[$id])) {
-            throw $this->unknown($id);
-        }
-
-        $this->providers[$id] = $providerClass;
+        $this->replacements[$this->idOf($providerClass)] = $providerClass;
     }
 
     public function configure(string $id, Closure $callback): void
@@ -140,26 +144,54 @@ final class PanelRegistry implements PanelRegistryContract
             return;
         }
 
-        foreach (array_keys($this->configure) as $id) {
+        foreach ([...array_keys($this->replacements), ...array_keys($this->configure)] as $id) {
             if (! isset($this->providers[$id])) {
                 throw $this->unknown($id);
             }
         }
 
-        $panels = $recipes = $fingerprints = [];
+        $panels = $recipes = $fingerprints = $enums = [];
 
         foreach ($this->providers as $id => $providerClass) {
-            $recipes[$id] = $this->write($id, $providerClass);
+            $recipes[$id] = $this->write($id, $this->replacements[$id] ?? $providerClass);
             $panels[$id] = $this->compiler->compile($recipes[$id]);
             $fingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id]);
+            $enums = $this->attachEnums($enums, $id, $recipes[$id]->enums());
         }
 
         $this->compiler->assertDefaults($panels);
+        $prefixes = $this->compiler->prefixes($panels);
 
         $this->panels = $panels;
         $this->recipes = $recipes;
         $this->fingerprints = $fingerprints;
+        $this->prefixes = $prefixes;
+        $this->enums = $enums;
         $this->frozen = true;
+    }
+
+    /**
+     * The panel whose permission names start with the segment.
+     *
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function forPrefix(string $segment): ?Panel
+    {
+        $panels = $this->compiled();
+
+        return isset($this->prefixes[$segment]) ? $panels[$this->prefixes[$segment]] : null;
+    }
+
+    /**
+     * @return list<Panel> panels the permission enum is attached to, in registration order
+     *
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function forEnum(string $enumClass): array
+    {
+        $panels = $this->compiled();
+
+        return array_map(static fn (string $id): Panel => $panels[$id], $this->enums[$enumClass] ?? []);
     }
 
     /**
@@ -214,6 +246,24 @@ final class PanelRegistry implements PanelRegistryContract
         $recipe->seal();
 
         return $recipe;
+    }
+
+    /**
+     * Adds permission enums of a panel to the enum index; every way a panel gets its enums goes through here.
+     *
+     * @param  array<class-string, list<string>>  $index
+     * @param  list<class-string>  $enums
+     * @return array<class-string, list<string>>
+     */
+    private function attachEnums(array $index, string $id, array $enums): array
+    {
+        foreach ($enums as $enum) {
+            if (! in_array($id, $index[$enum] ?? [], true)) {
+                $index[$enum][] = $id;
+            }
+        }
+
+        return $index;
     }
 
     /**

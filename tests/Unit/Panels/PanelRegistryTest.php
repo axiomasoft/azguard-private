@@ -17,10 +17,12 @@ use AzGuard\Tests\Fixtures\Panels\AdminReplacementPanel;
 use AzGuard\Tests\Fixtures\Panels\AnyIdPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
+use AzGuard\Tests\Fixtures\Panels\InvoicePermission;
 use AzGuard\Tests\Fixtures\Panels\Manager;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\SellerPanel;
+use AzGuard\Tests\Fixtures\Panels\SharedPermission;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
@@ -70,11 +72,43 @@ it('replaces the provider of a panel before the registry is frozen', function ()
         ->and(AdminPanel::calls())->toBe(0);
 });
 
-it('refuses to replace a panel nobody registered', function (): void {
+it('applies a replacement when the panels are compiled, whatever the order of register and replace', function (): void {
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Original'));
+    AdminReplacementPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Replacement'));
+
+    $registry = panelRegistry();
+    $registry->replace(AdminReplacementPanel::class);
+    $registry->register(CabinetPanel::class);
+    $registry->register(AdminPanel::class);
+    $registry->freeze();
+
+    expect($registry->get('admin')->label())->toBe('Replacement')
+        ->and(array_keys($registry->all()))->toBe(['cabinet', 'admin'])
+        ->and(AdminPanel::calls())->toBe(0)
+        ->and(AdminReplacementPanel::calls())->toBe(1);
+});
+
+it('lets the last replacement of a panel win', function (): void {
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Original'));
+    AdminReplacementPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Replacement'));
+
+    $registry = panelRegistry();
+    $registry->register(AdminPanel::class);
+    $registry->replace(AdminReplacementPanel::class);
+    $registry->replace(AdminPanel::class);
+    $registry->freeze();
+
+    expect($registry->get('admin')->label())->toBe('Original')
+        ->and(AdminReplacementPanel::calls())->toBe(0);
+});
+
+it('reports a replacement of a panel nobody registered when the panels are compiled', function (): void {
     $registry = panelRegistry();
     $registry->register(CabinetPanel::class);
+    $registry->replace(AdminPanel::class);
 
-    expect(fn () => $registry->replace(AdminPanel::class))->toThrow(UnknownPanelException::class, 'Registered panels: cabinet');
+    expect(fn () => $registry->freeze())->toThrow(UnknownPanelException::class, 'Registered panels: cabinet')
+        ->and($registry->isFrozen())->toBeFalse();
 });
 
 it('refuses every change once frozen', function (Closure $change): void {
@@ -116,6 +150,8 @@ it('hides panels until they are compiled', function (Closure $read): void {
     'all' => [fn (PanelRegistry $registry) => $registry->all()],
     'forModel' => [fn (PanelRegistry $registry) => $registry->forModel(User::class)],
     'defaultFor' => [fn (PanelRegistry $registry) => $registry->defaultFor(User::class)],
+    'forPrefix' => [fn (PanelRegistry $registry) => $registry->forPrefix('admin')],
+    'forEnum' => [fn (PanelRegistry $registry) => $registry->forEnum(OrderPermission::class)],
     'recipe' => [fn (PanelRegistry $registry) => $registry->recipe('admin')],
     'fingerprint' => [fn (PanelRegistry $registry) => $registry->fingerprint('admin')],
 ]);
@@ -297,4 +333,36 @@ it('keeps a fingerprint for every compiled panel', function (): void {
 
     expect($first->fingerprint('admin'))->toBe($second->fingerprint('admin'))
         ->and($first->fingerprint('admin'))->not->toBe($first->fingerprint('cabinet'));
+});
+
+it('indexes panel prefixes and rejects a prefix shared by two panels', function (): void {
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->resourcePrefix('backoffice'));
+    SellerPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->resourcePrefix(false));
+
+    $registry = panelRegistry();
+    $registry->register(AdminPanel::class);
+    $registry->register(CabinetPanel::class);
+    $registry->register(SellerPanel::class);
+    $registry->freeze();
+
+    expect($registry->forPrefix('backoffice')?->id())->toBe('admin')
+        ->and($registry->forPrefix('cabinet')?->id())->toBe('cabinet')
+        ->and($registry->forPrefix('admin'))->toBeNull()
+        ->and($registry->forPrefix('seller'))->toBeNull();
+});
+
+it('indexes the permission enums of every panel', function (): void {
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([OrderPermission::class, SharedPermission::class]));
+    CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([SharedPermission::class, SharedPermission::class]));
+
+    $registry = panelRegistry();
+    $registry->register(AdminPanel::class);
+    $registry->register(CabinetPanel::class);
+    $registry->freeze();
+
+    $ids = static fn (string $enum): array => array_map(static fn ($panel): string => $panel->id(), $registry->forEnum($enum));
+
+    expect($ids(OrderPermission::class))->toBe(['admin'])
+        ->and($ids(SharedPermission::class))->toBe(['admin', 'cabinet'])
+        ->and($ids(InvoicePermission::class))->toBe([]);
 });

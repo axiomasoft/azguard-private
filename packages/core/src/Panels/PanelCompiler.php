@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Exceptions\DefaultPanelConflictException;
+use AzGuard\Exceptions\PrefixConflictException;
 
 /**
  * Turns a sealed recipe into a panel and checks what only the whole set of panels can tell.
@@ -53,6 +54,38 @@ final class PanelCompiler
                 }
             }
         }
+    }
+
+    /**
+     * The prefix dictionary of the application: a prefix is one segment that names exactly one panel.
+     *
+     * @param  array<string, Panel>  $panels
+     * @return array<string, string> prefix => panel id
+     *
+     * @throws PrefixConflictException when two panels resolve to the same prefix, the default one included
+     */
+    public function prefixes(array $panels): array
+    {
+        $prefixes = [];
+
+        foreach ($panels as $panel) {
+            $prefix = $panel->prefix();
+
+            if ($prefix === null) {
+                continue;
+            }
+
+            if (isset($prefixes[$prefix])) {
+                throw new PrefixConflictException(
+                    'Panels "'.$prefixes[$prefix].'" and "'.$panel->id().'" both use the permission prefix "'.$prefix
+                    .'": give one of them another resourcePrefix() or turn it off with resourcePrefix(false).',
+                );
+            }
+
+            $prefixes[$prefix] = $panel->id();
+        }
+
+        return $prefixes;
     }
 
     /**

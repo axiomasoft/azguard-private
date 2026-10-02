@@ -71,11 +71,13 @@ interface PanelRegistry
     public function register(string $providerClass): void;
 
     /**
-     * Replaces the provider registered under the same panel id.
+     * Replaces the provider registered under the same panel id when the panels are compiled.
+     *
+     * The order of `register()` and `replace()` across service providers does not matter; the last replacement of
+     * an id wins. A replacement for an id nobody registered is reported when the panels are compiled.
      *
      * @param  class-string<PanelProvider>  $providerClass
      *
-     * @throws UnknownPanelException when no panel has that id
      * @throws InvalidPanelIdException
      * @throws DefinitionException when the class is not a panel provider
      * @throws RegistryFrozenException

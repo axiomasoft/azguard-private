@@ -6,6 +6,7 @@ use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
@@ -15,6 +16,7 @@ use AzGuard\Tests\Fixtures\Panels\BootsPanels;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Panels\PanelModuleProvider;
+use AzGuard\Tests\Fixtures\Panels\PanelRegisterTimeReplacer;
 use AzGuard\Tests\Fixtures\Panels\PanelReplacingProvider;
 use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\SellerPanel;
@@ -77,6 +79,23 @@ it('lets a module replace a configured panel while the application boots', funct
 
     expect(app(PanelRegistry::class)->get('admin')->label())->toBe('Replaced by the module')
         ->and(AdminPanel::calls())->toBe(0);
+});
+
+it('lets a module replace a configured panel from its register method', function (): void {
+    AdminReplacementPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Replaced before the core booted'));
+
+    $this->bootPanels(['providers' => [CabinetPanel::class, AdminPanel::class]], [PanelRegisterTimeReplacer::class]);
+
+    $registry = app(PanelRegistry::class);
+
+    expect($registry->get('admin')->label())->toBe('Replaced before the core booted')
+        ->and(array_keys($registry->all()))->toBe(['cabinet', 'admin'])
+        ->and(AdminPanel::calls())->toBe(0);
+});
+
+it('fails the boot when a module replaces a panel nobody registered', function (): void {
+    expect(fn () => $this->bootPanels(['providers' => [CabinetPanel::class]], [PanelRegisterTimeReplacer::class]))
+        ->toThrow(UnknownPanelException::class, '"admin"');
 });
 
 it('treats the guard of for() as an auth guard and leaves authentication untouched', function (): void {
