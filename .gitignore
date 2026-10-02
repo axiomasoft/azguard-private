@@ -28,6 +28,7 @@ tests/temp/
 
 # AI / dev tooling — приватная инфраструктура разработки, НЕ в публичный репозиторий
 .claude/
+.agents/
 .serena/
 .swissknifeman/
 .cursorrules
