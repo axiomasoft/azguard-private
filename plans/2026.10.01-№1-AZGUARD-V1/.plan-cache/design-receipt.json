@@ -1,0 +1,37 @@
+{
+  "adapter_attestation": null,
+  "commit_sha": "9bb02fcba2b9a46193e9be706fcb88ff824fba18",
+  "continuity": {
+    "evidence": [
+      "persisted-context:continue-root"
+    ],
+    "outcome": "continue-root",
+    "reason": "compatible-active-work",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:909417f4e7f481a2dcd3b902d83250ace182093ad7bfea1263945df3d519c426",
+    "plan": "sha256:591d8ea9441e30dacc2a00dc8ac33e3b6f110b96146d99e46076fb6d4ee35824",
+    "state": null
+  },
+  "journal": null,
+  "next_exact": "run-batch: task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4",
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "rationale": {
+    "open_risks": "до P6.9 рабочего 0.3 в сборке нет (D2); правила arch для пустых зон активируются по мере появления кода (фиксируется в evidence P1.4); перенос D6 увеличивает объём F2 — учитывать при детализации P2.",
+    "remaining": "B1 (P1.2 → P1.1 → P1.3 → P1.4), затем P1.6 (solo frontier), затем P1.7 (review); после закрытия P1 — `task:plan-design 2026.10.01-№1-AZGUARD-V1 P2`, далее P2–P8 по D3."
+  },
+  "recommendation": "**Next:** run-batch: task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | B1 |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Essence | Kernel: грамматика и база исключений → ссылки и IdentityCodec (P07) → значения решения → arch-правила зон и api-manifest; порядок — `## Planned Items` P1 (D6) |\n\n````\n/task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4\n````",
+  "route": {
+    "batch": "B1",
+    "command": null,
+    "context": "continue-root",
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "handoff-recommendation-receipt/v1",
+  "status": "handoff-persisted",
+  "subject": "P1"
+}
