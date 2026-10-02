@@ -1,6 +1,6 @@
 {
   "adapter_attestation": null,
-  "commit_sha": "9bb02fcba2b9a46193e9be706fcb88ff824fba18",
+  "commit_sha": "400c3908f9ab8f8e912d494f8f1604c6e58925e0",
   "continuity": {
     "evidence": [
       "persisted-context:continue-root"
@@ -12,20 +12,20 @@
   },
   "digests": {
     "closure": null,
-    "handoff": "sha256:909417f4e7f481a2dcd3b902d83250ace182093ad7bfea1263945df3d519c426",
-    "plan": "sha256:591d8ea9441e30dacc2a00dc8ac33e3b6f110b96146d99e46076fb6d4ee35824",
+    "handoff": "sha256:d6927c13b5941dd8dd8ef4e5e72b098ae6cae8865b108b72b5caebb0be478a72",
+    "plan": "sha256:120fe09859b2e7adb8ea8e47e0632d7c7b5489ee6b189a3af560e5321d5cca12",
     "state": null
   },
   "journal": null,
-  "next_exact": "run-batch: task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4",
+  "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.1 P2.2 P2.3",
   "plan_id": "2026.10.01-№1-AZGUARD-V1",
   "rationale": {
-    "open_risks": "до P6.9 рабочего 0.3 в сборке нет (D2); правила arch для пустых зон активируются по мере появления кода (фиксируется в evidence P1.4); перенос D6 увеличивает объём F2 — учитывать при детализации P2.",
-    "remaining": "B1 (P1.2 → P1.1 → P1.3 → P1.4), затем P1.6 (solo frontier), затем P1.7 (review); после закрытия P1 — `task:plan-design 2026.10.01-№1-AZGUARD-V1 P2`, далее P2–P8 по D3."
+    "open_risks": "D8 п.5 вводит то, чего в досье нет: ключ конфига `catalog.build_id`, `PermissionKey::prefixed(?string $prefix)` с аргументом, неабстрактный `DefinitionException`, методы `PermissionCatalog` и форму `PanelSettings`/`SourceDescription` — владелец может отменить до старта P2.1/P2.2; `StoresGrants` до P5.2 несёт только `transaction()`; `pest --type-coverage` без `-d memory_limit=1G` на холодном кэше молча пропускает файлы — гейт запускать с 1G и сверять число файлов; Pest arch: `expect([список])->not->toUse()` и `->ignoring()` вакуумны — правила по одному субъекту, функции — через `SourceScan`; до P6.9 рабочего 0.3 в сборке нет (D2).",
+    "remaining": "B2a (`P2.1 P2.2 P2.3`) → B2b (`P2.4 P2.5 P2.6`) → B2c (`P2.7 P2.8 P2.9`) → `P2.10` (Review P2, свежая сессия) → `task:plan-design 2026.10.01-№1-AZGUARD-V1 P3`, далее P3–P8 по D3."
   },
-  "recommendation": "**Next:** run-batch: task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | B1 |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Essence | Kernel: грамматика и база исключений → ссылки и IdentityCodec (P07) → значения решения → arch-правила зон и api-manifest; порядок — `## Planned Items` P1 (D6) |\n\n````\n/task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.1 P1.2 P1.3 P1.4\n````",
+  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.1 P2.2 P2.3\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | B2a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Essence | Первая группа P2: панель, builder с происхождением записей, реестр и заморозка (P2.1), единое правило выбора панели и префиксы (P2.2), порядок настроек (P2.3) |\n\n````\n/task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.1 P2.2 P2.3\n````",
   "route": {
-    "batch": "B1",
+    "batch": "B2a",
     "command": null,
     "context": "continue-root",
     "model": null,
@@ -33,5 +33,5 @@
   },
   "schema_version": "handoff-recommendation-receipt/v1",
   "status": "handoff-persisted",
-  "subject": "P1"
+  "subject": "P2"
 }

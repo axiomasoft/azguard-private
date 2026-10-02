@@ -2,13 +2,14 @@
 
 <!-- execution-sheet/v1 -->
 
-**Updated:** 2026-10-02 · **Corresponds to plan.md:** верхний слой + детализация P0, P1
+**Updated:** 2026-10-02 · **Corresponds to plan.md:** верхний слой + детализация P0, P1, P2
 
 ## Grouping rule
 
 - Фаза детализируется и исполняется целиком перед следующей (D3); строки добавляются по мере детализации.
 - Batch не пересекает фазу; launch использует максимум class/effort/review своих пунктов.
 - Owner-gated пункты P8.5/P8.6/P8.8 — всегда `solo`.
+- Batch — сплошной диапазон номеров фазы, исполняется в порядке номеров; зависимости пунктов P2 выстроены под номера досье (D8 п.1).
 
 ## Execution sheet - the only source of launch commands
 
@@ -19,6 +20,10 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.6` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.7` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.8` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.1 P2.2 P2.3` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.4 P2.5 P2.6` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.7 P2.8 P2.9` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.10` | `frontier/high` | `none` |
 
 ## Execution card
 
@@ -36,6 +41,16 @@
 | P1.6 | solo | plan-run | frontier/high | — | authority semantics, BaseRole, SPI областей (D6) |
 | P1.7 | solo | plan-run | frontier/high | — | Review P1, read-only verdict |
 | P1.8 | solo | plan-run | frontier/high | — | исправление F1–F3 Review P1 (D7) |
+| P2.1 | B2a | plan-run series | frontier/high | — | панель, builder, реестр, минимальный конфиг |
+| P2.2 | B2a | ↑ | frontier/high | — | PanelResolver, префиксы; регрессии P01c, P05, P09 |
+| P2.3 | B2a | ↑ | frontier/high | — | порядок настроек, PanelSettings |
+| P2.4 | B2b | plan-run series | frontier/high | — | плагины, PluginContext, build id |
+| P2.5 | B2b | ↑ | frontier/high | — | контракты каталога, каталог, компиляция ролей, catalog:cache |
+| P2.6 | B2b | ↑ | implementation/medium | — | фасад панелей, модульные фикстуры |
+| P2.7 | B2c | plan-run series | frontier/high | — | фабрика источников, SourceManager, писатель |
+| P2.8 | B2c | ↑ | frontier/high | — | FolderSource, discovery, pairing политик |
+| P2.9 | B2c | ↑ | implementation/medium | — | кадры областей и directories (D6) |
+| P2.10 | solo | plan-run | frontier/high | — | Review P2, read-only verdict, свежая сессия |
 
 ## Owner gates (summary)
 

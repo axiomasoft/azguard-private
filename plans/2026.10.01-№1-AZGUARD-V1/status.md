@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-02
-inputs_sha256: 7f82cf593c3fd3a0e19636c84f01c98e1e439b79c7e75d51a35522faaff412dd
+inputs_sha256: 554242a0dabf2e00cd6d2f58c8e0d0a4b6f78655a7a13ba1a36fa052c6892d20
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 0/8 | ⬜ Not started |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 0/10 | ⬜ Not started |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -67,6 +67,8 @@ generated_by: task plan-views status
 | P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | ⬜ Not started | — |
 | P2.7 | Фабрика источников: Source, возможности, SourceManager, AsSource | ⬜ Not started | — |
 | P2.8 | FolderSource: discovery папки панели, атрибуты, pairing политик | ⬜ Not started | — |
+| P2.9 | Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope | ⬜ Not started | — |
+| P2.10 | Review P2: независимая read-only проверка фазы | ⬜ Not started | — |
 
 ## Phase P3
 
@@ -179,6 +181,7 @@ generated_by: task plan-views status
 | 2026-10-02 | claude | plan-run · in-progress · — |
 | 2026-10-02 | claude | plan-run · closed-green · F1–F3 Review P1 исправлены: SourceScan (одна реализация token-скана), debug-правило краснеет; ConsistencyException/InvalidSourceContributionException по D7; Phase Context P2 принимает от P1.6; 8 гейтов GREEN (type-coverage при memory_limit=1G) |
 | 2026-10-02 | claude | plan-close · closed-green · P1.1–P1.8 GREEN; Review P1 RED → F1–F3 исправлены в P1.8, повторная проверка GREEN; inline phase close |
+| 2026-10-02 | claude | plan-design · no-op · Design finalized; execution has not started. |
 
 ## Owner Gates
 

@@ -87,14 +87,16 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | solo | P1.6 | frontier/high | run | none | отдельная frontier-сессия: authority semantics, BaseRole, SPI областей до API freeze (D6) |
 | solo | P1.7 | frontier/high | run | none | Review P1: независимая read-only проверка фазы (D3) |
 | solo | P1.8 | frontier/high | run | none | исправление находок Review P1 в сессии review по указанию владельца (D7) |
-| B2 | P2.1 | frontier/high | run | none | recommended: панели и реестр |
-| B2 | P2.2 | frontier/high | run | none | recommended: единое правило выбора панели |
-| B2 | P2.3 | frontier/high | run | none | recommended: порядок настроек панели |
-| B2 | P2.4 | frontier/high | run | none | recommended: плагины и изоляция экземпляров |
-| B2 | P2.5 | frontier/high | run | none | recommended: каталог, коллизии, O(1)-поиск |
-| B2 | P2.6 | implementation/medium | run | none | recommended: модули |
-| B2 | P2.7 | frontier/high | run | none | recommended: фабрика источников |
-| B2 | P2.8 | frontier/high | run | none | recommended: FolderSource и discovery |
+| B2a | P2.1 | frontier/high | run | none | recommended: панель, builder с происхождением, реестр — на них стоит вся фаза (D8) |
+| B2a | P2.2 | frontier/high | run | none | recommended: единое правило выбора панели на реестре P2.1 |
+| B2a | P2.3 | frontier/high | run | none | recommended: порядок настроек и происхождение значений |
+| B2b | P2.4 | frontier/high | run | none | recommended: плагины и изоляция экземпляров |
+| B2b | P2.5 | frontier/high | run | none | recommended: каталог, коллизии, O(1)-поиск, кэш |
+| B2b | P2.6 | implementation/medium | run | none | recommended: фасад панелей и модульная фикстура на каталоге |
+| B2c | P2.7 | frontier/high | run | none | recommended: фабрика источников, писатель, экземпляры |
+| B2c | P2.8 | frontier/high | run | none | recommended: FolderSource и discovery наполняют каталог |
+| B2c | P2.9 | implementation/medium | run | none | recommended: кадры областей и directories по D6 |
+| solo | P2.10 | frontier/high | run | none | Review P2: независимая read-only проверка фазы в свежей сессии (D3) |
 | B3 | P3.1 | frontier/high | run | none | recommended: mutate, блокировки, версия панели |
 | B3 | P3.2 | implementation/medium | run | none | recommended: миграции 4 СУБД |
 | B3 | P3.3 | frontier/high | run | none | recommended: модели и свои поля |
@@ -165,6 +167,7 @@ P4.12 после P4.4–P4.6; P5.5 после P4.2–P4.5. CRM-кейсы R01–
 
 Нормативные решения плана — `decisions/`: D1 граница и источник, D2 стратегия сборки и legacy,
 D3 режим исполнения и review, D4 валидация и среды СУБД, D5 рост CRM-приёмки, D6 состав P1
-по замыканию зависимостей, D7 исправление находок Review P1.
+по замыканию зависимостей, D7 исправление находок Review P1, D8 состав P2 по замыканию зависимостей
+и владение методами `PanelBuilder`.
 Решения досье цитируются как `D01–D84` (двузначные) и не копируются.
 Собрать виды: `plan-views.py decisions`. Открытые вопросы — `open-questions.md`.
