@@ -486,6 +486,31 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\ConsistencyException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\DefinitionException",
             "kind": "class",
             "final": false,
@@ -609,6 +634,31 @@
             "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\InvalidSourceContributionException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\AuthorizationEngineException",
             "interfaces": [
                 "Stringable",
                 "Throwable"

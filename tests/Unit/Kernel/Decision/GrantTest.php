@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
@@ -44,7 +45,7 @@ it('is active strictly before its expiry', function (): void {
 
 it('rejects a grant whose role lives in another panel', function (): void {
     expect(fn () => Grant::of(PermissionPattern::of('admin', 'orders.*'), 'folder', AccessScope::in(TenantRef::global()), RoleKey::of('crm', 'manager')))
-        ->toThrow(InvalidArgumentException::class, 'Grant role "crm:manager" belongs to another panel than pattern "admin:orders.*".');
+        ->toThrow(InvalidSourceContributionException::class, 'Grant role "crm:manager" belongs to another panel than pattern "admin:orders.*".');
 });
 
 it('rejects a source or origin outside the label grammar', function (string $source, string $origin): void {
@@ -62,8 +63,8 @@ it('rejects a source or origin outside the label grammar', function (string $sou
 it('rejects fields that are not plain data', function (array $fields): void {
     $scope = AccessScope::in(TenantRef::global());
 
-    expect(fn () => Grant::of(PermissionPattern::of('admin', 'a.b'), 'folder', $scope, fields: $fields))->toThrow(InvalidArgumentException::class)
-        ->and(fn () => RoleContribution::of(RoleKey::of('admin', 'r'), $scope, 'folder', fields: $fields))->toThrow(InvalidArgumentException::class);
+    expect(fn () => Grant::of(PermissionPattern::of('admin', 'a.b'), 'folder', $scope, fields: $fields))->toThrow(InvalidSourceContributionException::class)
+        ->and(fn () => RoleContribution::of(RoleKey::of('admin', 'r'), $scope, 'folder', fields: $fields))->toThrow(InvalidSourceContributionException::class);
 })->with([
     'object' => [['at' => new DateTimeImmutable]],
     'nested object' => [['list' => [1, new stdClass]]],
@@ -91,7 +92,7 @@ it('lets a restriction only pass or deny with a snake_case reason', function ():
         ->and(RestrictionResult::deny('user_blocked')->reason())->toBe('user_blocked');
 
     foreach (['', 'UserBlocked', 'user-blocked', '_blocked', 'blocked_', 'user__blocked', 'user blocked'] as $reason) {
-        expect(fn () => RestrictionResult::deny($reason))->toThrow(InvalidArgumentException::class);
+        expect(fn () => RestrictionResult::deny($reason))->toThrow(InvalidSourceContributionException::class);
     }
 });
 

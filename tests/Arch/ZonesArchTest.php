@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Tests\Arch\SourceScan;
+
 /*
  * Zone boundaries of the core. A rule for a zone without code yet is vacuous and becomes active
  * with the first class in that zone.
@@ -45,34 +47,7 @@ arch('kernel depends on nothing but PHP')
     ->expect('AzGuard\Kernel')
     ->not->toUse(['Illuminate', 'Carbon', 'Laravel', ...AZGUARD_OUTER_ZONES]);
 
-/**
- * @return list<string> framework helpers called as global functions in the given PHP code
- */
-function frameworkHelperCalls(string $code): array
-{
-    $helpers = ['app', 'config', 'now', 'today', 'env', 'resolve', 'request', 'auth', 'cache', 'event', 'logger', 'info'];
-    $tokens = array_values(array_filter(
-        token_get_all($code),
-        static fn (array|string $token): bool => ! is_array($token) || ! in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true),
-    ));
-    $calls = [];
-
-    foreach ($tokens as $i => $token) {
-        if (! is_array($token) || ! in_array($token[0], [T_STRING, T_NAME_FULLY_QUALIFIED], true)) {
-            continue;
-        }
-
-        $name = strtolower(ltrim($token[1], '\\'));
-        $previous = $tokens[$i - 1] ?? null;
-
-        if (in_array($name, $helpers, true) && ($tokens[$i + 1] ?? null) === '('
-            && ! (is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW, T_CONST], true))) {
-            $calls[] = $name;
-        }
-    }
-
-    return $calls;
-}
+const AZGUARD_FRAMEWORK_HELPERS = ['app', 'config', 'now', 'today', 'env', 'resolve', 'request', 'auth', 'cache', 'event', 'logger', 'info'];
 
 it('finds framework helper calls but not methods with the same name', function (): void {
     $code = <<<'PHP'
@@ -86,21 +61,11 @@ it('finds framework helper calls but not methods with the same name', function (
         function event(): void {}
         PHP;
 
-    expect(frameworkHelperCalls($code))->toBe(['now', 'config']);
+    expect(SourceScan::functionCalls($code, AZGUARD_FRAMEWORK_HELPERS))->toBe(['now', 'config']);
 });
 
 it('keeps the kernel free of framework helper calls', function (): void {
-    $calls = [];
-
-    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(dirname(__DIR__, 2).'/packages/core/src/Kernel', FilesystemIterator::SKIP_DOTS)) as $file) {
-        if ($file instanceof SplFileInfo && $file->getExtension() === 'php') {
-            foreach (frameworkHelperCalls((string) file_get_contents($file->getPathname())) as $call) {
-                $calls[] = $file->getFilename().': '.$call.'()';
-            }
-        }
-    }
-
-    expect($calls)->toBe([]);
+    expect(SourceScan::callsIn(SourceScan::files('packages/core/src/Kernel'), AZGUARD_FRAMEWORK_HELPERS))->toBe([]);
 });
 
 arch('exceptions depend only on the kernel')

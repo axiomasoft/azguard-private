@@ -6,12 +6,14 @@ use AzGuard\Exceptions\AuthorizationEngineException;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\ChangeException;
 use AzGuard\Exceptions\ConfigurationException;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\PluginException;
 use AzGuard\Exceptions\StorageException;
 
@@ -37,7 +39,7 @@ it('keeps a branch abstract under the base', function (string $branch): void {
     PluginException::class,
 ]);
 
-it('gives an identity exception its parent and stable code', function (string $class, string $parent, string $code): void {
+it('gives a concrete exception its parent and stable code', function (string $class, string $parent, string $code): void {
     $exception = new $class('message');
 
     expect(get_parent_class($exception))->toBe($parent)
@@ -50,4 +52,10 @@ it('gives an identity exception its parent and stable code', function (string $c
     [InvalidPermissionKeyException::class, InvalidIdentityException::class, 'invalid_permission_key'],
     [InvalidRoleKeyException::class, InvalidIdentityException::class, 'invalid_role_key'],
     [InvalidAssignmentScopeException::class, InvalidIdentityException::class, 'invalid_context'],
+    [ConsistencyException::class, AuthorizationEngineException::class, 'consistency'],
+    [InvalidSourceContributionException::class, AuthorizationEngineException::class, 'invalid_source_contribution'],
 ]);
+
+it('keeps the engine value exceptions final', function (string $class): void {
+    expect((new ReflectionClass($class))->isFinal())->toBeTrue();
+})->with([ConsistencyException::class, InvalidSourceContributionException::class]);

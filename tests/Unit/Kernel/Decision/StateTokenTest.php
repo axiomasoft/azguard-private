@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
@@ -25,11 +26,11 @@ it('rejects an invalid token', function (callable $make, string $exception): voi
     expect($make)->toThrow($exception);
 })->with([
     'code panel' => [fn () => CodeStateToken::of('Admin', 'b', 'f'), InvalidPanelIdException::class],
-    'code empty build' => [fn () => CodeStateToken::of('admin', '', 'f'), InvalidArgumentException::class],
-    'code empty fingerprint' => [fn () => CodeStateToken::of('admin', 'b', ''), InvalidArgumentException::class],
+    'code empty build' => [fn () => CodeStateToken::of('admin', '', 'f'), InvalidIdentityException::class],
+    'code empty fingerprint' => [fn () => CodeStateToken::of('admin', 'b', ''), InvalidIdentityException::class],
     'storage panel' => [fn () => StateToken::of('default', 'a:b', 'i', 0, 0, 'f'), InvalidPanelIdException::class],
-    'storage empty id' => [fn () => StateToken::of('', 'admin', 'i', 0, 0, 'f'), InvalidArgumentException::class],
-    'storage empty incarnation' => [fn () => StateToken::of('default', 'admin', '', 0, 0, 'f'), InvalidArgumentException::class],
-    'storage negative version' => [fn () => StateToken::of('default', 'admin', 'i', -1, 0, 'f'), InvalidArgumentException::class],
-    'storage negative generation' => [fn () => StateToken::of('default', 'admin', 'i', 0, -1, 'f'), InvalidArgumentException::class],
+    'storage empty id' => [fn () => StateToken::of('', 'admin', 'i', 0, 0, 'f'), InvalidIdentityException::class],
+    'storage empty incarnation' => [fn () => StateToken::of('default', 'admin', '', 0, 0, 'f'), InvalidIdentityException::class],
+    'storage negative version' => [fn () => StateToken::of('default', 'admin', 'i', -1, 0, 'f'), InvalidIdentityException::class],
+    'storage negative generation' => [fn () => StateToken::of('default', 'admin', 'i', 0, -1, 'f'), InvalidIdentityException::class],
 ]);

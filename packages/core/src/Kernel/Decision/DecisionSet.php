@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Kernel\Decision;
 
 use ArrayIterator;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Countable;
-use InvalidArgumentException;
 use IteratorAggregate;
 use OutOfRangeException;
 
@@ -28,7 +28,7 @@ final readonly class DecisionSet implements Countable, IteratorAggregate
     ) {}
 
     /**
-     * @throws InvalidArgumentException when two decisions carry different tokens for the same code build or storage panel
+     * @throws ConsistencyException when two decisions carry different tokens for the same code build or storage panel
      */
     public static function of(Decision ...$decisions): self
     {
@@ -43,7 +43,7 @@ final readonly class DecisionSet implements Countable, IteratorAggregate
 
             if (! ($known instanceof CodeStateToken && $state instanceof CodeStateToken && $known->equals($state))
                 && ! ($known instanceof StateToken && $state instanceof StateToken && $known->equals($state))) {
-                throw new InvalidArgumentException('Decisions of one set carry different state tokens for '.$key.'.');
+                throw new ConsistencyException('Decisions of one set carry different state tokens for '.$key.'.');
             }
 
             $states[$key] = $state;

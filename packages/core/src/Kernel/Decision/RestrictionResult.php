@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
-use InvalidArgumentException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 
 /**
  * Outcome of a restriction: pass, or deny with a snake_case reason. A restriction never allows.
@@ -21,12 +21,12 @@ final readonly class RestrictionResult
     }
 
     /**
-     * @throws InvalidArgumentException when the reason is not snake_case
+     * @throws InvalidSourceContributionException when the reason is not snake_case
      */
     public static function deny(string $reason): self
     {
         if (preg_match('/\A[a-z][a-z0-9]*(_[a-z0-9]+)*\z/', $reason) !== 1) {
-            throw new InvalidArgumentException('Restriction deny reason must be snake_case, got '.json_encode($reason).'.');
+            throw new InvalidSourceContributionException('Restriction deny reason must be snake_case, got '.json_encode($reason).'.');
         }
 
         return new self($reason);

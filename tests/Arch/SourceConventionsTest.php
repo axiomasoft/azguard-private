@@ -2,27 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Tests\Arch\SourceScan;
+
 const AZGUARD_TASK_CODE = '/\bPLAN\d+\b|\bP\d+\.\d+\b|\b[CDNQRV]-?\d{2,3}\b|\bF\d{2}\b/';
-
-/**
- * @return list<string> absolute paths of PHP files under packages/<name>/src
- */
-function sourceFiles(): array
-{
-    $files = [];
-
-    foreach (glob(dirname(__DIR__, 2).'/packages/*/src', GLOB_ONLYDIR) ?: [] as $dir) {
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)) as $file) {
-            if ($file instanceof SplFileInfo && $file->getExtension() === 'php') {
-                $files[] = $file->getPathname();
-            }
-        }
-    }
-
-    sort($files);
-
-    return $files;
-}
 
 /**
  * @return list<string> task codes found in comments of the given PHP code; code and strings are not scanned
@@ -56,7 +38,7 @@ it('finds task codes only in comments', function (): void {
 it('keeps internal task codes out of source comments', function (): void {
     $offenders = [];
 
-    foreach (sourceFiles() as $file) {
+    foreach (SourceScan::files() as $file) {
         foreach (taskCodesInComments((string) file_get_contents($file)) as $code) {
             $offenders[] = basename($file).': '.$code;
         }
@@ -67,7 +49,7 @@ it('keeps internal task codes out of source comments', function (): void {
 
 it('reads package configuration only in the configuration zone', function (): void {
     $offenders = array_values(array_filter(
-        sourceFiles(),
+        SourceScan::files(),
         static fn (string $file): bool => ! str_contains($file, '/packages/core/src/Configuration/')
             && preg_match('/config\(\s*[\'"]azguard/', (string) file_get_contents($file)) === 1,
     ));
@@ -77,7 +59,7 @@ it('reads package configuration only in the configuration zone', function (): vo
 
 it('tags every contract as api or spi', function (): void {
     $untagged = array_values(array_filter(
-        sourceFiles(),
+        SourceScan::files(),
         static fn (string $file): bool => str_contains($file, '/packages/core/src/Contracts/')
             && preg_match('/^\s*\*\s*@(api|spi)\b/m', (string) file_get_contents($file)) !== 1,
     ));

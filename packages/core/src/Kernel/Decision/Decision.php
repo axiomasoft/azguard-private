@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Kernel\Identity\AccessScope;
-use InvalidArgumentException;
 
 /**
  * The answer to an access request: effect, reason consistent with it, the state it was made against and the scope.
@@ -29,7 +29,7 @@ final readonly class Decision
     /**
      * @param  list<Grant>  $grants  grants that gave the permission, when traced
      *
-     * @throws InvalidArgumentException when the reason cannot allow
+     * @throws ConsistencyException when the reason cannot allow
      */
     public static function allow(
         DecisionReason $reason,
@@ -42,7 +42,7 @@ final readonly class Decision
     }
 
     /**
-     * @throws InvalidArgumentException when the reason cannot deny
+     * @throws ConsistencyException when the reason cannot deny
      */
     public static function deny(
         DecisionReason $reason,
@@ -88,7 +88,7 @@ final readonly class Decision
         array $grants,
     ): self {
         if (! self::admits($effect, $reason)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new ConsistencyException(sprintf(
                 'Decision effect "%s" cannot have reason "%s".',
                 $effect->value,
                 $reason->value,

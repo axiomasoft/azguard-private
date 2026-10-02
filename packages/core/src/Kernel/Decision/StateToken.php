@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
-use InvalidArgumentException;
 
 /**
  * State evidence of a decision read from storage: incarnation, panel version and generation.
@@ -24,7 +24,7 @@ final readonly class StateToken
 
     /**
      * @throws InvalidPanelIdException
-     * @throws InvalidArgumentException when a string is empty or a counter is negative
+     * @throws InvalidIdentityException when a string is empty or a counter is negative
      */
     public static function of(
         string $storageId,
@@ -37,11 +37,11 @@ final readonly class StateToken
         PermissionGrammar::assertPanelId($panel);
 
         if ($storageId === '' || $incarnation === '' || $fingerprint === '') {
-            throw new InvalidArgumentException('State token needs a non-empty storage id, incarnation and fingerprint.');
+            throw new InvalidIdentityException('State token needs a non-empty storage id, incarnation and fingerprint.');
         }
 
         if ($version < 0 || $generation < 0) {
-            throw new InvalidArgumentException('State token version and generation must not be negative.');
+            throw new InvalidIdentityException('State token version and generation must not be negative.');
         }
 
         return new self($storageId, $panel, $incarnation, $version, $generation, $fingerprint);

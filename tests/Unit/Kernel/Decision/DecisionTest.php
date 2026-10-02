@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -49,16 +50,20 @@ it('admits a reason for an effect only when they agree', function (Effect $effec
     $make = match ($effect) {
         Effect::Allow => fn () => Decision::allow($reason, decisionState(), $scope),
         Effect::Deny => fn () => Decision::deny($reason, decisionState(), $scope),
-        Effect::NotApplicable => fn () => $reason === DecisionReason::NotApplicable
-            ? Decision::notApplicable(decisionState(), $scope)
-            : throw new InvalidArgumentException('no factory'),
+        Effect::NotApplicable => $reason === DecisionReason::NotApplicable
+            ? fn () => Decision::notApplicable(decisionState(), $scope)
+            : null,
     };
 
     expect(Decision::admits($effect, $reason))->toBe($admitted);
 
+    if ($make === null) {
+        return;
+    }
+
     $admitted
         ? expect($make()->reason)->toBe($reason)->and($make()->effect)->toBe($effect)
-        : expect($make)->toThrow(InvalidArgumentException::class);
+        : expect($make)->toThrow(ConsistencyException::class, sprintf('Decision effect "%s" cannot have reason "%s".', $effect->value, $reason->value));
 })->with('effect and reason');
 
 it('carries state, scope, component and traced grants', function (): void {
@@ -103,5 +108,5 @@ it('refuses two different tokens for one storage panel in a set', function (): v
     expect(fn () => DecisionSet::of(
         Decision::allow(DecisionReason::Granted, StateToken::of('default', 'admin', 'inc-1', 3, 0, 'f'), $scope),
         Decision::allow(DecisionReason::Granted, StateToken::of('default', 'admin', 'inc-1', 4, 0, 'f'), $scope),
-    ))->toThrow(InvalidArgumentException::class);
+    ))->toThrow(ConsistencyException::class, 'Decisions of one set carry different state tokens for ');
 });

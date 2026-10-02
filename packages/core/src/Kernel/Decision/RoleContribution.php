@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Kernel\Decision;
 
 use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\RoleKey;
 use DateTimeImmutable;
-use InvalidArgumentException;
 
 /**
  * A role held in a scope, contributed by a source; qualified by scope, expiry and fields before expansion.
@@ -32,7 +32,7 @@ final readonly class RoleContribution
      * @param  array<mixed>  $fields  decision fields of this one contribution
      *
      * @throws InvalidIdentityException when the source or origin is not a valid label
-     * @throws InvalidArgumentException when the fields are not plain data
+     * @throws InvalidSourceContributionException when the fields are not plain data
      */
     public static function of(
         RoleKey $role,
