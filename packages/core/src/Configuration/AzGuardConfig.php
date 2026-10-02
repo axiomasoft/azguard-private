@@ -6,6 +6,7 @@ namespace AzGuard\Configuration;
 
 use AzGuard\Exceptions\InvalidConfigurationException;
 use Illuminate\Contracts\Config\Repository;
+use ReflectionClass;
 
 /**
  * Typed view of `config/azguard.php` and the only place the package configuration is read.
@@ -15,6 +16,8 @@ use Illuminate\Contracts\Config\Repository;
 final readonly class AzGuardConfig
 {
     private const array PANELS_KEYS = ['providers'];
+
+    private const array CATALOG_KEYS = ['build_id'];
 
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
@@ -31,6 +34,7 @@ final readonly class AzGuardConfig
     private function __construct(
         private array $panelProviders,
         private array $defaults,
+        private ?string $buildId,
     ) {}
 
     /**
@@ -40,10 +44,13 @@ final readonly class AzGuardConfig
     {
         $panels = self::section('panels', $config->get('azguard.panels', []));
         self::assertKnownKeys('panels', $panels, self::PANELS_KEYS);
+        $catalog = self::section('catalog', $config->get('azguard.catalog', []));
+        self::assertKnownKeys('catalog', $catalog, self::CATALOG_KEYS);
 
         return new self(
             self::panelProvidersFrom($panels['providers'] ?? []),
             self::defaultsFrom(self::section('defaults', $config->get('azguard.defaults', []))),
+            self::buildIdFrom($catalog['build_id'] ?? null),
         );
     }
 
@@ -65,6 +72,45 @@ final readonly class AzGuardConfig
     public function defaults(): array
     {
         return $this->defaults;
+    }
+
+    /**
+     * Id of the deployed build: `catalog.build_id` when it is set, otherwise a hash of the files of the panel
+     * providers.
+     *
+     * The fallback is the same on every request of the same code and is known before any plugin registers; it does
+     * not follow changes outside the provider files, so a deployment sets `catalog.build_id`.
+     *
+     * @param  list<class-string>  $panelProviders  classes of the registered panel providers
+     */
+    public function buildId(array $panelProviders): string
+    {
+        if ($this->buildId !== null) {
+            return $this->buildId;
+        }
+
+        $files = [];
+
+        foreach ($panelProviders as $provider) {
+            $file = (new ReflectionClass($provider))->getFileName();
+            $files[$provider] = $file === false ? '' : (string) hash_file('sha256', $file);
+        }
+
+        ksort($files, SORT_STRING);
+
+        return hash('sha256', json_encode($files, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function buildIdFrom(mixed $buildId): ?string
+    {
+        return match (true) {
+            $buildId === null, $buildId === '' => null,
+            is_string($buildId) => $buildId,
+            default => throw self::invalidValue('catalog.build_id', $buildId, 'a string or null'),
+        };
     }
 
     /**

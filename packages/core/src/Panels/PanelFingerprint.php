@@ -10,8 +10,9 @@ use Closure;
 /**
  * Fingerprint of what a panel is built from: sha256 of canonical JSON of its normalized metadata.
  *
- * Keys are sorted and lists keep their order, so a reordered list is a different panel. A closure is recorded as
- * `closure` and an object by its class: neither closures nor model instances are serialized.
+ * Keys are sorted and lists keep their order, so a reordered list is a different panel: plugins attached in another
+ * order give another fingerprint. A closure is recorded as `closure` and an object by its class: neither closures
+ * nor model instances are serialized.
  */
 final class PanelFingerprint
 {
@@ -45,6 +46,7 @@ final class PanelFingerprint
             'subjects' => $recipe->subjects(),
             'enums' => $recipe->enums(),
             'roles' => $recipe->roles(),
+            'plugins' => $panel->pluginIds(),
             'sources' => array_map(
                 static fn (Source|string $source): array => $source instanceof Source
                     ? ['class' => $source::class, 'id' => $source->id()]

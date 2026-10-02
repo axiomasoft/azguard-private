@@ -4,15 +4,22 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Contracts\Plugins\DependsOnPlugins;
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Exceptions\DefaultPanelConflictException;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
+use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Plugins\PluginContext;
 use BackedEnum;
 use Closure;
+use Illuminate\Contracts\Container\Container;
 
 /**
- * Turns a sealed recipe into a panel and checks what only the whole set of panels can tell.
+ * Registers the plugins of a panel, turns its sealed recipe into a panel and checks what only the whole set of
+ * panels can tell.
  *
  * A scalar setting is taken from the highest layer that sets it: the panel provider (with its `configure(id)`
  * additions), then plugins, then `configure` for all panels, then the `defaults` of the configuration. Inside a
@@ -22,15 +29,99 @@ use Closure;
  * @phpstan-import-type Record from PanelRecipe
  *
  * @phpstan-type Resolved array{value: mixed, origin: string}
+ * @phpstan-type Attached array{plugin: Plugin, context: PluginContext}
  */
 final class PanelCompiler
 {
+    private const string PLUGIN_ID = '/\A[a-z0-9][a-z0-9_.-]*(\/[a-z0-9][a-z0-9_.-]*)?\z/';
+
+    private const int PLUGIN_ID_BYTES = 128;
+
     /**
      * @param  (Closure(): array<string, bool|int|string|null>)|null  $defaults  values of the `defaults` section
      *                                                                           of the configuration by setting
      *                                                                           name, read when a panel is compiled
      */
     public function __construct(private readonly ?Closure $defaults = null) {}
+
+    /**
+     * Runs `register()` of every plugin of the panel and seals the recipe.
+     *
+     * Plugins of the panel provider register first, then the ones `configure` for all panels attaches unless the
+     * panel keeps them off, then the ones a plugin attached while it registered, until no new plugin appears. A
+     * plugin registers on its own copy, so what it keeps while registering on one panel is not seen on another.
+     *
+     * @return list<Attached> plugins of the panel in the order they were attached
+     *
+     * @throws DefinitionException when a plugin cannot be created or its id is malformed
+     * @throws PluginConflictException when two plugins of the panel share an id
+     * @throws PluginDependencyMissingException
+     */
+    public function register(PanelRecipe $recipe, PanelBuilder $builder, Container $container, string $buildId): array
+    {
+        $panel = $recipe->panelId();
+        $detached = $recipe->withoutPlugins();
+        $queue = [
+            ...array_map(static fn (Plugin|string $plugin): array => [$plugin, false], $recipe->plugins(PanelRecipe::PROVIDER)),
+            ...array_map(static fn (Plugin|string $plugin): array => [$plugin, true], $recipe->plugins(PanelRecipe::CONFIGURE)),
+        ];
+        $attached = [];
+        $nested = 0;
+
+        while ($queue !== []) {
+            foreach ($queue as [$declared, $detachable]) {
+                $plugin = $this->instance($panel, $declared, $container);
+                $id = $this->pluginId($panel, $plugin);
+
+                if ($detachable && in_array($id, $detached, true)) {
+                    continue;
+                }
+
+                if (isset($attached[$id])) {
+                    throw new PluginConflictException(
+                        'Panel "'.$panel.'" has two plugins with the id "'.$id.'" ('.$attached[$id]['plugin']::class.' and '
+                        .$plugin::class.'): attach the plugin once.',
+                    );
+                }
+
+                $context = new PluginContext($panel, $id, $buildId, $this->dependencies($panel, $id, $plugin));
+                $attached[$id] = ['plugin' => $plugin, 'context' => $context];
+
+                $recipe->during($recipe->attach($id), static fn () => $plugin->register($builder, $context));
+            }
+
+            $byPlugins = $recipe->plugins(PanelRecipe::PLUGIN);
+            $queue = array_map(static fn (Plugin|string $plugin): array => [$plugin, false], array_slice($byPlugins, $nested));
+            $nested = count($byPlugins);
+        }
+
+        $recipe->seal();
+
+        foreach ($attached as $id => ['context' => $context]) {
+            foreach ($context->dependencies() as $dependency) {
+                if (! isset($attached[$dependency])) {
+                    throw new PluginDependencyMissingException(
+                        'Plugin "'.$id.'" of panel "'.$panel.'" requires the plugin "'.$dependency
+                        .'", which is not attached to the panel: add it to plugins([...]).',
+                    );
+                }
+            }
+        }
+
+        return array_values($attached);
+    }
+
+    /**
+     * Runs `boot()` of the plugins of a compiled panel in the order they were attached.
+     *
+     * @param  list<Attached>  $plugins
+     */
+    public function boot(Panel $panel, array $plugins): void
+    {
+        foreach ($plugins as ['plugin' => $plugin, 'context' => $context]) {
+            $plugin->boot($panel, $context);
+        }
+    }
 
     /**
      * @throws PluginConflictException
@@ -47,6 +138,7 @@ final class PanelCompiler
             default: ($this->resolved($recipe, PanelRecipe::DEFAULT)['value'] ?? false) === true,
             settings: $this->settings($recipe),
             subjectModels: array_values(array_unique(array_column($recipe->subjects(), 'model'))),
+            pluginIds: $recipe->pluginIds(),
         );
     }
 
@@ -206,6 +298,80 @@ final class PanelCompiler
         }
 
         return $prefixes;
+    }
+
+    /**
+     * The copy of a plugin one panel works with.
+     *
+     * @param  Plugin|class-string<Plugin>  $declared
+     *
+     * @throws DefinitionException when the container gives something that is not a plugin
+     */
+    private function instance(string $panel, Plugin|string $declared, Container $container): Plugin
+    {
+        if ($declared instanceof Plugin) {
+            return clone $declared;
+        }
+
+        $plugin = $container->make($declared);
+
+        if (! $plugin instanceof Plugin) {
+            throw new DefinitionException(
+                'Panel "'.$panel.'": the container resolved '.$declared.' to '.get_debug_type($plugin).', which is not a plugin.',
+            );
+        }
+
+        return clone $plugin;
+    }
+
+    /**
+     * @throws DefinitionException
+     */
+    private function pluginId(string $panel, Plugin $plugin): string
+    {
+        $id = $plugin->id();
+
+        if (strlen($id) > self::PLUGIN_ID_BYTES || preg_match(self::PLUGIN_ID, $id) !== 1) {
+            throw new DefinitionException(
+                'Panel "'.$panel.'": '.$plugin::class.' has the plugin id '.self::describe($id).'; an id is "name" or "vendor/name" of '
+                .'lowercase letters, digits, ".", "_" and "-", at most '.self::PLUGIN_ID_BYTES.' bytes.',
+            );
+        }
+
+        return $id;
+    }
+
+    /**
+     * @return list<string>
+     *
+     * @throws DefinitionException
+     */
+    private function dependencies(string $panel, string $id, Plugin $plugin): array
+    {
+        $dependencies = [];
+
+        foreach ($plugin instanceof DependsOnPlugins ? self::declared($plugin->requires()) : [] as $dependency) {
+            if (! is_string($dependency) || $dependency === '') {
+                throw new DefinitionException(
+                    'Plugin "'.$id.'" of panel "'.$panel.'": requires() must list plugin ids, got '.get_debug_type($dependency).'.',
+                );
+            }
+
+            $dependencies[] = $dependency;
+        }
+
+        return $dependencies;
+    }
+
+    /**
+     * What a plugin returns is checked as it arrives: the documented type is a promise of the plugin, not a fact.
+     *
+     * @param  array<mixed>  $values
+     * @return array<mixed>
+     */
+    private static function declared(array $values): array
+    {
+        return $values;
     }
 
     /**

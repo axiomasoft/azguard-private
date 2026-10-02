@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePanelException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Plugins\PluginContext;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
 /**
- * Collects panel providers and adjustments while the application boots, then compiles every panel once and freezes.
+ * Collects panel providers and adjustments while the application boots, then compiles every panel once, freezes
+ * and boots the plugins of the panels.
  */
 final class PanelRegistry implements PanelRegistryContract
 {
@@ -134,7 +138,8 @@ final class PanelRegistry implements PanelRegistryContract
     /**
      * Compiles every registered panel and freezes the registry; runs once, when the application has booted.
      *
-     * A failed compilation leaves the registry unfrozen and without panels.
+     * A failed compilation leaves the registry unfrozen and without panels. Plugins boot once the registry is
+     * frozen, in the order they were attached.
      *
      * @throws DefinitionException
      */
@@ -150,10 +155,17 @@ final class PanelRegistry implements PanelRegistryContract
             }
         }
 
-        $panels = $recipes = $fingerprints = $enums = [];
+        $providers = [];
 
         foreach ($this->providers as $id => $providerClass) {
-            $recipes[$id] = $this->write($id, $this->replacements[$id] ?? $providerClass);
+            $providers[$id] = $this->replacements[$id] ?? $providerClass;
+        }
+
+        $buildId = $this->app->make(AzGuardConfig::class)->buildId(array_values($providers));
+        $panels = $recipes = $plugins = $fingerprints = $enums = [];
+
+        foreach ($providers as $id => $providerClass) {
+            [$recipes[$id], $plugins[$id]] = $this->write($id, $providerClass, $buildId);
             $panels[$id] = $this->compiler->compile($recipes[$id]);
             $fingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id]);
             $enums = $this->attachEnums($enums, $id, $recipes[$id]->enums());
@@ -168,6 +180,10 @@ final class PanelRegistry implements PanelRegistryContract
         $this->prefixes = $prefixes;
         $this->enums = $enums;
         $this->frozen = true;
+
+        foreach ($panels as $id => $panel) {
+            $this->compiler->boot($panel, $plugins[$id]);
+        }
     }
 
     /**
@@ -219,12 +235,13 @@ final class PanelRegistry implements PanelRegistryContract
     }
 
     /**
-     * Writes the recipe: the provider and `configure(id)` callbacks as the provider, then `configureAll` callbacks.
-     * Every callback runs once per panel.
+     * Writes the recipe: the provider and `configure(id)` callbacks as the provider, then `configureAll` callbacks,
+     * then the plugins the panel got. Every callback runs once per panel.
      *
      * @param  class-string<PanelProvider>  $providerClass
+     * @return array{0: PanelRecipe, 1: list<array{plugin: Plugin, context: PluginContext}>}
      */
-    private function write(string $id, string $providerClass): PanelRecipe
+    private function write(string $id, string $providerClass, string $buildId): array
     {
         $recipe = new PanelRecipe($id);
         $builder = new PanelBuilder($recipe);
@@ -243,9 +260,7 @@ final class PanelRegistry implements PanelRegistryContract
             }
         });
 
-        $recipe->seal();
-
-        return $recipe;
+        return [$recipe, $this->compiler->register($recipe, $builder, $this->app, $buildId)];
     }
 
     /**

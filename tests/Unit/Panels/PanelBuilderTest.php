@@ -17,6 +17,8 @@ use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PlainMarker;
 use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Plugins\CacheTtlPlugin;
+use AzGuard\Tests\Fixtures\Plugins\ReportsPlugin;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 
@@ -75,6 +77,8 @@ it('writes every setter call to the recipe with the provider origin and returns 
         PanelRecipe::RESOURCE_SCOPES,
         [['resource' => Seller::class, 'resolver' => FixedResourceScopeResolver::class]],
     ],
+    'plugins' => ['plugins', [[ReportsPlugin::class]], PanelRecipe::PLUGINS, [ReportsPlugin::class]],
+    'withoutPlugins' => ['withoutPlugins', [['acme/audit']], PanelRecipe::WITHOUT_PLUGINS, ['acme/audit']],
 ]);
 
 it('has every builder method of the panel description and exposes nothing to read back', function (): void {
@@ -107,7 +111,7 @@ it('names subjects with for() and takes definitions through a single permissions
 
 it('records the origin that is current when a setter is called', function (): void {
     [$builder, $recipe] = panelBuilder();
-    $plugin = PanelRecipe::plugin('acme/audit', 2, 'audit');
+    $plugin = PanelRecipe::plugin('acme/audit', 2);
 
     $builder->label('provider');
     $recipe->during($plugin, fn () => $builder->label('plugin'));
@@ -116,7 +120,86 @@ it('records the origin that is current when a setter is called', function (): vo
 
     expect(array_column($recipe->records(), 'origin'))->toBe([
         PanelRecipe::provider(), $plugin, PanelRecipe::configure(), PanelRecipe::provider(),
-    ])->and($plugin)->toBe(['kind' => 'plugin', 'plugin' => 'acme/audit', 'order' => 2, 'prefix' => 'audit']);
+    ])->and($plugin)->toBe(['kind' => 'plugin', 'plugin' => 'acme/audit', 'order' => 2])
+        ->and(PanelRecipe::provider())->toBe(['kind' => 'provider', 'plugin' => null, 'order' => 0])
+        ->and(PanelRecipe::configure())->toBe(['kind' => 'configure', 'plugin' => null, 'order' => 0])
+        ->and((new ReflectionMethod(PanelRecipe::class, 'plugin'))->getNumberOfParameters())->toBe(2);
+});
+
+it('tells the origin a record written now would get', function (): void {
+    [, $recipe] = panelBuilder();
+    $seen = [];
+
+    $recipe->during(PanelRecipe::plugin('acme/audit', 1), function () use ($recipe, &$seen): void {
+        $seen[] = $recipe->origin();
+    });
+
+    expect($seen)->toBe([PanelRecipe::plugin('acme/audit', 1)])
+        ->and($recipe->origin())->toBe(PanelRecipe::provider());
+});
+
+it('attaches plugin objects and classes and keeps the order of attachment', function (): void {
+    [$builder, $recipe] = panelBuilder();
+    $audit = CacheTtlPlugin::make('acme/audit', ttl: 60);
+    $global = CacheTtlPlugin::make('acme/global', ttl: 60);
+    $nested = CacheTtlPlugin::make('acme/nested', ttl: 60);
+
+    $recipe->during(PanelRecipe::configure(), fn () => $builder->plugins([$global]));
+    $builder->plugins([$audit])->plugins(['\\'.ReportsPlugin::class]);
+    $recipe->during(PanelRecipe::plugin('acme/audit', 1), fn () => $builder->plugins([$nested]));
+
+    expect($recipe->plugins(PanelRecipe::PROVIDER))->toBe([$audit, ReportsPlugin::class])
+        ->and($recipe->plugins(PanelRecipe::CONFIGURE))->toBe([$global])
+        ->and($recipe->plugins(PanelRecipe::PLUGIN))->toBe([$nested])
+        ->and($recipe->pluginIds())->toBe([]);
+});
+
+it('rejects anything but plugin objects and plugin classes in plugins()', function (mixed $plugin): void {
+    [$builder, $recipe] = panelBuilder();
+
+    expect(fn () => $builder->plugins([CacheTtlPlugin::make('acme/audit', ttl: 60), $plugin]))->toThrow(DefinitionException::class, 'plugins()')
+        ->and($recipe->records())->toBe([]);
+})->with([
+    'an object that is not a plugin' => [new stdClass],
+    'a class that is not a plugin' => [User::class],
+    'an unknown class' => ['App\Plugins\Missing'],
+    'a plugin id' => ['acme/audit'],
+    'a number' => [42],
+    'null' => [null],
+]);
+
+it('records the plugins a panel keeps off and rejects anything but ids', function (): void {
+    [$builder, $recipe] = panelBuilder();
+
+    $builder->withoutPlugins(['acme/audit', 'acme/reports'])->withoutPlugins(['acme/audit']);
+
+    expect($recipe->withoutPlugins())->toBe(['acme/audit', 'acme/reports'])
+        ->and(fn () => $builder->withoutPlugins([42]))->toThrow(DefinitionException::class, 'withoutPlugins()')
+        ->and(fn () => $builder->withoutPlugins(['']))->toThrow(DefinitionException::class, 'withoutPlugins()')
+        ->and(fn () => $builder->withoutPlugins([CacheTtlPlugin::make('acme/audit', ttl: 60)]))->toThrow(DefinitionException::class, 'withoutPlugins()');
+});
+
+it('does not take withoutPlugins() from a plugin', function (): void {
+    [$builder, $recipe] = panelBuilder();
+
+    $recipe->during(PanelRecipe::configure(), fn () => $builder->withoutPlugins(['acme/audit']));
+
+    expect(fn () => $recipe->during(PanelRecipe::plugin('acme/audit', 1), fn () => $builder->withoutPlugins(['acme/reports'])))
+        ->toThrow(DefinitionException::class, 'a plugin cannot detach another plugin')
+        ->and($recipe->withoutPlugins())->toBe(['acme/audit']);
+});
+
+it('numbers attached plugins from one and refuses to attach to a compiled panel', function (): void {
+    [, $recipe] = panelBuilder();
+
+    expect($recipe->attach('acme/audit'))->toBe(PanelRecipe::plugin('acme/audit', 1))
+        ->and($recipe->attach('acme/reports'))->toBe(PanelRecipe::plugin('acme/reports', 2))
+        ->and($recipe->pluginIds())->toBe(['acme/audit', 'acme/reports']);
+
+    $recipe->seal();
+
+    expect(fn () => $recipe->attach('acme/late'))->toThrow(RegistryFrozenException::class, 'already compiled')
+        ->and($recipe->pluginIds())->toBe(['acme/audit', 'acme/reports']);
 });
 
 it('restores the origin when the callback throws', function (): void {

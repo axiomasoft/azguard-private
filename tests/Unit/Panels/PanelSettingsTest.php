@@ -192,7 +192,8 @@ it('gives the builder no method that turns a guarantee off', function (): void {
         static fn (ReflectionMethod $method): string => strtolower($method->getName()),
         (new ReflectionClass(PanelBuilder::class))->getMethods(ReflectionMethod::IS_PUBLIC),
     );
-    $forbidden = array_filter($methods, static fn (string $method): bool => preg_match(
+    // withoutPlugins() keeps a plugin off the panel; a plugin is an addition, not a guarantee.
+    $forbidden = array_filter($methods, static fn (string $method): bool => $method !== 'withoutplugins' && preg_match(
         '/^(without|disable|skip|allow|permit|unsafe|bypass|ignore)/',
         $method,
     ) === 1);

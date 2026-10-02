@@ -60,4 +60,20 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Catalog
+    |--------------------------------------------------------------------------
+    |
+    | The build id names the deployed code and configuration: cached panel data
+    | of another build is never used. Set it on every deployment, for example
+    | to the commit hash. When it is empty the package derives an id from the
+    | files of the panel providers, which does not follow other code.
+    |
+    */
+
+    'catalog' => [
+        'build_id' => env('AZGUARD_BUILD_ID'),
+    ],
+
 ];

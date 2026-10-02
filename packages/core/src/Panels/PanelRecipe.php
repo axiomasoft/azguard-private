@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Roles\BaseRole;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * Nothing is overwritten while the recipe is written. Layers are read in the order provider, plugins by attachment
  * order, `configure` for all panels; the compiler decides what a scalar setting resolves to, a list keeps every item.
  *
- * @phpstan-type Origin array{kind: 'provider'|'plugin'|'configure', plugin: ?string, order: int, prefix: ?string}
+ * @phpstan-type Origin array{kind: 'provider'|'plugin'|'configure', plugin: ?string, order: int}
  * @phpstan-type Record array{setting: string, value: mixed, origin: Origin}
  * @phpstan-type Subject array{model: class-string<Model>, guard: ?string, directory: ?string}
  */
@@ -73,6 +74,10 @@ final class PanelRecipe
 
     public const string RESOURCE_SCOPES = 'resource_scopes';
 
+    public const string PLUGINS = 'plugins';
+
+    public const string WITHOUT_PLUGINS = 'without_plugins';
+
     /** Hook and resolver lists whose items are a class name, an object or a closure. */
     public const array HOOK_LISTS = [
         self::BEFORE, self::RESTRICTIONS, self::AFTER, self::CHANGING, self::GRANT_CONDITIONS, self::DOCTOR_CHECKS,
@@ -87,6 +92,9 @@ final class PanelRecipe
     /** @var Origin */
     private array $origin;
 
+    /** @var list<string> */
+    private array $pluginIds = [];
+
     private bool $sealed = false;
 
     public function __construct(private readonly string $panelId)
@@ -99,17 +107,16 @@ final class PanelRecipe
      */
     public static function provider(): array
     {
-        return ['kind' => self::PROVIDER, 'plugin' => null, 'order' => 0, 'prefix' => null];
+        return ['kind' => self::PROVIDER, 'plugin' => null, 'order' => 0];
     }
 
     /**
      * @param  int  $order  position of the plugin among the plugins attached to the panel
-     * @param  string|null  $prefix  prefix the plugin puts before the keys it contributes
      * @return Origin
      */
-    public static function plugin(string $id, int $order, ?string $prefix = null): array
+    public static function plugin(string $id, int $order): array
     {
-        return ['kind' => self::PLUGIN, 'plugin' => $id, 'order' => $order, 'prefix' => $prefix];
+        return ['kind' => self::PLUGIN, 'plugin' => $id, 'order' => $order];
     }
 
     /**
@@ -117,12 +124,20 @@ final class PanelRecipe
      */
     public static function configure(): array
     {
-        return ['kind' => self::CONFIGURE, 'plugin' => null, 'order' => 0, 'prefix' => null];
+        return ['kind' => self::CONFIGURE, 'plugin' => null, 'order' => 0];
     }
 
     public function panelId(): string
     {
         return $this->panelId;
+    }
+
+    /**
+     * @return Origin the origin a record written now would get
+     */
+    public function origin(): array
+    {
+        return $this->origin;
     }
 
     /**
@@ -148,13 +163,32 @@ final class PanelRecipe
      */
     public function record(string $setting, mixed $value): void
     {
-        if ($this->sealed) {
-            throw new RegistryFrozenException(
-                'Panel "'.$this->panelId.'" is already compiled: "'.$setting.'" cannot be changed after the application has booted.',
-            );
-        }
+        $this->assertOpen($setting);
 
         $this->records[] = ['setting' => $setting, 'value' => $value, 'origin' => $this->origin];
+    }
+
+    /**
+     * Adds a plugin to the plugins registered on the panel.
+     *
+     * @return Origin the origin of what the plugin writes
+     *
+     * @throws RegistryFrozenException when the panel is already compiled
+     */
+    public function attach(string $pluginId): array
+    {
+        $this->assertOpen(self::PLUGINS);
+        $this->pluginIds[] = $pluginId;
+
+        return self::plugin($pluginId, count($this->pluginIds));
+    }
+
+    /**
+     * @return list<string> ids of the plugins registered on the panel, in the order they were attached
+     */
+    public function pluginIds(): array
+    {
+        return $this->pluginIds;
     }
 
     public function seal(): void
@@ -243,6 +277,39 @@ final class PanelRecipe
     }
 
     /**
+     * Plugins one layer attaches, in the order they were written.
+     *
+     * @param  self::PROVIDER|self::PLUGIN|self::CONFIGURE  $layer
+     * @return list<Plugin|class-string<Plugin>>
+     */
+    public function plugins(string $layer): array
+    {
+        $plugins = [];
+
+        foreach ($this->records as $record) {
+            if ($record['setting'] !== self::PLUGINS || $record['origin']['kind'] !== $layer) {
+                continue;
+            }
+
+            foreach (is_array($record['value']) ? $record['value'] : [] as $plugin) {
+                if ($plugin instanceof Plugin || (is_string($plugin) && is_subclass_of($plugin, Plugin::class))) {
+                    $plugins[] = $plugin;
+                }
+            }
+        }
+
+        return $plugins;
+    }
+
+    /**
+     * @return list<string> ids of the plugins the panel does not take from `configure` for all panels
+     */
+    public function withoutPlugins(): array
+    {
+        return array_values(array_unique(array_filter($this->items(self::WITHOUT_PLUGINS), is_string(...))));
+    }
+
+    /**
      * @return list<class-string<BackedEnum>> permission enums, each class once, in the order of first registration
      */
     public function enums(): array
@@ -288,5 +355,17 @@ final class PanelRecipe
         }
 
         return array_values($roles);
+    }
+
+    /**
+     * @throws RegistryFrozenException
+     */
+    private function assertOpen(string $setting): void
+    {
+        if ($this->sealed) {
+            throw new RegistryFrozenException(
+                'Panel "'.$this->panelId.'" is already compiled: "'.$setting.'" cannot be changed after the application has booted.',
+            );
+        }
     }
 }

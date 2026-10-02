@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Scopes\TenantResolver;
@@ -403,6 +404,52 @@ final class PanelBuilder
         }
 
         return $this->record(PanelRecipe::RESOURCE_SCOPES, $scopes);
+    }
+
+    /**
+     * Attaches plugins to the panel; repeated calls add plugins and they register in the order they were attached.
+     *
+     * A class is created by the container. Every panel works with its own copy of a plugin.
+     *
+     * @param  list<Plugin|class-string<Plugin>>  $plugins
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function plugins(array $plugins): static
+    {
+        return $this->record(
+            PanelRecipe::PLUGINS,
+            array_map(fn (mixed $plugin): object|string => $this->resolver('plugins', $plugin, Plugin::class), array_values(self::input($plugins))),
+        );
+    }
+
+    /**
+     * Keeps plugins that `configurePanels()` attaches to every panel off this panel; an id that is not attached is
+     * ignored.
+     *
+     * @param  list<string>  $pluginIds
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function withoutPlugins(array $pluginIds): static
+    {
+        if ($this->recipe->origin()['kind'] === PanelRecipe::PLUGIN) {
+            throw $this->invalid('withoutPlugins() belongs to the panel provider and configure callbacks: a plugin cannot detach another plugin');
+        }
+
+        $ids = [];
+
+        foreach (self::input($pluginIds) as $id) {
+            if (! is_string($id) || $id === '') {
+                throw $this->invalid('withoutPlugins() expects plugin ids, got '.self::describe($id));
+            }
+
+            $ids[] = $id;
+        }
+
+        return $this->record(PanelRecipe::WITHOUT_PLUGINS, $ids);
     }
 
     /**

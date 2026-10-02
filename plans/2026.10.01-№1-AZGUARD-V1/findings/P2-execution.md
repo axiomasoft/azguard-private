@@ -267,3 +267,107 @@ order), …)`); сквозной сценарий через `plugins([...])` п
 | 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
 | 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 88 файлов из 88 |
 | 8 | `git diff --check` | clean |
+
+## P2.4 — Плагины: typed factories, PluginContext, изоляция, конфликты (2026-10-02)
+
+Run: `plan-run P2.4 P2.5 P2.6` (batch B2b, session `a1cb8702-ed75-44c2-aedf-e95bd97317b0`), run id
+`9a2e2a488d5afd9e63956f430489c8293d5dda107d52d0fbb33b7eea3baecab3`. Работа идёт в worktree-ветке
+`worktree-azguard-v1-p2-b2b`; решение D10 и приведённые к нему спецификации закоммичены до старта пункта (`cb18240`).
+
+### Порядок фаз сборки панели
+
+1. `PanelRegistry::freeze()` (на `booted`): эффективные классы провайдеров (с учётом `replace()`), один build id на сборку —
+   `AzGuardConfig::buildId(классы провайдеров)`.
+2. Для каждой панели запись рецепта: `PanelProvider::panel()` и `configure(id)` (слой `provider`) → `configureAll`
+   (слой `configure`).
+3. `PanelCompiler::register()`: плагины слоя `provider` в порядке подключения → плагины слоя `configure`, кроме названных
+   панелью в `withoutPlugins()` → плагины, подключённые плагинами в `register()` (в порядке записи), повторно до исчерпания.
+   Каждый плагин — `clone` объекта (объект из контейнера тоже клонируется); на время `register()` происхождение записей —
+   `plugin:<id>` с порядковым номером подключения.
+4. Рецепт запечатывается; проверка зависимостей по итоговому набору плагинов панели.
+5. `PanelCompiler::compile()` → `Panel` (в том числе `pluginIds()`), отпечаток, индекс enum; затем проверки набора панелей.
+6. Реестр заморожен → `PanelCompiler::boot()`: `boot(Panel, PluginContext)` каждого плагина в порядке подключения.
+
+### Сценарий → тест
+
+| Что проверено | Тест |
+|:--|:--|
+| V48: отсутствующая зависимость → `plugin_dependency_missing` с id плагина, панели и зависимости; реестр не заморожен | `tests/Feature/Plugins/PluginLifecycleTest.php` — `fails the build when a plugin requires a plugin the panel does not have` (2 строки) |
+| V48: изменение панели из `boot()` → `RegistryFrozenException`, панель прежняя | `refuses a change of the panel from boot() and leaves the compiled panel as it was` |
+| V48: перестановка плагинов меняет отпечаток; тот же порядок — тот же отпечаток | `makes the plugins and their order part of the panel fingerprint` |
+| V48: один объект плагина на двух панелях получает два `PluginContext::panelId()` | `tests/Feature/Plugins/PluginIsolationTest.php` — `shows one plugin object its own panel on every panel it is attached to` |
+| V85: `make()` через `app()->makeWith(...)` получает привязку контейнера | `tests/Unit/Plugins/BasePluginTest.php` — `creates a plugin through the container, so a binding of its service applies` |
+| V85: `retention(30)` и `retention(90)` на разных панелях не делят состояние; состояние из `register()` не видно другой панели; singleton контейнера клонируется | `keeps different settings of one plugin on different panels apart`, `does not show one panel what a plugin kept while it registered on another`, `copies a plugin the container shares…` |
+| V85: плагин добавляет `Source`, ограничение и pipe; записи несут `plugin:<id>` и номер подключения | `writes what a plugin adds with the origin of that plugin` |
+| V47 (сквозной): два плагина с разным `cache(ttl:)` → `plugin_conflict` с id обоих; провайдер задал ttl → без ошибки; `origin()` → `plugin:<id>`; плагин выше `configurePanels()` и конфига | `tests/Feature/Plugins/PluginSettingsConflictTest.php` (4 теста, 5 строк) |
+| V115/V118: у `BasePlugin` нет `make`/`options`/`withOptions`/`prefixed`/`prefix`, конструктора и свойств; `PrefixesKeys` не существует; у `PluginContext` нет `namespace`, опций и контейнера | `is an abstract lifecycle base…`, `declares the plugin lifecycle and dependencies as the only plugin contracts`, `tests/Unit/Plugins/PluginContextTest.php` (3 теста) |
+| V115/V118: `make` фикстур — именованные типизированные параметры; `CrmModels` с не-`Model` и не-`Authenticatable` → исключение до сборки панели | `gives every fixture plugin its own factory with named typed parameters`, `rejects a model that does not fit before any panel is built`, `rejects a factory argument of the wrong contract` |
+| порядок: провайдер → `configurePanels()` → вложенные до исчерпания; `register` всех панелей раньше любого `boot`; `boot` после заморозки | `registers provider plugins, then plugins for all panels…`, `registers the plugins of every panel in attachment order and boots them once the registry is frozen` |
+| `withoutPlugins()`: убирает плагин `configurePanels()`, неизвестный id не ошибка, свой плагин панели остаётся (замена общего плагина своим) | `keeps plugins for all panels off a panel…`, Isolation `lets a panel replace a plugin for all panels with its own settings` |
+| два плагина с одним id → `PluginConflictException` (5 способов получить повтор) | `rejects two plugins with one id on a panel` |
+| id плагина: грамматика D8 п.5, 128 байт (15 строк) | `accepts a plugin id of the documented form only` |
+| элемент `plugins([...])` — объект или класс `Plugin`; иное → `DefinitionException`; контейнер вернул не плагин | `tests/Unit/Panels/PanelBuilderTest.php` — `rejects anything but plugin objects and plugin classes in plugins()`, Lifecycle `rejects a class the container does not resolve to a plugin` |
+| происхождение без `prefix` (D10 п.3): форма `{kind, plugin, order}`, `PanelRecipe::plugin(id, order)` | `records the origin that is current when a setter is called` |
+| build id: значение конфига; иначе sha256 по парам «класс провайдера → sha256 файла», не зависит от порядка, известен в `register()` | `tests/Unit/Configuration/AzGuardConfigTest.php` (3 теста), Lifecycle `tells plugins the configured build id while they register`, `derives a stable build id…` |
+| сквозь загрузку приложения | `runs the plugin lifecycle when the application boots` |
+
+### Решения исполнения и отклонения от `Files`
+
+- `withoutPlugins()` действует на плагины слоя `configure` (`configurePanels()`), как сказано в правиле пункта и в 05 §4.
+  Плагин, подключённый самой панелью, им не снимается — иначе панель не могла бы заменить общий плагин своим с другими
+  настройками (`withoutPlugins(['x'])->plugins([X::make(...)])`).
+- `withoutPlugins()` из `register()` плагина → `DefinitionException`: к этому моменту часть плагинов уже зарегистрирована,
+  молчаливое игнорирование было бы скрытой ошибкой. Досье этот случай не описывает — решение исполнителя, для Review P2.
+- Повтор id строгий: тот же объект или класс, подключённый дважды, — тоже `PluginConflictException` (enum и роли при
+  повторе схлопываются, плагины — нет: у двух подключений могут быть разные настройки).
+- `requires()` с не-строкой → `DefinitionException` (тип из PHPDoc — обещание плагина).
+- `AzGuardConfig::buildId(array $panelProviders)` принимает классы провайдеров аргументом: зона `Configuration` не зависит
+  от `Panels` (arch-правило), а зарегистрированные провайдеры знает только реестр. Пустая строка в `catalog.build_id`
+  означает «не задан». Fallback не следит за кодом вне файлов провайдеров — это записано в docblock и в комментарии конфига;
+  проверку «production без явного id» вводит P6.4 (D8 п.5).
+- Fluent-сеттер id плагина не вводился (D10 п.5: вопрос владельца открыт, P2.4 строит только геттер `Plugin::id()`).
+- `tests/Arch/ZonesArchTest.php` не менялся: правила `Plugins ↛ Internal` и `Plugins ↛ Storage` уже были, с появлением
+  классов зоны они стали проверяющими (доказательство ниже).
+- Изменены три файла вне `Files` пункта:
+  - `packages/core/src/Panels/PanelRegistry.php` — фаза `register` плагинов стоит между записью рецепта и его
+    запечатыванием, а `boot` — после заморозки; обе точки находятся в реестре, без него компилятор плагины не получает;
+  - `tests/Unit/Panels/PanelSettingsTest.php` — тест P2.3 запрещал любой публичный метод builder на `without…`;
+    `withoutPlugins` (05 §4, D8 п.2) добавлен как названное исключение: он снимает плагин, а не гарантию;
+  - `tests/Unit/Configuration/AzGuardConfigTest.php` — тесты `buildId()` и секции `catalog` лежат рядом с остальными
+    тестами конфига.
+  `AzGuardServiceProvider` не менялся: build id и контейнер реестр берёт из своего `Application`.
+
+### Доказательство RED arch-правил (scratch-копия, не рабочее дерево)
+
+Копия репозитория в каталоге задания (`rsync` без `.git`, `plans`, `audits`, `legacy`, `docs`) + probe-классы
+`Internal\InternalProbe`, `Storage\StorageProbe` и `Plugins\PluginsProbe`, использующий оба:
+
+| # | Упавшее правило | Сообщение |
+|:--|:--|:--|
+| 1 | `plugins do not reach into internals` | «Expecting 'AzGuard\Plugins' not to use 'AzGuard\Internal'» |
+| 2 | `sources other than the database source and plugins stay off storage (AzGuard\Plugins)` | «Expecting 'AzGuard\Plugins' not to use 'AzGuard\Storage'» |
+
+`vendor/bin/pest tests/Arch/ZonesArchTest.php` в копии: 44 теста, 2 failed (ровно эти два); в рабочем дереве — GREEN.
+
+### Diff манифеста ядра
+
+`+` `Contracts\Plugins\{Plugin,DependsOnPlugins}` (`@spi`), `Plugins\BasePlugin` (`@spi`, один метод `boot`),
+`Plugins\PluginContext` (`@api`, 4 геттера и конструктор), `PluginDependencyMissingException`; `~` `PanelBuilder`:
+`+plugins`, `+withoutPlugins` (28 записей); `~` `Panel`: `+pluginIds`, конструктор принимает `pluginIds`. Внутренние
+`PanelRecipe`, `PanelCompiler`, `PanelFingerprint`, `AzGuardConfig` в манифест не попали.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Plugins tests/Feature/Plugins tests/Unit/Panels tests/Feature/Panels` | GREEN: 602 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 55 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `composer test` | GREEN: 1156 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: Total 100.0 % |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.3.35, Laravel 13.34.0, Testbench 11.3.0, Pest 4.7.8, PHPStan 2.2.16; `vendor/` установлен в worktree
+(`composer install` по `composer.lock` рабочей копии; lock не отслеживается).

@@ -16,6 +16,7 @@ final readonly class Panel
      * @internal built by the panel compiler
      *
      * @param  list<class-string<Model>>  $subjectModels
+     * @param  list<string>  $pluginIds
      */
     public function __construct(
         private string $id,
@@ -23,6 +24,7 @@ final readonly class Panel
         private bool $default,
         private PanelSettings $settings,
         private array $subjectModels,
+        private array $pluginIds,
     ) {}
 
     public function id(): string
@@ -65,6 +67,14 @@ final readonly class Panel
     public function subjectModels(): array
     {
         return $this->subjectModels;
+    }
+
+    /**
+     * @return list<string> ids of the plugins of the panel in the order they were attached
+     */
+    public function pluginIds(): array
+    {
+        return $this->pluginIds;
     }
 
     /**
