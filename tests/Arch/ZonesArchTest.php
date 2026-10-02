@@ -87,6 +87,12 @@ forbidDependencies(
     ['AzGuard\Storage', 'AzGuard\Changes'],
 );
 
+forbidDependencies(
+    'configuration depends only on the kernel, exceptions and the framework',
+    ['AzGuard\Configuration'],
+    array_values(array_diff(AZGUARD_OUTER_ZONES, ['AzGuard\Configuration'])),
+);
+
 arch('sources do not use changes or authorization')
     ->expect('AzGuard\Sources')
     ->not->toUse(['AzGuard\Changes', 'AzGuard\Authorization']);

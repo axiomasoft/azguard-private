@@ -7,15 +7,21 @@ use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\ChangeException;
 use AzGuard\Exceptions\ConfigurationException;
 use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\DuplicatePanelException;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\PluginException;
+use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\StorageException;
+use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\UnknownPanelException;
 
 it('roots every error in an abstract runtime exception with a machine code', function (): void {
     $base = new ReflectionClass(AzGuardException::class);
@@ -32,7 +38,6 @@ it('keeps a branch abstract under the base', function (string $branch): void {
         ->and($reflection->getParentClass()->getName())->toBe(AzGuardException::class);
 })->with([
     ConfigurationException::class,
-    DefinitionException::class,
     ChangeException::class,
     AuthorizationEngineException::class,
     StorageException::class,
@@ -54,8 +59,26 @@ it('gives a concrete exception its parent and stable code', function (string $cl
     [InvalidAssignmentScopeException::class, InvalidIdentityException::class, 'invalid_context'],
     [ConsistencyException::class, AuthorizationEngineException::class, 'consistency'],
     [InvalidSourceContributionException::class, AuthorizationEngineException::class, 'invalid_source_contribution'],
+    [DefinitionException::class, AzGuardException::class, 'definition'],
+    [DuplicatePanelException::class, DefinitionException::class, 'duplicate_panel'],
+    [UnknownPanelException::class, DefinitionException::class, 'unknown_panel'],
+    [RegistryFrozenException::class, DefinitionException::class, 'registry_frozen'],
+    [DefaultPanelConflictException::class, DefinitionException::class, 'default_panel_conflict'],
+    [SubjectNotAcceptedException::class, DefinitionException::class, 'subject_not_accepted'],
+    [InvalidConfigurationException::class, ConfigurationException::class, 'invalid_configuration'],
 ]);
 
-it('keeps the engine value exceptions final', function (string $class): void {
+it('throws the definition branch itself where no narrower class exists', function (): void {
+    $reflection = new ReflectionClass(DefinitionException::class);
+
+    expect($reflection->isAbstract())->toBeFalse()
+        ->and($reflection->isFinal())->toBeFalse();
+});
+
+it('keeps leaf exceptions final', function (string $class): void {
     expect((new ReflectionClass($class))->isFinal())->toBeTrue();
-})->with([ConsistencyException::class, InvalidSourceContributionException::class]);
+})->with([
+    ConsistencyException::class, InvalidSourceContributionException::class, DuplicatePanelException::class,
+    UnknownPanelException::class, RegistryFrozenException::class, DefaultPanelConflictException::class,
+    SubjectNotAcceptedException::class, InvalidConfigurationException::class,
+]);

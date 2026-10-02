@@ -2,6 +2,162 @@
     "package": "axiomasoft/azguard",
     "classes": [
         {
+            "name": "AzGuard\\Contracts\\Panels\\PanelRegistry",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "all",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "configure",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "configureAll",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "defaultFor",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "modelClass",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "find",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "forModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "modelClass",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "get",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "isFrozen",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "register",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "providerClass",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "replace",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "providerClass",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
             "kind": "interface",
             "final": false,
@@ -365,6 +521,28 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Sources\\Source",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Subjects\\SubjectResolver",
             "kind": "interface",
             "final": false,
@@ -511,10 +689,35 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\DefaultPanelConflictException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\DefinitionException",
             "kind": "class",
             "final": false,
-            "abstract": true,
+            "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\AzGuardException",
             "interfaces": [
@@ -523,7 +726,40 @@
             ],
             "constants": [],
             "properties": [],
-            "methods": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\DuplicatePanelException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
             "stability": "api",
             "via": "location"
         },
@@ -534,6 +770,31 @@
             "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\InvalidConfigurationException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\ConfigurationException",
             "interfaces": [
                 "Stringable",
                 "Throwable"
@@ -695,6 +956,31 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\RegistryFrozenException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\StorageException",
             "kind": "class",
             "final": false,
@@ -708,6 +994,56 @@
             "constants": [],
             "properties": [],
             "methods": [],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\UnknownPanelException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
             "stability": "api",
             "via": "location"
         },
@@ -3173,6 +3509,528 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "?DateTimeImmutable"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Panels\\Panel",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "default",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "prefix",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subjectModels",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "accepts",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "isDefault",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "label",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "prefix",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "subjectModels",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Panels\\PanelBuilder",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "recipe",
+                            "type": "AzGuard\\Panels\\PanelRecipe",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "after",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "hooks",
+                            "type": "Closure|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "before",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "hooks",
+                            "type": "Closure|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "changing",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "pipes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "default",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "default",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "true"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "description",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "doctorChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "checks",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "entry",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "for",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "directory",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "grantConditions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "conditions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "label",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "middleware",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "middleware",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "onDenied",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "response",
+                            "type": "Closure|string|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "permissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "presentation",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "requireRouteChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "static"
+                },
+                {
+                    "name": "resourcePrefix",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "prefix",
+                            "type": "string|bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "true"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "resourceScopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resolvers",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "restrictions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "restrictions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "scopeResolvers",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resolvers",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tenantResolvers",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resolvers",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Panels\\PanelProvider",
+            "kind": "class",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\ServiceProvider",
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getId",
+                    "static": true,
+                    "abstract": true,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": true,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\PanelBuilder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Panels\\PanelBuilder"
+                },
+                {
+                    "name": "register",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
                 }
             ],
             "stability": "api",
