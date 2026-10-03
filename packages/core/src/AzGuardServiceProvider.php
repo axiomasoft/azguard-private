@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard;
 
+use AzGuard\Catalog\CatalogCache;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
+use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -25,9 +28,14 @@ final class AzGuardServiceProvider extends ServiceProvider
             static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository($app->make('config')),
         );
 
+        $this->app->singleton(CatalogCache::class, static fn (Application $app): CatalogCache => new CatalogCache(
+            $app->make(AzGuardConfig::class)->catalogCachePath() ?? $app->bootstrapPath('cache/azguard.php'),
+        ));
+
         $this->app->singleton(PanelRegistry::class, static fn (Application $app): PanelRegistry => new PanelRegistry(
             $app,
             new PanelCompiler(static fn (): array => $app->make(AzGuardConfig::class)->defaults()),
+            static fn (): CatalogCache => $app->make(CatalogCache::class),
         ));
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
@@ -39,6 +47,10 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
 
         $this->registerConfiguredPanels();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class]);
+        }
 
         $this->app->booted(function (): void {
             $this->app->make(PanelRegistry::class)->freeze();

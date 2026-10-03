@@ -17,7 +17,7 @@ final readonly class AzGuardConfig
 {
     private const array PANELS_KEYS = ['providers'];
 
-    private const array CATALOG_KEYS = ['build_id'];
+    private const array CATALOG_KEYS = ['build_id', 'cache_path'];
 
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
@@ -35,6 +35,7 @@ final readonly class AzGuardConfig
         private array $panelProviders,
         private array $defaults,
         private ?string $buildId,
+        private ?string $catalogCachePath,
     ) {}
 
     /**
@@ -51,6 +52,7 @@ final readonly class AzGuardConfig
             self::panelProvidersFrom($panels['providers'] ?? []),
             self::defaultsFrom(self::section('defaults', $config->get('azguard.defaults', []))),
             self::buildIdFrom($catalog['build_id'] ?? null),
+            self::cachePathFrom($catalog['cache_path'] ?? null),
         );
     }
 
@@ -99,6 +101,26 @@ final readonly class AzGuardConfig
         ksort($files, SORT_STRING);
 
         return hash('sha256', json_encode($files, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * The file of the catalog cache, or null for the default `bootstrap/cache/azguard.php`.
+     */
+    public function catalogCachePath(): ?string
+    {
+        return $this->catalogCachePath;
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function cachePathFrom(mixed $path): ?string
+    {
+        return match (true) {
+            $path === null, $path === '' => null,
+            is_string($path) => $path,
+            default => throw self::invalidValue('catalog.cache_path', $path, 'a file path or null'),
+        };
     }
 
     /**

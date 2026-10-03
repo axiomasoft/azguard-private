@@ -70,10 +70,15 @@ return [
     | to the commit hash. When it is empty the package derives an id from the
     | files of the panel providers, which does not follow other code.
     |
+    | azguard:catalog:cache writes the static catalogs of all panels to the
+    | cache path (bootstrap/cache/azguard.php when it is null); a panel uses
+    | the file only when it was written by the same build for the same panel.
+    |
     */
 
     'catalog' => [
         'build_id' => env('AZGUARD_BUILD_ID'),
+        'cache_path' => null,
     ],
 
 ];

@@ -2,8 +2,8 @@
 projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
-through: 2026-10-02
-inputs_sha256: 98e39c1f8517045bd97aeed57a7ddd18c8ef9fcf390966a893b7a694470247dd
+through: 2026-10-03
+inputs_sha256: ce903277eac28a93510bd0aca5ac7c2cadccfe8f890ba5dbffdc86086162436f
 generated_by: task plan-views status
 -->
 
@@ -17,7 +17,7 @@ generated_by: task plan-views status
 |:--|:--|
 | Version | — |
 | Status | 🟡 In progress |
-| Last Updated | 2026-10-02 |
+| Last Updated | 2026-10-03 |
 
 ## 4. Phase Index & Status Board
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 4/10 | 🟡 In progress |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 5/10 | 🟡 In progress |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -63,7 +63,7 @@ generated_by: task plan-views status
 | P2.2 | PanelResolver: одно правило выбора панели и префиксы | 🟢 Done | 2026-10-02 |
 | P2.3 | Настройки панели и PanelSettings | 🟢 Done | 2026-10-02 |
 | P2.4 | Плагины: typed factories, PluginContext, изоляция, конфликты | 🟢 Done | 2026-10-02 |
-| P2.5 | Каталог из источников, коллизии, O(1)-поиск, catalog:cache | ⬜ Not started | — |
+| P2.5 | Каталог из источников, коллизии, O(1)-поиск, catalog:cache | 🟢 Done | 2026-10-03 |
 | P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | ⬜ Not started | — |
 | P2.7 | Фабрика источников: Source, возможности, SourceManager, AsSource | ⬜ Not started | — |
 | P2.8 | FolderSource: discovery папки панели, атрибуты, pairing политик | ⬜ Not started | — |
@@ -193,6 +193,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-02 | claude | plan-run · in-progress · — |
 | 2026-10-02 | claude | plan-run · closed-green · note abbreviated; full text: journal.jsonl:41 |
+| 2026-10-02 | claude | plan-run · in-progress · — |
+| 2026-10-03 | claude | plan-run · closed-green · Каталог из источников, коллизии, RoleCompiler, привязки политик, O(1)-индексы, withDynamic, catalog:cache|clear, prefix_conflict, владение по has(); V08, V81, V119 (части), D7 п.4; RED arch; 8 гейтов GREEN (findings P2.5)
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

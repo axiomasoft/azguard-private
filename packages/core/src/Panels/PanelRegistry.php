@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Contracts\Plugins\Plugin;
@@ -18,8 +20,10 @@ use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
 /**
- * Collects panel providers and adjustments while the application boots, then compiles every panel once, freezes
- * and boots the plugins of the panels.
+ * Collects panel providers and adjustments while the application boots, then compiles every panel and its catalog
+ * once, freezes and boots the plugins of the panels.
+ *
+ * @phpstan-import-type PanelEntry from CatalogCache
  */
 final class PanelRegistry implements PanelRegistryContract
 {
@@ -44,6 +48,14 @@ final class PanelRegistry implements PanelRegistryContract
     /** @var array<string, string> */
     private array $fingerprints = [];
 
+    /** @var array<string, string> fingerprints of the recipes, without the catalogs */
+    private array $recipeFingerprints = [];
+
+    /** @var array<string, PanelCatalog> */
+    private array $catalogs = [];
+
+    private ?string $buildId = null;
+
     /** @var array<string, string> prefix => panel id */
     private array $prefixes = [];
 
@@ -52,9 +64,13 @@ final class PanelRegistry implements PanelRegistryContract
 
     private bool $frozen = false;
 
+    /**
+     * @param  (Closure(): CatalogCache)|null  $cache  the catalog cache, resolved when the panels are compiled
+     */
     public function __construct(
         private readonly Application $app,
         private readonly PanelCompiler $compiler = new PanelCompiler,
+        private readonly ?Closure $cache = null,
     ) {}
 
     public function get(string $id): Panel
@@ -138,8 +154,9 @@ final class PanelRegistry implements PanelRegistryContract
     /**
      * Compiles every registered panel and freezes the registry; runs once, when the application has booted.
      *
-     * A failed compilation leaves the registry unfrozen and without panels. Plugins boot once the registry is
-     * frozen, in the order they were attached.
+     * A panel takes its catalog from the catalog cache when the cache was written by this build for the same recipe,
+     * otherwise from its sources. A failed compilation leaves the registry unfrozen and without panels. Plugins boot
+     * once the registry is frozen, in the order they were attached.
      *
      * @throws DefinitionException
      */
@@ -162,21 +179,29 @@ final class PanelRegistry implements PanelRegistryContract
         }
 
         $buildId = $this->app->make(AzGuardConfig::class)->buildId(array_values($providers));
-        $panels = $recipes = $plugins = $fingerprints = $enums = [];
+        $cached = $this->cache === null ? [] : ($this->cache)()->read();
+        $panels = $recipes = $plugins = $fingerprints = $recipeFingerprints = $catalogs = $enums = [];
 
         foreach ($providers as $id => $providerClass) {
             [$recipes[$id], $plugins[$id]] = $this->write($id, $providerClass, $buildId);
             $panels[$id] = $this->compiler->compile($recipes[$id]);
-            $fingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id]);
+            $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id]);
+            $snapshot = CatalogCache::entry($cached, $buildId, $id, $recipeFingerprints[$id]);
+            $catalogs[$id] = ($snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot))
+                ?? $this->compiler->catalog($panels[$id], $recipes[$id], $this->app);
+            $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
             $enums = $this->attachEnums($enums, $id, $recipes[$id]->enums());
         }
 
         $this->compiler->assertDefaults($panels);
-        $prefixes = $this->compiler->prefixes($panels);
+        $prefixes = $this->compiler->prefixes($panels, $catalogs);
 
         $this->panels = $panels;
         $this->recipes = $recipes;
         $this->fingerprints = $fingerprints;
+        $this->recipeFingerprints = $recipeFingerprints;
+        $this->catalogs = $catalogs;
+        $this->buildId = $buildId;
         $this->prefixes = $prefixes;
         $this->enums = $enums;
         $this->frozen = true;
@@ -232,6 +257,53 @@ final class PanelRegistry implements PanelRegistryContract
         $this->compiled();
 
         return $this->fingerprints[$id] ?? throw $this->unknown($id);
+    }
+
+    /**
+     * The static catalog of a panel.
+     *
+     * @throws UnknownPanelException
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function catalog(string $id): PanelCatalog
+    {
+        $this->compiled();
+
+        return $this->catalogs[$id] ?? throw $this->unknown($id);
+    }
+
+    /**
+     * Id of the build the panels were compiled for.
+     *
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function buildId(): string
+    {
+        $this->compiled();
+
+        return (string) $this->buildId;
+    }
+
+    /**
+     * Catalogs of all panels built again from their sources, as the catalog cache stores them.
+     *
+     * @return array<string, PanelEntry>
+     *
+     * @throws DefinitionException when the panels are not compiled yet or a catalog no longer builds
+     */
+    public function snapshot(): array
+    {
+        $panels = $this->compiled();
+        $catalogs = $entries = [];
+
+        foreach ($panels as $id => $panel) {
+            $catalogs[$id] = $this->compiler->catalog($panel, $this->recipes[$id], $this->app);
+            $entries[$id] = ['fingerprint' => $this->recipeFingerprints[$id], 'catalog' => $catalogs[$id]->snapshot()];
+        }
+
+        $this->compiler->prefixes($panels, $catalogs);
+
+        return $entries;
     }
 
     /**

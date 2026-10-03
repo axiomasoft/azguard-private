@@ -371,3 +371,131 @@ Run: `plan-run P2.4 P2.5 P2.6` (batch B2b, session `a1cb8702-ed75-44c2-aedf-e95b
 
 Окружение: PHP 8.3.35, Laravel 13.34.0, Testbench 11.3.0, Pest 4.7.8, PHPStan 2.2.16; `vendor/` установлен в worktree
 (`composer install` по `composer.lock` рабочей копии; lock не отслеживается).
+
+## P2.5 — Каталог из источников, коллизии, O(1)-поиск, catalog:cache (2026-10-03)
+
+Запуск `8643d2b5…` начат 2026-10-02 в worktree `azguard-v1-p2-b2b`, приостановлен владельцем; продолжен 2026-10-03 в
+`main` той же сессией исполнения после слияния ветки. Сборка каталога: `PanelSources::of(recipe)` → `PanelCatalog::build`
+(статичные `ProvidesPermissions` → привязки `ProvidesPolicies` → `RoleCompiler` по `ProvidesRoles`) → в реестре проверка
+префиксов по каталогам всех панелей → отпечаток панели с каталогом.
+
+### Коллизия → исключение → тест
+
+| Случай | Исключение (код) | Тест |
+|:--|:--|:--|
+| V08: два источника, одно имя, равные определения → один элемент, владелец — первый | — | `CatalogCollisionTest` `V08: keeps one permission…` |
+| V08: одно имя, разные подписи → оба id в сообщении | `DuplicatePermissionException` (`duplicate_permission`) | `V08: rejects two sources that define one name differently…` |
+| V08: источник провайдера и источник плагина с одним именем → id плагина в сообщении | `duplicate_permission` | `V08: names the plugin when a plugin source repeats…` |
+| V08/D10: `blog.posts.edit` плагина рядом с `posts.edit` провайдера → два ключа, имена не меняются | — | `V08: keeps the names of a plugin as declared…` |
+| один enum case → два имени | `duplicate_permission` | `rejects one enum case that names two permissions` |
+| V119: одно имя с режимами `Policy` и `Grants` | `duplicate_permission` | `V119: one name has one authority mode across sources` |
+| V119: PolicyOnly без привязки | `InvalidPolicyStructureException` (`invalid_policy_structure`) | `V119: a policy-only permission needs a binding…`, `PanelCatalogTest` `rejects policy bindings…` |
+| V119: роль перечисляет PolicyOnly-право (case и имя) | `DefinitionException` | `V119: … is never listed by a role`, `RoleCompilerTest` `resolves role permissions…` |
+| V119: dynamic-определение `Policy` | `InvalidSourceContributionException` (`invalid_source_contribution`) | `V119: a dynamic permission is always decided by grants` |
+| две привязки одного права к разным политикам; одинаковые идемпотентны | `DuplicatePolicyBindingException` (`duplicate_policy_binding`) | `PanelCatalogTest` `rejects policy bindings…`, `binds policies by case and by name…` |
+| привязка к имени вне каталога / непривязанному enum | `UnknownPermissionException` | `PanelCatalogTest` `rejects policy bindings…` |
+| два класса ролей с ключом `manager`; `formerKey` = ключ или прежний ключ другой роли | `DuplicateRoleException` (`duplicate_role`) | `RoleCompilerTest` `rejects two roles that claim one key or former key` (4 строки) |
+| роль из источника плагина в коллизии → `plugin:<id>` в сообщении | `duplicate_role` | `names the plugin of a role source in a role collision` |
+| повтор `id()` источника → оба класса | `DefinitionException` | `PanelCatalogTest` `rejects a repeated source id…` |
+| `permissions(['ldap'])` | `UnknownSourceException` (`unknown_source`) | там же; `CatalogCollisionTest` `rejects a source named by a name…` |
+| V81: префикс панели = первый сегмент имени другой панели / имени из плагина своей панели | `PrefixConflictException` (`prefix_conflict`) | `PrefixCatalogTest` (2 теста) |
+| dynamic-имя повторяет статичное / начинается с префикса панели | `duplicate_permission` / `prefix_conflict` | `PanelCatalogTest` `rejects a dynamic permission…` |
+| источник вернул не определение / не роль / не привязку | `invalid_source_contribution` | `refuses something a source returns…` (каталог и роли), `not a binding` |
+
+### D7 п.4 → тест
+
+| Принятое от P1.6 | Тест (`tests/Unit/Catalog/RoleCompilerTest.php`) |
+|:--|:--|
+| override `key()` с `Bad Key` → `InvalidRoleKeyException` | `checks keys of roles that override key() and formerKeys()` — `BadKeyRole` |
+| override `formerKeys()` с текущим ключом, неверной грамматикой, не-строкой | там же — `SelfFormerRole`, `Old Key`, `7` |
+| две роли с ключом `manager` | `rejects two roles…` — `ManagerRole`, `OtherManagerRole` |
+| `formerKeys = ['seller']` при существующей `SellerRole` (в обоих порядках) | там же — `ExSellerRole` |
+
+### Формат снимка
+
+`catalog.cache_path` или `bootstrap/cache/azguard.php`: `<?php return [...]` (`var_export`, запись через временный файл и
+`rename`, `opcache_invalidate`):
+
+```
+['version' => 1, 'build_id' => '…', 'panels' => [
+  '<panel>' => ['fingerprint' => '<sha256 рецепта>', 'catalog' => [
+    'panel', 'prefix', 'dynamic',
+    'sources' => [['id', 'class', 'origin'], …],
+    'permissions' => [['local', 'authority', 'label', 'group', 'description',
+                      'case' => ['enum', 'name'] | null, 'resource_model', 'source', 'origin'], …],
+    'bindings' => ['<local>' => '<policy class>'],
+    'roles' => ['<key>' => ['class', 'key', 'former_keys', 'permissions', 'scopes' => [['type', 'class']],
+                            'scope_required', 'super_admin', 'grantable', 'source', 'origin']]]]]]
+```
+
+Только скаляры (`CatalogCacheTest` проверяет рекурсивно). Снимок панели берётся, только если совпали `version`, `build_id`
+и отпечаток рецепта; восстановленный каталог обязан дать тот же `snapshot()`, иначе он отбрасывается и каталог собирается
+из источников. Тесты: повторная загрузка — 0 чтений источников, равные `snapshot()`, `all()`, `keyOf()` и отпечаток;
+другой build id, изменённый рецепт, битый файл (3 варианта) → сборка из источников; `azguard:catalog:clear` → файла нет.
+
+### Решения исполнения и отклонения от `Files`
+
+- Отпечаток: `PanelFingerprint::of()` остался отпечатком рецепта (по нему и build id выбирается снимок — до вызова
+  источников); `PanelRegistry::fingerprint()` теперь `PanelFingerprint::withCatalog(рецепт, снимок каталога)`, поэтому
+  живой каталог и каталог из кэша дают один отпечаток.
+- Enum из `permissions([...])` и классы `roles([...])` рецепта каталог P2.5 не читает: их превращает в определения и роли
+  `FolderSource` (P2.8, 06 §1.2 п.1). Роли и привязки P2.5 — только из `ProvidesRoles`/`ProvidesPolicies`. Компиляция ролей
+  рецепта здесь сломала бы панели, чьи роли ссылаются на enum, ещё не попавшие в каталог.
+- `PanelResolver::key()` для enum по-прежнему берёт `value` case: перевод на `catalog->keyOf()` возможен, когда enum
+  рецепта попадут в каталог (P2.8).
+- Проверка «префикс = первый сегмент статичного имени» — в `PanelCompiler::prefixes($panels, $catalogs)`, рядом с проверкой
+  повторного префикса; resolver получает только владение по `has()`.
+- `withDynamic()` строится от статичной части: каждый вызов заменяет прежний overlay (overlay одного tenant, D36).
+  Префикс сверяется с префиксом своей панели, как в правиле пункта.
+- Плохой `formerKeys()` (свой ключ, грамматика, не строка) → `InvalidRoleKeyException`, как в `BaseRole`.
+- Ответы расширений (`permissions()`, `roles()`, `policies()`, `formerKeys()`, `permissions()`/`scopes()` роли) проходят
+  через `PanelCatalog::untrusted()`: тип из PHPDoc — обещание расширения (тот же приём, что `PanelCompiler::declared()`).
+- Ошибка записи кэша → `InvalidConfigurationException` (D37: без SPL-исключений).
+- Изменено вне `Files` пункта:
+  - `packages/core/src/Panels/PanelRegistry.php` — `catalog()`, `buildId()`, `snapshot()`, чтение кэша при `freeze()`.
+    Кэш передан замыканием: при раннем `make(CatalogCache)` фабрика реестра создавала `AzGuardConfig` до того, как
+    Testbench задаёт конфиг, и `PanelBootTest` падал («Registered panels: none»);
+  - `tests/Unit/Panels/PanelResolverTest.php` — два ожидания `owner()` P2.2 («кандидат владеет любым именем с точкой»)
+    приведены к правилу P2.5 (кандидат владеет только именем своего каталога);
+  - `tests/Fixtures/Sources/BootsWithCatalogCache.php` — трейт поверх `BootsPanels` с `catalog.cache_path`/`build_id`
+    теста (задаёт конфигурацию проверяемой функции, а не обходит дефект).
+- `CHANGELOG.md` был закрыт правилом `Read(**/CHANGELOG.md)` в `.claude/settings.local.json`; владелец открыл доступ,
+  записи `[Unreleased]` (Added, Changed) добавлены.
+
+### Доказательство RED arch-правил (scratch-копия, не рабочее дерево)
+
+Копия в scratchpad (`rsync` без `.git`, `plans`, `audits`, `legacy`, `docs`, `node_modules`) + probe-классы
+`Storage\StorageProbe`, `Changes\ChangesProbe`, `Authorization\AuthorizationProbe`, `Laravel\LaravelProbe`; R0 без нарушений —
+45 тестов GREEN.
+
+| Раунд | Probe | Упавшее правило |
+|:--|:--|:--|
+| R1 | `Catalog\CatalogProbe` → `Storage`; `Sources\SourcesProbe` → `Changes` | `panels, catalog, … stay off storage and changes (AzGuard\Catalog)` — «…not to use 'AzGuard\Storage'»; `sources do not use changes or authorization` — «…'AzGuard\Changes'» |
+| R2 | `Catalog` → `Changes`; `Sources` → `Authorization` | те же два правила — «…'AzGuard\Changes'», «…'AzGuard\Authorization'» |
+| R3 | `Catalog` → `Authorization` и `Laravel` | `the catalog neither decides access nor reaches the framework adapters` — «…'AzGuard\Laravel'» |
+| R4 | `Catalog` → только `Authorization` | то же новое правило — «…'AzGuard\Authorization'» |
+
+Каждый раунд: ровно ожидаемые правила failed; список запрещённых зон в `not->toUse([…])` проверяет каждый элемент.
+
+### Diff манифеста ядра
+
+`+` `Contracts\Sources\{ProvidesPermissions,ProvidesRoles,ProvidesPolicies}` (`@spi`), `Contracts\Catalog\PermissionCatalog`
+(`@api`, 6 методов), `Catalog\PermissionDefinition` (`@spi`, 7 полей и `equals`), `Policies\PolicyBinding` (`@api`, `for`,
+поля `permission`, `policy`), исключения `Duplicate{Permission,Role,PolicyBinding}Exception`,
+`InvalidPolicyStructureException`, `UnknownSourceException`. Внутренние `PanelCatalog`, `RoleCompiler`, `CatalogCache`,
+`PanelSources`, команды в манифест не попали.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Catalog tests/Feature/Catalog tests/Unit/Roles tests/Unit/Panels tests/Feature/Panels` | GREEN: 634 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 56 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `composer test` | GREEN: 1233 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 110 файлов из 110 (повторный прогон; первый, на холодном кэше, молча прошёл 59 файлов с 28 предупреждениями анализатора — не засчитан) |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`, рабочее дерево.

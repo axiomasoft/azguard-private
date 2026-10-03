@@ -93,6 +93,12 @@ forbidDependencies(
     array_values(array_diff(AZGUARD_OUTER_ZONES, ['AzGuard\Configuration'])),
 );
 
+forbidDependencies(
+    'the catalog neither decides access nor reaches the framework adapters',
+    ['AzGuard\Catalog'],
+    ['AzGuard\Authorization', 'AzGuard\Laravel'],
+);
+
 arch('sources do not use changes or authorization')
     ->expect('AzGuard\Sources')
     ->not->toUse(['AzGuard\Changes', 'AzGuard\Authorization']);

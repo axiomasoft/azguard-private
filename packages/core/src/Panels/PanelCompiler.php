@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Exceptions\DefaultPanelConflictException;
@@ -13,6 +14,7 @@ use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -140,6 +142,16 @@ final class PanelCompiler
             subjectModels: array_values(array_unique(array_column($recipe->subjects(), 'model'))),
             pluginIds: $recipe->pluginIds(),
         );
+    }
+
+    /**
+     * Builds the static catalog of a compiled panel from the sources of its recipe.
+     *
+     * @throws DefinitionException
+     */
+    public function catalog(Panel $panel, PanelRecipe $recipe, Container $container): PanelCatalog
+    {
+        return PanelCatalog::build($panel, PanelSources::of($recipe), $container);
     }
 
     /**
@@ -271,12 +283,17 @@ final class PanelCompiler
     /**
      * The prefix dictionary of the application: a prefix is one segment that names exactly one panel.
      *
+     * A prefix never equals the first segment of a static permission name of any panel, plugin contributions included:
+     * such a name would read as a name with the prefix.
+     *
      * @param  array<string, Panel>  $panels
+     * @param  array<string, PanelCatalog>  $catalogs
      * @return array<string, string> prefix => panel id
      *
-     * @throws PrefixConflictException when two panels resolve to the same prefix, the default one included
+     * @throws PrefixConflictException when two panels resolve to the same prefix, the default one included, or a
+     *                                 prefix is the first segment of a permission name
      */
-    public function prefixes(array $panels): array
+    public function prefixes(array $panels, array $catalogs = []): array
     {
         $prefixes = [];
 
@@ -295,6 +312,19 @@ final class PanelCompiler
             }
 
             $prefixes[$prefix] = $panel->id();
+        }
+
+        foreach ($catalogs as $catalog) {
+            foreach ($prefixes as $prefix => $owner) {
+                $name = $catalog->nameWithFirstSegment($prefix);
+
+                if ($name !== null) {
+                    throw new PrefixConflictException(
+                        'The permission prefix "'.$prefix.'" of panel "'.$owner.'" is the first segment of the permission "'.$name
+                        .'" of panel "'.$catalog->panel().'": give the panel another resourcePrefix() or rename the permission.',
+                    );
+                }
+            }
         }
 
         return $prefixes;

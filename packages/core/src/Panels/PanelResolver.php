@@ -88,7 +88,8 @@ final class PanelResolver
      *
      * A single word belongs to Laravel policies. A full name of a registered panel and a name with a registered
      * prefix belong to that panel even when the action is unknown. Any other dotted name belongs to the panel the
-     * rule would pick without explicit signals, if there is one.
+     * rule would pick without explicit signals only when the catalog of that panel has the name; otherwise the
+     * ability is not ours. The answer reads hash indexes and makes no query.
      *
      * @throws DefinitionException when the panels are not compiled yet
      */
@@ -102,7 +103,15 @@ final class PanelResolver
             return null;
         }
 
-        return $this->registry->forPrefix(explode('.', $ability, 2)[0]) ?? $this->candidate($subject);
+        $prefixed = $this->registry->forPrefix(explode('.', $ability, 2)[0]);
+
+        if ($prefixed !== null) {
+            return $prefixed;
+        }
+
+        $candidate = $this->candidate($subject);
+
+        return $candidate !== null && $this->registry->catalog($candidate->id())->has($ability) ? $candidate : null;
     }
 
     /**

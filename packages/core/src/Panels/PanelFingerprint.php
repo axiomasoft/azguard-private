@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Sources\Source;
 use Closure;
 
@@ -12,7 +13,8 @@ use Closure;
  *
  * Keys are sorted and lists keep their order, so a reordered list is a different panel: plugins attached in another
  * order give another fingerprint. A closure is recorded as `closure` and an object by its class: neither closures
- * nor model instances are serialized.
+ * nor model instances are serialized. The fingerprint of a compiled panel adds its catalog to the fingerprint of the
+ * recipe; the recipe part alone decides whether a cached catalog belongs to the panel.
  */
 final class PanelFingerprint
 {
@@ -20,6 +22,17 @@ final class PanelFingerprint
     {
         return hash('sha256', json_encode(
             self::canonical(self::metadata($panel, $recipe)),
+            JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+        ));
+    }
+
+    /**
+     * The fingerprint of a panel with its catalog: equal for a catalog built from the sources and one read from the cache.
+     */
+    public static function withCatalog(string $recipe, PanelCatalog $catalog): string
+    {
+        return hash('sha256', $recipe.json_encode(
+            self::canonical($catalog->snapshot()),
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         ));
     }

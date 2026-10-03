@@ -2,6 +2,230 @@
     "package": "axiomasoft/azguard",
     "classes": [
         {
+            "name": "AzGuard\\Catalog\\PermissionDefinition",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "authority",
+                    "type": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "case",
+                    "type": "?BackedEnum",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "local",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "resourceModel",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "local",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "authority",
+                            "type": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "case",
+                            "type": "?BackedEnum",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "resourceModel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "equals",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "other",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Catalog\\PermissionCatalog",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "all",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "find",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Catalog\\PermissionDefinition"
+                },
+                {
+                    "name": "get",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Catalog\\PermissionDefinition"
+                },
+                {
+                    "name": "has",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "keyOf",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "case",
+                            "type": "UnitEnum",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Identity\\PermissionKey"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Panels\\PanelRegistry",
             "kind": "interface",
             "final": false,
@@ -609,6 +833,117 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "isDynamic",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "permissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "iterable"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "policies",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\ProvidesRoles",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Sources\\Source",
             "kind": "interface",
             "final": false,
@@ -902,6 +1237,81 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\DuplicatePermissionException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\DuplicateRoleException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
             "kind": "class",
             "final": true,
@@ -1030,6 +1440,31 @@
             "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
             "interfaces": [
                 "Stringable",
                 "Throwable"
@@ -1314,6 +1749,31 @@
             "abstract": false,
             "readonly": false,
             "parent": "AzGuard\\Exceptions\\ChangeException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\UnknownSourceException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
             "interfaces": [
                 "Stringable",
                 "Throwable"
@@ -4961,6 +5421,56 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Policies\\PolicyBinding",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "permission",
+                    "type": "BackedEnum|string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "policy",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "for",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "policy",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
                 }
             ],
             "stability": "api",
