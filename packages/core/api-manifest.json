@@ -606,6 +606,87 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allows",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "allowsMany",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "refs",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "constrain",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "contextQuery",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
             "kind": "interface",
             "final": false,
@@ -644,6 +725,116 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "string"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDirectory",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Directories\\AssignmentScopeOption"
+                },
+                {
+                    "name": "search",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "term",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "apply",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
                 }
             ],
             "stability": "spi",
@@ -711,6 +902,75 @@
                         }
                     ],
                     "return": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "directory",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "filter",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "filter",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter|Closure|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "label",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "settings",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\AssignmentScopeSettings"
                 }
             ],
             "stability": "spi",
@@ -896,6 +1156,72 @@
                         }
                     ],
                     "return": "AzGuard\\Kernel\\Identity\\AccessScope"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\TenantDirectory",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Directories\\TenantOption"
+                },
+                {
+                    "name": "search",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "term",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 }
             ],
             "stability": "spi",
@@ -1438,6 +1764,80 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Subjects\\SubjectDirectory",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Directories\\SubjectOption"
+                },
+                {
+                    "name": "search",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "term",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Subjects\\SubjectResolver",
             "kind": "interface",
             "final": false,
@@ -1480,6 +1880,352 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Directories\\AssignmentScopeOption",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "scope",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Directories\\LookupContext",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "actor",
+                    "type": "AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "actorModel",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "now",
+                    "type": "DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "AzGuard\\Panels\\Panel",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "phase",
+                    "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "proposed",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "?AzGuard\\Roles\\BaseRole",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "scope",
+                    "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "user",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actorModel",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "user",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Roles\\BaseRole",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "proposed",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "phase",
+                            "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Directories\\SubjectOption",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Directories\\TenantOption",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {
@@ -6669,6 +7415,345 @@
                 }
             ],
             "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "actor",
+                    "type": "AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "actorModel",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "grant",
+                    "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "now",
+                    "type": "DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "AzGuard\\Panels\\Panel",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "phase",
+                    "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "?AzGuard\\Roles\\BaseRole",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "scope",
+                    "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "user",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "user",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Roles\\BaseRole",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "grant",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actorModel",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "phase",
+                            "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\AssignmentScopeSettings",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "directory",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "filters",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "filters",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directory",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\BaseAssignmentScope",
+            "kind": "class",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "directory",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "filter",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "filter",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter|Closure|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "label",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "model",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "query",
+                    "static": false,
+                    "abstract": true,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "resolve",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Contracts\\Scopes\\ResolvedAssignmentScope"
+                },
+                {
+                    "name": "settings",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\AssignmentScopeSettings"
+                },
+                {
+                    "name": "tenantOf",
+                    "static": false,
+                    "abstract": true,
+                    "parameters": [
+                        {
+                            "name": "record",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Identity\\TenantRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": true,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "spi",
             "via": "tag"
         },
         {

@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: be151d816d120f0240513e16a1907a792a89bf82b6d21e83d1966fc7b9f38e4e
+inputs_sha256: f1afd485171f87b2954983a303abcd1acc26cfbc9fc4d9bce363859bfbea626b
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 8/10 | 🟡 In progress |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟡 In progress |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -67,7 +67,7 @@ generated_by: task plan-views status
 | P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | 🟢 Done | 2026-10-03 |
 | P2.7 | Фабрика источников: Source, возможности, SourceManager, AsSource | 🟢 Done | 2026-10-03 |
 | P2.8 | FolderSource: discovery папки панели, атрибуты, pairing политик | 🟢 Done | 2026-10-03 |
-| P2.9 | Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope | ⬜ Not started | — |
+| P2.9 | Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope | 🟢 Done | 2026-10-03 |
 | P2.10 | Review P2: независимая read-only проверка фазы | ⬜ Not started | — |
 
 ## Phase P3
@@ -204,6 +204,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | grok | plan-run · in-progress · — |
 | 2026-10-03 | grok-4.7/high | plan-run · closed-green · FolderSource и PanelDiscovery: папка панели наполняет каталог, пары политик по #[Decides], V78/V79/V102/V106; кэш discovery без повторного разбора; RED Policies↛Storage/Changes; 8 гейтов GREEN (findings P2.8)
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | grok | plan-run · in-progress · — |
+| 2026-10-03 | grok-4.7/high | plan-run · closed-green · Кадры областей, SPI directories и BaseAssignmentScope; resolve() — один SELECT; 8 гейтов GREEN
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates

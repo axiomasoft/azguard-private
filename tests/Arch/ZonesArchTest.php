@@ -17,7 +17,7 @@ const AZGUARD_OUTER_ZONES = [
     'AzGuard\Policies', 'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Schema', 'AzGuard\Storage',
     'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
     'AzGuard\Diagnostics', 'AzGuard\Internal', 'AzGuard\Facades', 'AzGuard\Concerns', 'AzGuard\Events',
-    'AzGuard\Attributes', 'AzGuard\Permissions',
+    'AzGuard\Attributes', 'AzGuard\Permissions', 'AzGuard\Directories',
 ];
 
 /**
@@ -87,6 +87,36 @@ forbidDependencies(
     ['AzGuard\Panels', 'AzGuard\Catalog', 'AzGuard\Scopes', 'AzGuard\Policies', 'AzGuard\Schema'],
     ['AzGuard\Storage', 'AzGuard\Changes'],
 );
+
+forbidDependencies(
+    'directories do not decide access or touch storage and changes',
+    ['AzGuard\Directories'],
+    ['AzGuard\Storage', 'AzGuard\Changes', 'AzGuard\Authorization'],
+);
+
+it('rejects a directory file that imports storage, changes or authorization', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-directory-zone-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $copy = $directory.'/LookupContext.php';
+    file_put_contents($copy, <<<'PHP'
+        <?php
+        namespace AzGuard\Directories;
+        use AzGuard\Storage\Models\Grant;
+        use AzGuard\Changes\Change;
+        use AzGuard\Authorization\Decision;
+        final class LookupContext {}
+        PHP);
+
+    $root = dirname(__DIR__, 2);
+    $files = SourceScan::files('packages/core/src/Directories');
+    $zones = ['AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Storage'];
+
+    expect(azguardZoneImports($copy, $zones))->toBe($zones)
+        ->and(array_merge(...array_map(
+            static fn (string $file): array => azguardZoneImports($file, $zones),
+            $files,
+        )))->toBe([]);
+});
 
 it('rejects a policy file that imports storage or changes', function (): void {
     $directory = sys_get_temp_dir().'/azguard-policy-zone-'.bin2hex(random_bytes(4));

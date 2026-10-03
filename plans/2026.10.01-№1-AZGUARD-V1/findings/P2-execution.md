@@ -696,3 +696,56 @@ P2.9 этим разделом не закрыт.
 | 8 | `git diff --check` | clean |
 
 Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`.
+
+## P2.9 — Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope (2026-10-03)
+
+Run: `plan-run P2.8 P2.9` (остаток B2c, session `01a10299-b1bc-76e1-b6ef-606846d0bb18`), run id
+`42e4df6bde12f6dcdb2c89d338072e1ed16bd69d610501b7cf4bef3b83510b64`. Маршрут `frontier/high`, exact (batch B2c;
+строка пункта — implementation/medium). Работа в `main`. P2.10 этим разделом не закрыт.
+
+### D6 → класс → тест
+
+| Принято | Класс | Тест |
+|:--|:--|:--|
+| Неизменяемый кадр операции: панель, область, субъект, пользователь, роль или null, выдача, актор, момент, фаза; без Auth и контейнера | `AzGuard\Scopes\AssignmentScopeRuntime` | `AssignmentScopeRuntimeTest` |
+| Кадр поиска: актор отдельно от цели, цель может отсутствовать, `proposed` — поля назначения | `AzGuard\Directories\LookupContext` | `LookupContextTest` |
+| Option: ссылка, подпись, необязательное описание | `Directories\{TenantOption,AssignmentScopeOption,SubjectOption}` | `LookupContextTest` |
+| SPI фильтра, адаптера доступа, настраиваемого определения, directories | `Contracts\Scopes\{AssignmentScopeFilter,AssignmentScopeAccessAdapter,ConfigurableAssignmentScopeDefinition,TenantDirectory,AssignmentScopeDirectory}`, `Contracts\Subjects\SubjectDirectory` | сигнатуры 06 §7; arch контрактов зелёный |
+| Настройки без Model, Request и Builder | `AzGuard\Scopes\AssignmentScopeSettings` | `BaseAssignmentScopeTest` |
+| База: `type`/`query`/`tenantOf`, один `whereKey()->first()`, clone fluent, нет универсальной `make()` | `AzGuard\Scopes\BaseAssignmentScope` | `BaseAssignmentScopeTest`, `BaseAssignmentScopeResolveTest` |
+| Зона `Directories` не решает доступ и не трогает Storage/Changes | arch `Directories ↛ Storage, Changes, Authorization`; `AzGuard\Directories` в `AZGUARD_OUTER_ZONES` | `ZonesArchTest` |
+
+### Поведение resolve
+
+`ConfiguredProjectScope` (фикстура рядом с прежним `ProjectScope`, сам `ProjectScope` и V89 не менялись) на SQLite `:memory:`: `resolve(crm.project, 1)` даёт один SELECT, tenant `acme` взят из загруженной записи. Id 99 → null. `crm.client` и global → `InvalidAssignmentScopeException` (текст содержит тип или `global`). Объект и class-string фильтра дают разные настройки, исходное определение не меняется. `filter('seller-city')`, `filter(stdClass::class)` и `directory(stdClass::class)` → `DefinitionException`.
+
+### RED
+
+`tests/Arch/ZonesArchTest.php`: временная копия с `use AzGuard\Storage\…`, `use AzGuard\Changes\…` и `use AzGuard\Authorization\…` даёт эти три зоны в отсортированном списке; боевые файлы `packages/core/src/Directories` — ни одного. Правило Pest `Directories ↛ Storage, Changes, Authorization` на этом прогоне зелёное.
+
+### Что остаётся P4.6 и дальше
+
+Применение фильтров к запросу, разрешение class-string контейнером, `Container::call` для Closure, проверка контракта замыкания, сверка returned ref/tenant ядром, `AssignmentScopePolicy`, `ModelAssignmentScopeDefinition`, `ModelTenantDefinition`, membership. `ChangeContext` — P5.2. Схемы binding/type — P5.5. Реализации directories по умолчанию — P5.3/P7.4.
+
+### Решения исполнения
+
+- Идентичность области — alias `type()`, не FQCN класса.
+- Публичная подпись `filter`/`directory` называет class-string. PHPStan считает такой phpdoc уже истинным, поэтому проверка сырой строки вынесена в `filterClass()`/`directoryClass()` с неограниченным `class-string`.
+- `allowsMany` в phpdoc возвращает `array<string, bool>`: досье пишет нетипизированный массив, PHPStan требует тип значения.
+- Контракты фильтра импортируют `AzGuard\Scopes\AssignmentScopeRuntime`, directories — Option из `AzGuard\Directories`. Это форма досье. Arch контрактов эти зоны не запрещает.
+- Файлы продукта вне `Files` не менялись.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Scopes tests/Unit/Directories tests/Feature/Scopes tests/Unit/Contracts` | GREEN: 22 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 63 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0; в манифесте 13 новых классов, прежние без смены состава |
+| 4 | `composer test` (`php -d memory_limit=1G vendor/bin/pest`) | GREEN: 1288 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors; предупреждение FFI то же |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 99.8 %, порог 98, exit 0; предупреждение FFI то же; строка `SourceManager.php … rt39 75%` — прежний сбой отображения, файла ниже 100 в обычной форме нет |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`.
