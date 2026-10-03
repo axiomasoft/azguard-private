@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: f1afd485171f87b2954983a303abcd1acc26cfbc9fc4d9bce363859bfbea626b
+inputs_sha256: 87c8268b7d2c028cc068434c6ea873dec735b315acac39f1903f217256f91a78
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟡 In progress |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -68,7 +68,7 @@ generated_by: task plan-views status
 | P2.7 | Фабрика источников: Source, возможности, SourceManager, AsSource | 🟢 Done | 2026-10-03 |
 | P2.8 | FolderSource: discovery папки панели, атрибуты, pairing политик | 🟢 Done | 2026-10-03 |
 | P2.9 | Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope | 🟢 Done | 2026-10-03 |
-| P2.10 | Review P2: независимая read-only проверка фазы | ⬜ Not started | — |
+| P2.10 | Review P2: независимая read-only проверка фазы | 🟠 Done with deviations | 2026-10-03 |
 
 ## Phase P3
 
@@ -208,7 +208,10 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | grok | plan-run · in-progress · — |
 | 2026-10-03 | grok-4.7/high | plan-run · closed-green · Кадры областей, SPI directories и BaseAssignmentScope; resolve() — один SELECT; 8 гейтов GREEN
 write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | codex | plan-run · in-progress · — |
+| 2026-10-03 | codex | plan-run · closed-deviations · Review P2 RED: R1–R3 major, R4 minor; 6 mandatory gates GREEN. Read-only report complete; owning repairs P2.5/P2.8 pending. findings/P2-review.md |
+| 2026-10-03 | codex | plan-run · no-op · write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 
-- —
+- P2.10: known deviation
