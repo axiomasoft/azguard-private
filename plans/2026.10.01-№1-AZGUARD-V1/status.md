@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: ce903277eac28a93510bd0aca5ac7c2cadccfe8f890ba5dbffdc86086162436f
+inputs_sha256: 7326eda75f97461e47d8b4e20addc07d2d443497c0074f2392a0037a6e666e32
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 5/10 | 🟡 In progress |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 6/10 | 🟡 In progress |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -64,7 +64,7 @@ generated_by: task plan-views status
 | P2.3 | Настройки панели и PanelSettings | 🟢 Done | 2026-10-02 |
 | P2.4 | Плагины: typed factories, PluginContext, изоляция, конфликты | 🟢 Done | 2026-10-02 |
 | P2.5 | Каталог из источников, коллизии, O(1)-поиск, catalog:cache | 🟢 Done | 2026-10-03 |
-| P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | ⬜ Not started | — |
+| P2.6 | Модули: registerPanel, configurePanel, AmbiguousPanelException | 🟢 Done | 2026-10-03 |
 | P2.7 | Фабрика источников: Source, возможности, SourceManager, AsSource | ⬜ Not started | — |
 | P2.8 | FolderSource: discovery папки панели, атрибуты, pairing политик | ⬜ Not started | — |
 | P2.9 | Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope | ⬜ Not started | — |
@@ -195,6 +195,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-02 | claude | plan-run · closed-green · note abbreviated; full text: journal.jsonl:41 |
 | 2026-10-02 | claude | plan-run · in-progress · — |
 | 2026-10-03 | claude | plan-run · closed-green · Каталог из источников, коллизии, RoleCompiler, привязки политик, O(1)-индексы, withDynamic, catalog:cache|clear, prefix_conflict, владение по has(); V08, V81, V119 (части), D7 п.4; RED arch; 8 гейтов GREEN (findings P2.5)
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | grok | plan-run · in-progress · — |
+| 2026-10-03 | grok-4.7/high | plan-run · closed-green · Фасад AzGuard и AzGuardManager, модульные фикстуры Blog/Shop; V55 и V07 сквозь фасад; дефектов интеграции P2.1–P2.5 нет; 8 гейтов GREEN (findings P2.6)
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates

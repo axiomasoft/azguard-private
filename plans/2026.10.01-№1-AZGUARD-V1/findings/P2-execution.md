@@ -499,3 +499,75 @@ Run: `plan-run P2.4 P2.5 P2.6` (batch B2b, session `a1cb8702-ed75-44c2-aedf-e95b
 | 8 | `git diff --check` | clean |
 
 Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`, рабочее дерево.
+
+## P2.6 — Модули: registerPanel, configurePanel, AmbiguousPanelException (2026-10-03)
+
+Run: `plan-run P2.6` (остаток B2b, session `01a10271-add8-7d91-a846-ea6698b91ce5`), run id
+`6da5dcf1342889ef124966d37b71e0bb6f70ab4045b3161693d74ac35f2ccb63`. Маршрут `frontier/high`, exact.
+Работа в `main`.
+
+### Что делает фасад
+
+`AzGuardManager` хранит только контейнер. `registerPanel` → `PanelRegistry::register`, `configurePanel` →
+`configure`, `configurePanels` → `configureAll`, `panels` → `all`, `currentPanel` → `CurrentPanel::get()`.
+Выбора панели нет. Фасад `AzGuard\Facades\AzGuard` объявляет в docblock ровно эти пять `@method` и резолвится
+в привязку `azguard` (singleton менеджера). `configure(id)` по-прежнему пишет слой `provider`, `configureAll` —
+`configure` (это делает `PanelRegistry::write`, P2.1). Неизвестный id всплывает в `freeze()` как
+`UnknownPanelException` (`unknown_panel`). После `booted` любой из трёх методов записи — `RegistryFrozenException`.
+
+### Сценарий → тест
+
+| Что проверено | Тест |
+|:--|:--|
+| V55: Blog и Shop через `AzGuard::configurePanel(config('….azguard_panel', 'admin'), …)` приносят `blog.posts.edit` / `shop.posts.edit` и роли `blog-editor` / `shop-editor`; происхождение `plugin:blog/access` и `plugin:shop/access` | `tests/Feature/Modules/ModuleExtensionTest.php` — `puts each module permission and role…` |
+| V55: одно и то же имя права у двух модулей → `duplicate_permission` с id обоих плагинов; реестр не заморожен | `rejects two modules that declare one permission name and names both plugins` |
+| V55: `blog.azguard_panel = nope` → `unknown_panel` с id при сборке | `reports an unknown panel from the module configuration…` |
+| Своя панель: `AzGuard::registerPanel(BlogGuardPanelProvider::class)` из `register()` модуля, панель видна в `AzGuard::panels()` | `tests/Feature/Modules/ModulePanelTest.php` — `shows a panel the module registered through the facade` |
+| V07: enum модуля, не подключённый ни к одной панели, при `PanelResolver::resolve` → `UnknownPermissionException` | `rejects a module enum attached to no panel when it is resolved` |
+| V07: enum в `admin` и в панели модуля; текущая панель `admin` не снимает неоднозначность → `AmbiguousPanelException` (`"blog", "admin"`); явная панель выбирает её | `requires an explicit panel for a module enum…` |
+| Один менеджер на `azguard`, у класса только свойство контейнера; docblock фасада — пять методов | `tests/Unit/Facades/AzGuardFacadeTest.php` |
+| `configurePanel` → origin `provider`, `configurePanels` → `configure` | `records configurePanel as the provider and configurePanels as configure` |
+| `currentPanel()` читает `CurrentPanel` и не выбирает панель | `reads the panels and the current panel without choosing one` |
+| После заморозки `registerPanel` / `configurePanel` / `configurePanels` → `RegistryFrozenException` | `refuses facade calls once the registry is frozen` |
+| Arch-правило P2.2 зелёное: `AzGuardManager` в списке мест, где можно назвать `CurrentPanel` | `tests/Arch/SourceConventionsTest.php` — `picks a panel only in the panel resolver` |
+
+### Дефекты интеграции
+
+Сценарии V55 и V07 прошли на коде P2.1–P2.5 без правок реестра, resolver, плагинов и каталога. Owning item для
+дефекта не появился. Одинаковые определения одного имени по-прежнему схлопываются (V08, P2.5); столкновение
+модулей в этом пункте — разные подписи одного имени, и сообщение уже содержит id обоих плагинов.
+
+### Решения исполнения
+
+- `AzGuardManager` без тега `@api`: публичная точка входа — фасад (он в манифесте по location). Менеджер — корень
+  привязки, как конкретный `PanelRegistry` рядом со своим контрактом.
+- Id панели модуль читает в `register()`. В Testbench `defineEnvironment()` выполняется после `register()`
+  провайдеров, а конфиг приложения в бою загружается раньше. Третий аргумент `BootsPanels::bootPanels`
+  кладёт ключи в конфиг до регистрации провайдеров. Файл вне `Files` пункта; продуктовый код модуля по-прежнему
+  зовёт `config()`.
+- Имя права Shop по умолчанию `shop.posts.edit`. Ключ `shop.permission` — только рычаг теста на коллизию имён;
+  роль `shop-editor` источник отдаёт, лишь когда имя своё, чтобы коллизия права не маскировалась ошибкой роли.
+- Arch-список `CurrentPanel` дополнен `packages/core/src/AzGuardManager.php` (правило пункта). Других файлов вне
+  `Files` нет.
+
+### Diff манифеста ядра
+
+`+` `Facades\AzGuard` (final, parent `Illuminate\Support\Facades\Facade`, `via: location`). Методов в манифесте нет:
+пять `@method` живут в docblock, как у фасада Laravel.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Feature/Modules tests/Unit/Facades tests/Feature/Panels tests/Feature/Catalog` | GREEN: 354 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 56 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `composer test` | GREEN: 1246 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 112 файлов |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`. У type-coverage
+после итога предупреждение FFI в `pest-plugin-type-coverage` (`Dynamic loading not supported`); код выхода 0,
+порог 98 пройден.

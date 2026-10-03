@@ -40,6 +40,9 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
         $this->app->scoped(CurrentPanel::class);
+
+        $this->app->singleton(AzGuardManager::class);
+        $this->app->alias(AzGuardManager::class, 'azguard');
     }
 
     public function boot(): void
