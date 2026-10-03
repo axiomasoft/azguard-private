@@ -1,0 +1,468 @@
+..........................ERROR: --since waits for an integer number of days, received: abc
+.....ERROR: unknown bucket: no-such-bucket
+......................................ERROR: buckets.json: alias_of points to a non-existent bucket: docker-legacy->no-such-bucket
+...........WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.ERROR: CORE shortfall: 4 from 4 CORE_SKILLS not found on disk (moving/path typo in config.py/core-policy.json) — resident is understated, not improved
+.......................ERROR: first-turn budget 0 current > warn-threshold 23000, measurement incomplete or native inventory drift (/tmp/tmpc8ismne1/myproj) — see table above
+.ERROR: first-turn budget 16 current > warn-threshold 23000, measurement incomplete or native inventory drift: SKILL_DUPLICATE_NAME, CODEX_PLUGIN_ENABLED_OUTSIDE_PROJECT_POLICY, CODEX_DESIRED_PLUGIN_NOT_EFFECTIVE (/tmp/tmpa0jfq_1h/myproj) — see table above
+.......................ERROR: first-turn budget 44000 current > warn-threshold 23000, measurement incomplete or native inventory drift (/tmp/tmpdb21767a/myproj) — see table above
+....ERROR: unknown --provider: windsurf (expected: claude-code, codex, cursor, grok)
+........ERROR: unknown --provider: windsurf (expected: claude-code, codex, cursor, grok)
+....WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+.......................................................WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+..WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+..WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+...................................................................WARN: CLI `claude` not found - run skipped (offline). Put claude or ask SKM_CLAUDE_BIN, to run with-skill vs baseline.
+......ERROR: ambiguous 'code-style' — is in several buckets: devops/code-style, php/code-style
+..ERROR: skill 'no-such-skill' not found in the registry (indicate bucket/name)
+.................................................ERROR: no skill distribution found in project swissknifeman
+  (no enabledPlugins in .claude/settings*.json and no .swissknifeman-manifest.json) — first connect-claude.sh or install.sh
+..............WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+..ERROR: --skills-channel: bogus (valid: connect|vendor|skip)
+..WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+.....ERROR: is the registry itself swissknifeman — run integrate from the consuming project
+.WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+.ERROR: unknown bundle: nope (minimal|recommended|full|custom)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+WARN:   harness not installed - skip (packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+Updated docs/guide/budget.md: 5 skills, ⊕38 ↻15 current
+Updated docs/guide/budget.md: 5 skills, ⊕38 ↻15 current
+Target:   /tmp/tmppoulchxp/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmppoulchxp/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmppoulchxp/myapp/.claude/settings.local.json
+Included: php quality
+Vendor copies removed: 1 skill dir(s) + manifest
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpj5b03o5j/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpj5b03o5j/registry
+Plugins:  core php quality
+Resident: ~50 current ⊕ tier-0 (7 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+CORE:     core (lightweight token-saving core, 4 skills instead of buckets general+oss-dev; --no-core disables)
+Recorded: /tmp/tmpj5b03o5j/myapp/.claude/settings.local.json
+Included: core php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpba9ml0xy/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpba9ml0xy/registry
+Plugins:  php quality task
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+COMMANDS: task (intent commands /task:*, are distributed by default; disable pointwise - enabledPlugins[...]=false)
+Recorded: /tmp/tmpba9ml0xy/myapp/.claude/settings.local.json
+Included: php quality task
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpsjhsjxaz/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpsjhsjxaz/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmpsjhsjxaz/myapp/.claude/settings.local.json
+Included: php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpq0wy8gr_/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpq0wy8gr_/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmpq0wy8gr_/myapp/.claude/settings.local.json
+Included: php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpxpq8953g/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpxpq8953g/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmpxpq8953g/myapp/.claude/settings.local.json
+Included: php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:      /tmp/tmp7mjtl270/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     system
+Skills:      3
+Installed 3 skills -> /tmp/tmp7mjtl270/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmpupj_68w7/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     system
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      5
+CORE:        general/context-economy general/anti-drift general/session-handoff general/verify-claims (are distributed by default; --no-core disables)
+Installed 5 skills -> /tmp/tmpupj_68w7/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmp68ewmnyt/myapp
+Profile:     laravel-project (via autodetect)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php quality
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      7
+CORE:        general/context-economy general/anti-drift general/session-handoff general/verify-claims (are distributed by default; --no-core disables)
+Installed 7 skills -> /tmp/tmp68ewmnyt/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+━━━ EVAL test-writer (offline) ━━━
+  diagram evals/ is valid
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+HTML-report: skills/quality/test-writer/evals/benchmark.html
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+# Eval: test-writer
+
+| Set | pass@ | cases | current (μ±σ) | sec (μ±σ) |
+|---|--:|--:|--:|--:|
+| with-skill | 100% | 1/1 | 15±0 | 1.0±0.0 |
+
+Hub recorded: /tmp/tmps5g5olrn/project/CLAUDE.md (form: full, managed-block between markers swissknifeman:hub)
+Hub recorded: /tmp/tmps5g5olrn/project/AGENTS.md (form: full, managed-block between markers swissknifeman:hub)
+Skills in the index: 3, buckets: 2
+Goal forms: CLAUDE.md=full, AGENTS.md=full
+Project: /tmp/tmpff7_8fjd/myapp  (autodetect: laravel-project)
+Project: /tmp/tmp2va5n0sc/myapp  (autodetect: laravel-project)
+Target:   /tmp/tmpq8foa_op/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpq8foa_op/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmpq8foa_op/myapp/.claude/settings.local.json
+Included: php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpi8f1j88q/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmpi8f1j88q/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+--- dry-run: /tmp/tmpi8f1j88q/myapp/.claude/settings.local.json ---
+{
+  "extraKnownMarketplaces": {
+    "swissknifeman": {
+      "source": {
+        "source": "directory",
+        "path": "/tmp/tmpi8f1j88q/registry"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "php@swissknifeman": true,
+    "quality@swissknifeman": true
+  }
+}
+Included: php quality
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpobtcrbjk/myapp
+Profile:  - (via flags)
+Source:   /tmp/tmpobtcrbjk/registry
+Plugins:  devops
+Resident: ~4 current ⊕ tier-0 (1 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmpobtcrbjk/myapp/.claude/settings.local.json
+Included: devops
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:   /tmp/tmpucowu6j5/myapp
+Profile:  laravel-project (via --profile)
+Source:   /tmp/tmpucowu6j5/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+ERROR: unknown plugin: does-not-exist (available: core, devops, generate-skill, php, quality, task)
+.NOTE: detected Laravel Boost — using flat-layout (.ai/skills/<name>/SKILL.md), to boost:update found skills
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.......................................WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+.WARN: 'session-observer' requires 'shared-memory', but he's in exclude — dependency missing
+..WARN: /tmp/tmp1q4573vd/project/.swissknife.json: 'shape' reserved for agent-packs, not yet implemented - ignored
+WARN: /tmp/tmp1q4573vd/project/.swissknife.json: 'stacks' reserved for agent-packs, not yet implemented - ignored
+...............WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+.....WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+....WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.......WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+...WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+ERROR: SPUB_OWNERSHIP_CONFLICT: provider codex vendor apply incomplete; repair: resolve the target conflict and rerun `skiller sync`
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.ERROR: SPUB_OWNERSHIP_CONFLICT: selected providers share one managed vendor path
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+......WARN: include: skill 'private-example' not found in the registry - skip
+.......WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+...........ERROR: broken upstream.json: /tmp/tmpm9j2q6k2/registry/skills/devops/docker/upstream.json: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+........ERROR: buckets.json not found — every bucket needs description/category/tags
+.........WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.............................F.............................ERROR: /tmp/tmpv8vvxd16/myapp/.swissknifeman/config.json: is only supported mode=vendor
+.ERROR: /tmp/tmpalxr0iba/myapp/.swissknifeman/config.json: unknown key 'bukkit' — maybe 'buckets'?
+..WARN: conflict: 'code-style' busy with someone else's skill (not managed) — pass; --force to replace with the version from the library
+........WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+....ERROR: you are inside the registry itself swissknifeman — go to consuming project
+.....WARN: /tmp/tmpgl0c4s3e/myapp/skills-lock.json: broken JSON skills-lock — I ignore and rebuild from the config (managed-skills can be copied). See The git-file history.
+WARN: /tmp/tmpgl0c4s3e/myapp/skills-lock.json: broken JSON skills-lock — I ignore and rebuild from the config (managed-skills can be copied). See The git-file history.
+ERROR: SPUB_OWNERSHIP_CONFLICT: provider claude-code channel vendor target .claude/skills has invalid skills-lock provenance (invalid-json); repair: restore a valid lock backup
+....WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+..ERROR: presets: loop extends: p-a -> p-b -> p-a
+..WARN: presets: preset 'ghost' not found in presets/ — pass
+...WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+..WARN: include: 'oldbucket/code-style' moved → 'php/code-style' (split buckets) — update .swissknifeman/config.json
+..WARN: include: skill 'nope/ghost' not found in the registry - skip
+.........WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+................................ERROR: unknown subcommand topology: frobnicate (pending init|show)
+......ERROR: /tmp/tmpe89imwpb/home/.swissknifeman/topology.json is overwritten by a newer version swissknifeman — update the registry (git pull) and restart install.sh
+..........WARN: collision: 'deploy' -> 'php-deploy'
+WARN: collision: 'deploy' -> 'devops-deploy'
+...............ERROR: flag --profile requires value
+.ERROR: unknown flag: --nope
+.WARN: 'laravel-conventions' requires 'code-style', but he's in exclude — dependency missing
+.......................WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+..WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: marketplace 'swissknifeman' does not declare the plugin 'core' — core (CORE_SKILLS) NOT delivered. Drive away `skiller registry` in registry, then repeat connect (or --no-core, if this is conscious).
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+.ERROR: /tmp/tmpjtt4dbcb/myapp not connected - run 'skiller connect' (Claude Code) or 'skiller vendor' (other agents)
+.WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+WARN: harness not installed - skip permissions (set: packages/harness/install.sh)
+...............................
+======================================================================
+FAIL: test_dry_run_reaches_skiller_without_error (test_release.SwissknifemanReleaseFacadeCase.test_dry_run_reaches_skiller_without_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/skiller/tests/test_release.py", line 223, in test_dry_run_reaches_skiller_without_error
+    self.assertEqual(proc.returncode, 0, proc.stderr)
+AssertionError: 1 != 0 : skiller release: RELEASE_IMMUTABLE_TUPLE: core@0.20.0; RELEASE_IMMUTABLE_TUPLE: general@0.15.4; RELEASE_IMMUTABLE_TUPLE: harness@0.6.0; RELEASE_IMMUTABLE_TUPLE: maind@0.4.10; RELEASE_IMMUTABLE_TUPLE: package.harness@0.6.0; RELEASE_IMMUTABLE_TUPLE: package.maind@0.4.10; RELEASE_IMMUTABLE_TUPLE: package.skiller@0.18.0; RELEASE_IMMUTABLE_TUPLE: task@0.27.0
+
+
+----------------------------------------------------------------------
+Ran 730 tests in 16.768s
+
+FAILED (failures=1)
+
+Backup:    /tmp/tmpucowu6j5/myapp/.claude/settings.local.json.bak
+Recorded: /tmp/tmpucowu6j5/myapp/.claude/settings.local.json
+Included: quality
+Skipped (explicit false): php
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+Target:      /tmp/tmplp0ts05b/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      2
+Installed 2 skills -> /tmp/tmplp0ts05b/myapp/.ai/skills
+boost.json: added to skills[] (2): code-style, laravel-conventions
+Detected Laravel Boost: do `php artisan boost:update` (or `composer ai:sync`), so that the skills get into CLAUDE.md/AGENTS.md and copies by tools.
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmpgp6qk97o/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php
+Exclude:     code-style system/cross-project-coordinator system/shared-memory
+Skills:      1
+Installed 1 skills -> /tmp/tmpgp6qk97o/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmpefks2ust/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     devops
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      1
+Installed 1 skills -> /tmp/tmpefks2ust/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmp3k1ef8n0/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      2
+Installed 2 skills -> /tmp/tmp3k1ef8n0/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmpni9tm5_6/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php devops
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      3
+Installed 3 skills -> /tmp/tmpni9tm5_6/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmpni9tm5_6/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     php
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      2
+Installed 2 skills -> /tmp/tmpni9tm5_6/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Target:      /tmp/tmp8nzc1ceu/myapp
+Profile:     - (via flags)
+Agent:       generic
+Skills path: .ai/skills
+Buckets:     devops
+Exclude:     system/cross-project-coordinator system/shared-memory
+Skills:      1
+Installed 1 skills -> /tmp/tmp8nzc1ceu/myapp/.ai/skills
+Hint: root hub of skills - skiller update or restart from --hub
+Codex native selection: 1 plugins → /tmp/tmpzl_sbdm0/project/.codex/config.toml
+Codex native selection: 0 plugins → /tmp/tmpzl_sbdm0/project/.codex/config.toml
+Codex native selection: 0 plugins → /tmp/tmppueiolbg/project/.codex/config.toml
+[dry-run] Codex native selection → /tmp/tmpvxzajis6/project/.codex/config.toml
+Codex native selection: 1 plugins → /tmp/tmpvxzajis6/project/.codex/config.toml
+sync: +1 ~0 -0 =0 (skills_path: .claude/skills)
+sync: +0 ~0 -0 =0 (skills_path: .agents/skills)
+  OMITTED when copying (1): code-style — see warnings above, sync is NOT completed for them
+Target:   /tmp/tmph3718j97/myapp
+Profile:  laravel-project (via autodetect)
+Source:   /tmp/tmph3718j97/registry
+Plugins:  php quality
+Resident: ~27 current ⊕ tier-0 (3 skills, name+description in EACH request; body - by trigger). Less = cheaper: already a profile or --no-core.
+Recorded: /tmp/tmph3718j97/myapp/.claude/settings.local.json
+Included: php quality
+Hint: root skill hub - skiller update or restart from --hub
+Next: restart the session Claude Code in the project (or /plugin marketplace update swissknifeman)
+[dry-run] add php/code-style -> /tmp/tmp43b0idz8/myapp/.claude/skills/code-style
+[dry-run] add php/laravel-conventions -> /tmp/tmp43b0idz8/myapp/.claude/skills/laravel-conventions
+[dry-run] config vendor-mode: .swissknifeman/config.json (mode=vendor, buckets: php quality)
+[dry-run] config vendor-mode: .swissknifeman/config.json (mode=vendor, buckets: php quality)
+[dry-run] add php/code-style -> /tmp/tmpyz2_v6ng/myapp/.claude/skills/code-style
+[dry-run] add php/laravel-conventions -> /tmp/tmpyz2_v6ng/myapp/.claude/skills/laravel-conventions
+[dry-run] add quality/test-writer -> /tmp/tmpyz2_v6ng/myapp/.claude/skills/test-writer
+[dry-run] sync: +3 ~0 -0 =0 (skills_path: .claude/skills)
+config vendor-mode: .swissknifeman/config.json (mode=vendor, buckets: php quality)
+sync: +3 ~0 -0 =0 (skills_path: .claude/skills)
+sync: +1 ~0 -0 =0 (skills_path: .claude/skills)
+[dry-run] add php/code-style -> /tmp/tmpu5s5kmfk/myapp/.claude/skills/code-style
+[dry-run] add php/laravel-conventions -> /tmp/tmpu5s5kmfk/myapp/.claude/skills/laravel-conventions
+retire 1 legacy Codex vendor directories; backup=/tmp/tmpf_4eo420/legacy/.swissknifeman/backups/legacy-codex-vendor-3a999daa5f764714be673468728552ba
+NOTE: /tmp/tmpryiiqz1e/myapp was not in projects.json — registering (adopt)
+--- update (marketplace): /tmp/tmpryiiqz1e/myapp ---
+NOTE: /tmp/tmpryiiqz1e/myapp was not in projects.json — registering (adopt)
+--- update (sync): /tmp/tmpryiiqz1e/myapp ---
+archive orphaned vendor marker /tmp/tmptus1mfmn/legacy/.agents/skills/.swissknifeman-manifest.json; backup=/tmp/tmptus1mfmn/legacy/.swissknifeman/backups/orphaned-codex-vendor-acb71e00e06a41e487d42204a9bcad07.json
+ERROR: tests failed

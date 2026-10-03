@@ -1,0 +1,239 @@
+{
+  "schema_version": "phase-findings-resolution/v1",
+  "phase_id": "P2",
+  "validation_anchor": "b1b1ea57f275f30ebd9246406a07e1873085d60e",
+  "repairs": {
+    "P2.8": {
+      "event_sha256": "938ccc9a2c41d77f8f92e15e257842ff4c0d4cd8661d67d008e608470daafa81",
+      "commit": "7c17044cc316701c3fedccb398e622ac33e8e7df",
+      "validation": [
+        {
+          "carrier": "vendor/bin/pest tests/Unit/Sources/Folder tests/Feature/Sources/Folder tests/Feature/Catalog tests/Unit/Catalog",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-targeted.log",
+            "sha256": "808325c9e720b8ba5c7dcbe449c0cab00f8ce71204b159b5a20c0015ddd5ebd0"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-targeted.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/pest tests/Arch (php memory_limit=1G)",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-arch.log",
+            "sha256": "f03e2cff2f66fe6edc9ff74630d66f919309ad6c729d0c5f0bf506eda9ea41e1"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-arch.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "composer test",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-full.log",
+            "sha256": "c53e23827c2b7ac89a48ab80115cb42fcbbcb71241b0c8467f233f44abd410e0"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-full.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/pint --test",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-pint.log",
+            "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-pint.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/phpstan analyse --memory-limit=1G",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-phpstan.log",
+            "sha256": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-phpstan.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-types.log",
+            "sha256": "4d26dd317433b655c4124b53ea65fefbb511afe8c6b32d363b6b8b0091786557"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-types.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "php bin/api-manifest.php --check после composer api:manifest",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-api.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-api.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "git diff --check",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.8-diff.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.8-diff.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        }
+      ]
+    },
+    "P2.5": {
+      "event_sha256": "58f6e0a0a79c9858d1c7df8d14e74fb04bec7361414b64d01b155b608793a30b",
+      "commit": "b1b1ea57f275f30ebd9246406a07e1873085d60e",
+      "validation": [
+        {
+          "carrier": "vendor/bin/pest tests/Unit/Catalog tests/Feature/Catalog tests/Unit/Roles tests/Unit/Panels tests/Feature/Panels (php memory_limit=1G)",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-targeted.log",
+            "sha256": "6e34b58e6f6d979de32539d5919fd976604fe70cb75968e22fac2e04b51faf13"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-targeted.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/pest tests/Arch (php memory_limit=1G)",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-arch.log",
+            "sha256": "a4a1b6b0e868eb5856c02c8b5f453e91b44ba8f3ee09263fc4eabeb6714acd29"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-arch.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "php bin/api-manifest.php --check после composer api:manifest",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-api.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-api.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "composer test",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-full.log",
+            "sha256": "1d82498b0b34feecb6c6a49e09cea2541cfa6b1c5ca92bd9d30758db5eb5566e"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-full.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/pint --test",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-pint.log",
+            "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-pint.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "vendor/bin/phpstan analyse --memory-limit=1G",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-phpstan.log",
+            "sha256": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-phpstan.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-types.log",
+            "sha256": "77fc400a5e03a1593eac33036a87a2d33e41f816ff19dc9d3747c99f45328bab"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-types.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        },
+        {
+          "carrier": "git diff --check",
+          "log": {
+            "path": "artifacts/P2-repairs/P2.5-diff.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "exit": {
+            "path": "artifacts/P2-repairs/P2.5-diff.exit",
+            "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+          }
+        }
+      ]
+    }
+  },
+  "reviews": [
+    {
+      "item_id": "P2.10",
+      "event_sha256": "c890dec769e10a2913b7fcf5865f9ba1cbc215becc6f74d5a45966c19075588b",
+      "report": {
+        "path": "findings/P2-review.md",
+        "sha256": "8d80e14112ebed05931c8d5e5d3f814ff23b60c3e9dc3f87e8fbb861e7ad500e"
+      },
+      "findings": [
+        {
+          "id": "R1",
+          "status": "resolved",
+          "kind": "owning-repair",
+          "owner_item": "P2.8"
+        },
+        {
+          "id": "R2",
+          "status": "resolved",
+          "kind": "owning-repair",
+          "owner_item": "P2.5"
+        },
+        {
+          "id": "R3",
+          "status": "resolved",
+          "kind": "owning-repair",
+          "owner_item": "P2.5"
+        },
+        {
+          "id": "R4",
+          "status": "resolved",
+          "kind": "contract-sync",
+          "owner_item": "P2.4",
+          "decision_id": "D10",
+          "commit": "7c17044cc316701c3fedccb398e622ac33e8e7df",
+          "files": [
+            {
+              "path": "phases/P4/P4.md",
+              "sha256": "37d84a968f045a79442344c45b714ee014e893688c2b7d8f44e3d92806162de1"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+docs-sync:
+  docs/skiller ← packages/skiller/docs
+  docs/harness ← packages/harness/docs
+  docs/maind ← packages/maind/docs
+  docs/analyst ← packages/analyst/docs
+  docs/task ← packages/task/docs

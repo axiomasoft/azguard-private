@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: b70dfd2de5b6d718453e58770b1bded1a80bd6ae5f9041c7d391c3c5a7a661a7
+inputs_sha256: 29a1b939bec0784592ca08993edc7c29c40ed494f95afd52152823c15d57322e
 generated_by: task plan-views status
 -->
 
@@ -25,7 +25,7 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟢 Done |
 | P3 | Хранилище | 0/4 | ⬜ Not started |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
@@ -216,6 +216,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | Codex | plan-run · in-progress · — |
 | 2026-10-03 | Codex | plan-run · closed-green · R2/R3 repaired; R1 probes GREEN, R4 pre-repeat sync verified; all 8 item gates GREEN. P2 closure awaits manual agreement; P3 not started. findings/P2-owning-repairs.md.
 write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | Codex | plan-close · closed-green · P2 GREEN: R1/R2/R3 закрыты owning repairs P2.8/P2.5; R4 синхронизирован по D10. Исторический RED review/P2.10 сохранён. closure/P2-findings.json проверен. P3 не начат. write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | Codex | plan-close · in-progress · Checking phase-close admission. |
+| 2026-10-03 | Codex | plan-close · closed-green · P2 GREEN admission reconciled with actual native session/run identity; prior phase event retained. R1–R4 resolved, historical review preserved, P3 not started. write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

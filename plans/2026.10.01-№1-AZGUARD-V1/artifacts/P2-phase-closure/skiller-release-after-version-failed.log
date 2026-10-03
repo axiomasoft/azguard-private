@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_dry_run_reaches_skiller_without_error (tests.test_release.SwissknifemanReleaseFacadeCase.test_dry_run_reaches_skiller_without_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/skiller/tests/test_release.py", line 223, in test_dry_run_reaches_skiller_without_error
+    self.assertEqual(proc.returncode, 0, proc.stderr)
+AssertionError: 1 != 0 : skiller release: RELEASE_IMMUTABLE_TUPLE: core@0.20.0; RELEASE_IMMUTABLE_TUPLE: harness@0.6.0; RELEASE_IMMUTABLE_TUPLE: maind@0.4.10; RELEASE_IMMUTABLE_TUPLE: package.harness@0.6.0; RELEASE_IMMUTABLE_TUPLE: package.maind@0.4.10; RELEASE_IMMUTABLE_TUPLE: package.skiller@0.18.0; RELEASE_IMMUTABLE_TUPLE: task@0.27.0
+
+
+----------------------------------------------------------------------
+Ran 1 test in 10.717s
+
+FAILED (failures=1)

@@ -1,0 +1,81 @@
+{
+  "protected_hashes_unchanged": true,
+  "journal_prefix_unchanged": true,
+  "appended_events": 3,
+  "historical_review_result": "closed-deviations",
+  "phase_status": "GREEN",
+  "gate": {
+    "allow": true,
+    "code": "allow",
+    "journal_line": null,
+    "audit_policy": {
+      "action": "direct-close",
+      "audit_required": false,
+      "close_allowed": true,
+      "code": "PHASE_DIRECT_CLOSE_ASSURED",
+      "reasons": [
+        "green-acceptance-no-approved-audit"
+      ],
+      "assurance": {
+        "schema_version": "phase-assurance/implicit-v1",
+        "impact": "isolated",
+        "integration_seams": [],
+        "live_or_irreversible": false,
+        "audit_intent": "direct-close-eligible",
+        "rationale": "implicit isolated/reversible default"
+      },
+      "impact": null,
+      "audit_admission": {
+        "allowed": false,
+        "code": "AUDIT_CONSENT_MISSING",
+        "record": null
+      },
+      "diagnostics": [],
+      "next_kind": "close",
+      "next_exact": "close: task:plan-close 2026.10.01-№1-AZGUARD-V1 P2",
+      "findings_resolution": {
+        "allow": true,
+        "review_items": [
+          "P2.10"
+        ],
+        "sha256": "bf43b707cf1584ffdf1e10111418b8d4290b66288ebe3e379a3da03a47fdf6f4"
+      },
+      "effective_review": "none",
+      "routing_reviews": {
+        "P2.1": "none",
+        "P2.2": "none",
+        "P2.3": "none",
+        "P2.4": "none",
+        "P2.5": "none",
+        "P2.6": "none",
+        "P2.7": "none",
+        "P2.8": "none",
+        "P2.9": "none",
+        "P2.10": "none"
+      }
+    }
+  },
+  "p3_unchanged": true,
+  "product_bytes_at_validated_anchor": true,
+  "projection_checks": "pass",
+  "delivery_verify": "pass",
+  "task_source_commit": "379d39a9c3a2e029fc1e5dec1b14bd611d5326c6",
+  "qualification": {
+    "task": {
+      "exit_code": 0,
+      "tests": 1306,
+      "skipped": 1
+    },
+    "new_regressions": {
+      "tests": 12,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    "provider_generator": "pass",
+    "registry_generator": "pass",
+    "docs_sync": "pass",
+    "skiller_full": "FAILED: reproduced release baseline",
+    "full_plan_lint": "FAILED: 12 historical errors",
+    "plan_lint_delta": "0 new"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "allow": false,
+  "code": "PHASE_ACCEPTANCE_NON_GREEN",
+  "journal_line": null,
+  "audit_policy": {
+    "action": "owning-repair",
+    "audit_required": false,
+    "close_allowed": false,
+    "code": "PHASE_ACCEPTANCE_NON_GREEN",
+    "reasons": [
+      "non-green-terminal-item"
+    ],
+    "assurance": {
+      "schema_version": "phase-assurance/implicit-v1",
+      "impact": "isolated",
+      "integration_seams": [],
+      "live_or_irreversible": false,
+      "audit_intent": "direct-close-eligible",
+      "rationale": "implicit isolated/reversible default"
+    },
+    "impact": null,
+    "audit_admission": null,
+    "diagnostics": [],
+    "next_kind": "run-items",
+    "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.10",
+    "effective_review": "none",
+    "routing_reviews": {
+      "P2.1": "none",
+      "P2.2": "none",
+      "P2.3": "none",
+      "P2.4": "none",
+      "P2.5": "none",
+      "P2.6": "none",
+      "P2.7": "none",
+      "P2.8": "none",
+      "P2.9": "none",
+      "P2.10": "none"
+    }
+  },
+  "continuation": "owning-repair",
+  "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.10"
+}

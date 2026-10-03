@@ -1,0 +1,57 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:03098a126a5da720830263c8e5149e0f082b227c9a02261c107b2fdf20ad386a",
+    "command_id": "task:plan-close",
+    "package": "task",
+    "version": "0.27.0"
+  },
+  "commit_sha": "b1b1ea57f275f30ebd9246406a07e1873085d60e",
+  "continuity": {
+    "evidence": [
+      "persisted-context:continue-root"
+    ],
+    "outcome": "continue-root",
+    "reason": "compatible-active-work",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": "sha256:1660152c4602b2ce3b85fe4c6933e635e903601d37693c84a691fe7c75606353",
+    "handoff": "sha256:e4556dbc70363ae5c2f7377c678ee9133686fee6bc62c753229408729c1c762a",
+    "plan": "sha256:fa78e86db53f59c5c653dd3efeb03fb5726905e965011e72ccc7083c04f71d70",
+    "state": "sha256:4fcc2c64a301d9f90ac216aad3ad9fbb09ed15c7e5a6d1d1c4d8ca331d9589e7"
+  },
+  "journal": {
+    "command": "plan-close",
+    "line": 61,
+    "result": "closed-green",
+    "run_id": "82d455638885aac305a26de2cf7516bd7eca3d4b1c1d0c5146954c01ae9422ad",
+    "sha256": "sha256:e976ec375e130f278d9e5bf60e880e6212f1de83ebc82f57422826042b05fa67"
+  },
+  "next_exact": "manual: frontier/high",
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "rationale": {
+    "open_risks": "полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1 и не объявлен GREEN. Task qualification: 1306 tests, один existing skip native Codex discovery (CLI отсутствует), не объявлен выполненным. Skiller qualification/release dry-run FAILED на подтверждённых baseline RELEASE_IMMUTABLE_TUPLE; подробности и логи в evidence.",
+    "remaining": "этот scope завершён; P3 — существующий skeleton, ожидает следующего отдельного запроса владельца. Исполнение/детализация P3 не начаты."
+  },
+  "recommendation": "**Next:** manual: frontier/high\n\nАвторизованный scope завершён: P2 штатно закрыта GREEN по проверенным owning repair evidence. Остановиться перед P3 и ждать следующей команды владельца. P3 не исполнять и не детализировать в этом scope. Push запрещён. Отдельного согласования закрытия P2 не требуется: прежняя формулировка handoff была ошибочной дополнительной границей.\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | n/a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Essence | P2 GREEN завершена; остановка перед P3 |\n\n```session-continuity-decision/v1\n{\"outcome\":\"continue-root\",\"reason\":\"compatible-active-work\",\"evidence\":[\"persisted-context:continue-root\"],\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```",
+  "route": {
+    "batch": "n/a",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "persisted-context:continue-root"
+      ],
+      "outcome": "continue-root",
+      "reason": "compatible-active-work",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P2"
+}
