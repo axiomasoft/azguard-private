@@ -1,0 +1,1755 @@
+{
+    "string": {
+        "permissions": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "name",
+                    "type_name": "varbinary",
+                    "type": "varbinary(255)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "label",
+                    "type_name": "varchar",
+                    "type": "varchar(191)",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "group",
+                    "type_name": "varchar",
+                    "type": "varchar(191)",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "description",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_pm_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "name"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_pm_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0x6D616E75616C",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_rg_context_pair",
+                    "definition": "(((`context_key` = _utf8mb4\\'global\\') = ((`context_type` is null) and (`context_id` is null))) and ((`context_type` is null) = (`context_id` is null)))"
+                },
+                {
+                    "name": "azg_rg_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "permission_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "permission",
+                    "type_name": "varbinary",
+                    "type": "varbinary(255)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0x6D616E75616C",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_pg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "permission",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_pg_context_pair",
+                    "definition": "(((`context_key` = _utf8mb4\\'global\\') = ((`context_type` is null) and (`context_id` is null))) and ((`context_type` is null) = (`context_id` is null)))"
+                },
+                {
+                    "name": "azg_pg_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "panel_state": {
+            "columns": [
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "version",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "incarnation",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "primary",
+                    "columns": [
+                        "panel"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [],
+            "foreign_keys": []
+        },
+        "storage_state": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "smallint",
+                    "type": "smallint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "schema",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_ss_singleton",
+                    "definition": "(`id` = 1)"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "uuid": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(36)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(36)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(36)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0x6D616E75616C",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(36)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_uuid_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_uuid_rg_context_pair",
+                    "definition": "(((`context_key` = _utf8mb4\\'global\\') = ((`context_type` is null) and (`context_id` is null))) and ((`context_type` is null) = (`context_id` is null)))"
+                },
+                {
+                    "name": "hk_uuid_rg_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "bigint": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0x6D616E75616C",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_bigint_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_bigint_rg_context_pair",
+                    "definition": "(((`context_key` = _utf8mb4\\'global\\') = ((`context_type` is null) and (`context_id` is null))) and ((`context_type` is null) = (`context_id` is null)))"
+                },
+                {
+                    "name": "hk_bigint_rg_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "ulid": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0x6D616E75616C",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_ulid_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_ulid_rg_context_pair",
+                    "definition": "(((`context_key` = _utf8mb4\\'global\\') = ((`context_type` is null) and (`context_id` is null))) and ((`context_type` is null) = (`context_id` is null)))"
+                },
+                {
+                    "name": "hk_ulid_rg_tenant_pair",
+                    "definition": "(((`tenant_key` = _utf8mb4\\'global\\') = ((`tenant_type` is null) and (`tenant_id` is null))) and ((`tenant_type` is null) = (`tenant_id` is null)))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    }
+}

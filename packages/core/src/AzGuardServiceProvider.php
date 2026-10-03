@@ -10,6 +10,7 @@ use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
+use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -56,12 +57,15 @@ final class AzGuardServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->publishes([__DIR__.'/../database/migrations' => database_path('migrations')], 'azguard-migrations');
+
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
 
         $this->registerConfiguredPanels();
 
         if ($this->app->runningInConsole()) {
-            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class]);
+            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class]);
         }
 
         $this->app->booted(function (): void {

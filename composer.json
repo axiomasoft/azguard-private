@@ -101,6 +101,14 @@
         "test:engines:mysql": [
             "@putenv DB_CONNECTION=mysql",
             "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
+        ],
+        "test:mariadb": [
+            "@putenv DB_CONNECTION=mariadb",
+            "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines"
+        ],
+        "test:engines:mariadb": [
+            "@putenv DB_CONNECTION=mariadb",
+            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
         ]
     },
     "scripts-descriptions": {

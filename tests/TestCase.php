@@ -61,6 +61,17 @@ class TestCase extends Orchestra
                 'collation' => 'utf8mb4_unicode_ci',
                 'prefix' => '',
             ],
+            'mariadb' => [
+                'driver' => 'mariadb',
+                'host' => env('MARIADB_HOST', '127.0.0.1'),
+                'port' => env('MARIADB_PORT', '3307'),
+                'database' => env('MARIADB_DATABASE', 'azguard_test'),
+                'username' => env('MARIADB_USERNAME', 'azguard'),
+                'password' => env('MARIADB_PASSWORD', 'azguard'),
+                'charset' => 'utf8mb4',
+                'collation' => 'utf8mb4_unicode_ci',
+                'prefix' => '',
+            ],
             default => [
                 'driver' => 'sqlite',
                 'database' => ':memory:',

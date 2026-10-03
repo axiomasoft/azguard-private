@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace AzGuard\Storage;
 
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Kernel\Identity\IdentityCodec;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DetectsConcurrencyErrors;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use JsonException;
 use stdClass;
 use Throwable;
 
@@ -25,6 +29,8 @@ final class Storage
     private array $locked = [];
 
     private ?StorageMutation $current = null;
+
+    private bool $schemaChecked = false;
 
     public function __construct(private readonly string $id, private readonly Connection $connection,
         private readonly string $prefix = 'azg_', private readonly string $hostKeys = 'string')
@@ -72,6 +78,7 @@ final class Storage
     public function state(string $panel): ?PanelState
     {
         PermissionGrammar::assertPanelId($panel);
+        $this->assertSchema();
         $row = $this->table('panel_state')->where('panel', $panel)->first();
 
         return $row === null ? null : $this->panelState($row);
@@ -96,6 +103,7 @@ final class Storage
         if ($attempts < 1 || $panels === []) {
             throw new InvalidArgumentException('Mutation needs panels and at least one attempt.');
         }
+        $this->assertSchema();
         $nested = $this->connection->transactionLevel() > 0;
         for ($attempt = 1; ; $attempt++) {
             $committed = false;
@@ -169,6 +177,38 @@ final class Storage
 
     /** @var array<string, true> */
     private array $pendingTouches = [];
+
+    /** @return array{version: int, identity_codec: int, storage_id: string, prefix: string, host_keys: string} */
+    public function schema(): array
+    {
+        return ['version' => 1, 'identity_codec' => IdentityCodec::VERSION,
+            'storage_id' => $this->id, 'prefix' => $this->prefix, 'host_keys' => $this->hostKeys];
+    }
+
+    private function assertSchema(): void
+    {
+        if ($this->schemaChecked) {
+            return;
+        }
+        $expected = $this->schema();
+        $found = null;
+
+        try {
+            $row = $this->table('storage_state')->where('id', 1)->first();
+
+            if ($row !== null) {
+                $found = json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR);
+            }
+        } catch (QueryException|JsonException $error) {
+            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; cannot read storage_state: '.$error->getMessage(), 0, $error);
+        }
+
+        if (! is_array($found) || count($found) !== count($expected)
+            || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
+            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.');
+        }
+        $this->schemaChecked = true;
+    }
 
     private function lockPanel(string $panel): PanelState
     {

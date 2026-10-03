@@ -1,0 +1,61 @@
+{
+  "estimate": {
+    "route_attested": true,
+    "capabilities_attested": true,
+    "capabilities_sufficient": true,
+    "context_attested": false,
+    "context_health": "unavailable",
+    "batch_receipt_valid": true,
+    "remaining_batch_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "loaded_inputs_reusable": true,
+    "cold_start_cost": 1,
+    "lifecycle": "scope-complete",
+    "isolated_review": false,
+    "reviewer_task": null,
+    "checkpoint": "journal.jsonl:66:d1ff06aaa6481afab20c94bc2894ee39fd0b23a1bc8a4e42b3202cb98a759621",
+    "external_pause": null,
+    "schema_version": "session-work-estimate/v1"
+  },
+  "continuity": {
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "evidence": [
+      "batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "loaded-inputs:reusable",
+      "cold-start-cost:1",
+      "lifecycle:scope-complete",
+      "checkpoint:journal.jsonl:66:d1ff06aaa6481afab20c94bc2894ee39fd0b23a1bc8a4e42b3202cb98a759621"
+    ],
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "next": {
+    "kind": "run-items",
+    "command_id": "task:plan-run",
+    "plan_id": "2026.10.01-№1-AZGUARD-V1",
+    "arguments": [
+      "2026.10.01-№1-AZGUARD-V1",
+      "P3.3",
+      "P3.4"
+    ],
+    "context_kind": "continue-root",
+    "item_ids": [
+      "P3.3",
+      "P3.4"
+    ],
+    "cold_start_scope": [],
+    "continuity": {
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "evidence": [
+        "batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "loaded-inputs:reusable",
+        "cold-start-cost:1",
+        "lifecycle:scope-complete",
+        "checkpoint:journal.jsonl:66:d1ff06aaa6481afab20c94bc2894ee39fd0b23a1bc8a4e42b3202cb98a759621"
+      ],
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    }
+  }
+}
