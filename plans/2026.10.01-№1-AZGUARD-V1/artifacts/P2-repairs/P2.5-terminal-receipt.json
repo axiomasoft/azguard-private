@@ -1,0 +1,65 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:21a20c3b12eb6966dcb6139dc24fa9ab321f52e80cb51ca2820f46618954dd1f",
+    "command_id": "task:plan-run",
+    "package": "task",
+    "version": "0.27.0"
+  },
+  "commit_sha": "7c17044cc316701c3fedccb398e622ac33e8e7df",
+  "continuity": {
+    "evidence": [
+      "batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "loaded-inputs:reusable",
+      "cold-start-cost:0",
+      "lifecycle:scope-complete",
+      "checkpoint:sha256:448c6b187a3863bf23dc8fc3f5e02cf17eab0b81a8ac233badfd8b25e2667f78"
+    ],
+    "outcome": "continue-root",
+    "reason": "authorized-scope-complete",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:ef1cf8d360df9b5f3fdc090907f7c1a82c63efa0bddcc2609b574bec5ff037eb",
+    "plan": "sha256:fa78e86db53f59c5c653dd3efeb03fb5726905e965011e72ccc7083c04f71d70",
+    "state": "sha256:2d342872bc692fabcaa76580aa4424b7c113e6777444c6076539e9f78766a846"
+  },
+  "journal": {
+    "command": "plan-run",
+    "line": 58,
+    "result": "closed-green",
+    "run_id": "58e8487ecfb3160662fa24515d3269b71001352ce931e7f63bf55fa51ee18851",
+    "sha256": "sha256:e74ee19fa1f697ec509453e594b5a4a5285dbb3261064655ef1d56b3fc4e4117"
+  },
+  "next_exact": "manual: frontier/high",
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "rationale": {
+    "open_risks": "full plan-lint has 12 pre-existing P0/P1 Completion Notes write-site errors; 0 new. Phase P2 GREEN closure requires separate manual agreement.",
+    "remaining": "manual agreement on phase P2 closure; no P3 execution authority from this result. Historical P2.10 remains closed-deviations. Runtime contributions and policy calls/signatures remain P4."
+  },
+  "recommendation": "**Next:** manual: frontier/high\n\nСогласовать phase P2 closure по owning repair evidence. P2.5 R2/R3 и P2.8 R1 GREEN; R4 синхронизирован root до repeats. P2 GREEN closure не создана; P3 в этом run не исполняется. P2.10 и historical findings/P2-review.md не повторять и не переписывать. Push запрещён.\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | n/a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | — |\n| Context | continue-root |\n| Essence | Согласование phase P2 closure по owning repair evidence |\n\n```session-continuity-decision/v1\n{\"outcome\":\"continue-root\",\"reason\":\"authorized-scope-complete\",\"evidence\":[\"batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945\",\"loaded-inputs:reusable\",\"cold-start-cost:0\",\"lifecycle:scope-complete\",\"checkpoint:sha256:448c6b187a3863bf23dc8fc3f5e02cf17eab0b81a8ac233badfd8b25e2667f78\"],\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```",
+  "route": {
+    "batch": "n/a",
+    "command": null,
+    "context": "continue-root",
+    "continuity": {
+      "evidence": [
+        "batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "loaded-inputs:reusable",
+        "cold-start-cost:0",
+        "lifecycle:scope-complete",
+        "checkpoint:sha256:448c6b187a3863bf23dc8fc3f5e02cf17eab0b81a8ac233badfd8b25e2667f78"
+      ],
+      "outcome": "continue-root",
+      "reason": "authorized-scope-complete",
+      "runnable": true,
+      "schema_version": "session-continuity-decision/v1"
+    },
+    "model": null,
+    "thinking": null
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P2.5"
+}

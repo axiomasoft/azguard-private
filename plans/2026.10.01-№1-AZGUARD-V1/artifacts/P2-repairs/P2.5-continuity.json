@@ -1,0 +1,13 @@
+{
+  "outcome": "continue-root",
+  "reason": "authorized-scope-complete",
+  "evidence": [
+    "batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "loaded-inputs:reusable",
+    "cold-start-cost:0",
+    "lifecycle:scope-complete",
+    "checkpoint:sha256:448c6b187a3863bf23dc8fc3f5e02cf17eab0b81a8ac233badfd8b25e2667f78"
+  ],
+  "runnable": true,
+  "schema_version": "session-continuity-decision/v1"
+}

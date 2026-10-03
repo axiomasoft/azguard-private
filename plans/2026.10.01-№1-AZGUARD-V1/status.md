@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: a01e5f1bcef241217f864f24629a5a071a87d97da2dbfda27f2f5fe7c9607a5a
+inputs_sha256: b70dfd2de5b6d718453e58770b1bded1a80bd6ae5f9041c7d391c3c5a7a661a7
 generated_by: task plan-views status
 -->
 
@@ -213,6 +213,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | codex | plan-run · no-op · write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | codex | plan-run · in-progress · — |
 | 2026-10-03 | codex | plan-run · closed-green · R1 repaired; all 8 gates GREEN; P2 RED, R2/R3 open → separate P2.5. findings/P2-owning-repairs.md. write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | Codex | plan-run · in-progress · — |
+| 2026-10-03 | Codex | plan-run · closed-green · R2/R3 repaired; R1 probes GREEN, R4 pre-repeat sync verified; all 8 item gates GREEN. P2 closure awaits manual agreement; P3 not started. findings/P2-owning-repairs.md.
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

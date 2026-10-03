@@ -8,6 +8,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **core:** Enum cases из статичных custom sources участвуют в выборе панели на live и cached путях. Равные permission definitions и одинаковый role class из независимых plugin/provider origins дают collision с id вкладов; повторы внутри одного origin сохраняют первого владельца (owning repair P2.5, R2/R3).
 - **core:** Явные policy bindings из FolderSource и custom ProvidesPolicies выбирают единственный public nonstatic метод с подходящим `#[Decides]`. Неверный explicit method, отсутствие или неоднозначность атрибута дают `DefinitionException`; найденный метод сохраняется в каталоге и после кэша (owning repair P2.8, R1).
 
 ### Added

@@ -37,3 +37,49 @@ Plan-lint относительно HEAD до terminal: 13 errors, 1 new. 12 пр
 ## Продолжение
 
 **Next manual: frontier/high** — выполнить только owning repeat P2.5 для R2/R3 с отдельным настоящим grant, построенным после terminal P2.8. P2 RED; P3 и GREEN closure P2 не разрешены этим результатом. R4 уже синхронизирован root в P4 до start. Push запрещён. Чужие .gitignore, .swissknife.json и .grok/ сохранены вне scoped commit. Спецификации после start не изменялись.
+
+
+# Owning repeat P2.5 — R2/R3 — 2026-10-03
+
+P2.5 attempt 2: **GREEN / closed-green**. R1/R2/R3 probes GREEN; R4 resolved in the pre-repeat root synchronization. Phase P2 GREEN closure is **not created**. Historical P2.10 remains closed-deviations; its review and code were not repeated or rewritten. P3 was not started.
+
+Run `58e8487ecfb3160662fa24515d3269b71001352ce931e7f63bf55fa51ee18851`; actual CODEX_THREAD_ID `01a10316-c132-7171-b367-6100e3999c88`. Baseline HEAD `7c17044cc316701c3fedccb398e622ac33e8e7df`. Native capture: `gpt-6.1-sol`, frontier/high, cwd `/home/vostrikov/projects/packages/azguard`, exact invocation `$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.5`, approval never / danger-full-access. Source-owned Task at commit `f6d957c6ab5e8b1f63d00b44dd54c1b46b830834`. Real repeat contract built with `task.plan_repeat.build()` for current terminal heads; separate marker `[REPEAT-ADMISSION:5c3be1eafd6df15f69a4d10ce3315c233d5a39850daa72fd4defcfb86f5ad450]` computed only by `task.plan_repeat.digest()` and appended to D11. P2.8 consumed marker was retained. Validate and durable prepare passed; only inherited foreign GROK_SESSION_ID/GROK_THREAD_ID/CLAUDE_SESSION_ID were removed in the capture subprocess, not native CODEX_THREAD_ID. Terminal P2.8 and all eight gates were checked before admission; `plan_repeat.for_run()` still authenticates its historical grant after the sibling start.
+
+## Product result
+
+| Finding | Result and regression |
+|:--|:--|
+| R1 | GREEN: all three original review probes, plus `PolicyBindingTest.php` 24/34. Empty `ClientPolicy` unchanged; positive fixtures still use `AttributedClientPolicy`. No binding implementation changes in this repeat. |
+| R2 | GREEN: `PanelRegistry::freeze()` indexes enum classes from cases of the final static catalog, equally for live and cached catalogs. `CatalogResolverTest.php` keeps the exact ClientPermission::Update custom-source scenario and both original assertions. No authority attributes or additional FolderSource attachment. Sole owner, explicit panel, two owners/ambiguity, explicit disambiguation and conflicting panel signal pass live and real cache command/new Testbench boot. Restored catalog is a distinct object, snapshots/fingerprints equal and source reads zero. |
+| R3 | GREEN: independent origins collide before equal-definition merging; messages include both source ids and plugin ids, including provider/plugin equality. Same role class/key from two plugins or provider/plugin now reaches DuplicateRoleException instead of `seen[class]` swallowing it. Same-origin permission/role repeats retain the first owner. Existing V08/different-class/key/formerKeys tests and repeated enum FQCN remain GREEN. Real cache round trip preserves first-source/plugin provenance for equal permissions and roles. |
+| R4 | RESOLVED/verified: unchanged P4 Context refers to D10 and contains no cancelled plugin-prefix requirement. Root performed this synchronization before P2.8; no P4 work in this repeat. |
+
+Only static custom source collisions were repaired. Runtime contributions remain P4; policy signatures/invocation remain P4.3. No public API changes; generated API manifest bytes unchanged.
+
+## Validation evidence
+
+All Testbench commands use `APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory:`; TestCase selects in-memory SQLite before tests. Cache paths are unique `/tmp/azguard-resolver-*` and `/tmp/azguard-catalog-*` with cleanup. Product/environment/log hashes and exact exit codes: `artifacts/P2-repairs/P2.5-gates.json`.
+
+| Carrier | Result |
+|:--|:--|
+| Focused before repair | RED: 43 tests, 34 passed / 8 failures / 1 resolver error (`P2.5-focused-red.log`). |
+| Focused after repair | GREEN: 51 passed / 154 assertions before the final repeated-enum regression (`P2.5-focused.log`); final test tree is proved by targeted/full below. |
+| Original five review probes | GREEN: 5 tests / 6 assertions, exit 0 (`P2.5-original-probes.log`). PHP block extracted unchanged to `P2ReviewProbeTest.php.txt`, copied to standalone scratch `tests/Feature/P2ReviewProbeTest.php`; original scenarios/assertions retained. Scratch witness records exact-byte equality. |
+| Targeted catalog/roles/panels | GREEN: 650 passed / 1656 assertions, exit 0 (`P2.5-targeted.log`). |
+| Arch | GREEN: 63 passed / 291 assertions, exit 0, PHP memory_limit=1G (`P2.5-arch.log`). |
+| API | Source-owned `composer api:manifest` ran; no manifest diff. `php bin/api-manifest.php --check`: exit 0 (`P2.5-api.log`). |
+| Full composer test | GREEN: 1326 passed / 239557 assertions, exit 0, no skipped tests (`P2.5-full.log`). |
+| Pint | GREEN: `vendor/bin/pint --test`, exit 0 (`P2.5-pint.log`). |
+| PHPStan | GREEN: 0 errors, exit 0. Existing turbo startup warning `Dynamic loading not supported` is visible in `P2.5-phpstan.log`; not suppressed. |
+| Type coverage | GREEN: 99.8%, 146/146 src files, exit 0 (`P2.5-types.log`). |
+| Diff check | GREEN: git diff --check, exit 0 (`P2.5-diff.log`). |
+
+First scratch runner used the original Pest entrypoint, selected the product root and missed Testbench (TypeError). `P2.5-original-probes-first.log` is retained and is not GREEN evidence. Copying the Pest entrypoint into the scratch vendor layout established the correct test root; unchanged probes then passed. First full Pint found only formatting in the literal extracted review block; `P2.5-pint-first.log` is retained. Preserving that literal source in `.php.txt` allows Pint to qualify product code without editing the review probe. Both failures were corrected and rerun.
+
+Plan-lint before terminal: 12 pre-existing P0/P1 write-site errors, 0 new (`P2.5-plan-lint-before.log`). Full lint is not declared GREEN. Task pre_mutation/pre_final are allow (`P2.5-write-sites.json`). Specs, phase/plan/roadmap, P2.10 and historical review hashes are unchanged; historical events were never rewritten. Post-terminal structural checks and delivery receipt are recorded beside these gates.
+
+## Handoff boundary
+
+**Next manual: frontier/high** — согласовать phase P2 closure по owning repair evidence. P2 GREEN closure не создана; P3 в этом run не исполняется. No push. One scoped Russian Conventional Commit includes only owned product/tests/CHANGELOG and plan carriers. Foreign `.gitignore`, `.swissknife.json`, `.grok/` are preserved outside the commit. Native root parent receives this terminal result.
+
+Post-terminal finalize: exit 0; state/decision/status views and terminal delivery receipt current (`P2.5-terminal-reconciliation.json`, `P2.5-terminal-receipt.json`, `P2.5-structural-checks.json`). Semantic Next is exactly `manual: frontier/high`; continuity is `scope-complete` / `continue-root` / `authorized-scope-complete`. Runtime retains the existing P3.1 skeleton bundle; no P3 start event or product work. P2 closure carrier remains absent. Final plan-lint: 12 pre-existing errors, 0 new; `--gate new` exit 0, full lint remains non-GREEN (`P2.5-plan-lint-final.log`). Terminal admission check-open: final_allowed=true / NO_OPEN_SESSION_RUN.

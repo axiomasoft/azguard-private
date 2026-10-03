@@ -1,0 +1,25 @@
+{
+  "pre_mutation": "allow",
+  "pre_final": "allow",
+  "validation_context": {
+    "schema_version": "validation-context/v1",
+    "spec_sha256": "b78b5e4c99b83cd0ce2265449eb4aef4bf690800842374d439deea7245f88226",
+    "head": "7c17044cc316701c3fedccb398e622ac33e8e7df",
+    "tree": "2a9e44a3a418caa2b4ee686d5ae0f614aba0de740a127b779e6fb95355fde5ff",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16"
+  },
+  "validation_receipts": [
+    {
+      "schema_version": "validation-receipt/v1",
+      "evidence_id": "E14",
+      "command": "1) `vendor/bin/pest tests/Unit/Catalog tests/Feature/Catalog tests/Unit/Roles tests/Unit/Panels tests/Feature/Panels` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`.",
+      "contract_sha256": "3dffb49c68f7bc7440a7400e4411305293fa9c25d7af8a6dd6b76c40f2564137",
+      "spec_sha256": "b78b5e4c99b83cd0ce2265449eb4aef4bf690800842374d439deea7245f88226",
+      "head": "7c17044cc316701c3fedccb398e622ac33e8e7df",
+      "tree": "2a9e44a3a418caa2b4ee686d5ae0f614aba0de740a127b779e6fb95355fde5ff",
+      "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+      "exit_code": 0,
+      "executed_at": "2026-10-03T18:56:07Z"
+    }
+  ]
+}

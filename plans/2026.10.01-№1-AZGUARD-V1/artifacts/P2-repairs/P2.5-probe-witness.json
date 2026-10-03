@@ -1,0 +1,12 @@
+{
+  "scratch": "/tmp/azguard-p25-review-probes-oc5n6dsk",
+  "original_php_block_unchanged": true,
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:"
+  },
+  "exit_code": 0,
+  "runner": "copied Pest entrypoint sets scratch root; original autoload shared",
+  "artifact": "P2ReviewProbeTest.php.txt"
+}

@@ -13,6 +13,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
+use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
@@ -101,4 +102,37 @@ it('V119: a dynamic permission is always decided by grants', function (): void {
 
 it('rejects a source named by a name no factory registers', function (): void {
     expect(fn () => collisionPanel(['ldap']))->toThrow(UnknownSourceException::class, 'names the source "ldap", which is not registered');
+});
+
+it('R3: rejects equal names contributed by two plugins with both plugin and source ids', function (): void {
+    expect(fn () => collisionPanel([], [
+        'one/access' => [StaticSource::names('one-access', 'orders.view')],
+        'two/access' => [StaticSource::names('two-access', 'orders.view')],
+    ]))->toThrow(DuplicatePermissionException::class, 'source "one-access" (plugin:one/access) and source "two-access" (plugin:two/access)');
+});
+
+it('rejects equal provider and plugin definitions and names the plugin', function (): void {
+    expect(fn () => collisionPanel([StaticSource::names('app', 'orders.view')], [
+        'one/access' => [StaticSource::names('one-access', 'orders.view')],
+    ]))->toThrow(DuplicatePermissionException::class, 'source "app" and source "one-access" (plugin:one/access)');
+});
+
+it('keeps equal definitions within one plugin origin owned by its first source', function (): void {
+    $catalog = collisionPanel([], [
+        'one/access' => [StaticSource::names('one-access', 'orders.view'), StaticSource::names('one-more', 'orders.view')],
+    ])->catalog('admin');
+
+    expect($catalog->all())->toHaveCount(1)
+        ->and($catalog->snapshot()['permissions'][0]['source'])->toBe('one-access')
+        ->and($catalog->snapshot()['permissions'][0]['origin'])->toBe('plugin:one/access');
+});
+
+it('keeps a repeated enum FQCN idempotent across manual plugin registrations', function (): void {
+    $catalog = collisionPanel([OrderPermission::class, OrderPermission::class], [
+        'one/access' => [OrderPermission::class],
+        'two/access' => [OrderPermission::class],
+    ])->catalog('admin');
+
+    expect(array_keys($catalog->all()))->toBe(['orders.view', 'orders.update'])
+        ->and($catalog->keyOf(OrderPermission::View)->full())->toBe('admin:orders.view');
 });

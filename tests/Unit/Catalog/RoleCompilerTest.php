@@ -199,3 +199,36 @@ it('checks assignment scopes of roles', function (array $roles, string $message)
 it('refuses something a source returns that is not a role', function (): void {
     expect(fn () => rolesOfAdmin([SellerRole::class]))->toThrow(InvalidSourceContributionException::class, 'from roles()');
 });
+
+it('rejects the same role class from independent origins with all contributor ids', function (bool $provider): void {
+    $one = ProbePlugin::make('one/access', register: static fn (PanelBuilder $p): PanelBuilder => $p->permissions([
+        new StaticSource('one-access', roles: [new ManagerRole]),
+    ]));
+    $two = ProbePlugin::make('two/access', register: static fn (PanelBuilder $p): PanelBuilder => $p->permissions([
+        new StaticSource('two-access', roles: [new ManagerRole]),
+    ]));
+
+    expect(fn () => PanelWorld::compile([
+        AdminPanel::class => static fn (PanelBuilder $p): PanelBuilder => $p
+            ->permissions([new StaticSource('app', [StaticSource::grants('clients.view')], $provider ? [new ManagerRole] : [])])
+            ->plugins($provider ? [$two] : [$one, $two]),
+    ]))->toThrow(DuplicateRoleException::class,
+        ($provider ? 'source "app"' : 'source "one-access" (plugin:one/access)')
+        .' and to '.ManagerRole::class.' from source "two-access" (plugin:two/access)');
+})->with(['provider/plugin' => [true], 'two plugins' => [false]]);
+
+it('keeps a repeated role class within one origin owned by its first source', function (bool $plugin): void {
+    $sources = [
+        new StaticSource('first', roles: [new ManagerRole, new ManagerRole]),
+        new StaticSource('second', roles: [new ManagerRole]),
+    ];
+    $catalog = PanelWorld::compile([
+        AdminPanel::class => static fn (PanelBuilder $p): PanelBuilder => $p
+            ->permissions([StaticSource::names('app', 'clients.view'), ...($plugin ? [] : $sources)])
+            ->plugins($plugin ? [ProbePlugin::make('one/access', register: static fn (PanelBuilder $p): PanelBuilder => $p->permissions($sources))] : []),
+    ])[2]->catalog('admin');
+
+    expect(array_keys($catalog->roles()))->toBe(['manager'])
+        ->and($catalog->roles()['manager']['source'])->toBe('first')
+        ->and($catalog->roles()['manager']['origin'])->toBe($plugin ? 'plugin:one/access' : 'provider');
+})->with(['provider' => [false], 'plugin' => [true]]);

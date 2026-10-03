@@ -24,6 +24,8 @@ R4 синхронизирован в контексте P4. Routing P2.8 и P2.5
 
 Допуск P2.8: [REPEAT-ADMISSION:28bd93e6b1005bb699af10c3ce92695d13204c8cfce8ebaff3977b209b4d6540]
 
+Допуск P2.5 после terminal P2.8: [REPEAT-ADMISSION:5c3be1eafd6df15f69a4d10ce3315c233d5a39850daa72fd4defcfb86f5ad450]
+
 ## Why
 
 Владелец требует исправить доказанные R1–R3 в owning items и сохранить границы review.

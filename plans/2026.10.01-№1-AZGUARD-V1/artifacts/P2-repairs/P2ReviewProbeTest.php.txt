@@ -1,0 +1,75 @@
+<?php
+
+use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\DuplicatePermissionException;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Plugins\BasePlugin;
+use AzGuard\Plugins\PluginContext;
+use AzGuard\Policies\Decides;
+use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tests\Fixtures\Panels\AdminPanel;
+use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
+use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
+use AzGuard\Tests\Fixtures\Sources\StaticSource;
+
+final class ReviewPolicy {
+    #[Decides('orders.view')]
+    public function arbitraryName(): bool { return false; }
+    public function unrelated(): bool { return true; }
+}
+
+it('R1: keeps the attributed method', function () {
+    [, , $registry] = PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $p) => $p
+            ->permissions([StaticSource::names('app', 'orders.view')])
+            ->policies([PolicyBinding::for('orders.view', ReviewPolicy::class)]),
+    ]);
+    expect($registry->catalog('admin')->bindingMethod('orders.view'))->toBe('arbitraryName');
+});
+
+it('R1: rejects an unrelated method', function () {
+    expect(fn () => PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $p) => $p
+            ->permissions([StaticSource::names('app', 'orders.view')])
+            ->policies([PolicyBinding::for('orders.view', ReviewPolicy::class, 'unrelated')]),
+    ]))->toThrow(DefinitionException::class);
+});
+
+it('R1: rejects a custom source binding without Decides', function () {
+    expect(fn () => PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $p) => $p->permissions([
+            new StaticSource('app', [new PermissionDefinition('orders.view', PermissionAuthority::Policy)], [], [
+                PolicyBinding::for('orders.view', ClientPolicy::class),
+            ]),
+        ]),
+    ]))->toThrow(DefinitionException::class);
+});
+
+it('R2: resolves a catalog enum from a custom source', function () {
+    [$resolver, , $registry] = PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $p) => $p->permissions([new StaticSource('app', [
+            new PermissionDefinition('clients.update', PermissionAuthority::Grants, case: ClientPermission::Update),
+        ])]),
+    ]);
+    expect($registry->catalog('admin')->keyOf(ClientPermission::Update)->full())->toBe('admin:clients.update');
+    expect($resolver->resolve(permission: ClientPermission::Update)['panel']->id())->toBe('admin');
+});
+
+final class ReviewPermissionPlugin extends BasePlugin {
+    public function __construct(private string $name) {}
+    public function id(): string { return $this->name; }
+    public function register(PanelBuilder $panel, PluginContext $context): void {
+        $panel->permissions([StaticSource::names(str_replace('/', '-', $this->name), 'orders.view')]);
+    }
+}
+
+it('R3: rejects equal names contributed by two plugins', function () {
+    expect(fn () => PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $p) => $p->plugins([
+            new ReviewPermissionPlugin('one/access'), new ReviewPermissionPlugin('two/access'),
+        ]),
+    ]))->toThrow(DuplicatePermissionException::class);
+});

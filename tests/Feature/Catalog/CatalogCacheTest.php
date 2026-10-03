@@ -10,6 +10,8 @@ use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
+use AzGuard\Tests\Fixtures\Plugins\ProbePlugin;
+use AzGuard\Tests\Fixtures\Roles\ManagerRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Sources\BootsWithCatalogCache;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
@@ -121,3 +123,23 @@ it('builds from the sources when the file holds no catalog', function (string $c
     'another version' => ['<?php return ["version" => 0, "build_id" => "build-1", "panels" => []];'],
     'a broken entry' => ['<?php return ["version" => 1, "build_id" => "build-1", "panels" => ["admin" => ["fingerprint" => "x", "catalog" => []]]];'],
 ]);
+
+it('preserves the first owner of equal permission and role contributions within a plugin across a real cache round trip', function (): void {
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([
+        ProbePlugin::make('one/access', register: static fn (PanelBuilder $p): PanelBuilder => $p->permissions([
+            new StaticSource('one-access', [StaticSource::grants('clients.view')], [new ManagerRole, new ManagerRole]),
+            new StaticSource('one-more', [StaticSource::grants('clients.view')], [new ManagerRole]),
+        ])),
+    ]));
+    $live = bootCachedAdmin($this);
+    expect($live['snapshot']['permissions'][0]['source'])->toBe('one-access')
+        ->and($live['snapshot']['permissions'][0]['origin'])->toBe('plugin:one/access')
+        ->and($live['snapshot']['roles']['manager']['source'])->toBe('one-access')
+        ->and($live['snapshot']['roles']['manager']['origin'])->toBe('plugin:one/access');
+
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+    $cached = bootCachedAdmin($this);
+    expect($cached['reads'])->toBe([])
+        ->and($cached['snapshot'])->toBe($live['snapshot'])
+        ->and($cached['fingerprint'])->toBe($live['fingerprint']);
+});

@@ -58,7 +58,7 @@ final readonly class RoleCompiler
                     );
                 }
 
-                if (isset($seen[$role::class])) {
+                if (($seen[$role::class] ?? null) === $origin) {
                     continue;
                 }
 
@@ -82,7 +82,7 @@ final readonly class RoleCompiler
                     $claimed[$name] = ['class' => $role::class, 'owner' => $owner];
                 }
 
-                $seen[$role::class] = true;
+                $seen[$role::class] = $origin;
                 $scopes = $this->scopes($panel, $role);
 
                 foreach ($scopes as $scope) {

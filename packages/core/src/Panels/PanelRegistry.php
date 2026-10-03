@@ -202,7 +202,7 @@ final class PanelRegistry implements PanelRegistryContract
                 ?? PanelCatalog::build($panels[$id], $resolved, $this->app);
             $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
             $this->discoveries[$id] = $discovery->cache();
-            $enums = $this->attachEnums($enums, $id, array_values(array_unique([...$recipes[$id]->enums(), ...$discovery->enums])));
+            $enums = $this->attachEnums($enums, $id, $catalogs[$id]);
         }
 
         $this->compiler->assertDefaults($panels);
@@ -353,15 +353,20 @@ final class PanelRegistry implements PanelRegistryContract
     }
 
     /**
-     * Adds permission enums of a panel to the enum index; every way a panel gets its enums goes through here.
+     * Indexes the cases of the final static catalog, whether it was built live or restored from the cache.
      *
      * @param  array<class-string, list<string>>  $index
-     * @param  list<class-string>  $enums
      * @return array<class-string, list<string>>
      */
-    private function attachEnums(array $index, string $id, array $enums): array
+    private function attachEnums(array $index, string $id, PanelCatalog $catalog): array
     {
-        foreach ($enums as $enum) {
+        foreach ($catalog->all() as $definition) {
+            if ($definition->case === null) {
+                continue;
+            }
+
+            $enum = $definition->case::class;
+
             if (! in_array($id, $index[$enum] ?? [], true)) {
                 $index[$enum][] = $id;
             }

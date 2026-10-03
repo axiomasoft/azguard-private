@@ -749,3 +749,8 @@ Run: `plan-run P2.8 P2.9` (остаток B2c, session `01a10299-b1bc-76e1-b6ef-
 | 8 | `git diff --check` | clean |
 
 Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`.
+
+
+## P2.5 — Owning repeat R2/R3 (2026-10-03)
+
+Current static catalog cases now populate the panel enum index on live/cache paths. Independent plugin/provider permission origins collide even for equal definitions; same-class role collisions no longer disappear through `seen`. Same-origin idempotence, repeated enum FQCN and first-source provenance are preserved. Exact review probes and all eight item carriers GREEN; complete collision/test/cache mapping and current evidence are in [P2-owning-repairs.md](P2-owning-repairs.md#owning-repeat-p25--r2r3--2026-10-03) and `artifacts/P2-repairs/P2.5-gates.json`. No phase P2 GREEN closure or P3 execution.

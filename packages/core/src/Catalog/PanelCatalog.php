@@ -336,6 +336,13 @@ final class PanelCatalog implements PermissionCatalog
         $local = $definition->local;
         $existing = $this->definitions[$local] ?? null;
 
+        if ($existing !== null && $this->owners[$local]['origin'] !== $owner['origin']) {
+            throw new DuplicatePermissionException(
+                'Permission "'.$local.'" of panel "'.$this->panel.'" is contributed by '.self::owner($this->owners[$local]).' and '
+                .self::owner($owner).': independent origins cannot share a permission name; rename one of them.',
+            );
+        }
+
         if ($existing !== null && ! $existing->equals($definition)) {
             throw new DuplicatePermissionException(
                 'Permission "'.$local.'" of panel "'.$this->panel.'" is defined differently by '.self::owner($this->owners[$local]).' and '
