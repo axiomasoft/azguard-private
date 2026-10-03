@@ -17,6 +17,7 @@ const AZGUARD_OUTER_ZONES = [
     'AzGuard\Policies', 'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Schema', 'AzGuard\Storage',
     'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
     'AzGuard\Diagnostics', 'AzGuard\Internal', 'AzGuard\Facades', 'AzGuard\Concerns', 'AzGuard\Events',
+    'AzGuard\Attributes',
 ];
 
 /**
@@ -125,7 +126,10 @@ forbidDependencies(
 
 arch('grants are stored only through the change pipeline, the database source or test helpers')
     ->expect('AzGuard\Contracts\Sources\StoresGrants')
-    ->toOnlyBeUsedIn(['AzGuard\Changes\ChangePipeline', 'AzGuard\Sources\Database', 'AzGuard\Testing'])
+    ->toOnlyBeUsedIn([
+        'AzGuard\Changes\ChangePipeline', 'AzGuard\Sources\Database', 'AzGuard\Testing',
+        'AzGuard\Panels\Panel', 'AzGuard\Sources\PanelSources',
+    ])
     ->ignoring('AzGuard\Tests');
 
 // Subjects are listed: ignoring('AzGuard\Testing') would also drop the dependency under test.
@@ -141,3 +145,53 @@ forbidDependencies(
 arch('plugins do not reach into internals')
     ->expect('AzGuard\Plugins')
     ->not->toUse('AzGuard\Internal');
+
+/**
+ * @return list<string> `transaction` calls; comments and strings are not calls
+ */
+function azguardTransactionCalls(string $file): array
+{
+    $tokens = token_get_all((string) file_get_contents($file));
+    $calls = [];
+
+    foreach ($tokens as $index => $token) {
+        if (! is_array($token) || $token[0] !== T_STRING || $token[1] !== 'transaction') {
+            continue;
+        }
+
+        $previous = $tokens[$index - 1] ?? null;
+        $next = $tokens[$index + 1] ?? null;
+        $called = is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR], true);
+
+        if ($called && $next === '(') {
+            $calls[] = 'transaction';
+        }
+    }
+
+    return $calls;
+}
+
+it('rejects a StoresGrants transaction() call copied into the panel zone', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-stores-grants-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $copy = $directory.'/Panel.php';
+    file_put_contents($copy, <<<'PHP'
+        <?php
+        namespace AzGuard\Panels;
+        use AzGuard\Contracts\Sources\StoresGrants;
+        final class Panel
+        {
+            public function writer(): ?StoresGrants { return null; }
+            public function bad(StoresGrants $writer): mixed
+            {
+                return $writer->transaction(static fn (): null => null);
+            }
+        }
+        PHP);
+
+    $root = dirname(__DIR__, 2);
+
+    expect(azguardTransactionCalls($copy))->toBe(['transaction'])
+        ->and(azguardTransactionCalls($root.'/packages/core/src/Panels/Panel.php'))->toBe([])
+        ->and(azguardTransactionCalls($root.'/packages/core/src/Sources/PanelSources.php'))->toBe([]);
+});

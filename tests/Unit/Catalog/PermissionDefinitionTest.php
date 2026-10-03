@@ -10,6 +10,7 @@ use AzGuard\Exceptions\DuplicateRoleException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
 use AzGuard\Exceptions\UnknownSourceException;
+use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\NumericPermission;
@@ -66,4 +67,5 @@ it('gives every catalog error its definition parent and stable code', function (
     [DuplicatePolicyBindingException::class, 'duplicate_policy_binding'],
     [InvalidPolicyStructureException::class, 'invalid_policy_structure'],
     [UnknownSourceException::class, 'unknown_source'],
+    [WriterConflictException::class, 'writer_conflict'],
 ]);

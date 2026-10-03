@@ -571,3 +571,68 @@ Run: `plan-run P2.6` (остаток B2b, session `01a10271-add8-7d91-a846-ea669
 Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`. У type-coverage
 после итога предупреждение FFI в `pest-plugin-type-coverage` (`Dynamic loading not supported`); код выхода 0,
 порог 98 пройден.
+
+## P2.7 — Фабрика источников: Source, возможности, SourceManager, AsSource (2026-10-03)
+
+Run: `plan-run P2.7` (старт B2c, session `01a10271-add8-7d91-a846-ea6698b91ce5`), run id
+`0dd0d4e0663cc5f9db912453fff6290677d79dc647ad6367747643c2b5a8c066`. Маршрут `frontier/high`, exact. Работа в `main`.
+
+### Контракт 06 §1.1 → файл → отложено по D8 п.3
+
+| Контракт | Файл | Отложено |
+|:--|:--|:--|
+| `ProvidesGrants` | `Contracts/Sources/ProvidesGrants.php` | — |
+| `ProvidesRoleGrants` | `Contracts/Sources/ProvidesRoleGrants.php` | — |
+| `StoresGrants` | `Contracts/Sources/StoresGrants.php` — только `transaction()` | `apply(Change)` → P5.2 |
+| `DescribesSchema` | `Contracts/Sources/DescribesSchema.php` | поля схемы → P5.5 |
+| `FiltersQueries` | не создан | P4.4 / P4.12 |
+| `ChecksHealth` | не создан | P6.4 |
+| `EvaluationContext` | `Contracts/Authorization/EvaluationContext.php`, `@api`, без реализации | реализация → P4.1 |
+| `Volatility` | `Contracts/Sources/Volatility.php` — `Stable`, `Request`, `Volatile` | — |
+| `SourceDescription` | `Contracts/Sources/SourceDescription.php` — `id`, `class`, `capabilities`, `dynamic` | подписи полей → P5.5 |
+
+### Сценарий → тест
+
+| Что проверено | Тест |
+|:--|:--|
+| V77: `permissions(['ldap'])` через `#[AsSource('ldap')]`, creator получил `azguard.sources.ldap`, у `admin` и `cabinet` разные объекты | `tests/Feature/Sources/PanelSourcesTest.php` — `builds ldap from the attribute…` |
+| V77: то же через `AzGuard::sources()->extend()` | `builds ldap from extend()…` |
+| V77: `'nope'` → `unknown_source`; два писателя → `writer_conflict` с id обоих; одно `id()` у объекта и имени → `DefinitionException` | `reports an unknown source name, two writers and a repeated id` |
+| V102: именованный писатель `ledger` — разные объекты у двух панелей; в одной области повтор `writer()` тот же; после `forgetScopedInstances()` новый объект и новый scoped-clock | `builds a named writer again for each panel…` |
+| Объект-рецепт `WriterSource` возвращается тем же после сброса области | `reuses an object writer across scopes` |
+| V107: `[OrderPermission::class, StaticSource, 'ldap']` — источники `app`, `ldap`; enum в список источников не входит | `keeps enums out of the source list…` |
+| P12: перестановка не меняет множество ключей каталога и id в `Panel::sources()`, меняет отпечаток | `a different source order keeps the catalog…` |
+| Повтор того же класса молча; другой класс или `extend()` на занятое имя → `DefinitionException`; кэш `$drivers` пуст | `tests/Unit/Sources/SourceManagerTest.php` |
+| RED: копия `Panels/Panel.php` с `->transaction()` краснеет; боевые `Panel.php` и `PanelSources.php` без вызова | `tests/Arch/ZonesArchTest.php` — `rejects a StoresGrants transaction() call copied into the panel zone` |
+
+### Дефекты интеграции
+
+Сборка имён встала на `PanelSources::of` и `PanelRegistry::freeze` без смены правил каталога P2.5. Owning item для
+дефекта не появился.
+
+### Решения исполнения
+
+- `SourceManager` помечен `@api`: его возвращает `AzGuard::sources()`. `make()` не вызывает `Manager::driver()` и не
+  пишет в `$drivers`.
+- Scoped-зависимость одна на область приложения: две панели одного запроса получают разные источники и тот же
+  `ScopedClock`. Сброс области создаёт и источник, и clock заново. Отдельный контейнер на панель не вводился.
+- `PanelFingerprint::of` принимает уже разобранные имена и классы третьим аргументом. Вызов без него, как в
+  `PanelTest`, по-прежнему читает рецепт, поэтому незарегистрированное имя в метаданных остаётся `{name}`.
+- Вне `Files`: `tests/Unit/Facades/AzGuardFacadeTest.php` (шестой `@method`) и строка `writer_conflict` в
+  `tests/Unit/Catalog/PermissionDefinitionTest.php`.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Sources tests/Feature/Sources tests/Feature/Catalog tests/Unit/Facades tests/Feature/Panels` | GREEN: 371 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 58 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `composer test` | GREEN: 1272 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 100.0 %, 121 файл |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`. Предупреждение FFI
+type-coverage то же, код выхода 0.

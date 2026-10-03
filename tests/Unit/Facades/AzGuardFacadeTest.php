@@ -34,17 +34,17 @@ it('binds one stateless manager as azguard and resolves the facade to it', funct
         ->and((new ReflectionProperty(AzGuardManager::class, 'app'))->getType()?->getName())->toBe(Application::class);
 });
 
-it('declares only the five panel methods', function (): void {
+it('declares the panel methods and the source factory', function (): void {
     $doc = (new ReflectionClass(AzGuard::class))->getDocComment();
 
     expect($doc)->toBeString()
-        ->and(preg_match_all('/@method static /', (string) $doc))->toBe(5)
+        ->and(preg_match_all('/@method static /', (string) $doc))->toBe(6)
         ->and($doc)->toContain('registerPanel(')
         ->and($doc)->toContain('configurePanel(')
         ->and($doc)->toContain('configurePanels(')
         ->and($doc)->toContain('panels()')
         ->and($doc)->toContain('currentPanel()')
-        ->and($doc)->not->toContain('sources()')
+        ->and($doc)->toContain('sources()')
         ->and($doc)->not->toContain('fake()')
         ->and($doc)->not->toContain('authorize(')
         ->and($doc)->not->toContain('withinScope(')

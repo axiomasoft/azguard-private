@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Sources\PanelSources;
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -17,6 +21,7 @@ final readonly class Panel
      *
      * @param  list<class-string<Model>>  $subjectModels
      * @param  list<string>  $pluginIds
+     * @param  Closure(): (?StoresGrants)  $writer
      */
     public function __construct(
         private string $id,
@@ -25,6 +30,9 @@ final readonly class Panel
         private PanelSettings $settings,
         private array $subjectModels,
         private array $pluginIds,
+        private ?PanelSources $resolved = null,
+        private bool $writable = false,
+        private ?Closure $writer = null,
     ) {}
 
     public function id(): string
@@ -75,6 +83,39 @@ final readonly class Panel
     public function pluginIds(): array
     {
         return $this->pluginIds;
+    }
+
+    /**
+     * Sources of the panel in the order they were assembled.
+     *
+     * @return list<SourceDescription>
+     */
+    public function sources(): array
+    {
+        return $this->resolved === null ? [] : $this->resolved->descriptions($this);
+    }
+
+    /**
+     * Whether a source of the panel stores grants.
+     */
+    public function isWritable(): bool
+    {
+        return $this->writable;
+    }
+
+    /**
+     * The writer of the current request or job, or null when the panel stores nothing.
+     * An object writer is the object of the recipe; a named writer is built again for each scope.
+     */
+    public function writer(): ?StoresGrants
+    {
+        if ($this->writer === null) {
+            return null;
+        }
+
+        $writer = ($this->writer)();
+
+        return $writer instanceof StoresGrants ? $writer : null;
     }
 
     /**

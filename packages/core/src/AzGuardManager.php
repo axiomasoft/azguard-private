@@ -9,6 +9,7 @@ use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
+use AzGuard\Sources\SourceManager;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -64,5 +65,13 @@ final class AzGuardManager
     public function currentPanel(): ?Panel
     {
         return $this->app->make(CurrentPanel::class)->get();
+    }
+
+    /**
+     * The source factory. Each `make()` returns a new instance.
+     */
+    public function sources(): SourceManager
+    {
+        return $this->app->make(SourceManager::class);
     }
 }

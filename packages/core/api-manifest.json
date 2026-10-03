@@ -2,6 +2,43 @@
     "package": "axiomasoft/azguard",
     "classes": [
         {
+            "name": "AzGuard\\Attributes\\AsSource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Catalog\\PermissionDefinition",
             "kind": "class",
             "final": true,
@@ -134,6 +171,105 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "actor",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\ActorRef"
+                },
+                {
+                    "name": "actorModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?Illuminate\\Database\\Eloquent\\Model"
+                },
+                {
+                    "name": "grant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null"
+                },
+                {
+                    "name": "matchingGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "now",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "DateTimeImmutable"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "resource",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?object"
+                },
+                {
+                    "name": "role",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Roles\\BaseRole"
+                },
+                {
+                    "name": "scope",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AccessScope"
+                },
+                {
+                    "name": "scopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "state",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken"
+                },
+                {
+                    "name": "subjectModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?Illuminate\\Database\\Eloquent\\Model"
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {
@@ -833,6 +969,99 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Sources\\DescribesSchema",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "grants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
+                    "name": "volatility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Sources\\Volatility"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
             "kind": "interface",
             "final": false,
@@ -912,6 +1141,59 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "roleGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
+                    "name": "volatility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Sources\\Volatility"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Sources\\ProvidesRoles",
             "kind": "interface",
             "final": false,
@@ -960,6 +1242,196 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "string"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\SourceDescription",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "capabilities",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "class",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "dynamic",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "id",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "capabilities",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "dynamic",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\StoresGrants",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "transaction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "mixed"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Sources\\Volatility",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Stable",
+                    "value": "stable"
+                },
+                {
+                    "name": "Request",
+                    "value": "request"
+                },
+                {
+                    "name": "Volatile",
+                    "value": "volatile"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
                 }
             ],
             "stability": "spi",
@@ -1769,6 +2241,31 @@
         },
         {
             "name": "AzGuard\\Exceptions\\UnknownSourceException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\WriterConflictException",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -4404,6 +4901,30 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "resolved",
+                            "type": "?AzGuard\\Sources\\PanelSources",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "writable",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        },
+                        {
+                            "name": "writer",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null
@@ -4438,6 +4959,13 @@
                     "return": "bool"
                 },
                 {
+                    "name": "isWritable",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
                     "name": "label",
                     "static": false,
                     "abstract": false,
@@ -4466,11 +4994,25 @@
                     "return": "AzGuard\\Panels\\PanelSettings"
                 },
                 {
+                    "name": "sources",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "subjectModels",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                },
+                {
+                    "name": "writer",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Contracts\\Sources\\StoresGrants"
                 }
             ],
             "stability": "api",
@@ -5839,6 +6381,87 @@
                         }
                     ],
                     "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Sources\\SourceManager",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\Manager",
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "extend",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "driver",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "getDefaultDriver",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "make",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Sources\\Source"
+                },
+                {
+                    "name": "register",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
                 }
             ],
             "stability": "api",

@@ -14,6 +14,7 @@ use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Sources\SourceManager;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,6 +41,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
         $this->app->scoped(CurrentPanel::class);
+
+        $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 
         $this->app->singleton(AzGuardManager::class);
         $this->app->alias(AzGuardManager::class, 'azguard');

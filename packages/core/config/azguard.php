@@ -81,4 +81,19 @@ return [
         'cache_path' => null,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Named sources
+    |--------------------------------------------------------------------------
+    |
+    | Parameters passed to a source when a panel names it in permissions([...]).
+    | The name is registered with #[AsSource] or AzGuard::sources()->extend().
+    | A name without an entry is created with an empty array.
+    |
+    */
+
+    'sources' => [
+        // 'ldap' => ['group_attribute' => 'memberOf'],
+    ],
+
 ];

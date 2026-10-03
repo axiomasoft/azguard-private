@@ -16,6 +16,7 @@ use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Sources\PanelSources;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -184,11 +185,12 @@ final class PanelRegistry implements PanelRegistryContract
 
         foreach ($providers as $id => $providerClass) {
             [$recipes[$id], $plugins[$id]] = $this->write($id, $providerClass, $buildId);
-            $panels[$id] = $this->compiler->compile($recipes[$id]);
-            $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id]);
+            $resolved = PanelSources::of($recipes[$id], $this->app);
+            $panels[$id] = $this->compiler->compile($recipes[$id], $resolved, $this->app);
+            $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id], $resolved->identity());
             $snapshot = CatalogCache::entry($cached, $buildId, $id, $recipeFingerprints[$id]);
             $catalogs[$id] = ($snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot))
-                ?? $this->compiler->catalog($panels[$id], $recipes[$id], $this->app);
+                ?? PanelCatalog::build($panels[$id], $resolved, $this->app);
             $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
             $enums = $this->attachEnums($enums, $id, $recipes[$id]->enums());
         }

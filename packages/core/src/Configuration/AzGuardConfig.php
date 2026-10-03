@@ -30,12 +30,14 @@ final readonly class AzGuardConfig
     /**
      * @param  list<string>  $panelProviders
      * @param  array<string, bool|int|string|null>  $defaults
+     * @param  array<string, array<string, mixed>>  $sources
      */
     private function __construct(
         private array $panelProviders,
         private array $defaults,
         private ?string $buildId,
         private ?string $catalogCachePath,
+        private array $sources,
     ) {}
 
     /**
@@ -53,6 +55,7 @@ final readonly class AzGuardConfig
             self::defaultsFrom(self::section('defaults', $config->get('azguard.defaults', []))),
             self::buildIdFrom($catalog['build_id'] ?? null),
             self::cachePathFrom($catalog['cache_path'] ?? null),
+            self::sourcesFrom($config->get('azguard.sources', [])),
         );
     }
 
@@ -109,6 +112,50 @@ final readonly class AzGuardConfig
     public function catalogCachePath(): ?string
     {
         return $this->catalogCachePath;
+    }
+
+    /**
+     * Parameters of one named source. An unknown name and a missing section are an empty array.
+     *
+     * @return array<string, mixed>
+     */
+    public function source(string $name): array
+    {
+        return $this->sources[$name] ?? [];
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function sourcesFrom(mixed $sources): array
+    {
+        if (! is_array($sources)) {
+            throw new InvalidConfigurationException(
+                'azguard.sources must be an array of source parameters, got '.get_debug_type($sources).'.',
+            );
+        }
+
+        $parsed = [];
+
+        foreach ($sources as $name => $parameters) {
+            if (! is_string($name) || $name === '') {
+                throw new InvalidConfigurationException(
+                    'azguard.sources must be keyed by source name, got '.get_debug_type($name).'.',
+                );
+            }
+
+            if (! is_array($parameters)) {
+                throw new InvalidConfigurationException(
+                    'azguard.sources.'.$name.' must be an array of parameters, got '.get_debug_type($parameters).'.',
+                );
+            }
+
+            $parsed[$name] = $parameters;
+        }
+
+        return $parsed;
     }
 
     /**

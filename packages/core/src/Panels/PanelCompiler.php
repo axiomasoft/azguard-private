@@ -129,7 +129,7 @@ final class PanelCompiler
      * @throws PluginConflictException
      * @throws InvalidConfigurationException
      */
-    public function compile(PanelRecipe $recipe): Panel
+    public function compile(PanelRecipe $recipe, ?PanelSources $sources = null, ?Container $container = null): Panel
     {
         $id = $recipe->panelId();
         $label = $this->resolved($recipe, PanelRecipe::LABEL)['value'] ?? null;
@@ -141,6 +141,9 @@ final class PanelCompiler
             settings: $this->settings($recipe),
             subjectModels: array_values(array_unique(array_column($recipe->subjects(), 'model'))),
             pluginIds: $recipe->pluginIds(),
+            resolved: $sources,
+            writable: $sources !== null && $sources->writable(),
+            writer: $sources !== null && $container !== null ? $sources->writer($container) : null,
         );
     }
 
@@ -151,7 +154,7 @@ final class PanelCompiler
      */
     public function catalog(Panel $panel, PanelRecipe $recipe, Container $container): PanelCatalog
     {
-        return PanelCatalog::build($panel, PanelSources::of($recipe), $container);
+        return PanelCatalog::build($panel, PanelSources::of($recipe, $container), $container);
     }
 
     /**

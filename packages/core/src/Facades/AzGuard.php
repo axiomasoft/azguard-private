@@ -8,6 +8,7 @@ use AzGuard\AzGuardManager;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
+use AzGuard\Sources\SourceManager;
 use Closure;
 use Illuminate\Support\Facades\Facade;
 
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void configurePanels(Closure(PanelBuilder): mixed $callback)
  * @method static array<string, Panel> panels()
  * @method static Panel|null currentPanel()
+ * @method static SourceManager sources()
  *
  * @see AzGuardManager
  */

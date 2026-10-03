@@ -18,10 +18,19 @@ use Closure;
  */
 final class PanelFingerprint
 {
-    public static function of(Panel $panel, PanelRecipe $recipe): string
+    /**
+     * @param  list<array<string, string>>|null  $sources  resolved names and classes; the recipe is used when null
+     */
+    public static function of(Panel $panel, PanelRecipe $recipe, ?array $sources = null): string
     {
+        $metadata = self::metadata($panel, $recipe);
+
+        if ($sources !== null) {
+            $metadata['sources'] = $sources;
+        }
+
         return hash('sha256', json_encode(
-            self::canonical(self::metadata($panel, $recipe)),
+            self::canonical($metadata),
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
         ));
     }
