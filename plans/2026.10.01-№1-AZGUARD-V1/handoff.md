@@ -8,11 +8,11 @@
 | Model class | frontier |
 | Effort | high |
 | Capabilities | — |
-| Context | continue-root |
-| Essence | Review P2, read-only, свежая сессия (P2.10) |
+| Context | cold-start-root: owner-requested-new-session |
+| Essence | Review P2, read-only, свежая сессия, codex/gpt-6.1-sol (P2.10) |
 
 ```session-continuity-decision/v1
-{"schema_version":"session-continuity-decision/v1","outcome":"continue-root","reason":"authorized-scope-complete","evidence":["lifecycle:scope-complete","checkpoint:sha256:0b84c64df2519e3ef02a61912fd227bbb1c7a404a5a797275c1734ac6862e9e7"],"runnable":true}
+{"schema_version":"session-continuity-decision/v1","outcome":"cold-start-root","reason":"owner-requested-new-session","evidence":["checkpoint:git:01175e3e2c705df3380b68f3a1ac84680dc0b4e9","persisted-context:owner-requested-new-session"],"runnable":true}
 ```
 
 ````
