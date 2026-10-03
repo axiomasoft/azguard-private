@@ -17,7 +17,7 @@ const AZGUARD_OUTER_ZONES = [
     'AzGuard\Policies', 'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Schema', 'AzGuard\Storage',
     'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
     'AzGuard\Diagnostics', 'AzGuard\Internal', 'AzGuard\Facades', 'AzGuard\Concerns', 'AzGuard\Events',
-    'AzGuard\Attributes',
+    'AzGuard\Attributes', 'AzGuard\Permissions',
 ];
 
 /**
@@ -88,6 +88,28 @@ forbidDependencies(
     ['AzGuard\Storage', 'AzGuard\Changes'],
 );
 
+it('rejects a policy file that imports storage or changes', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-policy-zone-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $copy = $directory.'/PolicyBinding.php';
+    file_put_contents($copy, <<<'PHP'
+        <?php
+        namespace AzGuard\Policies;
+        use AzGuard\Storage\Models\Grant;
+        use AzGuard\Changes\Change;
+        final class PolicyBinding {}
+        PHP);
+
+    $root = dirname(__DIR__, 2);
+    $policies = SourceScan::files('packages/core/src/Policies');
+
+    expect(azguardZoneImports($copy, ['AzGuard\Storage', 'AzGuard\Changes']))->toBe(['AzGuard\Changes', 'AzGuard\Storage'])
+        ->and(array_merge(...array_map(
+            static fn (string $file): array => azguardZoneImports($file, ['AzGuard\Storage', 'AzGuard\Changes']),
+            $policies,
+        )))->toBe([]);
+});
+
 forbidDependencies(
     'configuration depends only on the kernel, exceptions and the framework',
     ['AzGuard\Configuration'],
@@ -149,6 +171,51 @@ arch('plugins do not reach into internals')
 /**
  * @return list<string> `transaction` calls; comments and strings are not calls
  */
+/**
+ * @param  list<string>  $zones
+ * @return list<string> imported zones, sorted
+ */
+function azguardZoneImports(string $file, array $zones): array
+{
+    $found = [];
+    $tokens = token_get_all((string) file_get_contents($file));
+
+    foreach ($tokens as $index => $token) {
+        if (! is_array($token) || $token[0] !== T_USE) {
+            continue;
+        }
+
+        $name = '';
+
+        for ($cursor = $index + 1, $count = count($tokens); $cursor < $count; $cursor++) {
+            $part = $tokens[$cursor];
+
+            if ($part === ';' || (is_array($part) && $part[0] === T_AS)) {
+                break;
+            }
+
+            if (is_array($part) && in_array($part[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                $name .= ltrim($part[1], '\\');
+            }
+
+            if ($part === '\\') {
+                $name .= '\\';
+            }
+        }
+
+        foreach ($zones as $zone) {
+            if ($name === $zone || str_starts_with($name, $zone.'\\')) {
+                $found[] = $zone;
+            }
+        }
+    }
+
+    $found = array_values(array_unique($found));
+    sort($found);
+
+    return $found;
+}
+
 function azguardTransactionCalls(string $file): array
 {
     $tokens = token_get_all((string) file_get_contents($file));

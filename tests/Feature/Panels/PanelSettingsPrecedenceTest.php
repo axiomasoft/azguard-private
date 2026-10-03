@@ -19,6 +19,7 @@ use AzGuard\Tests\Fixtures\Panels\PanelModuleProvider;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
+use AzGuard\Tests\Fixtures\Sources\StaticSource;
 
 uses(BootsPanels::class);
 
@@ -120,7 +121,9 @@ it('compiles booted panels with the defaults of the configuration and reports th
 });
 
 it('keeps list items of the provider and of configure for all panels in layer order after a boot', function (): void {
-    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->roles([SellerRole::class]));
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel
+        ->permissions([StaticSource::names('clients', 'clients.view', 'clients.update')])
+        ->roles([SellerRole::class]));
 
     $this->bootPanels(['providers' => [AdminPanel::class, CabinetPanel::class]], [PanelModuleProvider::class]);
 

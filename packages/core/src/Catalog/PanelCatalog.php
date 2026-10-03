@@ -38,7 +38,7 @@ use UnitEnum;
  * @phpstan-type Owner array{source: string, origin: string}
  * @phpstan-type SourceEntry array{id: string, class: string, origin: string}
  * @phpstan-type DefinitionEntry array{local: string, authority: string, label: ?string, group: ?string, description: ?string, case: array{enum: string, name: string}|null, resource_model: class-string<Model>|null, source: string, origin: string}
- * @phpstan-type Snapshot array{panel: string, prefix: ?string, dynamic: bool, sources: list<SourceEntry>, permissions: list<DefinitionEntry>, bindings: array<string, class-string>, roles: array<string, CompiledRole>}
+ * @phpstan-type Snapshot array{panel: string, prefix: ?string, dynamic: bool, sources: list<SourceEntry>, permissions: list<DefinitionEntry>, bindings: array<string, class-string>, binding_methods: array<string, string>, roles: array<string, CompiledRole>}
  */
 final class PanelCatalog implements PermissionCatalog
 {
@@ -59,6 +59,9 @@ final class PanelCatalog implements PermissionCatalog
 
     /** @var array<string, class-string> local name => policy class */
     private array $bindings = [];
+
+    /** @var array<string, string> local name => policy method that carries #[Decides] */
+    private array $bindingMethods = [];
 
     /** @var array<string, CompiledRole> */
     private array $roles = [];
@@ -149,6 +152,7 @@ final class PanelCatalog implements PermissionCatalog
 
             $catalog->static = $catalog->definitions;
             $catalog->bindings = $snapshot['bindings'];
+            $catalog->bindingMethods = $snapshot['binding_methods'];
             $catalog->roles = $snapshot['roles'];
         } catch (Throwable) {
             // The file is data written by an earlier build: whatever does not restore is rebuilt from the sources.
@@ -219,6 +223,14 @@ final class PanelCatalog implements PermissionCatalog
     public function bindings(): array
     {
         return $this->bindings;
+    }
+
+    /**
+     * The policy method bound to a local permission name, when discovery recorded one.
+     */
+    public function bindingMethod(string $permission): ?string
+    {
+        return $this->bindingMethods[$permission] ?? null;
     }
 
     /**
@@ -306,6 +318,7 @@ final class PanelCatalog implements PermissionCatalog
             'sources' => $this->sources,
             'permissions' => $permissions,
             'bindings' => $this->bindings,
+            'binding_methods' => $this->bindingMethods,
             'roles' => $this->roles,
         ];
     }
@@ -385,6 +398,10 @@ final class PanelCatalog implements PermissionCatalog
 
                 $this->bindings[$local] = $binding->policy;
                 $boundBy[$local] ??= $owner;
+
+                if ($binding->method !== null) {
+                    $this->bindingMethods[$local] = $binding->method;
+                }
             }
         }
 

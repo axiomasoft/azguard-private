@@ -19,6 +19,6 @@ final class BlogGuardPanelProvider extends PanelProvider
 
     public function panel(PanelBuilder $panel): PanelBuilder
     {
-        return $panel->permissions([BlogPermission::class]);
+        return $panel->resourcePrefix(false)->permissions([BlogPermission::class]);
     }
 }

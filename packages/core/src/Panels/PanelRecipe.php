@@ -54,6 +54,10 @@ final class PanelRecipe
 
     public const string ROLES = 'roles';
 
+    public const string DISCOVER = 'discover';
+
+    public const string POLICIES = 'policies';
+
     public const string PRESENTATION = 'presentation';
 
     public const string BEFORE = 'before';
@@ -97,6 +101,9 @@ final class PanelRecipe
 
     private bool $sealed = false;
 
+    /** @var class-string<PanelProvider>|null */
+    private ?string $providerClass = null;
+
     public function __construct(private readonly string $panelId)
     {
         $this->origin = self::provider();
@@ -130,6 +137,22 @@ final class PanelRecipe
     public function panelId(): string
     {
         return $this->panelId;
+    }
+
+    /**
+     * @param  class-string<PanelProvider>  $provider
+     */
+    public function setProvider(string $provider): void
+    {
+        $this->providerClass = $provider;
+    }
+
+    /**
+     * @return class-string<PanelProvider>|null
+     */
+    public function providerClass(): ?string
+    {
+        return $this->providerClass;
     }
 
     /**

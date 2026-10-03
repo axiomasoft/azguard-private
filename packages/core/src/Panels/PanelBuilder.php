@@ -12,6 +12,7 @@ use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use BackedEnum;
 use Closure;
@@ -216,6 +217,59 @@ final class PanelBuilder
         }
 
         return $this->record(PanelRecipe::ROLES, $classes);
+    }
+
+    /**
+     * Adds a directory whose permissions, policies, roles and scopes join the panel folder.
+     *
+     * The namespace is the namespace of that directory. Omit it and each file is accepted when its own
+     * namespace ends with the directory path under the discovered root.
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function discover(string $path, ?string $namespace = null): static
+    {
+        if ($path === '' || ! is_dir($path)) {
+            throw $this->invalid('discover() expects a directory, got '.json_encode($path));
+        }
+
+        return $this->record(PanelRecipe::DISCOVER, [[
+            'path' => $path,
+            'namespace' => $namespace === null || $namespace === '' ? null : trim($namespace, '\\'),
+        ]]);
+    }
+
+    /**
+     * Adds policy bindings: a policy class is read from its `#[Decides]` methods, and a binding names
+     * the permission whose method must exist.
+     *
+     * @param  list<PolicyBinding|class-string>  $bindings
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function policies(array $bindings): static
+    {
+        $declared = [];
+
+        foreach (self::input($bindings) as $binding) {
+            if ($binding instanceof PolicyBinding) {
+                $declared[] = $binding;
+
+                continue;
+            }
+
+            if (is_string($binding) && $binding !== '' && class_exists($binding)) {
+                $declared[] = ltrim($binding, '\\');
+
+                continue;
+            }
+
+            throw $this->invalid('policies() expects policy classes or '.PolicyBinding::class.' objects, got '.self::describe($binding));
+        }
+
+        return $this->record(PanelRecipe::POLICIES, $declared);
     }
 
     /**

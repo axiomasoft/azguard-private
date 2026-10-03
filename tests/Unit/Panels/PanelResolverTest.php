@@ -220,7 +220,8 @@ it('tells which panel owns a gate ability without picking a panel for foreign on
     'full name with an unknown action' => ['admin:ghosts.summon', 'admin'],
     'full name of an unknown panel' => ['ghost:orders.view', null],
     'registered prefix' => ['admin.orders.view', 'admin'],
-    'dotted name outside the catalog of the candidate' => ['invoices.view', null],
+    'dotted name in the catalog of the candidate' => ['invoices.view', 'cabinet'],
+    'dotted name outside the catalog of the candidate' => ['ghosts.summon', null],
 ]);
 
 it('owns no dotted ability without a candidate or outside the catalog of the candidate', function (): void {
@@ -231,8 +232,9 @@ it('owns no dotted ability without a candidate or outside the catalog of the can
 
     $current->set($resolver->resolve(panel: 'admin')['panel']);
 
-    expect($resolver->owner('orders.view', new User))->toBeNull()
-        ->and($resolver->owner('orders.view', new Seller))->toBeNull();
+    expect($resolver->owner('orders.view', new User)?->id())->toBe('admin')
+        ->and($resolver->owner('orders.view', new Seller))->toBeNull()
+        ->and($resolver->owner('ghosts.summon', new User))->toBeNull();
 });
 
 it('cannot resolve before the panels are compiled', function (): void {

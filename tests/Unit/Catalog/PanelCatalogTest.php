@@ -54,7 +54,6 @@ function catalogRegistry(array $permissions): PanelRegistry
 
 it('collects definitions of static sources by local name in contribution order', function (): void {
     $catalog = catalogOfAdmin([
-        OrderPermission::class,
         StaticSource::names('orders', 'orders.view', 'orders.update'),
         new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)]),
         new ArraySource('plain'),

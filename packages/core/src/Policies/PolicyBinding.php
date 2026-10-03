@@ -21,18 +21,21 @@ final readonly class PolicyBinding
     /**
      * @param  BackedEnum|string  $permission  enum case or local permission name
      * @param  class-string  $policy
+     * @param  string|null  $method  policy method that carries #[Decides] for this permission
      */
     private function __construct(
         public BackedEnum|string $permission,
         public string $policy,
+        public ?string $method = null,
     ) {}
 
     /**
      * @param  UnitEnum|string  $permission  string-backed enum case or local permission name
+     * @param  string|null  $method  policy method that carries #[Decides] for this permission
      *
      * @throws DefinitionException when the permission is neither, or the policy class does not exist
      */
-    public static function for(UnitEnum|string $permission, string $policy): self
+    public static function for(UnitEnum|string $permission, string $policy, ?string $method = null): self
     {
         if ($permission instanceof UnitEnum && (! $permission instanceof BackedEnum || ! is_string($permission->value))) {
             throw new DefinitionException(
@@ -54,7 +57,7 @@ final readonly class PolicyBinding
             );
         }
 
-        return new self($permission, $class);
+        return new self($permission, $class, $method);
     }
 
     private static function describe(UnitEnum|string $permission): string

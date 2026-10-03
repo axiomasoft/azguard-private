@@ -6,7 +6,9 @@ namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Policies\PolicyBinding;
 use Closure;
+use UnitEnum;
 
 /**
  * Fingerprint of what a panel is built from: sha256 of canonical JSON of its normalized metadata.
@@ -20,13 +22,18 @@ final class PanelFingerprint
 {
     /**
      * @param  list<array<string, string>>|null  $sources  resolved names and classes; the recipe is used when null
+     * @param  array<string, mixed>|null  $discovery  folder names, roots and file hashes
      */
-    public static function of(Panel $panel, PanelRecipe $recipe, ?array $sources = null): string
+    public static function of(Panel $panel, PanelRecipe $recipe, ?array $sources = null, ?array $discovery = null): string
     {
         $metadata = self::metadata($panel, $recipe);
 
         if ($sources !== null) {
             $metadata['sources'] = $sources;
+        }
+
+        if ($discovery !== null) {
+            $metadata['discovery'] = $discovery;
         }
 
         return hash('sha256', json_encode(
@@ -68,6 +75,8 @@ final class PanelFingerprint
             'subjects' => $recipe->subjects(),
             'enums' => $recipe->enums(),
             'roles' => $recipe->roles(),
+            'discover' => self::discover($recipe),
+            'policies' => array_map(self::policy(...), $recipe->items(PanelRecipe::POLICIES)),
             'plugins' => $panel->pluginIds(),
             'sources' => array_map(
                 static fn (Source|string $source): array => $source instanceof Source
@@ -83,6 +92,47 @@ final class PanelFingerprint
                 PanelCompiler::items($recipe, PanelRecipe::RESOURCE_SCOPES),
             ),
         ];
+    }
+
+    /**
+     * @return list<array{path: string, namespace: ?string, origin: string}>
+     */
+    private static function discover(PanelRecipe $recipe): array
+    {
+        $roots = [];
+
+        foreach ($recipe->layered(PanelRecipe::DISCOVER) as $record) {
+            $origin = $record['origin'];
+            $label = $origin['kind'] === PanelRecipe::PLUGIN ? PanelRecipe::PLUGIN.':'.$origin['plugin'] : $origin['kind'];
+
+            foreach (is_array($record['value']) ? $record['value'] : [] as $root) {
+                if (! is_array($root) || ! is_string($root['path'] ?? null)) {
+                    continue;
+                }
+
+                $namespace = $root['namespace'] ?? null;
+                $roots[] = [
+                    'path' => $root['path'],
+                    'namespace' => is_string($namespace) ? $namespace : null,
+                    'origin' => $label,
+                ];
+            }
+        }
+
+        return $roots;
+    }
+
+    private static function policy(mixed $item): string
+    {
+        if ($item instanceof PolicyBinding) {
+            $permission = $item->permission instanceof UnitEnum
+                ? $item->permission::class.'::'.$item->permission->name
+                : (string) $item->permission;
+
+            return $permission.'@'.$item->policy.($item->method === null ? '' : '::'.$item->method);
+        }
+
+        return self::name($item);
     }
 
     private static function name(mixed $item): string

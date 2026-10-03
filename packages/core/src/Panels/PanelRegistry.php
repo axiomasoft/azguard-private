@@ -9,6 +9,7 @@ use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePanelException;
 use AzGuard\Exceptions\InvalidPanelIdException;
@@ -16,7 +17,9 @@ use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Sources\Folder\PanelDiscovery;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\SourceManager;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -62,6 +65,9 @@ final class PanelRegistry implements PanelRegistryContract
 
     /** @var array<class-string, list<string>> permission enum => ids of the panels it is attached to */
     private array $enums = [];
+
+    /** @var array<string, array<mixed>> discovery of each panel, as the catalog cache stores it */
+    private array $discoveries = [];
 
     private bool $frozen = false;
 
@@ -185,14 +191,18 @@ final class PanelRegistry implements PanelRegistryContract
 
         foreach ($providers as $id => $providerClass) {
             [$recipes[$id], $plugins[$id]] = $this->write($id, $providerClass, $buildId);
-            $resolved = PanelSources::of($recipes[$id], $this->app);
+            $stored = $this->storedDiscovery($cached, $buildId, $id);
+            $discovery = PanelDiscovery::resolve($recipes[$id], $this->app, $stored);
+            $this->registerDiscoveredSources($discovery->sources);
+            $resolved = PanelSources::of($recipes[$id], $this->app, $discovery);
             $panels[$id] = $this->compiler->compile($recipes[$id], $resolved, $this->app);
-            $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id], $resolved->identity());
+            $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id], $resolved->identity(), $discovery->fingerprint());
             $snapshot = CatalogCache::entry($cached, $buildId, $id, $recipeFingerprints[$id]);
             $catalogs[$id] = ($snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot))
                 ?? PanelCatalog::build($panels[$id], $resolved, $this->app);
             $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
-            $enums = $this->attachEnums($enums, $id, $recipes[$id]->enums());
+            $this->discoveries[$id] = $discovery->cache();
+            $enums = $this->attachEnums($enums, $id, array_values(array_unique([...$recipes[$id]->enums(), ...$discovery->enums])));
         }
 
         $this->compiler->assertDefaults($panels);
@@ -300,7 +310,11 @@ final class PanelRegistry implements PanelRegistryContract
 
         foreach ($panels as $id => $panel) {
             $catalogs[$id] = $this->compiler->catalog($panel, $this->recipes[$id], $this->app);
-            $entries[$id] = ['fingerprint' => $this->recipeFingerprints[$id], 'catalog' => $catalogs[$id]->snapshot()];
+            $entries[$id] = [
+                'fingerprint' => $this->recipeFingerprints[$id],
+                'catalog' => $catalogs[$id]->snapshot(),
+                'discovery' => $this->discoveries[$id] ?? [],
+            ];
         }
 
         $this->compiler->prefixes($panels, $catalogs);
@@ -318,6 +332,7 @@ final class PanelRegistry implements PanelRegistryContract
     private function write(string $id, string $providerClass, string $buildId): array
     {
         $recipe = new PanelRecipe($id);
+        $recipe->setProvider($providerClass);
         $builder = new PanelBuilder($recipe);
 
         $recipe->during(PanelRecipe::provider(), function () use ($id, $providerClass, $builder): void {
@@ -408,6 +423,35 @@ final class PanelRegistry implements PanelRegistryContract
             throw new RegistryFrozenException(
                 'Cannot '.$action.': the panel registry is frozen once the application has booted.',
             );
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $file
+     * @return array<mixed>|null
+     */
+    private function storedDiscovery(array $file, string $buildId, string $panel): ?array
+    {
+        if (($file['version'] ?? null) !== CatalogCache::VERSION || ($file['build_id'] ?? null) !== $buildId) {
+            return null;
+        }
+
+        $discovery = $file['panels'][$panel]['discovery'] ?? null;
+
+        return is_array($discovery) ? $discovery : null;
+    }
+
+    /**
+     * @param  list<class-string>  $classes
+     */
+    private function registerDiscoveredSources(array $classes): void
+    {
+        $manager = $this->app->make(SourceManager::class);
+
+        foreach ($classes as $class) {
+            if (is_subclass_of($class, Source::class)) {
+                $manager->register($class);
+            }
         }
     }
 

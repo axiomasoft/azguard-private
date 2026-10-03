@@ -19,6 +19,19 @@ final readonly class AzGuardConfig
 
     private const array CATALOG_KEYS = ['build_id', 'cache_path'];
 
+    private const array DISCOVERY_KEYS = ['permissions', 'policies', 'roles', 'scopes', 'abilities', 'queries', 'shared'];
+
+    /** @var array<string, string> */
+    private const array DISCOVERY_DEFAULTS = [
+        'permissions' => 'Permissions',
+        'policies' => 'Policies',
+        'roles' => 'Roles',
+        'scopes' => 'Scopes',
+        'abilities' => 'Abilities',
+        'queries' => 'Queries',
+        'shared' => 'Shared',
+    ];
+
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
         'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions'],
@@ -31,6 +44,7 @@ final readonly class AzGuardConfig
      * @param  list<string>  $panelProviders
      * @param  array<string, bool|int|string|null>  $defaults
      * @param  array<string, array<string, mixed>>  $sources
+     * @param  array<string, string>  $discovery
      */
     private function __construct(
         private array $panelProviders,
@@ -38,6 +52,8 @@ final readonly class AzGuardConfig
         private ?string $buildId,
         private ?string $catalogCachePath,
         private array $sources,
+        /** @var array{permissions: string, policies: string, roles: string, scopes: string, abilities: string, queries: string, shared: string} */
+        private array $discovery,
     ) {}
 
     /**
@@ -56,6 +72,7 @@ final readonly class AzGuardConfig
             self::buildIdFrom($catalog['build_id'] ?? null),
             self::cachePathFrom($catalog['cache_path'] ?? null),
             self::sourcesFrom($config->get('azguard.sources', [])),
+            self::discoveryFrom(self::section('discovery', $config->get('azguard.discovery', []))),
         );
     }
 
@@ -125,6 +142,17 @@ final readonly class AzGuardConfig
     }
 
     /**
+     * Folder names discovery uses, keyed by `permissions`, `policies`, `roles`, `scopes`, `abilities`, `queries`
+     * and `shared`. A missing key keeps its default.
+     *
+     * @return array{permissions: string, policies: string, roles: string, scopes: string, abilities: string, queries: string, shared: string}
+     */
+    public function discovery(): array
+    {
+        return $this->discovery;
+    }
+
+    /**
      * @return array<string, array<string, mixed>>
      *
      * @throws InvalidConfigurationException
@@ -156,6 +184,36 @@ final readonly class AzGuardConfig
         }
 
         return $parsed;
+    }
+
+    /**
+     * @param  array<mixed>  $discovery
+     * @return array{permissions: string, policies: string, roles: string, scopes: string, abilities: string, queries: string, shared: string}
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function discoveryFrom(array $discovery): array
+    {
+        self::assertKnownKeys('discovery', $discovery, self::DISCOVERY_KEYS);
+        $names = self::DISCOVERY_DEFAULTS;
+
+        foreach (self::DISCOVERY_KEYS as $key) {
+            if (! array_key_exists($key, $discovery)) {
+                continue;
+            }
+
+            $value = $discovery[$key];
+
+            if (! is_string($value) || $value === '' || str_contains($value, "\0")) {
+                throw new InvalidConfigurationException(
+                    'azguard.discovery.'.$key.' must be a folder name, got '.get_debug_type($value).'.',
+                );
+            }
+
+            $names[$key] = trim(str_replace('\\', '/', $value), '/');
+        }
+
+        return $names;
     }
 
     /**

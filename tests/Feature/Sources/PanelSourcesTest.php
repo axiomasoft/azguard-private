@@ -8,6 +8,7 @@ use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\BootsPanels;
@@ -43,7 +44,7 @@ it('V77: builds ldap from the attribute with the source configuration, separatel
     expect(LdapSource::$made)->toHaveCount(2)
         ->and(LdapSource::$made[0])->not->toBe(LdapSource::$made[1])
         ->and(LdapSource::$made[0]->config())->toBe(['group_attribute' => 'memberOf'])
-        ->and(app(PanelRegistry::class)->get('admin')->sources()[0]->id)->toBe('ldap')
+        ->and(array_map(static fn ($description) => $description->id, app(PanelRegistry::class)->get('admin')->sources()))->toBe(['folder', 'ldap'])
         ->and(app(PanelRegistry::class)->get('admin')->isWritable())->toBeFalse()
         ->and(app(PanelRegistry::class)->get('admin')->writer())->toBeNull();
 });
@@ -144,9 +145,9 @@ it('V107: keeps enums out of the source list and preserves the order of the rest
 
     $panel = $registry->get('admin');
 
-    expect(array_map(static fn ($description) => $description->id, $panel->sources()))->toBe(['app', 'ldap'])
+    expect(array_map(static fn ($description) => $description->id, $panel->sources()))->toBe(['folder', 'app', 'ldap'])
         ->and(array_map(static fn ($description) => $description->class, $panel->sources()))
-        ->toBe([StaticSource::class, LdapSource::class])
+        ->toBe([FolderSource::class, StaticSource::class, LdapSource::class])
         ->and($registry->forEnum(OrderPermission::class))->toHaveCount(1);
 });
 

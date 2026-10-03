@@ -20,6 +20,9 @@ use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Sources\Folder\DiscoverySnapshot;
+use AzGuard\Sources\Folder\FolderSource;
+use AzGuard\Sources\Folder\PanelDiscovery;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -59,20 +62,29 @@ final readonly class PanelSources
      * @throws DefinitionException when two sources of the panel share an id, or a creator fails
      * @throws WriterConflictException when more than one source stores grants
      */
-    public static function of(PanelRecipe $recipe, Container $container): self
+    public static function of(PanelRecipe $recipe, Container $container, ?DiscoverySnapshot $discovery = null): self
     {
         $panel = $recipe->panelId();
         $manager = $container->make(SourceManager::class);
+        $discovery ??= PanelDiscovery::resolve($recipe, $container, null);
+        $configured = FolderSource::configured($recipe);
+        $folder = clone ($configured['source'] ?? FolderSource::make());
+        $folder->bind($discovery, $recipe, $container);
         /** @var list<Attached> $sources */
-        $sources = [];
+        $sources = [[
+            'source' => $folder,
+            'origin' => $configured['origin'] ?? PanelRecipe::PROVIDER,
+            'plugin' => $configured['plugin'] ?? null,
+            'name' => null,
+        ]];
         /** @var array<string, Source> $byId */
-        $byId = [];
+        $byId = [$folder->id() => $folder];
         /** @var list<string> $writers */
         $writers = [];
 
         foreach ($recipe->layered(PanelRecipe::PERMISSIONS) as $record) {
             foreach (is_array($record['value']) ? $record['value'] : [] as $definition) {
-                if (is_string($definition) && is_subclass_of($definition, BackedEnum::class)) {
+                if ((is_string($definition) && is_subclass_of($definition, BackedEnum::class)) || $definition instanceof FolderSource) {
                     continue;
                 }
 

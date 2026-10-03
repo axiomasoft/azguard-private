@@ -636,3 +636,63 @@ Run: `plan-run P2.7` (старт B2c, session `01a10271-add8-7d91-a846-ea6698b91
 
 Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`. Предупреждение FFI
 type-coverage то же, код выхода 0.
+
+## P2.8 — FolderSource: discovery папки панели, атрибуты, pairing политик (2026-10-03)
+
+Run: `plan-run P2.8 P2.9` (остаток B2c, session `01a10299-b1bc-76e1-b6ef-606846d0bb18`), run id
+`72845496e69185287c34ef6eb9302d0c456f3c8e27df987bf65d3077d40b83c4`. Маршрут `frontier/high`, exact. Работа в `main`.
+P2.9 этим разделом не закрыт.
+
+### Правила D56 п.1–п.5 → тест
+
+| Правило | Тест |
+|:--|:--|
+| п.1 Root — папка провайдера или `discover()`; происхождение сохраняется; группы разных roots не склеиваются | `FolderPanelTest` — `keeps Orders of two plugins apart` (`support.orders.view` → `SupportOrderPolicy`, `desk.orders.view` → `DeskOrderPolicy`, `orders.refund` остаётся у `OrderPolicy`) |
+| п.2 `#[PolicyFor]` задаёт enum, когда в группе несколько кандидатов | тот же файл — `duo.first.view` / `duo.second.view` |
+| п.3 Один enum и одна политика группы образуют пару; несколько кандидатов без точной привязки — `invalid_policy_structure` | `reads the panel folder` и `rejects a group with several candidates` (`OnePermission.php` в тексте) |
+| п.4 Метод только с `#[Decides]`; имя свободное (`anyName`); повтор метода на одно право и `PolicyBinding` без ровно одного `#[Decides]` — ошибка | `bindingMethod('orders.refund')` = `anyName`; `ignored()` не создаёт привязку; `BindingGuardPanelProvider` → `exactly one` |
+| п.5 `Queries/` не регистрируются сами. `Scopes/` только перечисляются | снимок `discovery.scopes` содержит `ProjectScope`, в каталог прав не входит |
+
+### V78 / V79 / V102 / V106 → тест
+
+| Что проверено | Тест |
+|:--|:--|
+| V78: пара `Permissions/Orders` и `Policies/Orders`, `#[Decides]`, метод без атрибута не привязан, вложенное имя `orders.line.refund`, конфликт группы, declared veto без атрибута, `Shared/` не панель, live = cache | `FolderPanelTest` |
+| V79: `#[Role('manager', level: 10)]`, подпись, `#[SuperAdmin]`, override `key()`/`label()`/`level()` побеждает атрибут, роль без ключа — `InvalidRoleKeyException` | `reads the panel folder`, `rejects a group…` (`BareRole`) |
+| V102: `blog.posts.edit` без префикса плагина, `keyOf` и `Role::permissions()` дают один ключ `blog.posts.edit`, роль `blog-editor`, `#[Decides]` на то же имя | `discovers a module folder without prefixing` |
+| V106: `Permissions/Sources` — группа прав, корневой `Sources/` и `Resources/` не сканируются, `Sales` не требуется: `Orders` двух плагинов не склеены, `#[PolicyFor]` для двух enum одной группы, live = cache | `reads the panel folder`, `keeps Orders of two plugins apart` |
+
+### Live и cached
+
+`azguard:catalog:cache` пишет `discovery` рядом с каталогом. Повторный boot при тех же корнях и sha256 файлов не увеличивает `PanelDiscovery::$parsed` (0) и даёт тот же `snapshot()`. Обход каталогов и чтение байтов для сверки хешей остаётся: по ним отпечаток видит новый или изменённый файл. Парсинг классов и pairing при совпавшем снимке не повторяются.
+
+### RED
+
+`tests/Arch/ZonesArchTest.php`: временная копия с `use AzGuard\Storage\…` и `use AzGuard\Changes\…` даёт оба импорта; боевые файлы `packages/core/src/Policies` — ни одного. Правило Pest `Policies ↛ Storage, Changes` на этом прогоне зелёное. `AzGuard\Permissions` добавлен в `AZGUARD_OUTER_ZONES`.
+
+### Решения исполнения
+
+- D10: имена прав, ключи ролей и `Decides` не получают префикс плагина. Фраза спецификации «префикс плагина применяется» не исполнена: Code Guidance V102 и D10 требуют ключ как объявлен.
+- `#[GrantedToAll]` попадает в `discovery.granted_to_all`, не в поля `PermissionDefinition` (выдачи — P4.2).
+- Метод политики хранится в снимке каталога как `binding_methods` и читается `PanelCatalog::bindingMethod()`.
+- Enum из `permissions([...])` теперь входит в каталог. Поэтому `BlogGuardPanelProvider` выключает префикс: локальное имя `blog.posts.edit` иначе совпадает с префиксом панели `blog`. `PanelResolver::owner()` для такого имени отвечает панелью, в чьём каталоге оно есть.
+- Явный `FolderSource` один заменяет встроенный и остаётся первым. Второй — `DefinitionException`. Совпавшие или вложенные имена `permissions` и `policies` — `InvalidConfigurationException`.
+
+### Вне Files
+
+`PanelRecipe` (`discover`/`policies`, класс провайдера), `PanelRegistry` (снимок discovery, регистрация `#[AsSource]`, индекс найденных enum), `PanelCatalog` (`binding_methods`), `PolicyBinding::for()` (необязательный метод). Тесты: `PanelSourcesTest` (источник `folder` первый), `PanelResolverTest` (имя из каталога принадлежит панели), `PanelRegistryTest` и `PanelSettingsPrecedenceTest` (роли `SellerRole` получили права `clients.view`/`clients.update`, иначе компиляция роли падает), фикстуры enum с `#[RequiresGrant]`, `BlogGuardPanelProvider::resourcePrefix(false)`.
+
+### Validation
+
+| # | Carrier | Result |
+|:--|:--|:--|
+| 1 | `vendor/bin/pest tests/Unit/Sources/Folder tests/Feature/Sources/Folder tests/Feature/Catalog tests/Unit/Catalog` | GREEN: 83 passed |
+| 2 | `vendor/bin/pest tests/Arch` | GREEN: 60 passed |
+| 3 | `php bin/api-manifest.php --check` после `composer api:manifest` | exit 0 |
+| 4 | `php -d memory_limit=1G vendor/bin/pest` | GREEN: 1281 passed |
+| 5 | `vendor/bin/pint --test` | GREEN |
+| 6 | `vendor/bin/phpstan analyse --memory-limit=1G` | GREEN: 0 errors |
+| 7 | `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98` | GREEN: 99.8 %, порог 98, exit 0; предупреждение FFI то же |
+| 8 | `git diff --check` | clean |
+
+Окружение: PHP 8.4.1, Laravel 13.33.0, Testbench 11.2.0, Pest 4.7.8, PHPStan 2.2.15; `main`.

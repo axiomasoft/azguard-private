@@ -15,7 +15,6 @@ use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
-use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use UnitEnum;
@@ -263,7 +262,7 @@ final class PanelResolver
     }
 
     /**
-     * The permission as a key of the picked panel: the panel prefix is stripped, an enum gives its value.
+     * The permission as a key of the picked panel: the panel prefix is stripped, an enum uses the catalog.
      *
      * @throws InvalidPermissionKeyException
      * @throws InvalidPanelIdException
@@ -272,11 +271,7 @@ final class PanelResolver
     private function key(Panel $panel, UnitEnum|string $permission): PermissionKey
     {
         if ($permission instanceof UnitEnum) {
-            if (! $permission instanceof BackedEnum || ! is_string($permission->value)) {
-                throw new UnknownPermissionException('Permission enum '.$permission::class.' must be string-backed.');
-            }
-
-            return PermissionKey::of($panel->id(), $permission->value);
+            return $this->registry->catalog($panel->id())->keyOf($permission);
         }
 
         if (str_contains($permission, ':')) {

@@ -96,4 +96,27 @@ return [
         // 'ldap' => ['group_attribute' => 'memberOf'],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Discovery
+    |--------------------------------------------------------------------------
+    |
+    | Folder names, relative to a panel provider or a discover() directory.
+    | Permissions and policies must be different directories, and neither may
+    | sit inside the other. Shared is the sibling of a panel directory: it is
+    | not a panel, and only its Sources/ classes that carry #[AsSource] are
+    | registered.
+    |
+    */
+
+    'discovery' => [
+        'permissions' => 'Permissions',
+        'policies' => 'Policies',
+        'roles' => 'Roles',
+        'scopes' => 'Scopes',
+        'abilities' => 'Abilities',
+        'queries' => 'Queries',
+        'shared' => 'Shared',
+    ],
+
 ];

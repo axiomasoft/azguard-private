@@ -27,6 +27,7 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
+use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use Illuminate\Support\ServiceProvider;
 
 beforeEach(function (): void {
@@ -192,7 +193,9 @@ it('compiles an empty registry', function (): void {
 });
 
 it('applies configure callbacks as the provider and configureAll callbacks below it, once per panel', function (): void {
-    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Admin')->roles([SellerRole::class]));
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Admin')
+        ->permissions([StaticSource::names('clients', 'clients.view', 'clients.update')])
+        ->roles([SellerRole::class]));
     $calls = ['configure' => 0, 'all' => []];
 
     $registry = panelRegistry();
