@@ -21,8 +21,12 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.7` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P1.8` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.1 P2.2 P2.3` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.4 P2.5 P2.6` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.7 P2.8 P2.9` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.4` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.6` | `implementation/medium` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.7` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.9` | `implementation/medium` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.5` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.10` | `frontier/high` | `none` |
 
 ## Execution card
@@ -44,12 +48,12 @@
 | P2.1 | B2a | plan-run series | frontier/high | — | панель, builder, реестр, минимальный конфиг |
 | P2.2 | B2a | ↑ | frontier/high | — | PanelResolver, префиксы; регрессии P01c, P05, P09 |
 | P2.3 | B2a | ↑ | frontier/high | — | порядок настроек, PanelSettings |
-| P2.4 | B2b | plan-run series | frontier/high | — | плагины, PluginContext, build id |
-| P2.5 | B2b | ↑ | frontier/high | — | контракты каталога, каталог, компиляция ролей, catalog:cache |
-| P2.6 | B2b | ↑ | implementation/medium | — | фасад панелей, модульные фикстуры |
-| P2.7 | B2c | plan-run series | frontier/high | — | фабрика источников, SourceManager, писатель |
-| P2.8 | B2c | ↑ | frontier/high | — | FolderSource, discovery, pairing политик |
-| P2.9 | B2c | ↑ | implementation/medium | — | кадры областей и directories (D6) |
+| P2.4 | solo | plan-run series | frontier/high | — | плагины, PluginContext, build id |
+| P2.5 | solo | plan-run | frontier/high | — | контракты каталога, каталог, компиляция ролей, catalog:cache |
+| P2.6 | solo | ↑ | implementation/medium | — | фасад панелей, модульные фикстуры |
+| P2.7 | solo | plan-run series | frontier/high | — | фабрика источников, SourceManager, писатель |
+| P2.8 | solo | plan-run | frontier/high | — | FolderSource, discovery, pairing политик |
+| P2.9 | solo | ↑ | implementation/medium | — | кадры областей и directories (D6) |
 | P2.10 | solo | plan-run | frontier/high | — | Review P2, read-only verdict, свежая сессия |
 
 ## Owner gates (summary)

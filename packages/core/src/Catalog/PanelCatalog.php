@@ -18,11 +18,14 @@ use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\Panel;
+use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionClass;
+use ReflectionMethod;
 use Throwable;
 use UnitEnum;
 
@@ -226,7 +229,7 @@ final class PanelCatalog implements PermissionCatalog
     }
 
     /**
-     * The policy method bound to a local permission name, when discovery recorded one.
+     * The attributed policy method bound to a local permission name.
      */
     public function bindingMethod(string $permission): ?string
     {
@@ -368,6 +371,7 @@ final class PanelCatalog implements PermissionCatalog
      * @throws DuplicatePolicyBindingException
      * @throws InvalidPolicyStructureException
      * @throws InvalidSourceContributionException
+     * @throws DefinitionException
      */
     private function bind(Panel $panel, PanelSources $sources): void
     {
@@ -396,12 +400,10 @@ final class PanelCatalog implements PermissionCatalog
                     );
                 }
 
+                $method = $this->bindingMethodFor($binding);
                 $this->bindings[$local] = $binding->policy;
                 $boundBy[$local] ??= $owner;
-
-                if ($binding->method !== null) {
-                    $this->bindingMethods[$local] = $binding->method;
-                }
+                $this->bindingMethods[$local] = $method;
             }
         }
 
@@ -413,6 +415,63 @@ final class PanelCatalog implements PermissionCatalog
                 );
             }
         }
+    }
+
+    /**
+     * Every source declares the same contract: exactly one public nonstatic method decides the action.
+     *
+     * @throws DefinitionException
+     */
+    private function bindingMethodFor(PolicyBinding $binding): string
+    {
+        $methods = [];
+
+        foreach ((new ReflectionClass($binding->policy))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->isStatic()) {
+                continue;
+            }
+
+            foreach ($method->getAttributes(Decides::class) as $attribute) {
+                if (self::samePermission($attribute->newInstance()->permission, $binding->permission)) {
+                    $methods[$method->getName()] = true;
+                }
+            }
+        }
+
+        if (count($methods) !== 1) {
+            throw new DefinitionException(
+                'Panel "'.$this->panel.'" binds '.self::permissionName($binding->permission).' to '.$binding->policy
+                .', which has '.count($methods).' public nonstatic methods with #[Decides] for that permission: the policy needs exactly one.',
+            );
+        }
+
+        $method = array_key_first($methods);
+
+        if ($binding->method !== null && $binding->method !== $method) {
+            throw new DefinitionException(
+                'Panel "'.$this->panel.'" binds '.self::permissionName($binding->permission).' to '.$binding->policy.'::'.$binding->method
+                .', but #[Decides] selects '.$method.': the explicit method must match the attributed method.',
+            );
+        }
+
+        return $method;
+    }
+
+    private static function samePermission(UnitEnum|string $declared, BackedEnum|string $wanted): bool
+    {
+        if ($declared instanceof UnitEnum && $wanted instanceof UnitEnum) {
+            return $declared === $wanted;
+        }
+
+        $left = $declared instanceof BackedEnum && is_string($declared->value) ? $declared->value : $declared;
+        $right = $wanted instanceof BackedEnum && is_string($wanted->value) ? $wanted->value : $wanted;
+
+        return is_string($left) && $left === $right;
+    }
+
+    private static function permissionName(BackedEnum|string $permission): string
+    {
+        return $permission instanceof UnitEnum ? $permission::class.'::'.$permission->name : '"'.$permission.'"';
     }
 
     /**

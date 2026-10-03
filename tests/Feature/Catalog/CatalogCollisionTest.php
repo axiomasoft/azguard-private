@@ -14,8 +14,8 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
-use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
 use AzGuard\Tests\Fixtures\Plugins\ProbePlugin;
 use AzGuard\Tests\Fixtures\Roles\ProfileViewerRole;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
@@ -79,7 +79,7 @@ it('rejects one enum case that names two permissions', function (): void {
 
 it('V119: one name has one authority mode across sources', function (): void {
     expect(fn () => collisionPanel([
-        new StaticSource('a', [new PermissionDefinition('clients.own', PermissionAuthority::Policy)], policies: [PolicyBinding::for('clients.own', ClientPolicy::class)]),
+        new StaticSource('a', [new PermissionDefinition('clients.own', PermissionAuthority::Policy)], policies: [PolicyBinding::for('clients.own', AttributedClientPolicy::class)]),
         new StaticSource('b', [new PermissionDefinition('clients.own', PermissionAuthority::Grants)]),
     ]))->toThrow(DuplicatePermissionException::class, '"clients.own"');
 });
@@ -88,7 +88,7 @@ it('V119: a policy-only permission needs a binding and is never listed by a role
     expect(fn () => collisionPanel([new StaticSource('crm', ClientPermission::definitions())]))
         ->toThrow(InvalidPolicyStructureException::class, 'clients.view_own_profile')
         ->and(fn () => collisionPanel([new StaticSource('crm', ClientPermission::definitions(), [new ProfileViewerRole], [
-            PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
+            PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class),
         ])]))->toThrow(DefinitionException::class, 'never assigned');
 });
 

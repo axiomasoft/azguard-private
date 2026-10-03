@@ -22,8 +22,8 @@ use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
-use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\OtherClientPolicy;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +55,7 @@ function catalogRegistry(array $permissions): PanelRegistry
 it('collects definitions of static sources by local name in contribution order', function (): void {
     $catalog = catalogOfAdmin([
         StaticSource::names('orders', 'orders.view', 'orders.update'),
-        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)]),
+        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)]),
         new ArraySource('plain'),
     ]);
 
@@ -79,7 +79,7 @@ it('finds a permission by its local name or its key of the same panel only', fun
 });
 
 it('gives the key an enum case names and refuses an unbound case', function (): void {
-    $catalog = catalogOfAdmin([new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)])]);
+    $catalog = catalogOfAdmin([new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)])]);
 
     expect($catalog->keyOf(ClientPermission::Update)->full())->toBe('admin:clients.update')
         ->and(fn () => $catalog->keyOf(OrderPermission::View))->toThrow(UnknownPermissionException::class, OrderPermission::class.'::View');
@@ -89,7 +89,7 @@ it('answers lookups of a catalog of 5000 permissions from hash indexes without q
     $locals = array_map(static fn (int $i): string => 'bulk.action-'.$i, range(1, 5000));
     $catalog = catalogOfAdmin([
         StaticSource::names('bulk', ...$locals),
-        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)]),
+        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)]),
     ]);
 
     DB::enableQueryLog();
@@ -156,12 +156,12 @@ it('rejects a dynamic permission that is not decided by grants, shadows a static
 
 it('binds policies by case and by name, once per permission', function (): void {
     $catalog = catalogOfAdmin([new StaticSource('clients', ClientPermission::definitions(), policies: [
-        PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
-        PolicyBinding::for('clients.update', ClientPolicy::class),
-        PolicyBinding::for(ClientPermission::Update, ClientPolicy::class),
+        PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class),
+        PolicyBinding::for('clients.update', AttributedClientPolicy::class),
+        PolicyBinding::for(ClientPermission::Update, AttributedClientPolicy::class),
     ])]);
 
-    expect($catalog->bindings())->toBe(['clients.view_own_profile' => ClientPolicy::class, 'clients.update' => ClientPolicy::class]);
+    expect($catalog->bindings())->toBe(['clients.view_own_profile' => AttributedClientPolicy::class, 'clients.update' => AttributedClientPolicy::class]);
 });
 
 it('rejects policy bindings that break the authority rules', function (array $policies, string $exception, string $message): void {
@@ -170,18 +170,18 @@ it('rejects policy bindings that break the authority rules', function (array $po
 })->with([
     'policy-only without a binding' => [[], InvalidPolicyStructureException::class, '"clients.view_own_profile" of panel "admin" is decided by its policy alone'],
     'two policies for one permission' => [[
-        PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
+        PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class),
         PolicyBinding::for('clients.view_own_profile', OtherClientPolicy::class),
-    ], DuplicatePolicyBindingException::class, 'bound to '.ClientPolicy::class.' by source "clients" and to '.OtherClientPolicy::class],
-    'a name outside the catalog' => [[PolicyBinding::for('orders.view', ClientPolicy::class)], UnknownPermissionException::class, '"orders.view" is not in the catalog'],
-    'an unbound case' => [[PolicyBinding::for(OrderPermission::View, ClientPolicy::class)], UnknownPermissionException::class, OrderPermission::class.'::View'],
+    ], DuplicatePolicyBindingException::class, 'bound to '.AttributedClientPolicy::class.' by source "clients" and to '.OtherClientPolicy::class],
+    'a name outside the catalog' => [[PolicyBinding::for('orders.view', AttributedClientPolicy::class)], UnknownPermissionException::class, '"orders.view" is not in the catalog'],
+    'an unbound case' => [[PolicyBinding::for(OrderPermission::View, AttributedClientPolicy::class)], UnknownPermissionException::class, OrderPermission::class.'::View'],
     'not a binding' => [['clients.update'], InvalidSourceContributionException::class, 'from policies()'],
 ]);
 
 it('restores an equal catalog from its snapshot and refuses a broken one', function (): void {
     $catalog = catalogOfAdmin([
         StaticSource::names('orders', 'orders.view'),
-        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)]),
+        new StaticSource('clients', ClientPermission::definitions(), policies: [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)]),
     ]);
     $snapshot = $catalog->snapshot();
     $restored = PanelCatalog::fromSnapshot($snapshot);

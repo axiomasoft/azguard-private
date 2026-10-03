@@ -8,8 +8,8 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
+use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
-use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Sources\BootsWithCatalogCache;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
@@ -24,7 +24,7 @@ beforeEach(function (): void {
 
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
         StaticSource::names('orders', 'orders.view', 'orders.update'),
-        new StaticSource('crm', ClientPermission::definitions(), [new SellerRole], [PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class)]),
+        new StaticSource('crm', ClientPermission::definitions(), [new SellerRole], [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)]),
     ]));
 });
 

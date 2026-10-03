@@ -273,8 +273,6 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
     private function declared(mixed $declared, Panel $panel): array
     {
         if ($declared instanceof PolicyBinding) {
-            $this->requireMethod($declared, $panel);
-
             return [$declared];
         }
 
@@ -300,35 +298,6 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
         }
 
         return $bindings;
-    }
-
-    /**
-     * @throws DefinitionException
-     */
-    private function requireMethod(PolicyBinding $binding, Panel $panel): void
-    {
-        $class = $binding->policy;
-        $wanted = $binding->permission;
-        $methods = [];
-
-        foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->isStatic() || $method->getDeclaringClass()->getName() !== $class) {
-                continue;
-            }
-
-            foreach ($method->getAttributes(Decides::class) as $attribute) {
-                if (self::same($attribute->newInstance()->permission, $wanted)) {
-                    $methods[] = $method->getName();
-                }
-            }
-        }
-
-        if (count($methods) !== 1) {
-            throw new DefinitionException(
-                'Panel "'.$panel->id().'" binds '.self::named($wanted).' to '.$class.', which has '.count($methods)
-                .' methods with #[Decides] for that permission: the policy needs exactly one.',
-            );
-        }
     }
 
     /**
@@ -404,23 +373,6 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
         }
 
         throw new DefinitionException('Panel "'.$panel->id().'" has a policy binding whose permission is not a local name.');
-    }
-
-    private static function same(UnitEnum|string $declared, BackedEnum|string $wanted): bool
-    {
-        if ($declared instanceof UnitEnum && $wanted instanceof UnitEnum) {
-            return $declared === $wanted;
-        }
-
-        $left = $declared instanceof BackedEnum && is_string($declared->value) ? $declared->value : $declared;
-        $right = $wanted instanceof BackedEnum && is_string($wanted->value) ? $wanted->value : $wanted;
-
-        return is_string($left) && $left === $right;
-    }
-
-    private static function named(BackedEnum|string $permission): string
-    {
-        return $permission instanceof UnitEnum ? $permission::class.'::'.$permission->name : '"'.$permission.'"';
     }
 
     private function prepared(Panel $panel): DiscoverySnapshot

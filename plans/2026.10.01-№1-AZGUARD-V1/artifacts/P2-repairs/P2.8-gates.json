@@ -1,0 +1,69 @@
+{
+  "head": "298da2b2f307e56f8b581d4d966183ac58ae9613",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "php": "8.4.1",
+    "python": "3.12.3"
+  },
+  "product_sha256": {
+    "CHANGELOG.md": "84cc55bd3d83b153771478bc826f9f9c574f6bedcf3720be12ce4d7b304b1630",
+    "packages/core/src/Catalog/PanelCatalog.php": "ff2f075856db013c4bc5580262f257670d4ab8b95d30cf1e221f1a40fe4e804b",
+    "packages/core/src/Sources/Folder/FolderSource.php": "4f46bb8e9304ccfcd533056bf3f46ecb941d07a9cb81f1b2e76e99c9c9c99050",
+    "tests/Feature/Sources/Folder/PolicyBindingTest.php": "ef28e61667f2dab4c84c6089f0da6b8d7f7c091c7e23ad1265fea0bc0bdc3fdb",
+    "tests/Fixtures/Permissions/AttributedClientPolicy.php": "14f470601a40692b7a6975db32889f729f997d46df15fcf7337a184e10ad5849",
+    "tests/Unit/Catalog/PanelCatalogTest.php": "512c9d1d66e6c71b5f3bafca688e25c44a01d181065da41dbab430e90331205c",
+    "tests/Unit/Catalog/RoleCompilerTest.php": "3e7d6c48bc4a88cbe5a70eca5ecd478c9bb6396aa0256fd04c70b3dfed1edcf8",
+    "tests/Feature/Catalog/CatalogCacheTest.php": "41ed2935338747e0628ad6330bb6ec7290da0d371a5422d0ffb22fc99d5e4c33",
+    "tests/Feature/Catalog/CatalogCollisionTest.php": "4bb4af6ff1ea2137854a2ab4b94a5e8f5b06fe59c4cdda272d54927219dd858d"
+  },
+  "gates": {
+    "targeted": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-targeted.log",
+      "sha256": "808325c9e720b8ba5c7dcbe449c0cab00f8ce71204b159b5a20c0015ddd5ebd0"
+    },
+    "arch": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-arch.log",
+      "sha256": "f03e2cff2f66fe6edc9ff74630d66f919309ad6c729d0c5f0bf506eda9ea41e1"
+    },
+    "full": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-full.log",
+      "sha256": "c53e23827c2b7ac89a48ab80115cb42fcbbcb71241b0c8467f233f44abd410e0"
+    },
+    "pint": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-pint.log",
+      "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+    },
+    "phpstan": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-phpstan.log",
+      "sha256": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367"
+    },
+    "types": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-types.log",
+      "sha256": "4d26dd317433b655c4124b53ea65fefbb511afe8c6b32d363b6b8b0091786557"
+    },
+    "api": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-api.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diff": {
+      "exit_code": 0,
+      "log": "artifacts/P2-repairs/P2.8-diff.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "warnings": [
+    "arch default 128MiB: exit255/OOM; repeated with php -d memory_limit=1G: GREEN",
+    "type coverage first attempt: foreach(null) warning, 99.8%; repeated: all146 files, no warnings",
+    "phpstan startup turbo: Dynamic loading not supported; exit0/0 errors"
+  ],
+  "skipped_checks": []
+}

@@ -90,12 +90,12 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | B2a | P2.1 | frontier/high | run | none | recommended: панель, builder с происхождением, реестр — на них стоит вся фаза (D8) |
 | B2a | P2.2 | frontier/high | run | none | recommended: единое правило выбора панели на реестре P2.1 |
 | B2a | P2.3 | frontier/high | run | none | recommended: порядок настроек и происхождение значений |
-| B2b | P2.4 | frontier/high | run | none | recommended: плагины и изоляция экземпляров |
-| B2b | P2.5 | frontier/high | run | none | recommended: каталог, коллизии, O(1)-поиск, кэш |
-| B2b | P2.6 | implementation/medium | run | none | recommended: фасад панелей и модульная фикстура на каталоге |
-| B2c | P2.7 | frontier/high | run | none | recommended: фабрика источников, писатель, экземпляры |
-| B2c | P2.8 | frontier/high | run | none | recommended: FolderSource и discovery наполняют каталог |
-| B2c | P2.9 | implementation/medium | run | none | recommended: кадры областей и directories по D6 |
+| solo | P2.4 | frontier/high | run | none | recommended: плагины и изоляция экземпляров |
+| solo | P2.5 | frontier/high | run | none | recommended: каталог, коллизии, O(1)-поиск, кэш |
+| solo | P2.6 | implementation/medium | run | none | recommended: фасад панелей и модульная фикстура на каталоге |
+| solo | P2.7 | frontier/high | run | none | recommended: фабрика источников, писатель, экземпляры |
+| solo | P2.8 | frontier/high | run | none | recommended: FolderSource и discovery наполняют каталог |
+| solo | P2.9 | implementation/medium | run | none | recommended: кадры областей и directories по D6 |
 | solo | P2.10 | frontier/high | run | none | Review P2: независимая read-only проверка фазы в свежей сессии (D3) |
 | B3 | P3.1 | frontier/high | run | none | recommended: mutate, блокировки, версия панели |
 | B3 | P3.2 | implementation/medium | run | none | recommended: миграции 4 СУБД |

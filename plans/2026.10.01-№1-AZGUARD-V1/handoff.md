@@ -1,8 +1,8 @@
-# HANDOFF — 2026-10-03 — after P2.10
+# HANDOFF — 2026-10-03 — after P2.8
 
 **Next:** manual: frontier/high
 
-Подготовить штатный допуск повторного исполнения owning items P2.5/P2.8 по `findings/P2-review.md`: R1 — нормализация и проверка метода policy binding на всех source путях; R2 — enum index из итогового каталога; R3 — коллизия независимых plugin origins по D10 и согласование противоречащей строки P2.5. Синхронизировать R4 (отменённый prefix в контексте P4). После допуска исправлять в owning items и проверять изменившиеся риски. Закрытые пункты сейчас не допускают безусловный повтор `plan-run`; Review P2.10 не выдаёт себе repeat-admission и не редактирует их технические спецификации.
+Выполнить только owning repeat P2.5 для R2/R3 из findings/P2-review.md с отдельным настоящим grant, построенным после terminal P2.8 через task.plan_repeat.build() и task.plan_repeat.digest(). P2 остаётся RED; P2.10 не повторять, P3 не начинать, GREEN closure P2 не создавать. Этот handoff рекомендует продолжение и не начинает P2.5.
 
 | Parameter | Meaning |
 |:--|:--|
@@ -11,21 +11,21 @@
 | Effort | high |
 | Capabilities | — |
 | Context | continue-root |
-| Essence | Подготовить owning repair continuation по RED Review P2; продукт в review не исправлять |
+| Essence | Отдельный owning repeat P2.5: resolver enum index R2 и provenance collisions R3 |
 
 ```session-continuity-decision/v1
-{"outcome":"continue-root","reason":"authorized-scope-complete","evidence":["batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945","loaded-inputs:reusable","cold-start-cost:0","lifecycle:scope-complete","checkpoint:sha256:8d80e14112ebed05931c8d5e5d3f814ff23b60c3e9dc3f87e8fbb861e7ad500e"],"runnable":true,"schema_version":"session-continuity-decision/v1"}
+{"outcome":"continue-root","reason":"authorized-scope-complete","evidence":["batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945","loaded-inputs:reusable","cold-start-cost:0","lifecycle:scope-complete","checkpoint:sha256:2276019a13288ea75a4ade9e4d87706bc710e94441159bcc5e730bcba9d7c92a"],"runnable":true,"schema_version":"session-continuity-decision/v1"}
 ```
 
 ```text
-Подготовь допуск owning repairs P2.5/P2.8 по findings/P2-review.md и синхронизацию R4. Сохрани отсутствие GREEN closure P2; после исправлений проверь изменившееся поведение, затем допускай переход к P3.
+Построй отдельный настоящий grant для owning repeat P2.5 после terminal P2.8, используй Task source /home/vostrikov/projects/packages/swissknifeman/packages/task. Исправь только R2/R3 по accepted D11 и согласованной P2.5 spec. Не повторяй P2.10, не переписывай исторический review, не начинай P3. P2 остаётся RED до исправления R2/R3 и необходимых gates. Push запрещён; .gitignore, .swissknife.json, .grok/ чужие, не трогать и не коммитить.
 ```
 
-**Done:** P2.10 выполнен как независимый read-only review. Verdict RED: 3 major, 1 minor. Все 6 обязательных Validation carriers GREEN; 1288 tests, 239458 assertions, type coverage 99.8% (146/146 файлов). Пять документированных scratch probes воспроизводят R1–R3; arch-правило реально RED при искусственном нарушении и GREEN после удаления. Terminal item status — closed-deviations; это завершение отчёта, не GREEN фазы.
-**Remaining:** Owning repairs P2.5/P2.8 и синхронизация R4 → проверка изменившегося риска → GREEN closure P2 → детализация P3. P3–P8 не исполнялись.
-**Sources of truth:** findings/P2-review.md · decisions/D8-p2-dependency-closure.md · decisions/D9-p2-owner-amendments.md · decisions/D10-p2-no-plugin-prefix.md · phases/P2/P2.10.md · journal.jsonl
-**Open risks:** R1–R3 не исправлены. D10 требует отказа при коллизиях независимых plugin contributions; P2.5 Implementation Rules разрешает равные definitions — owning continuation должен согласовать носители. Будущий P4.3 обязан получить корректные policy method metadata. Product gate GREEN не означает соответствие этим непокрытым сценариям.
+**Done:** P2.8 attempt 2 closed-green, run `cd404c856b90f0c0efe4eeec333e34110477d0262f2fe044082bb5ac046d2b08`; R1 исправлен общим bind-путём каталога. 24 focused regressions GREEN (включая три точных review probes), targeted 107, full 1312/239492 assertions, arch 63, Pint/API/PHPStan GREEN, type coverage 99.8%/146 files, diff check GREEN. Пустой ClientPolicy сохранён; позитивные tests используют AttributedClientPolicy. Native route gpt-6.1-sol/frontier/high; specs после start не менялись.
+**Remaining:** P2.5 R2/R3 open, отдельный repeat grant ещё не выдан. P2 RED. R4 синхронизирован root в P4 до start. Сигнатуры/вызов policy — P4.3. P3–P8 не исполнялись.
+**Sources of truth:** findings/P2-owning-repairs.md · findings/P2-review.md · decisions/D11-p2-owning-repairs.md · brief/P2-owning-repairs-owner-message.md · phases/P2/P2.8.md · phases/P2/P2.5.md · journal.jsonl · artifacts/P2-repairs/P2.8-gates.json
+**Open risks:** R2/R3 остаются доказанными дефектами. Plan-lint не GREEN: 12 прежних write-site ошибок P0/P1 и stale historical terminal spec P2.5 после owner/root уточнения перед repeat (journal line 43); новый terminal P2.5 должен квалифицировать актуальную spec. Исторические записи не переписывать.
 **Workarounds/Deferred/Open questions:**
-- workarounds: Task runtime — directory marketplace swissknifeman/packages/task; перед Codex subprocess удалены унаследованные чужие provider session vars (GROK_SESSION_ID), capture проверяет настоящий CODEX_THREAD_ID. PHPStan startup warning turbo Dynamic loading not supported, exit 0/0 errors. Чужие .swissknife.json/.gitignore/Grok изменения сохранены вне scoped commit.
-- deferred: D8 возможности P3–P6 сохраняются; plugin prefix отложенным больше не является по D10. Cache probe с прежним build id исключён: §8 требует новый build id при code/config change.
-- open_questions: Если намерение владельца допускает равные независимые plugin contributions, нужна явная поправка D10; сейчас review использует принятое D10. Нет phase closure или автоматического перехода к P3.
+- workarounds: capture subprocess удаляет только чужие GROK_SESSION_ID/GROK_THREAD_ID/CLAUDE_SESSION_ID; настоящий CODEX_THREAD_ID сохраняется. Архитектурный carrier исчерпал default 128 MiB, повтор с 1 GiB GREEN; первая type coverage попытка вывела foreach(null), повтор без warning и все 146 files GREEN. PHPStan turbo startup warning остаётся видимым при exit 0 / 0 errors. Полные логи сохранены.
+- deferred: отдельный owning repeat P2.5 и требуемые gates, затем оценка готовности P2; runtime policy P4.3.
+- open_questions: нет новой product authority границы для завершённого R1; следующий run требует своего exact repeat marker. Чужие файлы сохранены вне scoped commit.

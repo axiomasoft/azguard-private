@@ -18,8 +18,8 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
-use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
 use AzGuard\Tests\Fixtures\Plugins\ProbePlugin;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\BadKeyRole;
@@ -43,7 +43,7 @@ function rolesOfAdmin(array $roles, array $extra = []): PanelCatalog
     return PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
             new StaticSource('crm', [...ClientPermission::definitions(), StaticSource::grants('reports.view')], $roles, [
-                PolicyBinding::for(ClientPermission::ViewOwnProfile, ClientPolicy::class),
+                PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class),
             ]),
             ...$extra,
         ]),

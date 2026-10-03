@@ -1,0 +1,13 @@
+
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 12288 bytes) in /home/vostrikov/projects/packages/azguard/vendor/laravel/framework/src/Illuminate/Console/Scheduling/Event.php on line 277
+
+Fatal error: Uncaught PHPUnit\Event\Code\NoTestCaseObjectOnCallStackException: Cannot find TestCase object on call stack in /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/Util/Test.php:39
+Stack trace:
+#0 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/Event/Value/Test/TestMethodBuilder.php(56): PHPUnit\Util\Test::currentTestCase()
+#1 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/Runner/ErrorHandler.php(130): PHPUnit\Event\Code\TestMethodBuilder::fromCallStack()
+#2 [internal function]: PHPUnit\Runner\ErrorHandler->__invoke(2, 'stream_filter_r...', '/home/vostrikov...', 81)
+#3 /home/vostrikov/projects/packages/azguard/vendor/laravel/pao/src/Execution.php(81): stream_filter_remove(Resource id #288)
+#4 /home/vostrikov/projects/packages/azguard/vendor/laravel/pao/src/Autoload.php(52): Laravel\Pao\Execution->restoreStdout()
+#5 [internal function]: {closure:/home/vostrikov/projects/packages/azguard/vendor/laravel/pao/src/Autoload.php:37}()
+#6 {main}
+  thrown in /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/Util/Test.php on line 39

@@ -1,0 +1,289 @@
+{
+  "schema_version": "task-contract/v1",
+  "contract_id": "2026.10.01-№1-azguard-v1-p2-8",
+  "version": {
+    "revision": 1,
+    "content_hash": "d178ba4a5ace59c4067432c54ace42a04b7a85cd8c2a34a41657f55935107cfa",
+    "supersedes": null
+  },
+  "goal": {
+    "outcome": "Сделать папку панели источником: `FolderSource` находит enum прав, политики, роли и области в утверждённой структуре `Permissions/<Group>` с параллельными корнями, превращает атрибуты в определения каталога с явным режимом authority, связывает политики с правами только через `#[Decides]` и даёт одинаковый результат при живом автопоиске и из кэша.",
+    "non_goals": [
+      "вызов методов политик, проверка их сигнатур и `PolicyDecider` (P4.3). Выдачи из папки: `ProvidesRoleGrants` для `GrantedAutomatically`, `ProvidesGrants` для `#[GrantedToAll]` (P4.2) — здесь атрибут `GrantedToAll` только объявляется и попадает в метаданные. `ChecksHealth` (P6.4). `Abilities/` DTO (P5.5/P6.8), `Queries/` (подключаются явно, P4.12). Генераторы и стабы (P6.8). `AssignmentScopePolicy` и подключение областей к панели (P4.6): классы `Scopes/` только находятся и перечисляются в метаданных. `GateSource::map()` (P4.3)."
+    ]
+  },
+  "must": [
+    {
+      "id": "M1",
+      "requirement": "Owning repair R1: единая проверка и нормализация метода policy binding в финальной сборке каталога для FolderSource и всех ProvidesPolicies",
+      "source_ref": "phases/P2.md:5"
+    },
+    {
+      "id": "M2",
+      "requirement": "сохранение метода после cache round trip. Атрибуты `AzGuard\\Permissions\\{Resource,Describe,RequiresGrant,PolicyOnly,GrantedToAll}` и `AzGuard\\Policies\\{PolicyFor,Decides}` (`@api`). `Sources\\Folder\\FolderSource` (`Source`, `ProvidesPermissions`, `ProvidesRoles`, `ProvidesPolicies`, `DescribesSchema`",
+      "source_ref": "phases/P2.md:5"
+    },
+    {
+      "id": "M3",
+      "requirement": "`make()`, `folders(...)`) и `Sources\\Folder\\PanelDiscovery` (поиск классов по корням). `PanelBuilder::discover(string $path, ?string $namespace = null)` и `policies(array)`. Встроенный `FolderSource` первым источником каждой панели",
+      "source_ref": "phases/P2.md:5"
+    },
+    {
+      "id": "M4",
+      "requirement": "приём enum из `permissions([...])`, ролей из `roles([...])`, привязок из `policies([...])`. Пополнение enum-индекса `PanelResolver` найденными enum. Модульная фикстура Blog с `discover(__DIR__)`. Корень `Shared/`: регистрация классов с `#[AsSource]` из `Shared/Sources/` и `Sources/` панелей. Секция `discovery` конфига. Снимок discovery в файле кэша каталога. Discovery roots и настройки корней — в `PanelFingerprint`. Arch-правило зоны `Permissions`.",
+      "source_ref": "phases/P2.md:5"
+    }
+  ],
+  "never": [
+    {
+      "id": "N1",
+      "prohibition": "вызов методов политик, проверка их сигнатур и `PolicyDecider` (P4.3). Выдачи из папки: `ProvidesRoleGrants` для `GrantedAutomatically`, `ProvidesGrants` для `#[GrantedToAll]` (P4.2) — здесь атрибут `GrantedToAll` только объявляется и попадает в метаданные. `ChecksHealth` (P6.4). `Abilities/` DTO (P5.5/P6.8), `Queries/` (подключаются явно, P4.12). Генераторы и стабы (P6.8). `AssignmentScopePolicy` и подключение областей к панели (P4.6): классы `Scopes/` только находятся и перечисляются в метаданных. `GateSource::map()` (P4.3).",
+      "source_ref": "phases/P2.md:6"
+    }
+  ],
+  "done": {
+    "public_acceptance": [
+      {
+        "id": "A1",
+        "predicate": "`FolderSource`, `PanelDiscovery`, атрибуты прав и политик, `discover`/`policies`, discovery в кэше; обновлённый манифест; раздел P2.8 в `findings/P2-execution.md` (правила D56 п.1–п.5 → тест; V78/V79/V102/V106 → тест; сравнение live и cached каталога; доказательство RED).",
+        "scope": "public",
+        "check": "1) `vendor/bin/pest tests/Unit/Sources/Folder tests/Feature/Sources/Folder tests/Feature/Catalog tests/Unit/Catalog` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`.",
+        "evidence_ref": "E10"
+      }
+    ]
+  },
+  "authority": {
+    "class": "routine",
+    "granted": true,
+    "granted_by": "phases/P2/P2.8.md:P2.8",
+    "auto_allowed": [
+      "write the item's declared Files",
+      "run the item's Validation",
+      "close the item with the two-commit topology"
+    ],
+    "stop_boundaries": [
+      "tag/push/release",
+      "fleet rollout",
+      "consumer repositories",
+      "FOREMAN outward parts"
+    ],
+    "loop_budget": {
+      "audit_rounds_max": 2,
+      "same_finding_max": 2
+    },
+    "observed_rounds": 0,
+    "audit_cap_remediation": false
+  },
+  "next": {
+    "form": "run-items",
+    "carrier": "task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8",
+    "context": "continue-root",
+    "origin": "approved-goal",
+    "changed_by": null
+  },
+  "route": {
+    "required": {
+      "model_class": "frontier",
+      "effort": "high"
+    },
+    "actual": {
+      "model_class": "frontier",
+      "effort": "high"
+    },
+    "capabilities": []
+  },
+  "evidence": [
+    {
+      "id": "E1",
+      "path": "plan.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E2",
+      "path": "phases/P2/P2.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E3",
+      "path": "decisions/D8-p2-dependency-closure.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E4",
+      "path": "brief/P2-dossier-decisions.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E5",
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E6",
+      "path": "audits/2026-09-29-audit/opus/04-packages-and-layout.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E7",
+      "path": "audits/2026-09-29-audit/opus/07-configuration.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E8",
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E9",
+      "path": "decisions/D8-p2-dependency-closure.md",
+      "proof_class": "unknown",
+      "algorithm": "doc-citation"
+    },
+    {
+      "id": "E10",
+      "path": "1) `vendor/bin/pest tests/Unit/Sources/Folder tests/Feature/Sources/Folder tests/Feature/Catalog tests/Unit/Catalog` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`.",
+      "proof_class": "declared",
+      "algorithm": "shell-command"
+    }
+  ],
+  "portability": {
+    "tier": "committed-bundle",
+    "execution_inputs": [
+      {
+        "path": "plan.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "plan.md",
+        "normalized": "plan.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "phases/P2/P2.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "phases/P2/P2.md",
+        "normalized": "phases/P2/P2.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "decisions/D8-p2-dependency-closure.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "decisions/D8-p2-dependency-closure.md",
+        "normalized": "decisions/D8-p2-dependency-closure.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "brief/P2-dossier-decisions.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "brief/P2-dossier-decisions.md",
+        "normalized": "brief/P2-dossier-decisions.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "audits/2026-09-29-audit/opus/05-php-api.md",
+        "normalized": "audits/2026-09-29-audit/opus/05-php-api.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/04-packages-and-layout.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "audits/2026-09-29-audit/opus/04-packages-and-layout.md",
+        "normalized": "audits/2026-09-29-audit/opus/04-packages-and-layout.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/07-configuration.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "audits/2026-09-29-audit/opus/07-configuration.md",
+        "normalized": "audits/2026-09-29-audit/opus/07-configuration.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/14-verification.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "audits/2026-09-29-audit/opus/14-verification.md",
+        "normalized": "audits/2026-09-29-audit/opus/14-verification.md",
+        "path_kind": "internal",
+        "rejection": null
+      },
+      {
+        "path": "decisions/D8-p2-dependency-closure.md",
+        "kind": "committed",
+        "producer": null,
+        "original": "decisions/D8-p2-dependency-closure.md",
+        "normalized": "decisions/D8-p2-dependency-closure.md",
+        "path_kind": "internal",
+        "rejection": null
+      }
+    ],
+    "provenance_only": [],
+    "privacy": {
+      "minimized": true,
+      "excluded_classes": [
+        "chain-of-thought",
+        "raw-transcript-bodies",
+        "secrets",
+        "tool-payloads"
+      ]
+    },
+    "semantic_carrier": "task:plan-run",
+    "provider_renderers": {
+      "claude": "/task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8",
+      "codex": "$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8"
+    }
+  },
+  "conflicts": [],
+  "slice": {
+    "subagent_keys": [
+      "goal",
+      "must",
+      "never",
+      "done",
+      "authority",
+      "next",
+      "route",
+      "version"
+    ],
+    "root_only_keys": [
+      "evidence",
+      "portability",
+      "conflicts"
+    ]
+  },
+  "cold_start": {
+    "plan_id": "2026.10.01-№1-AZGUARD-V1",
+    "item_id": "P2.8",
+    "reads": [
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9"
+    ],
+    "carrier": "task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8"
+  }
+}

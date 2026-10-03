@@ -6,6 +6,10 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **core:** Явные policy bindings из FolderSource и custom ProvidesPolicies выбирают единственный public nonstatic метод с подходящим `#[Decides]`. Неверный explicit method, отсутствие или неоднозначность атрибута дают `DefinitionException`; найденный метод сохраняется в каталоге и после кэша (owning repair P2.8, R1).
+
 ### Added
 
 - **core:** Кадры областей и directories: `Scopes\AssignmentScopeRuntime` (панель, область, субъект, пользователь, роль или null, выдача, актор, момент, фаза; кадр не читает Auth и контейнер), `Directories\LookupContext` (актор отдельно от цели, `proposed` — поля назначения), `Directories\{TenantOption,AssignmentScopeOption,SubjectOption}`. SPI `Contracts\Scopes\{AssignmentScopeFilter,AssignmentScopeAccessAdapter,ConfigurableAssignmentScopeDefinition,TenantDirectory,AssignmentScopeDirectory}` и `Contracts\Subjects\SubjectDirectory`. `Scopes\AssignmentScopeSettings` хранит фильтры, подпись и класс directory и не хранит Model, Request и Builder. `Scopes\BaseAssignmentScope`: abstract `type()`/`query()`/`tenantOf()`, `model()` из `query()->getModel()`, `resolve()` делает один `whereKey()->first()`; global и чужой тип — `InvalidAssignmentScopeException`, отсутствие записи — null, tenant берётся из той же записи. `filter()`/`label()`/`directory()` возвращают копию; строка фильтра — класс `AssignmentScopeFilter`, строка directory — класс `AssignmentScopeDirectory`, иначе `DefinitionException`. Универсальной `make()` нет. Зона `AzGuard\Directories` во внешних зонах и не зависит от Storage, Changes и Authorization. Применение фильтров к запросу, разрешение class-string контейнером и membership остаются в P4.6 (план 2026.10.01-№1-AZGUARD-V1 P2.9, D6).
