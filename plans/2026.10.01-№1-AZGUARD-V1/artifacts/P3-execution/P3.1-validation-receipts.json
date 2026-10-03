@@ -1,0 +1,32 @@
+{
+  "context": {
+    "schema_version": "validation-context/v1",
+    "spec_sha256": "98cd6b164183377b192b27d62f32a64ced915b3ba8c5b05dd99771b1652b89c5",
+    "head": "9417a3ec701a570127e235891d11acb6ad9b9899",
+    "tree": "9ca16290295d500dd40e778cc3037e7737c81a1d36d79b952b441e246cd1178a",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16"
+  },
+  "receipts": [
+    {
+      "schema_version": "validation-receipt/v1",
+      "evidence_id": "E13",
+      "command": "1) `vendor/bin/pest tests/Unit/Storage tests/Unit/Configuration tests/Feature/Storage` — GREEN; 2) `docker compose up -d --wait postgres mysql`; 3) `DB_CONNECTION=pgsql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 4) `DB_CONNECTION=mysql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 5) `vendor/bin/pest tests/Arch` — GREEN; 6) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 7) `composer test`; 8) `vendor/bin/pint --test`; 9) `vendor/bin/phpstan analyse --memory-limit=1G`; 10) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 11) `git diff --check`.",
+      "contract_sha256": "5c1115ecf7687f4cb7f98a6533956859240e61e1fd600ca625622c71b6c20a37",
+      "spec_sha256": "98cd6b164183377b192b27d62f32a64ced915b3ba8c5b05dd99771b1652b89c5",
+      "head": "9417a3ec701a570127e235891d11acb6ad9b9899",
+      "tree": "9ca16290295d500dd40e778cc3037e7737c81a1d36d79b952b441e246cd1178a",
+      "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+      "exit_code": 0,
+      "executed_at": "2026-10-03T21:28:20Z"
+    }
+  ],
+  "verdict": {
+    "pre_mutation": "allow",
+    "pre_final": "allow",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": null
+    },
+    "content_hash": "5c1115ecf7687f4cb7f98a6533956859240e61e1fd600ca625622c71b6c20a37"
+  }
+}

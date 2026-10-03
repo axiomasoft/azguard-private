@@ -7,6 +7,7 @@ namespace AzGuard\Tests;
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
+use RuntimeException;
 
 class TestCase extends Orchestra
 {
@@ -24,7 +25,13 @@ class TestCase extends Orchestra
         $app['config']->set('app.debug', true);
 
         $app['config']->set('database.default', 'testbench');
-        $app['config']->set('database.connections.testbench', $this->databaseConnectionConfig());
+        $connection = $this->databaseConnectionConfig();
+
+        if ($connection['driver'] !== 'sqlite' && ! str_ends_with((string) $connection['database'], '_test')) {
+            throw new RuntimeException('Тестовая БД должна оканчиваться на _test; проверьте PGSQL_DATABASE/MYSQL_DATABASE.');
+        }
+        $app['config']->set('database.connections.testbench', $connection);
+        $app['config']->set('database.connections.secondary', $connection);
     }
 
     /**

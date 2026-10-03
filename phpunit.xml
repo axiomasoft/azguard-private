@@ -22,6 +22,9 @@
         <testsuite name="Regression">
             <directory>tests/Regression</directory>
         </testsuite>
+        <testsuite name="Engines">
+            <directory>tests/Engines</directory>
+        </testsuite>
     </testsuites>
 
     <source>

@@ -54,6 +54,9 @@ final readonly class AzGuardConfig
         private array $sources,
         /** @var array{permissions: string, policies: string, roles: string, scopes: string, abilities: string, queries: string, shared: string} */
         private array $discovery,
+        /** @var array<string, array{connection: ?string, table_prefix: string, host_keys: string}> */
+        private array $storages,
+        private string $hostKeys,
     ) {}
 
     /**
@@ -66,6 +69,10 @@ final readonly class AzGuardConfig
         $catalog = self::section('catalog', $config->get('azguard.catalog', []));
         self::assertKnownKeys('catalog', $catalog, self::CATALOG_KEYS);
 
+        $ids = self::section('ids', $config->get('azguard.ids', []));
+        self::assertKnownKeys('ids', $ids, ['host_keys']);
+        $hostKeys = self::hostKeysFrom($ids['host_keys'] ?? 'string');
+
         return new self(
             self::panelProvidersFrom($panels['providers'] ?? []),
             self::defaultsFrom(self::section('defaults', $config->get('azguard.defaults', []))),
@@ -73,7 +80,53 @@ final readonly class AzGuardConfig
             self::cachePathFrom($catalog['cache_path'] ?? null),
             self::sourcesFrom($config->get('azguard.sources', [])),
             self::discoveryFrom(self::section('discovery', $config->get('azguard.discovery', []))),
+            self::storagesFrom($config->get('azguard.storages', ['default' => []]), $hostKeys),
+            $hostKeys,
         );
+    }
+
+    /** @return array<string, array{connection: ?string, table_prefix: string, host_keys: string}> */
+    public function storages(): array
+    {
+        return $this->storages;
+    }
+
+    public function hostKeys(): string
+    {
+        return $this->hostKeys;
+    }
+
+    private static function hostKeysFrom(mixed $value): string
+    {
+        if (! is_string($value) || ! in_array($value, ['string', 'bigint', 'uuid', 'ulid'], true)) {
+            throw InvalidConfigurationException::failing('host_keys', 'Host keys must be string, bigint, uuid or ulid.');
+        }
+
+        return $value;
+    }
+
+    /** @return array<string, array{connection: ?string, table_prefix: string, host_keys: string}> */
+    private static function storagesFrom(mixed $storages, string $hostKeys): array
+    {
+        $parsed = [];
+        foreach (self::section('storages', $storages) as $name => $parameters) {
+            if (! is_string($name) || preg_match('/\A[a-z][a-z0-9_-]{0,63}\z/', $name) !== 1) {
+                throw InvalidConfigurationException::failing('storage', 'Invalid storage name.');
+            }
+            $parameters = self::section('storages.'.$name, $parameters);
+            self::assertKnownKeys('storages.'.$name, $parameters, ['connection', 'table_prefix', 'host_keys']);
+            $connection = $parameters['connection'] ?? null;
+            $prefix = $parameters['table_prefix'] ?? 'azg_';
+
+            if (($connection !== null && (! is_string($connection) || $connection === ''))
+                || ! is_string($prefix) || preg_match('/\A([a-z][a-z0-9_]{0,19})?\z/', $prefix) !== 1) {
+                throw InvalidConfigurationException::failing('storage', 'Invalid connection or table prefix for storage '.$name.'.');
+            }
+            $parsed[$name] = ['connection' => $connection, 'table_prefix' => $prefix,
+                'host_keys' => self::hostKeysFrom($parameters['host_keys'] ?? $hostKeys)];
+        }
+
+        return $parsed;
     }
 
     /**

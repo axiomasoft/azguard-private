@@ -97,10 +97,11 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | solo | P2.8 | frontier/high | run | none | recommended: FolderSource и discovery наполняют каталог |
 | solo | P2.9 | implementation/medium | run | none | recommended: кадры областей и directories по D6 |
 | solo | P2.10 | frontier/high | run | none | Review P2: независимая read-only проверка фазы в свежей сессии (D3) |
-| B3 | P3.1 | frontier/high | run | none | recommended: mutate, блокировки, версия панели |
-| B3 | P3.2 | implementation/medium | run | none | recommended: миграции 4 СУБД |
-| B3 | P3.3 | frontier/high | run | none | recommended: модели и свои поля |
-| B3 | P3.4 | implementation/medium | run | none | recommended: запрет прямых записей |
+| B3a | P3.1 | frontier/high | run | none | recommended: единственный путь записи, блокировки, повторы, версия панели (D12) |
+| B3a | P3.2 | frontier/high | run | none | recommended: схема 08 §2 и DDL на 4 СУБД поверх Storage P3.1 |
+| B3b | P3.3 | frontier/high | run | none | recommended: модели, свои модели и поля поверх схемы P3.2 |
+| B3b | P3.4 | implementation/medium | run | none | recommended: запрет прямых записей на моделях P3.3 |
+| solo | P3.5 | frontier/high | run | none | Review P3: независимая read-only проверка фазы в свежей сессии (D3) |
 | B4 | P4.1 | frontier/high | run | none | recommended: пайплайн проверки и authority dispatcher |
 | B4 | P4.2 | frontier/high | run | none | recommended: выдачи из папки |
 | B4 | P4.3 | frontier/high | run | none | recommended: mode-aware policies |
@@ -168,6 +169,7 @@ P4.12 после P4.4–P4.6; P5.5 после P4.2–P4.5. CRM-кейсы R01–
 Нормативные решения плана — `decisions/`: D1 граница и источник, D2 стратегия сборки и legacy,
 D3 режим исполнения и review, D4 валидация и среды СУБД, D5 рост CRM-приёмки, D6 состав P1
 по замыканию зависимостей, D7 исправление находок Review P1, D8 состав P2 по замыканию зависимостей
-и владение методами `PanelBuilder`.
+и владение методами `PanelBuilder`, D9–D11 поправки и исправления P2, D12 состав P3, публичность хранилища и
+пробелы досье по DDL, блокировкам и полям.
 Решения досье цитируются как `D01–D84` (двузначные) и не копируются.
 Собрать виды: `plan-views.py decisions`. Открытые вопросы — `open-questions.md`.

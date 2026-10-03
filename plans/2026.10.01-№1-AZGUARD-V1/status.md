@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-03
-inputs_sha256: 29a1b939bec0784592ca08993edc7c29c40ed494f95afd52152823c15d57322e
+inputs_sha256: 061e80847c07a03f4f0925e9e3286965637bc07adc04065b37a0e1cfdec22b25
 generated_by: task plan-views status
 -->
 
@@ -25,8 +25,8 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
-| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟢 Done |
-| P3 | Хранилище | 0/4 | ⬜ Not started |
+| P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
+| P3 | Хранилище | 1/5 | 🟡 In progress |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
@@ -74,10 +74,11 @@ generated_by: task plan-views status
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P3.1 | Storage::mutate, блокировки, повторы, версия панели, host_keys | ⬜ Not started | — |
+| P3.1 | Storage::mutate, блокировки, повторы, версия панели, host_keys | 🟢 Done | 2026-10-03 |
 | P3.2 | Миграции с префиксом хранилища на PG/MySQL/MariaDB/SQLite | ⬜ Not started | — |
 | P3.3 | Базовые и свои модели, azguardFields, meta, decisionFields | ⬜ Not started | — |
 | P3.4 | Защита от прямых записей | ⬜ Not started | — |
+| P3.5 | Review P3: независимая read-only проверка фазы | ⬜ Not started | — |
 
 ## Phase P4
 
@@ -219,6 +220,10 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | Codex | plan-close · closed-green · P2 GREEN: R1/R2/R3 закрыты owning repairs P2.8/P2.5; R4 синхронизирован по D10. Исторический RED review/P2.10 сохранён. closure/P2-findings.json проверен. P3 не начат. write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | Codex | plan-close · in-progress · Checking phase-close admission. |
 | 2026-10-03 | Codex | plan-close · closed-green · P2 GREEN admission reconciled with actual native session/run identity; prior phase event retained. R1–R4 resolved, historical review preserved, P3 not started. write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-03 | plan-designer/claude-opus-5-5 | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-03 | implementer / gpt-6.1-sol | plan-run · in-progress · — |
+| 2026-10-03 | implementer / gpt-6.1-sol | plan-run · closed-green · GREEN: findings/P3-execution.md; artifacts/P3-execution/P3.1-*; PG/MySQL engines 3/3, full 1364, types 99.8%.
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

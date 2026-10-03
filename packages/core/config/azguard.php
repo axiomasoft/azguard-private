@@ -92,6 +92,16 @@ return [
     |
     */
 
+    'storages' => [
+        'default' => [
+            'connection' => env('AZGUARD_DB_CONNECTION'),
+            'table_prefix' => 'azg_',
+            'host_keys' => null,
+        ],
+    ],
+
+    'ids' => ['host_keys' => 'string'],
+
     'sources' => [
         // 'ldap' => ['group_attribute' => 'memberOf'],
     ],

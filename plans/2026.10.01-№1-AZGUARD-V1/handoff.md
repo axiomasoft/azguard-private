@@ -1,24 +1,25 @@
-# HANDOFF — 2026-10-03 — after P2
+# HANDOFF — 2026-10-03 — after P3.1
 
-**Next:** manual: frontier/high
+**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.2
 
-Авторизованный scope завершён: P2 штатно закрыта GREEN по проверенным owning repair evidence. Остановиться перед P3 и ждать следующей команды владельца. P3 не исполнять и не детализировать в этом scope. Push запрещён. Отдельного согласования закрытия P2 не требуется: прежняя формулировка handoff была ошибочной дополнительной границей.
+Фаза P3 детализирована (D12): пять пунктов, batch `B3a` (P3.1–P3.2), `B3b` (P3.3–P3.4), `solo` P3.5 Review. P3.1 закрыт GREEN; P3.2 следующий. Следующая команда — первая строка P3 в execution sheet `roadmap.md`. Перед запуском поднять test-СУБД:
+`docker compose up -d --wait postgres mysql` (MariaDB добавляет P3.2); недоступная СУБД — `unavailable`, не GREEN (D4).
 
 | Parameter | Meaning |
 |:--|:--|
-| Batch | n/a |
+| Batch | B3a |
 | Model class | frontier |
 | Effort | high |
-| Capabilities | — |
+| Capabilities | docker compose (postgres:16, mysql:8; с P3.2 — mariadb:10.11) |
 | Context | continue-root |
-| Essence | P2 GREEN завершена; остановка перед P3 |
+| Essence | хранилища, `Storage::mutate()` с блокировками и версией панели; схема 08 §2 и DDL на 4 СУБД |
 
 ```session-continuity-decision/v1
-{"outcome":"continue-root","reason":"compatible-active-work","evidence":["persisted-context:continue-root"],"runnable":true,"schema_version":"session-continuity-decision/v1"}
+{"outcome":"continue-root","reason":"context-telemetry-unavailable","evidence":["batch:f8bab034a19fc5557be3becb487cfac9597d2c67cc587f11116b82f06c31ef9e","loaded-inputs:reusable","cold-start-cost:1"],"runnable":true,"schema_version":"session-continuity-decision/v1"}
 ```
 
-**Done:** P2 GREEN closure через source-owned Task d981ad06 + 379d39a9, штатный phase_close_gate и plan-phase-close.py. R1 → GREEN P2.8 attempt 2 (7c17044); R2/R3 → GREEN P2.5 attempt 2 (b1b1ea5); R4 → D10 + committed P4 contract sync. Все findings исчерпывающе связаны с неизменённым RED review, terminal history, admitted repeats и committed GREEN evidence; текущие declared product bytes совпадают с финальным repair anchor. P2.10 остаётся closed-deviations. Создана phases/P2/P2.closed.md; status и closure проверены штатными инструментами.
-**Remaining:** этот scope завершён; P3 — существующий skeleton, ожидает следующего отдельного запроса владельца. Исполнение/детализация P3 не начаты.
-**Sources of truth:** closure/P2-findings.json · phases/P2/P2.closed.md · findings/P2-phase-closure.md · findings/P2-owning-repairs.md · findings/P2-review.md · journal.jsonl · artifacts/P2-phase-closure/
-**Open risks:** полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1 и не объявлен GREEN. Task qualification: 1306 tests, один existing skip native Codex discovery (CLI отсутствует), не объявлен выполненным. Skiller qualification/release dry-run FAILED на подтверждённых baseline RELEASE_IMMUTABLE_TUPLE; подробности и логи в evidence.
-**Workarounds/Deferred/Open questions:** исторические journal events, review/P2.10 и carriers P3 сохранены. Product PHP evidence переиспользовано без изменений продукта; новых PHP-проверок или repeats не потребовалось. Чужие .gitignore/.swissknife.json/.grok/ сохранены. Source fix и plan closure — отдельные owning commits двух репозиториев. Push не выполнялся. Новых product authority вопросов нет.
+**Done:** P3.1 GREEN (findings/P3-execution.md). P3 design: `phases/P3/P3.md` (Phase Context, Contract, Assurance v1, Acceptance, Validation), P3.1–P3.5 item-контракты, D12 (состав, публичность `Storage`, отказ от `Role`/`RolePermission` и `FieldTarget::Role`, канон host keys, DDL-решения, блокировки и повторы), `brief/P3-dossier-decisions.md` (выдержки D08, D13, D22, D24, D34, D35, D46, D63), строки Routing и execution sheet, принятое по D12 в скелетах P4/P5/P6/P8.
+**Remaining:** исполнение P3.2–P3.5; детализация P4–P8 по фазам после закрытия предыдущей (D3).
+**Sources of truth:** phases/P3/P3.md · decisions/D12-p3-storage-closure.md · roadmap.md (execution sheet) · brief/P3-dossier-decisions.md
+**Open risks:** реальные СУБД обязательны для P3.1–P3.5 (группа `engines`); полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1 (не P3). Внешние предпосылки Laravel (`#[Table]`/`#[Connection]`/SQLite `transaction_mode` только в 13.x; нет CHECK в Blueprint) проверены по исходникам vendor 11.20–13.34.
+**Workarounds/Deferred/Open questions:** owner-вопросов нет. Чужие `.gitignore`/`.swissknife.json`/`.grok/` сохранены. Push запрещён.

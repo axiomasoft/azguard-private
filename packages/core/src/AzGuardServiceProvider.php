@@ -15,7 +15,9 @@ use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\SourceManager;
+use AzGuard\Storage\StorageRegistry;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
 
 final class AzGuardServiceProvider extends ServiceProvider
@@ -28,6 +30,10 @@ final class AzGuardServiceProvider extends ServiceProvider
             AzGuardConfig::class,
             static fn (Application $app): AzGuardConfig => AzGuardConfig::fromRepository($app->make('config')),
         );
+
+        $this->app->singleton(StorageRegistry::class, static fn (Application $app): StorageRegistry => new StorageRegistry(
+            $app->make(AzGuardConfig::class), $app->make(DatabaseManager::class),
+        ));
 
         $this->app->singleton(CatalogCache::class, static fn (Application $app): CatalogCache => new CatalogCache(
             $app->make(AzGuardConfig::class)->catalogCachePath() ?? $app->bootstrapPath('cache/azguard.php'),

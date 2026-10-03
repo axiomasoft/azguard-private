@@ -2,7 +2,7 @@
 
 <!-- execution-sheet/v1 -->
 
-**Updated:** 2026-10-02 · **Corresponds to plan.md:** верхний слой + детализация P0, P1, P2
+**Updated:** 2026-10-03 · **Corresponds to plan.md:** верхний слой + детализация P0, P1, P2, P3
 
 ## Grouping rule
 
@@ -28,6 +28,9 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.8` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.5` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P2.10` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.1 P3.2` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.3 P3.4` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.5` | `frontier/high` | `none` |
 
 ## Execution card
 
@@ -55,6 +58,11 @@
 | P2.8 | solo | plan-run | frontier/high | — | FolderSource, discovery, pairing политик |
 | P2.9 | solo | ↑ | implementation/medium | — | кадры областей и directories (D6) |
 | P2.10 | solo | plan-run | frontier/high | — | Review P2, read-only verdict, свежая сессия |
+| P3.1 | B3a | plan-run series | frontier/high | — | хранилища, mutate, блокировки, повторы, panel_state; engines PG/MySQL |
+| P3.2 | B3a | ↑ | frontier/high | — | схема 08 §2, storage_state, миграции, MariaDB; DDL на 4 СУБД |
+| P3.3 | B3b | plan-run series | frontier/high | — | модели, свои модели, Field/FieldTarget, GrantFields |
+| P3.4 | B3b | ↑ | implementation/medium | — | запрет прямых записей, arch-правила записи |
+| P3.5 | solo | plan-run | frontier/high | — | Review P3, read-only verdict, свежая сессия |
 
 ## Owner gates (summary)
 

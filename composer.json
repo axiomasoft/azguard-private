@@ -51,7 +51,7 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest",
+        "test": "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines",
         "test:parallel": "vendor/bin/pest --parallel --passthru-php='-d memory_limit=1G'",
         "test:coverage": "vendor/bin/pest --coverage --min=85",
         "test:unit": "vendor/bin/pest tests/Unit",
@@ -93,6 +93,14 @@
         "fix": [
             "@lint",
             "@refactor"
+        ],
+        "test:engines:pgsql": [
+            "@putenv DB_CONNECTION=pgsql",
+            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
+        ],
+        "test:engines:mysql": [
+            "@putenv DB_CONNECTION=mysql",
+            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
         ]
     },
     "scripts-descriptions": {
