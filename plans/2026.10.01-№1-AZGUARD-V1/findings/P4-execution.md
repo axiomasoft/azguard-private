@@ -175,3 +175,56 @@ optional PHPStan turbo warning сохранён. Engine/Redis gates здесь �
 Owning fix SKM 2ea11457: original digest/inventory authentication для live close,
 immutable first closure commit proof только для predecessor consumption.
 1363 tests OK/1 skip, 38 focused tests; budgets/history/исходные receipts сохранены.
+
+
+## P4.4 — реализация и локальная приёмка
+
+DatabaseSource реализует immutable builder, raw exact panel/subject и полные
+OR-пары tenant/context, identity через final model getters/HostKeyColumns,
+decisionFields только через GrantFields. Origin и expiry сохраняются в raw
+contributions. Совместный fence охватывает grants, role grants и context selection:
+пинит один PDO для schema/state/data, повторяет полный набор до трёх раз и выдаёт
+ConsistencyError при нестабильном состоянии. Primary не принимает неизвестную
+транзакцию; Default пинит фактический read PDO без sticky fallback.
+
+Selection читает bounded chunks, сохраняет witnesses при дедупликации refs и
+различает everywhere/nowhere. Storage::own() переиспользует resolved connection и
+prefix, отклоняет несовместимые host keys и имеет детерминированную identity.
+DatabaseSource подключается к panel явно; неявная регистрация builtin не добавлена.
+
+| Приёмка | Финальный результат |
+|---|---|
+| Targeted DB/source tests | 102 tests / 704 assertions |
+| PostgreSQL / MySQL / MariaDB | 11 / 193; 11 / 193; 11 / 249, без пропусков |
+| Architecture / полный suite | 72 / 314; 2212 / 243535 |
+| API manifest / Pint / PHPStan / types / diff | exit 0; 0 errors; type coverage 99.7% |
+| Независимый reviewer | Grok 4.7 / high / 500000: GREEN, findings=[] |
+
+Все 12 declared checks выполнены последовательно на стабильном продукте
+`0dce16cad7b1aab7506c60f2082f4f01c7313938b2ba2099d3dce9702783a5da`.
+Отдельные numbered logs и candidate/context receipts —
+`artifacts/P4.4-execution/029-final-*` … `040-final-*`; карта carriers — checks.json.
+SQLite :memory: и серверные azguard_test проверены до запуска; явные ports
+25432/23306/23307. Type gate использует ранее документированный no-fork/no-cache;
+optional PHPStan turbo warning сохранён, стандартный анализ завершился успешно.
+Предварительные неуспешные прогоны и ошибочно перекрывшаяся preliminary пара
+не используются для приёмки.
+
+Reviewer получил весь изменённый продукт, новые/удалённые файлы, зависимости,
+нормы и текущую validation evidence без истории executor. Native session
+`01a10829-74c2-7b00-ab4e-bc3e315e5a81`, review candidate
+`b40362d1f86c4d8d2090c18fd3cb36b77e8fc738723b3f4119de6c04ca6a174b`;
+complete end_turn/usage и GREEN сохранены в `artifacts/P4.4/owner-review/attempt-0003/`.
+Две предшествующие INCOMPLETE попытки сохранены; GREEN их не заменяет.
+Canonical SKM transport repair 344d8d7c проверен 56 tests; repair объявленного
+порядка фазы 8f0b115e — 16 focused / 176 dependency-closure tests и independent
+read-only review. Нераскрываемые brace/glob carriers дополнены concrete inventory;
+отдельная находка — findings/P4.4-runtime-defects.md.
+
+Границы: dynamic flag даёт явный отказ до overlay P4.17; scoped Authorizer/P08 —
+P4.18; apply/dynamic writes — P5.2/P5.3; transaction protocol — P4.20; races —
+P4.21. Эти будущие пункты не реализованы и не заявлены GREEN. Фаза P4 остаётся
+открытой; следующий отдельный пункт по declared execution order — P4.17.
+write-site: pre_mutation: allow · pre_final: allow
+
+Post-review immutable dependency closure исправлен в owning SKM 066205bf: additive archived witnesses сохраняют original receipt/manifest/candidate; 271 affected tests GREEN + independent read-only review. P4.3 остаётся foreign baseline finding, его historical receipt не переписывался. Closure runtime pinned к qualified isolated source, concurrent primary SKM edits сохранены.

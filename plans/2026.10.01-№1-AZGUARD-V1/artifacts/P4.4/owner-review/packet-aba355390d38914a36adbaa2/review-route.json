@@ -1,0 +1,823 @@
+{
+  "base": "554126502890563c02a3ef9b5a19fd71982c3cd0",
+  "budget_decision": null,
+  "candidate_sha256": "b40362d1f86c4d8d2090c18fd3cb36b77e8fc738723b3f4119de6c04ca6a174b",
+  "effort": "high",
+  "executor_session": "01a107ea-3165-7150-90ff-8265647e49b2",
+  "item_id": "P4.4",
+  "packet_sha256": "6c9e514a166352aca60824c1da97b09a103cf99c165176cf12c8bef109b2d5c1",
+  "paths": [
+    "CHANGELOG.md",
+    "composer.json",
+    "composer.lock",
+    "docker-compose.yml",
+    "packages/core/api-manifest.json",
+    "packages/core/src/Authorization/EvaluationFrame.php",
+    "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+    "packages/core/src/Catalog/PermissionDefinition.php",
+    "packages/core/src/Configuration/AzGuardConfig.php",
+    "packages/core/src/Contracts/Sources",
+    "packages/core/src/Contracts/Sources/AssignmentScopeSelection.php",
+    "packages/core/src/Contracts/Sources/FencesReads.php",
+    "packages/core/src/Contracts/Sources/FiltersQueries.php",
+    "packages/core/src/Contracts/Sources/{FencesReads,FiltersQueries,AssignmentScopeSelection}.php",
+    "packages/core/src/Kernel/Decision",
+    "packages/core/src/Kernel/Identity",
+    "packages/core/src/Panels/Panel.php",
+    "packages/core/src/Panels/PanelRecipe.php",
+    "packages/core/src/Panels/PanelRegistry.php",
+    "packages/core/src/Panels/PanelSettings.php",
+    "packages/core/src/Panels/Reads.php",
+    "packages/core/src/Sources/Database/DatabaseSource.php",
+    "packages/core/src/Sources/PanelSources.php",
+    "packages/core/src/Sources/SourceManager.php",
+    "packages/core/src/Storage/GrantFields.php",
+    "packages/core/src/Storage/Models",
+    "packages/core/src/Storage/Schema/HostKeyColumns.php",
+    "packages/core/src/Storage/Storage.php",
+    "packages/core/src/Storage/StorageMutation.php",
+    "packages/core/src/Storage/StorageReadSession.php",
+    "packages/core/src/Storage/StorageRegistry.php",
+    "packages/core/src/Storage/{Storage,StorageRegistry}.php",
+    "phpunit.xml",
+    "tests/Engines/DatabaseSourceEngineTest.php",
+    "tests/Feature/Sources/Database/DatabaseBuilderTest.php",
+    "tests/Feature/Sources/Database/DatabaseReadsTest.php",
+    "tests/Feature/Sources/Database/DecisionFieldsTest.php",
+    "tests/Feature/Sources/Database/FenceTest.php",
+    "tests/Feature/Sources/Database/SelectionWitnessTest.php",
+    "tests/Feature/Sources/Database/StorageOwnTest.php",
+    "tests/Feature/Sources/Database/{DatabaseReadsTest,DatabaseBuilderTest,DecisionFieldsTest,FenceTest,StorageOwnTest,SelectionWitnessTest}.php",
+    "tests/Fixtures/Sources/Database/**",
+    "tests/Fixtures/Sources/Database/DatabasePermission.php",
+    "tests/Fixtures/Sources/Database/DatabasePolicy.php",
+    "tests/Fixtures/Sources/Database/DatabaseRoleGrant.php",
+    "tests/Fixtures/Sources/Database/DatabaseWorld.php",
+    "tests/Fixtures/Sources/Database/EditorRole.php",
+    "tests/Fixtures/Sources/Database/FencedContributions.php",
+    "tests/Fixtures/Sources/Database/FencedDefinitionsOnly.php",
+    "tests/Pest.php",
+    "tests/TestCase.php"
+  ],
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "reviewer": "grok/grok-4.7/500000",
+  "risk_class": "local",
+  "route": {
+    "context_tokens": 500000,
+    "model": "grok-4.7",
+    "provider": "grok"
+  },
+  "schema_version": "review-route/v1",
+  "snapshot": {
+    "diff_sha256": "fdb2d2ce03043f3ba8df70f63f6d0e670291fc7b2fd23b754150f4b3be743338",
+    "inputs": [
+      {
+        "mode": 384,
+        "path": "AGENTS.md",
+        "sha256": "fea958df80fb34956cedb44623e0fc5ba62e945c83625235c5a276e4239278fd"
+      },
+      {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+        "sha256": "1f32fa592a07bb4e196409e50ee09790a6590e33a17388bc30e192080fbf6b0e"
+      },
+      {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+        "sha256": "c7212b153c9a9e59ea05909eacd3a72eef65ef1530f9474d424849d12de6e193"
+      },
+      {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+        "sha256": "849fa65d0c5f08965333dfb2f140d0ba8542c251799e21a7a5b7aa95b136a6ed"
+      },
+      {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+        "sha256": "11495b975937b5a92bcbd2ecc45bf49194f4f1994c4a65b13011c3126a125aa8"
+      },
+      {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/14-verification.md",
+        "sha256": "9d1b5c2a3e5dd5c9b214e6c03082305c663108d251f4a78ffa05b8bb4dca27c5"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/PanelCatalog.php",
+        "sha256": "bb7c3ef7a4d9c0f3eb45af6c5ed5f7255339ef493770672a7d734eaac25729c6"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/RoleCompiler.php",
+        "sha256": "943b7fd818789ab442aaee4b4522c2c38a6ff9c1ae9282ab0bb53b0b007c2624"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+        "sha256": "f863436927d91c08fbee340097fdd1bcbed69371edc136b3e91118c249f3c3bc"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/PanelBuilder.php",
+        "sha256": "c08d58992b3aff9f7cb532edf38c4cfc1a512d85ba833cd9163ab7974feda206"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/GrantFields.php",
+        "sha256": "1fcaf9eb80de153d2fedd27fd4b9e2c68c96ef638e7fdfb2b5d5c287a27cda49"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Storage.php",
+        "sha256": "ace83aab838aeea01bbb61dc039afe2877b122a1e54f0ed911342b9f8a8e0654"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/StorageRegistry.php",
+        "sha256": "d333de7944a11e8804adf2a78420e6a654c49e1382b765a1c51013b4fe15e7ff"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/029-final-targeted.json",
+        "sha256": "06c05cdb6f046f848a47c9ec7514f974ecb4279dfef0b78cd10f696c4a744208"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/029-final-targeted.log",
+        "sha256": "319031b1c82b87d002d1bf2344d6e88b5f52181abace45fbd01b0f14f0843b10"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/030-final-docker.json",
+        "sha256": "2b03c6f17dccdba4b7a6d7643fa7a9b20bfb0805d14a378bfa6697af64da50ca"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/030-final-docker.log",
+        "sha256": "c83c40b241e39de9a41cdc2c1e676c46a7d49b2092c18765c6d1e9650e65f4ef"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/031-final-pgsql.json",
+        "sha256": "b474db05d3b432b3fc5c837fd0f77b80d99ba4293af770f47cea401a145b9718"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/031-final-pgsql.log",
+        "sha256": "cbd58238104379c9b5c6ac97005c2eb0937c028b964197b3f2488d81e2a7dc45"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/032-final-mysql.json",
+        "sha256": "4ed79bf1910d9c1eaeb971446a9ddd3bedcd233940b1994560dd3dc31a2b82e8"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/032-final-mysql.log",
+        "sha256": "752acdb4e8e65180b9a01e6a2ed4b47af2a8c8cf5aacf7f23703c5881dcfd142"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/033-final-mariadb.json",
+        "sha256": "5a684e7d92be3366e98da3c18fc0a431ac4c193d9a14816ab880cd0372650801"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/033-final-mariadb.log",
+        "sha256": "5f42eec7a032247b3e6ec261003be8839f943a1a10559e4fd8ec5f27977b887b"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/034-final-arch.json",
+        "sha256": "8b788da5df3ecb67bc6e943971b70b610810e5e9b82670bf15fce5b5717457bb"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/034-final-arch.log",
+        "sha256": "9a0ef5738509a6b8e3cd0381ccf9eda5ef7a22319a472e5db574143ab794e82c"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/035-final-api.json",
+        "sha256": "a0c01e769a1ea28945091b25bfbe86b8f590660d3f0dffa39bf4e38e947b4326"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/035-final-api.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/036-final-full.json",
+        "sha256": "a0de63e363b9c570e4bafedd33c5601ce7f81e8d7aaf17faa4151469d2a12145"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/036-final-full.log",
+        "sha256": "4b58353f561fc652c9f765ce364036f44bbcfde85d3ef206f698cf604e2d8c53"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/037-final-pint.json",
+        "sha256": "50808569d48d940da0eab1fcc8ac139c6ee07a3f7aeeca6205d561b42e780913"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/037-final-pint.log",
+        "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/038-final-phpstan.json",
+        "sha256": "e44164325032bb740ca719583f53a6e024bba8b5dc30dee62f7b31c648b842e9"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/038-final-phpstan.log",
+        "sha256": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/039-final-types.json",
+        "sha256": "cc902d82ccaa64bb45f607dfa6eeea99ee9ffdb0b8c25483035f82d1f97a6725"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/039-final-types.log",
+        "sha256": "9d345b912ac148f44b5cd70c135407b3cc9ee79ca8543e0ebddd8b51e4e4dbcb"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/040-final-diff.json",
+        "sha256": "50b40813336e03a7fb25ee8d29619ae32c132f799ea402de5e44c586cbceab0b"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/040-final-diff.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/checks.json",
+        "sha256": "df40643961e81831dc4d15abff40be25c303e7bd73a1f9b74be248a8635c7397"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/invariant-model.md",
+        "sha256": "810657f5b4e727a82a6866893456f1656c6606282b829c46672d673ef35b831d"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/self-check.json",
+        "sha256": "b277d8de5c99dfbdc483bdd8495f14e0dff2031b8005cac7676c9cc6bbe9ff8d"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/validation-receipt.json",
+        "sha256": "4626d557ab3e00ca5716e7c8413ebc44f83fd2b99ffb12a656b4ee63e28d1215"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/validation-summary.md",
+        "sha256": "c06cb1e8fc2f34f572ee01c065a9c8ecb82cbeec34b014877a59d0b3197d6705"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/brief/P4-acceptance-matrix.md",
+        "sha256": "2a989055b52e0587ff016579bf0700e0750bbc9095f74f23614e2796794a7d01"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/brief/P4-dossier-decisions.md",
+        "sha256": "ca5b8da2419729c13802ff7060240f06af6b4db22202d84f9f5b1c84a44e6b2c"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/decisions/D14-p4-authorization-closure.md",
+        "sha256": "0e83e6afa0a9078625fd643f11ef2de23ce76b7e4c3155ab2d255c9f6d685f74"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/decisions/D15-p4-design-repair.md",
+        "sha256": "2aeec56537cd52457d85fee1d7b4ffc1324a2ee97c3ebb6542c15c3b6087f56e"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/decisions/D16-p4-execution-grouping.md",
+        "sha256": "f3d9deeb0d691a0104eebdfdf0df75414af38f04c4f15744348ade78badbaa34"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/phases/P4/P4.4.md",
+        "sha256": "b5673b7f0d2e81a3cd05df14b8ed5e5b2aac18b41404d3579ce6cf2e85b92b24"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/phases/P4/P4.md",
+        "sha256": "d1c7871d1b0cc4b01ce0424479dea6bf630551bfb45de1ce6df558be26034d7f"
+      },
+      {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/plan.md",
+        "sha256": "e66efb560728442742b66ffd6dafa3aaffd8a3a60b25ca5f745b385a4b75b660"
+      },
+      {
+        "mode": 493,
+        "path": "vendor/laravel/framework/src/Illuminate/Database/Connection.php",
+        "sha256": "7ac2392c7236486fd92040bdb55760cd195f7cbc2b8f753fffcda70a5edaf39c"
+      },
+      {
+        "mode": 436,
+        "path": "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php",
+        "sha256": "1970585898bc1a01b1cc6d606169bdaebf9e0395851fcdb17c9574b124b6c80f"
+      },
+      {
+        "mode": 493,
+        "path": "vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php",
+        "sha256": "9e3e4e0c7aff9e78b471b0cf5276d96f0d6b0864d452d8e5ce99c7a42fa67b19"
+      }
+    ],
+    "product": [
+      {
+        "mode": 436,
+        "path": "CHANGELOG.md",
+        "sha256": "5c504be5aa06d2565230ebbd4b2d18ab4c8035ec9c12a42c8e126a14c7a52cf3"
+      },
+      {
+        "mode": 436,
+        "path": "composer.json",
+        "sha256": "0bbcd22f112fc35bdc6dc00b352f29a8c0aeb6b16769f84552467861cfba15b9"
+      },
+      {
+        "mode": 436,
+        "path": "composer.lock",
+        "sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d"
+      },
+      {
+        "mode": 436,
+        "path": "docker-compose.yml",
+        "sha256": "ded877c95e54ad3f21811e044251cf0e81fff14180b98a7bdf112c7f1654b26d"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/api-manifest.json",
+        "sha256": "a64a1666413777e20d97d20087a18fb2d2b87186deae8581c97e5651930d5512"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/EvaluationFrame.php",
+        "sha256": "b1494f90db7229cf65717a0efb9ca96f11b6ec3ed9f8283df0970be633ed637e"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+        "sha256": "b5e4f66c8690b865db97f7d0096c0147f439c149c54af307ed12ddcd8f613a91"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/PermissionDefinition.php",
+        "sha256": "a5296fec4f9645853a10890213c92fcb5399bec2a3cb8f74e36c04ebfad835a9"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Configuration/AzGuardConfig.php",
+        "sha256": "0b5852fe20972d42da32355b3f55ad64182904ea57904d9f660bf246b18cf9ba"
+      },
+      {
+        "path": "packages/core/src/Contracts/Sources/",
+        "sha256": "directory"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/AssignmentScopeSelection.php",
+        "sha256": "15c7fe810ca50d64586c4ff8b81a0896a385800d2cd57ece89da296f1f875058"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/DescribesSchema.php",
+        "sha256": "95226b159a02335d268c10101784981b48aaa00c6b448553c9fefb5550b6aa63"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/FencesReads.php",
+        "sha256": "2f6c14f58cfec745ae08cc6df7a94c4aea66ba3c13abf01447bbe52554e59d32"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/FiltersQueries.php",
+        "sha256": "d22d3f804337aebd97a0696d5f16a02d35fda8fab1cec0375bf4c24dbd22f823"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/ProvidesGrants.php",
+        "sha256": "b28d4eca99f2f048f683aae3d28c7ca7f22694dd8957efe500c7010f2c91af46"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/ProvidesPermissions.php",
+        "sha256": "c8436bbcff00d4318a41417dff1058fac354eb098688d240cf3dab301b1091fd"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/ProvidesPolicies.php",
+        "sha256": "d3faa225be9806d2ca3eff8266f41dc109e76ff2c595f6f7207fcb485a3f0984"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/ProvidesRoleGrants.php",
+        "sha256": "225c55ee22e8f29ffe3a34e2432d03a4f5bf24247d45fa4f2a61f3c1c72d7421"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/ProvidesRoles.php",
+        "sha256": "86412a14a22bd01b1b4e9293f6e9981970c0d5aa56fbf5600549589a25009057"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/Source.php",
+        "sha256": "51bad20aaeb69ea20a271ccef3ef773437f3c4b12db5c09793599639bd6b042e"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/SourceDescription.php",
+        "sha256": "6c9f5c67f55be702e908b795763728c9669277d4997235a0c5613ed48ea5ac79"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/StoresGrants.php",
+        "sha256": "85b907b5cf8bf64ebc7c3d6ce9fa7ab22889aa3d90b00f8783cb4740fb6cab7b"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/Volatility.php",
+        "sha256": "6ec709b1b18d2d7727e1fcd21cc27a2f11e92d8684d48b10f016bcc3a4c4986c"
+      },
+      {
+        "mode": null,
+        "path": "packages/core/src/Contracts/Sources/{FencesReads,FiltersQueries,AssignmentScopeSelection}.php",
+        "sha256": null
+      },
+      {
+        "path": "packages/core/src/Kernel/Decision/",
+        "sha256": "directory"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/AccessRequest.php",
+        "sha256": "66806311cbe2af8603488d1d24dfce528203e63adc7db74291862acdc10a79ab"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/BeforeResult.php",
+        "sha256": "58354220b8613384b5f1d670642a31b6c9ca03ad7c688a8b4184649218ddf456"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/CodeStateToken.php",
+        "sha256": "e7970da3b17ca7edb85c7278458fbeda3445dd182221bbee6c2c8603214fa3cb"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/Decision.php",
+        "sha256": "e8a892a0a839735b848566f72a8d885cb1df39812443a95a96f814912e7c7167"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/DecisionReason.php",
+        "sha256": "304fe08b0d22a9888de137039d6b06aca59f771fdd0710e5d851df7396969c5d"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/DecisionSet.php",
+        "sha256": "21cc1d3ab5484705108393b1e1f23faa9c8edcfe02792a97f7b0f55e07c6ad0d"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/Effect.php",
+        "sha256": "566a68459fca5db9dfaa093d0810e1817a74f30b904fd70cbcef0b588df65825"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/Grant.php",
+        "sha256": "0da3d92c4bce892561ee702c56960d90f3d5bb1cb59d7ec5c9858154646f8087"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/PermissionAuthority.php",
+        "sha256": "9358c2da68eac5600f91cb7804530547d69dceb0538b0d8f42442d6f3b903b47"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/RestrictionResult.php",
+        "sha256": "e7120251bdec2d7788085b13c1c2238f672ab0682b6790b13caa5fe8f1b92eed"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/RoleContribution.php",
+        "sha256": "2e28887674cadb7713016f3abe85a9175c9828d59381e593a8ae7850c5e7c5d7"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/StateToken.php",
+        "sha256": "2550a48db84d953282db13b1db069266fc73d03e63a29e8631c8e256ef5c2162"
+      },
+      {
+        "path": "packages/core/src/Kernel/Identity/",
+        "sha256": "directory"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/AccessScope.php",
+        "sha256": "ff3bbce6d4f46992d81f0805a49af3f453a7a3fc515142ce896f553221f48503"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/ActorRef.php",
+        "sha256": "6175a31c4ada9cf9011e391029dab170932acfe4cae6fb1b7dac342dcf169c39"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/AnyAssignmentScope.php",
+        "sha256": "53c4a0a091977670923441a52c4c28a9feac0fd7950dacdda5a0e2736f36b4d2"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/AssignmentScopeRef.php",
+        "sha256": "20662405c47679c5687313bf5bf8406847a367b1d7f8f1fa5b85470a1a76c775"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/IdentityCodec.php",
+        "sha256": "31f4d98c8829882cc45f8abad30949d21e0fd59da6b6228d9180d258e3d1ce7b"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/PermissionKey.php",
+        "sha256": "dcac04a7b51a796d0a48a63f9947bc00e72dcb6b42e62b51bc1225746bf86431"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/PermissionPattern.php",
+        "sha256": "4221caf6d58d54130dd922f90a69c942f681818f266cd51820e1c36fe7a1a65f"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/RoleKey.php",
+        "sha256": "3521ee4bcd5efcd0ee3a7f6b2ff4eb1f66c6596be2db6d9434ac3dbc37fad2a8"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/SubjectRef.php",
+        "sha256": "3b12b87c4929cb038fce9a96b599e971a8be29af2aaf6a70221c9f2306cb0978"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/TenantRef.php",
+        "sha256": "4231fc7b5d93420ac636167bbd96cd68f0cf4cdefbb780faec2ee334e947975d"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/Panel.php",
+        "sha256": "debe4157ae0fc90c8caae4da140bf98571a55232fed0e8b5c1193c1dee315366"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/PanelRecipe.php",
+        "sha256": "80ab9e06560e407ca23750246b52f94404f9bb054fdb187f689580163b24b071"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/PanelRegistry.php",
+        "sha256": "c3337d33670fe3255f7d83a3105705699502ed878a6b4b4d859ec6e62beda4d3"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/PanelSettings.php",
+        "sha256": "f95044276bb951ba31ca84ee0ceb92faa431c7a2a0f3f7b9c9b70f3ecdb6bcfc"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Panels/Reads.php",
+        "sha256": "5963a9d08c011e4a1a8e63c2cf9e02b1e0a0f4ff62903e8b7505f6c5e94f19e7"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+        "sha256": "ff5565f5eea93931dcf8bbc06615f276fe3ea9a71dbb131bec64d48df933ec87"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Sources/PanelSources.php",
+        "sha256": "279870f7605c4b1ad360823a5ebc24b6e4633c1db34fd02657c5281c0484c88b"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Sources/SourceManager.php",
+        "sha256": "d986cae88c1eac97f7eafb0906cce09085e4d5f7430ed936a227ed4ab86c331b"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/GrantFields.php",
+        "sha256": "1fcaf9eb80de153d2fedd27fd4b9e2c68c96ef638e7fdfb2b5d5c287a27cda49"
+      },
+      {
+        "path": "packages/core/src/Storage/Models/",
+        "sha256": "directory"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Models/Permission.php",
+        "sha256": "c6f43158bd1d6a3afd07cffc12695d0770155a1bf06bdc30a0ed63c259df8740"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Models/PermissionGrant.php",
+        "sha256": "a994a5bc71b9344ba2453b5b03049b99833a979f2e63cf37b6240e31f28057a3"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Models/RoleGrant.php",
+        "sha256": "cf6b519977d862349ec953746e5a8b272a6fa107b623120f878dbe8f0ed7958e"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Schema/HostKeyColumns.php",
+        "sha256": "eb8dd4fa08dfd52185fb3af39511aacea143fd1ab440c2665d5046c12cdba05b"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Storage.php",
+        "sha256": "ace83aab838aeea01bbb61dc039afe2877b122a1e54f0ed911342b9f8a8e0654"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/StorageMutation.php",
+        "sha256": "33a9c926bd3693825e0d418a34ee8798db9f884956180cc112ed21e469a8b0aa"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/StorageReadSession.php",
+        "sha256": "12dde7f79800f654e95f70f2ccded60bca47b1be20d25f3a843a4aed444cd6a0"
+      },
+      {
+        "mode": 436,
+        "path": "packages/core/src/Storage/StorageRegistry.php",
+        "sha256": "d333de7944a11e8804adf2a78420e6a654c49e1382b765a1c51013b4fe15e7ff"
+      },
+      {
+        "mode": null,
+        "path": "packages/core/src/Storage/{Storage,StorageRegistry}.php",
+        "sha256": null
+      },
+      {
+        "mode": 436,
+        "path": "phpunit.xml",
+        "sha256": "0688c80315e40037ce09445bdf6dc1fffa0d1a2f29ab678d9bafeacb189da0e2"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Engines/DatabaseSourceEngineTest.php",
+        "sha256": "4ab05593d477a068e7d036abc8e93ba34dc52f4abdcc4d9e93b0bf8e0d4a99ba"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/DatabaseBuilderTest.php",
+        "sha256": "d671bc11c05b70b3eda1e5f1b103fe3210708aa33c67c30384694cda86d7e2de"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/DatabaseReadsTest.php",
+        "sha256": "7e5e8e81b25f64317270a20a2b4c16180d5212c98d580e5f63e8484c125b5d3f"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/DecisionFieldsTest.php",
+        "sha256": "4f723132d4beae03aec300eac56b8507db893a23000a46b186eddb18062fac2b"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/FenceTest.php",
+        "sha256": "885a9fc1c896d04ceb1a2bf38877aedcd7564b4b7209f4d042100c7e64e4920d"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/SelectionWitnessTest.php",
+        "sha256": "da4adc3e15f20c390cac1e015c43a6f74bbab415b14253e5a19577e2872db501"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/StorageOwnTest.php",
+        "sha256": "1a34d385a7d13b89b63dfcdff311e3c943bfa7557599c5e218e987d042660892"
+      },
+      {
+        "mode": null,
+        "path": "tests/Feature/Sources/Database/{DatabaseReadsTest,DatabaseBuilderTest,DecisionFieldsTest,FenceTest,StorageOwnTest,SelectionWitnessTest}.php",
+        "sha256": null
+      },
+      {
+        "mode": null,
+        "path": "tests/Fixtures/Sources/Database/**",
+        "sha256": null
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabasePermission.php",
+        "sha256": "4b092bce5f1c05fdad7f9899932d4e12e525a08d9ac4f35d5cf6ff3d7c2b054b"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabasePolicy.php",
+        "sha256": "45816f26da2eaff511aa5d1b399a155db2dd25593ee8985dfd6ee09cb1adc13c"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabaseRoleGrant.php",
+        "sha256": "60168f8c49ab04f85ed4bd57238e511ca812839bbfc318954418cbeee2554841"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabaseWorld.php",
+        "sha256": "893e1aaae31450fb9cafab67ae80ef9310d61d82f54c5c8cc8c35c9daec27750"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/EditorRole.php",
+        "sha256": "189a1cf17bd2ac04b14957f485d2706dea97e83cbefb643d9575a7f6f03011f5"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/FencedContributions.php",
+        "sha256": "f788623f0e64365c4278c4eaf62643ea8313da8dc715c980fdbd6313a56a7614"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/FencedDefinitionsOnly.php",
+        "sha256": "f12642cf76ab287712523779ac183b941468aff9831569e07649667a2a1bd95d"
+      },
+      {
+        "mode": 436,
+        "path": "tests/Pest.php",
+        "sha256": "ef2eed825e88cd52a4b5d0ef63614306cba1b4a7026f31b19bdc0dca0c4cad36"
+      },
+      {
+        "mode": 436,
+        "path": "tests/TestCase.php",
+        "sha256": "c06ead2eeca129b86b552be77a54d12ea467f4915e8c16c8fcad00cb28ce1ec5"
+      }
+    ]
+  },
+  "supporting": [
+    "AGENTS.md",
+    "audits/2026-09-29-audit/opus/05-php-api.md",
+    "audits/2026-09-29-audit/opus/06-extension-points.md",
+    "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+    "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+    "audits/2026-09-29-audit/opus/14-verification.md",
+    "packages/core/src/Catalog/PanelCatalog.php",
+    "packages/core/src/Catalog/RoleCompiler.php",
+    "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+    "packages/core/src/Panels/PanelBuilder.php",
+    "packages/core/src/Storage/GrantFields.php",
+    "packages/core/src/Storage/Storage.php",
+    "packages/core/src/Storage/StorageRegistry.php",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/029-final-targeted.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/029-final-targeted.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/030-final-docker.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/030-final-docker.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/031-final-pgsql.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/031-final-pgsql.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/032-final-mysql.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/032-final-mysql.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/033-final-mariadb.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/033-final-mariadb.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/034-final-arch.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/034-final-arch.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/035-final-api.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/035-final-api.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/036-final-full.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/036-final-full.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/037-final-pint.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/037-final-pint.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/038-final-phpstan.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/038-final-phpstan.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/039-final-types.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/039-final-types.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/040-final-diff.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/040-final-diff.log",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/checks.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/invariant-model.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/self-check.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/validation-receipt.json",
+    "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.4-execution/validation-summary.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/brief/P4-acceptance-matrix.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/brief/P4-dossier-decisions.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/decisions/D14-p4-authorization-closure.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/decisions/D15-p4-design-repair.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/decisions/D16-p4-execution-grouping.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/phases/P4/P4.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/plan.md",
+    "vendor/laravel/framework/src/Illuminate/Database/Connection.php",
+    "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php",
+    "vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "owner_commit": "066205bf620abc873cad2f2a94cff3988dff6710",
+  "runtime": "/tmp/azguard-p44-skm-proof-runtime",
+  "runtime_clean": true,
+  "review_packet_sha256": "539e5b5108a8033a677be3b4546b0fcc49a1311249e67fa40314fa7b1f69f53a",
+  "qualification_tests": 271,
+  "qualification_result": "GREEN",
+  "independent_review": "product/input overlap found, fixed with regression; final delta no new findings",
+  "qualification_log_sha256": "c0d55b9267c9dac32dd4dddc9cc8da9a4583ef7624422be958f939caebfc7227",
+  "original_review_artifacts": "unchanged",
+  "legacy_P4.3": "foreign baseline preserved"
+}

@@ -1,0 +1,15 @@
+{
+  "status": "blocked-before-commit",
+  "owner": "swissknifeman/packages/task",
+  "original_review": "GREEN",
+  "reviewed_bytes": "unchanged",
+  "cause": "ignored read-only dependency sources absent from immutable closure tree",
+  "affected_current": [
+    "composer.lock",
+    "vendor/laravel/framework/src/Illuminate/Database/Connection.php",
+    "vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php",
+    "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php"
+  ],
+  "foreign_baseline": "P4.3 two vendor inputs; not rewritten",
+  "source_repair": "isolated /tmp/azguard-p44-skm-proof-runtime; qualification pending"
+}

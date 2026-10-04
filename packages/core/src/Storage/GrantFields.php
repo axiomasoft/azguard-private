@@ -32,7 +32,7 @@ final readonly class GrantFields
      * @param  list<Field>  $panelFields
      * @param  list<string>  $decisionFields
      */
-    public static function for(Storage $storage, FieldTarget $target, string $model, array $panelFields = [], array $decisionFields = []): self
+    public static function for(Storage|StorageReadSession $storage, FieldTarget $target, string $model, array $panelFields = [], array $decisionFields = []): self
     {
         $instance = $storage->model($target->value, $model);
 

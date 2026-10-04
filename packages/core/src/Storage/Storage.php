@@ -9,6 +9,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Panels\Reads;
 use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
@@ -31,6 +32,11 @@ use Throwable;
 
 use function Illuminate\Support\enum_value;
 
+/**
+ * A configured physical storage or a registry-managed private storage.
+ *
+ * @api
+ */
 final class Storage
 {
     use DetectsConcurrencyErrors;
@@ -60,6 +66,17 @@ final class Storage
         return $this->id;
     }
 
+    public static function own(?string $connection = null, string $prefix = 'azg_', string $hostKeys = 'string'): self
+    {
+        return app(StorageRegistry::class)->own($connection, $prefix, $hostKeys);
+    }
+
+    /** @internal Consumed authority reads share one PDO for their complete fence. */
+    public function readSession(Reads $reads): StorageReadSession
+    {
+        return new StorageReadSession($this, $reads, fn (string $kind, ?string $class): Model => $this->makeModel($kind, $class));
+    }
+
     public function connectionName(): string
     {
         return $this->connection->getName() ?? throw InvalidConfigurationException::failing('storage', 'Storage requires a named connection.');
@@ -86,6 +103,14 @@ final class Storage
     }
 
     public function model(string $kind, ?string $class = null): Model
+    {
+        $model = $this->makeModel($kind, $class);
+        $this->assertSchema();
+
+        return $model;
+    }
+
+    private function makeModel(string $kind, ?string $class): Model
     {
         [$base, $table] = match ($kind) {
             'role_grant' => [RoleGrant::class, 'role_grants'],
@@ -114,8 +139,6 @@ final class Storage
                 $this->assertModelAttributes($class, $trait, $expectedTable);
             }
         } while (($reflection = $reflection->getParentClass()) !== false);
-
-        $this->assertSchema();
 
         return (new $class)->bindToStorage($this, $expectedTable);
     }

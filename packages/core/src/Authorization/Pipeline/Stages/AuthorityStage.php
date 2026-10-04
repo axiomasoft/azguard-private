@@ -9,8 +9,11 @@ use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\GrantCondition;
+use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
+use AzGuard\Contracts\Sources\Source;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
@@ -23,6 +26,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use Illuminate\Contracts\Container\Container;
@@ -51,28 +55,20 @@ final readonly class AuthorityStage
                         $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
                     }
 
-                    foreach ([ProvidesGrants::class, ProvidesRoleGrants::class] as $capability) {
-                        if (! $source instanceof $capability) {
-                            continue;
+                    [$items, $frame] = $this->readSource($source, $request, $frame);
+                    foreach ($items as $item) {
+                        if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
+                            throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
                         }
-                        $items = $source instanceof ProvidesGrants && $capability === ProvidesGrants::class ? $source->grants($request->subject(), [$frame->scope()], $frame) : ($source instanceof ProvidesRoleGrants ? $source->roleGrants($request->subject(), [$frame->scope()], $frame) : []);
-                        foreach (PanelCatalog::untrusted($items) as $item) {
-                            if (($capability === ProvidesGrants::class && ! $item instanceof Grant) || ($capability === ProvidesRoleGrants::class && ! $item instanceof RoleContribution)) {
-                                throw new InvalidSourceContributionException('Unexpected contribution type.');
-                            }
-
-                            if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
-                                throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
-                            }
-                            $contributions[] = [$source, $item];
-                        }
+                        $contributions[] = [$source, $item];
                     }
                 }
             } catch (Throwable $error) {
                 $component = isset($source) ? $source::class : 'sources';
-                $trace->error('authority', 'source_error', $component, $error);
+                $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
+                $trace->error('authority', $reason->value, $component, $error);
 
-                return [$frame, Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), $component)];
+                return [$frame, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
             }
             foreach ($contributions as [$source,$item]) {
                 if (! $item->activeAt($frame->now())) {
@@ -177,6 +173,49 @@ final readonly class AuthorityStage
         $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($superAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
 
         return [$frame, Decision::allow($reason, $frame->state(), $frame->scope(), grants: $request->isTraced() ? $matching : [])];
+    }
+
+    /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */
+    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame): array
+    {
+        if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
+            return [[], $frame];
+        }
+
+        if ($source instanceof DatabaseSource) {
+            $snapshot = $source->readContributions($request->subject(), [$frame->scope()], $frame);
+
+            return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
+        }
+        // Materialize every capability before accepting a fenced source revision.
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $source instanceof FencesReads ? $source->state($frame->panel(), $frame->scope()->tenant) : null;
+            $items = [];
+
+            if ($source instanceof ProvidesGrants) {
+                foreach (PanelCatalog::untrusted($source->grants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                    if (! $item instanceof Grant) {
+                        throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
+                    }
+                    $items[] = $item;
+                }
+            }
+
+            if ($source instanceof ProvidesRoleGrants) {
+                foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                    if (! $item instanceof RoleContribution) {
+                        throw new InvalidSourceContributionException('Unexpected role contribution type.');
+                    }
+                    $items[] = $item;
+                }
+            }
+
+            if ($before === null || $before->equals($source->state($frame->panel(), $frame->scope()->tenant))) {
+                return [$items, $before === null ? $frame : $frame->withState($before)];
+            }
+        }
+
+        throw new ConsistencyException('Source authority changed during all three read attempts.');
     }
 
     /** @param CompiledRole|null $role */

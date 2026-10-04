@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Sources;
 
 use AzGuard\Contracts\Sources\DescribesSchema;
+use AzGuard\Contracts\Sources\FencesReads;
+use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesPolicies;
@@ -20,6 +22,7 @@ use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\DiscoverySnapshot;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\Folder\PanelDiscovery;
@@ -46,6 +49,8 @@ final readonly class PanelSources
         ProvidesPolicies::class,
         StoresGrants::class,
         DescribesSchema::class,
+        FencesReads::class,
+        FiltersQueries::class,
     ];
 
     /**
@@ -109,6 +114,10 @@ final readonly class PanelSources
                         'Panel "'.$panel.'" names the source '.json_encode($definition).', which is not registered: attach a source object '
                         .'or register the name.',
                     );
+                }
+
+                if ($source instanceof DatabaseSource) {
+                    $source->bindPanel($panel);
                 }
 
                 $id = $source->id();

@@ -1,0 +1,4 @@
+kind product expected_count 86 actual_count 86
+kind inputs expected_count 53 actual_count 53
+{"path": "AGENTS.md", "expected": {"mode": 0, "path": "AGENTS.md", "sha256": "fea958df80fb34956cedb44623e0fc5ba62e945c83625235c5a276e4239278fd"}, "actual": {"path": "AGENTS.md", "sha256": null, "mode": null}}
+VERDICT: REVIEW_CLOSURE_INVALID: closure commit changed reviewed inputs

@@ -9,6 +9,7 @@ use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\UnknownSourceException;
+use AzGuard\Sources\Database\DatabaseSource;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Manager;
@@ -89,6 +90,10 @@ final class SourceManager extends Manager
             throw new DefinitionException(
                 'The creator of source "'.$name.'" for panel "'.$panel.'" returned '.get_debug_type($created).', which is not a source.',
             );
+        }
+
+        if ($created instanceof DatabaseSource) {
+            $created->bindPanel($panel);
         }
 
         return $created;

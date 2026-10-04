@@ -103,6 +103,11 @@ final readonly class EvaluationFrame implements EvaluationContext
         return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin);
     }
 
+    public function withState(CodeStateToken|StateToken $state): self
+    {
+        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin);
+    }
+
     /** @param list<Grant> $grants */
     public function withAuthority(array $grants, bool $superAdmin): self
     {

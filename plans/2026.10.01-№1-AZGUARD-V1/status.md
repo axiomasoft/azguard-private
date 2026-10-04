@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: 8a72de425e3de56995623ca00170a9f844ce7f80fa31c2a3f386720443cb6b20
+inputs_sha256: ad205b24e7bebfd284bcaa757ace6a569dedab858d02d68f8e8f24240d87c4b7
 generated_by: task plan-views status
 -->
 
@@ -27,7 +27,7 @@ generated_by: task plan-views status
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 3/23 | 🟡 In progress |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 4/23 | 🟡 In progress |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
 | P7 | Filament по схеме панели | 0/7 | ⬜ Not started |
@@ -87,7 +87,7 @@ generated_by: task plan-views status
 | P4.1 | Пайплайн проверки и authority dispatcher | 🟢 Done | 2026-10-04 |
 | P4.2 | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys | 🟢 Done | 2026-10-04 |
 | P4.3 | Mode-aware policies, Decides, PolicyFor, GateSource::map | 🟢 Done | 2026-10-04 |
-| P4.4 | DatabaseSource: назначения, сроки, dynamicPermissions, писатель | ⬜ Not started | — |
+| P4.4 | DatabaseSource: назначения, сроки, dynamicPermissions, писатель | 🟢 Done | 2026-10-04 |
 | P4.5 | RelationSource и видимость через связи | ⬜ Not started | — |
 | P4.6 | Tenant, AssignmentScope и ресурс в проверке | ⬜ Not started | — |
 | P4.7 | Суперадмин — признак роли | ⬜ Not started | — |
@@ -265,6 +265,9 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex | plan-run · in-progress · — |
 | 2026-10-04 | codex | plan-run · closed-green · GREEN: findings/P4-execution.md; declared Validation and independent Grok 4.7/high/500k review.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex | plan-run · in-progress · — |
+| 2026-10-04 | codex | plan-run · closed-green · GREEN: findings/P4-execution.md; raw DB source/fence/selection/own. All declared validation on stable candidate, independent Grok 4.7/high/500k.
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates

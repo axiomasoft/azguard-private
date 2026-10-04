@@ -1,0 +1,76 @@
+{
+  "schema_version": "reviewed-source-provenance/v1",
+  "sources": [
+    {
+      "archive": "reviewed-sources/7ac2392c7236486fd92040bdb55760cd195f7cbc2b8f753fffcda70a5edaf39c.bin",
+      "path": "vendor/laravel/framework/src/Illuminate/Database/Connection.php",
+      "upstream": {
+        "dist": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "shasum": "",
+          "type": "zip",
+          "url": "https://api.github.com/repos/laravel/framework/zipball/91188a17ceaa3dbace6e8a5f7abd0d042e466359"
+        },
+        "kind": "composer-package",
+        "lock_sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d",
+        "package": "laravel/framework",
+        "source": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "type": "git",
+          "url": "https://github.com/laravel/framework.git"
+        },
+        "version": "v13.33.0"
+      }
+    },
+    {
+      "archive": "reviewed-sources/1970585898bc1a01b1cc6d606169bdaebf9e0395851fcdb17c9574b124b6c80f.bin",
+      "path": "vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php",
+      "upstream": {
+        "dist": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "shasum": "",
+          "type": "zip",
+          "url": "https://api.github.com/repos/laravel/framework/zipball/91188a17ceaa3dbace6e8a5f7abd0d042e466359"
+        },
+        "kind": "composer-package",
+        "lock_sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d",
+        "package": "laravel/framework",
+        "source": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "type": "git",
+          "url": "https://github.com/laravel/framework.git"
+        },
+        "version": "v13.33.0"
+      }
+    },
+    {
+      "archive": "reviewed-sources/9e3e4e0c7aff9e78b471b0cf5276d96f0d6b0864d452d8e5ce99c7a42fa67b19.bin",
+      "path": "vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php",
+      "upstream": {
+        "dist": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "shasum": "",
+          "type": "zip",
+          "url": "https://api.github.com/repos/laravel/framework/zipball/91188a17ceaa3dbace6e8a5f7abd0d042e466359"
+        },
+        "kind": "composer-package",
+        "lock_sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d",
+        "package": "laravel/framework",
+        "source": {
+          "reference": "91188a17ceaa3dbace6e8a5f7abd0d042e466359",
+          "type": "git",
+          "url": "https://github.com/laravel/framework.git"
+        },
+        "version": "v13.33.0"
+      }
+    },
+    {
+      "archive": "reviewed-sources/e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d.bin",
+      "path": "composer.lock",
+      "upstream": {
+        "kind": "composer-lock",
+        "sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d"
+      }
+    }
+  ]
+}

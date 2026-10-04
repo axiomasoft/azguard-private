@@ -1,0 +1,55 @@
+{
+  "schema_version": "self-check/v1",
+  "model_sha256": "810657f5b4e727a82a6866893456f1656c6606282b829c46672d673ef35b831d",
+  "checks": [
+    {
+      "invariant": "exact pairs, raw identity, fields, rolesOnly, future expiry",
+      "evidence": "029-final-targeted.log;031-final-pgsql.log;032-final-mysql.log;033-final-mariadb.log"
+    },
+    {
+      "invariant": "whole-set fence3 and no consumption guard, Primary/Default pinned PDO on supported drivers",
+      "evidence": "029-final-targeted.log;031-final-pgsql.log;032-final-mysql.log;033-final-mariadb.log"
+    },
+    {
+      "invariant": "actual object provenance, selection witnesses and own collisions",
+      "evidence": "028-affected-fence.log;029-final-targeted.log;036-final-full.log"
+    },
+    {
+      "invariant": "public API/SPI and dependency layers",
+      "evidence": "034-final-arch.log;035-final-api.log;037-final-pint.log;038-final-phpstan.log;039-final-types.log;040-final-diff.log"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "unknown transactions or sticky routing can serve stale authority",
+      "status": "fixed",
+      "evidence": "FenceTest, DatabaseSourceEngineTest and current stable checks"
+    },
+    {
+      "risk": "contribution display labels can change provenance behavior",
+      "status": "fixed",
+      "evidence": "ContributionQualificationTest and036-final-full.log"
+    },
+    {
+      "risk": "dynamic opt-in lacks runtime overlay",
+      "status": "deferred",
+      "owner": "P4.17",
+      "reason": "explicit Scope Excluded; current execution refuses instead of fabricating definitions",
+      "evidence": "P4.4 specification, D15 and DatabaseBuilderTest"
+    },
+    {
+      "risk": "raw scoped reads do not prove scoped Authorizer or P08",
+      "status": "deferred",
+      "owner": "P4.18",
+      "reason": "owning boundary/eligibility integration has separate prerequisites",
+      "evidence": "P4.4 Scope Excluded and P4 acceptance matrix"
+    },
+    {
+      "risk": "protected host-write atomicity and real concurrency race",
+      "status": "deferred",
+      "owner": "P4.20",
+      "reason": "current default rejects unknown consumed transactions; joint root transaction/race tests are later obligations",
+      "evidence": "D15 section4; P4.21 race obligation"
+    }
+  ]
+}

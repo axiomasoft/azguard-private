@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "grok",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "read_file,grep,list_dir",
+    "--allow",
+    "Read",
+    "--allow",
+    "Grep",
+    "--deny",
+    "MCPTool",
+    "--deny",
+    "Bash",
+    "--deny",
+    "Edit",
+    "--deny",
+    "Write",
+    "--no-subagents",
+    "--disable-web-search",
+    "--max-turns",
+    "20",
+    "agent",
+    "--no-leader",
+    "--model",
+    "grok-4.7",
+    "--reasoning-effort",
+    "high",
+    "stdio"
+  ],
+  "wall_seconds": 600.745
+}
