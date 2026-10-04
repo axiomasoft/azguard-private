@@ -9,7 +9,9 @@
 - Фаза детализируется и исполняется целиком перед следующей (D3); строки добавляются по мере детализации.
 - Batch не пересекает фазу; launch использует максимум class/effort/review своих пунктов.
 - Owner-gated пункты P8.5/P8.6/P8.8 — всегда `solo`.
-- Batch — сплошной диапазон номеров фазы, исполняется в порядке номеров; зависимости пунктов P2 выстроены под номера досье (D8 п.1).
+- Routing-батч — сплошной диапазон номеров фазы, исполняется в порядке номеров: это требование текущего Task preflight.
+- Общий порядок P4 задаёт execution sheet/D15; непоследовательные по номерам пары P4.17 → P4.5, P4.19 → P4.7, P4.16 → P4.18 — solo-продолжения с отдельным допуском, а не Routing-батчи (D16).
+- Каждый item сохраняет собственные Validation/Deliverables и закрывается до начала consumer; контекст повторно используется только внутри авторизованного scope и при допуске continuity reducer.
 
 ## Execution sheet - the only source of launch commands
 
@@ -32,8 +34,7 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.3 P3.4` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.5` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.3` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 P4.3` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.4` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.17` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5` | `frontier/high` | `none` |
@@ -48,8 +49,7 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.20` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.21` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.9` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10` | `implementation/medium` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.11` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.22` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.12` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.23` | `frontier/high` | `none` |
@@ -87,28 +87,55 @@
 | P3.4 | B3b | ↑ | implementation/medium | — | запрет прямых записей, arch-правила записи |
 | P3.5 | solo | plan-run | frontier/high | — | Review P3, read-only verdict, свежая сессия |
 | P4.1 | solo | plan-run | frontier/high | — | Пайплайн проверки и authority dispatcher (D15) |
-| P4.2 | solo | plan-run | frontier/high | — | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys (D15) |
-| P4.3 | solo | plan-run | frontier/high | — | Mode-aware policies, Decides, PolicyFor, GateSource::map (D15) |
-| P4.4 | solo | plan-run | frontier/high | — | DatabaseSource: назначения, сроки, dynamicPermissions, писатель (D15) |
-| P4.17 | solo | plan-run | frontier/high | — | Dynamic Prepare и единый authority fence (D15) |
-| P4.5 | solo | plan-run | frontier/high | — | RelationSource и видимость через связи (D15) |
-| P4.6 | solo | plan-run | frontier/high | — | Tenant, AssignmentScope и ресурс в проверке (D15) |
-| P4.19 | solo | plan-run | frontier/high | — | Context eligibility: native filters и external adapters (D15) |
-| P4.7 | solo | plan-run | implementation/medium | — | Суперадмин — признак роли (D15) |
-| P4.16 | solo | plan-run | frontier/high | — | Генеративная квалификация движка и scope (D15) |
-| P4.18 | solo | plan-run | frontier/high | — | Scoped source integration и регрессия P08 (D15) |
-| P4.15 | solo | plan-run | implementation/high | — | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 (D15) |
-| P4.13 | solo | plan-run | frontier/high | — | Срез-review P4.1–P4.7: независимая read-only проверка границы решения (D15) |
-| P4.8 | solo | plan-run | frontier/high | — | Кэш наборов прав, StateToken, version fence, expiry (D15) |
-| P4.20 | solo | plan-run | frontier/high | — | Cache transactions, incarnation и touch (D15) |
-| P4.21 | solo | plan-run | frontier/high | — | Квалификация кэша: гонки, Redis, replica lag, latency (D15) |
-| P4.9 | solo | plan-run | frontier/high | — | decideMany (D15) |
-| P4.10 | solo | plan-run | implementation/medium | — | explain и azguard:explain (D15) |
-| P4.11 | solo | plan-run | frontier/high | — | GateBridge (D15) |
-| P4.22 | solo | plan-run | frontier/high | — | Exact predicate SPI, partitions и SQL compiler (D15) |
-| P4.12 | solo | plan-run | frontier/high | — | Visibility и exact query adapters (D15) |
-| P4.23 | solo | plan-run | frontier/high | — | Exact visibility: CRM, parity и EXPLAIN (D15) |
-| P4.14 | solo | plan-run | frontier/high | — | Review P4: независимая read-only проверка фазы (D15) |
+| P4.2 | B4a | plan-run series | frontier/high | — | recommended: каталог, роли и фикстуры вместе с P4.3; отдельные item gates (D16) |
+| P4.3 | B4a | plan-run series | frontier/high | — | recommended: политики и canonical binding на том же каталоге P4.2; отдельные item gates (D16) |
+| P4.4 | solo | plan-run | frontier/high | — | отдельный допуск: Storage/SPI, raw DB reads и fence на трёх engines (D15/D16) |
+| P4.17 | solo | plan-run | frontier/high | — | отдельный допуск coherent Prepare; затем переиспользовать root для P4.5 в разрешённом scope (D16) |
+| P4.5 | solo | plan-run | frontier/high | — | отдельный допуск RelationSource; контекст P4.17 переиспользуется, numeric batch невозможен (D16) |
+| P4.6 | solo | plan-run | frontier/high | — | отдельный допуск: структурная tenant/scope/owner граница и конфигурация (D15/D16) |
+| P4.19 | solo | plan-run | frontier/high | — | отдельный допуск eligibility/adapters; затем root continuation P4.7 в разрешённом scope (D16) |
+| P4.7 | solo | plan-run | implementation/medium | — | отдельный допуск admin semantics; переиспользовать контекст P4.19, numeric batch невозможен (D16) |
+| P4.16 | solo | plan-run | frontier/high | — | отдельный допуск property oracle; затем root continuation P4.18 в разрешённом scope (D16) |
+| P4.18 | solo | plan-run | frontier/high | — | отдельный допуск scoped integration/P08 и трёх engines; reuse P4.16, numeric batch невозможен (D16) |
+| P4.15 | solo | plan-run | implementation/high | — | отдельный допуск: полноценная CRM-фикстура, discovery и ранняя acceptance matrix (D15/D16) |
+| P4.13 | solo | plan-run | frontier/high | — | независимый Grok 4.7/high read-only срез-review перед cache; граница батчей (D16) |
+| P4.8 | solo | plan-run | frontier/high | — | отдельный допуск: raw cache, key/refresh/expiry и lifecycle (D15/D16) |
+| P4.20 | solo | plan-run | frontier/high | — | отдельный допуск: root transactions, marker, incarnation/touch и commit publication (D15/D16) |
+| P4.21 | solo | plan-run | frontier/high | — | отдельный допуск: concurrency, Redis, real replica lag и benchmarks (D15/D16) |
+| P4.9 | solo | plan-run | frontier/high | — | отдельный допуск: set-based batch engine, общий fence и budgets на engines (D15/D16) |
+| P4.10 | B4e | plan-run series | implementation/medium | — | recommended: explain и Gate P4.11 используют ScenarioGenerator, resolver и паритет (D16) |
+| P4.11 | B4e | plan-run series | frontier/high | — | recommended: GateBridge на том же сценарном корпусе P4.10; отдельные item gates (D16) |
+| P4.22 | solo | plan-run | frontier/high | — | отдельный допуск: публичный predicate SPI, partitions и SQL compiler (D15/D16) |
+| P4.12 | solo | plan-run | frontier/high | — | отдельный допуск: exact visibility integration, unsupported/cross-connection bounds (D15/D16) |
+| P4.23 | solo | plan-run | frontier/high | — | отдельный допуск: CRM/parity, scale и настоящий SQL EXPLAIN (D15/D16) |
+| P4.14 | solo | plan-run | frontier/high | — | независимый Grok 4.7/high read-only Review P4 после P4.23; граница фазы (D16) |
+
+## P4 execution profile (D16)
+
+| Field | Value |
+|---|---|
+| Executor | `gpt-6.1-sol/high`; cwd `/home/vostrikov/projects/packages/azguard`, `-a never`, `-s danger-full-access` |
+| Reviewer | `grok/grok-4.7/high`, независимая read-only сессия |
+| Implementation selector | К выбранной базовой команде execution sheet добавить `--reviewer grok/grok-4.7 --review-effort high`; передать selector в каждый item `prepare` |
+| Mandatory review boundaries | P4.13 перед P4.8; P4.14 после P4.23; reviewer verdict не заменяется self-check исполнителя |
+| Scope | Реализация этой design-правкой не запускается; P4.1 GREEN, не повторять |
+
+B4a = P4.2 → P4.3; B4e = P4.10 → P4.11. Это рекомендованные группы, ready subset допускается runtime.
+Три последовательности ниже переиспользуют root-контекст, но сохраняют отдельные строки запуска:
+
+| Последовательность | Почему одна сессия полезна | Допуск |
+|---|---|---|
+| P4.17 → P4.5 | Source capabilities/selection, 9 общих Required Reads | Отдельный prepare каждого item после GREEN predecessor |
+| P4.19 → P4.7 | Eligibility и admin contributions, 8 общих Required Reads | Отдельный prepare каждого item после GREEN predecessor |
+| P4.16 → P4.18 | Property/source integration, 8 общих Required Reads | Отдельный prepare каждого item; реальные engines P4.18 обязательны |
+
+Эти пары нельзя передавать одной item-list командой: Task требует соседние числовые номера внутри Routing-батча.
+Продолжение допустимо при авторизации всей фазы (`task:plan-run 2026.10.01-№1-AZGUARD-V1 P4 --reviewer grok/grok-4.7 --review-effort high`)
+или явно разрешённого scope; отдельный запуск первого solo-item не разрешает второй. На каждом item заново проверяются
+readiness, route/capabilities, актуальные Inputs/bundle и Validation; необязательный новый процесс между пунктами не нужен.
+При недостаточном контексте сохраняется штатный checkpoint, consumer не начинается с устаревшим bundle.
+20 канонических запусков вместо 22 оставшихся; три solo-последовательности дополнительно допускают reuse в одном root.
+Per-item review при переданном selector сохраняется для каждого implementation item, не один verdict на весь батч.
 
 ## Owner gates (summary)
 

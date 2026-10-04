@@ -103,28 +103,28 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | B3b | P3.4 | implementation/medium | run | none | recommended: запрет прямых записей на моделях P3.3 |
 | solo | P3.5 | frontier/high | run | none | Review P3: независимая read-only проверка фазы в свежей сессии (D3) |
 | solo | P4.1 | frontier/high | run | none | Пайплайн проверки и authority dispatcher (D15) |
-| solo | P4.2 | frontier/high | run | none | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys (D15) |
-| solo | P4.3 | frontier/high | run | none | Mode-aware policies, Decides, PolicyFor, GateSource::map (D15) |
-| solo | P4.4 | frontier/high | run | none | DatabaseSource: назначения, сроки, dynamicPermissions, писатель (D15) |
-| solo | P4.17 | frontier/high | run | none | Dynamic Prepare и единый authority fence (D15) |
-| solo | P4.5 | frontier/high | run | none | RelationSource и видимость через связи (D15) |
-| solo | P4.6 | frontier/high | run | none | Tenant, AssignmentScope и ресурс в проверке (D15) |
-| solo | P4.19 | frontier/high | run | none | Context eligibility: native filters и external adapters (D15) |
-| solo | P4.7 | implementation/medium | run | none | Суперадмин — признак роли (D15) |
-| solo | P4.16 | frontier/high | run | none | Генеративная квалификация движка и scope (D15) |
-| solo | P4.18 | frontier/high | run | none | Scoped source integration и регрессия P08 (D15) |
-| solo | P4.15 | implementation/high | run | none | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 (D15) |
-| solo | P4.13 | frontier/high | run | none | Срез-review P4.1–P4.7: независимая read-only проверка границы решения (D15) |
-| solo | P4.8 | frontier/high | run | none | Кэш наборов прав, StateToken, version fence, expiry (D15) |
-| solo | P4.20 | frontier/high | run | none | Cache transactions, incarnation и touch (D15) |
-| solo | P4.21 | frontier/high | run | none | Квалификация кэша: гонки, Redis, replica lag, latency (D15) |
-| solo | P4.9 | frontier/high | run | none | decideMany (D15) |
-| solo | P4.10 | implementation/medium | run | none | explain и azguard:explain (D15) |
-| solo | P4.11 | frontier/high | run | none | GateBridge (D15) |
-| solo | P4.22 | frontier/high | run | none | Exact predicate SPI, partitions и SQL compiler (D15) |
-| solo | P4.12 | frontier/high | run | none | Visibility и exact query adapters (D15) |
-| solo | P4.23 | frontier/high | run | none | Exact visibility: CRM, parity и EXPLAIN (D15) |
-| solo | P4.14 | frontier/high | run | none | Review P4: независимая read-only проверка фазы (D15) |
+| B4a | P4.2 | frontier/high | run | none | recommended: каталог, роли и фикстуры вместе с P4.3; отдельные item gates (D16) |
+| B4a | P4.3 | frontier/high | run | none | recommended: политики и canonical binding на том же каталоге P4.2; отдельные item gates (D16) |
+| solo | P4.4 | frontier/high | run | none | отдельный допуск: Storage/SPI, raw DB reads и fence на трёх engines (D15/D16) |
+| solo | P4.17 | frontier/high | run | none | отдельный допуск coherent Prepare; затем переиспользовать root для P4.5 в разрешённом scope (D16) |
+| solo | P4.5 | frontier/high | run | none | отдельный допуск RelationSource; контекст P4.17 переиспользуется, numeric batch невозможен (D16) |
+| solo | P4.6 | frontier/high | run | none | отдельный допуск: структурная tenant/scope/owner граница и конфигурация (D15/D16) |
+| solo | P4.19 | frontier/high | run | none | отдельный допуск eligibility/adapters; затем root continuation P4.7 в разрешённом scope (D16) |
+| solo | P4.7 | implementation/medium | run | none | отдельный допуск admin semantics; переиспользовать контекст P4.19, numeric batch невозможен (D16) |
+| solo | P4.16 | frontier/high | run | none | отдельный допуск property oracle; затем root continuation P4.18 в разрешённом scope (D16) |
+| solo | P4.18 | frontier/high | run | none | отдельный допуск scoped integration/P08 и трёх engines; reuse P4.16, numeric batch невозможен (D16) |
+| solo | P4.15 | implementation/high | run | none | отдельный допуск: полноценная CRM-фикстура, discovery и ранняя acceptance matrix (D15/D16) |
+| solo | P4.13 | frontier/high | run | none | независимый Grok 4.7/high read-only срез-review перед cache; граница батчей (D16) |
+| solo | P4.8 | frontier/high | run | none | отдельный допуск: raw cache, key/refresh/expiry и lifecycle (D15/D16) |
+| solo | P4.20 | frontier/high | run | none | отдельный допуск: root transactions, marker, incarnation/touch и commit publication (D15/D16) |
+| solo | P4.21 | frontier/high | run | none | отдельный допуск: concurrency, Redis, real replica lag и benchmarks (D15/D16) |
+| solo | P4.9 | frontier/high | run | none | отдельный допуск: set-based batch engine, общий fence и budgets на engines (D15/D16) |
+| B4e | P4.10 | implementation/medium | run | none | recommended: explain и Gate P4.11 используют ScenarioGenerator, resolver и паритет (D16) |
+| B4e | P4.11 | frontier/high | run | none | recommended: GateBridge на том же сценарном корпусе P4.10; отдельные item gates (D16) |
+| solo | P4.22 | frontier/high | run | none | отдельный допуск: публичный predicate SPI, partitions и SQL compiler (D15/D16) |
+| solo | P4.12 | frontier/high | run | none | отдельный допуск: exact visibility integration, unsupported/cross-connection bounds (D15/D16) |
+| solo | P4.23 | frontier/high | run | none | отдельный допуск: CRM/parity, scale и настоящий SQL EXPLAIN (D15/D16) |
+| solo | P4.14 | frontier/high | run | none | независимый Grok 4.7/high read-only Review P4 после P4.23; граница фазы (D16) |
 | B5 | P5.1 | frontier/high | run | none | recommended: трейт и SubjectAccess |
 | B5 | P5.2 | frontier/high | run | none | recommended: ChangePipeline |
 | B5 | P5.3 | implementation/medium | run | none | recommended: RoleCatalog/GrantManager/PermissionManager |
@@ -183,6 +183,7 @@ D3 режим исполнения и review, D4 валидация и сред�
 и владение методами `PanelBuilder`, D9–D11 поправки и исправления P2, D12 состав P3, публичность хранилища и
 пробелы досье по DDL, блокировкам и полям, D13 точное сравнение ID на MySQL/MariaDB, D14 состав P4, швы
 пунктов, публичные имена и расхождения досье по проверке прав; D15 исправление design-review P4,
-типизированные швы и разделение P4.16–P4.23 с полной матрицей приёмки.
+типизированные швы и разделение P4.16–P4.23 с полной матрицей приёмки; D16 — рекомендованные
+батчи B4a/B4e, solo-продолжения с переиспользованием контекста и исполнение 6.1-sol/high с Grok 4.7/high review.
 Решения досье цитируются как `D01–D84` (двузначные) и не копируются.
 Собрать виды: `plan-views.py decisions`. Открытые вопросы — `open-questions.md`.

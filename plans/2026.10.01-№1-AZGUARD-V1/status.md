@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: 0a3bdbef5cf19750e3f28e6e3b86efcfb71c052ef52bcdd37f705bf3bac662cd
+inputs_sha256: d02ca0ec9294d449142efbb8dac3f74302fbbde1e04c48d5c3a4118d3261d2c3
 generated_by: task plan-views status
 -->
 
@@ -259,6 +259,7 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
 | 2026-10-04 | codex | plan-run · closed-green · GREEN: findings/P4-execution.md; all eight Validation carriers; comprehensive Grok 4.7/high/500k review + root verification.
 write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex:p4-grouping:model-effort-unattested | plan-design · no-op · Design finalized; execution has not started. |
 
 ## Owner Gates
 
