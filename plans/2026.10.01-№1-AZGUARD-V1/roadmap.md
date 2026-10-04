@@ -32,14 +32,27 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.3 P3.4` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.5` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 P4.3` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.4 P4.5` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.6 P4.7` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.3` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.4` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.17` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.6` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.19` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.7` | `implementation/medium` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.16` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.18` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.15` | `implementation/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.13` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8 P4.9` | `frontier/high` | `none` |
-| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.20` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.21` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.9` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10` | `implementation/medium` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.11` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.22` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.12` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.23` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.14` | `frontier/high` | `none` |
 
 ## Execution card
@@ -73,21 +86,29 @@
 | P3.3 | B3b | plan-run series | frontier/high | — | модели, свои модели, Field/FieldTarget, GrantFields |
 | P3.4 | B3b | ↑ | implementation/medium | — | запрет прямых записей, arch-правила записи |
 | P3.5 | solo | plan-run | frontier/high | — | Review P3, read-only verdict, свежая сессия |
-| P4.1 | solo | plan-run | frontier/high | — | пайплайн, dispatcher, контракты, EvaluationFrame, PolicyDecider, свойства V15 |
-| P4.2 | B4b | plan-run series | frontier/high | — | FolderSource: автоматические роли, GrantedToAll, ключи ролей; P02 |
-| P4.3 | B4b | ↑ | frontier/high | — | режимы политик, Response в Decision, GateSource, индекс ability |
-| P4.4 | B4c | plan-run series | frontier/high | — | DatabaseSource, FencesReads, fence, Storage::own; P08; engines PG/MySQL/MariaDB |
-| P4.5 | B4c | ↑ | frontier/high | — | RelationSource, роли из связей |
-| P4.6 | B4d | plan-run series | frontier/high | — | TenantPolicy, AssignmentScopePolicy, 09 §3, членство, фильтры; P06/P06b |
-| P4.7 | B4d | ↑ | implementation/medium | — | суперадмин в области, allowGlobalRoles; P01a/P01b |
-| P4.15 | solo | plan-run | implementation/high | — | CRM-фикстура, R-кейсы P4.1–P4.7 (D5) |
-| P4.13 | solo | plan-run | frontier/high | — | срез-review P4.1–P4.7 и P4.15, read-only verdict, свежая сессия |
-| P4.8 | B4e | plan-run series | frontier/high | — | кэш, refresh, incarnation, бюджеты, гонки V99; P10/P10b; engines и Redis |
-| P4.9 | B4e | ↑ | frontier/high | — | decideMany, пачки в одном fence, R68 |
-| P4.10 | B4f | plan-run series | implementation/medium | — | Explanation, azguard:explain |
-| P4.11 | B4f | ↑ | frontier/high | — | GateBridge, toGateResult; P03/P09 |
-| P4.12 | solo | plan-run | frontier/high | — | exact visibility, AccessPredicate, EXPLAIN; P04a–c |
-| P4.14 | solo | plan-run | frontier/high | — | Review P4, read-only verdict, свежая сессия |
+| P4.1 | solo | plan-run | frontier/high | — | Пайплайн проверки и authority dispatcher (D15) |
+| P4.2 | solo | plan-run | frontier/high | — | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys (D15) |
+| P4.3 | solo | plan-run | frontier/high | — | Mode-aware policies, Decides, PolicyFor, GateSource::map (D15) |
+| P4.4 | solo | plan-run | frontier/high | — | DatabaseSource: назначения, сроки, dynamicPermissions, писатель (D15) |
+| P4.17 | solo | plan-run | frontier/high | — | Dynamic Prepare и единый authority fence (D15) |
+| P4.5 | solo | plan-run | frontier/high | — | RelationSource и видимость через связи (D15) |
+| P4.6 | solo | plan-run | frontier/high | — | Tenant, AssignmentScope и ресурс в проверке (D15) |
+| P4.19 | solo | plan-run | frontier/high | — | Context eligibility: native filters и external adapters (D15) |
+| P4.7 | solo | plan-run | implementation/medium | — | Суперадмин — признак роли (D15) |
+| P4.16 | solo | plan-run | frontier/high | — | Генеративная квалификация движка и scope (D15) |
+| P4.18 | solo | plan-run | frontier/high | — | Scoped source integration и регрессия P08 (D15) |
+| P4.15 | solo | plan-run | implementation/high | — | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 (D15) |
+| P4.13 | solo | plan-run | frontier/high | — | Срез-review P4.1–P4.7: независимая read-only проверка границы решения (D15) |
+| P4.8 | solo | plan-run | frontier/high | — | Кэш наборов прав, StateToken, version fence, expiry (D15) |
+| P4.20 | solo | plan-run | frontier/high | — | Cache transactions, incarnation и touch (D15) |
+| P4.21 | solo | plan-run | frontier/high | — | Квалификация кэша: гонки, Redis, replica lag, latency (D15) |
+| P4.9 | solo | plan-run | frontier/high | — | decideMany (D15) |
+| P4.10 | solo | plan-run | implementation/medium | — | explain и azguard:explain (D15) |
+| P4.11 | solo | plan-run | frontier/high | — | GateBridge (D15) |
+| P4.22 | solo | plan-run | frontier/high | — | Exact predicate SPI, partitions и SQL compiler (D15) |
+| P4.12 | solo | plan-run | frontier/high | — | Visibility и exact query adapters (D15) |
+| P4.23 | solo | plan-run | frontier/high | — | Exact visibility: CRM, parity и EXPLAIN (D15) |
+| P4.14 | solo | plan-run | frontier/high | — | Review P4: независимая read-only проверка фазы (D15) |
 
 ## Owner gates (summary)
 

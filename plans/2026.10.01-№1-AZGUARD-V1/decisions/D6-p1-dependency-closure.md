@@ -24,7 +24,7 @@ superseded_by: null
    - `PluginContext` → **P2.4** (там же в досье `concrete named typed factory/PluginContext`).
    - `ChangeContext` → **P5.2** (`ChangeType`, `Change` и токен состояния операции).
    - `GrantCondition` → **P4.1** (сигнатура требует `EvaluationContext`; там же «per-grant conditions»).
-     `FiltersAccessQueries`/`AccessPredicate` остаются в P4.12.
+     `FiltersAccessQueries`/`AccessPredicate` создаёт **P4.22**, интегрирует **P4.12** (уточнение D15 после разделения P4; forward owner, не переисполнение P1).
    - `GrantFilter`/`GrantPage`/`GrantRecord` → **P5.3** (форма записи зависит от хранилища P3 и fingerprint).
    - `Explanation` → **P4.10** (трасса определяется пайплайном P4.1).
    - `Decision::toGateResult()` → **P4.11** (Kernel не импортирует Laravel `Response`; адаптер — GateBridge).

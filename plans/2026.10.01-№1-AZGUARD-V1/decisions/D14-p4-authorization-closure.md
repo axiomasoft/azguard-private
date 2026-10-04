@@ -9,6 +9,8 @@ superseded_by: null
 ---
 # D14 — Состав и порядок P4, швы между пунктами, пробелы и расхождения досье по проверке прав
 
+**Уточнение 2026-10-04:** [D15](D15-p4-design-repair.md) исправляет транзакционную гарантию, форму selection/invoker/GateBinding и разделяет крупные пункты. Актуальные владельцы — `brief/P4-acceptance-matrix.md`, порядок — execution sheet.
+
 **Actor:** plan-designer / Claude Opus 5.5 (frontier)
 **Evidence:** RAG:— `13-workstreams.md` F4, «Зависимости», «Уточнения пятого прохода», «Дополнение» D74–D83;
 `09-authorization-semantics.md` §1–§16; `06-extension-points.md` §1, §2, §4, §7; `05-php-api.md` §4.1, §6, §7, §10;
@@ -27,61 +29,40 @@ V53, V54, V66–V69, V74, V79–V82, V86, V88–V95, V99, V100, V102, V117–V12
 ## Solution
 
 1. **Состав и порядок.** Номера досье P4.1–P4.12 сохраняются. Новые пункты (D3: номер — следующий свободный):
-   **P4.13** — срез-review, **P4.14** — Review P4, **P4.15** — CRM-фикстура и R-кейсы границы решения (выделена из P4.6:
-   семантика 09 §3 и фикстура D5 вместе не помещаются в одну сессию исполнителя). Порядок исполнения: `P4.1` (solo) →
-   `B4b` = P4.2–P4.3 → `B4c` = P4.4–P4.5 → `B4d` = P4.6–P4.7 → `P4.15` (solo) → `P4.13` (solo) → `B4e` = P4.8–P4.9 →
-   `B4f` = P4.10–P4.11 → `P4.12` (solo) → `P4.14` (solo). Внутри batch порядок — по номерам; solo-пункты исполняются в
-   порядке execution sheet; P4.12 после P4.4–P4.6 (13 «Зависимости»).
-   Срез-review D3 («после пайплайна и источников») ставится после P4.7 и P4.15, а не после P4.5: контексты и
-   суперадмин — часть той же границы решения (приёмка V88–V94 у P4.1–P4.7 в 13), а CRM-фикстура даёт срезу настоящий
-   consumer. Находки среза исправляются в owning items P4.1–P4.7 до старта `B4e`, находки P4.14 — до закрытия фазы;
-   механизм (repair-пункт по образцу D7 или owning repeat по образцу D11) выбирает владелец после verdict. Дефект,
-   который показал CRM-кейс P4.15, исправляется в коде в рамках P4.15 с записью owning item (D5: не маскировать deny).
+   **P4.13** — срез-review, **P4.14** — финальное Review P4, **P4.15** — ранняя CRM-фикстура.
+   По D15 добавлены P4.16–P4.23; все P4 пункты solo, порядок — D15 §1 и roadmap execution sheet.
+   P4.1 до источников; boundary/eligibility и scoped integration до CRM/среза; P4.15/P4.13 до cache;
+   P4.22 до visibility P4.12, P4.23 до финального P4.14. Находки чинятся в owning items (D3/D5).
 
-2. **Точка входа движка — внутренний `Authorization\Authorizer`** (04 §2): `decide`, `decideMany` (P4.9), `explain`
-   (P4.10), `isSuperAdmin` (P4.7), `visibleTo` (P4.12), `touch` (P4.8). Публичные поверхности над ним — трейт и
-   `SubjectAccess` (P5.1), фасад и `PanelAccess` (P6.1), middleware (P6.2). Приёмка досье, сформулированная «через
-   трейт/фасад», в P4 проверяется на `Authorizer` и Gate (P4.11); остальные поверхности добавляют свои владельцы и обязаны
-   идти через `Authorizer` (arch-правило P4.1). Субъект-модель по умолчанию находит внутренний
-   `Authorization\ModelSubjectResolver` (реализация `SubjectResolver` по `Panel::subjectModels()`), владелец — P4.1.
+2. **Точка входа — внутренний Authorization\Authorizer.** decide — P4.1, isSuperAdmin — P4.7,
+   decideMany — P4.9, explain — P4.10, visibleTo — P4.12; touch и withinAuthorityTransaction — P4.20.
+   Публичные trait/SubjectAccess — P5.1, PanelAccess/facade — P6.1, middleware — P6.2. P4 tests идут
+   через Authorizer/Gate; дальнейшие поверхности используют тот же engine. ModelSubjectResolver — P4.1.
 
-3. **Швы между пунктами.** Каждая общая часть имеет одного владельца, временных типов и заглушек нет (принцип D6/D8):
-   - **Вызов политики** — `Policies\PolicyDecider` (04 §2) создаёт **P4.1**: привязка каталога → метод с `#[Decides]` →
-     вызов через контейнер с моделью субъекта и ресурсом → `true`/`null`/`false`/`Response`; исключение → `PolicyError`.
-     Это нужно диспетчеру и V53. **P4.3** расширяет: class-аргумент для `viewAny`/`create`, нативный `before` политики,
-     сохранение `Response` в решении, `GateSource`, индекс «модель + слово ability → право» и матрицу V67/V68/V80/V93.
-   - **Детали отказа.** `Decision` получает nullable `message`, `status`, `code` (из `Response` политики) — **P4.3**;
-     `Decision::toGateResult()` — **P4.11** (D6 п.1). Kernel не импортирует Laravel: поля — скаляры.
-   - **Трасса.** Внутренний `Authorization\Pipeline\Trace` (no-op без `AccessRequest::traced()`) вводит **P4.1**, стадии
-     пишут в него; `Kernel\Decision\Explanation`, редактирование секретов и `azguard:explain` — **P4.10**.
-   - **Граница области по умолчанию.** До P4.6 у каждой панели фактически `TenantPolicy::none()` и
-     `AssignmentScopePolicy::none()`; P4.1 реализует ровно эту строку: явный не-global tenant → `Deny(TenantMismatch)`,
-     явный не-global context → `Deny(AssignmentScopeNotAccepted)`. P4.6 вводит классы политик и всю таблицу 09 §3.
-   - **Проверенное чтение DB authority (fence).** 20 §2 «Read state: source-specific fence». В досье нет имени контракта,
-     через который источник отдаёт свой токен состояния, а встроенные источники пишутся только на публичных контрактах.
-     Вводится `@spi` `Contracts\Sources\FencesReads` с одним методом `state(Panel $panel, TenantRef $tenant): StateToken`
-     (свежее чтение с primary). Цикл `T_before` → все capability-чтения этого источника и dynamic overlay → `T_after`,
-     до 3 попыток, затем `Deny(ConsistencyError)`, реализует **P4.4** как первый fenced источник (уточнение D12 п.8,
-     где протокол целиком отдан P4.8/P4.9). **P4.8** добавляет поверх него кэш (память запроса и store), режимы
-     `state_refresh`, сроки, incarnation/restore и доказательство V99 двумя процессами с барьерами; **P4.9** — один fence
-     на все пачки группы. Решение без fenced источника несёт `CodeStateToken`.
-   - **`FiltersQueries` и `AssignmentScopeSelection`** (`@spi`, `Contracts\Sources\`) вводит **P4.4** (первый
-     реализатор), реализует ещё **P4.5**, потребляет **P4.12**. `FiltersAccessQueries` (`@spi`,
-     `Contracts\Authorization\`) и `AccessPredicate` (чистое значение `Kernel\Decision\AccessPredicate`, 04 §7 без
-     папки — рядом с решением, без новой подпапки Kernel) — **P4.12**.
-   - **`touch()` панели** — внутренняя операция `Authorizer::touch()` через `Storage::mutate` в **P4.8** (часть V66 о
-     сбросе кэша переходит туда); публичный `PanelAccess::touch()` — P6.1.
-   - **CRM-фикстура (D5)** создаётся в **P4.15** сразу после P4.7: tenant A/B, `ProjectScope`, `TenantPolicy::required`,
-     членство и суперадмин к этому моменту выразимы. Таблицы хоста — миграции фикстуры, данные — сидер без повторения
-     алгоритма решения. Кейсы R пишутся на поверхности `Authorizer` с id кейса в имени теста; поверхности
-     трейта/HTTP/UI добавляют P5–P7. Распределение: P4.15 — R01, R02, R06, R09–R14, R16, R17, R20–R22, R44, R61, R62,
-     R65 (чтение); P4.8 — R51, R52; P4.9 — R68; P4.12 — R31–R33, R35, R64 (список).
-   - **Хранилище публично.** `Storage` получает `@api` (D12 п.4 отдал решение P4.4) с поверхностью `id()`,
-     `connectionName()`, `prefix()`, `hostKeys()`, `state()` и `static own(string $connection, string $prefix = 'azg_',
-     ?string $hostKeys = null): self`; `mutate()`, `table()`, `connection()`, `model()`, `schema()` помечаются
-     `@internal`. `own()` возвращает уже зарегистрированное хранилище той же пары `(разрешённое подключение, префикс)`
-     при совпадающих host keys, иначе регистрирует новое с id `own-<подключение>` (недопустимый id — check `storage`);
-     расхождение host keys у той же пары — `InvalidConfigurationException` check `storage`.
+3. **Швы и единственные владельцы (с учётом D15).**
+
+   | Шов | Создаёт | Потребляет/принимает |
+   |---|---|---|
+   | EvaluationFrame, RuntimeInvoker, PolicyDecider core, trace | P4.1 | Все sources/stages; policy extensions P4.3, explain P4.10 |
+   | PolicyBinding kind php/gate, PanelCatalog::policyBindings(), Decision scalar denial details | P4.3 | GateSource и PolicyDecider; GateBridge::toGateResult P4.11 |
+   | Default structural boundary none/none | P4.1 | Полная tenant/context/owner table P4.6, eligibility/native/external P4.19 |
+   | FencesReads::state(Panel,TenantRef): StateToken и raw coherent reads | P4.4 | Dynamic Prepare внутри одного fence P4.17; cache P4.8; transaction P4.20; batch P4.9 |
+   | FiltersQueries::contextsCovering(...): ?AssignmentScopeSelection и raw contribution witnesses | P4.4 | RelationSource P4.5; exact branch qualification P4.12 |
+   | AccessPredicate/FiltersAccessQueries/PredicateCompiler | P4.22 | Visibility integration P4.12; CRM/parity/EXPLAIN P4.23 |
+   | Storage public API/own | P4.4 | DatabaseSource, later public host configuration |
+   | Touch/incarnation/recognized root transaction marker | P4.20 | Cache/own mutation; public forwarding remains P6.1 design |
+   | CRM fixture/TestCase/suite | P4.15 | Early scalar cases, batch P4.9, consistency P4.21, query P4.23 |
+
+   FencesReads state/grants/dynamic читаются на одном pinned authority route. Primary — write PDO вне old snapshot;
+   Default — отдельный read-only handle с documented replica window (D15 §4). До 3 whole-attempt retries,
+   затем ConsistencyError. Static PolicyOnly не читает assignment/state/dynamic. Source read-error нельзя заменить
+   успешной contribution другого source. Visibility выбрасывает до pagination, не выдаёт partial OR.
+   Selection everywhere(contributions)/in(refs,contributions)/nowhere/contributions(): array — prefilter + witnesses,
+   не Allow; null relevant exact source — unsupported exception. Core разворачивает roles и квалифицирует branches.
+   Storage::own возвращает registered resolved connection/prefix при совпадающих hostKeys; otherwise новый
+   id `own-` + первые 60 hex chars sha256 канонической пары (64 chars). Collision id иной пары — error,
+   hostKeys mismatch — error. Публичные id/connectionName/prefix/hostKeys/state/own; mutate/table/connection/model/schema
+   internal; DatabaseSource owning access по D12, source arch allowlist D15 §7. Нет временных types/stubs.
 
 4. **Расхождения внутри досье решены по позднему нормативному слою:**
    - **FormerKeys не runtime-alias.** Строка V10 («выдачи по старому ключу действуют») противоречит 19 §6, D80 и 20 F16
@@ -91,13 +72,12 @@ V53, V54, V66–V69, V74, V79–V82, V86, V88–V95, V99, V100, V102, V117–V12
    - **Выдача роли с `#[NotGrantable]` из хранилища** (строка, обошедшая API) даёт ноль прав и диагностику, как
      неизвестная роль: такая роль назначается только правилом (D14 досье). `RoleNotGrantableException` при попытке выдачи
      — P5.2/P5.3.
-   - **Проверка внутри транзакции хоста.** 09 §8 требует configuration error, если в транзакции приложения со старым
-     snapshot нельзя обеспечить fresh authority, а 09 §14 описывает поддержанный протокол защищаемой записи — проверку
-     внутри общей транзакции хоста после блокировки `panel_state`. Отличить эти случаи по подключению нельзя, а
-     безусловная ошибка ломала бы каждую проверку внутри `DB::transaction` и тесты с транзакционным откатом. Принято
-     (P4.8): внутри чужой транзакции на подключении хранилища кэш не используется и не публикуется, чтение идёт через эту
-     транзакцию, `StateToken` решения — токен её snapshot; гарантия отзыва 09 §8 относится к проверкам вне такой
-     транзакции, что фиксирует документация P8.2. Владелец может ужесточить это до ошибки отдельным решением.
+   - **Проверка внутри транзакции хоста.** Требования 09 §8 и §14 совместимы: свежий authority
+     либо явно поддержанный lock-first root protocol. Неизвестная чужая transaction на authority connection —
+     configuration error; одинаковые старые T_before/T_after и cache bypass не гарантируют свежесть.
+     P4.20 вводит withinAuthorityTransaction/marker и own root mutation protocol (D15 §4); P4.21 доказывает
+     negative old snapshot и positive совместную transaction двумя процессами. Default replica window не
+     подменяет strict Primary гарантию. Прежнее ослабление D14 отменено указанием владельца исправить review.
    - **Суперадмин:** authority-кандидат в Grants mode — часть пайплайна **P4.1** (F4: «scoped superadmin»); **P4.7** —
      `isSuperAdmin(on:)`, `TenantPolicy::allowGlobalRoles()`, `exemptsSuperAdmin()` и матрица V17/09 §4.
 
@@ -111,24 +91,23 @@ V53, V54, V66–V69, V74, V79–V82, V86, V88–V95, V99, V100, V102, V117–V12
    `ResourceScopeMissingException`, `AssignmentScopeNotAcceptedException` (05 §10 — `ChangeException`) вводит пайплайн
    изменений P5.2. Вне досье — только
    `Contracts\Sources\FencesReads` и `Contracts\Sources\AssignmentScopeSelection` (имя есть в 06 §1.1, форма — нет:
-   `everywhere()`, `in(list<AssignmentScopeRef>)`, `nowhere()`). Внутренние классы без тега пункты называют в `Files`.
+   `everywhere(list<Grant|RoleContribution>)`, `in(list<AssignmentScopeRef>, list<Grant|RoleContribution>)`, `nowhere()`, `contributions(): array`; refs — prefilter, raw witnesses обязательны, D15 §5). Дополнительные публичные методы существующих типов `PolicyBinding::gate`, `PanelCatalog::policyBindings` и `AssignmentScopePolicy::accessAdapter` утверждены D15 §3/§5; новые классы для них не вводятся. Внутренние классы без тега пункты называют в `Files`.
 
-6. **Среды СУБД (уточнение D4).** P4.4 гоняет группу `engines` (чтение назначений, fence, канон id) на PG 16, MySQL 8,
-   MariaDB 10.11; P4.8 — V99 двумя процессами с барьерами на PG/MySQL и cache store Redis 7 (`--group=redis`); P4.12 —
-   EXPLAIN V33 на PG/MySQL. Недоступная СУБД или Redis — `unavailable`, пункт не закрывается 🟢.
+6. **Среды СУБД (D4, D15).** Raw/scoped source reads P4.4/P4.18 — postgres16/mysql8/mariadb10.11.
+   Real cache/fence/revoke/root-snapshot гонки, Redis7, latency V43 и real replica lag V46 — P4.21;
+   PG16 replication profile authority-primary/authority-replica создаёт P4.21, такого stand ещё нет в коде.
+   Exact SQL/EXPLAIN PG/MySQL — P4.23. Недоступный engine/Redis/replica — unavailable и блокирует owning item.
 
-7. **Приёмка, которую P4 закрывает частично** (остаток — владельцам кода): V10 — см. п.4, миграция P5.3; V11 «doctor
-   показывает» — диагностика в логе/трассе в P4.2, doctor-проверка P6.4; V30 — Gate/`@can`/`decideMany`/`explain` в
-   P4.11, трейт и фасад P5.1/P6.1; V66 — `RoleNotGrantableException` P5.2/P5.3; V82 — создание/удаление динамических
-   прав P5.3, чтение и overlay P4.4; V91/V92 — чтение в P4.4, cleanup/delete P5.3; V95 — UI-поверхности P7.2;
-   V102 — `PolicyBinding`/`Decides` runtime P4.3, Filament P7.2; V120 — mixed batch P4.9, process-map gates P5.2/P6.8/P8.7;
-   V54 — условие видит поля своей выдачи P4.1, выборка только объявленных decision-полей P4.4, отсутствие необъявленных
-   полей в кэше P4.8. Свойства V15: P1–P3, P5–P8, P10–P12, P15 — P4.1; P4, P13 — P4.6; P9 — P4.11; P14 — P4.12; P16 — P4.8.
-   13 F4 называет приёмкой P4.10 строку V27, но строка V27 в 14 описывает Gate (владелец P4.11): P4.10 принимается по
-   09 §11/D29 и части V30 (`explain`). `Decision::toGateResult()` D6 п.1 исполняется как `GateBridge::toGateResult()`:
-   D6 сам требует, чтобы Kernel не импортировал Laravel `Response`.
-   Probe P03 (V30: одинаковый запрет через Gate, `decideMany`, `explain`) переходит из P4.3 в **P4.11**: раньше этих
-   поверхностей нет; P4.11 меняет `Owning item` в `tests/Regression/specs/P03.md` и пишет `Owning rationale`.
+7. **Приёмка и явные остатки.** Полный normative owner/test/residual register — brief/P4-acceptance-matrix.md.
+   V15 P1–P8/P10–P13/P15 — P4.16; P9 — P4.11; P14 — P4.23; P16 — P4.20.
+   Dynamic overlay V82/V92 — P4.17; scoped V69/V74/V91/V92/P08 — P4.18; CRM scalar — P4.15;
+   touch/incarnation/P10b — P4.20; cache races/Redis/lag/perf/R51/R52 — P4.21; CRM lists/count/EXPLAIN — P4.23.
+   P03 — P4.11, P08 — P4.18: spec owner/rationale/covered и RegressionSpecsTest map обновляются совместно.
+   V27 — Gate P4.11; P4.10 принимает explain по09§11/D29/V30. GateBridge::toGateResult держит Laravel Response,
+   Kernel только scalar details (D6). FormerKeys migration/NotGrantable write rejection/dynamic create-delete —
+   P5.2/P5.3; trait/facade/middleware — P5.1/P6.1/P6.2; doctor — P6.4; reset/restore operations — P6.6;
+   UI — P7; installed external consumer/version matrix — P8.7/P8.4. Internal P4 доля lifecycle/native/filter/CRM
+   не переносится на эти owners: точные partials указаны в реестре.
 
 ## Why
 
@@ -140,8 +119,8 @@ fence нужен первому DB-источнику раньше, чем кэ�
 
 ## Consequences
 
-Phase Context P4 и спецификации P4.1–P4.14 следуют этому решению. P5.1/P6.1/P6.2 строят поверхности над `Authorizer`;
-P5.3 владеет миграцией FormerKeys и `RoleNotGrantableException`; P6.4 — doctor-проверками removed roles/relations/
-decision-полей; P6.6 — reset/restore со сменой incarnation (P4.8 доказывает только поведение кэша при новой incarnation).
-Routing: `B4` из двенадцати пунктов заменяется на `solo` P4.1, `B4b`, `B4c`, `B4d`, `solo` P4.15, `solo` P4.13, `B4e`,
-`B4f`, `solo` P4.12, `solo` P4.14.
+Specs P4.1–P4.23, Phase Context/Contract, Routing и execution sheet следуют D14 с исправлением D15.
+Одна runtime-семантика стоит под всеми later surfaces. Каждый общий тип создаётся до consumer.
+P4.13 scope — ранняя реализация P4.1–P4.7/P4.15–P4.19; P4.14 — вся P4. Находки возвращаются
+реальному owning item, включая новые пункты. Все execution items solo; порядок — roadmap/D15 §1.
+P4.20 моделирует новую incarnation и доказывает cache behavior; реальные reset/restore команды — P6.6.

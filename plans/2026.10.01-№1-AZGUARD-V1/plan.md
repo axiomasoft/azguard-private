@@ -102,21 +102,29 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | B3b | P3.3 | frontier/high | run | none | recommended: модели, свои модели и поля поверх схемы P3.2 |
 | B3b | P3.4 | implementation/medium | run | none | recommended: запрет прямых записей на моделях P3.3 |
 | solo | P3.5 | frontier/high | run | none | Review P3: независимая read-only проверка фазы в свежей сессии (D3) |
-| solo | P4.1 | frontier/high | run | none | recommended: пайплайн, authority dispatcher и контракты — вход всех источников (D14) |
-| B4b | P4.2 | frontier/high | run | none | recommended: выдачи папки на контрактах P4.1 |
-| B4b | P4.3 | frontier/high | run | none | recommended: режимы политик, GateSource, индекс ability |
-| B4c | P4.4 | frontier/high | run | none | recommended: DatabaseSource, fence `T_before/T_after`, публичное Storage |
-| B4c | P4.5 | frontier/high | run | none | recommended: RelationSource на FiltersQueries P4.4 |
-| B4d | P4.6 | frontier/high | run | none | recommended: tenant/область/ресурс по таблице 09 §3 |
-| B4d | P4.7 | implementation/medium | run | none | recommended: суперадмин в области на TenantPolicy P4.6 |
-| B4e | P4.8 | frontier/high | run | none | recommended: кэш, refresh, incarnation, гонки V99 |
-| B4e | P4.9 | frontier/high | run | none | recommended: decideMany на кэше и fence P4.8 |
-| B4f | P4.10 | implementation/medium | run | none | recommended: explain на трассе P4.1 |
-| B4f | P4.11 | frontier/high | run | none | recommended: GateBridge на индексе ability P4.3 |
-| solo | P4.12 | frontier/high | run | none | recommended: exact visibility после P4.4–P4.6 |
-| solo | P4.13 | frontier/high | run | none | срез-review P4.1–P4.7 и P4.15: независимая read-only проверка в свежей сессии (D3, D14) |
-| solo | P4.14 | frontier/high | run | none | Review P4: независимая read-only проверка фазы в свежей сессии (D3) |
-| solo | P4.15 | implementation/high | run | none | recommended: CRM-фикстура и R-кейсы P4.1–P4.7 до среза (D5, D14) |
+| solo | P4.1 | frontier/high | run | none | Пайплайн проверки и authority dispatcher (D15) |
+| solo | P4.2 | frontier/high | run | none | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys (D15) |
+| solo | P4.3 | frontier/high | run | none | Mode-aware policies, Decides, PolicyFor, GateSource::map (D15) |
+| solo | P4.4 | frontier/high | run | none | DatabaseSource: назначения, сроки, dynamicPermissions, писатель (D15) |
+| solo | P4.17 | frontier/high | run | none | Dynamic Prepare и единый authority fence (D15) |
+| solo | P4.5 | frontier/high | run | none | RelationSource и видимость через связи (D15) |
+| solo | P4.6 | frontier/high | run | none | Tenant, AssignmentScope и ресурс в проверке (D15) |
+| solo | P4.19 | frontier/high | run | none | Context eligibility: native filters и external adapters (D15) |
+| solo | P4.7 | implementation/medium | run | none | Суперадмин — признак роли (D15) |
+| solo | P4.16 | frontier/high | run | none | Генеративная квалификация движка и scope (D15) |
+| solo | P4.18 | frontier/high | run | none | Scoped source integration и регрессия P08 (D15) |
+| solo | P4.15 | implementation/high | run | none | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 (D15) |
+| solo | P4.13 | frontier/high | run | none | Срез-review P4.1–P4.7: независимая read-only проверка границы решения (D15) |
+| solo | P4.8 | frontier/high | run | none | Кэш наборов прав, StateToken, version fence, expiry (D15) |
+| solo | P4.20 | frontier/high | run | none | Cache transactions, incarnation и touch (D15) |
+| solo | P4.21 | frontier/high | run | none | Квалификация кэша: гонки, Redis, replica lag, latency (D15) |
+| solo | P4.9 | frontier/high | run | none | decideMany (D15) |
+| solo | P4.10 | implementation/medium | run | none | explain и azguard:explain (D15) |
+| solo | P4.11 | frontier/high | run | none | GateBridge (D15) |
+| solo | P4.22 | frontier/high | run | none | Exact predicate SPI, partitions и SQL compiler (D15) |
+| solo | P4.12 | frontier/high | run | none | Visibility и exact query adapters (D15) |
+| solo | P4.23 | frontier/high | run | none | Exact visibility: CRM, parity и EXPLAIN (D15) |
+| solo | P4.14 | frontier/high | run | none | Review P4: независимая read-only проверка фазы (D15) |
 | B5 | P5.1 | frontier/high | run | none | recommended: трейт и SubjectAccess |
 | B5 | P5.2 | frontier/high | run | none | recommended: ChangePipeline |
 | B5 | P5.3 | implementation/medium | run | none | recommended: RoleCatalog/GrantManager/PermissionManager |
@@ -174,6 +182,7 @@ D3 режим исполнения и review, D4 валидация и сред�
 по замыканию зависимостей, D7 исправление находок Review P1, D8 состав P2 по замыканию зависимостей
 и владение методами `PanelBuilder`, D9–D11 поправки и исправления P2, D12 состав P3, публичность хранилища и
 пробелы досье по DDL, блокировкам и полям, D13 точное сравнение ID на MySQL/MariaDB, D14 состав P4, швы
-пунктов, публичные имена и расхождения досье по проверке прав.
+пунктов, публичные имена и расхождения досье по проверке прав; D15 исправление design-review P4,
+типизированные швы и разделение P4.16–P4.23 с полной матрицей приёмки.
 Решения досье цитируются как `D01–D84` (двузначные) и не копируются.
 Собрать виды: `plan-views.py decisions`. Открытые вопросы — `open-questions.md`.

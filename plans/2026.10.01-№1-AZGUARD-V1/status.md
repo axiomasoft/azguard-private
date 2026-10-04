@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: 5925637aee1b381c332d8425e44b279a0d63f32278f81d4ba12d6dfa6eb53d57
+inputs_sha256: 600f4f375bf91ec842e48de6f8e254bf3a0ec7e5494e4a129caea4f18b422e92
 generated_by: task plan-views status
 -->
 
@@ -27,7 +27,7 @@ generated_by: task plan-views status
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/15 | ⬜ Not started |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/23 | 🟡 In progress |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
 | P7 | Filament по схеме панели | 0/7 | ⬜ Not started |
@@ -84,7 +84,7 @@ generated_by: task plan-views status
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P4.1 | Пайплайн проверки и authority dispatcher | ⬜ Not started | — |
+| P4.1 | Пайплайн проверки и authority dispatcher | 🟡 In progress | 2026-10-04 |
 | P4.2 | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys | ⬜ Not started | — |
 | P4.3 | Mode-aware policies, Decides, PolicyFor, GateSource::map | ⬜ Not started | — |
 | P4.4 | DatabaseSource: назначения, сроки, dynamicPermissions, писатель | ⬜ Not started | — |
@@ -99,6 +99,14 @@ generated_by: task plan-views status
 | P4.13 | Срез-review P4.1–P4.7: независимая read-only проверка границы решения | ⬜ Not started | — |
 | P4.14 | Review P4: независимая read-only проверка фазы | ⬜ Not started | — |
 | P4.15 | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 | ⬜ Not started | — |
+| P4.16 | Генеративная квалификация движка и scope | ⬜ Not started | — |
+| P4.17 | Dynamic Prepare и единый authority fence | ⬜ Not started | — |
+| P4.18 | Scoped source integration и регрессия P08 | ⬜ Not started | — |
+| P4.19 | Context eligibility: native filters и external adapters | ⬜ Not started | — |
+| P4.20 | Cache transactions, incarnation и touch | ⬜ Not started | — |
+| P4.21 | Квалификация кэша: гонки, Redis, replica lag, latency | ⬜ Not started | — |
+| P4.22 | Exact predicate SPI, partitions и SQL compiler | ⬜ Not started | — |
+| P4.23 | Exact visibility: CRM, parity и EXPLAIN | ⬜ Not started | — |
 
 ## Phase P5
 
@@ -243,6 +251,12 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex | plan-close · closed-green · P3 GREEN: all product gates and independent Grok 4.7/high/500k review; no blocker/major. R2 minor native PK names retained in findings/P3-review.md, owning P3.2; read-only boundary preserved.
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | plan-designer/claude-opus-5-5 | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex | plan-run · in-progress · — |
+| 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
 
 ## Owner Gates
 

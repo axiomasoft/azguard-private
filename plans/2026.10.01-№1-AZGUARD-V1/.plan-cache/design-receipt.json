@@ -1,6 +1,6 @@
 {
   "adapter_attestation": null,
-  "commit_sha": "d02c90417e1fcf7c9a56840dfc2cd4b247260d2c",
+  "commit_sha": "674bb75150155083ea4bd1b558dca963b74b3e5a",
   "continuity": {
     "evidence": [
       "persisted-context:continue-root"
@@ -12,18 +12,18 @@
   },
   "digests": {
     "closure": null,
-    "handoff": "sha256:3a0da8191723b12fba955bb9d9f23c86c8d9c7c4b4411f5885f7f7f83ef7b9db",
-    "plan": "sha256:8402821a673e75572d663c068106dead53f06b8534273e99d9c472958336b920",
+    "handoff": "sha256:902d42888f5d3217cb9c7a16295cd58b7fe3b938edfa5c6c9d64babc32263b14",
+    "plan": "sha256:cbd829251bd4ec2e0dba4c5aa46688edfb94c73d404bd22880cae319dedea0fb",
     "state": null
   },
   "journal": null,
   "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1",
   "plan_id": "2026.10.01-№1-AZGUARD-V1",
   "rationale": {
-    "open_risks": "design-context/finalize-design P4 выполнены исправленным Task runtime (ветка `fix/task-repeat-historical-phase-scoped` в swissknifeman): установленный runtime отвергает историю повторов P2.8/P2.5 (`REPEAT_HISTORY_DESIGN_UNQUALIFIED`, затем `REPEAT_SIBLING_STALE`) при любом построении статусов плана — до слияния исправления `plan-run` P4 на штатном runtime упадёт той же ошибкой. Находки среза P4.13 и Review P4.14 исправляются в owning items; механизм (repair-пункт как D7 или owning repeat как D11) выбирает владелец после verdict. Полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1.",
-    "remaining": "исполнение P4.1–P4.15 по execution sheet; детализация P5–P8 по фазам после закрытия предыдущей (D3)."
+    "open_risks": "Историческое предупреждение о Task repeat-history из прежнего handoff: в этой сессии текущий установленный runtime успешно построил statuses и finalize-design P4, прежняя блокировка не воспроизвелась. Полный plan-lint сохраняет 12 foreign baseline write-site ошибок P0/P1; local P4 errors отсутствуют после qualification. Findings среза и финального review исправляются в owning items. Автоматическая заметка plan-design «execution has not started» шаблонная: P4.1 остаётся In progress, run history не сброшена.",
+    "remaining": "Исполнение P4 по execution sheet; closed runtime gates ещё не заявлены. Execution bundle P4.1 регенерирован; проверить byte-fresh перед продолжением; не сбрасывать его journal/state. Детализация P5–P8 после закрытия P4."
   },
-  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1\n\nФаза P4 детализирована (D14): пятнадцать пунктов — номера досье P4.1–P4.12, срез-review P4.13, Review P4 P4.14, CRM-фикстура P4.15. Порядок исполнения — execution sheet `roadmap.md`: `P4.1` → `P4.2 P4.3` → `P4.4 P4.5` → `P4.6 P4.7` → `P4.15` → `P4.13` → `P4.8 P4.9` → `P4.10 P4.11` → `P4.12` → `P4.14`. P4.1 работает на SQLite; СУБД поднимаются с P4.4 (`docker compose up -d --wait postgres mysql mariadb`), Redis — с P4.8; недоступный сервис — `unavailable`, не GREEN (D4).\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | solo |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | PHP 8 + composer vendor; SQLite (СУБД с P4.4, Redis с P4.8) |\n| Context | continue-root |\n| Essence | `Authorizer::decide()`: пайплайн 09 §2, authority dispatcher, `Restriction`/`GrantCondition`, `EvaluationFrame`, `PolicyDecider`, свойства V15 |",
+  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1\n\nФаза P4 исправлена по D15 после design-review: 23 solo-пункта, номера исходных P4.1–P4.15 сохранены. Порядок — roadmap.md. P4.1 уже In progress по journal; bundle регенерирован для D15, продолжить после byte-fresh проверки. Runtime PHP не менялся этой сессией.\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | solo |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | PHP 8 + composer vendor; SQLite (СУБД с P4.4, Redis и отдельный replica profile с P4.21) |\n| Context | continue-root |\n| Essence | `Authorizer::decide()`: пайплайн 09 §2, authority dispatcher, `Restriction`/`GrantCondition`, `EvaluationFrame`, `PolicyDecider`, локальные тесты; свойства V15 P4.16 |",
   "route": {
     "batch": "solo",
     "command": null,
