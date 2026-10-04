@@ -8427,8 +8427,10 @@
             "parent": null,
             "interfaces": [
                 "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
                 "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
                 "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
                 "AzGuard\\Contracts\\Sources\\ProvidesRoles",
                 "AzGuard\\Contracts\\Sources\\Source"
             ],
@@ -8457,6 +8459,21 @@
                         {
                             "name": "container",
                             "type": "Illuminate\\Contracts\\Container\\Container",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "bindRoleClasses",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "classes",
+                            "type": "array",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -8550,6 +8567,35 @@
                     "return": "static"
                 },
                 {
+                    "name": "grants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
                     "name": "id",
                     "static": false,
                     "abstract": false,
@@ -8609,6 +8655,35 @@
                     "return": "iterable"
                 },
                 {
+                    "name": "roleGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
                     "name": "roles",
                     "static": false,
                     "abstract": false,
@@ -8622,6 +8697,13 @@
                         }
                     ],
                     "return": "iterable"
+                },
+                {
+                    "name": "volatility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Sources\\Volatility"
                 }
             ],
             "stability": "api",

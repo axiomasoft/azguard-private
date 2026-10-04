@@ -77,3 +77,44 @@ cache fields/expiry — P4.8; public adapters — P5.1/P6.1/P6.2. Локальн
 - Новый дефект доверия validation: fork type-coverage worker вернул null, plugin выдал foreach warning и exit 0. Этот прогон исключён из GREEN evidence, оригинал type-coverage-fork-warning.log. Штатная ветка plugin с __PEST_PLUGIN_ENV=1 выключает fork; --no-cache + JSON logger доказали 179/179 файлов, 0 пропусков, 0 предупреждений, 99.86%. Dependency vendor не изменён.
 
 write-site: pre_mutation: allow · pre_final: allow
+
+## P4.2 — GREEN
+
+Запрос владельца: `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 P4.3 --reviewer=grok/grok-4.7/500k`.
+B4a выполняется по порядку; независимое ревью P4.2 завершено GREEN, находок нет. Capsule и фактическая
+provider-written route `gpt-6.1-sol/high` сохранены в `artifacts/B4a-execution/`.
+
+| Обязательство | Проверка |
+|---|---|
+| V09, V11, P02: идентичность по ключу, переименование класса и удаление | Regression/P02Test: две реализации одного reader key; rebuild сохраняет назначение; removed key → NotGranted |
+| V10, D14 п.4: FormerKeys не alias | RoleKeyIdentityTest: former key даёт NotGranted; trace и Log::notice называют current_key |
+| V66: scoped automatic seller/root; additive manual role | AutomaticRolesTest: Store::exists, is_root, изменение модели между операциями, ручная seller contribution; external ProvidesRoles также входит в compiled catalogue |
+| NotGrantable: только настоящее automatic исполнение FolderSource | RoleKeyIdentityTest и ContributionQualificationTest: labels folder/automatic от стороннего адаптера не дают exemption |
+| V74 partial: Grants выдачи эквивалентны | GrantedToAllTest: discovered/registered enum, точный ключ, каждый requested scope, missing/unaccepted subject, comparison с эквивалентным generated grant; AutomaticRolesTest: manual+automatic seller |
+| V79: BaseRole методы, атрибуты и подпись | Unit/Roles/BaseRoleTest и Unit/Catalog/RoleCompilerTest из полного suite: overrides, translation, invalid key |
+| V117 partial: определения только PHP, automatic роли не создают новых определений | FolderSource использует compiled class list; регрессия внешнего ProvidesRoles; RoleKeyIdentityTest unknown key не превращается в определение |
+| Ошибки источника и режим права | AutomaticRolesTest: DI/predicate errors → SourceError; GrantedToAllTest: PolicyOnly+GrantedToAll → DefinitionException |
+
+Все declared Validation carriers фиксируются точными командами и exit-кодами в
+`artifacts/B4a-execution/P4.2-checks.json`, логи рядом. SQLite :memory:, APP_ENV=testing.
+Type coverage использует documented no-fork/no-cache fallback P4.1; PHPStan warning о
+недоступной optional turbo extension сохранён в логе. Полная DB/source integration остаётся P4.18.
+
+Дефекты Task v0.28.0: prepare реконструировал owner invocation вместо semantic сравнения
+(форма `--reviewer=` и implicit high); сохранён исходный provider-written actual-route без
+изменения route evidence. Первая независимая Grok session
+`2c679948-cd92-4d30-bf4f-1412114a7aa7` исчерпала 20 turns без вердикта. Runner ошибочно
+заменил первопричину отсутствием contextWindow в usage и не устанавливал окно 500k.
+Попытка 0001 сохранена в `artifacts/P4.2/owner-review/`, не считается GREEN.
+Repair выполнен в owning SKM transport: fresh native ACP session, provider-owned model/effort/window
+до prompt и после завершения, отдельная проверка complete usage/end_turn; лимиты/history сохранены.
+Повторный запуск — единственная оставшаяся incomplete transport попытка для P4.2.
+Диагностика и предложение решения находятся в SKM `roadmap/2026-10-04-plan-run-owner-invocation-normalization.md`
+и `roadmap/2026-10-04-plan-run-reviewer-native-transport.md`.
+
+Независимый GREEN: fresh native Grok session `01a10780-05e4-7643-932d-e8770f6de162`,
+grok-4.7/high/500000; candidate `e75d5789d1e6691ea7472e59f7dd5d0f196711295bcb3212f10e0398ed0f1e59`.
+Receipt, complete usage, transcript и native route witness — `artifacts/P4.2/owner-review/attempt-0002/`.
+Локальная приёмка: targeted 175 tests/836 assertions, arch 72/314, full 2115/243156;
+PHPStan 0 errors, type coverage 99.9%, Pint/API/diff exit 0.
+write-site: pre_mutation: allow · pre_final: allow

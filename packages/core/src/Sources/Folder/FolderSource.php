@@ -5,15 +5,25 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Folder;
 
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\DescribesSchema;
+use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesPolicies;
+use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\DuplicatePolicyBindingException;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\RoleKey;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRecipe;
@@ -21,6 +31,7 @@ use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Policies\PolicyFor;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
@@ -37,7 +48,7 @@ use UnitEnum;
  *
  * @api
  */
-final class FolderSource implements DescribesSchema, ProvidesPermissions, ProvidesPolicies, ProvidesRoles
+final class FolderSource implements DescribesSchema, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
 {
     /** @var array{permissions: ?string, policies: ?string, roles: ?string, abilities: ?string} */
     private array $folders = [
@@ -52,6 +63,9 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
     private ?PanelRecipe $recipe = null;
 
     private ?Container $container = null;
+
+    /** @var list<class-string<BaseRole>>|null */
+    private ?array $roleClasses = null;
 
     public static function make(): static
     {
@@ -142,6 +156,16 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
         $this->container = $container;
     }
 
+    /**
+     * The engine supplies the compiled panel roles, including roles declared by other sources.
+     *
+     * @param  list<class-string<BaseRole>>  $classes
+     */
+    public function bindRoleClasses(array $classes): void
+    {
+        $this->roleClasses = $classes;
+    }
+
     public function permissions(Panel $panel, ?TenantRef $tenant = null): iterable
     {
         $discovery = $this->prepared($panel);
@@ -149,6 +173,7 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
         $known = [];
 
         foreach ($discovery->definitions as $row) {
+            $this->validateAutomaticGrant($row);
             $known[$row['case']['enum']] = true;
             $this->remember($definitions, AttributeReader::definition($row), $panel);
         }
@@ -159,6 +184,7 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
             }
 
             foreach (AttributeReader::rows($enum, null) as $row) {
+                $this->validateAutomaticGrant($row);
                 $this->remember($definitions, AttributeReader::definition($row), $panel);
             }
         }
@@ -183,6 +209,85 @@ final class FolderSource implements DescribesSchema, ProvidesPermissions, Provid
         }
 
         return array_values($roles);
+    }
+
+    public function roleGrants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+    {
+        $model = $context->subjectModel();
+        $panel = $context->panel();
+
+        if ($model === null || ! $panel->accepts($subject) || ! $panel->accepts($model)) {
+            return;
+        }
+
+        $classes = $this->roleClasses ?? [...$this->discovery()->roles, ...$this->recipe()->roles()];
+
+        foreach (array_unique($classes) as $class) {
+            if (! is_subclass_of($class, GrantedAutomatically::class)) {
+                continue;
+            }
+
+            $role = $this->container()->make($class);
+
+            if (! $role instanceof BaseRole) {
+                throw new DefinitionException('The automatic role '.$class.' resolved '.get_debug_type($role).'.');
+            }
+
+            if (! $role instanceof GrantedAutomatically) {
+                throw new DefinitionException('The automatic role '.$class.' does not implement '.GrantedAutomatically::class.'.');
+            }
+
+            foreach ($scopes as $scope) {
+                if ($role->appliesTo($model, $scope)) {
+                    yield RoleContribution::of(RoleKey::of($panel->id(), $role->key()), $scope, 'folder', origin: 'automatic');
+                }
+            }
+        }
+    }
+
+    public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+    {
+        $panel = $context->panel();
+
+        if ($context->subjectModel() === null || ! $panel->accepts($subject)) {
+            return;
+        }
+
+        $discovery = $this->prepared($panel);
+        $permissions = $discovery->grantedToAll;
+
+        foreach ($this->recipe()->enums() as $enum) {
+            if (! is_subclass_of($enum, BackedEnum::class)) {
+                continue;
+            }
+
+            foreach (AttributeReader::rows($enum, null) as $row) {
+                $this->validateAutomaticGrant($row);
+
+                if ($row['granted_to_all']) {
+                    $permissions[] = $row['local'];
+                }
+            }
+        }
+
+        foreach (array_unique($permissions) as $permission) {
+            foreach ($scopes as $scope) {
+                yield Grant::of(PermissionPattern::of($panel->id(), $permission), 'folder', $scope, origin: 'granted_to_all');
+            }
+        }
+    }
+
+    public function volatility(): Volatility
+    {
+        return Volatility::Request;
+    }
+
+    /** @param array{local: string, authority: string, granted_to_all: bool} $row */
+    private function validateAutomaticGrant(array $row): void
+    {
+        if ($row['granted_to_all'] && $row['authority'] !== PermissionAuthority::Grants->value) {
+            throw new DefinitionException('Permission "'.$row['local'].'" declares #[GrantedToAll] in PolicyOnly mode.');
+        }
     }
 
     public function policies(Panel $panel): iterable

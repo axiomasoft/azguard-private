@@ -19,17 +19,16 @@ use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
-use AzGuard\Tests\Fixtures\Roles\RootRole;
 use Closure;
 use DateTimeImmutable;
 
 final class AuthorizationWorld
 {
     /** @return array{Authorizer, Panel, AccessRequest} */
-    public static function compile(GeneratedSource $source, ?Closure $configure = null, array $extra = []): array
+    public static function compile(GeneratedSource $source, ?Closure $configure = null, array $extra = [], string $rootRole = GrantableRootRole::class): array
     {
-        [,,$registry] = PanelWorld::compile([AdminPanel::class => static function (PanelBuilder $panel) use ($source, $configure, $extra): void {
-            $panel->for(User::class)->permissions([$source, ...$extra])->roles([RootRole::class])->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]);
+        [,,$registry] = PanelWorld::compile([AdminPanel::class => static function (PanelBuilder $panel) use ($source, $configure, $extra, $rootRole): void {
+            $panel->for(User::class)->permissions([$source, ...$extra])->roles([$rootRole])->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]);
 
             if ($configure !== null) {
                 $configure($panel);

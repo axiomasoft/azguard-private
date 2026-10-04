@@ -1,0 +1,1 @@
+{"cwd": "/home/vostrikov/projects/packages/azguard", "effort": "high", "invocation": "$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 P4.3 --reviewer=grok/grok-4.7/500k", "model": "gpt-6.1-sol", "model_class": "frontier", "source": "provider-thread-state", "source_version": "codex-turn-context-v1", "thread_id": "01a1075c-cece-70e0-93d5-e2184c5ee917", "ts": "2026-10-04T14:44:52Z"}

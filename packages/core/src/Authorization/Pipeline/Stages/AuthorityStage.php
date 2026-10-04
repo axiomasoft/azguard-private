@@ -11,7 +11,6 @@ use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
@@ -23,6 +22,8 @@ use AzGuard\Kernel\Grammar\PatternMatcher;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Log;
@@ -46,6 +47,10 @@ final readonly class AuthorityStage
                 $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
                 $contributions = [];
                 foreach ($sources->all() as ['source' => $source]) {
+                    if ($source instanceof FolderSource) {
+                        $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
+                    }
+
                     foreach ([ProvidesGrants::class, ProvidesRoleGrants::class] as $capability) {
                         if (! $source instanceof $capability) {
                             continue;
@@ -77,9 +82,21 @@ final readonly class AuthorityStage
                 }
                 $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
 
-                if ($item->role !== null && ($roleDefinition === null || ($source instanceof StoresGrants && ! $roleDefinition['grantable']))) {
-                    $trace->record('contribution', 'unknown_or_not_grantable_role', $source::class);
-                    Log::warning('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => 'unknown_or_not_grantable_role', 'role' => $item->role->full()]);
+                $automatic = $item instanceof RoleContribution && $source instanceof FolderSource && $roleDefinition !== null
+                    && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
+
+                if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
+                    $current = null;
+                    foreach ($catalog->roles() as $candidate) {
+                        if (in_array($item->role->key(), $candidate['former_keys'], true)) {
+                            $current = $candidate['key'];
+
+                            break;
+                        }
+                    }
+                    $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
+                    $trace->record('contribution', $reason, $source::class);
+                    Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
 
                     continue;
                 }

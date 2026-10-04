@@ -17,6 +17,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\DepartmentCondition;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
 use AzGuard\Tests\Fixtures\Authorization\WriterSource;
@@ -59,7 +60,7 @@ it('superadmin conditions receive the actual code role and original contribution
             if ($grant instanceof Grant) {
                 return true;
             }
-            expect($context->grant())->toBe($grant)->and($context->role())->toBeInstanceOf(RootRole::class)->and($context->actor()->id)->toBe('1');
+            expect($context->grant())->toBe($grant)->and($context->role())->toBeInstanceOf(GrantableRootRole::class)->and($context->actor()->id)->toBe('1');
 
             return $grant->fields()['ok'];
         }
@@ -77,7 +78,7 @@ it('an ordinary grant does not remove a qualified superadmin exemption', functio
 
 it('uses actual writer provenance rather than a forged folder source label for NotGrantable roles', function (): void {
     $role = RoleContribution::of(RoleKey::of('admin', 'root'), AccessScope::in(TenantRef::global()), 'folder');
-    [$engine,$panel,$request] = AuthorizationWorld::compile(new WriterSource(roles: [$role]));
+    [$engine,$panel,$request] = AuthorizationWorld::compile(new WriterSource(roles: [$role]), rootRole: RootRole::class);
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted);
 });
 it('qualifies each role contribution before expanding its compiled patterns', function (): void {
