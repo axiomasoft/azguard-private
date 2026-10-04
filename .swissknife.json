@@ -11,6 +11,9 @@
       },
       "cursor": {
         "enabled": true
+      },
+      "grok": {
+        "enabled": true
       }
     }
   },

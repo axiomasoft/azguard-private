@@ -50,3 +50,4 @@ CLAUDE.md
 AGENTS.md
 *.bak
 .tmp*
+.grok/config.toml
