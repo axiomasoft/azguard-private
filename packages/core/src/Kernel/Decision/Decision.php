@@ -24,6 +24,9 @@ final readonly class Decision
         public AccessScope $scope,
         public ?string $component,
         public array $grants,
+        public ?string $message,
+        public ?int $status,
+        public string|int|float|bool|null $code,
     ) {}
 
     /**
@@ -37,8 +40,11 @@ final readonly class Decision
         AccessScope $scope,
         ?string $component = null,
         array $grants = [],
+        ?string $message = null,
+        ?int $status = null,
+        string|int|float|bool|null $code = null,
     ): self {
-        return self::make(Effect::Allow, $reason, $state, $scope, $component, $grants);
+        return self::make(Effect::Allow, $reason, $state, $scope, $component, $grants, $message, $status, $code);
     }
 
     /**
@@ -49,8 +55,11 @@ final readonly class Decision
         CodeStateToken|StateToken $state,
         AccessScope $scope,
         ?string $component = null,
+        ?string $message = null,
+        ?int $status = null,
+        string|int|float|bool|null $code = null,
     ): self {
-        return self::make(Effect::Deny, $reason, $state, $scope, $component, []);
+        return self::make(Effect::Deny, $reason, $state, $scope, $component, [], $message, $status, $code);
     }
 
     public static function notApplicable(CodeStateToken|StateToken $state, AccessScope $scope, ?string $component = null): self
@@ -86,6 +95,9 @@ final readonly class Decision
         AccessScope $scope,
         ?string $component,
         array $grants,
+        ?string $message = null,
+        ?int $status = null,
+        string|int|float|bool|null $code = null,
     ): self {
         if (! self::admits($effect, $reason)) {
             throw new ConsistencyException(sprintf(
@@ -95,6 +107,6 @@ final readonly class Decision
             ));
         }
 
-        return new self($effect, $reason, $state, $scope, $component, $grants);
+        return new self($effect, $reason, $state, $scope, $component, $grants, $message, $status, $code);
     }
 }

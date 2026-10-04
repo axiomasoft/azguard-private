@@ -28,12 +28,17 @@ final readonly class RuntimeInvoker
         foreach ((new ReflectionFunction($closure))->getParameters() as $position => $parameter) {
             $name = $parameter->getName();
             $slot = array_key_exists($name, $inputs) ? $name : null;
+            $before = array_key_exists('ability', $inputs) && array_key_exists('user', $inputs);
+            $resourcePosition = $before ? 2 : 1;
 
             if (array_key_exists('user', $inputs) && ($slot === null || in_array($slot, ['user', 'resource'], true))) {
                 if ($position === 0) {
                     $slot = 'user';
-                } elseif ($position === 1 && array_key_exists('resource', $inputs)
-                    && ($slot !== null || $this->accepts($parameter->getType(), $inputs['resource']) || $this->modelType($parameter->getType()))) {
+                } elseif ($before && $position === 1) {
+                    $slot = 'ability';
+                } elseif ($position === $resourcePosition && array_key_exists('resource', $inputs)
+                    && ($slot !== null || $this->accepts($parameter->getType(), $inputs['resource']) || $this->modelType($parameter->getType())
+                        || ($this->stringType($parameter->getType()) && isset($inputs['resourceClass'])))) {
                     $slot = 'resource';
                 }
             } elseif ($slot === null) {
@@ -62,6 +67,10 @@ final readonly class RuntimeInvoker
                 continue;
             }
             $value = $inputs[$slot];
+
+            if ($slot === 'resource' && $value === null && isset($inputs['resourceClass']) && $this->stringType($parameter->getType())) {
+                $value = $inputs['resourceClass'];
+            }
 
             if (! $this->accepts($parameter->getType(), $value)) {
                 if ($value === null && $parameter->isDefaultValueAvailable()) {
@@ -134,5 +143,18 @@ final readonly class RuntimeInvoker
         }
 
         return $type instanceof ReflectionNamedType && is_a($type->getName(), Model::class, true);
+    }
+
+    private function stringType(?ReflectionType $type): bool
+    {
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $part) {
+                if ($this->stringType($part)) {
+                    return true;
+                }
+            }
+        }
+
+        return $type instanceof ReflectionNamedType && $type->getName() === 'string';
     }
 }

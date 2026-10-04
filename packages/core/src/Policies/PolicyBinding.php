@@ -7,6 +7,7 @@ namespace AzGuard\Policies;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 /**
@@ -20,13 +21,17 @@ final readonly class PolicyBinding
 {
     /**
      * @param  BackedEnum|string  $permission  enum case or local permission name
-     * @param  class-string  $policy
+     * @param  class-string|null  $policy
      * @param  string|null  $method  policy method that carries #[Decides] for this permission
+     * @param  class-string<Model>|null  $resourceModel
      */
     private function __construct(
         public BackedEnum|string $permission,
-        public string $policy,
+        public ?string $policy,
         public ?string $method = null,
+        public string $kind = 'php',
+        public ?string $ability = null,
+        public ?string $resourceModel = null,
     ) {}
 
     /**
@@ -58,6 +63,27 @@ final readonly class PolicyBinding
         }
 
         return new self($permission, $class, $method);
+    }
+
+    /** @param class-string<Model>|null $resourceModel */
+    public static function gate(BackedEnum|string $permission, string $ability, ?string $resourceModel = null): self
+    {
+        if (($permission instanceof BackedEnum && ! is_string($permission->value))
+            || (is_string($permission) && ! PermissionGrammar::isLocalKey($permission))) {
+            throw new DefinitionException('PolicyBinding::gate() expects a string-backed permission case or local name.');
+        }
+
+        if (trim($ability) === '') {
+            throw new DefinitionException('PolicyBinding::gate() requires a nonempty native ability.');
+        }
+
+        $resourceModel = $resourceModel === null ? null : ltrim($resourceModel, '\\');
+
+        if ($resourceModel !== null && ! is_a($resourceModel, Model::class, true)) {
+            throw new DefinitionException('PolicyBinding::gate() requires an existing resource model class.');
+        }
+
+        return new self(permission: $permission, policy: null, kind: 'gate', ability: $ability, resourceModel: $resourceModel);
     }
 
     private static function describe(UnitEnum|string $permission): string

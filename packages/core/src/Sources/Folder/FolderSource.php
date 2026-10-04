@@ -299,7 +299,7 @@ final class FolderSource implements DescribesSchema, ProvidesGrants, ProvidesPer
         foreach ($discovery->bindings as $row) {
             $binding = $this->binding($row, $panel);
             $bindings[] = $binding;
-            $seen[$this->local($binding, $panel)] = $binding->policy;
+            $seen[$this->local($binding, $panel)] = $binding;
         }
 
         foreach ($this->recipe()->items(PanelRecipe::POLICIES) as $declared) {
@@ -309,12 +309,12 @@ final class FolderSource implements DescribesSchema, ProvidesGrants, ProvidesPer
 
                 if ($owner !== null) {
                     throw new DuplicatePolicyBindingException(
-                        'Permission "'.$local.'" of panel "'.$panel->id().'" is already bound to '.$owner
-                        .' and policies() binds it to '.$binding->policy.': a permission has one policy.',
+                        'Permission "'.$local.'" of panel "'.$panel->id().'" is already bound to '.($owner->policy ?? $owner->ability)
+                        .' and policies() binds it to '.($binding->policy ?? $binding->ability).': a permission has one policy.',
                     );
                 }
 
-                $seen[$local] = $binding->policy;
+                $seen[$local] = $binding;
                 $bindings[] = $binding;
             }
         }

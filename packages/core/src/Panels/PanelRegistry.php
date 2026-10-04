@@ -205,6 +205,17 @@ final class PanelRegistry implements PanelRegistryContract
             $enums = $this->attachEnums($enums, $id, $catalogs[$id]);
         }
 
+        foreach ($catalogs as $catalog) {
+            foreach ($catalog->policyBindings() as $binding) {
+                if ($binding->kind !== 'gate') {
+                    continue;
+                }
+                foreach ($catalogs as $owner) {
+                    $owner->assertExternalAbility($binding);
+                }
+            }
+        }
+
         $this->compiler->assertDefaults($panels);
         $prefixes = $this->compiler->prefixes($panels, $catalogs);
 

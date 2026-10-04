@@ -19,11 +19,13 @@ use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\Panel;
 use AzGuard\Policies\Decides;
+use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
@@ -41,7 +43,8 @@ use UnitEnum;
  * @phpstan-type Owner array{source: string, origin: string}
  * @phpstan-type SourceEntry array{id: string, class: string, origin: string}
  * @phpstan-type DefinitionEntry array{local: string, authority: string, label: ?string, group: ?string, description: ?string, case: array{enum: string, name: string}|null, resource_model: class-string<Model>|null, source: string, origin: string}
- * @phpstan-type Snapshot array{panel: string, prefix: ?string, dynamic: bool, sources: list<SourceEntry>, permissions: list<DefinitionEntry>, bindings: array<string, class-string>, binding_methods: array<string, string>, roles: array<string, CompiledRole>}
+ * @phpstan-type BindingEntry array{permission: string|array{enum: string, name: string}, kind: string, policy: class-string|null, method: ?string, ability: ?string, resource_model: class-string<Model>|null}
+ * @phpstan-type Snapshot array{panel: string, prefix: ?string, dynamic: bool, sources: list<SourceEntry>, permissions: list<DefinitionEntry>, bindings: array<string, class-string>, binding_methods: array<string, string>, policy_bindings: array<string, BindingEntry>, ability_index: array<class-string<Model>, array<string, ?string>>, roles: array<string, CompiledRole>}
  */
 final class PanelCatalog implements PermissionCatalog
 {
@@ -65,6 +68,12 @@ final class PanelCatalog implements PermissionCatalog
 
     /** @var array<string, string> local name => policy method that carries #[Decides] */
     private array $bindingMethods = [];
+
+    /** @var array<string, PolicyBinding> */
+    private array $policyBindings = [];
+
+    /** @var array<class-string<Model>, array<string, ?string>> */
+    private array $abilityIndex = [];
 
     /** @var array<string, CompiledRole> */
     private array $roles = [];
@@ -122,7 +131,8 @@ final class PanelCatalog implements PermissionCatalog
         }
 
         $catalog->static = $catalog->definitions;
-        $catalog->bind($panel, $sources);
+        $catalog->buildAbilityIndex();
+        $catalog->bind($panel, $sources, $container);
         $catalog->roles = (new RoleCompiler($container))->compile($panel, $catalog, $sources);
 
         return $catalog;
@@ -154,8 +164,19 @@ final class PanelCatalog implements PermissionCatalog
             }
 
             $catalog->static = $catalog->definitions;
-            $catalog->bindings = $snapshot['bindings'];
-            $catalog->bindingMethods = $snapshot['binding_methods'];
+            foreach ($snapshot['policy_bindings'] as $local => $row) {
+                $permission = is_array($row['permission']) ? constant($row['permission']['enum'].'::'.$row['permission']['name']) : $row['permission'];
+
+                if ($row['kind'] === 'php' && $row['policy'] !== null) {
+                    $binding = PolicyBinding::for($permission, $row['policy'], $row['method']);
+                } elseif ($row['kind'] === 'gate' && $row['ability'] !== null) {
+                    $binding = PolicyBinding::gate($permission, $row['ability'], $row['resource_model']);
+                } else {
+                    return null;
+                }
+                $catalog->rememberBinding($local, $binding);
+            }
+            $catalog->buildAbilityIndex();
             $catalog->roles = $snapshot['roles'];
         } catch (Throwable) {
             // The file is data written by an earlier build: whatever does not restore is rebuilt from the sources.
@@ -233,7 +254,43 @@ final class PanelCatalog implements PermissionCatalog
      */
     public function bindingMethod(string $permission): ?string
     {
+        if (($this->policyBindings[$permission]->kind ?? null) === 'gate') {
+            throw new DefinitionException('Native gate bindings have no attributed PHP method.');
+        }
+
         return $this->bindingMethods[$permission] ?? null;
+    }
+
+    /** @return array<string, PolicyBinding> */
+    public function policyBindings(): array
+    {
+        return $this->policyBindings;
+    }
+
+    public function permissionForAbility(string $model, string $ability): ?string
+    {
+        return $this->abilityIndex[$model][Str::snake($ability)] ?? null;
+    }
+
+    public function abilityIsAmbiguous(string $model, string $ability): bool
+    {
+        $word = Str::snake($ability);
+
+        return array_key_exists($word, $this->abilityIndex[$model] ?? []) && $this->abilityIndex[$model][$word] === null;
+    }
+
+    private function buildAbilityIndex(): void
+    {
+        $this->abilityIndex = [];
+        foreach ($this->static as $local => $definition) {
+            if ($definition->resourceModel === null) {
+                continue;
+            }
+            $parts = explode('.', $local);
+            $word = Str::snake(end($parts));
+            $model = $definition->resourceModel;
+            $this->abilityIndex[$model][$word] = array_key_exists($word, $this->abilityIndex[$model] ?? []) ? null : $local;
+        }
     }
 
     /**
@@ -314,6 +371,18 @@ final class PanelCatalog implements PermissionCatalog
             ];
         }
 
+        $bindings = [];
+        foreach ($this->policyBindings as $local => $binding) {
+            $bindings[$local] = [
+                'permission' => $binding->permission instanceof BackedEnum ? ['enum' => $binding->permission::class, 'name' => $binding->permission->name] : $binding->permission,
+                'kind' => $binding->kind,
+                'policy' => $binding->policy,
+                'method' => $binding->method,
+                'ability' => $binding->ability,
+                'resource_model' => $binding->resourceModel,
+            ];
+        }
+
         return [
             'panel' => $this->panel,
             'prefix' => $this->prefix,
@@ -322,6 +391,8 @@ final class PanelCatalog implements PermissionCatalog
             'permissions' => $permissions,
             'bindings' => $this->bindings,
             'binding_methods' => $this->bindingMethods,
+            'policy_bindings' => $bindings,
+            'ability_index' => $this->abilityIndex,
             'roles' => $this->roles,
         ];
     }
@@ -380,7 +451,7 @@ final class PanelCatalog implements PermissionCatalog
      * @throws InvalidSourceContributionException
      * @throws DefinitionException
      */
-    private function bind(Panel $panel, PanelSources $sources): void
+    private function bind(Panel $panel, PanelSources $sources, Container $container): void
     {
         $boundBy = [];
 
@@ -395,31 +466,74 @@ final class PanelCatalog implements PermissionCatalog
                     );
                 }
 
-                $local = $binding->permission instanceof BackedEnum
-                    ? $this->keyOf($binding->permission)->local()
-                    : $this->get($binding->permission)->local;
-                $bound = $this->bindings[$local] ?? null;
+                try {
+                    $local = $binding->permission instanceof BackedEnum
+                        ? $this->keyOf($binding->permission)->local()
+                        : $this->get($binding->permission)->local;
+                } catch (UnknownPermissionException $error) {
+                    if ($binding->kind === 'gate') {
+                        throw new DefinitionException('Native gate mapping requires a declared permission.', previous: $error);
+                    }
 
-                if ($bound !== null && $bound !== $binding->policy) {
+                    throw $error;
+                }
+
+                $bound = $this->policyBindings[$local] ?? null;
+
+                if ($bound !== null && ($bound->kind !== $binding->kind || $bound->policy !== $binding->policy
+                    || $bound->ability !== $binding->ability || $bound->resourceModel !== $binding->resourceModel)) {
                     throw new DuplicatePolicyBindingException(
-                        'Permission "'.$local.'" of panel "'.$this->panel.'" is bound to '.$bound.' by '.self::owner($boundBy[$local])
-                        .' and to '.$binding->policy.' by '.self::owner($owner).': bind a permission to one policy.',
+                        'Permission "'.$local.'" of panel "'.$this->panel.'" is bound to '.($bound->policy ?? 'gate:'.$bound->ability).' by '.self::owner($boundBy[$local])
+                        .' and to '.($binding->policy ?? 'gate:'.$binding->ability).' by '.self::owner($owner).': bind a permission to one policy.',
                     );
                 }
 
-                $method = $this->bindingMethodFor($binding);
-                $this->bindings[$local] = $binding->policy;
-                $boundBy[$local] ??= $owner;
-                $this->bindingMethods[$local] = $method;
+                if ($binding->kind === 'gate') {
+                    $this->assertExternalAbility($binding);
+
+                    try {
+                        $container->make(NativeGateBinding::class)->resolve($binding);
+                    } catch (Throwable $error) {
+                        throw new DefinitionException('Panel "'.$this->panel.'" has an invalid native gate binding: '.$error->getMessage(), previous: $error);
+                    }
+                } else {
+                    $method = $this->bindingMethodFor($binding);
+                    $binding = PolicyBinding::for($binding->permission, $binding->policy ?? throw new DefinitionException('PHP binding has no policy.'), $method);
+                }
+
+                if ($bound === null) {
+                    $this->rememberBinding($local, $binding);
+                    $boundBy[$local] = $owner;
+                }
             }
         }
 
         foreach ($this->static as $local => $definition) {
-            if ($definition->authority === PermissionAuthority::Policy && ! isset($this->bindings[$local])) {
+            if ($definition->authority === PermissionAuthority::Policy && ! isset($this->policyBindings[$local])) {
                 throw new InvalidPolicyStructureException(
                     'Permission "'.$local.'" of panel "'.$this->panel.'" is decided by its policy alone, but no policy is bound to it: '
                     .'add PolicyBinding::for(…) for it.',
                 );
+            }
+        }
+    }
+
+    private function rememberBinding(string $local, PolicyBinding $binding): void
+    {
+        $this->policyBindings[$local] = $binding;
+
+        if ($binding->kind === 'php' && $binding->policy !== null && $binding->method !== null) {
+            $this->bindings[$local] = $binding->policy;
+            $this->bindingMethods[$local] = $binding->method;
+        }
+    }
+
+    public function assertExternalAbility(PolicyBinding $binding): void
+    {
+        foreach ($this->static as $local => $definition) {
+            if ($binding->ability === $local || $binding->ability === PermissionKey::of($this->panel, $local)->full()
+                || ($this->prefix !== null && $binding->ability === $this->prefix.'.'.$local)) {
+                throw new DefinitionException('Native gate mapping cannot target an AzGuard-owned ability.');
             }
         }
     }
@@ -432,8 +546,9 @@ final class PanelCatalog implements PermissionCatalog
     private function bindingMethodFor(PolicyBinding $binding): string
     {
         $methods = [];
+        $policy = $binding->policy ?? throw new DefinitionException('PHP binding has no policy class.');
 
-        foreach ((new ReflectionClass($binding->policy))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        foreach ((new ReflectionClass($policy))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->isStatic()) {
                 continue;
             }

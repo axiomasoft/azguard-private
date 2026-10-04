@@ -118,3 +118,60 @@ Receipt, complete usage, transcript и native route witness — `artifacts/P4.2/
 Локальная приёмка: targeted 175 tests/836 assertions, arch 72/314, full 2115/243156;
 PHPStan 0 errors, type coverage 99.9%, Pint/API/diff exit 0.
 write-site: pre_mutation: allow · pre_final: allow
+
+## P4.3 — реализация и локальная приёмка
+
+P4.3 продолжает B4a с immutable completed prefix P4.2. Capsule/run и точные
+Validation carriers — `artifacts/B4a-execution/P4.3-prepare.json` и
+`P4.3-checks.json`. Политики читают canonical typed map; legacy bindings остаётся
+PHP-only projection. Одинаковая повторная декларация PHP через enum/string сохраняет
+одну привязку для совместимости P2; разные policy/kind/ability/resourceModel дают
+DuplicatePolicyBindingException с обоими владельцами.
+
+| Строка 09 §5 / обязательство | Проверяемый carrier |
+|---|---|
+| RequiresGrant: grant AND true/null; false veto; true/null без grant не authority | PolicyModesTest dataset из шести строк, включая false без grant; AuthorityDispatchTest |
+| PolicyOnly: true/allow разрешает; false/null/deny отказывает; назначения не читаются | PolicyModesTest owner/spy source и три policy outcomes; PolicyResponseTest |
+| Отсутствующая optional Grants policy — pass | PolicyModesTest absent optional grants policy |
+| SuperAdmin не обходит policy veto | PolicyModesTest qualified superadmin |
+| Native before non-null заменяет результат policy, но не создаёт grant | PolicyModesTest before outcomes и before allow without grant; PolicyArgumentsTest before subject/ability/DI |
+| V67/V68: native user/resource, одинаковый FQCN с разными id, сервис DI, class input, missing Model | PolicyArgumentsTest: точные identities, Clock, no invented Model, union/string resource class, user-only func_get_args, nullable/default/variadic |
+| V80/R67: exact Decides, метод свободно переименован; удаление атрибута compile error | DecidesBindingTest enum/string rename и removed Decides |
+| V93: Response status/message/scalar code, allow не меняет authority; ошибки fail closed | PolicyResponseTest и DecisionDenialTest; invalid return/nonscalar code/exception → PolicyError |
+| V50/V93: token — AND cap; cap не authority; service principal отдельный subject | TokenAuthorityTest: четыре grant/cap строки, policy-only cap, explicit trust mapping |
+| Native Gate mapping/recursion: direct callback, global before/after bypass, model policy before | GateSourceTest closure/model/Class@method, qualified veto, disappears after compile, missing/ambiguous/owned ability |
+| D15 §3: canonical typed map, nullable gate policy, cache parity/schema | PolicyBindingsCompatibilityTest: PHP legacy projection, cross-kind duplicate, required PolicyOnly, real catalog:cache boot/evaluation, previous schema rejection |
+| O(1) static model/ability index: snake normalization, ambiguous pair, cache parity | AbilityIndexTest: enum Resource model, final local segment, explicit ambiguity, real cache round trip |
+| V102: plugin prefixes отменены D10; точная current local/full identity | Existing FolderPanelTest (Blog/supportdesk) и PolicyBindingTest из полного suite; enum/string/cache tests выше |
+
+Нативный контракт проверен по установленному Laravel **v13.33.0**:
+`vendor/laravel/framework/src/Illuminate/Auth/Access/Gate.php` (`abilities`,
+`getPolicyFor`, `buildAbilityCallback`, `callPolicyBefore`, `formatAbilityToMethod`)
+и `Response.php` (`allowed`, `message`, `status`, `code`). NativeGateBinding
+выбирает исходный callback; строка Class@method восстанавливается из Laravel wrapper
+для Reflection/DI и native policy before. Gate instance разрешается из контейнера
+на каждой операции, исчезнувшая ability даёт PolicyError. Global Gate hooks не вызываются.
+PHP before получает точный local permission key; native Gate before — external ability.
+Class-string resource используется только совместимым объявленным параметром;
+субъект-only callback лишнего аргумента не получает.
+
+RequiresGrant policy вызывается также без grant для явного veto/ошибки согласно
+таблице 09 §5. Positive/null без qualified authority остаётся NotGranted;
+это supporting adjustment раннего return AuthorityStage и прежнего call-count теста.
+
+Границы: GateBridge/P03 — P4.11; DB назначения — P4.4; запрет записи PolicyOnly —
+P5.2/P5.3; полная source integration — P4.18; CRM scenarios — P4.15.
+Локальные doubles и token/service fixtures не закрывают эти последующие пункты.
+SQLite :memory:, APP_ENV=testing. Type gate использует documented no-fork/no-cache;
+optional PHPStan turbo warning сохранён. Engine/Redis gates здесь не заявлены.
+
+Первый полный suite выявил два predecessor случая: повтор одной PHP-привязки
+через enum/string и прежнее сообщение о конфликте. Compatibility восстановлена,
+повторные проверки зафиксированы в final checks.json; failed прогоны не GREEN.
+
+Дефекты SKM v0.28.0 дополнены roadmap/2026-10-04-review-candidate-tracking-state.md
+и roadmap/2026-10-04-committed-predecessor-review.md: Git tracking менял diff digest,
+а consumer edits ошибочно инвалидировали review закрытого producer.
+Owning fix SKM 2ea11457: original digest/inventory authentication для live close,
+immutable first closure commit proof только для predecessor consumption.
+1363 tests OK/1 skip, 38 focused tests; budgets/history/исходные receipts сохранены.

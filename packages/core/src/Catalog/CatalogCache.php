@@ -18,7 +18,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
  */
 final readonly class CatalogCache
 {
-    public const int VERSION = 1;
+    public const int VERSION = 2;
 
     public function __construct(private string $path) {}
 

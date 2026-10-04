@@ -3566,6 +3566,12 @@
             "constants": [],
             "properties": [
                 {
+                    "name": "code",
+                    "type": "string|int|float|bool|null",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "component",
                     "type": "?string",
                     "readonly": true,
@@ -3584,6 +3590,12 @@
                     "static": false
                 },
                 {
+                    "name": "message",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "reason",
                     "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
                     "readonly": true,
@@ -3598,6 +3610,12 @@
                 {
                     "name": "state",
                     "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "status",
+                    "type": "?int",
                     "readonly": true,
                     "static": false
                 }
@@ -3666,6 +3684,30 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "message",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "status",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "code",
+                            "type": "string|int|float|bool|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": "self"
@@ -3706,6 +3748,30 @@
                         {
                             "name": "component",
                             "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "message",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "status",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "code",
+                            "type": "string|int|float|bool|null",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
@@ -7309,6 +7375,18 @@
             "constants": [],
             "properties": [
                 {
+                    "name": "ability",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "kind",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "method",
                     "type": "?string",
                     "readonly": true,
@@ -7322,7 +7400,13 @@
                 },
                 {
                     "name": "policy",
-                    "type": "string",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "resourceModel",
+                    "type": "?string",
                     "readonly": true,
                     "static": false
                 }
@@ -7349,6 +7433,36 @@
                         },
                         {
                             "name": "method",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "gate",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "BackedEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "ability",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resourceModel",
                             "type": "?string",
                             "byRef": false,
                             "variadic": false,
@@ -8704,6 +8818,107 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "AzGuard\\Contracts\\Sources\\Volatility"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Sources\\Gate\\GateSource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\ProvidesPolicies",
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
+                },
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "make",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "static"
+                },
+                {
+                    "name": "map",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "BackedEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "ability",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resourceModel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "policies",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
                 }
             ],
             "stability": "api",

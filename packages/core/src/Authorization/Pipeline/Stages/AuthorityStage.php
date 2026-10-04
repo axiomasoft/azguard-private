@@ -155,22 +155,24 @@ final readonly class AuthorityStage
             }
             $frame = $frame->withAuthority($matching, $superAdmin);
 
-            if (! $qualified) {
-                return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
-            }
         }
 
         try {
-            $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority);
+            $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
 
             if ($veto !== null) {
                 return [$frame, $veto];
             }
         } catch (Throwable $error) {
-            $component = $catalog->bindings()[$request->permission()->local()] ?? 'policy';
+            $binding = $catalog->policyBindings()[$request->permission()->local()] ?? null;
+            $component = $binding->policy ?? $binding->ability ?? 'policy';
             $trace->error('policy', 'policy_error', $component, $error);
 
             return [$frame, Decision::deny(DecisionReason::PolicyError, $frame->state(), $frame->scope(), $component)];
+        }
+
+        if ($definition->authority === PermissionAuthority::Grants && ! $qualified) {
+            return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
         }
         $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($superAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
 

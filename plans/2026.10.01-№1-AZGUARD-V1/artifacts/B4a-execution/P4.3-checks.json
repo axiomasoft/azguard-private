@@ -1,0 +1,56 @@
+[
+  {
+    "name": "targeted",
+    "command": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: php -d memory_limit=1G vendor/bin/pest tests/Feature/Policies tests/Feature/Sources/Gate tests/Feature/Catalog/AbilityIndexTest.php tests/Unit/Kernel/Decision",
+    "log": "artifacts/B4a-execution/P4.3-targeted.log",
+    "exit_code": 0
+  },
+  {
+    "name": "predecessor",
+    "command": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Catalog",
+    "log": "artifacts/B4a-execution/P4.3-predecessor.log",
+    "exit_code": 0
+  },
+  {
+    "name": "arch",
+    "command": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+    "log": "artifacts/B4a-execution/P4.3-arch.log",
+    "exit_code": 0
+  },
+  {
+    "name": "api",
+    "command": "php bin/api-manifest.php --check",
+    "log": "artifacts/B4a-execution/P4.3-api.log",
+    "exit_code": 0
+  },
+  {
+    "name": "full",
+    "command": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: composer test",
+    "log": "artifacts/B4a-execution/P4.3-full.log",
+    "exit_code": 0
+  },
+  {
+    "name": "pint",
+    "command": "vendor/bin/pint --test",
+    "log": "artifacts/B4a-execution/P4.3-pint.log",
+    "exit_code": 0
+  },
+  {
+    "name": "phpstan",
+    "command": "vendor/bin/phpstan analyse --memory-limit=1G",
+    "log": "artifacts/B4a-execution/P4.3-phpstan.log",
+    "exit_code": 0
+  },
+  {
+    "name": "types",
+    "command": "__PEST_PLUGIN_ENV=1 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache",
+    "log": "artifacts/B4a-execution/P4.3-types.log",
+    "exit_code": 0
+  },
+  {
+    "name": "diff",
+    "command": "git diff --check",
+    "log": "artifacts/B4a-execution/P4.3-diff.log",
+    "exit_code": 0
+  }
+]

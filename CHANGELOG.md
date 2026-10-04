@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: mode-aware политики сохраняют native `before`, DI ресурса и поля Laravel `Response`; `GateSource::map()` вызывает внешнюю ability без глобальных Gate hooks. Типизированные PHP/Gate bindings и индекс model/ability сохраняются в кэше каталога.
+
 - Ядро 1.0: `FolderSource` выдаёт автоматические роли и точные `GrantedToAll`-права; прежние, удалённые и невыдаваемые ключи ролей дают ноль authority с диагностикой. Исключение для `NotGrantable` требует фактического исполнения автоматической роли встроенным источником.
 
 - Ядро 1.0: добавлен внутренний пайплайн `Authorizer::decide()` с раздельными PolicyOnly/RequiresGrant, условиями одной выдачи, ограничениями, typed хуками, безопасным policy DI и защитой от рекурсии.

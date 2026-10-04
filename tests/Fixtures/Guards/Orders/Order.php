@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Tests\Fixtures\Guards\Orders;
+
+use Illuminate\Database\Eloquent\Model;
+
+final class Order extends Model
+{
+    protected $table = 'orders';
+
+    public $timestamps = false;
+}
