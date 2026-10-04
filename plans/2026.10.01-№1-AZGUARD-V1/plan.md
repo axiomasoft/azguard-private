@@ -102,18 +102,21 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | B3b | P3.3 | frontier/high | run | none | recommended: модели, свои модели и поля поверх схемы P3.2 |
 | B3b | P3.4 | implementation/medium | run | none | recommended: запрет прямых записей на моделях P3.3 |
 | solo | P3.5 | frontier/high | run | none | Review P3: независимая read-only проверка фазы в свежей сессии (D3) |
-| B4 | P4.1 | frontier/high | run | none | recommended: пайплайн проверки и authority dispatcher |
-| B4 | P4.2 | frontier/high | run | none | recommended: выдачи из папки |
-| B4 | P4.3 | frontier/high | run | none | recommended: mode-aware policies |
-| B4 | P4.4 | frontier/high | run | none | recommended: DatabaseSource |
-| B4 | P4.5 | frontier/high | run | none | recommended: RelationSource |
-| B4 | P4.6 | frontier/high | run | none | recommended: tenant/scope/resource boundary |
-| B4 | P4.7 | implementation/medium | run | none | recommended: суперадмин-признак |
-| B4 | P4.8 | frontier/high | run | none | recommended: кэш, StateToken, version fence |
-| B4 | P4.9 | frontier/high | run | none | recommended: decideMany |
-| B4 | P4.10 | implementation/medium | run | none | recommended: explain |
-| B4 | P4.11 | frontier/high | run | none | recommended: GateBridge |
-| B4 | P4.12 | frontier/high | run | none | recommended: exact visibility |
+| solo | P4.1 | frontier/high | run | none | recommended: пайплайн, authority dispatcher и контракты — вход всех источников (D14) |
+| B4b | P4.2 | frontier/high | run | none | recommended: выдачи папки на контрактах P4.1 |
+| B4b | P4.3 | frontier/high | run | none | recommended: режимы политик, GateSource, индекс ability |
+| B4c | P4.4 | frontier/high | run | none | recommended: DatabaseSource, fence `T_before/T_after`, публичное Storage |
+| B4c | P4.5 | frontier/high | run | none | recommended: RelationSource на FiltersQueries P4.4 |
+| B4d | P4.6 | frontier/high | run | none | recommended: tenant/область/ресурс по таблице 09 §3 |
+| B4d | P4.7 | implementation/medium | run | none | recommended: суперадмин в области на TenantPolicy P4.6 |
+| B4e | P4.8 | frontier/high | run | none | recommended: кэш, refresh, incarnation, гонки V99 |
+| B4e | P4.9 | frontier/high | run | none | recommended: decideMany на кэше и fence P4.8 |
+| B4f | P4.10 | implementation/medium | run | none | recommended: explain на трассе P4.1 |
+| B4f | P4.11 | frontier/high | run | none | recommended: GateBridge на индексе ability P4.3 |
+| solo | P4.12 | frontier/high | run | none | recommended: exact visibility после P4.4–P4.6 |
+| solo | P4.13 | frontier/high | run | none | срез-review P4.1–P4.7 и P4.15: независимая read-only проверка в свежей сессии (D3, D14) |
+| solo | P4.14 | frontier/high | run | none | Review P4: независимая read-only проверка фазы в свежей сессии (D3) |
+| solo | P4.15 | implementation/high | run | none | recommended: CRM-фикстура и R-кейсы P4.1–P4.7 до среза (D5, D14) |
 | B5 | P5.1 | frontier/high | run | none | recommended: трейт и SubjectAccess |
 | B5 | P5.2 | frontier/high | run | none | recommended: ChangePipeline |
 | B5 | P5.3 | implementation/medium | run | none | recommended: RoleCatalog/GrantManager/PermissionManager |
@@ -170,6 +173,7 @@ P4.12 после P4.4–P4.6; P5.5 после P4.2–P4.5. CRM-кейсы R01–
 D3 режим исполнения и review, D4 валидация и среды СУБД, D5 рост CRM-приёмки, D6 состав P1
 по замыканию зависимостей, D7 исправление находок Review P1, D8 состав P2 по замыканию зависимостей
 и владение методами `PanelBuilder`, D9–D11 поправки и исправления P2, D12 состав P3, публичность хранилища и
-пробелы досье по DDL, блокировкам и полям.
+пробелы досье по DDL, блокировкам и полям, D13 точное сравнение ID на MySQL/MariaDB, D14 состав P4, швы
+пунктов, публичные имена и расхождения досье по проверке прав.
 Решения досье цитируются как `D01–D84` (двузначные) и не копируются.
 Собрать виды: `plan-views.py decisions`. Открытые вопросы — `open-questions.md`.

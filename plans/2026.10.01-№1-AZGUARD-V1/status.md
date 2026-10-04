@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: 15e918dac9963044da70f870d13e8809f339d7592388638845c3def55e35eb6e
+inputs_sha256: 5925637aee1b381c332d8425e44b279a0d63f32278f81d4ba12d6dfa6eb53d57
 generated_by: task plan-views status
 -->
 
@@ -27,7 +27,7 @@ generated_by: task plan-views status
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/15 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
 | P7 | Filament по схеме панели | 0/7 | ⬜ Not started |
@@ -96,6 +96,9 @@ generated_by: task plan-views status
 | P4.10 | explain и azguard:explain | ⬜ Not started | — |
 | P4.11 | GateBridge | ⬜ Not started | — |
 | P4.12 | Visibility и exact query adapters | ⬜ Not started | — |
+| P4.13 | Срез-review P4.1–P4.7: независимая read-only проверка границы решения | ⬜ Not started | — |
+| P4.14 | Review P4: независимая read-only проверка фазы | ⬜ Not started | — |
+| P4.15 | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 | ⬜ Not started | — |
 
 ## Phase P5
 
@@ -239,6 +242,7 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex | plan-close · in-progress · Checking phase-close admission. |
 | 2026-10-04 | codex | plan-close · closed-green · P3 GREEN: all product gates and independent Grok 4.7/high/500k review; no blocker/major. R2 minor native PK names retained in findings/P3-review.md, owning P3.2; read-only boundary preserved.
 write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | plan-designer/claude-opus-5-5 | plan-design · no-op · Design finalized; execution has not started. |
 
 ## Owner Gates
 

@@ -1,22 +1,20 @@
 # HANDOFF — 2026-10-04 — after P3.5
 
-**Next:** design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P4
+**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1
+
+Фаза P4 детализирована (D14): пятнадцать пунктов — номера досье P4.1–P4.12, срез-review P4.13, Review P4 P4.14, CRM-фикстура P4.15. Порядок исполнения — execution sheet `roadmap.md`: `P4.1` → `P4.2 P4.3` → `P4.4 P4.5` → `P4.6 P4.7` → `P4.15` → `P4.13` → `P4.8 P4.9` → `P4.10 P4.11` → `P4.12` → `P4.14`. P4.1 работает на SQLite; СУБД поднимаются с P4.4 (`docker compose up -d --wait postgres mysql mariadb`), Redis — с P4.8; недоступный сервис — `unavailable`, не GREEN (D4).
 
 | Parameter | Meaning |
 |:--|:--|
 | Batch | solo |
-| Model | frontier |
-| Thinking | high |
-| Capabilities | чтение досье, кода P1–P3 и контекстов скелетов |
+| Model class | frontier |
+| Effort | high |
+| Capabilities | PHP 8 + composer vendor; SQLite (СУБД с P4.4, Redis с P4.8) |
 | Context | continue-root |
-| Essence | детализация P4 поверх закрытого GREEN хранилища P3 |
+| Essence | `Authorizer::decide()`: пайплайн 09 §2, authority dispatcher, `Restriction`/`GrantCondition`, `EvaluationFrame`, `PolicyDecider`, свойства V15 |
 
-```session-continuity-decision/v1
-{"outcome": "continue-root", "reason": "authorized-scope-complete", "evidence": ["batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "loaded-inputs:reusable", "cold-start-cost:1", "lifecycle:scope-complete", "checkpoint:journal.jsonl:74:ed81f6844a3e85696988122fb10b7a725b5d4b25be933d500923fd6a7f9851f8"], "runnable": true, "schema_version": "session-continuity-decision/v1"}
-```
-
-**Done:** P3.1–P3.5 GREEN; P3 закрыта штатным direct-close. Независимое Review P3 выполнено на Grok 4.7/high/500k. Blocker/major нет; suite 2029 / 242965, PG/MySQL/MariaDB engines без пропусков, PHPStan 0, types 99.8%, Pint/API GREEN; deadlock повторён. Первоначальная major R1 — ложное boolean-приведение — опровергнута живым scratch-repro 14 assertions и отозвана Grok.
-**Remaining:** авторизованный P3.5 завершён. P4 не детализирована; Next — рекомендация, исполнение P4 не начато. P4–P8 остаются по плану.
-**Sources of truth:** findings/P3-review.md · phases/P3/P3.closed.md · decisions/D12-p3-storage-closure.md · decisions/D13-p3-binary-identifiers.md · findings/P3-execution.md.
-**Open risks:** R2 minor: физические имена PK отличаются от запрошенных ps_pk/ss_pk; owning P3.2. Уникальность и бюджет ≤63 байт сохранены, GREEN не блокируется по P3.5. Исторические 12 write-site ошибок plan-lint P0/P1 — foreign baseline.
-**Workarounds/Deferred/Open questions:** PostgreSQL 16.14 / MySQL 8.4.10 / MariaDB 10.11.19, test DB azguard_test, ports 25432/23306/23307. PHPStan/types с phpstan.restarted=1 из-за static PHP/turbo, Arch memory_limit=1G. Grok headless plan-mode прерывал shell permission; review завершён через native read/grep/list_dir в той же 500k-сессии. Чужие .gitignore/.swissknife.json/.grok/ сохранены. Push запрещён. Owner-вопросов по завершению P3.5 нет.
+**Done:** P4 design: `phases/P4/P4.md` (Phase Context, Contract, Assurance v1, Acceptance, Validation), item-контракты P4.1–P4.15, D14 (состав и порядок, `Authorizer` как точка входа, владельцы швов: `PolicyDecider`, поля отказа `Decision`, трасса, граница по умолчанию, `FencesReads` и цикл fence в P4.4, `FiltersQueries`/`AssignmentScopeSelection`, `touch()`, CRM-фикстура P4.15, публичный `Storage::own()`; расхождения досье: FormerKeys не alias, `NotGrantable` из хранилища, проверка внутри транзакции хоста, V27 у P4.10, `toGateResult` в `GateBridge`, P03 → P4.11), `brief/P4-dossier-decisions.md` (выдержки D14–D20, D24–D27, D29, D31, D44, D48, D52, D53, D55, D59–D69, D74–D84), строки Routing и execution sheet.
+**Remaining:** исполнение P4.1–P4.15 по execution sheet; детализация P5–P8 по фазам после закрытия предыдущей (D3).
+**Sources of truth:** phases/P4/P4.md · decisions/D14-p4-authorization-closure.md · roadmap.md (execution sheet) · brief/P4-dossier-decisions.md
+**Open risks:** design-context/finalize-design P4 выполнены исправленным Task runtime (ветка `fix/task-repeat-historical-phase-scoped` в swissknifeman): установленный runtime отвергает историю повторов P2.8/P2.5 (`REPEAT_HISTORY_DESIGN_UNQUALIFIED`, затем `REPEAT_SIBLING_STALE`) при любом построении статусов плана — до слияния исправления `plan-run` P4 на штатном runtime упадёт той же ошибкой. Находки среза P4.13 и Review P4.14 исправляются в owning items; механизм (repair-пункт как D7 или owning repeat как D11) выбирает владелец после verdict. Полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1.
+**Workarounds/Deferred/Open questions:** Решения D14 п.4, которые владелец может пересмотреть: FormerKeys не runtime-alias (поздний слой 19 §6/D80 против строки V10); проверка внутри транзакции хоста не ошибка, а обход кэша (09 §14 против 09 §8). Push запрещён.

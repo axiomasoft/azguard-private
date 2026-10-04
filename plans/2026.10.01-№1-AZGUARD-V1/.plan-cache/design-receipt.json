@@ -1,6 +1,6 @@
 {
   "adapter_attestation": null,
-  "commit_sha": "9417a3ec701a570127e235891d11acb6ad9b9899",
+  "commit_sha": "d02c90417e1fcf7c9a56840dfc2cd4b247260d2c",
   "continuity": {
     "evidence": [
       "persisted-context:continue-root"
@@ -12,35 +12,26 @@
   },
   "digests": {
     "closure": null,
-    "handoff": "sha256:02e52c0fe9424c62e443e5f4fab8cec6ebcd11ce590748425352651d1967a84f",
-    "plan": "sha256:27763713bc9c6c68dccbcc5b59be7ef7b85f37f8dc098eee465c5804a243c83b",
+    "handoff": "sha256:3a0da8191723b12fba955bb9d9f23c86c8d9c7c4b4411f5885f7f7f83ef7b9db",
+    "plan": "sha256:8402821a673e75572d663c068106dead53f06b8534273e99d9c472958336b920",
     "state": null
   },
   "journal": null,
-  "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.1 P3.2",
+  "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1",
   "plan_id": "2026.10.01-№1-AZGUARD-V1",
   "rationale": {
-    "open_risks": "реальные СУБД обязательны для P3.1–P3.5 (группа `engines`); полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1 (не P3). Внешние предпосылки Laravel (`#[Table]`/`#[Connection]`/SQLite `transaction_mode` только в 13.x; нет CHECK в Blueprint) проверены по исходникам vendor 11.20–13.34.",
-    "remaining": "исполнение P3.1–P3.5; детализация P4–P8 по фазам после закрытия предыдущей (D3)."
+    "open_risks": "design-context/finalize-design P4 выполнены исправленным Task runtime (ветка `fix/task-repeat-historical-phase-scoped` в swissknifeman): установленный runtime отвергает историю повторов P2.8/P2.5 (`REPEAT_HISTORY_DESIGN_UNQUALIFIED`, затем `REPEAT_SIBLING_STALE`) при любом построении статусов плана — до слияния исправления `plan-run` P4 на штатном runtime упадёт той же ошибкой. Находки среза P4.13 и Review P4.14 исправляются в owning items; механизм (repair-пункт как D7 или owning repeat как D11) выбирает владелец после verdict. Полный plan-lint сохраняет 12 исторических write-site ошибок P0/P1.",
+    "remaining": "исполнение P4.1–P4.15 по execution sheet; детализация P5–P8 по фазам после закрытия предыдущей (D3)."
   },
-  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.1 P3.2\n\nФаза P3 детализирована (D12): пять пунктов, batch `B3a` (P3.1–P3.2), `B3b` (P3.3–P3.4), `solo` P3.5 Review. Исполнение\nне начато. Следующая команда — первая строка P3 в execution sheet `roadmap.md`. Перед запуском поднять test-СУБД:\n`docker compose up -d --wait postgres mysql` (MariaDB добавляет P3.2); недоступная СУБД — `unavailable`, не GREEN (D4).\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | B3a |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | docker compose (postgres:16, mysql:8; с P3.2 — mariadb:10.11) |\n| Context | continue-root |\n| Essence | хранилища, `Storage::mutate()` с блокировками и версией панели; схема 08 §2 и DDL на 4 СУБД |\n\n```session-continuity-decision/v1\n{\"outcome\":\"continue-root\",\"reason\":\"compatible-active-work\",\"evidence\":[\"persisted-context:continue-root\"],\"runnable\":true,\"schema_version\":\"session-continuity-decision/v1\"}\n```",
+  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1\n\nФаза P4 детализирована (D14): пятнадцать пунктов — номера досье P4.1–P4.12, срез-review P4.13, Review P4 P4.14, CRM-фикстура P4.15. Порядок исполнения — execution sheet `roadmap.md`: `P4.1` → `P4.2 P4.3` → `P4.4 P4.5` → `P4.6 P4.7` → `P4.15` → `P4.13` → `P4.8 P4.9` → `P4.10 P4.11` → `P4.12` → `P4.14`. P4.1 работает на SQLite; СУБД поднимаются с P4.4 (`docker compose up -d --wait postgres mysql mariadb`), Redis — с P4.8; недоступный сервис — `unavailable`, не GREEN (D4).\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | solo |\n| Model class | frontier |\n| Effort | high |\n| Capabilities | PHP 8 + composer vendor; SQLite (СУБД с P4.4, Redis с P4.8) |\n| Context | continue-root |\n| Essence | `Authorizer::decide()`: пайплайн 09 §2, authority dispatcher, `Restriction`/`GrantCondition`, `EvaluationFrame`, `PolicyDecider`, свойства V15 |",
   "route": {
-    "batch": "B3a",
+    "batch": "solo",
     "command": null,
     "context": "continue-root",
-    "continuity": {
-      "evidence": [
-        "persisted-context:continue-root"
-      ],
-      "outcome": "continue-root",
-      "reason": "compatible-active-work",
-      "runnable": true,
-      "schema_version": "session-continuity-decision/v1"
-    },
     "model": null,
     "thinking": null
   },
   "schema_version": "handoff-recommendation-receipt/v1",
   "status": "handoff-persisted",
-  "subject": "P3"
+  "subject": "P4"
 }

@@ -2,7 +2,7 @@
 
 <!-- execution-sheet/v1 -->
 
-**Updated:** 2026-10-03 · **Corresponds to plan.md:** верхний слой + детализация P0, P1, P2, P3
+**Updated:** 2026-10-04 · **Corresponds to plan.md:** верхний слой + детализация P0, P1, P2, P3, P4
 
 ## Grouping rule
 
@@ -31,6 +31,16 @@
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.1 P3.2` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.3 P3.4` | `frontier/high` | `none` |
 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P3.5` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 P4.3` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.4 P4.5` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.6 P4.7` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.15` | `implementation/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.13` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8 P4.9` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.12` | `frontier/high` | `none` |
+| `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.14` | `frontier/high` | `none` |
 
 ## Execution card
 
@@ -63,6 +73,21 @@
 | P3.3 | B3b | plan-run series | frontier/high | — | модели, свои модели, Field/FieldTarget, GrantFields |
 | P3.4 | B3b | ↑ | implementation/medium | — | запрет прямых записей, arch-правила записи |
 | P3.5 | solo | plan-run | frontier/high | — | Review P3, read-only verdict, свежая сессия |
+| P4.1 | solo | plan-run | frontier/high | — | пайплайн, dispatcher, контракты, EvaluationFrame, PolicyDecider, свойства V15 |
+| P4.2 | B4b | plan-run series | frontier/high | — | FolderSource: автоматические роли, GrantedToAll, ключи ролей; P02 |
+| P4.3 | B4b | ↑ | frontier/high | — | режимы политик, Response в Decision, GateSource, индекс ability |
+| P4.4 | B4c | plan-run series | frontier/high | — | DatabaseSource, FencesReads, fence, Storage::own; P08; engines PG/MySQL/MariaDB |
+| P4.5 | B4c | ↑ | frontier/high | — | RelationSource, роли из связей |
+| P4.6 | B4d | plan-run series | frontier/high | — | TenantPolicy, AssignmentScopePolicy, 09 §3, членство, фильтры; P06/P06b |
+| P4.7 | B4d | ↑ | implementation/medium | — | суперадмин в области, allowGlobalRoles; P01a/P01b |
+| P4.15 | solo | plan-run | implementation/high | — | CRM-фикстура, R-кейсы P4.1–P4.7 (D5) |
+| P4.13 | solo | plan-run | frontier/high | — | срез-review P4.1–P4.7 и P4.15, read-only verdict, свежая сессия |
+| P4.8 | B4e | plan-run series | frontier/high | — | кэш, refresh, incarnation, бюджеты, гонки V99; P10/P10b; engines и Redis |
+| P4.9 | B4e | ↑ | frontier/high | — | decideMany, пачки в одном fence, R68 |
+| P4.10 | B4f | plan-run series | implementation/medium | — | Explanation, azguard:explain |
+| P4.11 | B4f | ↑ | frontier/high | — | GateBridge, toGateResult; P03/P09 |
+| P4.12 | solo | plan-run | frontier/high | — | exact visibility, AccessPredicate, EXPLAIN; P04a–c |
+| P4.14 | solo | plan-run | frontier/high | — | Review P4, read-only verdict, свежая сессия |
 
 ## Owner gates (summary)
 
