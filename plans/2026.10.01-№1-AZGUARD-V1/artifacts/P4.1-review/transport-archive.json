@@ -1,0 +1,11 @@
+{
+  "packet": "packet.txt.gz",
+  "packet_sha256": "c4aa8dc03976b9567d6b0687e4ff039b95eae734c3405399c33aff5ab23d830d",
+  "compressed_sha256": "42c39d9db20ae0de524fb9f6176667c785f5a244f7905c6c82adc31d0eefdd36",
+  "native_session": "01a1071f-153c-75e2-a77e-2d02a4a6ee8a",
+  "ephemeral_transport_archive": "/tmp/azguard-p41-review-transport",
+  "reason": "Full source packet retained losslessly in gzip; provider report, manifest, route and result retained. Raw streaming transport stays outside product repository.",
+  "delta_packet": "delta-packet.txt.gz",
+  "delta_packet_sha256": "263222688d3e00a6011513b811282767e71b4f282b7c2ab2e0166a7a653845fe",
+  "delta_compressed_sha256": "7543a13aff05292449a087554f709d058606a9b1bea36a806faf88f32f58c79b"
+}

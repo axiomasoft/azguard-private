@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: 600f4f375bf91ec842e48de6f8e254bf3a0ec7e5494e4a129caea4f18b422e92
+inputs_sha256: 0a3bdbef5cf19750e3f28e6e3b86efcfb71c052ef52bcdd37f705bf3bac662cd
 generated_by: task plan-views status
 -->
 
@@ -27,7 +27,7 @@ generated_by: task plan-views status
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/23 | 🟡 In progress |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 1/23 | 🟡 In progress |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
 | P7 | Filament по схеме панели | 0/7 | ⬜ Not started |
@@ -84,7 +84,7 @@ generated_by: task plan-views status
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P4.1 | Пайплайн проверки и authority dispatcher | 🟡 In progress | 2026-10-04 |
+| P4.1 | Пайплайн проверки и authority dispatcher | 🟢 Done | 2026-10-04 |
 | P4.2 | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys | ⬜ Not started | — |
 | P4.3 | Mode-aware policies, Decides, PolicyFor, GateSource::map | ⬜ Not started | — |
 | P4.4 | DatabaseSource: назначения, сроки, dynamicPermissions, писатель | ⬜ Not started | — |
@@ -257,6 +257,8 @@ write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
 | 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
 | 2026-10-04 | codex-p4-design-repair | plan-design · no-op · Design finalized; execution has not started. |
+| 2026-10-04 | codex | plan-run · closed-green · GREEN: findings/P4-execution.md; all eight Validation carriers; comprehensive Grok 4.7/high/500k review + root verification.
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

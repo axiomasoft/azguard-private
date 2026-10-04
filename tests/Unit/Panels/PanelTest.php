@@ -8,6 +8,8 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Tests\Fixtures\Authorization\ContinueHook;
+use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\FixedTenantResolver;
 use AzGuard\Tests\Fixtures\Panels\InvoicePermission;
@@ -15,6 +17,7 @@ use AzGuard\Tests\Fixtures\Panels\Manager;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Plugins\AuditFreeze;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -120,28 +123,28 @@ it('changes the fingerprint when the described panel changes', function (Closure
         ->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'ldap', 'database'])
         ->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B']);
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class]);
 
     expect(PanelFingerprint::of(...compilePanel($change)))->not->toBe(PanelFingerprint::of(...compilePanel($base)));
 })->with([
     'prefix' => [fn (PanelBuilder $panel) => $panel->resourcePrefix('backoffice')->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'ldap', 'database'])->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B'])],
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class])],
     'subject model' => [fn (PanelBuilder $panel) => $panel->for(Seller::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'ldap', 'database'])->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B'])],
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class])],
     'enum order' => [fn (PanelBuilder $panel) => $panel->for(User::class, guard: 'web')
         ->permissions([InvoicePermission::class, OrderPermission::class, 'ldap', 'database'])->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B'])],
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class])],
     'source order' => [fn (PanelBuilder $panel) => $panel->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'database', 'ldap'])->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B'])],
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class])],
     'role' => [fn (PanelBuilder $panel) => $panel->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'ldap', 'database'])
-        ->restrictions(['App\Restrictions\A', 'App\Restrictions\B'])],
+        ->restrictions([RecordingRestriction::class, AuditFreeze::class])],
     'hook order' => [fn (PanelBuilder $panel) => $panel->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, InvoicePermission::class, 'ldap', 'database'])->roles([SellerRole::class])
-        ->restrictions(['App\Restrictions\B', 'App\Restrictions\A'])],
+        ->restrictions([AuditFreeze::class, RecordingRestriction::class])],
 ]);
 
 it('keeps closures and objects out of the fingerprint metadata', function (): void {
@@ -149,7 +152,7 @@ it('keeps closures and objects out of the fingerprint metadata', function (): vo
     $metadata = PanelFingerprint::metadata(...compilePanel(static fn (PanelBuilder $panel): PanelBuilder => $panel
         ->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, $source, 'database'])
-        ->before([static fn (): null => null, 'App\Hooks\Before'])
+        ->before([static fn (): null => null, ContinueHook::class])
         ->tenantResolvers([new FixedTenantResolver])
         ->label('Ignored by the fingerprint')));
 
@@ -163,7 +166,7 @@ it('keeps closures and objects out of the fingerprint metadata', function (): vo
         'sources' => [['class' => ArraySource::class, 'id' => 'ldap-live'], ['name' => 'database']],
         'resource_scopes' => [],
     ])->and($metadata['hooks'])->toMatchArray([
-        'before' => ['closure', 'App\Hooks\Before'],
+        'before' => ['closure', ContinueHook::class],
         'restrictions' => [],
         'tenant_resolvers' => [FixedTenantResolver::class],
     ])->and(json_encode($metadata, JSON_THROW_ON_ERROR))->not->toContain('Ignored by the fingerprint');

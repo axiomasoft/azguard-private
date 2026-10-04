@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: добавлен внутренний пайплайн `Authorizer::decide()` с раздельными PolicyOnly/RequiresGrant, условиями одной выдачи, ограничениями, typed хуками, безопасным policy DI и защитой от рекурсии.
+
 ### Fixed
 
 - **core:** Enum cases из статичных custom sources участвуют в выборе панели на live и cached путях. Равные permission definitions и одинаковый role class из независимых plugin/provider origins дают collision с id вкладов; повторы внутри одного origin сохраняют первого владельца (owning repair P2.5, R2/R3).

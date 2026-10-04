@@ -273,6 +273,123 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Authorization\\GrantCondition",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allows",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "grant",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Authorization\\Restriction",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "appliesTo",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "check",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\RestrictionResult"
+                },
+                {
+                    "name": "exemptsSuperAdmin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "key",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Catalog\\PermissionCatalog",
             "kind": "interface",
             "final": false,
@@ -2912,6 +3029,23 @@
                     "return": "string"
                 }
             ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Exceptions\\RecursionDetectedException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "RuntimeException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [],
             "stability": "api",
             "via": "location"
         },
@@ -5776,6 +5910,38 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "beforeHooks",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "afterHooks",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "accessRestrictions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "conditions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
                         }
                     ],
                     "return": null
@@ -5796,6 +5962,20 @@
                     "return": "bool"
                 },
                 {
+                    "name": "after",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "before",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "fields",
                     "static": false,
                     "abstract": false,
@@ -5808,6 +5988,13 @@
                             "hasDefault": false
                         }
                     ],
+                    "return": "array"
+                },
+                {
+                    "name": "grantConditions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
                     "return": "array"
                 },
                 {
@@ -5851,6 +6038,13 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "?string"
+                },
+                {
+                    "name": "restrictions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
                 },
                 {
                     "name": "settings",

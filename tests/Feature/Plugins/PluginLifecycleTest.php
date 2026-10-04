@@ -13,6 +13,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\BootsPanels;
@@ -97,7 +98,7 @@ it('registers provider plugins, then plugins for all panels, then plugins attach
 it('writes what a plugin adds with the origin of that plugin', function (): void {
     [, , $registry] = PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
-            ->restrictions(['App\Restrictions\OfficeHours'])
+            ->restrictions([RecordingRestriction::class])
             ->plugins([ProbePlugin::make('acme/first'), AuditTrailPlugin::make()]),
     ]);
     $recipe = $registry->recipe('admin');
@@ -107,7 +108,7 @@ it('writes what a plugin adds with the origin of that plugin', function (): void
     expect(array_column($written, 'setting'))->toBe([PanelRecipe::PERMISSIONS, PanelRecipe::RESTRICTIONS, PanelRecipe::CHANGING])
         ->and(array_column($written, 'origin'))->toBe([$origin, $origin, $origin])
         ->and($recipe->sources()[0])->toBeInstanceOf(ArraySource::class)
-        ->and($recipe->items(PanelRecipe::RESTRICTIONS))->toBe(['App\Restrictions\OfficeHours', AuditFreeze::class])
+        ->and($recipe->items(PanelRecipe::RESTRICTIONS))->toBe([RecordingRestriction::class, AuditFreeze::class])
         ->and($recipe->items(PanelRecipe::CHANGING))->toBe([RecordChange::class])
         ->and($recipe->isSealed())->toBeTrue();
 });

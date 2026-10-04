@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Contracts\Authorization\GrantCondition;
+use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Exceptions\DefaultPanelConflictException;
@@ -20,6 +22,7 @@ use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use ReflectionMethod;
 
 /**
  * Registers the plugins of a panel, turns its sealed recipe into a panel and checks what only the whole set of
@@ -147,7 +150,49 @@ final class PanelCompiler
             writable: $sources !== null && $sources->writable(),
             writer: $sources !== null && $container !== null ? $sources->writer($container) : null,
             grantFields: $this->fields($recipe),
+            beforeHooks: $this->callbacks($recipe, PanelRecipe::BEFORE),
+            afterHooks: $this->callbacks($recipe, PanelRecipe::AFTER),
+            accessRestrictions: $this->components($recipe, PanelRecipe::RESTRICTIONS, Restriction::class),
+            conditions: $this->components($recipe, PanelRecipe::GRANT_CONDITIONS, GrantCondition::class),
         );
+    }
+
+    /** @return list<Closure|class-string> */
+    private function callbacks(PanelRecipe $recipe, string $setting): array
+    {
+        $callbacks = [];
+        foreach ($recipe->layered($setting) as $record) {
+            foreach (is_array($record['value']) ? $record['value'] : [] as $item) {
+                if (! $item instanceof Closure && (! is_string($item) || ! class_exists($item) || ! method_exists($item, '__invoke')
+                    || ! (new ReflectionMethod($item, '__invoke'))->isPublic())) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' expects Closure or invokable class in '.$setting.' from '.json_encode($record['origin']).'.');
+                }
+                $callbacks[] = $item;
+            }
+        }
+
+        return $callbacks;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param  class-string<T>  $contract
+     * @return list<T|class-string<T>>
+     */
+    private function components(PanelRecipe $recipe, string $setting, string $contract): array
+    {
+        $components = [];
+        foreach ($recipe->layered($setting) as $record) {
+            foreach (is_array($record['value']) ? $record['value'] : [] as $item) {
+                if (! $item instanceof $contract && (! is_string($item) || ! is_subclass_of($item, $contract))) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' expects '.$contract.' in '.$setting.' from '.json_encode($record['origin']).'.');
+                }
+                $components[] = $item;
+            }
+        }
+
+        return $components;
     }
 
     /** @return array<string, list<Field>> */

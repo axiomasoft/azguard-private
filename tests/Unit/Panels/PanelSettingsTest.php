@@ -15,6 +15,10 @@ use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelSettings;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
+use AzGuard\Tests\Fixtures\Authorization\ContinueHook;
+use AzGuard\Tests\Fixtures\Authorization\PassRestriction;
+use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
+use AzGuard\Tests\Fixtures\Plugins\AuditFreeze;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
@@ -208,21 +212,21 @@ it('gives the builder no method that turns a guarantee off', function (): void {
 
 it('keeps the items of every layer in a list and collapses a class named twice', function (): void {
     [, $recipe] = settingsPanel(static function (PanelBuilder $panel, PanelRecipe $recipe): void {
-        $recipe->during(PanelRecipe::configure(), fn () => $panel->restrictions(['App\Restrictions\Shared', 'App\Restrictions\OfficeHours'])->roles([RootRole::class]));
-        $recipe->during(PanelRecipe::plugin('acme/audit', 1), fn () => $panel->restrictions(['App\Restrictions\Audit'])->roles([AnalystRole::class, SellerRole::class]));
-        $panel->restrictions(['App\Restrictions\OfficeHours'])->roles([SellerRole::class]);
+        $recipe->during(PanelRecipe::configure(), fn () => $panel->restrictions([PassRestriction::class, RecordingRestriction::class])->roles([RootRole::class]));
+        $recipe->during(PanelRecipe::plugin('acme/audit', 1), fn () => $panel->restrictions([AuditFreeze::class])->roles([AnalystRole::class, SellerRole::class]));
+        $panel->restrictions([RecordingRestriction::class])->roles([SellerRole::class]);
     });
 
     expect(PanelCompiler::items($recipe, PanelRecipe::RESTRICTIONS))->toBe([
-        'App\Restrictions\OfficeHours', 'App\Restrictions\Audit', 'App\Restrictions\Shared',
+        RecordingRestriction::class, AuditFreeze::class, PassRestriction::class,
     ])->and($recipe->roles())->toBe([SellerRole::class, AnalystRole::class, RootRole::class]);
 });
 
 it('keeps closures and objects apart when it collapses duplicates', function (): void {
     $closure = static fn (): null => null;
-    [, $recipe] = settingsPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->before([$closure, $closure, 'App\Hooks\A', 'App\Hooks\A']));
+    [, $recipe] = settingsPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->before([$closure, $closure, ContinueHook::class, ContinueHook::class]));
 
-    expect(PanelCompiler::items($recipe, PanelRecipe::BEFORE))->toBe([$closure, $closure, 'App\Hooks\A']);
+    expect(PanelCompiler::items($recipe, PanelRecipe::BEFORE))->toBe([$closure, $closure, ContinueHook::class]);
 });
 
 it('merges presentation by key with the precedence of settings', function (): void {

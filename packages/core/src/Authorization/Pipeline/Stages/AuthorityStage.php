@@ -1,0 +1,168 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Authorization\Pipeline\Stages;
+
+use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Contracts\Authorization\GrantCondition;
+use AzGuard\Contracts\Sources\ProvidesGrants;
+use AzGuard\Contracts\Sources\ProvidesRoleGrants;
+use AzGuard\Contracts\Sources\StoresGrants;
+use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Decision;
+use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Grammar\PatternMatcher;
+use AzGuard\Panels\PanelRegistry;
+use AzGuard\Policies\PolicyDecider;
+use AzGuard\Roles\BaseRole;
+use AzGuard\Sources\PanelSources;
+use Illuminate\Contracts\Container\Container;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
+use Throwable;
+
+/** @phpstan-import-type CompiledRole from \AzGuard\Catalog\RoleCompiler */
+final readonly class AuthorityStage
+{
+    public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies) {}
+
+    /** @return array{EvaluationFrame,Decision} */
+    public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace): array
+    {
+        $matching = [];
+        $superAdmin = false;
+        $qualified = false;
+
+        if ($definition->authority === PermissionAuthority::Grants) {
+            try {
+                $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
+                $contributions = [];
+                foreach ($sources->all() as ['source' => $source]) {
+                    foreach ([ProvidesGrants::class, ProvidesRoleGrants::class] as $capability) {
+                        if (! $source instanceof $capability) {
+                            continue;
+                        }
+                        $items = $source instanceof ProvidesGrants && $capability === ProvidesGrants::class ? $source->grants($request->subject(), [$frame->scope()], $frame) : ($source instanceof ProvidesRoleGrants ? $source->roleGrants($request->subject(), [$frame->scope()], $frame) : []);
+                        foreach (PanelCatalog::untrusted($items) as $item) {
+                            if (($capability === ProvidesGrants::class && ! $item instanceof Grant) || ($capability === ProvidesRoleGrants::class && ! $item instanceof RoleContribution)) {
+                                throw new InvalidSourceContributionException('Unexpected contribution type.');
+                            }
+
+                            if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
+                                throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
+                            }
+                            $contributions[] = [$source, $item];
+                        }
+                    }
+                }
+            } catch (Throwable $error) {
+                $component = isset($source) ? $source::class : 'sources';
+                $trace->error('authority', 'source_error', $component, $error);
+
+                return [$frame, Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), $component)];
+            }
+            foreach ($contributions as [$source,$item]) {
+                if (! $item->activeAt($frame->now())) {
+                    $trace->record('contribution', 'expired', $source::class);
+
+                    continue;
+                }
+                $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
+
+                if ($item->role !== null && ($roleDefinition === null || ($source instanceof StoresGrants && ! $roleDefinition['grantable']))) {
+                    $trace->record('contribution', 'unknown_or_not_grantable_role', $source::class);
+                    Log::warning('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => 'unknown_or_not_grantable_role', 'role' => $item->role->full()]);
+
+                    continue;
+                }
+
+                try {
+                    $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
+
+                    if ($role !== null && ! $role instanceof BaseRole) {
+                        throw new RuntimeException('Role resolver did not return BaseRole.');
+                    }
+                    $branch = $frame->forContribution($item, $role);
+                    $passes = true;
+                    foreach ($frame->panel()->grantConditions() as $declared) {
+                        $condition = is_string($declared) ? $this->container->make($declared) : $declared;
+
+                        if (! $condition instanceof GrantCondition) {
+                            throw new RuntimeException('Condition resolver did not return GrantCondition.');
+                        }
+
+                        if (! $condition->allows($item, $request, $branch)) {
+                            $passes = false;
+
+                            break;
+                        }
+                    }
+                } catch (Throwable $error) {
+                    $component = isset($condition) ? $condition::class : $source::class;
+                    $trace->error('condition', 'condition_error', $component, $error);
+
+                    return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component)];
+                }
+
+                if (! $passes) {
+                    $trace->record('contribution', 'condition_false', $source::class);
+
+                    continue;
+                }
+                $admin = $this->superAdmin($roleDefinition);
+                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
+
+                if ($item instanceof RoleContribution) {
+                    foreach ($roleDefinition['permissions'] as $pattern) {
+                        $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
+                    }
+                }
+
+                if ($admin || $covers) {
+                    $qualified = true;
+                    $superAdmin = $superAdmin || $admin;
+
+                    if ($item instanceof Grant && $covers) {
+                        $matching[] = $item;
+                    }
+                    $trace->record('contribution', 'qualified', $source::class);
+                }
+            }
+            $frame = $frame->withAuthority($matching, $superAdmin);
+
+            if (! $qualified) {
+                return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
+            }
+        }
+
+        try {
+            $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority);
+
+            if ($veto !== null) {
+                return [$frame, $veto];
+            }
+        } catch (Throwable $error) {
+            $component = $catalog->bindings()[$request->permission()->local()] ?? 'policy';
+            $trace->error('policy', 'policy_error', $component, $error);
+
+            return [$frame, Decision::deny(DecisionReason::PolicyError, $frame->state(), $frame->scope(), $component)];
+        }
+        $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($superAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
+
+        return [$frame, Decision::allow($reason, $frame->state(), $frame->scope(), grants: $request->isTraced() ? $matching : [])];
+    }
+
+    /** @param CompiledRole|null $role */
+    private function superAdmin(?array $role): bool
+    {
+        return $role !== null && $role['super_admin'];
+    }
+}

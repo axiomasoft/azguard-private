@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Contracts\Authorization\GrantCondition;
+use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -37,7 +39,39 @@ final readonly class Panel
         private ?Closure $writer = null,
         /** @var array<string, list<Field>> */
         private array $grantFields = [],
+        /** @var list<Closure|class-string> */
+        private array $beforeHooks = [],
+        /** @var list<Closure|class-string> */
+        private array $afterHooks = [],
+        /** @var list<Restriction|class-string<Restriction>> */
+        private array $accessRestrictions = [],
+        /** @var list<GrantCondition|class-string<GrantCondition>> */
+        private array $conditions = [],
     ) {}
+
+    /** @return list<Closure|class-string> */
+    public function before(): array
+    {
+        return $this->beforeHooks;
+    }
+
+    /** @return list<Closure|class-string> */
+    public function after(): array
+    {
+        return $this->afterHooks;
+    }
+
+    /** @return list<Restriction|class-string<Restriction>> */
+    public function restrictions(): array
+    {
+        return $this->accessRestrictions;
+    }
+
+    /** @return list<GrantCondition|class-string<GrantCondition>> */
+    public function grantConditions(): array
+    {
+        return $this->conditions;
+    }
 
     public function id(): string
     {

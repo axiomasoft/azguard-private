@@ -1,31 +1,23 @@
-# HANDOFF — 2026-10-04 — after P3.5
+# HANDOFF — 2026-10-04 — after P4.1
 
-**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1
-
-Фаза P4 исправлена по D15 после design-review: 23 solo-пункта, номера исходных P4.1–P4.15 сохранены. Порядок — roadmap.md. P4.1 уже In progress по journal; bundle регенерирован для D15, продолжить после byte-fresh проверки. Runtime PHP не менялся этой сессией.
+**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2
 
 | Parameter | Meaning |
 |:--|:--|
 | Batch | solo |
-| Model class | frontier |
-| Effort | high |
-| Capabilities | PHP 8 + composer vendor; SQLite (СУБД с P4.4, Redis и отдельный replica profile с P4.21) |
+| Model | frontier |
+| Thinking | high |
+| Capabilities | PHP 8 + composer vendor; isolated SQLite |
 | Context | continue-root |
-| Essence | `Authorizer::decide()`: пайплайн 09 §2, authority dispatcher, `Restriction`/`GrantCondition`, `EvaluationFrame`, `PolicyDecider`, локальные тесты; свойства V15 P4.16 |
+| Command | task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.2 |
+| Essence | FolderSource contributions: автоматические роли, актуальный code catalog и фактическое происхождение выдач |
 
-**Done:** Исправление всех 32 design findings F01–F31/F33 после одного полного Grok 4.7/high/500k review и root recheck: D15, specs P4.1–P4.23, P4 acceptance matrix, Routing/execution sheet. D14 транзакционное ослабление отменено; fresh/recognized joint protocol обязателен, иначе error. Generated views обновляются только owning generator.
-**Remaining:** Исполнение P4 по execution sheet; closed runtime gates ещё не заявлены. Execution bundle P4.1 регенерирован; проверить byte-fresh перед продолжением; не сбрасывать его journal/state. Детализация P5–P8 после закрытия P4.
-**Sources of truth:** phases/P4/P4.md · decisions/D14-p4-authorization-closure.md · decisions/D15-p4-design-repair.md · brief/P4-acceptance-matrix.md · roadmap.md
-**Open risks:** Историческое предупреждение о Task repeat-history из прежнего handoff: в этой сессии текущий установленный runtime успешно построил statuses и finalize-design P4, прежняя блокировка не воспроизвелась. Полный plan-lint сохраняет 12 foreign baseline write-site ошибок P0/P1; local P4 errors отсутствуют после qualification. Findings среза и финального review исправляются в owning items. Автоматическая заметка plan-design «execution has not started» шаблонная: P4.1 остаётся In progress, run history не сброшена.
-**Workarounds/Deferred/Open questions:** FormerKeys metadata/explicit migration, NotGrantable DB authority zero сохранены. Unknown host snapshot отвергается, joint root lock protocol P4.20. Недоступный engine/provider/проверка не считается GREEN. Владелец 2026-10-04 явно разрешил commit/push всего текущего набора изменений в azguard; дальнейшие публикации требуют своего owner authorization.
-
-
-## Native launch
-
-Cwd: `/home/vostrikov/projects/packages/azguard`; route: frontier/high, native model `gpt-6.1-sol` по прежней route receipt P4.1. На запуске заново подтвердить фактический model/effort и capability bindings; resume существующего item/run, не создавать повтор и не закрывать P4.1 без гейтов.
-
-```bash
-codex -C /home/vostrikov/projects/packages/azguard -m gpt-6.1-sol -c 'model_reasoning_effort="high"' -a never -s danger-full-access 'task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.1'
+```session-continuity-decision/v1
+{"outcome": "continue-root", "reason": "authorized-scope-complete", "evidence": ["batch:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945", "loaded-inputs:reusable", "cold-start-cost:1", "lifecycle:scope-complete", "checkpoint:journal.jsonl:82:485156ff9ade9de6ca15f33c6736e4721a3aa2d5fbe1bf475e809dac0db1b765"], "runnable": true, "schema_version": "session-continuity-decision/v1"}
 ```
 
-Read-only readiness перед коммитом: phase-scoped design/target/batch ALLOW, recovery RESUME_ITEM P4.1. Общий design-gate видит skeleton P5; это ожидаемо при phase-by-phase исполнении и не является допуском к P5.
+**Done:** P4.1 GREEN: Authorizer, pipeline/dispatcher, immutable frame, runtime invoker, Restriction/GrantCondition SPI, compiler checks, model subject resolver, trace/recursion и локальная приёмка. Все 8 Validation carriers GREEN. Полный Grok 4.7/high/500k review и root verification — artifacts/P4.1-review/; карта реализации и остаточных owners — findings/P4-execution.md.
+**Remaining:** Авторизованный P4.1 завершён. P4.2 рекомендован, не исполнялся. Дальше порядок D15/roadmap: P4.2 → P4.3 → P4.4 → P4.17 → P4.5 → P4.6 и далее. V15 property matrix — P4.16; полный phase review — P4.13/P4.14.
+**Sources of truth:** phases/P4/P4.md · decisions/D14-p4-authorization-closure.md · decisions/D15-p4-design-repair.md · brief/P4-acceptance-matrix.md · roadmap.md
+**Open risks:** Все review dispositions/root checks — findings/P4-execution.md. Исторические 12 foreign baseline write-site errors P0/P1 остаются видимыми, delta lint не даёт новых ошибок. Остаточные будущие scope/cache/Gate/fenced-source obligations не заявлены GREEN.
+**Workarounds/Deferred/Open questions:** Установленная Task 0.27.0 projection имеет import/repeat-history defect; использован owning source runtime /home/vostrikov/projects/packages/swissknifeman/packages/task/scripts/. Arch требует memory_limit=1G; optional PHPStan turbo недоступен, штатный fallback GREEN. Подробности и исходные ошибки сохранены в evidence. Публикация этого результата не запрошена.

@@ -1,0 +1,190 @@
+{
+  "verdict": {
+    "pre_mutation": "allow",
+    "pre_final": "allow",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": null
+    },
+    "content_hash": "3a0cbfc7da6a622b20a5b957e8540966a8e285569b691058da42c2d2a46ed934"
+  },
+  "receipts": [
+    {
+      "schema_version": "validation-receipt/v1",
+      "evidence_id": "E20",
+      "command": "1) `vendor/bin/pest tests/Unit/Authorization tests/Feature/Authorization` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN, правило движка доказано RED на копии в scratch; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`.",
+      "contract_sha256": "3a0cbfc7da6a622b20a5b957e8540966a8e285569b691058da42c2d2a46ed934",
+      "spec_sha256": "e74a2570ac4a1974a1fca2fbf7220a110c8795789c559c40331cf6c957878c4f",
+      "head": "f6c83a18d53634b0050b1478caa0de701b7507ee",
+      "tree": "cbf5a93cdb52dc5fd065e495ff78ec9ab928f1163071647443901505a99104aa",
+      "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+      "exit_code": 0,
+      "executed_at": "2026-10-04T14:02:31Z"
+    }
+  ],
+  "context": {
+    "schema_version": "validation-context/v1",
+    "spec_sha256": "e74a2570ac4a1974a1fca2fbf7220a110c8795789c559c40331cf6c957878c4f",
+    "head": "f6c83a18d53634b0050b1478caa0de701b7507ee",
+    "tree": "cbf5a93cdb52dc5fd065e495ff78ec9ab928f1163071647443901505a99104aa",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16"
+  },
+  "checks": [
+    {
+      "check": "targeted",
+      "command": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "tests/Unit/Authorization",
+        "tests/Feature/Authorization"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/targeted.log"
+    },
+    {
+      "check": "arch",
+      "command": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "tests/Arch"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/arch.log"
+    },
+    {
+      "check": "api-check",
+      "command": [
+        "php",
+        "bin/api-manifest.php",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/api-check.log"
+    },
+    {
+      "check": "composer-test",
+      "command": [
+        "composer",
+        "test"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/composer-test.log"
+    },
+    {
+      "check": "pint-check",
+      "command": [
+        "vendor/bin/pint",
+        "--test"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/pint-check.log"
+    },
+    {
+      "check": "phpstan",
+      "command": [
+        "vendor/bin/phpstan",
+        "analyse",
+        "--memory-limit=1G"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/phpstan.log"
+    },
+    {
+      "check": "type-coverage",
+      "command": [
+        "env",
+        "__PEST_PLUGIN_ENV=1",
+        "DB_CONNECTION=sqlite",
+        "APP_ENV=testing",
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "-d",
+        "variables_order=EGPCS",
+        "vendor/bin/pest",
+        "--type-coverage",
+        "--min=98",
+        "--no-cache",
+        "--type-coverage-json=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/type-coverage.json"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/type-coverage.log",
+      "completeness": {
+        "files": 179,
+        "expected": 179,
+        "missing": []
+      }
+    },
+    {
+      "check": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.1-execution/diff-check.log"
+    }
+  ],
+  "root_review": {
+    "schema_version": "root-review-verdict/v1",
+    "verdict": "GREEN",
+    "scope": "P4.1 complete item and supporting dependency closure",
+    "full_review": {
+      "provider": "grok-4.7",
+      "effort": "high",
+      "context_window": 500000,
+      "session": "01a1071f-153c-75e2-a77e-2d02a4a6ee8a",
+      "report": "review.md",
+      "initial_verdict": "RED",
+      "files": 434,
+      "packet_sha256": "c4aa8dc03976b9567d6b0687e4ff039b95eae734c3405399c33aff5ab23d830d"
+    },
+    "dispositions": [
+      {
+        "id": "R1",
+        "severity": "Major",
+        "owner": "P4.1",
+        "status": "resolved",
+        "evidence": "EvaluationFrameTest: three native name collision regressions; RED review-red.log, current targeted.log GREEN"
+      },
+      {
+        "id": "R2",
+        "severity": "Minor",
+        "owner": "P4.1",
+        "status": "resolved",
+        "evidence": "HookListsTest: duplicate key before/NotGranted/boundary; RED review-red.log, current targeted.log GREEN"
+      },
+      {
+        "id": "ROOT-1",
+        "owner": "P4.1",
+        "status": "resolved",
+        "evidence": "StepErrorsTest: user key/factory DefinitionException denied and observed"
+      },
+      {
+        "id": "ROOT-2",
+        "status": "not-a-defect",
+        "evidence": "D15 native resource slot preserves explicit compatible null; nullable service third position tested; delta reviewer agrees"
+      }
+    ],
+    "delta_review": {
+      "report": "delta.md",
+      "verdict": "GREEN",
+      "route_attestation": "delta-provider-summary.json"
+    },
+    "acceptance": {
+      "checks": "../P4.1-execution/checks.json",
+      "targeted_tests": 68,
+      "suite_tests": 2101,
+      "suite_assertions": 243100,
+      "type_coverage": 99.86,
+      "type_files": 179,
+      "missing_type_files": 0
+    },
+    "incidental_predecessor_findings": []
+  }
+}
