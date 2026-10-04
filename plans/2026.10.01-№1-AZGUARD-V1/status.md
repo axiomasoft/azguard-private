@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-04
-inputs_sha256: f93ab75db44a3f2c25e9cb00adbf756974659057967883215d0f59170e376771
+inputs_sha256: 15e918dac9963044da70f870d13e8809f339d7592388638845c3def55e35eb6e
 generated_by: task plan-views status
 -->
 
@@ -26,7 +26,7 @@ generated_by: task plan-views status
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
-| P3 | Хранилище | 4/5 | 🟡 In progress |
+| P3 | Хранилище | 5/5 | 🟢 Done |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
@@ -78,7 +78,7 @@ generated_by: task plan-views status
 | P3.2 | Миграции с префиксом хранилища на PG/MySQL/MariaDB/SQLite | 🟢 Done | 2026-10-03 |
 | P3.3 | Базовые и свои модели, azguardFields, meta, decisionFields | 🟢 Done | 2026-10-04 |
 | P3.4 | Защита от прямых записей | 🟢 Done | 2026-10-04 |
-| P3.5 | Review P3: независимая read-only проверка фазы | ⬜ Not started | — |
+| P3.5 | Review P3: независимая read-only проверка фазы | 🟢 Done | 2026-10-04 |
 
 ## Phase P4
 
@@ -232,6 +232,12 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · in-progress · — |
 | 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · closed-green · GREEN: findings/P3-execution.md; artifacts/P3-direct-writes/. Suite 2029; engines GREEN; Grok 4.7 R1 fixed, delta GREEN.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex | plan-run · in-progress · — |
+| 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · closed-green · Review P3 GREEN: Grok 4.7/high/500k, no blocker/major; R2 minor PK names owned by P3.2. Initial R1 false positive disproved by live 14-assertion reproduction. All 10 declared gates GREEN; findings/P3-review.md.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex | plan-close · in-progress · Checking phase-close admission. |
+| 2026-10-04 | codex | plan-close · closed-green · P3 GREEN: all product gates and independent Grok 4.7/high/500k review; no blocker/major. R2 minor native PK names retained in findings/P3-review.md, owning P3.2; read-only boundary preserved.
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
