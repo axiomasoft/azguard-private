@@ -1,0 +1,4 @@
+> php -d memory_limit=1G vendor/bin/pest --exclude-group=engines
+
+V04: 100000 distinct tuples in 1.10 s
+{"tool":"pest","result":"passed","tests":2004,"passed":2004,"assertions":242860,"duration_ms":14260}

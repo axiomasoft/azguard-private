@@ -1,0 +1,32 @@
+{
+  "verdict": {
+    "pre_mutation": "allow",
+    "pre_final": "allow",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": null
+    },
+    "content_hash": "d92bf8f0d4d7541bb298b20cacc5030308096b744a98a835088fc42d0a705630"
+  },
+  "receipts": [
+    {
+      "schema_version": "validation-receipt/v1",
+      "evidence_id": "E12",
+      "command": "1) `vendor/bin/pest tests/Feature/Storage tests/Arch` — GREEN; 2) `docker compose up -d --wait postgres mysql mariadb`; 3) `DB_CONNECTION=pgsql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 4) `DB_CONNECTION=mysql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 5) `DB_CONNECTION=mariadb php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 6) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 7) `composer test`; 8) `vendor/bin/pint --test`; 9) `vendor/bin/phpstan analyse --memory-limit=1G`; 10) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 11) `git diff --check`.",
+      "contract_sha256": "d92bf8f0d4d7541bb298b20cacc5030308096b744a98a835088fc42d0a705630",
+      "spec_sha256": "7a0fcd5be4ae32ec063a450ac52f193bb79be94b514a6e949ca6d07d0a15a925",
+      "head": "9e88024734e487a7c60d478662eb42fa132d5ca8",
+      "tree": "1b2e51463dd69963f52be83c081c431466505add1dfe320959d89d09f84df1c7",
+      "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+      "exit_code": 0,
+      "executed_at": "2026-10-04T05:52:04Z"
+    }
+  ],
+  "context": {
+    "schema_version": "validation-context/v1",
+    "spec_sha256": "7a0fcd5be4ae32ec063a450ac52f193bb79be94b514a6e949ca6d07d0a15a925",
+    "head": "9e88024734e487a7c60d478662eb42fa132d5ca8",
+    "tree": "1b2e51463dd69963f52be83c081c431466505add1dfe320959d89d09f84df1c7",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16"
+  }
+}

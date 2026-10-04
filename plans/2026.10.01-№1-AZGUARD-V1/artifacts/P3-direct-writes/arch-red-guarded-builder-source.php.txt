@@ -1,0 +1,3 @@
+<?php
+namespace AzGuard\Laravel;
+final class ForbiddenBuilder { public function bad(\AzGuard\Storage\WriteGuardedBuilder $builder): void {} }

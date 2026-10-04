@@ -1,0 +1,24 @@
+# Delta review P3.3–P3.4 R1 — 2026-10-04
+
+**Verdict: GREEN.** R1 is resolved. No remaining blocker or major in this delta.
+
+**Reviewer:** grok-4.7 / high. Read-only. No file edits, no subagents, no Pest, no database suites. The refreshed logs under `artifacts/P3-direct-writes` were not used as proof. Other product files were not re-audited.
+
+## R1 — resolved
+
+`WriteGuardedBuilder` now declares both missing methods. Each is `final`, declared on `AzGuard\Storage\WriteGuardedBuilder`, and its body is only `rejectDirectWrite()` (`WriteGuardedBuilder.php:40-43` and `:78-81`). That throws `UnsupportedDirectWriteException` (`:185-188`) and does not call the parent, `toBase()`, or the connection.
+
+Installed `Illuminate\Database\Query\Builder` (Laravel 13.33.0):
+
+| Method | Parent signature | Guard signature |
+|---|---|---|
+| `insertOrIgnoreReturning` | `(array $values, array $returning, array\|string\|null $uniqueBy)` | `(array $values, array $returning = ['*'], mixed $uniqueBy = null): never` |
+| `updateFrom` | `(array $values)` | `(array $values): never` |
+
+The class loaded under PHP, so the wider `mixed` third parameter and the `never` return are legal overrides. Because the methods exist on the subclass, `Eloquent\Builder::__call` no longer forwards `insertOrIgnoreReturning` through `$passthru` / `toBase()`, and no longer forwards `updateFrom` to the inner query.
+
+A bound builder from `Storage::model()` hits these overrides for both `$builder->…()` and `$model->…()` (`Model::__call` still goes to `newQuery()`).
+
+`DirectWritesTest` adds both methods to the builder dataset that runs for every grant model kind and for `local`, `testing`, and `production` (`DirectWritesTest.php:75`, `:79`, `:91-96`). A separate reflection test (`:98-107`) requires every public `Query\Builder` method whose name starts with `insert`, `upsert`, `update`, `increment`, `decrement`, `delete`, or `truncate` to be `final` on `WriteGuardedBuilder`. Reflection of that same set shows 16 methods, including the two from R1, all declared final on the guard. `DirectWritesEngineTest.php:26` calls both on the bound role-grant builder before the row-count and version checks.
+
+**Observed:** the two write paths that previously compiled SQL now resolve to the guard. **Not observed:** the new Pest cases and engine runs; those logs were still being refreshed, and this pass did not execute them.

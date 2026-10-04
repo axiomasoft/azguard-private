@@ -1,0 +1,4 @@
+<?php
+namespace AzGuard\Panels;
+use AzGuard\Storage\Models\RoleGrant;
+final class ForbiddenModelCall { public function bad(): mixed { return RoleGrant::query(); } }

@@ -1,0 +1,7 @@
+<?php
+declare(strict_types=1);
+use AzGuard\Tests\Arch\SourceScan;
+it('rejects forbidden model-static dependencies', function (): void {
+    $files = glob(__DIR__.'/src/*.php');
+    expect(SourceScan::modelStaticCallsIn($files))->toBe([]);
+});

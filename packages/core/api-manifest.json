@@ -2555,6 +2555,53 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "errors",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "errors",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\InvalidConfigurationException",
             "kind": "class",
             "final": true,
@@ -5721,6 +5768,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "NULL"
+                        },
+                        {
+                            "name": "grantFields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
                         }
                     ],
                     "return": null
@@ -5739,6 +5794,21 @@
                         }
                     ],
                     "return": "bool"
+                },
+                {
+                    "name": "fields",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "target",
+                            "type": "AzGuard\\Schema\\FieldTarget",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "id",
@@ -6018,6 +6088,28 @@
                         {
                             "name": "permission",
                             "type": "UnitEnum|string|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "fields",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "target",
+                            "type": "AzGuard\\Schema\\FieldTarget",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -7382,6 +7474,332 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Schema\\Field",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "bool",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "contributedBy",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "date",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "enum",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "enum",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "getLabel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "inMeta",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "int",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isInMeta",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "isMultiple",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "isRequired",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "label",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "model",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "multiple",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "name",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "required",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "rules",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "rules",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "string",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "validationRules",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "valueClass",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "withContribution",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\FieldTarget",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "RoleGrant",
+                    "value": "role_grant"
+                },
+                {
+                    "name": "PermissionGrant",
+                    "value": "permission_grant"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Scopes\\AssignmentScopePhase",
             "kind": "enum",
             "final": true,
@@ -8095,6 +8513,1779 @@
             ],
             "stability": "api",
             "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Storage\\Models\\Permission",
+            "kind": "class",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Database\\Eloquent\\Model",
+            "interfaces": [
+                "ArrayAccess",
+                "Illuminate\\Contracts\\Broadcasting\\HasBroadcastChannel",
+                "Illuminate\\Contracts\\Queue\\QueueableEntity",
+                "Illuminate\\Contracts\\Routing\\UrlRoutable",
+                "Illuminate\\Contracts\\Support\\Arrayable",
+                "Illuminate\\Contracts\\Support\\CanBeEscapedWhenCastToString",
+                "Illuminate\\Contracts\\Support\\Jsonable",
+                "JsonSerializable",
+                "Stringable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "bindToStorage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\Storage",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "table",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "decrement",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "delete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "destroy",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ids",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "forceDelete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "increment",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "newEloquentBuilder",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "newInstance",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "exists",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "permissionKey",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\PermissionKey"
+                },
+                {
+                    "name": "push",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "pushQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "save",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrIgnore",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "uniqueBy",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "storage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Storage\\Storage"
+                },
+                {
+                    "name": "tenantRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\TenantRef"
+                },
+                {
+                    "name": "touch",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "touchQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "update",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Storage\\Models\\PermissionGrant",
+            "kind": "class",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Database\\Eloquent\\Model",
+            "interfaces": [
+                "ArrayAccess",
+                "Illuminate\\Contracts\\Broadcasting\\HasBroadcastChannel",
+                "Illuminate\\Contracts\\Queue\\QueueableEntity",
+                "Illuminate\\Contracts\\Routing\\UrlRoutable",
+                "Illuminate\\Contracts\\Support\\Arrayable",
+                "Illuminate\\Contracts\\Support\\CanBeEscapedWhenCastToString",
+                "Illuminate\\Contracts\\Support\\Jsonable",
+                "JsonSerializable",
+                "Stringable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "actorRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Kernel\\Identity\\ActorRef"
+                },
+                {
+                    "name": "assignmentScopeRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef"
+                },
+                {
+                    "name": "azguardFields",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "bindToStorage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\Storage",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "table",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "decrement",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "delete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "destroy",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ids",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "expiresAt",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?Carbon\\CarbonImmutable"
+                },
+                {
+                    "name": "forceDelete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "increment",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "newEloquentBuilder",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "newInstance",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "exists",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "origin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "permissionKey",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\PermissionKey|AzGuard\\Kernel\\Identity\\PermissionPattern"
+                },
+                {
+                    "name": "push",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "pushQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "save",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrIgnore",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "uniqueBy",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "storage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Storage\\Storage"
+                },
+                {
+                    "name": "subjectRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "tenantRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\TenantRef"
+                },
+                {
+                    "name": "touch",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "touchQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "update",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Storage\\Models\\RoleGrant",
+            "kind": "class",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Database\\Eloquent\\Model",
+            "interfaces": [
+                "ArrayAccess",
+                "Illuminate\\Contracts\\Broadcasting\\HasBroadcastChannel",
+                "Illuminate\\Contracts\\Queue\\QueueableEntity",
+                "Illuminate\\Contracts\\Routing\\UrlRoutable",
+                "Illuminate\\Contracts\\Support\\Arrayable",
+                "Illuminate\\Contracts\\Support\\CanBeEscapedWhenCastToString",
+                "Illuminate\\Contracts\\Support\\Jsonable",
+                "JsonSerializable",
+                "Stringable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "actorRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Kernel\\Identity\\ActorRef"
+                },
+                {
+                    "name": "assignmentScopeRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef"
+                },
+                {
+                    "name": "azguardFields",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "bindToStorage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "AzGuard\\Storage\\Storage",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "table",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "decrement",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "decrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "delete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "deleteQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "destroy",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ids",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "expiresAt",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?Carbon\\CarbonImmutable"
+                },
+                {
+                    "name": "forceDelete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "increment",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEach",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementEachQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "columns",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "incrementQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "amount",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        },
+                        {
+                            "name": "extra",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "newEloquentBuilder",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "newInstance",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "exists",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "origin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "push",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "pushQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "never"
+                },
+                {
+                    "name": "roleKey",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\RoleKey"
+                },
+                {
+                    "name": "save",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveOrIgnore",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "uniqueBy",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "saveQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "storage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Storage\\Storage"
+                },
+                {
+                    "name": "subjectRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "tenantRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\TenantRef"
+                },
+                {
+                    "name": "touch",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "touchQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attribute",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "update",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateOrFail",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                },
+                {
+                    "name": "updateQuietly",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "attributes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "options",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "never"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
         },
         {
             "name": "AzGuard\\Storage\\Schema\\StorageSchema",

@@ -1,5 +1,39 @@
 # P3 — evidence исполнения
 
+## P3.4 — GREEN
+
+Actor: implementer / Codex gpt-6.1-sol, high; provider-thread-state, B3b. Защита экземпляров и builder реализована root; arch-проверки и RED probes — worker models, итоговые гейты выполнены root.
+
+| Путь записи | Блокировка | Тест |
+|:--|:--|:--|
+| save/update/push/delete/forceDelete, Quietly/OrFail | final GuardsDirectWrites, исключение до событий и SQL | DirectWritesTest × local/testing/production × 4 модели |
+| touch/increment/decrement, Each и Quietly | final GuardsDirectWrites | тот же dataset, отсутствующие APIs старых Laravel не считаются skipped |
+| static destroy | final static rejection до предварительного чтения | eventless/fill-save regression |
+| insert/insertOrIgnore/insertOrIgnoreReturning/insertGetId/insertUsing/insertOrIgnoreUsing | final WriteGuardedBuilder | DirectWritesTest builder dataset |
+| upsert/update/updateFrom/updateOrInsert/increment/decrement/Each/delete/forceDelete/truncate/touch | final WriteGuardedBuilder | builder dataset + DirectWritesEngineTest |
+| create/forceCreate/Quietly/firstOrCreate/updateOrCreate/createOrFirst/incrementOrCreate | final WriteGuardedBuilder | builder dataset, включая existing-row firstOrCreate |
+| withoutEvents, fill/forceFill-save, custom model | final методы независимо от dispatch событий | DirectWritesTest |
+| StorageMutation::table | разрешённый Query Builder под mutate | прежние storage suites и DirectWritesEngineTest: успешная запись, версия +1 |
+| статические запросы моделей вне Storage/Database | token SourceScan, алиасы/FQN/транзитивные наследники/self/static/parent | ZonesArchTest + arch-red-model-static.exit=1 |
+| StorageMutation вне разрешённых зон | restrictedReferencesIn, ChangePipeline разрешён точно по классу | ZonesArchTest + arch-red-mutation.exit=1 |
+| Concerns/WriteGuardedBuilder вне Storage | restrictedReferencesIn | arch-red-concerns / arch-red-guarded-builder exit=1 |
+
+Raw SQL, toBase()/getQuery() — явно вне strict Eloquent контракта D22; это отражено в docblocks. Reset/doctor после таких записей принадлежат P6.4/P6.6. Реальные scratch RED probes сохранены с входным кодом и логом; после них исходники scratch удалены, итоговая arch-проверка GREEN.
+Гейты после исправления R1: targeted 713 / 3624; full 2029 / 242965; PG/MySQL engines 7 / 164, MariaDB 7 / 220; PHPStan 0; types 99.8%; Pint, API и diff exit 0. Все логи artifacts/P3-direct-writes/. После добавления final static destroy manifest regenerated owning generator.
+Task transition workaround и дополнительные Laravel APIs — artifacts/P3-direct-writes/environment.md. Independent batch review Grok 4.7/high: первое заключение RED, R1 blocker — установленный Laravel 13.33.0 пробрасывал insertOrIgnoreReturning/updateFrom в Query Builder. Root воспроизвёл запись без bump: SQLite insertOrIgnoreReturning и PostgreSQL updateFrom, см. bypass-*-before.log. Исправлено final rejection обоих методов; dataset покрывает 4 модели × 3 окружения; engine suite покрывает все 3 сервера; reflection-тест проверяет полноту защиты публичных write APIs установленного Query Builder. Исходное ревью и RED repro сохранены, pre-review/ содержит прошлые гейты. Повторное delta-ревью Grok 4.7/high в исходной read-only сессии: GREEN, R1 resolved; grok-delta.md. Проверен только repair delta, полная независимая проверка повторно не выполнялась. Полный phase Review P3 остаётся P3.5.
+write-site: pre_mutation: allow · pre_final: allow
+
+## P3.3 — GREEN
+
+Actor: implementer / Codex gpt-6.1-sol, high; provider-thread-state, B3b. Модели реализованы с помощью worker models; все проверки выполнены root.
+
+V51: GrantFieldsTest и GrantFieldsEngineTest записывают department_id=7 и meta.weekdays=[1,5] через mutate; неизвестное поле, неверный enum и отсутствующая model-ссылка отклоняются. V54-часть: decisionValues отдаёт только объявленные weekdays. Оставшиеся pipeline/condition/cache части принадлежат P5.2/P4.1/P4.8 по D12.
+GrantModelsTest/CustomModelTest: concrete модели, final identity-геттеры, канон host keys, UTC expiry, безопасные служебные casts, сохранение storage при hydration, неправильные/унаследованные свойства и Laravel 13 Table/Connection attributes. GrantIdentity — дополнительный внутренний trait в Storage/Concerns, общий для двух видов выдач, без расширения предметной области.
+FieldTest/PanelFieldsTest: все типы и immutable modifiers, reserved names, plugin/provider provenance, аддитивность и duplicate definitions. GrantFieldsTest: required/array/enum/model/date/custom rules, scalar enum и UTC ISO-8601, defaults.models.
+Проверки: targeted 404 tests / 1122 assertions; full 1434 / 240047; Arch 63 / 291; PHPStan 0; types 99.8%; PG/MySQL 6 / 145; MariaDB 6 / 201; api-manifest, Pint, diff GREEN. Логи: artifacts/P3-models/. Форматное падение Pint исправлено и команда повторена; не считается GREEN до повторного exit 0.
+Среда: test DB azguard_test, ports 25432/23306/23307, compose healthy; PHPStan с phpstan.restarted=1 из-за известного static PHP/turbo дефекта; Arch memory_limit=1G. Чужие .gitignore/.swissknife.json/.grok/ сохранены. Ревью по запросу владельца Grok 4.7 проводится после P3.4, граница полного Review P3 остаётся P3.5.
+write-site: pre_mutation: allow · pre_final: allow
+
 ## P3.1 — GREEN
 
 | 08 §5 | Реализация | Проверка |

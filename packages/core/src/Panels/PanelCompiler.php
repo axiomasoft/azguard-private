@@ -14,6 +14,8 @@ use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Schema\Field;
+use AzGuard\Schema\FieldTarget;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Closure;
@@ -144,7 +146,39 @@ final class PanelCompiler
             resolved: $sources,
             writable: $sources !== null && $sources->writable(),
             writer: $sources !== null && $container !== null ? $sources->writer($container) : null,
+            grantFields: $this->fields($recipe),
         );
+    }
+
+    /** @return array<string, list<Field>> */
+    private function fields(PanelRecipe $recipe): array
+    {
+        $fields = [];
+        foreach (FieldTarget::cases() as $target) {
+            $byName = [];
+            foreach ($recipe->layered(PanelRecipe::FIELDS.'.'.$target->value) as $record) {
+                $origin = $record['origin']['kind'];
+
+                if ($record['origin']['plugin'] !== null) {
+                    $origin .= ':'.$record['origin']['plugin'];
+                }
+                foreach (is_array($record['value']) ? $record['value'] : [] as $field) {
+                    if (! $field instanceof Field) {
+                        throw new DefinitionException('Panel '.$recipe->panelId().' expects Field objects.');
+                    }
+                    $name = $field->name();
+
+                    if (isset($byName[$name])) {
+                        throw new DefinitionException('Panel '.$recipe->panelId().' has duplicate '.$target->value.' field '.$name.' from '
+                            .$byName[$name]->contributedBy().' and '.$origin.'.');
+                    }
+                    $byName[$name] = $field->withContribution($origin);
+                }
+            }
+            $fields[$target->value] = array_values($byName);
+        }
+
+        return $fields;
     }
 
     /**

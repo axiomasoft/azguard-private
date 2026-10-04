@@ -1,0 +1,4 @@
+<?php
+namespace AzGuard\Sources\Folder;
+use AzGuard\Storage\StorageMutation;
+final class ForbiddenMutation { public function bad(StorageMutation $write): void {} }

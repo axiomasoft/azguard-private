@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+use AzGuard\Storage\Models\Permission;
+use AzGuard\Storage\Models\PermissionGrant;
+use AzGuard\Storage\Models\RoleGrant;
 
 return [
 
@@ -33,6 +36,12 @@ return [
     */
 
     'defaults' => [
+
+        'models' => [
+            'role_grant' => RoleGrant::class,
+            'permission_grant' => PermissionGrant::class,
+            'permission' => Permission::class,
+        ],
 
         // Prefix of permission names: true is the panel id (admin.orders.view),
         // false turns it off. A custom prefix is set on the panel.

@@ -1,0 +1,32 @@
+{
+  "verdict": {
+    "pre_mutation": "allow",
+    "pre_final": "allow",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": null
+    },
+    "content_hash": "a03c96116ebb26f1fd1833bd8690a6ed6020256fb61a4ebe29ee5d7ba06aaeb8"
+  },
+  "receipts": [
+    {
+      "schema_version": "validation-receipt/v1",
+      "evidence_id": "E14",
+      "command": "1) `vendor/bin/pest tests/Unit/Schema tests/Feature/Storage tests/Feature/Panels` — GREEN; 2) `docker compose up -d --wait postgres mysql mariadb`; 3) `DB_CONNECTION=pgsql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 4) `DB_CONNECTION=mysql php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 5) `DB_CONNECTION=mariadb php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped` — GREEN; 6) `vendor/bin/pest tests/Arch` — GREEN; 7) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 8) `composer test`; 9) `vendor/bin/pint --test`; 10) `vendor/bin/phpstan analyse --memory-limit=1G`; 11) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 12) `git diff --check`.",
+      "contract_sha256": "a03c96116ebb26f1fd1833bd8690a6ed6020256fb61a4ebe29ee5d7ba06aaeb8",
+      "spec_sha256": "5b025fee2ee119cced7ac91412abcf406188c5ad17ca644bcc0388866159aba3",
+      "head": "9e88024734e487a7c60d478662eb42fa132d5ca8",
+      "tree": "de40f6b21ce228207cecfceb4819d0eb718dc25941e37d07dd0304adec4f746d",
+      "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+      "exit_code": 0,
+      "executed_at": "2026-10-04T05:13:25Z"
+    }
+  ],
+  "context": {
+    "schema_version": "validation-context/v1",
+    "spec_sha256": "5b025fee2ee119cced7ac91412abcf406188c5ad17ca644bcc0388866159aba3",
+    "head": "9e88024734e487a7c60d478662eb42fa132d5ca8",
+    "tree": "de40f6b21ce228207cecfceb4819d0eb718dc25941e37d07dd0304adec4f746d",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16"
+  }
+}

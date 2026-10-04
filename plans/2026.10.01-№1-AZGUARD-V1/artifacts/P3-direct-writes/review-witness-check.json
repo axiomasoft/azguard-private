@@ -1,0 +1,13 @@
+{
+  "changed_after_initial_review": [
+    "packages/core/src/Storage/WriteGuardedBuilder.php",
+    "tests/Engines/DirectWritesEngineTest.php",
+    "tests/Feature/Storage/DirectWritesTest.php"
+  ],
+  "expected_fix_files": [
+    "packages/core/src/Storage/WriteGuardedBuilder.php",
+    "tests/Engines/DirectWritesEngineTest.php",
+    "tests/Feature/Storage/DirectWritesTest.php"
+  ],
+  "reviewer_session": "01a1055e-1154-7e82-a24d-5387f2a2f9fc"
+}

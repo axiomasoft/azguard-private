@@ -14,6 +14,8 @@ use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Schema\Field;
+use AzGuard\Schema\FieldTarget;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -282,6 +284,23 @@ final class PanelBuilder
     public function presentation(array $options): static
     {
         return $this->record(PanelRecipe::PRESENTATION, $options);
+    }
+
+    /**
+     * @param  list<Field>  $fields
+     *
+     * @throws DefinitionException
+     * @throws RegistryFrozenException
+     */
+    public function fields(FieldTarget $target, array $fields): static
+    {
+        foreach (self::input($fields) as $field) {
+            if (! $field instanceof Field) {
+                throw $this->invalid('fields() expects Field objects, got '.self::describe($field));
+            }
+        }
+
+        return $this->record(PanelRecipe::FIELDS.'.'.$target->value, $fields);
     }
 
     /**

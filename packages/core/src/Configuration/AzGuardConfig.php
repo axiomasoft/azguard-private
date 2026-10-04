@@ -34,7 +34,7 @@ final readonly class AzGuardConfig
 
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
-        'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions'],
+        'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions', 'models'],
         'defaults.gate' => ['mode'],
         'defaults.cache' => ['store', 'ttl', 'generation'],
         'defaults.consistency' => ['reads', 'state_refresh'],
@@ -57,6 +57,8 @@ final readonly class AzGuardConfig
         /** @var array<string, array{connection: ?string, table_prefix: string, host_keys: string}> */
         private array $storages,
         private string $hostKeys,
+        /** @var array<string, class-string> */
+        private array $models,
     ) {}
 
     /**
@@ -82,7 +84,35 @@ final readonly class AzGuardConfig
             self::discoveryFrom(self::section('discovery', $config->get('azguard.discovery', []))),
             self::storagesFrom($config->get('azguard.storages', ['default' => []]), $hostKeys),
             $hostKeys,
+            self::modelsFrom($config->get('azguard.defaults.models', [])),
         );
+    }
+
+    /** @return array<string, class-string> */
+    public function defaultModels(): array
+    {
+        return $this->models;
+    }
+
+    /** @return array<string, class-string> */
+    private static function modelsFrom(mixed $models): array
+    {
+        $models = self::section('defaults.models', $models);
+        $defaults = [
+            'role_grant' => 'AzGuard\\Storage\\Models\\RoleGrant',
+            'permission_grant' => 'AzGuard\\Storage\\Models\\PermissionGrant',
+            'permission' => 'AzGuard\\Storage\\Models\\Permission',
+        ];
+        self::assertKnownKeys('defaults.models', $models, array_keys($defaults));
+        $parsed = [];
+        foreach ([...$defaults, ...$models] as $kind => $class) {
+            if (! is_string($class) || ! class_exists($class)) {
+                throw self::invalidValue('defaults.models.'.$kind, $class, 'an existing model class');
+            }
+            $parsed[$kind] = $class;
+        }
+
+        return $parsed;
     }
 
     /** @return array<string, array{connection: ?string, table_prefix: string, host_keys: string}> */

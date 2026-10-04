@@ -7,6 +7,8 @@ namespace AzGuard\Panels;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Schema\Field;
+use AzGuard\Schema\FieldTarget;
 use AzGuard\Sources\PanelSources;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -33,11 +35,19 @@ final readonly class Panel
         private ?PanelSources $resolved = null,
         private bool $writable = false,
         private ?Closure $writer = null,
+        /** @var array<string, list<Field>> */
+        private array $grantFields = [],
     ) {}
 
     public function id(): string
     {
         return $this->id;
+    }
+
+    /** @return list<Field> */
+    public function fields(FieldTarget $target): array
+    {
+        return $this->grantFields[$target->value] ?? [];
     }
 
     public function label(): string

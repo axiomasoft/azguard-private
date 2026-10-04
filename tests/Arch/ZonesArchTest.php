@@ -169,6 +169,99 @@ arch('only storage and the database source touch the database layer')
     ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database'])
     ->ignoring('AzGuard\Tests');
 
+it('only storage and database sources call storage models statically', function (): void {
+    expect(SourceScan::modelStaticCallsIn(SourceScan::files()))->toBe([]);
+});
+
+it('only storage database sources change pipeline and testing use storage mutation', function (): void {
+    expect(SourceScan::restrictedReferencesIn(SourceScan::files(), ['AzGuard\Storage\StorageMutation'], [
+        'AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\ChangePipeline', 'AzGuard\Testing',
+    ]))->toBe([]);
+});
+
+it('only storage uses storage concerns and the guarded builder', function (): void {
+    expect(SourceScan::restrictedReferencesIn(SourceScan::files(), [
+        'AzGuard\Storage\Concerns', 'AzGuard\Storage\WriteGuardedBuilder',
+    ], ['AzGuard\Storage']))->toBe([]);
+});
+
+it('resolves model calls through imports aliases inheritance and class-relative names', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-model-scan-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $file = $directory.'/Calls.php';
+    file_put_contents($file, <<<'PHP'
+        <?php
+        namespace AzGuard\Panels;
+        use AzGuard\Storage\Models\{RoleGrant as Grant, PermissionGrant};
+        use AzGuard\Storage as Store;
+        class Custom extends Grant {
+            public function bad(): void {
+                self::query(); static::query(); parent::query();
+                Grant::query(); PermissionGrant::query(); Store\Models\Permission::query();
+                \AzGuard\Storage\Models\RoleGrant::query();
+                $a = 'RoleGrant::query()'; $b = Grant::class; $c = $object->query();
+            }
+        }
+        class Child extends Custom { public function bad(): void { self::query(); } }
+        PHP);
+    $child = $directory.'/Descendant.php';
+    file_put_contents($child, <<<'PHP'
+        <?php
+        namespace AzGuard\Filament;
+        use AzGuard\Panels\Custom as Imported;
+        class Descendant extends Imported { public function bad(): void { parent::query(); } }
+        PHP);
+
+    try {
+        expect(SourceScan::modelStaticCallsIn([$file]))->toHaveCount(8)
+            ->and(SourceScan::modelStaticCallsIn([$child, $file]))->toHaveCount(9)
+            ->and(SourceScan::imports((string) file_get_contents($file)))->toBe([
+                'grant' => 'AzGuard\Storage\Models\RoleGrant',
+                'permissiongrant' => 'AzGuard\Storage\Models\PermissionGrant',
+                'store' => 'AzGuard\Storage',
+            ]);
+        file_put_contents($file, str_replace('namespace AzGuard\Panels;', 'namespace AzGuard\Storage;', (string) file_get_contents($file)));
+        expect(SourceScan::modelStaticCallsIn([$file]))->toBe([]);
+    } finally {
+        unlink($child);
+        unlink($file);
+        rmdir($directory);
+    }
+});
+
+it('resolves grouped mutation imports and fully qualified internal dependencies', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-write-zones-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $file = $directory.'/Calls.php';
+    $code = <<<'PHP'
+        <?php
+        namespace AzGuard\Sources\Folder;
+        use AzGuard\Storage\{StorageMutation as Mutation, WriteGuardedBuilder};
+        final class Lookup {
+            use \AzGuard\Storage\Concerns\BelongsToStorage;
+            public function bad(Mutation $mutation): WriteGuardedBuilder {}
+        }
+        PHP;
+    file_put_contents($file, $code);
+
+    try {
+        expect(azguardZoneImports($file, ['AzGuard\Storage\StorageMutation']))->toBe(['AzGuard\Storage\StorageMutation'])
+            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Storage']))->toHaveCount(1)
+            ->and(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\Concerns', 'AzGuard\Storage\WriteGuardedBuilder'], ['AzGuard\Storage']))->toHaveCount(2);
+        file_put_contents($file, str_replace(
+            ['namespace AzGuard\Sources\Folder;', 'final class Lookup'],
+            ['namespace AzGuard\Changes;', 'final class ChangePipeline'],
+            $code,
+        ));
+        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Changes\ChangePipeline']))->toBe([]);
+        file_put_contents($file, str_replace('final class Lookup', 'final class ChangePipelineOther', str_replace('namespace AzGuard\Sources\Folder;', 'namespace AzGuard\Changes;', $code)));
+        expect(SourceScan::restrictedReferencesIn([$file], ['AzGuard\Storage\StorageMutation'], ['AzGuard\Changes\ChangePipeline']))->toHaveCount(1);
+    } finally {
+        unlink($file);
+        rmdir($directory);
+    }
+});
+
 forbidDependencies(
     'sources other than the database source and plugins stay off storage',
     ['AzGuard\Sources', 'AzGuard\Plugins'],
@@ -208,31 +301,7 @@ arch('plugins do not reach into internals')
 function azguardZoneImports(string $file, array $zones): array
 {
     $found = [];
-    $tokens = token_get_all((string) file_get_contents($file));
-
-    foreach ($tokens as $index => $token) {
-        if (! is_array($token) || $token[0] !== T_USE) {
-            continue;
-        }
-
-        $name = '';
-
-        for ($cursor = $index + 1, $count = count($tokens); $cursor < $count; $cursor++) {
-            $part = $tokens[$cursor];
-
-            if ($part === ';' || (is_array($part) && $part[0] === T_AS)) {
-                break;
-            }
-
-            if (is_array($part) && in_array($part[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
-                $name .= ltrim($part[1], '\\');
-            }
-
-            if ($part === '\\') {
-                $name .= '\\';
-            }
-        }
-
+    foreach (SourceScan::imports((string) file_get_contents($file)) as $name) {
         foreach ($zones as $zone) {
             if ($name === $zone || str_starts_with($name, $zone.'\\')) {
                 $found[] = $zone;

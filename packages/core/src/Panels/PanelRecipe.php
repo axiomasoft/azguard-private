@@ -60,6 +60,8 @@ final class PanelRecipe
 
     public const string PRESENTATION = 'presentation';
 
+    public const string FIELDS = 'fields';
+
     public const string BEFORE = 'before';
 
     public const string RESTRICTIONS = 'restrictions';

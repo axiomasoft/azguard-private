@@ -4,22 +4,32 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage;
 
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Storage\Models\Permission;
+use AzGuard\Storage\Models\PermissionGrant;
+use AzGuard\Storage\Models\RoleGrant;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DetectsConcurrencyErrors;
+use Illuminate\Database\Eloquent\Attributes\Connection as ModelConnection;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use JsonException;
+use ReflectionClass;
 use stdClass;
 use Throwable;
+
+use function Illuminate\Support\enum_value;
 
 final class Storage
 {
@@ -73,6 +83,61 @@ final class Storage
     public function table(string $base): Builder
     {
         return $this->connection->table($this->prefix.$base)->useWritePdo();
+    }
+
+    public function model(string $kind, ?string $class = null): Model
+    {
+        [$base, $table] = match ($kind) {
+            'role_grant' => [RoleGrant::class, 'role_grants'],
+            'permission_grant' => [PermissionGrant::class, 'permission_grants'],
+            'permission' => [Permission::class, 'permissions'],
+            default => throw new StorageMismatchException('Unknown storage model kind '.$kind.'.'),
+        };
+        $class ??= app(AzGuardConfig::class)->defaultModels()[$kind];
+
+        if (! is_a($class, $base, true)) {
+            throw new StorageMismatchException('Storage model '.$class.' must extend '.$base.'.');
+        }
+        $reflection = new ReflectionClass($class);
+
+        if (! $reflection->isInstantiable()) {
+            throw new StorageMismatchException('Storage model '.$class.' must be concrete.');
+        }
+        $expectedTable = $this->prefix.$table;
+        $defaults = $reflection->getDefaultProperties();
+        $this->assertModelSetting($class, 'table', $defaults['table'] ?? null, $expectedTable);
+        $this->assertModelSetting($class, 'connection', $defaults['connection'] ?? null, $this->connectionName());
+
+        do {
+            $this->assertModelAttributes($class, $reflection, $expectedTable);
+            foreach ($reflection->getTraits() as $trait) {
+                $this->assertModelAttributes($class, $trait, $expectedTable);
+            }
+        } while (($reflection = $reflection->getParentClass()) !== false);
+
+        $this->assertSchema();
+
+        return (new $class)->bindToStorage($this, $expectedTable);
+    }
+
+    /** @param ReflectionClass<object> $reflection */
+    private function assertModelAttributes(string $class, ReflectionClass $reflection, string $table): void
+    {
+        foreach ([Table::class => ['table', $table], ModelConnection::class => ['connection', $this->connectionName()]] as $attribute => [$setting, $expected]) {
+            if (! class_exists($attribute)) {
+                continue;
+            }
+            foreach ($reflection->getAttributes($attribute) as $declaration) {
+                $this->assertModelSetting($class, $setting, $declaration->newInstance()->name, $expected);
+            }
+        }
+    }
+
+    private function assertModelSetting(string $class, string $setting, mixed $declared, string $expected): void
+    {
+        if ($declared !== null && enum_value($declared) !== $expected) {
+            throw new StorageMismatchException('Storage model '.$class.' declares '.$setting.' '.json_encode(enum_value($declared)).'; expected '.$expected.'.');
+        }
     }
 
     public function state(string $panel): ?PanelState

@@ -2,8 +2,8 @@
 projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
-through: 2026-10-03
-inputs_sha256: d9281c3ee3535124f557cfb7c41b718a96a120b722c53a97059c9f78ccd74bea
+through: 2026-10-04
+inputs_sha256: f93ab75db44a3f2c25e9cb00adbf756974659057967883215d0f59170e376771
 generated_by: task plan-views status
 -->
 
@@ -17,7 +17,7 @@ generated_by: task plan-views status
 |:--|:--|
 | Version | — |
 | Status | 🟡 In progress |
-| Last Updated | 2026-10-03 |
+| Last Updated | 2026-10-04 |
 
 ## 4. Phase Index & Status Board
 
@@ -26,7 +26,7 @@ generated_by: task plan-views status
 | P0 | Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации | 5/5 | 🟢 Done |
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
-| P3 | Хранилище | 2/5 | 🟡 In progress |
+| P3 | Хранилище | 4/5 | 🟡 In progress |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 0/12 | ⬜ Not started |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
@@ -76,8 +76,8 @@ generated_by: task plan-views status
 |:--|:--|:--|:--|
 | P3.1 | Storage::mutate, блокировки, повторы, версия панели, host_keys | 🟢 Done | 2026-10-03 |
 | P3.2 | Миграции с префиксом хранилища на PG/MySQL/MariaDB/SQLite | 🟢 Done | 2026-10-03 |
-| P3.3 | Базовые и свои модели, azguardFields, meta, decisionFields | ⬜ Not started | — |
-| P3.4 | Защита от прямых записей | ⬜ Not started | — |
+| P3.3 | Базовые и свои модели, azguardFields, meta, decisionFields | 🟢 Done | 2026-10-04 |
+| P3.4 | Защита от прямых записей | 🟢 Done | 2026-10-04 |
 | P3.5 | Review P3: независимая read-only проверка фазы | ⬜ Not started | — |
 
 ## Phase P4
@@ -226,6 +226,12 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-03 | implementer / gpt-6.1-sol | plan-run · in-progress · — |
 | 2026-10-03 | implementer / gpt-6.1-sol | plan-run · closed-green · GREEN: findings/P3-execution.md; artifacts/P3-execution/P3.2-*; 4 DDL fixtures, engines PG/MySQL/MariaDB 5/5, full 1380, types 99.8%; D13 VARBINARY.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · in-progress · — |
+| 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · closed-green · GREEN: findings/P3-execution.md; artifacts/P3-models/. Targeted 404, suite 1434, types 99.8%, engines all GREEN.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · in-progress · — |
+| 2026-10-04 | codex:gpt-6.1-sol:high | plan-run · closed-green · GREEN: findings/P3-execution.md; artifacts/P3-direct-writes/. Suite 2029; engines GREEN; Grok 4.7 R1 fixed, delta GREEN.
 write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
