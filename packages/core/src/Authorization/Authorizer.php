@@ -16,6 +16,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use Fiber;
+use Illuminate\Support\Carbon;
 
 final class Authorizer
 {
@@ -34,10 +35,20 @@ final class Authorizer
         $this->active[$key] = true;
 
         try {
-            $trace = new Trace($request->isTraced());
-            [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace);
+            $now = Carbon::now('UTC')->toDateTimeImmutable();
+            for ($attempt = 0; ; $attempt++) {
+                $trace = new Trace($request->isTraced());
 
-            return $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
+                try {
+                    [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace, $now);
+
+                    return $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
+                } catch (ReadAttemptChanged $changed) {
+                    if ($attempt === 2) {
+                        return $this->pipeline->inconsistent($request, $changed->frame, $trace);
+                    }
+                }
+            }
         } finally {
             unset($this->active[$key]);
         }

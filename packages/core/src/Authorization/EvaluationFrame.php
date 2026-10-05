@@ -20,7 +20,9 @@ use Illuminate\Database\Eloquent\Model;
 /** Immutable operation inputs; a contribution receives its own frame. */
 final readonly class EvaluationFrame implements EvaluationContext
 {
-    /** @param list<Grant> $matching */
+    /** @param list<Grant> $matching
+     * @param  array<string, StateToken>  $sourceStates
+     */
     public function __construct(
         private Panel $selectedPanel,
         private AccessScope $selectedScope,
@@ -34,6 +36,8 @@ final readonly class EvaluationFrame implements EvaluationContext
         private Grant|RoleContribution|null $contribution = null,
         private array $matching = [],
         public bool $qualifiedSuperAdmin = false,
+        public ?ReadAttempt $readAttempt = null,
+        public array $sourceStates = [],
     ) {}
 
     public function panel(): Panel
@@ -100,17 +104,28 @@ final readonly class EvaluationFrame implements EvaluationContext
 
     public function forContribution(Grant|RoleContribution $grant, ?BaseRole $role = null): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates);
     }
 
     public function withState(CodeStateToken|StateToken $state): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin);
+        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates);
+    }
+
+    public function withReadAttempt(ReadAttempt $attempt): self
+    {
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $attempt, $this->sourceStates);
+    }
+
+    /** @param array<string, StateToken> $states */
+    public function withSourceStates(array $states, ?StateToken $database = null): self
+    {
+        return new self($this->selectedPanel, $this->selectedScope, $database ?? $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $states);
     }
 
     /** @param list<Grant> $grants */
     public function withAuthority(array $grants, bool $superAdmin): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates);
     }
 }

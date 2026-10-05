@@ -1,0 +1,102 @@
+{
+  "ts": "2026-10-05T05:25:08Z",
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "item_id": "P4.17",
+  "command": "plan-run",
+  "session_id": "01a10a45-f530-70d2-b8e0-c324eeec7fce",
+  "run_id": "a61acb666f60b5d265636975ebf2660b821ccd6aa9e30b2b02f0f918b9e76b8d",
+  "attempt": 1,
+  "actor": "codex",
+  "friction": [],
+  "result": "closed-green",
+  "cost_usd": null,
+  "num_turns": null,
+  "duration_ms": null,
+  "note": "GREEN: findings/P4-execution.md; 92 targeted / 2225 full-suite tests, Arch 72, PHPStan 0, types 99.7%, Pint/API/diff GREEN; independent Grok 4.7/high/500k round 2 GREEN. P4.3/P4.4 historical source witnesses committed and verified.\nwrite-site: pre_mutation: allow · pre_final: allow",
+  "decision": {
+    "signal_class": "acceptance",
+    "scope_class": "item",
+    "action": "close-green",
+    "recovered": true,
+    "terminal": true,
+    "terminal_evidence": {
+      "schema_version": "terminal-evidence/v1",
+      "spec_sha256": "df1b6ee94222a1d57c0aab60fdd0fcc43e5d689622417ddf599f9cdc138d28ff",
+      "validation": [
+        {
+          "carrier": "api",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/api.log"
+          ]
+        },
+        {
+          "carrier": "arch",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/arch.log"
+          ]
+        },
+        {
+          "carrier": "diff",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/diff.log"
+          ]
+        },
+        {
+          "carrier": "phpstan",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/phpstan.log"
+          ]
+        },
+        {
+          "carrier": "suite",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/suite.log"
+          ]
+        },
+        {
+          "carrier": "targeted",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/targeted.log"
+          ]
+        },
+        {
+          "carrier": "types",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/final-003/types.log"
+          ]
+        },
+        {
+          "carrier": "pint",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/pint-004/receipt.json",
+            "artifacts/P4.17-execution/validation/f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27/pint-004/pint.log"
+          ]
+        },
+        {
+          "carrier": "owner-review: grok/grok-4.7/500000/high",
+          "status": "green",
+          "evidence_ids": [
+            "artifacts/P4.17/owner-review/attempt-0002/receipt.json",
+            "artifacts/P4.17/owner-review/attempt-0002/output.json"
+          ]
+        }
+      ],
+      "repair_exhausted": null
+    }
+  }
+}

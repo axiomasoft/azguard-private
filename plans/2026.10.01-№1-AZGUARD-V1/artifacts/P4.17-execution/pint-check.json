@@ -1,0 +1,10 @@
+[
+  {
+    "id": "pint",
+    "argv": [
+      "vendor/bin/pint",
+      "--test"
+    ],
+    "depends_on": []
+  }
+]

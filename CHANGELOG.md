@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: opt-in dynamic definitions читаются для точного tenant поверх статичного каталога. Prepare и authority используют один fence на закреплённом read PDO; retry отбрасывает overlay и весь набор выдач. Статический PolicyOnly не читает dynamic/assignment storage.
+
 - Ядро 1.0: `DatabaseSource` читает точные назначения и выбранные поля выдач, поддерживает `rolesOnly`, builder и raw witnesses для query prefilter. Обе capability объединены fence с тремя попытками на закреплённом Primary/Default PDO; чужая транзакция даёт отказ только при потреблении DB authority. `Storage::own()` повторно использует каноническую пару connection/prefix с проверкой host keys.
 
 - Ядро 1.0: mode-aware политики сохраняют native `before`, DI ресурса и поля Laravel `Response`; `GateSource::map()` вызывает внешнюю ability без глобальных Gate hooks. Типизированные PHP/Gate bindings и индекс model/ability сохраняются в кэше каталога.

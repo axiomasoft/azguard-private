@@ -8919,6 +8919,21 @@
                     "return": "static"
                 },
                 {
+                    "name": "openReadSession",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Storage\\StorageReadSession"
+                },
+                {
                     "name": "permissions",
                     "static": false,
                     "abstract": false,
@@ -8940,6 +8955,42 @@
                         }
                     ],
                     "return": "iterable"
+                },
+                {
+                    "name": "readAssignments",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "readContributions",
@@ -8969,6 +9020,57 @@
                         }
                     ],
                     "return": "array"
+                },
+                {
+                    "name": "readPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "readState",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\StateToken"
                 },
                 {
                     "name": "roleGrants",

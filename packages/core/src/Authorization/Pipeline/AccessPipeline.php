@@ -10,6 +10,7 @@ use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\BeforeStage;
 use AzGuard\Authorization\Pipeline\Stages\BoundaryStage;
 use AzGuard\Authorization\Pipeline\Stages\RestrictionStage;
+use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -47,6 +48,29 @@ final readonly class AccessPipeline
         if ($decision->allowed()) {
             $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
         }
+
+        if ($frame->readAttempt !== null) {
+            try {
+                $frame = $frame->readAttempt->confirm($frame);
+                $decision = $decision->allowed()
+                    ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
+                    : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
+            } catch (ReadAttemptChanged $changed) {
+                // The root retries every stage; no observer sees a discarded decision.
+                throw $changed;
+            } catch (Throwable $error) {
+                $trace->error('state', 'source_error', 'dynamic_sources', $error);
+                $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
+            }
+        }
+        $this->after->observe($request, $frame, $decision, $trace);
+
+        return $decision;
+    }
+
+    public function inconsistent(AccessRequest $request, EvaluationFrame $frame, Trace $trace): Decision
+    {
+        $decision = Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

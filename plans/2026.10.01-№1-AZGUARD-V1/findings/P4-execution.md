@@ -228,3 +228,51 @@ P4.21. Эти будущие пункты не реализованы и не з
 write-site: pre_mutation: allow · pre_final: allow
 
 Post-review immutable dependency closure исправлен в owning SKM 066205bf: additive archived witnesses сохраняют original receipt/manifest/candidate; 271 affected tests GREEN + independent read-only review. P4.3 остаётся foreign baseline finding, его historical receipt не переписывался. Closure runtime pinned к qualified isolated source, concurrent primary SKM edits сохранены.
+
+## P4.17 — coherent dynamic Prepare, кандидат на закрытие
+
+Opt-in DatabaseSource читает exact panel/tenant dynamic definitions с Grants-only
+mode. Overlay сохраняет PHP-роли/bindings/static snapshot и отвергает static
+shadow/prefix conflict. Замена overlay отбрасывает прежние definitions/owners и
+не загрязняет статичный namespace index.
+
+Operation-local ReadAttempt охватывает Prepare → обычный boundary/before →
+authority/conditions/policy/restrictions → T_after. Assignments не читаются при
+before-denial. При смене любого consumed token Authorizer повторяет весь проход,
+сбрасывает overlay/frame/state-map/Trace и сохраняет один captured now. Три
+неустойчивые попытки дают ConsistencyError без accepted DB state. After вызывается
+один раз после стабильного результата либо после итогового отказа. В одной
+попытке DB schema/state/dynamic/grants используют закреплённый Primary/Default PDO.
+
+| Реестр / приёмка | Тест / команда | Результат на исправленном кандидате |
+|---|---|---|
+| V82/V92 read slice | DynamicCatalogTest: flag off/build=0 lookup, exact tenant A/B/global/foreign panel, static/prefix conflict, known actions/patterns | GREEN; writes/events/cleanup — P5.3, scoped integration — P4.18 |
+| V82/V92 coherent fence | DynamicFenceTest: changed/disappeared metadata, changed grants, other-source interference, whole retry, max 3, Default/Primary | GREEN; before denial=0 assignment reads, repeated before now identical, after=1 |
+| V91 local slice | DynamicCatalogTest A/B: один static role catalog, distinct tenant definitions/raw assignments; snapshot unchanged | GREEN; scoped Authorizer/cleanup — P4.18/P5.3 |
+| F04/F05 | FenceTest PolicyOnly=0 DB calls plus DynamicFenceTest before-order controls | GREEN; final CodeState/DB state выбран по реально consumed authority |
+| Targeted | pest tests/Feature/Sources/Database tests/Feature/Authorization | 92 tests / 282 assertions; exit 0 |
+| Full suite / architecture | composer test / pest tests/Arch, memory_limit=1G | 2225 / 243598; 72 / 314; exit 0 |
+| Pint / PHPStan / type coverage / API / diff | declared commands; sequential PHPStan restarter guard; no-fork/no-cache types | exit 0; 0 errors; 99.7%; API freshly generated/check GREEN |
+
+Stable product candidate: `f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27`.
+Evidence map: artifacts/P4.17-execution/qualified-checks.json. Seven final-003
+checks and corrected Pint/pint-004 bind the identical product. The raw final-003
+receipt remains incomplete because Pint included an unformatted scratch probe;
+that probe is retained as .php.txt and its RED/then GREEN execution logs are
+preserved. Old failed suite/arch/probe evidence is not acceptance.
+
+First native Grok 4.7/high/500k round returned FINDINGS: one minor missing registry.
+The registry is now present; second independent review is required before closure.
+The executor additionally demonstrated early assignment reads before before-Deny
+and corrected the complete operation model, not just its local query. The bounded
+integration adds Authorizer/AccessPipeline and ReadAttempt/ReadAttemptChanged to
+the declared Prepare/Authority work; frozen Scope/authority/spec are unchanged.
+Model and sequence: artifacts/P4.17-execution/{invariant-model.md,read-attempts.md};
+self-check: artifacts/P4.17-execution/self-check.json.
+
+Prior P4.3/P4.4 external-source immutable witnesses were absent from committed
+history. Owning Task source-recovery archived exact vendor bytes without rewriting
+original receipts/verdicts and committed them in 7c8a183 before predecessor
+consumption. P0/P1 historical write-site omissions remain foreign baseline.
+No dynamic writer/cache/scoped positive boundary/transaction protocol/race
+qualification is claimed; owners remain P5.3/P4.8/P4.6/P4.18/P4.20/P4.21.

@@ -25,18 +25,22 @@ use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
+use Closure;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 
 final class DatabaseWorld
 {
-    /** @return array{Panel, EvaluationFrame, PanelRegistry} */
-    public static function compile(Source $source, ?AccessScope $scope = null, Reads $reads = Reads::Primary): array
+    /** @param list<Source> $additionalSources
+     * @return array{Panel, EvaluationFrame, PanelRegistry}
+     */
+    public static function compile(Source $source, ?AccessScope $scope = null, Reads $reads = Reads::Primary, array $additionalSources = [], ?Closure $before = null, ?Closure $after = null): array
     {
         [,,$registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
-            ->for(User::class)->resourcePrefix(false)->permissions([DatabasePermission::class, $source])
-            ->roles([EditorRole::class])->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])->consistency($reads)]);
+            ->for(User::class)->resourcePrefix(false)->permissions([DatabasePermission::class, $source, ...$additionalSources])
+            ->roles([EditorRole::class])->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])->consistency($reads)
+            ->before($before ?? [])->after($after ?? [])]);
         app()->instance(PanelRegistry::class, $registry);
         app()->forgetInstance(Authorizer::class);
         $panel = $registry->get('admin');
@@ -80,6 +84,18 @@ final class DatabaseWorld
                 $mutation->table($kind.'_grants')->insert($row);
             }
             $mutation->touch('admin');
+        });
+    }
+
+    public static function define(string $name = 'reports.export', ?TenantRef $tenant = null, ?string $label = null, string $panel = 'admin'): void
+    {
+        $tenant ??= TenantRef::global();
+        self::storage()->mutate($panel, static function (StorageMutation $mutation) use ($name, $tenant, $label, $panel): void {
+            $mutation->table('permissions')->insert([
+                'panel' => $panel, 'tenant_key' => $tenant->key(), 'tenant_type' => $tenant->type(), 'tenant_id' => $tenant->id(),
+                'name' => $name, 'label' => $label,
+            ]);
+            $mutation->touch($panel);
         });
     }
 

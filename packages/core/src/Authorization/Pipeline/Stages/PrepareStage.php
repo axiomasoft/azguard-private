@@ -7,6 +7,8 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\ReadAttempt;
+use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -14,29 +16,33 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Sources\PanelSources;
+use DateTimeImmutable;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Carbon;
 use Throwable;
 
 final readonly class PrepareStage
 {
-    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $resolver) {}
+    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $resolver, private Container $container) {}
 
     /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
-    public function prepare(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace): array
+    public function prepare(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null): array
     {
         if (! $panel->accepts($request->subject())) {
             throw new SubjectNotAcceptedException('Panel '.$panel->id().' does not accept subject '.$request->subject()->type().'.');
         }
         $catalog = $this->registry->catalog($panel->id());
-        $definition = $catalog->get($request->permission());
+        $definition = $catalog->find($request->permission());
         $actor ??= ActorRef::of($request->subject()->type(), $request->subject()->id());
-        $now = Carbon::now('UTC')->toDateTimeImmutable();
+        $now ??= Carbon::now('UTC')->toDateTimeImmutable();
         $subject = $actorModel = null;
         $error = null;
 
@@ -53,6 +59,48 @@ final readonly class PrepareStage
             decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(),
         );
 
-        return [$catalog, $definition, $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
+        if ($definition === null && $catalog->isDynamic()) {
+            // Until scoped boundary resolution is installed, reject an explicit tenant/context before authority reads.
+            $reason = ! $frame->scope()->tenant->isGlobal() ? DecisionReason::TenantMismatch
+                : (! $frame->scope()->context->isGlobal() ? DecisionReason::AssignmentScopeNotAccepted : null);
+
+            if ($reason !== null) {
+                return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
+                    Decision::deny($reason, $frame->state(), $frame->scope())];
+            }
+
+            if ($error === null) {
+                $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame);
+                $frame = $frame->withReadAttempt($attempt);
+
+                try {
+                    $catalog = $attempt->catalog();
+
+                    if (! $catalog->has($request->permission())) {
+                        $attempt->confirm($frame);
+                    }
+                } catch (ReadAttemptChanged $caught) {
+                    throw $caught;
+                } catch (Throwable $caught) {
+                    try {
+                        $attempt->confirm($frame);
+                    } catch (ReadAttemptChanged $changed) {
+                        throw $changed;
+                    } catch (Throwable $stateError) {
+                        $caught = $stateError;
+                    }
+                    $reason = DecisionReason::SourceError;
+                    $trace->error('prepare', $reason->value, 'dynamic_sources', $caught);
+
+                    return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
+                        Decision::deny($reason, $frame->state(), $frame->scope(), 'dynamic_sources')];
+                }
+                $definition = $catalog->get($request->permission());
+            } else {
+                $definition = new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants);
+            }
+        }
+
+        return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
     }
 }

@@ -1,0 +1,2670 @@
+{
+  "attempt_id": "pint-004",
+  "candidate": [
+    {
+      "mode": 436,
+      "path": "CHANGELOG.md",
+      "sha256": "a370ebac1c121ffe21b5fcb7918bfb3163c7c0a98bdaf93ade43d74a8dc7e7c4"
+    },
+    {
+      "mode": 436,
+      "path": "bin/api-manifest.php",
+      "sha256": "205e7a9d36921748b5c6def3b116ff3b4d96d5e12a60d2247121660fc34fb7c6"
+    },
+    {
+      "mode": 509,
+      "path": "bin/consumer-fixture.sh",
+      "sha256": "1670ef5384b7a615e1d7f1b14d4f18fc0071e1facc9e56eb0596aa84a683f359"
+    },
+    {
+      "mode": 436,
+      "path": "bin/coverage-driver.sh",
+      "sha256": "1f8af4d84520efa177490e505b16a56df68d65119ea056809a341ab8d9ae2cd5"
+    },
+    {
+      "mode": 509,
+      "path": "bin/coverage-gate.sh",
+      "sha256": "8f5b9b9d8203dee32d5fd7661e8a0e6598a82f92ebc305e06fdc75438ceac159"
+    },
+    {
+      "mode": 509,
+      "path": "bin/docs-parity-gate.sh",
+      "sha256": "e1378d1f522a1f9a5b902dfd7bc9a4fb365830174c9ea37f2dc9b8ff779543bf"
+    },
+    {
+      "mode": 436,
+      "path": "bin/docs-php-version-gate.sh",
+      "sha256": "fd6fd595e70701af6089b98f18810c0e07532cc038bc06df97bd3a8e5b513389"
+    },
+    {
+      "mode": 509,
+      "path": "bin/mutation-gate.sh",
+      "sha256": "4d46c5dd348bb1424656c2a8ae17d1bfe1599504ac8b53dd33c88e22db9cb9b9"
+    },
+    {
+      "mode": 509,
+      "path": "bin/release-preflight.sh",
+      "sha256": "a46f5a8e14c8227dade4f78943bdf51cf99eacd06801a6f94493a6c709345ba1"
+    },
+    {
+      "mode": 436,
+      "path": "bin/test-release-preflight.sh",
+      "sha256": "2a9cb4814a5276902a7dc8c2dca321067953f86e7a34f27d6a87579e06ba397c"
+    },
+    {
+      "mode": 436,
+      "path": "composer.json",
+      "sha256": "0bbcd22f112fc35bdc6dc00b352f29a8c0aeb6b16769f84552467861cfba15b9"
+    },
+    {
+      "mode": 436,
+      "path": "composer.lock",
+      "sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/api-manifest.json",
+      "sha256": "914ab23ab8326329be1bbaf2bf8fb31cd0ae4d0ca52e830a869f0ee3be927b6b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/composer.json",
+      "sha256": "2e7cc7948c48a111f8e82e4a46b69f7c7a7c7717e2d5090fcf67fbc30d75c40a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/config/azguard.php",
+      "sha256": "7480be230978d7d2334a3c6443f88a410d530568e302702105f4a3212861f551"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/database/migrations/2026_10_01_000000_create_azguard_storage.php",
+      "sha256": "62c801e7e46dfd8f2c806a1893a80fd1bb831d04b0846a26568c411c76715bb0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/resources/lang/en/roles.php",
+      "sha256": "10d72b4f5b7d88198c5e9409fecc1db58fb24c872919f256c3e9c584bd345f1d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/resources/lang/ru/roles.php",
+      "sha256": "dc723abe93ba9549e1b4a5a51d298781d46c181c96413599e69f463438ab53e8"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Attributes/AsSource.php",
+      "sha256": "852c23dadd4b64b9e9aafaf3dc40c5a8265a48c569b4165e653e3da3db970553"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Authorizer.php",
+      "sha256": "97fe07dcec9b3100faade2da35edec021b7000d262236456a512a89b5d764eaa"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/EvaluationFrame.php",
+      "sha256": "2374fce34c297a8dea4e1063f50ccee3c7791ed18b86b90818c173356001771f"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/ModelSubjectResolver.php",
+      "sha256": "2d79456dd71b93a4b3c2e7ce3a306654b370156c423747fc83da750e7d364c2d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/AccessPipeline.php",
+      "sha256": "f9bf098c3a4663cb8554e13ce57cf89e7622513a3aadc879174be3a8e3603156"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/AfterStage.php",
+      "sha256": "978d51e48bc1bb50805e6a9babadb39a3f8f2e3552341117de58f903247cdfca"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+      "sha256": "c9552e7764888ac5c3fbfcffc1bb3f789bd28990dd385cba265c7b239361f993"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php",
+      "sha256": "87d810995858fdc9f1e40d93f900b1c2969424e809d7f66278d12a0eb04ec6b0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+      "sha256": "a074bafd6ae71ae015399f08540943e8a3f1b1e1cf4ea83bc3830e3d8c96a631"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php",
+      "sha256": "0c8f329cf2f88efc9d8a08ce0faf1edcfae1d7e0338374db8655659a71b25ea1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php",
+      "sha256": "0a6a371986981c8073b7b10ee9fb8369b78735fc154f3a3ed1e0df1cdb6a76c7"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/Pipeline/Trace.php",
+      "sha256": "d1474aadfdc3d69e798b89d76928b48717ed790b8e04b087ea4b01efc83e2c8b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/ReadAttempt.php",
+      "sha256": "d5e593af64ca16590325781b7f4e407e2a1c16038968a91d994c58b85a199d49"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Authorization/ReadAttemptChanged.php",
+      "sha256": "c2a4a234fbadd1df068ad43bee113aea450c76dee2190e555529168f636c0273"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/AzGuardManager.php",
+      "sha256": "e0b2fb3af2e363446b9952b12d27c74558a740ec23ab8fa5a8e1400869461cfd"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/AzGuardServiceProvider.php",
+      "sha256": "b298321d58ff1d0abf167b5b93dd87b431a23b58f814549ce4b42be8409b83c2"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Catalog/CatalogCache.php",
+      "sha256": "6a439799b34714861821102e8967011038da7756ba69a87fa2e319ca44bf36d4"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "sha256": "b393df2e04e5e81cff41be5664bc2055e259af6f97771ab1ae857d085eb8048e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Catalog/PermissionDefinition.php",
+      "sha256": "a5296fec4f9645853a10890213c92fcb5399bec2a3cb8f74e36c04ebfad835a9"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Catalog/RoleCompiler.php",
+      "sha256": "943b7fd818789ab442aaee4b4522c2c38a6ff9c1ae9282ab0bb53b0b007c2624"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Configuration/AzGuardConfig.php",
+      "sha256": "0b5852fe20972d42da32355b3f55ad64182904ea57904d9f660bf246b18cf9ba"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+      "sha256": "f863436927d91c08fbee340097fdd1bcbed69371edc136b3e91118c249f3c3bc"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Authorization/GrantCondition.php",
+      "sha256": "3fc442eb55944f321019d4cb554b43b28cca7ded0a80d562fd2e58796e2df37c"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Authorization/Restriction.php",
+      "sha256": "fdc4b28851f8da2548ff2d4d740280efa04abc05a1fcdbab5846331a2ffd3f99"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Catalog/PermissionCatalog.php",
+      "sha256": "0a576311311c9c4050abed4134719b1b42d1074105c4cc4d44f992215116881e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Panels/PanelRegistry.php",
+      "sha256": "7049a492b94ed1f0ed622af9a201457bc1e4e01ed96c5cf86d7953372cd633e6"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Plugins/DependsOnPlugins.php",
+      "sha256": "982f4c365b6643e7fb7a5ac707a85299f616c5786817e64458c02b1c061f4b4e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Plugins/Plugin.php",
+      "sha256": "8871d81c65f7df7bdeac7dfc553e768ecaa17ced3712d297334cae27e2ebaf6b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeAccessAdapter.php",
+      "sha256": "89bd67c8a03d7ffb96ad38abbbcf429e603928a5c9ce1fa7c1746239c169cb5e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeDefinition.php",
+      "sha256": "4f4dc4bf0fbe0fae5110801dadc26b59adfd3a2e5241dfdeb53fe9347d37e5fc"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeDirectory.php",
+      "sha256": "d881e50ace3b716330d90ac76608e1edb1acf45ac142326f4322bb20eb9523dc"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeFilter.php",
+      "sha256": "aea196582370f162f01d1aec477f8974536045f6153da30142cd57dc6b20cb24"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeMembership.php",
+      "sha256": "d9220bc23066910d485ba1fcd81ae466cb27af8b1b90a268be8aefa4d4e86530"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeResolver.php",
+      "sha256": "5bff23d50eefa36bcb34c2187776b38d56e669f13dcb34bd324d1db15af62567"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/ConfigurableAssignmentScopeDefinition.php",
+      "sha256": "660299d23f452af230c8acafc7fa54ce99f51aa4c45221b7ee35a40c8de8ff54"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/ProvidesAccessScope.php",
+      "sha256": "19519afe351d4a930c77993c36c540530cf2455e4cbcc0ce1d528d0581a56778"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/ProvidesAssignmentScope.php",
+      "sha256": "c0b701030dbd2ae6a880bd158bc4d26d246a67894d7d295412613b8987331812"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/QueryableAssignmentScopeDefinition.php",
+      "sha256": "9f43e1733c4b1b5cefe36adca3d11550c50a0d91a2232b41575a12e46e66e900"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/ResolvedAssignmentScope.php",
+      "sha256": "0f3fc4d384ff51cdac932a68e0672d86a80f77733a62862292f2cc79f2e9814e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/ResourceScopeResolver.php",
+      "sha256": "11ecb0d8f64c3c849acdda99e031fd1a43a0341ddd31b9797bacbc37f8c76474"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/TenantDirectory.php",
+      "sha256": "4ab5e9177e402d4b31d3418277d2f0aebb93d779e84d5d0f6d133543ca1ebe54"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/TenantMembership.php",
+      "sha256": "b24ff0e3ba425657cc45b99e422643ea51d73c196eeddb4ab656fdbb0424c124"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Scopes/TenantResolver.php",
+      "sha256": "65cd27aa7bd3e86d0b6b64572dd3eeeb0a7e7db184426dae28155c8923b750ed"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/AssignmentScopeSelection.php",
+      "sha256": "15c7fe810ca50d64586c4ff8b81a0896a385800d2cd57ece89da296f1f875058"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/DescribesSchema.php",
+      "sha256": "95226b159a02335d268c10101784981b48aaa00c6b448553c9fefb5550b6aa63"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/FencesReads.php",
+      "sha256": "2f6c14f58cfec745ae08cc6df7a94c4aea66ba3c13abf01447bbe52554e59d32"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/FiltersQueries.php",
+      "sha256": "d22d3f804337aebd97a0696d5f16a02d35fda8fab1cec0375bf4c24dbd22f823"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/ProvidesGrants.php",
+      "sha256": "b28d4eca99f2f048f683aae3d28c7ca7f22694dd8957efe500c7010f2c91af46"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/ProvidesPermissions.php",
+      "sha256": "c8436bbcff00d4318a41417dff1058fac354eb098688d240cf3dab301b1091fd"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/ProvidesPolicies.php",
+      "sha256": "d3faa225be9806d2ca3eff8266f41dc109e76ff2c595f6f7207fcb485a3f0984"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/ProvidesRoleGrants.php",
+      "sha256": "225c55ee22e8f29ffe3a34e2432d03a4f5bf24247d45fa4f2a61f3c1c72d7421"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/ProvidesRoles.php",
+      "sha256": "86412a14a22bd01b1b4e9293f6e9981970c0d5aa56fbf5600549589a25009057"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/Source.php",
+      "sha256": "51bad20aaeb69ea20a271ccef3ef773437f3c4b12db5c09793599639bd6b042e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/SourceDescription.php",
+      "sha256": "6c9f5c67f55be702e908b795763728c9669277d4997235a0c5613ed48ea5ac79"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/StoresGrants.php",
+      "sha256": "85b907b5cf8bf64ebc7c3d6ce9fa7ab22889aa3d90b00f8783cb4740fb6cab7b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Sources/Volatility.php",
+      "sha256": "6ec709b1b18d2d7727e1fcd21cc27a2f11e92d8684d48b10f016bcc3a4c4986c"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Subjects/SubjectDirectory.php",
+      "sha256": "ab732d552e4332f53a3fac86a505d54d651a059954979ff20d6877963a813948"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Contracts/Subjects/SubjectResolver.php",
+      "sha256": "77c967d1b6521e608fd8742ab8c0cec13fd802d49d8a4db6d1f02077b5dc66ce"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Directories/AssignmentScopeOption.php",
+      "sha256": "af8bc75aa1e1ef3f589d7ec09ad3d7874a3166641d85e3c28d3812a35dac98cc"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Directories/LookupContext.php",
+      "sha256": "857ddfa2aa7dfa2cff81dc6cf6dc3426ecf12ebca8c07b156eab77cb34e261c1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Directories/SubjectOption.php",
+      "sha256": "96e4d34425fa3b5369d5818566d62af1d216134af2cae38713b29e7fdfd5c20d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Directories/TenantOption.php",
+      "sha256": "ca52df090b8e9740b356ef3c6eb879dd4f244044a9aad97efc2942b2c2d5b175"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/AmbiguousPanelException.php",
+      "sha256": "9795a7798ae949c0249745ae777f823fb5bff2088189611f8756b3c956a93555"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/AuthorizationEngineException.php",
+      "sha256": "52b86acf4e5f0c6443efa68c86018df18225b91fce659343a1e801e14a93f70a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/AzGuardException.php",
+      "sha256": "f24462f82a356e73c19a6b0559d18cd1a622b55df19ddf28449be06abad24268"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/ChangeException.php",
+      "sha256": "ae0ee684f8ccb3c1e0e0d327417b95ee85a1624d3ab62597c47a6d454ef36b04"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/ConfigurationException.php",
+      "sha256": "131689e27bae23467af6e7f9eeefbc58f3b617f8bba961ab8ad22bbabede4e93"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/ConflictingPanelException.php",
+      "sha256": "2198102b8a22b318e4486033b14d5130e88aec4b6431e681942eb1bd0ed47c47"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/ConsistencyException.php",
+      "sha256": "215f13275d6f7f7ba58f016e9461439ab75a6601329fcc829be4acd6681bcdc7"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DefaultPanelConflictException.php",
+      "sha256": "a262bcd677c5795ccfe4f501656ac70f71bdf8094457548f5f0e48997690d66a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DefinitionException.php",
+      "sha256": "e7734fd893031d71a3cc8058cb4f076aa2d35b9f71ae7e022cc4521f13bad063"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DuplicatePanelException.php",
+      "sha256": "6eb98305eff85962467c4897c521fa60b1e41dd3f77e089dc3304c2a4ddcd7d8"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DuplicatePermissionException.php",
+      "sha256": "4de0771dcbc52df309c87ab9c58aede3f269a47edcec0a5aa716f49001e782d2"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DuplicatePolicyBindingException.php",
+      "sha256": "7a6cce8118b40dd4c678432a1a4c22cecff0cf2b13b6de432e166922beb7606b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/DuplicateRoleException.php",
+      "sha256": "c063e2c9b197a14f7a520b780e8a31a97c400627efb004c9e13defdc67839477"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidAssignmentScopeException.php",
+      "sha256": "118bc51cbbb3d4b0bbed062f10183ecc79f878a1553e7983f02ad6b2c53f3c8d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidChangeFieldsException.php",
+      "sha256": "ab2be10c94ab25d704096c8603fbcdb43a58a31ece69bb6cb51a8a76b18115d7"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidConfigurationException.php",
+      "sha256": "251d418626a1a7471a37dfa7542bc91d54fd65e323bf3bb8f0298bb68998cb4f"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidIdentityException.php",
+      "sha256": "9ac9c39d6f48e38134d4909a788ee3bf66ab2256433586a87226691fb577fe91"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidPanelIdException.php",
+      "sha256": "a5bb43cfe6dd112befbe135e90c9606d8e6678177154cfd8cdf902ee5999926a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidPermissionKeyException.php",
+      "sha256": "3e78262831c32629cf9538ba2feef5e681a34f3fb057c6bb95093c6e2e9c1fea"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidPolicyStructureException.php",
+      "sha256": "1463bdfe80bc487c54b9f06a6858bfe87a1c17bd2b5e5067be04a749fdea865c"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidRoleKeyException.php",
+      "sha256": "9f198afa459a525e20ef079cfa80f56c8f8fa8fd748fbcd19ef57ae303838133"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/InvalidSourceContributionException.php",
+      "sha256": "595e9ed99e7cc5e86b931e4879f75dd7dcb38be415d19f10d61531f59df33b4c"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/PanelNotResolvedException.php",
+      "sha256": "a25fd36a3398f49e4e6f31ad90052e6993080b6fe5e41e055f8067e3190a5102"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/PluginConflictException.php",
+      "sha256": "e72865cb8d37b91cdeab52dfa1eb4f34f2e6fea6096dedab8036251524119feb"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/PluginDependencyMissingException.php",
+      "sha256": "fa936c8b9b4ac14cfdabd8ff24f4d3624dbdabc56055a70ad6d8721059c4c477"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/PluginException.php",
+      "sha256": "6917fcf44fa10785eb22629a14f756070653f8b3b6da25b77ee1537a39fdbd01"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/PrefixConflictException.php",
+      "sha256": "f5a4d287045fa95dbc74ce3444e6d94e8b2e7cea9cec45e19c542e5f4a48ba73"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/RecursionDetectedException.php",
+      "sha256": "33cbf8ee9130aeedc03802a4564544d8a809c8e15b8824033221d3a657b35f6a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/RegistryFrozenException.php",
+      "sha256": "772bb6910965fcab52f92968f9a012e79757cd95c6236622bf11c3266386dea0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/StorageException.php",
+      "sha256": "19b6ce3349350fde550fb9fef6e3c3f3bcd68aa4881b7427bb318ed864256f7d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/StorageMismatchException.php",
+      "sha256": "27a0764a4703cd5d7eeee0be9c90e87024f3575f992c86933c75719bdb27a2a0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/SubjectNotAcceptedException.php",
+      "sha256": "9f42ad407ef7ab4de098e8eb5669d7d609c5ec6c13cf78492130673f47465a17"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/UnknownPanelException.php",
+      "sha256": "5f28c0163c20961c2a095aa770f1a2365b15fa60aee5a074f37c6ac2db158b98"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/UnknownPermissionException.php",
+      "sha256": "6af88fd2426021c38b9ce3bc5b76afa1f55b92c1e337f7c49d64fc25d7234733"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/UnknownSourceException.php",
+      "sha256": "89107d018d968547f14c63cd13430270904a041b1c377aa15f10431e819e4d86"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/UnsupportedDirectWriteException.php",
+      "sha256": "c5e989b01513a2241cee22b257857d88583edcf64ffab54f5678cb4c9a91baf0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Exceptions/WriterConflictException.php",
+      "sha256": "0ad1285c03b545050eb5452da29ed2302cf0815f5ae32a0ba4cc04fc85d41cf9"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Facades/AzGuard.php",
+      "sha256": "d61f1a0aafe4739f4acf4dd35b007f7694959ba29679051b00e82d5e5587d908"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/AccessRequest.php",
+      "sha256": "66806311cbe2af8603488d1d24dfce528203e63adc7db74291862acdc10a79ab"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/BeforeResult.php",
+      "sha256": "58354220b8613384b5f1d670642a31b6c9ca03ad7c688a8b4184649218ddf456"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/CodeStateToken.php",
+      "sha256": "e7970da3b17ca7edb85c7278458fbeda3445dd182221bbee6c2c8603214fa3cb"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/Decision.php",
+      "sha256": "e8a892a0a839735b848566f72a8d885cb1df39812443a95a96f814912e7c7167"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/DecisionReason.php",
+      "sha256": "304fe08b0d22a9888de137039d6b06aca59f771fdd0710e5d851df7396969c5d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/DecisionSet.php",
+      "sha256": "21cc1d3ab5484705108393b1e1f23faa9c8edcfe02792a97f7b0f55e07c6ad0d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/Effect.php",
+      "sha256": "566a68459fca5db9dfaa093d0810e1817a74f30b904fd70cbcef0b588df65825"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/Grant.php",
+      "sha256": "0da3d92c4bce892561ee702c56960d90f3d5bb1cb59d7ec5c9858154646f8087"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/PermissionAuthority.php",
+      "sha256": "9358c2da68eac5600f91cb7804530547d69dceb0538b0d8f42442d6f3b903b47"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/RestrictionResult.php",
+      "sha256": "e7120251bdec2d7788085b13c1c2238f672ab0682b6790b13caa5fe8f1b92eed"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/RoleContribution.php",
+      "sha256": "2e28887674cadb7713016f3abe85a9175c9828d59381e593a8ae7850c5e7c5d7"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Decision/StateToken.php",
+      "sha256": "2550a48db84d953282db13b1db069266fc73d03e63a29e8631c8e256ef5c2162"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Grammar/PatternMatcher.php",
+      "sha256": "2de05f069260619ca2a3e2404976fbf3877dbc02df93aad1ed36e79d7be1f9a1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Grammar/PermissionGrammar.php",
+      "sha256": "719539ec4e108c09b890816da350cebb6d0113ff37a793440e35dcbd9284eac3"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/AccessScope.php",
+      "sha256": "ff3bbce6d4f46992d81f0805a49af3f453a7a3fc515142ce896f553221f48503"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/ActorRef.php",
+      "sha256": "6175a31c4ada9cf9011e391029dab170932acfe4cae6fb1b7dac342dcf169c39"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/AnyAssignmentScope.php",
+      "sha256": "53c4a0a091977670923441a52c4c28a9feac0fd7950dacdda5a0e2736f36b4d2"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/AssignmentScopeRef.php",
+      "sha256": "20662405c47679c5687313bf5bf8406847a367b1d7f8f1fa5b85470a1a76c775"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/IdentityCodec.php",
+      "sha256": "31f4d98c8829882cc45f8abad30949d21e0fd59da6b6228d9180d258e3d1ce7b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/PermissionKey.php",
+      "sha256": "dcac04a7b51a796d0a48a63f9947bc00e72dcb6b42e62b51bc1225746bf86431"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/PermissionPattern.php",
+      "sha256": "4221caf6d58d54130dd922f90a69c942f681818f266cd51820e1c36fe7a1a65f"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/RoleKey.php",
+      "sha256": "3521ee4bcd5efcd0ee3a7f6b2ff4eb1f66c6596be2db6d9434ac3dbc37fad2a8"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/SubjectRef.php",
+      "sha256": "3b12b87c4929cb038fce9a96b599e971a8be29af2aaf6a70221c9f2306cb0978"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Identity/TenantRef.php",
+      "sha256": "4231fc7b5d93420ac636167bbd96cd68f0cf4cdefbb780faec2ee334e947975d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Kernel/Permissions/PermissionSet.php",
+      "sha256": "b307912b9e5e692604f4e2c9ea7715a21096e35d44027b31cc8fd68a9e89aade"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Laravel/Console/Commands/CatalogCacheCommand.php",
+      "sha256": "8372690718397e29eeeced84101455a9f5d2a8dd4e0f53f982d66232456562f1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Laravel/Console/Commands/CatalogClearCommand.php",
+      "sha256": "45777d60d2029ea374b96768882e18ccfdd3614263dce5e34c257f7e02ec2334"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Laravel/Console/Commands/StorageMigrationCommand.php",
+      "sha256": "14302f0c5405d85c8b507eac62b1391739858696630f0acd082311df4abd0f20"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/CurrentPanel.php",
+      "sha256": "92a1f9010cb111a3c9f61e3bb331f493ccaf992d2bbbae6a6ae439b6935e6572"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/GateMode.php",
+      "sha256": "5563fc043d36554aca1c64ba0781adb355ce20d6ac8bd464ef4db47b9de17734"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/Panel.php",
+      "sha256": "debe4157ae0fc90c8caae4da140bf98571a55232fed0e8b5c1193c1dee315366"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelBuilder.php",
+      "sha256": "c08d58992b3aff9f7cb532edf38c4cfc1a512d85ba833cd9163ab7974feda206"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelCompiler.php",
+      "sha256": "50e762dec11a4e8ef85b9b22556ce425f27e6ee5cb7a879e19d72e82d00058d8"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelFingerprint.php",
+      "sha256": "116590dd0543033dea7d5fc6aa29e1637635e473d9839e0cf76cfc7748258225"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelProvider.php",
+      "sha256": "dcaa3926650902a4f465d7631ae3f0c66bf0575b8079c14c8f2c5099450a7568"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelRecipe.php",
+      "sha256": "80ab9e06560e407ca23750246b52f94404f9bb054fdb187f689580163b24b071"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelRegistry.php",
+      "sha256": "c3337d33670fe3255f7d83a3105705699502ed878a6b4b4d859ec6e62beda4d3"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelResolver.php",
+      "sha256": "73e9bebe7a7886d2d265a42d79b23df5556fc256e7c7ad2a446628f32e51139a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/PanelSettings.php",
+      "sha256": "f95044276bb951ba31ca84ee0ceb92faa431c7a2a0f3f7b9c9b70f3ecdb6bcfc"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/Reads.php",
+      "sha256": "5963a9d08c011e4a1a8e63c2cf9e02b1e0a0f4ff62903e8b7505f6c5e94f19e7"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Panels/StateRefresh.php",
+      "sha256": "3f6edd2b16a60755663c7d016744a4a9ecf1e6d62500e1dabd33fabe3a591f78"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Permissions/Describe.php",
+      "sha256": "9ae570cfe732ee7de498e2291328caa167e7a282f2e55877b90bf64d3a664dba"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Permissions/GrantedToAll.php",
+      "sha256": "7d1d7c8651d385830428fa1cc4cb939bbbd7eb49100bdf13776fd1d638748ce4"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Permissions/PolicyOnly.php",
+      "sha256": "7c4542aa66d31c3ff6bcbd21a267334129e0903cadab538361edc2ce3e5cf8d1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Permissions/RequiresGrant.php",
+      "sha256": "b57b8445269a72e311fd723263885a955ea59c04057e79906232e243a3117c0d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Permissions/Resource.php",
+      "sha256": "c6c9fc6b4d04cb47ffbdbdb60fedf6b9745b13fe3bc341c7314ff6703edd480d"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Plugins/BasePlugin.php",
+      "sha256": "4fcdc0ccaba49b4278d6a62d3d6774acf8e24414da2e891f4801b060e4a51bbf"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Plugins/PluginContext.php",
+      "sha256": "3569135892ad5c7cf63e7960fd311edf4ab0a574b1c94d3f6ae9e3ebf25f068c"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/Decides.php",
+      "sha256": "7be56ea5554f180772876807f1ce3e1b7f1b88b71971c3993343d146dee6d1d1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/NativeGateBinding.php",
+      "sha256": "2dd7ec4351679053744996003576b5526dff8f97d01c09918d075cf26a3ec3f6"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/PolicyBinding.php",
+      "sha256": "a2ea54167a672e5171b23d73d7e4ab78e436fad72624447352f7d19f8c5e5bd6"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/PolicyDecider.php",
+      "sha256": "a6accde93a162a509d3670d1c1aad9f2b96d101906e92edf537fa49ef9aa6db1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/PolicyFor.php",
+      "sha256": "fa816bdffbaa06b6e7d60d891ccea70102e29324dff48ed2d397956109e8ad38"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Policies/RuntimeInvoker.php",
+      "sha256": "78292e0112c63bda21cca6bd99d992e007d1d1765ea49379c3465ac10ea45156"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/Attributes/FormerKeys.php",
+      "sha256": "3f5af95542b29dcebe185f7e51b86527a059a9170f3a0b2c0e25714e7fd2f900"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/Attributes/NotGrantable.php",
+      "sha256": "453bfd959a3f7c3f5cca3b6b8e5fada05acefa7c08eb6cb1a71b8fbf5a010d4a"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/Attributes/Role.php",
+      "sha256": "b83f102a2e14a340a381ac8e3dd74d962bee0c34371718558baea455bc19b0be"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/Attributes/SuperAdmin.php",
+      "sha256": "ac5d712059316e68ba0fd328f7971f8b574e084c0d3296e6621096c1b7edb810"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/BaseRole.php",
+      "sha256": "50d818b19d6b5ae1c49df958fd68ad22540c167100bb46a9a6464a267b63734b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/GrantedAutomatically.php",
+      "sha256": "41f3e16a67a263c3de912558b3d434296b78184862abca5f90928338032a1474"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Roles/SuperAdminRole.php",
+      "sha256": "4f8f7086dbe1d3767e94d49f0c405888cf4e9a2813441a0107643a3f6a167e4f"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Schema/Field.php",
+      "sha256": "8b2b33a31d9c6c3094324b7931200ab167d1ba9b467395a18bea7219c971e99b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Schema/FieldTarget.php",
+      "sha256": "a82d5bd6278018df95c7d0af359798d61002f30be040f1bd41108b3aa680bf19"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Scopes/AssignmentScopePhase.php",
+      "sha256": "35c777fd52f5efef2cf2645b8b70826113474fb4a9e71ca7128707dfb53364b3"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Scopes/AssignmentScopeRuntime.php",
+      "sha256": "fbc0dc4ab2df0347da64fe652769590bcbbf9d5168b892cdef7bc444c6eecf1e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Scopes/AssignmentScopeSettings.php",
+      "sha256": "0cc684c3eb3a82109a7265d61b560327dffacebcaf0b3590e9a1befdcdccef14"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Scopes/BaseAssignmentScope.php",
+      "sha256": "e5f1203035661676817cae69ad4f85cf1079be047fe6d8ef55ac9a39a59d7e18"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+      "sha256": "1fce3885fdebf812dcbf22628460ff67c40561e73feb0ade83faa1a318453b71"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Folder/AttributeReader.php",
+      "sha256": "68dde861205ea946a5eab2ad1a4ccaa47f5189a87d3df9cf73949a6685ef4a21"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Folder/DiscoverySnapshot.php",
+      "sha256": "d3fd8c6c382df1d63967e048e68580ac64df587966bac737a479474381029568"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Folder/FolderSource.php",
+      "sha256": "862eaa6ba5bb60142c9560ad987c34656d7ea8dd3b2aae024d398f7e12b25c8b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Folder/PanelDiscovery.php",
+      "sha256": "a12eaaf0a4dd49cbfd46687d476dd1b0fef071cf8d19c8b5d1df56e1663c6fa3"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/Gate/GateSource.php",
+      "sha256": "a526d59e083e0cea3a99fe3e2b40215c68203c1b1e28d504263a533b1efb64c9"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/PanelSources.php",
+      "sha256": "279870f7605c4b1ad360823a5ebc24b6e4633c1db34fd02657c5281c0484c88b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Sources/SourceManager.php",
+      "sha256": "d986cae88c1eac97f7eafb0906cce09085e4d5f7430ed936a227ed4ab86c331b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Concerns/BelongsToStorage.php",
+      "sha256": "23af73e05ca349d6f58b54f97f3f441058dbc34096dadf06ca78b9f9210d9720"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Concerns/GrantIdentity.php",
+      "sha256": "13518bb4e0d66090b9622450cb16372b98abc8ea046ec174d0fbc2e2fa09740b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Concerns/GuardsDirectWrites.php",
+      "sha256": "40dcd6186d4db23eff4328ff6553fb8213524a7d90add33c866b15edde2e50c9"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/GrantFields.php",
+      "sha256": "1fcaf9eb80de153d2fedd27fd4b9e2c68c96ef638e7fdfb2b5d5c287a27cda49"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Models/Permission.php",
+      "sha256": "c6f43158bd1d6a3afd07cffc12695d0770155a1bf06bdc30a0ed63c259df8740"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Models/PermissionGrant.php",
+      "sha256": "a994a5bc71b9344ba2453b5b03049b99833a979f2e63cf37b6240e31f28057a3"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Models/RoleGrant.php",
+      "sha256": "cf6b519977d862349ec953746e5a8b272a6fa107b623120f878dbe8f0ed7958e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/PanelState.php",
+      "sha256": "fca1e908ba6bc6fac0d48e8c57908ea0e3f62be76d0f713899e950883adc5a6b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Schema/HostKeyColumns.php",
+      "sha256": "eb8dd4fa08dfd52185fb3af39511aacea143fd1ab440c2665d5046c12cdba05b"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Schema/StorageSchema.php",
+      "sha256": "90687174cec24781eee90aeb4fa5b0332b1aec35ff905151be65c35343704705"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/Storage.php",
+      "sha256": "ace83aab838aeea01bbb61dc039afe2877b122a1e54f0ed911342b9f8a8e0654"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/StorageMutation.php",
+      "sha256": "33a9c926bd3693825e0d418a34ee8798db9f884956180cc112ed21e469a8b0aa"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/StorageReadSession.php",
+      "sha256": "12dde7f79800f654e95f70f2ccded60bca47b1be20d25f3a843a4aed444cd6a0"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/StorageRegistry.php",
+      "sha256": "d333de7944a11e8804adf2a78420e6a654c49e1382b765a1c51013b4fe15e7ff"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/src/Storage/WriteGuardedBuilder.php",
+      "sha256": "bc794e5eed456f9030c8dba3b350dd98b65782dc9c776469e16615efd8e7ace1"
+    },
+    {
+      "mode": 436,
+      "path": "packages/core/stubs/storage-migration.stub",
+      "sha256": "884441d9c7bed4f1660919a85e84e0046fae842c17e242f80492d3b0960a920e"
+    },
+    {
+      "mode": 436,
+      "path": "packages/filament/api-manifest.json",
+      "sha256": "0897c97e94c57f33e04928a731bc661039fb2e043eb6e3f3a641c92e6b3d5351"
+    },
+    {
+      "mode": 436,
+      "path": "packages/filament/composer.json",
+      "sha256": "5433b3350594e9f79a55460c74b0bab3870d7108683e769255d1b19c80ac7b57"
+    },
+    {
+      "mode": 436,
+      "path": "packages/filament/src/AzGuardFilamentServiceProvider.php",
+      "sha256": "f25bf727dfff869604a6887e51105f75361c5e9a71f8995db9a3350cf08dfdc8"
+    },
+    {
+      "mode": 436,
+      "path": "phpstan.neon",
+      "sha256": "11c954d8fdfea5fd2113864162478cc8d4827917602a9f5eb7a298210f85d461"
+    },
+    {
+      "mode": 436,
+      "path": "phpunit.xml",
+      "sha256": "0688c80315e40037ce09445bdf6dc1fffa0d1a2f29ab678d9bafeacb189da0e2"
+    },
+    {
+      "mode": 436,
+      "path": "pint.json",
+      "sha256": "5ba6a8bd912399ac2742e470f5457460080ceee53612b017129f1bb045dd9108"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/ApiManifestTest.php",
+      "sha256": "080f48844493b5d90f23e0a9fe32e6dce3fe56ee62a7f178d56ee9a0be4d72b6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/AuthorizationArchTest.php",
+      "sha256": "9ea2f81666e1c4a328afac3359fc271d1aa24bea74b694d7fa7f1065a9c36e7b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/BaselineArchTest.php",
+      "sha256": "47bbbfbe7b401cfa43409fa6ba2a5dc00b605aed44c754812a372933138db91d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/SourceConventionsTest.php",
+      "sha256": "ceaeeb3b6bee27fe9ef87e01c7b829fe7c2d02c21361537fc15b6dc738d41477"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/SourceScan.php",
+      "sha256": "f84eec1b1ba1a53f4f8edf02cab276dd7483b5b1e9659effb2d10da3aa43c181"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Arch/ZonesArchTest.php",
+      "sha256": "6741137560045b8572ed346536f600a0f70921a656eb996aa3bbf04b48a035fb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/DatabaseSourceEngineTest.php",
+      "sha256": "4ab05593d477a068e7d036abc8e93ba34dc52f4abdcc4d9e93b0bf8e0d4a99ba"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/DirectWritesEngineTest.php",
+      "sha256": "3a2fc4467415d5a135d3b773cf42f07af9ac1a87b1765c9e33aab108fc9b4450"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/GrantFieldsEngineTest.php",
+      "sha256": "e84d1b142ff642488766c1357c39a24c52bf0014ea8f32e94a7753a62994c1ce"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/MutateConcurrencyTest.php",
+      "sha256": "f6c75a8a8c4f81f10686069fd06e5a1830a4ae8cda9a10bdf434444dd322878f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/MutateDeadlockTest.php",
+      "sha256": "eaaaec4c1c5ec0fa13f9515790a0aa81f4025cdd99fcff213784e30b6585f6be"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/StorageConstraintsTest.php",
+      "sha256": "dbca5cf485c386a73c43804445d917ae6d894b89c9870d1433c868fe31204d0c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/StorageDdlTest.php",
+      "sha256": "a7d89b6eb6deb7cd35d8dd1e7d14f7be058c30fd7986033c33a42a0823d04231"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/StorageIsolationTest.php",
+      "sha256": "50ea6e8e796db4523cb3e5616f23fb55c9c2c8a05950f543752009dad3ba688b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/Support/Processes.php",
+      "sha256": "e971c2b982b4f99a7fa3bd797af09977fe776ebfa99a8827bdd918809af96cdc"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Engines/Support/mutate-worker.php",
+      "sha256": "96b26f9f65ce9853650f2809cdf71e5404c6195f0f2ee6579e1a19ed725509e7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/AuthorityDispatchTest.php",
+      "sha256": "06feea657658fc82d19e4c969ca3ca6671c6176470d9fb7db03b2636e0f87b6a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/ContributionQualificationTest.php",
+      "sha256": "dee995077aebfa42af513055e46803acb7d080503fecd7e6a7541c0c2a73957f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/HookListsTest.php",
+      "sha256": "c8866331ed94fe50493e24cffe29c6405357c8343658de38349deb4a46803ede"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/RecursionTest.php",
+      "sha256": "acc2ea99b6d6170a47dc0c81b1e5766e16fee5c3572c26dd257f8db24adb3777"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/StepErrorsTest.php",
+      "sha256": "5de5285130f4de75b6d51ae3de32ebe81bde639dfbf92e8b154d31cff9439c9d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Authorization/SubjectResolverTest.php",
+      "sha256": "f8083c742d88cb21966708ee47e7aadf2e4971afd33b617a19cffcb2c17d4b46"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/AbilityIndexTest.php",
+      "sha256": "5f07fbddba2649544f7570bbb300d21d476874fbeda55ff786d7d7560c2d8c4b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/CatalogCacheTest.php",
+      "sha256": "208d3783458d75e8567a00d97ac7ed492bdf0f6cfc3ab1eab73b4ef59f04833f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/CatalogCollisionTest.php",
+      "sha256": "fd3bdb227cde37dd54748304b666ff4a04ce96f23ae2904b1a501ee823d26888"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/CatalogResolverTest.php",
+      "sha256": "679a3283210f2015345b8ff3f78040060d472d5006f3870b45542585283e887e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/PolicyBindingsCompatibilityTest.php",
+      "sha256": "78a7fa001a5a4c6066f4c90b32de603f255c62874b6796e9e1a9fbdef78b3639"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Catalog/PrefixCatalogTest.php",
+      "sha256": "43e1b2055c7852a80178142cbfa644ab0251c686085cc6e50b19d1af87fcf057"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Modules/ModuleExtensionTest.php",
+      "sha256": "47f71f203e868a3d57b72869bb4d083fc81edb2894aa63b6283bdc4f02a93743"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Modules/ModulePanelTest.php",
+      "sha256": "035425883bf924fd721b8c990abac5837fb419d76a938e87be1712941ee696b1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Panels/PanelBootTest.php",
+      "sha256": "1fd0e8713afdc04e7b04659fa195d7f2845c71bcfdd445f556b28ed8cbf55054"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Panels/PanelFieldsTest.php",
+      "sha256": "0060ff1ae91ae2dce42e3655b40173a93feca8c5e09078ce4afccdc4f235f6f3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Panels/PanelSelectionMatrixTest.php",
+      "sha256": "d09a2ac2eb6685603886ca057a69f816567bea940dbba803a80c21d7bb1736af"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Panels/PanelSettingsPrecedenceTest.php",
+      "sha256": "399b82b395627130a1c14c3efb3cec8357002793a9a6875f2581bd528cdc2cfb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Panels/PrefixTest.php",
+      "sha256": "54ca93612449a059d9090ba7bd61650ab33acafc71a60972f3211b9e238c11a1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Plugins/PluginIsolationTest.php",
+      "sha256": "7254705994bd4bda3a60f504de607e79d5936951fdb2246e68bc7d747d6f6719"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Plugins/PluginLifecycleTest.php",
+      "sha256": "48d70e19d9bd0b5b7cc6fc1ee11c0bd53ec3cbb5e036d4ea2cfb7234e7f1f26e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Plugins/PluginSettingsConflictTest.php",
+      "sha256": "3f300f4eb6f539a1c4f54389776b9d5db9f7390f5f310a122a836d929fa3a490"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Policies/DecidesBindingTest.php",
+      "sha256": "210f14e7db6b1763be083ae1c887d62d011c9ebb774fc5d94e45576f296b95fa"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Policies/PolicyArgumentsTest.php",
+      "sha256": "6a7613452612c2a11582ec3c2b89800bc40f0ea58b33fe3380434c9f2549cbf5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Policies/PolicyModesTest.php",
+      "sha256": "2cb9091ea4eb757a77ce6f2190a1875377e77bdf1a8154431ac4006cbd34a302"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Policies/PolicyResponseTest.php",
+      "sha256": "08429e1f1ef7ca6d7a9ae4092c2144c25714dc5af32459fbeb3e72fb85d168d2"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Policies/TokenAuthorityTest.php",
+      "sha256": "620cf2f46ef2369466a9f1ae40f8de54b16c6a139bdb29e2b85ddeb7921cd577"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Scopes/BaseAssignmentScopeResolveTest.php",
+      "sha256": "9aa106a24fc88a66f91203e99374207637e37a9977b0c9d8bf836ceddcd985d6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/ServiceProviderTest.php",
+      "sha256": "7fbfd0d69dcc151ecc8c9b1d88468083a52d42ecd7aae35f75864f2e80e900da"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/DatabaseBuilderTest.php",
+      "sha256": "d671bc11c05b70b3eda1e5f1b103fe3210708aa33c67c30384694cda86d7e2de"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/DatabaseReadsTest.php",
+      "sha256": "7e5e8e81b25f64317270a20a2b4c16180d5212c98d580e5f63e8484c125b5d3f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/DecisionFieldsTest.php",
+      "sha256": "4f723132d4beae03aec300eac56b8507db893a23000a46b186eddb18062fac2b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/DynamicCatalogTest.php",
+      "sha256": "64943a3c2a48d14741e46f9aa4e5cfc1b19b4c02a582509db35ebfab73fc2428"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/DynamicFenceTest.php",
+      "sha256": "e0f0c6478102151d6870e3f13769b08b1c01276b1ca260351f8df16ef5ae5bd6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/FenceTest.php",
+      "sha256": "885a9fc1c896d04ceb1a2bf38877aedcd7564b4b7209f4d042100c7e64e4920d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/SelectionWitnessTest.php",
+      "sha256": "da4adc3e15f20c390cac1e015c43a6f74bbab415b14253e5a19577e2872db501"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Database/StorageOwnTest.php",
+      "sha256": "1a34d385a7d13b89b63dfcdff311e3c943bfa7557599c5e218e987d042660892"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Folder/AutomaticRolesTest.php",
+      "sha256": "16435b2026a1fe13ac7e904aeb13f58b2ed00d4468d771667b60a918e199088a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Folder/FolderPanelTest.php",
+      "sha256": "d5557888411bb03d48ca637e2743d4264c47156ec99035f35d5002e47a7f1683"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Folder/GrantedToAllTest.php",
+      "sha256": "aa9a64ec68285e890208a16f6e1abc718aacb6d893c3116344283c81ac6339fa"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Folder/PolicyBindingTest.php",
+      "sha256": "ef28e61667f2dab4c84c6089f0da6b8d7f7c091c7e23ad1265fea0bc0bdc3fdb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Folder/RoleKeyIdentityTest.php",
+      "sha256": "70111c6dcdb34541aa5833fb42195f7d059cafc0f69a8a3c8d25fc4f3264a161"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/Gate/GateSourceTest.php",
+      "sha256": "5f5c2486e9adfa82f7997410132ca776612d7d15175b54a1a814d9a6ce127f35"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Sources/PanelSourcesTest.php",
+      "sha256": "da545d5cae19443d19409d438eb929bd6e526145ee4a3f112157b56411ee7178"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/CustomModelTest.php",
+      "sha256": "c4e6ed258784ab75dac7205e3ae59b72a917fccf4622b1d27589c1915202d3b2"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/DirectWritesTest.php",
+      "sha256": "c0be16f01af8ebcbb809d5fe498f413b18e32064da687ae6a0e777761d621ba4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/GrantFieldsTest.php",
+      "sha256": "4d0b0a93f393128b7c13c1e811dbc154862990942fb7461d1ea75285f73d2a59"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/GrantModelsTest.php",
+      "sha256": "abb616fa635b4ee07d565e38f84ff744a9a8fd5f7a797957923263ad010706c7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/MutateSqliteFileTest.php",
+      "sha256": "5f907f1eba79519e316382b696c90361a0d8f5834a3f52f908ff59f9bb5ffd6f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/MutateTest.php",
+      "sha256": "212c861bc13af82648653eda762ae3a212313ce0d0ba1ed038a45ecdffe94297"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/StorageMigrationCommandTest.php",
+      "sha256": "eeacabd748264601d3975d843fc24565b7c58e9999a9e4f04df3c72239e4e7ea"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/StorageRegistryTest.php",
+      "sha256": "0ebfd7a825f940a0fe07f090c9d202d8c0d025b4467ce78162c1f88287ea1d51"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/StorageSchemaTest.php",
+      "sha256": "e69ade1d0d25a82e4d52214b9c0ae20eb58eb7f0b9dac1f37f48116f2ca412c8"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/StorageStateTest.php",
+      "sha256": "944948c9c772f5e0dc650b57efff8e605993a88832e0561794d41a197b3143be"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Feature/Storage/TwoStoragesTest.php",
+      "sha256": "eac3a8c2bcc7dde80de9d060798031d1ed13fcbc723dffe89f4558d41e51f00b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/AuthorizationWorld.php",
+      "sha256": "1afedb13093c55453e4d5393844e7339369878d23f1f6a7830ebafe9604424bb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/ContinueHook.php",
+      "sha256": "b12e035b392ca54043a2d4fe5fb797d88ab051324222aaf300cd48f99685b326"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/DepartmentCondition.php",
+      "sha256": "599876c10ed84db49b3c6523b86b3a411df30460ff75efcf6d792f70761b5be9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/ExternalAutomaticRole.php",
+      "sha256": "6d2e33805757e94b7430fc99a77d467bfbf93c550f5b85b4dc4931f0001991a1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/FailingSource.php",
+      "sha256": "dc4e3072a53b0ab6400004159ea86e097ad96de5711dc35e09bff2a8aca0c37f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/GeneratedSource.php",
+      "sha256": "0fcd33ea337d5b551d481a1a2ba456be7dab615a18c9f3c78ffb2a8f08b0ead9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/GrantableRootRole.php",
+      "sha256": "21264f24f285635f0bfa7711740862fc11022ef877d5f7d40a9b7a218740dcdd"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/PassRestriction.php",
+      "sha256": "84b5b9b50f68ab33de76788b696a722f1fcd768ff0f9abe3677846c2283b8ce6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/RecordingRestriction.php",
+      "sha256": "5fae9ec02e74943684cbe2920c6ec5f26eac35e53b86c742d235808b23f637d3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/RuntimePolicy.php",
+      "sha256": "fb8c8e9d9d7383bba3bfb1a6c4ebc7237ffa84d3fd388e3781e526b1763f66f4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/TokenAbilitiesRestriction.php",
+      "sha256": "9a3cb049194c990b98232108b844c7570dd6bfe2e1c0c6b6e03650d51b8fd90d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/WeekdaysCondition.php",
+      "sha256": "f6e33824400cdd1deac4188e9fceb82f4e404a38cfa8a029a3c619d60c5c72d9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Authorization/WriterSource.php",
+      "sha256": "d2d38978c6a331c104770a04862cb7550a226795a583aa3eacd5c7f1bb5a1e91"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/AdminGuardPanelProvider.php",
+      "sha256": "2584f8dd2c270c77d74aa096b8c4a819ceb8a09cbd9b5fe34f6437b119f16d77"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Permissions/Duo/FirstPermission.php",
+      "sha256": "21442365e9879a839571cf28531dca24f86953166ef78eed66b84a498b9cbf28"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Permissions/Duo/SecondPermission.php",
+      "sha256": "ac9af5178648767193c9a98bddd58d86d45af579ddd2086c3f758ea1026ec53e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Permissions/Orders/OrderPermission.php",
+      "sha256": "386895ffb5d0ed77b162ae90828205e4ca088e3a081a1dcb01ab87eb9d55ff2c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Permissions/Sources/SourcePermission.php",
+      "sha256": "d4333305766c27ec2bd6c0c0afbf7d6a64d3c4a19bcd1901a49c4a86d623bf5e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Permissions/Users/UserPermission.php",
+      "sha256": "d39b6cdb10b96ab7782a79342540a38975b5be7a8234bd76a8846e84851c063d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/PluginsGuardPanelProvider.php",
+      "sha256": "2335ef8ebfd98777da63e4599209d329e1f72bc3bcd888882fa801c3d031da19"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Policies/Duo/FirstPolicy.php",
+      "sha256": "3c61396c681cc8262bdb71bf219ba34afbc8d51443b755753e044b0a05d67749"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Policies/Duo/SecondPolicy.php",
+      "sha256": "4836a7de583ac0227c4d9d8e3da718e3fd0631c711feb86b1531e68c3a55933d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Policies/Orders/OrderPolicy.php",
+      "sha256": "5a7b34326e9e947fd8a8437c5c54a1408996ccbcc2787d9e538e1123febdf5a1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Resources/TrapPermission.php",
+      "sha256": "13e73723d73b46d98c6040337bf16855aae67415c51c4395c701091af8502193"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Roles/ManagerRole.php",
+      "sha256": "41971ac0cea89e7efd4fa58e2153b5adf88b4eaf8b8a75208a04f638d539fdd5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Roles/OverrideRole.php",
+      "sha256": "d45a841dd8d7c87b1c6f5d4a8c6380de37a786c38953aded308eb4413b72fb06"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Roles/SuperRole.php",
+      "sha256": "f50b05092b81a0e248ddaeef99bacf600e1856fcd513671121e332558dc6f985"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Scopes/ProjectScope.php",
+      "sha256": "de72a6ba32d35a4825ab2e6e9a436dd27dd477900fa78c75a1815951f3d9fd03"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Sources/LdapSource.php",
+      "sha256": "e0e9548251f3aff74026b29dda56d15de898e51e7b1097676557738e4921c675"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Admin/Sources/NotAGroup.php",
+      "sha256": "a33b734ee28c9ae1fdf96f3ad0eb7f290287f0346304b7db7c149900bf4b3fa9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Ambiguous/AmbiguousGuardPanelProvider.php",
+      "sha256": "c0342366da476794b31927199f547d3c2f90db4c5c7e38177348e0332e3a149f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Ambiguous/Permissions/Orders/OnePermission.php",
+      "sha256": "a8d728bdb038ad93390cb19ec6cb22a4fbc2b2b28d04309f9a8cefbfe9cb7e26"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Ambiguous/Permissions/Orders/TwoPermission.php",
+      "sha256": "2251b97e98182266ddb11f1ca8a0ffa4081f0652894ee1d9c727599326291275"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Ambiguous/Policies/Orders/OrderPolicy.php",
+      "sha256": "72254f7d36799ce6bfdbae9f2610cd8a355238feae51b57345c63e48fffb87ee"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Bare/BareGuardPanelProvider.php",
+      "sha256": "b7868db89d4323ce8a3deccf5eeaab49ff533a8cd502c3f040533a5d09c39246"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Bare/Roles/BareRole.php",
+      "sha256": "1ad783025325f840c49ba48086ed58069f651d8c77c6d3df40214945b60c09df"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Binding/BindingGuardPanelProvider.php",
+      "sha256": "08788ebf336181d5e78726dd1452326ce88ed4c1d2dec8198e050afe1cd780ad"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Binding/SilentPolicy.php",
+      "sha256": "783d921eec8a5d05dd1776a09f7bc911b3b64216c0d68e5da8ba87b71c4781dd"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Both/BothGuardPanelProvider.php",
+      "sha256": "e9c2b7f4f798b97a006ad51aef69493d7dc0f213e000a65cf74d399a8ab2a5e4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Both/Permissions/BothPermission.php",
+      "sha256": "6c85ff305eec69a25a640845b1e7b559a95ae0287e12b895ecbcf5f44ebb8287"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Missing/MissingGuardPanelProvider.php",
+      "sha256": "b4d7ec4599bc961163fc9bbfb9c9e8223b178614432583517263925354c16a3d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Missing/Permissions/MissingPermission.php",
+      "sha256": "c8a9bf34653351b0a7e38826c1e5cbae6a4825ec11999931e9c2b824fa937e31"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Clock.php",
+      "sha256": "5bc7ffe6e5f08fb6cce304adcce67508895d0705c553c80cf405e28a98fd3732"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Order.php",
+      "sha256": "4df1a80574c753d4b79e1d2129123c98eb6d25d879968e8984509eaacdf6d3f9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/OrderGrantSource.php",
+      "sha256": "3bc4e5137de8dc56631f7aa8df5c1c1cc0aa958b6d63fca2a0ee55e4d4265366"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/OrderWorld.php",
+      "sha256": "9cc2ccf6275001b079bdf7503715cb5e357244e9d0a6246adce51ceb817260f0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/OrdersPanel.php",
+      "sha256": "4eb211ab3d888a4f85ece97db00e3e5ab20cdb1b5cf0d601ebc6446a51c3322f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Permissions/OrderPermission.php",
+      "sha256": "8a463901c13250a2797e087e7ef35ca05131ff97939aeffc4cc41483734a1f38"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Policies/OrderPolicy.php",
+      "sha256": "8b8e220e234ce058f301db7b28bfcaf4b5a98f1e7c9d5b71ffd3750562cfa19d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Policies/WorkingHoursPolicy.php",
+      "sha256": "183ea144b87b553b65f1030bd43e24db49d40cf1a692f6475175b7aff4a90c09"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/Roles/RootRole.php",
+      "sha256": "2820870b4656b464d97e112f1014c271f53f7a9776714828613942255b465c33"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Orders/ServicePrincipal.php",
+      "sha256": "760ba93d152d619770e8bc03b1b6540a3c2c8f7e8150b04afe19bbf3f25ed008"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Desk/DeskAccessPlugin.php",
+      "sha256": "f78f9b074d8d04c4ae82f75cabe17ae9eebb39ae40152f635850b807ff19b048"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Desk/Permissions/Orders/DeskOrderPermission.php",
+      "sha256": "f3b571db0beed8ec5b7f121b1177e95a895e2d2266e2c7f18fbfe82acb68d9c1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Desk/Policies/Orders/DeskOrderPolicy.php",
+      "sha256": "4d54312b548981aa3879922ecd5ce6b1ca5649550712d07d02098d083896e998"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Support/Permissions/Orders/SupportOrderPermission.php",
+      "sha256": "d561f047ee3f56d3b727ed144d109fe5e702d2fd2d078c3c052a9bd08362dd80"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Support/Policies/Orders/SupportOrderPolicy.php",
+      "sha256": "783ef7030c0e0d03915791b124d1a6142695799d7026341694280f8e4a4d0888"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Plugins/Support/SupportAccessPlugin.php",
+      "sha256": "956fd12bd98aecd3ac95eac8f6dd1841019331b4aaf027e05963874ab65dc6bc"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shared/Sources/SharedLdapSource.php",
+      "sha256": "2283a311825e3a6fb77cb6e2201431a756e15a9a073679b107c0c548007d933f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/Permissions/ShopPermission.php",
+      "sha256": "44f87b4dd920887904983bc370f1b74ed06b54aa33df0fabc1a63532a4924265"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/Roles/RootRole.php",
+      "sha256": "35ee9c39f4b7d21534435d4072a81a9acded476b1ad5e86b57892be67463684c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/Roles/SellerRole.php",
+      "sha256": "b103f8b7f8124fe283b2fce123323db51945b0e1179feecf7dadf481fa128c28"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/ShopPanel.php",
+      "sha256": "d1e50693c1a1bd771ecd7494c238ffb668e948a5720d2fcf374bb54542275465"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/ShopWorld.php",
+      "sha256": "0b2312da82f0759ca6f7bb3658ea758975d87be1241f0308bfc4b1de9d53ac19"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Guards/Shop/Store.php",
+      "sha256": "1292fb5ec2a5fee98ea0dc09f88b32325a11cf158097e5183ebfbbb12a0c8f39"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/AdjustsPanels.php",
+      "sha256": "60e4a9e660532f85b8d0403250c1bc529461f3733fc553f48699aee64efcc31f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogAccessPlugin.php",
+      "sha256": "889b3c2f99e0b8e7a64879515a218c6c2657e9a2f6221c3481e578eee13296f7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogEditorRole.php",
+      "sha256": "791613774475ee3ef6d048e4326144d67b0fbb900bc113673b472f0cecce0743"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogGuardPanelProvider.php",
+      "sha256": "707e531ce456fd19a188543be930cfae663445665942e8db3c93ca81504d0ef9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogModuleProvider.php",
+      "sha256": "9af01a3ffbb7ed3d4b8441f3bab612fbb614d2d8470529b7f2a38fd690b3992a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogPermission.php",
+      "sha256": "bc54b1052cae07b8d04157baac02580d9dd054cddd19ddd30bcfa4fb9ef0f384"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogPostsSource.php",
+      "sha256": "b0d79608c96012385367c771129f1ba903fa939bfcbdc3dfd57da79a40e389c6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/BlogServiceProvider.php",
+      "sha256": "0d44da6c94b946821a94afcdc2cd3b80178085c5250ad49668e09fbafe6ef27d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/DetachedPermission.php",
+      "sha256": "15161231ba64ac17bd65f493a8a259a21e4bcb35e61005f145cebc9760138327"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/Guards/BlogFolderPlugin.php",
+      "sha256": "082a16acf231f1e090e3362d67997339e2692af859bf4449f9d8a5f482b2b00f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/Guards/Permissions/Posts/PostPermission.php",
+      "sha256": "a48436489647845ba0804ed069d15ac0d6fa3e994cff39f993971d185c691c21"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/Guards/Policies/Posts/PostPolicy.php",
+      "sha256": "17ceda9bd2f175593481bc6858c1e68792a6b844e800661ce4289633b6539433"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Blog/Guards/Roles/BlogEditorRole.php",
+      "sha256": "ad3ebaafd37974cda90f95fe02066cd261464ae6cc7dbee9a2e3f1d37afbbf3e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Shop/ShopAccessPlugin.php",
+      "sha256": "b15c5e866be67d66d4b12cfe5702f78207f5ee3020e7088477236beeedb6519f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Shop/ShopEditorRole.php",
+      "sha256": "6cec4fe6e0cc3d8975c48edc46a345255f01cdff6ce1cf8143f3aa15618b73b2"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Shop/ShopPostsSource.php",
+      "sha256": "39df3e162d9dfd28420ce98469a856a4d02fc848cc57380423a9b1cfabb1a455"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Modules/Shop/ShopServiceProvider.php",
+      "sha256": "ab8c0cfda13bfe297f7189485b73f664141f3a8724a8b0b60e2f389ba618b7eb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/AdminPanel.php",
+      "sha256": "e388142dcf9acdfa86b0e74ae105d5b4eb98916642bcc891a73d07f1da77cb18"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/AdminReplacementPanel.php",
+      "sha256": "0abf37d4bdc635837a986d8ad2e816c8be4c9c16c756017e760f0e19fa0a009a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/AnyIdPanel.php",
+      "sha256": "c8723d7fa8c75d30ad09d985e861c350c3c36e434a7938e81e401a75b95ff5f8"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/ArraySource.php",
+      "sha256": "a8d3c66af62439bb84f1cf23fa9b39f6548faa3fb0541e806dfe464d2c481872"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/BootsPanels.php",
+      "sha256": "565a8a607e582e866c74ad325422eb2b8a63ed400dd4b6bef35468da8a23a474"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/CabinetPanel.php",
+      "sha256": "5e62998ea06cc8b7164171605d0ef8a2750e828a052afd797c29a90b128d9440"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/FixedResourceScopeResolver.php",
+      "sha256": "ec5baacea638a3dbc08dab66fd74d9de7c6f11c608de6a1a7a0b45af88be78d0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/FixedScopeResolver.php",
+      "sha256": "4c595ed5660e9989f21d673812981d570562a672f1f6853d35310e3debfe34cb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/FixedTenantResolver.php",
+      "sha256": "910c189bb3ec0dda7624d718a5ebf77f8087b4bc178562cf67441759b105f77c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/FixturePanel.php",
+      "sha256": "436e639cb342457ac1aeffe4c06091b3e6eea7a7325138f37af4f3ca5f1b2eb4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/InvoicePermission.php",
+      "sha256": "c3a9b213aea2380a46b19e01d0ee85eb3d320af38f364c2cb8398b248d1bb0b6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/Manager.php",
+      "sha256": "7f16e63cbf259dbf4e0ffa0ae111569c7323d5c619a8ce0376522f45e71a77a1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/NumericPermission.php",
+      "sha256": "c097d0c7fa027e4cbcecf5de7fc4c4e68d14a24bfc8c5fcff080e306542a1a1a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/OrderPermission.php",
+      "sha256": "27f070059f981e360655c25123d243cd99c1457303afc46b8f6ab4d537603f7c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/PanelModuleProvider.php",
+      "sha256": "ea69877d6254570a54619006e3f5259e33b8594180b379e25cfb49a01125ed6b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/PanelRegisterTimeReplacer.php",
+      "sha256": "fd8262e502c4c39d4b6e8041e9eeeef5425a2d7aefecaa87f8131e251ee1fc33"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/PanelReplacingProvider.php",
+      "sha256": "6d14f6467e98b72bc40081251672e9a281d8b6928bc52f18a25328e0241c4e09"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/PanelWorld.php",
+      "sha256": "7020af965f3685c9038cec50ccb45c017fabcc4fdabb09b881a932cbe13332b1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/PlainMarker.php",
+      "sha256": "4cb81808edfddc3fa9c80aebe99413f49d5acd5415182f46c23f51c9a57e3057"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/Seller.php",
+      "sha256": "4a9c06a373e6e75fb69d7f8e011338fc2b4055162eefa5a29f67cb870ad27d64"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/SellerPanel.php",
+      "sha256": "ef077cc2f8d81e167e603ea893689b1412311b77e1523beb80213ab81dcab0df"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/SharedPermission.php",
+      "sha256": "939178c68bf5613bc856725e7b9eddea87401e607ea13677b389bfbc7a44665d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/TestPanel.php",
+      "sha256": "34c2666dabf2cb7cb733c76cd617ec4072193a2e65e39998c237b33df6e7c0f0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/User.php",
+      "sha256": "5b7993eb1a15834e1bcddded55e43c533e8a21af128ff9693bf11f42439a6d6b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Panels/Vendor.php",
+      "sha256": "a03121e14a418713bc731c703f8d277c555dc15d1f59edd3e3163ceb507df2f0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Permissions/AttributedClientPolicy.php",
+      "sha256": "14f470601a40692b7a6975db32889f729f997d46df15fcf7337a184e10ad5849"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Permissions/ClientPermission.php",
+      "sha256": "b16ffc01fbf217b7c49a43047a33de9756ef9382ed6b721408bd4515f2980227"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Permissions/ClientPolicy.php",
+      "sha256": "57d02518496e7330c6b3428b81cc475596493bcf92440555ec76b1674670a5b0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Permissions/OtherClientPolicy.php",
+      "sha256": "d98556736b52bfad92c879a05edc77581df4d0e7cf16be4e49df803887839ed2"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/Account.php",
+      "sha256": "4f314f2e3c47bb2e53d97700913588935c3387c68c2026c9cf0ea198bcacb7b5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/AuditFreeze.php",
+      "sha256": "4a4cafbf66250dbb79b2ce6485dd71618bd9fd8912134a04f2bc10a69be04930"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/AuditJournal.php",
+      "sha256": "e51aee24678abad2701b2006243fc9c219dfb34fac9a66f32cbf92f6562a4cbd"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/AuditTrailPlugin.php",
+      "sha256": "a49f7b57d993117738e410f107f2ae749689c2291073b7d31655240d4dbcbcc1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/CacheTtlPlugin.php",
+      "sha256": "f7ce3b49cdac9a4134708dad8ec5b04fcf0b2ad08f5469fdc46e668c7a84b5b9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/CrmAccessPlugin.php",
+      "sha256": "f3389fb63d3b1dde15eb300554f760db74e497e58d91b71ba9e490555a87f486"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/CrmModels.php",
+      "sha256": "9d2d004b12424305b06e5b230b40f1e5f0120c824a4981fbfe0aa216a1007234"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/LateChangePlugin.php",
+      "sha256": "7dd2e3855a3e170754a70c0cd6f9eb9cafcf1d6272b70650c918061a71392680"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/ProbePlugin.php",
+      "sha256": "e31367481e6b3b4ee197efe0f80d58eceed37228ecaae6cad27d25bd94b9d570"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/RecordChange.php",
+      "sha256": "86ae02bdef6316af8ad274cd64d74207a4d29b295c0bcab8c4f1eeea4d7beb1f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/ReportsPlugin.php",
+      "sha256": "c32a44edd0f601a2a9f4018a0a80ff7a4b4c4a4eb3a32cdae701b6bcc43fd92e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Plugins/ReportsTableExists.php",
+      "sha256": "91f8f0190085bc5186977497066e832940021befde6c1c0c3e099eea5c4fdf64"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/GateGrantSource.php",
+      "sha256": "2741c6edda0421711e6a242000b2312cbcfe32e113ca32646d2fa50b67624ea0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/GatePermission.php",
+      "sha256": "314841493fddbcf3636bc9e90685b54c5ae7d5fe7cb29451d4ba37584a356d73"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/GateRecord.php",
+      "sha256": "a1a4344102b7f649d7d75929675e24ab768392d987604321cb32724601095fcb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/GateWorld.php",
+      "sha256": "c07ed134df6d4b722dee4ece0e55e5cd453cec202fa24d6674c85b4f327f71c7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/IndexedPermission.php",
+      "sha256": "76b60c21f4fff47550c428b79235a6a31ccadda26b60775a11e2a75f70abd5a9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/NativePolicy.php",
+      "sha256": "c12abfdd4903c5ac1cebd940b25cd6484825a50165b245e1b1f6cba43f919634"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/PoliciesGate/PhpPolicy.php",
+      "sha256": "dfc10d3e3fc03c10c487e1bc393f1eafcfd5bc3b6e7c6c363804589aeb3babed"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/AnalystRole.php",
+      "sha256": "7c7c391b7298a493251d28a6974e5cf077d1f5e8db1207c428c2b6b58ce8801e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/BadKeyRole.php",
+      "sha256": "f8af1fa9b4f83267bf7b8e5c779b9064a78033410cefdda372227f250608d842"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/ExSellerRole.php",
+      "sha256": "57816e6ed59ed7efe1b71f43947a82da1fe4758f1d08d1f465c9b5ca42d69277"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/ManagerRole.php",
+      "sha256": "9ed21d7dfc9ba3c62dca69d9350af46925a6e96d273f25ee7e763caa8150b6e3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/OtherManagerRole.php",
+      "sha256": "4b296a0e40d2cc474ffc65ec1f98bd405b06efeae49333de8abdd401a31a378b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/PlatformRole.php",
+      "sha256": "5c477122c25746166756e2e11efd6b97652e0156b4f52103b2270b614a8ff871"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/ProfileViewerRole.php",
+      "sha256": "9bb8ac4135326ace5a6073ee0339076265acefc3cd7f74739ccebd1263d5b32a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/RootRole.php",
+      "sha256": "4624807dc25cbe525d7106b25cbb49145a5bdcb1366f65f58fdfe4936faf6b71"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/SelfFormerRole.php",
+      "sha256": "5d0efc6e3ab4480e5591e0420f5d650724f6d49d1bb615f14bc94e3a63b53984"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Roles/SellerRole.php",
+      "sha256": "5342df4ef8c7cd69f7c85c1544852dae3f8b4bc30bd571cad35e19c0ba9b0d0c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Scopes/ActiveProjects.php",
+      "sha256": "124c82be34a24f234f0c4284e77b01290626955c275adbdb7ecbccb3813a84ed"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Scopes/ConfiguredProjectScope.php",
+      "sha256": "72289610038dcca4259455f33708e0f9fe2b32464eeb30cb8d9af2b07c584001"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Scopes/Project.php",
+      "sha256": "52fe73c408efcfa85695bfc586c93502506dff1328b5f08de0637060d22f7016"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Scopes/ProjectDirectory.php",
+      "sha256": "d1a1d4bbe986795f0c09b113dd96024db82196d902b20e3cbbd1ea4d1a7b22fa"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Scopes/ProjectScope.php",
+      "sha256": "d75653c43578ab5fe1627e2d11bc8a2e65c348b221b5e45e3fffa1af7d54a337"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/BootsWithCatalogCache.php",
+      "sha256": "af8bba2bdf62cf0c95322fd28243a806c3cd68e31bae4f60bc07a7dbf6ec052e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/DatabasePermission.php",
+      "sha256": "4b092bce5f1c05fdad7f9899932d4e12e525a08d9ac4f35d5cf6ff3d7c2b054b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/DatabasePolicy.php",
+      "sha256": "45816f26da2eaff511aa5d1b399a155db2dd25593ee8985dfd6ee09cb1adc13c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/DatabaseRoleGrant.php",
+      "sha256": "60168f8c49ab04f85ed4bd57238e511ca812839bbfc318954418cbeee2554841"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/DatabaseWorld.php",
+      "sha256": "07679a72925c4bf6bd136458f3618e5ea1e3149aec705fa53e081ad26add09c0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/EditorRole.php",
+      "sha256": "189a1cf17bd2ac04b14957f485d2706dea97e83cbefb643d9575a7f6f03011f5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/FencedContributions.php",
+      "sha256": "f788623f0e64365c4278c4eaf62643ea8313da8dc715c980fdbd6313a56a7614"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/FencedDefinitionsOnly.php",
+      "sha256": "f12642cf76ab287712523779ac183b941468aff9831569e07649667a2a1bd95d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/Database/InterferingSource.php",
+      "sha256": "512a61173881bc90320457c4f2e24a387f5b698b6cc1298c5cb9ed83270123a7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/LdapSource.php",
+      "sha256": "7894e60b8c41d1f4aad5808774086c8569a709e4d7b795717c113632069fdf59"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/LedgerSource.php",
+      "sha256": "fa108c28e46a21d0959decddcfac22cae6783dfb6203c92f5530b0132771475e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/OtherLdapSource.php",
+      "sha256": "20075781966270d4caa2e00d31f804268b9d93277ffd60cb1fc3e667772eaa52"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/RegistersSources.php",
+      "sha256": "4aa8e6cda91cc9f53821330041556a03e79229d4a728285a7158ea55a1eacb24"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/ScopedClock.php",
+      "sha256": "13516730d23e40ebf37ce2829d4c70b97044a88260972a41adc874b6b3e4ad63"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/StaticSource.php",
+      "sha256": "06533fe8042ed1742a50fd7356323dc992957ca1f81de06ca7ca2f576f14bee9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Sources/WriterSource.php",
+      "sha256": "236774e50a3e729adba8187f1f896f768670c87d5d95881067da27051f4fba5c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/AdminRoleGrant.php",
+      "sha256": "597e2a2bb4663a5619d2e97f8dd9f21a3ac4c027e4f1565b3d4a988b1d4a7025"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/DdlSnapshot.php",
+      "sha256": "9e5c4fbbedcb682ae990a70788f4b00a47c604b632bfef44838ab755fe382e4f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/Department.php",
+      "sha256": "c734a3b2acb2b1246c31d482590f68d006387df80e871f1e8f380be5d56cd8c6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/SchemaAssertions.php",
+      "sha256": "18bb7c5aa5343a8afadc843c15787c44186495c0638193cb2dffcead79a9d85e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/Weekday.php",
+      "sha256": "cfff43182ef2f3d2aac1e330c1689c35334b578cc6ce19c3208c852772b76d28"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/ddl/mariadb.json",
+      "sha256": "f9d9248d6460c1923822f297c911045292e38b9c761d3fbcb3b48fc8f9f6dfba"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/ddl/mysql.json",
+      "sha256": "2b6a02ccd6d998baac0c0808c15638f80353c313742f2ebdd44c7fdb480a96db"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/ddl/pgsql.json",
+      "sha256": "d52c5708e3dc6a9bc799421baf98a0b99d4308147a397a59ad833ce1f2f9a43e"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Fixtures/Storage/ddl/sqlite.json",
+      "sha256": "98107f7a7909918ca93a84d4b2e55f662ef3d9a9759f627036c7c21b44d1e3af"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Pest.php",
+      "sha256": "ef2eed825e88cd52a4b5d0ef63614306cba1b4a7026f31b19bdc0dca0c4cad36"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/LegacyIsolationTest.php",
+      "sha256": "27a8e2d0d22dce3a13304b0575ec8d8e2d182f00b02c5eaaefb9aa4a1eba36d3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P01cTest.php",
+      "sha256": "60b4d3782fa7672a026f53609c9387a0d680000f6206c6882b21c506d04ff689"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P02Test.php",
+      "sha256": "3b6d36873317f6998f11a62e4659a22cd7b6d23c702dfc72ebeae760d9811268"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P05Test.php",
+      "sha256": "f8ac827adfc22810cd459c279d875980e0033698abc5950bc75c1d3c50fa6c32"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P07Test.php",
+      "sha256": "4b9ef0c613f7c63e2d5c8c61970a342b816549002d110792816d47fd84d5dac3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P09Test.php",
+      "sha256": "91a3066a26f982076d8f3ed9c71c051cf8f83c9fad1f26e1c5aaca032800b8c9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/P14Test.php",
+      "sha256": "f099a56dac143f01285491ca40c65d29f02247fb5fcf0ec51daa12b4ce16ebe3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/README.md",
+      "sha256": "666d9c67bd55836c2f246c9e07f9e17a23d64aba4254602436faa7fe0da4a2c0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/RegressionSpecsTest.php",
+      "sha256": "aef7a863d1aded5a3684c2860a2678321edee1b820a0195aa524dff0f31ac085"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P01a.md",
+      "sha256": "2e48fda141ba61018c0e058be76f892d206e8df3c00f2e2ca0a737cf5d121264"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P01b.md",
+      "sha256": "d9ac5ea36a52bb677c99fd8c6373c40308ca41a888a4cf81f358f9d89349c86f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P01c.md",
+      "sha256": "f5c4490cc10178c9ce158e0e26721beeebabe48193727a43b32295a8b86ab0a8"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P02.md",
+      "sha256": "75e978f6c6866a990e833bff7a994bd20c9c58f8d312704fa3cdcd20ebbc4e56"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P03.md",
+      "sha256": "bde829dc7f2c2b4449386ab7c390794fc92ba1a34854673beb0cc9fc96d4dd7f"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P04a.md",
+      "sha256": "317a5ecd886e90532222d54ef247d32863183941a327ea869cda09c687fedef5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P04b.md",
+      "sha256": "8c95c395dfe7fccf6a89d6f65f6506bb24d581d4d7d5991f20ce2f4137b3bd73"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P04c.md",
+      "sha256": "90375dffddc484c2093a349d3094413a4a0499c44e818590680b704c20e1141b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P05.md",
+      "sha256": "8296ac3f64907d959d1215ce648bb07b4e246e6ee490b25d2e9cb13d31035e86"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P06.md",
+      "sha256": "84a34eea3e6b62bf216f947736e3f340fdafd9a6643f9c9b5e8a5d2445df2382"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P06b.md",
+      "sha256": "93533152392d88bc98b48b50a61306b4980e85c342c6e5cf9b3184eacd8323a9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P07.md",
+      "sha256": "eaf5fae4e0d61a0719901e6f341ef5248820e4b90cf668dbbad34c38919e7060"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P08.md",
+      "sha256": "ba85a8b6caa0ba0cd6b332c67cbcf30e8a41be375c615b5bae2822efe6883938"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P09.md",
+      "sha256": "b1bcc3d4ef96f486b19b7c294b8b98bd5c25185689129ab2bdb7b761c2cee5ea"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P10.md",
+      "sha256": "d95284ee4530afbd6348faf850aa58205dc72fb9da31874e27d61d980afdab27"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P10b.md",
+      "sha256": "b4da613ec6c7d4ae64f08f951fd142c7414cf8507b5b661e1beefba0e24b7c81"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P11.md",
+      "sha256": "2653497d3ac76f1b7d64a4b8ee3f5b4015afcea436317793c5afcaa52486c255"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P13.md",
+      "sha256": "fe46298396fbf2783061f75b89ef975ba5c1549f0fe9a012be021e7edf0914c4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Regression/specs/P14.md",
+      "sha256": "9c929680462db5b1e6589889185f6493e6693228d3fcf23fd3662c1cda261f73"
+    },
+    {
+      "mode": 436,
+      "path": "tests/TestCase.php",
+      "sha256": "c06ead2eeca129b86b552be77a54d12ea467f4915e8c16c8fcad00cb28ce1ec5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Authorization/EvaluationFrameTest.php",
+      "sha256": "035378d369bf469cc7ff87e4dc8370e0390bc04292a968ff6ee80e19356f0959"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Authorization/TraceTest.php",
+      "sha256": "f5f0a683b7f0df7586caacf8a176df138a8601fc76dd705c8a19037a2f763b79"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Catalog/PanelCatalogTest.php",
+      "sha256": "512c9d1d66e6c71b5f3bafca688e25c44a01d181065da41dbab430e90331205c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Catalog/PermissionDefinitionTest.php",
+      "sha256": "412d82ecaa7ff53e2e1487c488f4ba2388dd3aff312e0a5bbc1963fa09ff88f8"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Catalog/RoleCompilerTest.php",
+      "sha256": "e3a8f6119195714fbbca623ced4d5744b5ff3c908df32bfd3bdf0face74aa465"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Configuration/AzGuardConfigTest.php",
+      "sha256": "c02ac5afdb8abb4e153aeee3333f0a419a2474014c1a3ec14e6c0d4dc07de54c"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Configuration/StoragesConfigTest.php",
+      "sha256": "5786c2646def46e6e008231532bcea806889f2f27c1cc77dfd576c6991deaaa5"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Contracts/ScopeContractsTest.php",
+      "sha256": "ce7f5e5c4ffc8b84589ac119208a52f9dfd18f3771c1abd4c2a42c60d5ee02e6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Directories/LookupContextTest.php",
+      "sha256": "de61f221aef1b71bbcaa52316197f50f98eb2b148a5ba625cc099e1fc8550422"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Exceptions/ExceptionHierarchyTest.php",
+      "sha256": "4f9005bbf1834be13521ee0d371ac56e97d731998d73d77afa0661bdc1d383b7"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Facades/AzGuardFacadeTest.php",
+      "sha256": "94557997f1459cacd24eb2ddb7c212859ac1c9e6e2cb7c4accdc0bb6624566a6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/AccessRequestTest.php",
+      "sha256": "531a201aab5526724db0c28332afd1b16d375e4f7b7743c3953d4cb5ef239da9"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/DecisionDenialTest.php",
+      "sha256": "921c9fbbcbba1f4d3d1ecb7d62e61353be52fcf2ff9f492e947d9d2049657772"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/DecisionTest.php",
+      "sha256": "bbd6bd509beafb25e7f8e8f6b7ce097256bd2a7016f042959ace4fd6a88f5d92"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/GrantTest.php",
+      "sha256": "c0adaae39724fb7f788e0835933e97e00007bb176f27ad218d45c607365c6867"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/PermissionAuthorityTest.php",
+      "sha256": "20246394e5767290d22e92a54ccf8bdacce3199e626cce71acef033172b03caf"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Decision/StateTokenTest.php",
+      "sha256": "1404090a40fb566c4a412ea98b1ba2a4b76eec63257856a4ebb0601466a1e444"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Grammar/PatternMatcherTest.php",
+      "sha256": "38be089d61deab28be94a50fc4d213a22e4903aba7df37152342251825b1791a"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Grammar/PermissionGrammarTest.php",
+      "sha256": "a3ec711e467c67e8d977c36196be386517d9ac290f451d7b06fcc8a9676f2ca3"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Identity/IdentityCodecTest.php",
+      "sha256": "de9beafd979f74376bf0afaad2e1f92fe7c3ef02308d1223423fd3295b1be9b4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Identity/IdentityGenerator.php",
+      "sha256": "20ce614cb5dabf0dcf27112a915e54bdc9a38ce61d659ce15ceda7bbb096f1d0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Identity/PermissionKeyTest.php",
+      "sha256": "0dc65849e7c5f5658c39334cf519484eb2368091824712e0449bae2b01074da8"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Identity/ReferencesTest.php",
+      "sha256": "3496d9c92993f20afd3501fb434a0a6b80e6e97ae7a0015906c576fb5af33da0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Kernel/Permissions/PermissionSetTest.php",
+      "sha256": "039a23491cb0d245ba41419442fc0c22396d340d0fa6e83088f6e1bab7a48ce4"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/CurrentPanelTest.php",
+      "sha256": "5d6cb1074ea0067991cf222965d2b7e20c433d9e60f15c384b2c408ab08d7080"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/PanelBuilderTest.php",
+      "sha256": "b333adc1b7837fd36ef5928660c35a7c0ffe17909bc5d4d0216e28bb7d94977b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/PanelRegistryTest.php",
+      "sha256": "474051199028b75276cdf19ff569fca465f9e025701d3e79c0168fd3b64dc5ac"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/PanelResolverTest.php",
+      "sha256": "b894af9121f03d052510fe8559ea679b5d76823ec543b3c45f185e92ddfcc08d"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/PanelSettingsTest.php",
+      "sha256": "c63d75dc31625ac631cbd9658eea5928ad85d0b4a22fe0dc7e9f8a2f1288f3b0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Panels/PanelTest.php",
+      "sha256": "ad057afbde4b632207e4fe03ebff4b84b10fd76d889349b652aed25abee3d3d1"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Plugins/BasePluginTest.php",
+      "sha256": "106d2e3c3a8e9bdfc039ea310ed63c1c97074698794631c21dcecbc850296043"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Plugins/PluginContextTest.php",
+      "sha256": "f82d41b4711295eedd52602c886166b60ff4964e716dbab58c7071b1d01fb5cd"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Roles/BaseRoleTest.php",
+      "sha256": "b87839fee526aef0127147f0636ba6eae7fc66b149255f25a69bec5f155b7bc2"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Roles/SuperAdminRoleTest.php",
+      "sha256": "9c07db2a316e8a18e61f3a39993626d6ca77e4de20f4a808fc6c7eec959e32de"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Schema/FieldTest.php",
+      "sha256": "a095babf47a3456ee07d97f0037d12bbbde075f0cecb35d178cae540a0900198"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Scopes/AssignmentScopeRuntimeTest.php",
+      "sha256": "dd3ebdaca91492d46b22c32e36a2b396bdc6cdc3457ca23111eaec9c3b11ef9b"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Scopes/BaseAssignmentScopeTest.php",
+      "sha256": "5ac75d35c729dfe27bdd3e6edcc6ea5f3c9d9e59c3351b9d3f532ce89a9b19fb"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/ServiceProviderContractTest.php",
+      "sha256": "3da395dde391ac69a99b8f3f331bdb4c7c01a102e8d0b6c1f1868d29a4083ec6"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Sources/Folder/FolderSourceTest.php",
+      "sha256": "62e0bad696bd4b3f594020f2ec51a29b994291e988b2494cedfa8d808969b8e0"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Sources/SourceContractsTest.php",
+      "sha256": "9abf3e7415a2ebeaef9c81599051e07c2afa3a07256170d36a565ebe1ffbb109"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Sources/SourceManagerTest.php",
+      "sha256": "2b3cc6a28af04f86ea2ec7c38aa5f6c656f5995d35485c121210178ea1f04558"
+    },
+    {
+      "mode": 436,
+      "path": "tests/Unit/Storage/HostKeyColumnsTest.php",
+      "sha256": "d8d9506c507d7e41c0aaf5805a2abed2ef3344ed6832ba2bcb2d15a2ae603a93"
+    }
+  ],
+  "candidate_fresh": true,
+  "candidate_sha256": "f1dc5d836433800ebed31b421e679d42e730ad6dc220e91aa0feb53e5d35bf27",
+  "checks": [
+    {
+      "argv": [
+        "vendor/bin/pint",
+        "--test"
+      ],
+      "depends_on": [],
+      "id": "pint"
+    }
+  ],
+  "complete": true,
+  "results": {
+    "pint": {
+      "exit_code": 0,
+      "status": "green"
+    }
+  },
+  "schema_version": "validation-attempt/v1"
+}

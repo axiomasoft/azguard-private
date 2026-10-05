@@ -1,0 +1,59 @@
+{
+  "schema_version": "self-check/v1",
+  "model_sha256": "4f83b6b57d71b20d2980c6c48bdd4240b2c77d993b24741f3548681bbcc46341",
+  "checks": [
+    {
+      "invariant": "mode-before-sources",
+      "evidence": "tests/Feature/Sources/Database/FenceTest.php; qualified-checks.json:targeted"
+    },
+    {
+      "invariant": "before-before-assignments",
+      "evidence": "DynamicFenceTest before-denial control; before-probe-valid.log RED -> before-probe-green.log GREEN"
+    },
+    {
+      "invariant": "whole-attempt-retry",
+      "evidence": "DynamicFenceTest exact read sequence / same now / one after / disappeared action / three-attempt cap"
+    },
+    {
+      "invariant": "exact-tenant-static-roles",
+      "evidence": "DynamicCatalogTest A/B/global/foreign-panel and static/prefix controls"
+    },
+    {
+      "invariant": "pinned-route",
+      "evidence": "DynamicFenceTest Default versus Primary and existing FenceTest transaction guards"
+    }
+  ],
+  "risks": [
+    {
+      "risk": "eager assignment reads before a denying preliminary hook",
+      "status": "fixed",
+      "evidence": "ReadAttempt + Authorizer retry + AccessPipeline final confirmation; DynamicFenceTest passes"
+    },
+    {
+      "risk": "missing P4.17 acceptance registry from first review",
+      "status": "fixed",
+      "evidence": "findings/P4-execution.md P4.17 registry"
+    },
+    {
+      "risk": "scoped Authorizer positive integration",
+      "status": "deferred",
+      "owner": "P4.18",
+      "reason": "accepted D15/D16 split; explicit unknown tenant fails closed before reads",
+      "evidence": "DynamicCatalogTest unknown explicit tenant=0 authority queries"
+    },
+    {
+      "risk": "dynamic mutation/create/delete/events/cleanup",
+      "status": "deferred",
+      "owner": "P5.3",
+      "reason": "Scope Excluded in P4.17",
+      "evidence": "read-attempts.md boundary"
+    },
+    {
+      "risk": "recognized transaction protocol and real server races/lag",
+      "status": "deferred",
+      "owner": "P4.20 / P4.21",
+      "reason": "accepted D15/D16 dedicated items; no strict replica or protected-write atomicity claim",
+      "evidence": "invariant-model.md driver boundary"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "closure_commit": "cb3b897b30cbe0bc3f5816a20878be9064974f99",
+  "reviewed_product_difference": [
+    {
+      "path": "composer.lock",
+      "committed": {
+        "path": "composer.lock",
+        "sha256": null,
+        "mode": null
+      },
+      "reviewed": {
+        "mode": 0,
+        "path": "composer.lock",
+        "sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d"
+      }
+    }
+  ]
+}

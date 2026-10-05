@@ -1,0 +1,8 @@
+{
+  "effort": "high",
+  "executor_session": "01a10a45-f530-70d2-b8e0-c324eeec7fce",
+  "invocation": "task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.17 --reviewer=grok/grok-4.7/500k",
+  "item_id": "P4.17",
+  "reviewer": "grok/grok-4.7/500000",
+  "schema_version": "owner-review-request/v1"
+}

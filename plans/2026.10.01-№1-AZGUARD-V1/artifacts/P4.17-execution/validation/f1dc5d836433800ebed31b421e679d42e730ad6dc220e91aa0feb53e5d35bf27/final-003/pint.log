@@ -1,0 +1,1 @@
+{"tool":"pint","result":"fail","files":[{"path":"plans\/2026.10.01-\u21161-AZGUARD-V1\/artifacts\/P4.17-execution\/before-probe.php","fixers":["fully_qualified_strict_types","blank_line_after_opening_tag","control_structure_braces","braces_position","statement_indentation","single_line_after_imports","ordered_imports"]}]}

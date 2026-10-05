@@ -21,6 +21,7 @@ use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -200,7 +201,59 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
             throw new DefinitionException('Dynamic permissions require an explicit tenant.');
         }
 
-        throw new DefinitionException('Dynamic permission overlay is not available until its runtime integration is installed.');
+        $this->bindPanel($panel->id());
+        $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
+        $fingerprint = app(PanelRegistry::class)->fingerprint($panel->id());
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $this->token($session, $panel, $fingerprint);
+            $definitions = $this->readPermissions($session, $panel, $tenant);
+
+            if ($before->equals($this->token($session, $panel, $fingerprint))) {
+                return $definitions;
+            }
+        }
+
+        throw new ConsistencyException('DatabaseSource definitions changed during all three read attempts.');
+    }
+
+    /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
+    public function openReadSession(EvaluationContext $context): StorageReadSession
+    {
+        $this->bindPanel($context->panel()->id());
+
+        return $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
+    }
+
+    /** @internal Read both edges on the same attempt handle. */
+    public function readState(StorageReadSession $session, EvaluationContext $context): StateToken
+    {
+        return $this->token($session, $context->panel(), $context->state()->fingerprint);
+    }
+
+    /** @internal Unfenced capability; the engine owns the surrounding whole-attempt fence.
+     * @return list<PermissionDefinition>
+     */
+    public function readPermissions(StorageReadSession $session, Panel $panel, TenantRef $tenant): array
+    {
+        if (! $this->dynamic) {
+            return [];
+        }
+        $model = $session->model('permission', $this->selectedModels['permission'] ?? null);
+        $definitions = [];
+        foreach ($session->table('permissions')->where('panel', $panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
+            $permission = $model->newFromBuilder((array) $row);
+
+            if (! $permission instanceof Permission || $permission->panel() !== $panel->id() || ! $permission->tenantRef()->equals($tenant)) {
+                throw new InvalidSourceContributionException('Dynamic permission identity differs from its query.');
+            }
+            $definitions[] = new PermissionDefinition(
+                local: $permission->permissionKey()->local(), authority: PermissionAuthority::Grants,
+                label: $permission->getAttribute('label'), group: $permission->getAttribute('group'),
+                description: $permission->getAttribute('description'),
+            );
+        }
+
+        return $definitions;
     }
 
     /** @template T
@@ -254,9 +307,20 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
     {
         return $this->fenced($context, fn (StorageReadSession $session, StateToken $before): array => [
             'state' => $before,
+            ...$this->readAssignments($session, $subject, $scopes, $context),
+        ]);
+    }
+
+    /** @internal Unfenced capabilities on the engine's pinned attempt handle.
+     * @param  list<AccessScope>  $scopes
+     * @return array{grants: list<Grant>, roles: list<RoleContribution>}
+     */
+    public function readAssignments(StorageReadSession $session, SubjectRef $subject, array $scopes, EvaluationContext $context): array
+    {
+        return [
             'grants' => $this->onlyRoles || $scopes === [] ? [] : $this->read($session, 'permission_grant', $subject, $scopes, $context),
             'roles' => $scopes === [] ? [] : $this->read($session, 'role_grant', $subject, $scopes, $context),
-        ]);
+        ];
     }
 
     public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): AssignmentScopeSelection

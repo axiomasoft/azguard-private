@@ -1,0 +1,53 @@
+......E..........E...................................
+======================================================================
+ERROR: test_committed_predecessor_survives_consumer_edits_but_new_close_stays_live (test_review_packet.ReviewPacketTests.test_committed_predecessor_survives_consumer_edits_but_new_close_stays_live)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_packet.py", line 427, in packet
+    manifest["external_sources"] = review_sources.archive(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_sources.py", line 43, in archive
+    raise ValueError("REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files")
+ValueError: REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_review_packet.py", line 236, in test_committed_predecessor_survives_consumer_edits_but_new_close_stays_live
+    _packet, _attempt, decision = self.closed_native_review(paths=["alias.py", "phantom{a,b}.py"], evidence=["validation.log"])
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_review_packet.py", line 188, in closed_native_review
+    packet = review.packet(self.plan, "P1.1", selector="grok/grok-4.7/500k",
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_packet.py", line 430, in packet
+    raise ReviewError("REVIEW_EXTERNAL_SOURCE_INVALID", str(exc)) from exc
+task.review_packet.ReviewError: REVIEW_EXTERNAL_SOURCE_INVALID: REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files
+
+======================================================================
+ERROR: test_freshness_binds_symlink_text_and_target_bytes (test_review_packet.ReviewPacketTests.test_freshness_binds_symlink_text_and_target_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_packet.py", line 427, in packet
+    manifest["external_sources"] = review_sources.archive(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_sources.py", line 43, in archive
+    raise ValueError("REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files")
+ValueError: REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_review_packet.py", line 168, in test_freshness_binds_symlink_text_and_target_bytes
+    self.receive(self.packet(paths=["alias.py"], exclusions={"other.py": "independent fixture target"}))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_review_packet.py", line 56, in packet
+    return review.packet(self.plan, "P1.1", selector="grok/grok-4.7",
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/review_packet.py", line 430, in packet
+    raise ReviewError("REVIEW_EXTERNAL_SOURCE_INVALID", str(exc)) from exc
+task.review_packet.ReviewError: REVIEW_EXTERNAL_SOURCE_INVALID: REVIEW_EXTERNAL_SOURCE_INVALID: untracked inputs must be regular files
+
+----------------------------------------------------------------------
+Ran 53 tests in 3.667s
+
+FAILED (errors=2)

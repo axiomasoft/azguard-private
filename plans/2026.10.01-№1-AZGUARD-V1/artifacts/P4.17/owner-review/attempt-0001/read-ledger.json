@@ -1,0 +1,600 @@
+{
+  "reads": [
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "CHANGELOG.md",
+        "sha256": "a370ebac1c121ffe21b5fcb7918bfb3163c7c0a98bdaf93ade43d74a8dc7e7c4"
+      },
+      "reads": [
+        {
+          "limit": 80,
+          "offset": null,
+          "tool_call_id": "call-ee269945-15d3-4835-82a4-a77c95b00240-59"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+        "sha256": "11495b975937b5a92bcbd2ecc45bf49194f4f1994c4a65b13011c3126a125aa8"
+      },
+      "reads": [
+        {
+          "limit": 55,
+          "offset": 22,
+          "tool_call_id": "call-1a627ca4-a8c0-41b3-9844-257831d278cb-43"
+        },
+        {
+          "limit": 50,
+          "offset": 230,
+          "tool_call_id": "call-1a627ca4-a8c0-41b3-9844-257831d278cb-44"
+        },
+        {
+          "limit": 40,
+          "offset": 385,
+          "tool_call_id": "call-1a627ca4-a8c0-41b3-9844-257831d278cb-45"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/api-manifest.json",
+        "sha256": "914ab23ab8326329be1bbaf2bf8fb31cd0ae4d0ca52e830a869f0ee3be927b6b"
+      },
+      "reads": [
+        {
+          "limit": 280,
+          "offset": 8780,
+          "tool_call_id": "call-c18a28bf-a4ee-4a36-9cc3-e3901ee89147-65"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/Authorizer.php",
+        "sha256": "bc062c256c42bb5b33561716b04793f967e0dc833ac73bf4558097feeb4c8762"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-08769a9c-37ff-4653-8e64-536537c9eb7a-22"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/EvaluationFrame.php",
+        "sha256": "95d7020aecfed00b8adc57f3728622a921782aefca3e7996f0576e3f4728c339"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-23ec1963-2ad2-4997-9437-91d26438b5a0-20"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/Pipeline/AccessPipeline.php",
+        "sha256": "ef87a4593c986dce98ef98f993382af7df0ff471c9ffe235bd8054bd51e53fe1"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-25"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+        "sha256": "2c4d60dee5057e9ab0e939cda33d366bec5e8f97c0eeb2b34752ece94b173dc9"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-23ec1963-2ad2-4997-9437-91d26438b5a0-18"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php",
+        "sha256": "aeaff503c484c9e05203f464c79e55c9ed914f70b582d15fc540eea27859826b"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-ee452af2-05d2-42d5-8a73-877125835d4a-16"
+        },
+        {
+          "limit": 100,
+          "offset": 100,
+          "tool_call_id": "call-f06ec403-c631-47bf-a26b-c34f6e00eb2f-77"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/PanelCatalog.php",
+        "sha256": "b393df2e04e5e81cff41be5664bc2055e259af6f97771ab1ae857d085eb8048e"
+      },
+      "reads": [
+        {
+          "limit": 160,
+          "offset": 290,
+          "tool_call_id": "call-ee452af2-05d2-42d5-8a73-877125835d4a-17"
+        },
+        {
+          "limit": 290,
+          "offset": 1,
+          "tool_call_id": "call-08769a9c-37ff-4653-8e64-536537c9eb7a-21"
+        },
+        {
+          "limit": 80,
+          "offset": 410,
+          "tool_call_id": "call-69fb372a-01fe-4f74-a057-ad2740a745c8-54"
+        },
+        {
+          "limit": 50,
+          "offset": 600,
+          "tool_call_id": "call-b4ec47f6-1edc-490d-aad8-b44863f22800-72"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/PermissionDefinition.php",
+        "sha256": "a5296fec4f9645853a10890213c92fcb5399bec2a3cb8f74e36c04ebfad835a9"
+      },
+      "reads": [
+        {
+          "limit": 120,
+          "offset": null,
+          "tool_call_id": "call-52161d7a-bc5c-44b3-9c31-c7f7f5274a88-41"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Catalog/RoleCompiler.php",
+        "sha256": "943b7fd818789ab442aaee4b4522c2c38a6ff9c1ae9282ab0bb53b0b007c2624"
+      },
+      "reads": [
+        {
+          "limit": 80,
+          "offset": 140,
+          "tool_call_id": "call-f761040d-2493-4723-bbd2-970786f95da8-55"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+        "sha256": "f863436927d91c08fbee340097fdd1bcbed69371edc136b3e91118c249f3c3bc"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-ee269945-15d3-4835-82a4-a77c95b00240-62"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Contracts/Sources/FencesReads.php",
+        "sha256": "2f6c14f58cfec745ae08cc6df7a94c4aea66ba3c13abf01447bbe52554e59d32"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-ee269945-15d3-4835-82a4-a77c95b00240-61"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/CodeStateToken.php",
+        "sha256": "e7970da3b17ca7edb85c7278458fbeda3445dd182221bbee6c2c8603214fa3cb"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-96324e81-8dcd-4a06-a1ce-a5720096f17d-49"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Decision/StateToken.php",
+        "sha256": "2550a48db84d953282db13b1db069266fc73d03e63a29e8631c8e256ef5c2162"
+      },
+      "reads": [
+        {
+          "limit": 80,
+          "offset": null,
+          "tool_call_id": "call-96324e81-8dcd-4a06-a1ce-a5720096f17d-50"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Kernel/Identity/TenantRef.php",
+        "sha256": "4231fc7b5d93420ac636167bbd96cd68f0cf4cdefbb780faec2ee334e947975d"
+      },
+      "reads": [
+        {
+          "limit": 120,
+          "offset": null,
+          "tool_call_id": "call-c18a28bf-a4ee-4a36-9cc3-e3901ee89147-64"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Panels/PanelCompiler.php",
+        "sha256": "50e762dec11a4e8ef85b9b22556ce425f27e6ee5cb7a879e19d72e82d00058d8"
+      },
+      "reads": [
+        {
+          "limit": 50,
+          "offset": 370,
+          "tool_call_id": "call-f761040d-2493-4723-bbd2-970786f95da8-56"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+        "sha256": "1fce3885fdebf812dcbf22628460ff67c40561e73feb0ade83faa1a318453b71"
+      },
+      "reads": [
+        {
+          "limit": 480,
+          "offset": 1,
+          "tool_call_id": "call-ee452af2-05d2-42d5-8a73-877125835d4a-15"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Sources/Folder/FolderSource.php",
+        "sha256": "862eaa6ba5bb60142c9560ad987c34656d7ea8dd3b2aae024d398f7e12b25c8b"
+      },
+      "reads": [
+        {
+          "limit": 80,
+          "offset": 200,
+          "tool_call_id": "call-b4ec47f6-1edc-490d-aad8-b44863f22800-71"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Sources/PanelSources.php",
+        "sha256": "279870f7605c4b1ad360823a5ebc24b6e4633c1db34fd02657c5281c0484c88b"
+      },
+      "reads": [
+        {
+          "limit": 90,
+          "offset": 180,
+          "tool_call_id": "call-f761040d-2493-4723-bbd2-970786f95da8-58"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Concerns/BelongsToStorage.php",
+        "sha256": "23af73e05ca349d6f58b54f97f3f441058dbc34096dadf06ca78b9f9210d9720"
+      },
+      "reads": [
+        {
+          "limit": 40,
+          "offset": 40,
+          "tool_call_id": "call-1c21eed7-8499-41d7-b4bc-bdd9208758d4-67"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Storage/Models/Permission.php",
+        "sha256": "c6f43158bd1d6a3afd07cffc12695d0770155a1bf06bdc30a0ed63c259df8740"
+      },
+      "reads": [
+        {
+          "limit": 200,
+          "offset": null,
+          "tool_call_id": "call-52161d7a-bc5c-44b3-9c31-c7f7f5274a88-42"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "packages/core/src/Storage/StorageReadSession.php",
+        "sha256": "12dde7f79800f654e95f70f2ccded60bca47b1be20d25f3a843a4aed444cd6a0"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-e1e85367-b618-4659-bef9-4e58b3b95ad6-35"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.17-execution/read-attempts.md",
+        "sha256": "ffaad10c8400af48f5934b413bc9dc34e450f5b9670d85c399935d137d12edaf"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-28"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.17-execution/validation/7a48b0fdd429e48ee9f0751e1c016fbe4835f7d548f2d33a5834f0b08621faa4/final-002/receipt.json",
+        "sha256": "05e6cf57a570283cb02b531fa89a5f709cc08b27a6733185a01f2e0ee55b2174"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-30"
+        },
+        {
+          "limit": 150,
+          "offset": 3320,
+          "tool_call_id": "call-e1e85367-b618-4659-bef9-4e58b3b95ad6-37"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/brief/P4-acceptance-matrix.md",
+        "sha256": "2a989055b52e0587ff016579bf0700e0750bbc9095f74f23614e2796794a7d01"
+      },
+      "reads": [
+        {
+          "limit": 180,
+          "offset": 1,
+          "tool_call_id": "call-97f1fe0a-f61d-4c2b-a223-22b8776bac86-5"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/decisions/D15-p4-design-repair.md",
+        "sha256": "2aeec56537cd52457d85fee1d7b4ffc1324a2ee97c3ebb6542c15c3b6087f56e"
+      },
+      "reads": [
+        {
+          "limit": 120,
+          "offset": 80,
+          "tool_call_id": "call-97f1fe0a-f61d-4c2b-a223-22b8776bac86-4"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/findings/P4-execution.md",
+        "sha256": "31d24754cb2a19003fd3f39b0035f0a4af11c4cce020acdbeaf3e8c8aebfa348"
+      },
+      "reads": [
+        {
+          "limit": 120,
+          "offset": 180,
+          "tool_call_id": "call-e1e85367-b618-4659-bef9-4e58b3b95ad6-38"
+        },
+        {
+          "limit": 30,
+          "offset": 210,
+          "tool_call_id": "call-d23b5c51-62f8-4a55-accd-5c001043d9bd-74"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/findings/P4.17-environment.md",
+        "sha256": "f9e497977bb6fefb12e72db49e08d24c345e7043e56e44200d2816950acb5bcd"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-29"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "plans/2026.10.01-№1-AZGUARD-V1/phases/P4/P4.17.md",
+        "sha256": "df1b6ee94222a1d57c0aab60fdd0fcc43e5d689622417ddf599f9cdc138d28ff"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-32cc7b61-ae29-45a1-86c5-5c160ee67353-0"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/DynamicCatalogTest.php",
+        "sha256": "64943a3c2a48d14741e46f9aa4e5cfc1b19b4c02a582509db35ebfab73fc2428"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-08769a9c-37ff-4653-8e64-536537c9eb7a-23"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/DynamicFenceTest.php",
+        "sha256": "277cce9d9b3f6f87bd95eceadb847e2aa22d77d6477dba8ee469a08936a2b8a3"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-08769a9c-37ff-4653-8e64-536537c9eb7a-24"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Feature/Sources/Database/FenceTest.php",
+        "sha256": "885a9fc1c896d04ceb1a2bf38877aedcd7564b4b7209f4d042100c7e64e4920d"
+      },
+      "reads": [
+        {
+          "limit": 80,
+          "offset": 80,
+          "tool_call_id": "call-e1e85367-b618-4659-bef9-4e58b3b95ad6-36"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabasePermission.php",
+        "sha256": "4b092bce5f1c05fdad7f9899932d4e12e525a08d9ac4f35d5cf6ff3d7c2b054b"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-1c21eed7-8499-41d7-b4bc-bdd9208758d4-69"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/DatabaseWorld.php",
+        "sha256": "8e5d65883e02ad3fbc7115ceac1023e4a1070a60564aa3576e7502bdcb07aee0"
+      },
+      "reads": [
+        {
+          "limit": 250,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-27"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/EditorRole.php",
+        "sha256": "189a1cf17bd2ac04b14957f485d2706dea97e83cbefb643d9575a7f6f03011f5"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-1c21eed7-8499-41d7-b4bc-bdd9208758d4-68"
+        }
+      ]
+    },
+    {
+      "identity": null,
+      "member": {
+        "mode": 436,
+        "path": "tests/Fixtures/Sources/Database/InterferingSource.php",
+        "sha256": "512a61173881bc90320457c4f2e24a387f5b698b6cc1298c5cb9ed83270123a7"
+      },
+      "reads": [
+        {
+          "limit": null,
+          "offset": null,
+          "tool_call_id": "call-85c2f88a-7f65-4ab8-8b49-1700afd6f8e0-26"
+        }
+      ]
+    }
+  ],
+  "schema_version": "review-read-ledger/v1"
+}

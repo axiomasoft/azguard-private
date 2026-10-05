@@ -1,0 +1,48 @@
+{
+  "adapter_attestation": {
+    "canonical_command_sha256": "sha256:1bde27d792d33ef2081a415cc1f48128f8516196c5feeb124aafb80a81f67459",
+    "command_id": "task:plan-run",
+    "package": "task",
+    "version": "0.28.2"
+  },
+  "commit_sha": "9722027250baf1bf7403777add329b4825ba1a50",
+  "continuity": {
+    "evidence": [
+      "persisted-context:continue-root"
+    ],
+    "outcome": "continue-root",
+    "reason": "compatible-active-work",
+    "runnable": true,
+    "schema_version": "session-continuity-decision/v1"
+  },
+  "digests": {
+    "closure": null,
+    "handoff": "sha256:2eef373badbee187a97fb3a86325cecb83e16872bd91d8059e630359bb456460",
+    "plan": "sha256:e66efb560728442742b66ffd6dafa3aaffd8a3a60b25ca5f745b385a4b75b660",
+    "state": "sha256:d362916b612cfc7a4b773fc1f38fa4a6f9a9e2c0b6b65ce05d25fd4a292ea046"
+  },
+  "journal": {
+    "command": "plan-run",
+    "line": 91,
+    "result": "closed-green",
+    "run_id": "a61acb666f60b5d265636975ebf2660b821ccd6aa9e30b2b02f0f918b9e76b8d",
+    "sha256": "sha256:a62c185dd3c8def2e51bd80ecbd595d3051ad690c3120e0ca5e6c30f9fbe1d69"
+  },
+  "next_exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5",
+  "plan_id": "2026.10.01-№1-AZGUARD-V1",
+  "rationale": {
+    "open_risks": "retained in item states, decisions and acceptance.",
+    "remaining": "actual successor above; no execution authority is added."
+  },
+  "recommendation": "**Next:** run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5\n\n| Parameter | Meaning |\n|:--|:--|\n| Batch | solo |\n| Model | frontier |\n| Thinking | high |\n| Context | continue-root |\n| Command | $ task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5 |",
+  "route": {
+    "batch": "solo",
+    "command": "$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.5",
+    "context": "continue-root",
+    "model": "frontier",
+    "thinking": "high"
+  },
+  "schema_version": "terminal-delivery-receipt/v1",
+  "status": "🟢 Done",
+  "subject": "P4.17"
+}

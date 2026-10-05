@@ -1,0 +1,14 @@
+[
+  {
+    "schema_version": "validation-receipt/v1",
+    "evidence_id": "E19",
+    "command": "`vendor/bin/pest tests/Feature/Sources/Database tests/Feature/Authorization`; `composer test`; `vendor/bin/pest tests/Arch`; `vendor/bin/pint --test`; `vendor/bin/phpstan analyse --memory-limit=1G`; `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; `php bin/api-manifest.php --check` после `composer api:manifest` при изменении public API; `git diff --check`. Падение, skip и unavailable не GREEN.",
+    "contract_sha256": "10bc03ed2cb686744e8143ead9a0127e2383f9c76a5622e2606cb2b8bd5026f4",
+    "spec_sha256": "df1b6ee94222a1d57c0aab60fdd0fcc43e5d689622417ddf599f9cdc138d28ff",
+    "head": "9722027250baf1bf7403777add329b4825ba1a50",
+    "tree": "070bbec973d2696b9c1d85d8db1b03d17859511862370cd269ae692a8d1c5ea5",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+    "exit_code": 0,
+    "executed_at": "2026-10-05T05:25:08Z"
+  }
+]

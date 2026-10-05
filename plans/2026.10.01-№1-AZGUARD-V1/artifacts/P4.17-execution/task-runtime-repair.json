@@ -1,0 +1,28 @@
+{
+  "owning_source": "/home/vostrikov/projects/packages/swissknifeman",
+  "commit": "78b0adbb",
+  "qualification": {
+    "command": "bash packages/task/scripts/validate.sh",
+    "exit_code": 0,
+    "tests": 1412,
+    "skipped": 1,
+    "skip_reason": "TestRealFleetPlan.test_measures_live_plan: live plan unavailable - standalone-layout",
+    "focused_review_packet_tests": 53,
+    "focused_exit_code": 0,
+    "structural_publication_projection_conflicts": "green"
+  },
+  "consumer_recovery_commit": "9722027",
+  "historical_green_verified": [
+    "P4.3",
+    "P4.4"
+  ],
+  "current_green_verified": "P4.17",
+  "original_lock_sha256": "e93977fe1d36f0382c74e1f23d7154d7b57dc9bc51c622be22f270cea212364d",
+  "archival_identity_limit": "original-lock-not-bound for legacy vendor members; exact original reviewed lock bytes authenticated separately",
+  "foreign_changes_preserved": [
+    "swissknifeman: CHANGELOG.md Task concrete Files entry",
+    "swissknifeman: packages/task/lib/task/file_manifest.py",
+    "swissknifeman: packages/task/tests/test_file_manifest.py",
+    "azguard: .gitignore"
+  ]
+}

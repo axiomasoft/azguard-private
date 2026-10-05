@@ -1,0 +1,95 @@
+[
+  {
+    "id": "targeted",
+    "argv": [
+      "env",
+      "APP_ENV=testing",
+      "DB_CONNECTION=sqlite",
+      "DB_DATABASE=:memory:",
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Sources/Database",
+      "tests/Feature/Authorization"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "suite",
+    "argv": [
+      "env",
+      "APP_ENV=testing",
+      "DB_CONNECTION=sqlite",
+      "DB_DATABASE=:memory:",
+      "composer",
+      "test"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "arch",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "pint",
+    "argv": [
+      "vendor/bin/pint",
+      "--test"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "phpstan",
+    "argv": [
+      "php",
+      "-d",
+      "phpstan.restarted=1",
+      "vendor/bin/phpstan",
+      "analyse",
+      "--memory-limit=1G",
+      "--debug"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "types",
+    "argv": [
+      "env",
+      "__PEST_PLUGIN_ENV=1",
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "--type-coverage",
+      "--min=98",
+      "--no-cache"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "api",
+    "argv": [
+      "php",
+      "bin/api-manifest.php",
+      "--check"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "diff",
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "depends_on": []
+  }
+]

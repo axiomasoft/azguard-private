@@ -310,10 +310,15 @@ final class PanelCatalog implements PermissionCatalog
      * @throws DuplicatePermissionException when a dynamic name repeats a static one
      * @throws PrefixConflictException when a dynamic name starts with the panel prefix
      */
-    public function withDynamic(iterable $definitions): PermissionCatalog
+    public function withDynamic(iterable $definitions): self
     {
         $catalog = clone $this;
         $catalog->definitions = $this->static;
+        $catalog->owners = array_intersect_key($this->owners, $this->static);
+        $segments = [];
+        foreach (array_keys($this->static) as $local) {
+            $segments[explode('.', $local, 2)[0]] ??= $local;
+        }
         $catalog->enumKeys = array_filter(
             $this->enumKeys,
             fn (string $local): bool => isset($this->static[$local]),
@@ -344,6 +349,8 @@ final class PanelCatalog implements PermissionCatalog
 
             $catalog->add($definition, ['source' => 'dynamic', 'origin' => 'dynamic']);
         }
+
+        $catalog->segments = $segments;
 
         return $catalog;
     }

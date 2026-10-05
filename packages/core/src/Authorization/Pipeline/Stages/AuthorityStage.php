@@ -48,19 +48,25 @@ final readonly class AuthorityStage
 
         if ($definition->authority === PermissionAuthority::Grants) {
             try {
-                $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
-                $contributions = [];
-                foreach ($sources->all() as ['source' => $source]) {
-                    if ($source instanceof FolderSource) {
-                        $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
-                    }
+                $contributions = $frame->readAttempt?->contributions($request, $frame);
 
-                    [$items, $frame] = $this->readSource($source, $request, $frame);
-                    foreach ($items as $item) {
-                        if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
-                            throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
+                if ($contributions === null) {
+                    $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
+                    $contributions = [];
+                    foreach ($sources->all() as ['source' => $source]) {
+                        if ($source instanceof FolderSource) {
+                            $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
                         }
-                        $contributions[] = [$source, $item];
+
+                        [$items, $frame] = $this->readSource($source, $request, $frame);
+                        foreach ($items as $item) {
+                            $contributions[] = [$source, $item];
+                        }
+                    }
+                }
+                foreach ($contributions as [$source, $item]) {
+                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
+                        throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
                     }
                 }
             } catch (Throwable $error) {

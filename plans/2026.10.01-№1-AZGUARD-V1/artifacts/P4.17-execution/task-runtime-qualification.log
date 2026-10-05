@@ -1,0 +1,46 @@
+[1/5] python compile
+[2/5] bash syntax
+[3/5] required files
+[4/5] slash-commands (frontmatter: description/model/effort)
+[5/6] tests + explicitly selected plan-lint
+......................................................................................usage: task.journal append [-h] --plan-dir PLAN_DIR --plan PLAN_ID --item
+                           ITEM_ID --command
+                           {plan-run,plan-exec,plan-close,plan-audit,plan-design}
+                           --result
+                           {in-progress,closed-green,closed-deviations,blocked,escalated,no-op,audit-green,audit-attention,audit-red,routing-rejected,decision-pending,local-repair,rag-pending,block-candidate}
+                           [--actor ACTOR] [--route-evidence ROUTE_EVIDENCE]
+                           [--session-id SESSION_ID] [--run-id RUN_ID]
+                           [--attempt ATTEMPT] [--friction FRICTION]
+                           [--cost-usd COST_USD] [--num-turns NUM_TURNS]
+                           [--duration-ms DURATION_MS] [--note NOTE]
+                           [--trace-ref TRACE_REF] [--fingerprint FINGERPRINT]
+                           [--decision-json DECISION_JSON]
+                           [--batch-receipt-json BATCH_RECEIPT_JSON]
+                           [--repair-decision-json REPAIR_DECISION_JSON]
+                           [--repair-action {repair-in-current-attempt,gather-evidence,block-candidate,design-required}]
+task.journal append: error: argument --command: invalid choice: 'plan-nope' (choose from 'plan-run', 'plan-exec', 'plan-close', 'plan-audit', 'plan-design')
+.ERROR: log entry failed validation: friction: must be an array of values from ('escalation', 'routing-blocked', 'route-deviation', 'red-audit', 'deviation', 'retry', 'no-op', 'local-repair', 'block-review', 'external-evidence')
+...............................................................................................................journal: append → /tmp/tmpcys04i5n/2026.07.18-DEMO-PLAN/journal.jsonl
+journal: append → /tmp/tmpgecict6_/2026.07.18-DEMO-PLAN/journal.jsonl
+journal: exception append → /tmp/tmp8mik1z7x/P/journal-exceptions.jsonl
+.............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................DIAGNOSTIC-PARITY-OK v2-fixture
+.......................................................................................................................................................s................................................................................................................................................................................................................................................................................ERROR: exactly one of --actor / --route-evidence required
+ERROR: exactly one of --actor / --route-evidence required
+....ERROR: --route-evidence is not readable: [Errno 2] No such file or directory: '/tmp/tmpbwky_9yj/missing.json'
+...........................................................................................................................................................................................................WARNING: token_estimate: artifact calibrated to «codex/gpt-5.6-terra», session - «codex/other»; estimate may not be accurate
+..........................
+----------------------------------------------------------------------
+Ran 1412 tests in 29.212s
+
+OK (skipped=1)
+journal: append → /tmp/tmp5mk0b5li/P/journal.jsonl
+journal: append → /tmp/tmpn5kyg0im/P/journal.jsonl
+journal: append → /tmp/tmp89u6itbk/P/journal.jsonl
+{"continuation": null, "final_allowed": false, "reason": "NOT_APPLICABLE", "recovery": null, "schema_version": "final-admission-event/v1", "sequence": null}
+  plan regression not requested; --plan PATH for the task, --fleet for CI/release
+plan-lint --conflicts: OK (0 discrepancies, 0 warnings)
+[5b/6] publication version ↔ umbrella ↔ manifests
+[6/6] provider command projections (render-provider-commands --check)
+render-provider-commands: check OK (no-op)
+
+validate: OK
