@@ -19,6 +19,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Sources\Folder\PanelDiscovery;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Sources\SourceManager;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
@@ -200,6 +201,11 @@ final class PanelRegistry implements PanelRegistryContract
             $snapshot = CatalogCache::entry($cached, $buildId, $id, $recipeFingerprints[$id]);
             $catalogs[$id] = ($snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot))
                 ?? PanelCatalog::build($panels[$id], $resolved, $this->app);
+            foreach ($resolved->all() as ['source' => $source]) {
+                if ($source instanceof RelationSource) {
+                    $source->validateCatalog($catalogs[$id]);
+                }
+            }
             $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
             $this->discoveries[$id] = $discovery->cache();
             $enums = $this->attachEnums($enums, $id, $catalogs[$id]);

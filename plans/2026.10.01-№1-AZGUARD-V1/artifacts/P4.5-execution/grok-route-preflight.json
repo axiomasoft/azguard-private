@@ -1,0 +1,61 @@
+{
+  "kind": "grok-acp-no-prompt-preflight",
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "requested": {
+    "provider": "grok",
+    "model": "grok-4.7",
+    "context_tokens": 500000,
+    "effort": "high"
+  },
+  "argv": [
+    "grok",
+    "--permission-mode",
+    "dontAsk",
+    "--tools",
+    "read_file,grep,list_dir",
+    "--allow",
+    "Read",
+    "--allow",
+    "Grep",
+    "--deny",
+    "MCPTool",
+    "--deny",
+    "Bash",
+    "--deny",
+    "Edit",
+    "--deny",
+    "Write",
+    "--no-subagents",
+    "--disable-web-search",
+    "agent",
+    "--no-leader",
+    "--model",
+    "grok-4.7",
+    "--reasoning-effort",
+    "high",
+    "stdio"
+  ],
+  "prompt_sent": false,
+  "started_utc": "2026-10-05T05:56:01Z",
+  "agent_info": null,
+  "session_id": "01a10aa2-2a3b-7c90-b311-5c1b0cf01faf",
+  "set_model_result": {
+    "_meta": {
+      "model": {
+        "Ok": "grok-4.7"
+      }
+    }
+  },
+  "provider_route": {
+    "source": "/home/vostrikov/.grok/sessions/%2Fhome%2Fvostrikov%2Fprojects%2Fpackages%2Fazguard/01a10aa2-2a3b-7c90-b311-5c1b0cf01faf/summary.json",
+    "session_id": "01a10aa2-2a3b-7c90-b311-5c1b0cf01faf",
+    "cwd": "/home/vostrikov/projects/packages/azguard",
+    "model": "grok-4.7",
+    "effort": "high",
+    "context_tokens": 500000
+  },
+  "route_verified": true,
+  "exit_code_after_stop": -9,
+  "finished_utc": "2026-10-05T05:56:04Z",
+  "raw_artifacts": "/tmp/azguard-grok-route-probe-bde26331-8b24-484a-ae3a-f54f163d9f45"
+}

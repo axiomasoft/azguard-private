@@ -1,0 +1,3 @@
+PASS: actual subprocess DAG GREEN, braces/glob resolved, immutable attempt preserved
+PASS: failed dependency halts execution before downstream command
+PASS: actual product mutation cannot publish old candidate as GREEN

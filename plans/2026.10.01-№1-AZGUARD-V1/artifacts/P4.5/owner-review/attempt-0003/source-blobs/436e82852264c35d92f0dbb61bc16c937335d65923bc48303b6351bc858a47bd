@@ -1,0 +1,51 @@
+{
+  "schema_version": "readiness-check/v1",
+  "checks": [
+    {
+      "invariant": "Exact related-root subject and same membership/pivot witness",
+      "evidence": "RelationRolesTest: exact identity, constrained eager loading and morph probes"
+    },
+    {
+      "invariant": "Scalar tenant/ref from resolve; resolved record matches model/key",
+      "evidence": "RelationRolesTest: resolve tenant override and contradictory record refusal"
+    },
+    {
+      "invariant": "Global scalar does not enumerate; selection preserves raw same-ref witnesses",
+      "evidence": "RelationRolesTest and RelationSelectionTest"
+    },
+    {
+      "invariant": "Root and membership enumeration bounded before authority output",
+      "evidence": "10000 budgets and foreign-tenant/null-role root probe"
+    },
+    {
+      "invariant": "Grouped narrowing rejects terminal operations on direct/nested predicate builders",
+      "evidence": "RelationSelectionTest: direct, nested where, whereHas, whereExists read/write probes"
+    },
+    {
+      "invariant": "Static role/build validation covers fresh and cached catalogs",
+      "evidence": "RelationBuildTest"
+    }
+  ],
+  "residuals": [
+    {
+      "owner": "P4.6",
+      "reason": "ModelAssignmentScopeDefinition/TenantPolicy normalization and generic structural scope policy remain excluded; model class currently uses a registered matching descriptor"
+    },
+    {
+      "owner": "P4.18",
+      "reason": "Full scoped Authorizer relation/manual integration remains excluded"
+    },
+    {
+      "owner": "P4.12",
+      "reason": "SQL visibility branch execution remains excluded"
+    },
+    {
+      "owner": "P4.8",
+      "reason": "Stable revision support excluded; volatility Request"
+    }
+  ],
+  "limitations": [
+    "Trusted host PHP callbacks are not sandboxed; separately obtained model/query objects retain host authority.",
+    "Generic tenantOf SPI offers no tenant SQL predicate; selection refuses beyond explicit bounded candidate budget and filters loaded roots by tenant."
+  ]
+}

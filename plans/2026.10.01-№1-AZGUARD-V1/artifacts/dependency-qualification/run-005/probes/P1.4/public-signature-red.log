@@ -1,0 +1,107 @@
+
+   PASS  Tests\Arch\ZonesArchTest
+  ✓ production code does not import test helpers (AzGuard\Scopes)        0.03s  
+  ✓ production code does not import test helpers (AzGuard\Plugins)
+  ✓ the catalog neither decides access nor reaches the framework adapte… 0.07s  
+  ✓ panels, catalog, scopes, policies and schema stay off storage and c… 0.11s  
+  ✓ production code does not import test helpers (AzGuard\Permissions)
+  ✓ production code does not import test helpers (AzGuard\Panels)
+  ✓ production code does not import test helpers (AzGuard\Catalog)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Catalog)
+  ✓ sources other than the database source and plugins stay off storage… 0.09s  
+  ✓ production code does not import test helpers (AzGuard\Contracts)     0.02s  
+  ✓ production code does not import test helpers (AzGuard\Storage)       0.05s  
+  ✓ authorization and schema never change access (AzGuard\Authorization… 0.02s  
+  ✓ sources other than the database source and plugins stay off storage (AzGuard\Plugins)
+  ✓ contracts do not import implementations                              0.09s  
+  ✓ production code does not import test helpers (AzGuard\Facades)
+  ✓ it only storage database sources change pipeline and testing use st… 0.11s  
+  ✓ production code does not import test helpers (AzGuard\Schema)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Schema)
+  ✓ it only storage uses storage concerns and the guarded builder        0.10s  
+  ✓ production code does not import test helpers (AzGuard\Concerns)
+  ✓ exceptions depend only on the kernel                                 1.55s  
+  ✓ production code does not import test helpers (AzGuard\Kernel)        0.03s  
+  ✓ authorization and schema never change access (AzGuard\Schema)
+  ✓ it rejects a directory file that imports storage, changes or authorization
+  ✓ production code does not import test helpers (AzGuard\Policies)      0.01s  
+  ✓ code roles do not use storage, changes or authorization
+  ✓ kernel depends on nothing but PHP                                    0.45s  
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Policies)
+  ✓ production code does not import test helpers (AzGuard\Events)
+  ✓ it keeps the kernel free of framework helper calls
+  ✓ production code does not import test helpers (AzGuard\Configuration… 0.01s  
+  ✓ production code does not import test helpers (AzGuard\Sources)
+  ✓ production code does not import test helpers (AzGuard\Laravel)
+  ✓ it rejects a StoresGrants transaction() call copied into the panel zone
+  ✓ it rejects a policy file that imports storage or changes
+  ✓ it only storage and database sources call storage models statically  0.05s  
+  ✓ production code does not import test helpers (AzGuard\Changes)
+  ✓ configuration depends only on the kernel, exceptions and the framew… 0.01s  
+  ✓ production code does not import test helpers (AzGuard\AzGuardServiceProvider)
+  ✓ it resolves model calls through imports aliases inheritance and class-relative names
+  ✓ it resolves grouped mutation imports and fully qualified internal dependencies
+  ✓ production code does not import test helpers (AzGuard\Directories)
+  ✓ production code does not import test helpers (AzGuard\Roles)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Scopes)
+  ✓ plugins do not reach into internals
+  ✓ production code does not import test helpers (AzGuard\Authorization)
+  ✓ directories do not decide access or touch storage and changes (AzGuard\Directories)
+  ✓ only storage and the database source touch the database layer        0.34s  
+  ✓ grants are stored only through the change pipeline, the database source or test helpers
+  ✓ production code does not import test helpers (AzGuard\Diagnostics)
+  ✓ storage does not use authorization or changes
+  ✓ sources do not use changes or authorization
+  ✓ production code does not import test helpers (AzGuard\Filament)
+  ✓ production code does not import test helpers (AzGuard\Exceptions)
+  ✓ it finds framework helper calls but not methods with the same name
+  ✓ production code does not import test helpers (AzGuard\Attributes)
+  ✓ production code does not import test helpers (AzGuard\Internal)
+
+   PASS  Tests\Arch\BaselineArchTest
+  ✓ it keeps package sources free of debug calls                         0.06s  
+  ✓ package sources declare strict types                                 0.30s  
+  ✓ it finds debug calls but not methods, static calls or declarations with the same name
+
+   FAIL  Tests\Arch\ApiManifestTest
+  ⨯ it keeps both api manifests current                                  0.05s  
+  ✓ it lets the filament package use only core classes from the manifest
+
+   PASS  Tests\Arch\AuthorizationArchTest
+  ✓ sources use contracts and values without importing authorization implementations
+  ✓ it proves the authorization source boundary RED against a scratch c… 0.03s  
+  ✓ it keeps the coordinator provenance exception read only
+  ✓ authorization coordinator never reaches ambient auth or framework gate
+
+   PASS  Tests\Arch\SourceConventionsTest
+  ✓ it keeps internal task codes out of source comments                  0.01s  
+  ✓ it reads package configuration only in the configuration zone
+  ✓ it finds panel selection calls and the request panel class but not declarations, strings or comments
+  ✓ it picks a panel only in the panel resolver                          0.01s  
+  ✓ it finds task codes only in comments
+  ✓ it tags every contract as api or spi
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Arch\ApiManifestTest > it keeps both api manifests current     
+  packages/core/api-manifest.json is stale (run composer api:manifest):
+  ~ AzGuard\Kernel\Identity\SubjectRef
+
+Failed asserting that 1 is identical to 0.
+
+  at tests/Arch/ApiManifestTest.php:24
+     20▕     $output = stream_get_contents($pipes[1]).stream_get_contents($pipes[2]);
+     21▕     fclose($pipes[1]);
+     22▕     fclose($pipes[2]);
+     23▕ 
+  ➜  24▕     expect(proc_close($process))->toBe(0, $output);
+     25▕ });
+     26▕ 
+     27▕ it('lets the filament package use only core classes from the manifest', function (): void {
+     28▕     /** @var array{classes: list<array{name: string}>} $manifest */
+
+  1   tests/Arch/ApiManifestTest.php:24
+
+
+  Tests:    1 failed, 71 passed (314 assertions)
+  Duration: 3.70s
+  Random Order Seed: 1791194432
+

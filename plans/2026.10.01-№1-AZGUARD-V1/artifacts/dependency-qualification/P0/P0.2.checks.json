@@ -1,0 +1,33 @@
+[
+  {
+    "id": "P02.regression",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Regression"
+    ],
+    "depends_on": [],
+    "env": {
+      "APP_ENV": "testing",
+      "DB_CONNECTION": "sqlite",
+      "DB_DATABASE": ":memory:",
+      "CACHE_STORE": "array",
+      "CACHE_DRIVER": "array",
+      "SESSION_DRIVER": "array",
+      "QUEUE_CONNECTION": "sync"
+    }
+  },
+  {
+    "id": "P02.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "regression-negative"
+    ],
+    "depends_on": [
+      "P02.regression"
+    ]
+  }
+]

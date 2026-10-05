@@ -276,3 +276,71 @@ original receipts/verdicts and committed them in 7c8a183 before predecessor
 consumption. P0/P1 historical write-site omissions remain foreign baseline.
 No dynamic writer/cache/scoped positive boundary/transaction protocol/race
 qualification is claimed; owners remain P5.3/P4.8/P4.6/P4.18/P4.20/P4.21.
+
+## P4.5 — RelationSource (2026-10-05)
+
+RelationSource читает роли через BelongsToMany, MorphToMany, HasMany,
+BelongsTo и HasOne. Связь проверяется на related root с exact subject model/id;
+статический role, pivot.role и callback дают raw RoleContribution с Request
+volatility. Unknown dynamic role сохраняется как witness для диагностики engine,
+без самостоятельного расширения permissions. Malformed/query/callback failure
+в AuthorityStage даёт SourceError.
+
+Scalar read принимает только запрошенные concrete tenant/context pairs и tenant
+из resolve; global scalar не перечисляет сущности. Selection группирует narrowing
+predicates, ограничивает root/member scan и сохраняет raw same-ref witnesses.
+Извлечение использует root + constrained eager membership queries; scalar resolve
+имеет отдельную стоимость на каждый unique requested ref. Scope callback получает
+ровно один Builder; terminal operations/структурные изменения отвергаются.
+
+| Приёмка | Проверка | Граница результата |
+|---|---|---|
+| V69/V74/V91 raw slice | RelationRolesTest: Project membership/Store owner, exact tenant A/B, morph identity, fresh pivot/related reads | GREEN; scoped integration — P4.18, query engine — P4.23 |
+| V90 source boundary | RelationSelectionTest raw same-ref witnesses; AuthorityStage unknown role/malformed/error controls | GREEN для raw source; полная scoped role expansion/exemptions — P4.7/P4.18 |
+| Build | RelationBuildTest model descriptor resolution, duplicate/long source IDs, queryable contract, static role validation including restored catalog | GREEN |
+| Query/budget | RelationSelectionTest fixed root/member budget, grouped OR, structural/terminal guards, foreign/null-role scan bound | GREEN |
+| Final candidate | Relation 49; affected 205; Arch 72; full suite 2274; PHPStan 0; type coverage 99.7%; API/Pint/diff exit 0 | final-002, stable candidate e8f83686e08502f99dbc44033f60d5355bebfac822ca6e046cd2b2c1122d6542 |
+
+Evidence: artifacts/P4.5-execution/qualified-checks-002.json и отдельные final-002
+logs/receipt. Реальный PHP 8.4.1 принимает surplus arguments user closures;
+первое review allegation об ArgumentCountError опровергнуто probe, но callback
+исправлен до точной опубликованной arity и закреплён regression test.
+
+Model-class shortcut использует уже обнаруженный role-bound descriptor; новый
+ModelAssignmentScopeDefinition/TenantPolicy остаётся P4.6. SQL visibility execution,
+Stable revision и complete scoped Authorizer integration остаются P4.12/P4.8/P4.18.
+Arbitrary trusted PHP callback не является sandbox для независимо созданных query objects.
+
+Runtime defects и прошлые RED/incomplete attempts сохранены в
+artifacts/P4.5-execution/environment-defects.json. Generic validation context
+brace/glob defect repaired by external owning SKM writer; targeted contract/runtime
+qualification GREEN; latest full Task qualification passed 1430 tests with one reported skip. Earlier RED/incomplete attempts remain preserved.
+
+Independent second completed Grok 4.7/high/500k review: GREEN, zero findings,
+artifacts/P4.5/owner-review/attempt-0003/receipt.json. Native immutable session
+01a10b12-3ef9-7f72-8949-f16c6a7c142a read 57 digest-bound files. Post-review
+runtime drift audit and 25 owning checks confirmed current admission and unchanged
+consulted bytes; review loaded runtime provenance remains preserved.
+
+
+### Продолжение квалификации — 2026-10-05
+
+Owner разрешил новую квалификацию 11 исторических зависимостей; frozen history не менялась. Новые изменения Grant и API manifest сделали прежний Grok GREEN неактуальным для текущего продукта. Текущий обязательный product suite прошёл; закрытие P4.5 не выполнено. Причины, отдельные логи и готовый prompt: `artifacts/dependency-qualification/current-observation.json`, `artifacts/dependency-qualification/continuation-prompt.md`.
+
+### Квалификация кандидата 95c7f4a9 — 2026-10-05
+
+D17 фиксирует приёмку этого открытого run: девять команд Validation, freshness и observations зависимостей. Новый review не запускался. Прежний GREEN attempt-0003 остаётся review кандидата `cb2f1817…`.
+
+`Decision::allow` копирует grants в новый `list<Grant>`. Регрессия в `DecisionTest`; два теста `Grant::assertFields` сохранены. Probe `decision-reference-probe.php` на изолированном кандидате печатает `AzGuard\Kernel\Decision\Grant` и выходит 0. Текущий объём Rector: эквивалентные FlipType в Relation и узкий skip `ThrowWithPreviousExceptionRector` для `RelationBinding`/`RelationSource`. Остальной dry-run exit 2 зарегистрирован по владельцам в D17 и не объявлен GREEN.
+
+Кандидат `95c7f4a94c4916b85f54688e237e3f95645fea68`, main HEAD на момент проверок `be075a70`. Suite 2277, counts Arch 72 / Feature 1314 / Regression 87 / Unit 804. Pint, PHPStan, manifest `--check`, Arch, Relation, Authorization+Sources, type coverage 99.7% без `Warning:`, diff `--check` — exit 0. Оба consumer fixture: `acceptance_green=true`. Мутации P0.2, P1.1, P1.4 (пять) и P1.8 (две) дали RED и восстановились в GREEN. Логи: `artifacts/dependency-qualification/run-005`, `run-006`, `run-007`.
+
+`task_contract.evaluate` на этом дереве: P0.2, P0.3, P1.1, P1.2, P1.3, P1.4, P1.6 — `allow/allow`, append-only `local-repair`. P0.4 и P0.5 — `block:VALIDATION_RECEIPT_NONZERO`: old-names, no-context и отсутствие Panel не выполнены; legacy ContextGuard/ContextNotSetException не загружаются, это отдельный критерий D17, не перекраска истории. P1.7 — тот же block: clause 6 требует review, D17 его запрещает; пустой `git status` кандидата review не заменяет. P1.8 — тот же block: type coverage 192 строки против 195 PHP-файлов `packages/*/src`. P4.5 evaluate — `allow/allow`; terminal row пишет только `plan-work close` run `32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926`.
+
+Полная квалификация SKM Task после scope-фильтра: `scripts/validate.sh` exit 0, 1458 tests, plan-lint OK. Историческая цифра 1430 выше относится к более раннему прогону.
+
+Facade `plan-work validate` attempt `p45-95c7f4a9` выполнил буквальные команды и упал на `vendor/bin/pest tests/Arch`: PHP memory_limit 128M, OOM в `PhpParser\Lexer` во время `BaselineArchTest`. Это тот же дефект среды, который уже записан для P4. Повтор `p45-95c7f4a9-m1g` тем же текстом команд при `memory_limit=1G` завершился E21 exit 0 за 26.7 с.
+
+Первый `plan-work close` остановился на `REVIEW_CHANGED_PATH_UNCOVERED`: изменённые product-файлы были вне material paths, рядом лежал чужой `.gitignore`. Review не запускался. Read-budget тогда был 101173 при пороге 100000, потому что D17 входил во входы.
+
+Дальше D17 оставлен записью решения и убран из Inputs: обязательное чтение стало 99186, `admission_pass` true. Историческим closed-green P0.4, P0.5, P1.7 и P1.8 дописана каноническая строка уже существующего GREEN; frozen-перепроверка по D17 остаётся не-allow, terminal rows не переписаны. Request снят: спецификация не объявляет `owner-review`, третий round запрещён, прежний GREEN остаётся другим кандидатом. Повтор `plan-work validate` attempt `p45-95c7f4a9-m1g-b2` при `memory_limit=1G` — E20 exit 0, complete true. `plan-work close` записал `closed-green` того же run `32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926` в 2026-10-05T11:05:50Z.

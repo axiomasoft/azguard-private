@@ -1,0 +1,35 @@
+{
+  "item": "P1.1",
+  "candidate_commit": "95c7f4a94c4916b85f54688e237e3f95645fea68",
+  "evidence_id": "E11",
+  "exit_code": 0,
+  "reason": "identity pest, compose mutation RED then restore GREEN, suite, pint, phpstan, types, diff",
+  "contract_sha256": "a4f4cb201b1507d082d37c735002aa2bf37217b4de291b6e0e12d7deb090bb29",
+  "evaluate": {
+    "pre_mutation": "allow",
+    "pre_final": "allow",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": null
+    },
+    "content_hash": "a4f4cb201b1507d082d37c735002aa2bf37217b4de291b6e0e12d7deb090bb29"
+  },
+  "receipt": {
+    "schema_version": "validation-receipt/v1",
+    "evidence_id": "E11",
+    "command": "1) `vendor/bin/pest tests/Unit/Kernel/Identity tests/Regression/P07Test.php tests/Regression/RegressionSpecsTest.php` — GREEN; 2) временная поломка однозначности (в `compose` заменить JSON на `implode(':')`) даёт RED в V04/P07, после отката GREEN (в evidence); 3) `composer test`; 4) `vendor/bin/pint --test`; 5) `vendor/bin/phpstan analyse --memory-limit=1G`; 6) `vendor/bin/pest --type-coverage --min=98`; 7) `git diff --check`.",
+    "contract_sha256": "a4f4cb201b1507d082d37c735002aa2bf37217b4de291b6e0e12d7deb090bb29",
+    "spec_sha256": "2c00d440911cbb1596c304d8274001dce8e541aa1c55b055ec01c7d92f7e9fd8",
+    "head": "be075a70ccec8d3ed80469fc5e62b221a12df65d",
+    "tree": "d7b4f08d19601072c397846ae9caf1dd11b078f4d60724bc6bcc5f922fbe7c5f",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+    "exit_code": 0,
+    "executed_at": "2026-10-05T10:10:46Z"
+  },
+  "type_coverage": {
+    "rows": 192,
+    "src_php": 195,
+    "total": "99.7 %",
+    "warning": false
+  }
+}

@@ -1,0 +1,142 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\DecisionTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit refuses two different tokens for one storage panel in a set[39m[90m      [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps every reason of the dossier with its machine code[39m
+  [32;1m✓[39;22m[90m [39m[90mit detaches grant references and rejects a grant list that is not plain[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries state, scope, component and traced grants[39m
+  [32;1m✓[39;22m[90m [39m[90mit keys the states of a mixed set apart[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / tenant_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / tenant_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / tenant_required"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\GrantTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with datase[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "space in origin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "empty source"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "leading colon origin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit describes a role contribution with its owner[39m
+  [32;1m✓[39;22m[90m [39m[90mit detaches top-level and nested field references from grants and role contributions[39m
+  [32;1m✓[39;22m[90m [39m[90mit builds a grant with the manual origin by default[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps stored fields unchanged when returned field arrays are modified[39m
+  [32;1m✓[39;22m[90m [39m[90mit is active strictly before its expiry[39m
+  [32;1m✓[39;22m[90m [39m[90mit lets a restriction only pass or deny with a snake_case reason[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "object"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "closure"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "nested object"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "int key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "empty key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a grant whose role lives in another panel[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps hook and authority values closed[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\StateTokenTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage empty incarnation[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage negative generation"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code empty fingerprint"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code empty build"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage empty id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage negative version"[39m
+  [32;1m✓[39;22m[90m [39m[90mit separates the code token from the storage token[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Permissions\PermissionSetTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries an optional absolute deadline[39m[90m                            [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit covers a key when any pattern of its panel covers it[39m
+  [32;1m✓[39;22m[90m [39m[90mit deduplicates patterns by their full form and keeps the first order[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\AccessRequestTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit sets tenant and context together from a scope[39m
+  [32;1m✓[39;22m[90m [39m[90mit starts without tenant, context, resource or trace[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps the tenant when the context changes and treats null as not given[39m
+  [32;1m✓[39;22m[90m [39m[90mit returns a new request from every wither and keeps the original[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\PermissionAuthorityTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in grants mode with dataset "grants"[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in grants mode with dataset "policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers every mode in the table[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / unqualified"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\DecisionDenialTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps details nullable by default and preserves the effect-reason consistency guard[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "float"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "integer"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "boolean"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "text"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "none"[39m
+
+  [90mTests:[39m    [32;1m122 passed[39;22m[90m (365 assertions)[39m
+  [90mDuration:[39m [39m0.40s[39m
+  [90mRandom Order Seed:[39m [39m1791194061[39m
+
+$ php -d memory_limit=1G vendor/bin/pest tests/Unit/Kernel/Decision tests/Unit/Kernel/Permissions

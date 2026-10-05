@@ -1,0 +1,199 @@
+--- a/packages/task/lib/task/review_grok_acp.py
++++ b/packages/task/lib/task/review_grok_acp.py
+@@ -83,7 +83,8 @@
+ 
+ 
+ def run(manifest: dict, packet: bytes, *, cwd: Path, timeout: int, max_turns: int = 0,
+-        heartbeat_interval: float = 30, progress=None, attempt_dir: Path | None = None) -> dict:
++        heartbeat_interval: float = 30, progress=None, attempt_dir: Path | None = None,
++        packet_path: Path | None = None) -> dict:
+     """No retry, no product mutation, no prompt before native capacity proof."""
+     command = argv(manifest, max_turns=max_turns)
+     # A refused session/new still has a distinct attempt identity for archiving.
+@@ -93,6 +94,7 @@
+     attempt_dir = Path(attempt_dir) if attempt_dir is not None else None
+     ledger = ReadLedger(cwd)
+     process = None
++    process_identity = None
+     raw, stderr, chunks = [], [], []
+     last_response = ""
+     inbox = queue.Queue()
+@@ -107,8 +109,8 @@
+     def persist(method, request_id=None):
+         if attempt_dir is not None:
+             review_job.write(attempt_dir / "job.json", {
+-                "session_id": session, "request_id": request_id, "phase": method,
+-                "process": review_job.identity(process.pid) if process is not None else None,
++                "session_id": session, "request_id": request_id if request_id is not None else sequence, "phase": method,
++                "process": process_identity,
+                 "updated_at": time.time()})
+ 
+     def probe(method):
+@@ -119,7 +121,7 @@
+         if session is not None and method == "session/prompt":
+             verify_route(provider_route(cwd, session), manifest)
+         snapshot = {"schema_version": "review-heartbeat/v1", "session_id": session,
+-                    "phase": method, "process_alive": True,
++                    "phase": method, "process_alive": True, "updated_at": time.time(),
+                     "elapsed_seconds": round(now - started, 3),
+                     "idle_seconds": round(now - last_activity, 3),
+                     "activity_events": activity_events, "responses": responses}
+@@ -237,6 +239,21 @@
+             time.sleep(min(0.05, max(0, until - time.monotonic())))
+ 
+     try:
++        prompt = [{"type": "text", "text": packet.decode()}]
++        if packet_path is not None:
++            immutable_packet = Path(packet_path).resolve()
++            machine_manifest = immutable_packet.with_name("review-route.json")
++            if (not immutable_packet.is_relative_to(cwd.resolve())
++                    or immutable_packet.name != "packet.md"
++                    or immutable_packet.read_bytes() != packet
++                    or hashlib.sha256(packet).hexdigest() != manifest.get("packet_sha256")
++                    or json.loads(machine_manifest.read_bytes()) != manifest):
++                raise TransportError("REVIEW_PACKET_STALE: immutable packet/manifest locator differs from the bound input")
++            locator = {"packet_path": str(immutable_packet), "machine_manifest": str(machine_manifest)}
++            prompt.append({"type": "text", "text": "## Immutable review artifact locator\n"
++                           + json.dumps(locator, ensure_ascii=False, sort_keys=True)
++                           + "\nUse these exact paths for the immutable packet and its machine metadata; "
++                           "they take precedence over relative locator descriptions in the packet."})
+         executable = shutil.which(command[0])
+         result["provider_runtime"] = {"executable": executable,
+             "sha256": hashlib.sha256(Path(executable).read_bytes()).hexdigest() if executable else None}
+@@ -245,6 +262,7 @@
+         next_probe = started + heartbeat_interval
+         process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, start_new_session=os.name == "posix")
++        process_identity = review_job.identity(process.pid) if attempt_dir is not None else None
+         persist("spawned")
+         for stream, target, deliver in ((process.stdout, raw, True), (process.stderr, stderr, False)):
+             thread = threading.Thread(target=reader, args=(stream, target, deliver), daemon=True)
+@@ -265,7 +283,7 @@
+                                                if "context_tokens" in manifest["route"] else {})}})
+         route()
+         terminal = rpc("session/prompt", {"sessionId": session,
+-                                          "prompt": [{"type": "text", "text": packet.decode()}]})
++                                          "prompt": prompt})
+         ledger.verify()
+         result["read_ledger"] = ledger.result()
+         metadata = terminal.get("_meta", {})
+@@ -302,6 +320,8 @@
+         result["raw"] = b"".join(raw) if attempt_dir is None else (attempt_dir / "provider-output.jsonl").read_bytes() if (attempt_dir / "provider-output.jsonl").exists() else b""
+         result["stderr"] = b"".join(stderr) if attempt_dir is None else (attempt_dir / "stderr.log").read_bytes() if (attempt_dir / "stderr.log").exists() else b""
+         result["exit_code"] = process.poll() if process is not None else None
++        result["process"] = process_identity
++        result["prompt_request_id"] = sequence
+         result["wall_seconds"] = round(time.monotonic() - started, 3)
+         if attempt_dir is not None:
+             (attempt_dir / "output.json").write_bytes(result["output"])
+--- a/packages/task/lib/task/review_packet.py
++++ b/packages/task/lib/task/review_packet.py
+@@ -449,12 +449,11 @@
+             return {"action": "reuse-verdict", "receipt": previous}
+         if len(rounds) >= _round_limit(plan_dir, manifest, _history(directory)):
+             raise ReviewError("REVIEW_BUDGET_EXHAUSTED", "two completed rounds; retain repair authority and request one bounded owner decision")
+-        machine_reference = directory.relative_to(root).as_posix()
+         compact = {"candidate_sha256": candidate, "reviewer": selector, "effort": effort,
+                    "base": base, "risk_class": manifest["risk_class"],
+                    "required_product_paths": manifest["review_paths"],
+                    "supporting_paths": manifest["supporting"],
+-                   "machine_manifest": "review-route.json beside this packet under " + machine_reference,
++                   "machine_manifest": "review-route.json in the same immutable packet-<digest> directory as packet.md; use the exact transport-supplied locator",
+                    "product_members": len(snapshot["product"]), "supporting_members": len(snapshot["inputs"])}
+         sections.append("## Bound candidate\n" + json.dumps(compact, ensure_ascii=False, separators=(",", ":")))
+         if previous:
+@@ -972,7 +971,8 @@
+         try:
+             result = review_grok_acp.run(manifest, packet_path.read_bytes(), cwd=root,
+                                          timeout=timeout, max_turns=max_turns,
+-                                         heartbeat_interval=heartbeat_interval, progress=progress, attempt_dir=attempt)
++                                         heartbeat_interval=heartbeat_interval, progress=progress, attempt_dir=attempt,
++                                         packet_path=packet_path)
+             raw, stderr, output = result["raw"], result["stderr"], result["output"]
+             session, detail, complete = result["session"], result["detail"], result["complete"]
+             observed_context, provider_witness = result["observed_context"], result["provider_route"]
+--- a/packages/task/tests/test_review_grok_acp.py
++++ b/packages/task/tests/test_review_grok_acp.py
+@@ -1,5 +1,6 @@
+ """Native ACP transport boundaries without launching a reviewer or model call."""
+ import io
++import hashlib
+ import json
+ import os
+ import queue
+@@ -195,6 +196,55 @@
+         self.assertEqual(requests[3]["params"]["prompt"], [{"type": "text", "text": "unchanged digest-bound packet"}])
+         self.assertIn(b"provider diagnostics", result["stderr"])
+ 
++    def immutable_packet(self):
++        directory = tempfile.TemporaryDirectory()
++        self.addCleanup(directory.cleanup)
++        root = Path(directory.name)
++        packet_path = root / "owner-review" / "packet-immutable" / "packet.md"
++        packet_path.parent.mkdir(parents=True)
++        packet = b"bound review packet"
++        manifest = {**self.manifest, "packet_sha256": hashlib.sha256(packet).hexdigest()}
++        packet_path.write_bytes(packet)
++        packet_path.with_name("review-route.json").write_text(json.dumps(manifest))
++        return root, packet_path, packet, manifest
++
++    def test_outgoing_prompt_supplies_exact_readable_immutable_packet_and_manifest(self):
++        root, packet_path, packet, manifest = self.immutable_packet()
++        process = _Process()
++        with patch.object(acp.subprocess, "Popen", return_value=process), \
++                patch.object(acp, "provider_route", return_value=self.witness), \
++                patch.object(acp, "_stop", side_effect=lambda proc: proc.terminate()):
++            result = acp.run(manifest, packet, cwd=root, timeout=1, packet_path=packet_path)
++        self.assertTrue(result["complete"], result["detail"])
++        outgoing = next(row for row in process.sent if row.get("method") == "session/prompt")
++        prompt = outgoing["params"]["prompt"]
++        self.assertEqual(prompt[0], {"type": "text", "text": packet.decode()})
++        locator = json.loads(prompt[1]["text"].splitlines()[1])
++        self.assertEqual(locator["packet_path"], str(packet_path.resolve()))
++        self.assertEqual(locator["machine_manifest"], str(packet_path.with_name("review-route.json").resolve()))
++        self.assertIn("take precedence", prompt[1]["text"])
++        self.assertFalse((packet_path.parent.parent / "review-route.json").exists())
++        # The native read that failed in production now points at the actual immutable file.
++        ledger = acp.ReadLedger(root)
++        ledger.observe({"sessionUpdate": "tool_call", "title": "read_file", "toolCallId": "manifest",
++                        "rawInput": {"target_file": locator["machine_manifest"]}})
++        self.assertEqual(ledger.result()["reads"][0]["member"]["path"],
++                         "owner-review/packet-immutable/review-route.json")
++
++    def test_locator_refuses_changed_packet_or_manifest_before_provider_launch(self):
++        for changed in ("packet", "manifest"):
++            with self.subTest(changed=changed):
++                root, packet_path, packet, manifest = self.immutable_packet()
++                if changed == "packet":
++                    packet_path.write_bytes(b"replaced packet")
++                else:
++                    packet_path.with_name("review-route.json").write_text(json.dumps({**manifest, "effort": "low"}))
++                with patch.object(acp.subprocess, "Popen") as launch:
++                    result = acp.run(manifest, packet, cwd=root, timeout=1, packet_path=packet_path)
++                self.assertFalse(result["complete"])
++                self.assertIn("REVIEW_PACKET_STALE", result["detail"])
++                launch.assert_not_called()
++
+     def test_small_missing_capacity_and_wrong_route_refuse_before_prompt(self):
+         cases = [({**self.witness, "context_tokens": 256000}, "REVIEW_CONTEXT_UNDERSHOOT"),
+                  ({**self.witness, "context_tokens": None}, "REVIEW_CONTEXT_UNVERIFIABLE"),
+--- a/packages/task/tests/test_review_packet.py
++++ b/packages/task/tests/test_review_packet.py
+@@ -436,6 +436,8 @@
+         packet = self.packet()
+         self.assertLessEqual(packet["packet_bytes"], review.PACKET_BYTES_MAX)
+         self.assertIn("No code is truncated", Path(packet["packet"]).read_text())
++        self.assertIn("same immutable packet-<digest> directory", Path(packet["packet"]).read_text())
++        self.assertNotIn("beside this packet under", Path(packet["packet"]).read_text())
+         self.spec.write_text(self.spec.read_text() + "\n" + "é" * 45_000)
+         with self.assertRaisesRegex(review.ReviewError, "REVIEW_PACKET_TOO_LARGE"):
+             self.packet()
+@@ -480,6 +482,8 @@
+                 self.assertEqual(selected["route"]["model"], "grok-4.7")
+                 self.assertEqual(selected["effort"], "high")
+                 self.assertEqual(packet_bytes, Path(packet["packet"]).read_bytes())
++                self.assertEqual(kwargs["packet_path"], Path(packet["packet"]))
++                self.assertEqual(kwargs["packet_path"].with_name("review-route.json"), Path(packet["manifest"]))
+                 return {"session": "independent-native-session", "raw": b"native ACP transcript\n",
+                         "stderr": b"", "output": json.dumps(self.verdict(manifest)).encode(),
+                         "detail": "ACP end_turn", "complete": True, "observed_context": context,

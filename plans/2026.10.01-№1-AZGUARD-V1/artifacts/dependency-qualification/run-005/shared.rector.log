@@ -1,0 +1,1388 @@
+
+ [WARNING] These rules are skipped, but are deprecated. Most likely you do not  
+           need to skip them anymore as not part of any set and remove them:    
+                                                                                
+           * Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector      
+
+28 files with changes
+=====================
+
+1) packages/core/src/Panels/PanelFingerprint.php:127
+
+    ---------- begin diff ----------
+@@ Line 127 @@
+         if ($item instanceof PolicyBinding) {
+             $permission = $item->permission instanceof UnitEnum
+                 ? $item->permission::class.'::'.$item->permission->name
+-                : (string) $item->permission;
++                : $item->permission;
+
+             return $permission.'@'.$item->policy.($item->method === null ? '' : '::'.$item->method);
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * RecastingRemovalRector
+
+
+2) packages/core/src/Panels/PanelRegistry.php:187
+
+    ---------- begin diff ----------
+@@ Line 187 @@
+         }
+
+         $buildId = $this->app->make(AzGuardConfig::class)->buildId(array_values($providers));
+-        $cached = $this->cache === null ? [] : ($this->cache)()->read();
++        $cached = $this->cache instanceof Closure ? ($this->cache)()->read() : [];
+         $panels = $recipes = $plugins = $fingerprints = $recipeFingerprints = $catalogs = $enums = [];
+
+         foreach ($providers as $id => $providerClass) {
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+3) packages/core/src/Panels/PanelResolver.php:32
+
+    ---------- begin diff ----------
+@@ Line 32 @@
+  *
+  * @phpstan-type Resolution array{panel: Panel, key: ?PermissionKey, step: 'explicit'|'current'|'model'}
+  */
+-final class PanelResolver
++final readonly class PanelResolver
+ {
+     public const string EXPLICIT = 'explicit';
+
+@@ Line 41 @@
+     public const string MODEL = 'model';
+
+     public function __construct(
+-        private readonly PanelRegistry $registry,
+-        private readonly CurrentPanel $current,
++        private PanelRegistry $registry,
++        private CurrentPanel $current,
+     ) {}
+
+     /**
+@@ Line 70 @@
+
+         if ($subject !== null && ! $picked->accepts($subject)) {
+             throw new SubjectNotAcceptedException(
+-                self::describeSubject($subject).' is not a subject of panel "'.$picked->id().'". Subject models of the panel: '
+-                .self::listed($picked->subjectModels()).'.',
++                $this->describeSubject($subject).' is not a subject of panel "'.$picked->id().'". Subject models of the panel: '
++                .$this->listed($picked->subjectModels()).'.',
+             );
+         }
+
+@@ Line 104 @@
+
+         $prefixed = $this->registry->forPrefix(explode('.', $ability, 2)[0]);
+
+-        if ($prefixed !== null) {
++        if ($prefixed instanceof Panel) {
+             return $prefixed;
+         }
+
+         $candidate = $this->candidate($subject);
+
+-        return $candidate !== null && $this->registry->catalog($candidate->id())->has($ability) ? $candidate : null;
++        return $candidate instanceof Panel && $this->registry->catalog($candidate->id())->has($ability) ? $candidate : null;
+     }
+
+     /**
+@@ Line 155 @@
+
+         $prefixed = $this->registry->forPrefix(explode('.', $permission, 2)[0]);
+
+-        if ($prefixed !== null) {
++        if ($prefixed instanceof Panel) {
+             $signals['the prefix of "'.$permission.'"'] = [$prefixed->id()];
+         }
+
+@@ Line 176 @@
+             $named = [];
+
+             foreach ($signals as $signal => $panels) {
+-                $named[] = $signal.' names '.self::listed($panels);
++                $named[] = $signal.' names '.$this->listed($panels);
+             }
+
+             throw new ConflictingPanelException(
+@@ Line 186 @@
+
+         if (count($allowed) > 1) {
+             throw new AmbiguousPanelException(
+-                ucfirst((string) array_key_first($signals)).' is attached to panels '.self::listed($allowed)
++                ucfirst(array_key_first($signals)).' is attached to panels '.$this->listed($allowed)
+                 .': name the panel explicitly.',
+             );
+         }
+@@ Line 203 @@
+     {
+         $current = $this->currentFor($subject);
+
+-        if ($current !== null) {
++        if ($current instanceof Panel) {
+             return [$current, self::CURRENT];
+         }
+
+         $ofModel = $this->ofModel($subject);
+
+-        if ($ofModel !== null) {
++        if ($ofModel instanceof Panel) {
+             return [$ofModel, self::MODEL];
+         }
+
+@@ Line 228 @@
+     {
+         $current = $this->current->get();
+
+-        return $current !== null && ($subject === null || $current->accepts($subject)) ? $current : null;
++        return $current instanceof Panel && ($subject === null || $current->accepts($subject)) ? $current : null;
+     }
+
+     private function ofModel(Model|SubjectRef|null $subject): ?Panel
+@@ Line 237 @@
+             $id = $subject->azguardDefaultPanel();
+             $own = is_string($id) ? $this->registry->find($id) : null;
+
+-            if ($own !== null && $own->accepts($subject)) {
++            if ($own instanceof Panel && $own->accepts($subject)) {
+                 return $own;
+             }
+         }
+@@ Line 256 @@
+             return $subject::class;
+         }
+
+-        $model = $subject === null ? null : Relation::getMorphedModel($subject->type());
++        $model = $subject instanceof SubjectRef ? Relation::getMorphedModel($subject->type()) : null;
+
+         return is_string($model) && is_subclass_of($model, Model::class) ? $model : null;
+     }
+@@ Line 300 @@
+
+         $panels = match (true) {
+             $subject === null => 'There is no subject to take a default panel from.',
+-            $accepting === [] => 'No panel accepts '.self::describeSubject($subject).'.',
+-            default => 'Panels that accept '.self::describeSubject($subject).': '.self::listed($accepting).'; none of them is the default.',
++            $accepting === [] => 'No panel accepts '.$this->describeSubject($subject).'.',
++            default => 'Panels that accept '.$this->describeSubject($subject).': '.$this->listed($accepting).'; none of them is the default.',
+         };
+
+         return 'No panel is resolved'.$what.': nothing names a panel and the request has no current panel. '.$panels
+@@ Line 309 @@
+             .' or declare default() on the panel of the model.';
+     }
+
+-    private static function describeSubject(Model|SubjectRef $subject): string
++    private function describeSubject(Model|SubjectRef $subject): string
+     {
+         return $subject instanceof Model ? $subject::class : 'subject "'.$subject->key().'"';
+     }
+@@ Line 317 @@
+     /**
+      * @param  list<string>  $values
+      */
+-    private static function listed(array $values): string
++    private function listed(array $values): string
+     {
+         return $values === [] ? 'none' : '"'.implode('", "', $values).'"';
+     }
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+ * FlipTypeControlToUseExclusiveTypeRector
+ * RecastingRemovalRector
+ * FlipNegatedTernaryInstanceofRector
+ * ReadOnlyClassRector
+
+
+4) packages/core/src/Policies/PolicyDecider.php:56
+
+    ---------- begin diff ----------
+@@ Line 56 @@
+             $result = $this->invoker->invoke(callback: [$policy, 'before'], inputs: ['ability' => $ability, ...$inputs]);
+         }
+
+-        if ($result === null) {
+-            $result = $this->invoker->invoke(callback: $callback, inputs: $inputs);
+-        }
++        $result ??= $this->invoker->invoke(callback: $callback, inputs: $inputs);
+         $message = $status = $code = null;
+         $response = $result instanceof Response;
+    ----------- end diff -----------
+
+Applied rules:
+ * IfToNullCoalescingAssignRector
+
+
+5) packages/core/src/Policies/RuntimeInvoker.php:44
+
+    ---------- begin diff ----------
+@@ Line 44 @@
+             } elseif ($slot === null) {
+                 $candidates = [];
+                 foreach ($inputs as $key => $value) {
+-                    if (! isset($used[$key]) && $value !== null && $parameter->getType() !== null && $this->accepts($parameter->getType(), $value)) {
++                    if (! isset($used[$key]) && $value !== null && $parameter->getType() instanceof ReflectionType && $this->accepts($parameter->getType(), $value)) {
+                         $candidates[] = $key;
+                     }
+                 }
+@@ Line 54 @@
+                 }
+                 $slot = $candidates[0] ?? null;
+
+-                if ($slot === null && $parameter->getType() === null) {
++                if ($slot === null && !$parameter->getType() instanceof ReflectionType) {
+                     $slot = array_keys($inputs)[$position] ?? null;
+                 }
+             }
+@@ Line 89 @@
+
+     private function accepts(?ReflectionType $type, mixed $value): bool
+     {
+-        if ($type === null) {
++        if (!$type instanceof ReflectionType) {
+             return true;
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * ClosureFromCallableToFirstClassCallableRector
+
+
+6) packages/core/src/Roles/BaseRole.php:131
+
+    ---------- begin diff ----------
+@@ Line 131 @@
+      */
+     private function declaration(): array
+     {
+-        return self::$declarations[static::class] ??= self::read(static::class);
++        return self::$declarations[static::class] ??= $this->read(static::class);
+     }
+
+     /**
+@@ Line 138 @@
+      * @param  class-string<self>  $name
+      * @return array{role: ?Role, formerKeys: list<string>, superAdmin: bool, grantable: bool}
+      */
+-    private static function read(string $name): array
++    private function read(string $name): array
+     {
+         $class = new ReflectionClass($name);
+         $role = ($class->getAttributes(Role::class)[0] ?? null)?->newInstance();
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+
+
+7) packages/core/src/Scopes/BaseAssignmentScope.php:50
+
+    ---------- begin diff ----------
+@@ Line 50 @@
+     {
+         if ($ref->isGlobal() || $ref->type() !== $this->type()) {
+             throw new InvalidAssignmentScopeException(
+-                'Assignment scope '.$this::class.' accepts type "'.$this->type().'" and refuses '.($ref->isGlobal()
++                'Assignment scope '.static::class.' accepts type "'.$this->type().'" and refuses '.($ref->isGlobal()
+                     ? 'the global scope'
+                     : 'type "'.$ref->type().'"').': a foreign reference is not treated as missing.',
+             );
+@@ Line 101 @@
+     {
+         if (! is_a($class, AssignmentScopeFilter::class, true)) {
+             throw new DefinitionException(
+-                $this::class.'::filter() expects an '.AssignmentScopeFilter::class.' object, its class or a closure, got '
++                static::class.'::filter() expects an '.AssignmentScopeFilter::class.' object, its class or a closure, got '
+                 .json_encode($class).'.',
+             );
+         }
+@@ Line 119 @@
+     {
+         if (! is_a($class, AssignmentScopeDirectory::class, true)) {
+             throw new DefinitionException(
+-                $this::class.'::directory() expects a class that implements '.AssignmentScopeDirectory::class.', got '
++                static::class.'::directory() expects a class that implements '.AssignmentScopeDirectory::class.', got '
+                 .json_encode($class).'.',
+             );
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * ClassOnThisVariableObjectRector
+
+
+8) packages/core/src/Sources/Database/DatabaseSource.php:109
+
+    ---------- begin diff ----------
+@@ Line 109 @@
+             if ($class === null) {
+                 continue;
+             }
+-            self::validateModel($class, $base);
++            $this->validateModel($class, $base);
+             $copy->selectedModels[$kind] = $class;
+         }
+
+@@ Line 123 @@
+     {
+         $copy = clone $this;
+         foreach (['role_grant' => $roleGrant, 'permission_grant' => $permissionGrant] as $kind => $names) {
+-            $names = self::validatedFieldNames($names);
++            $names = $this->validatedFieldNames($names);
+             $copy->fields[$kind] = array_values(array_unique($names));
+         }
+
+@@ Line 133 @@
+     /** @param array<mixed> $names
+      * @return list<string>
+      */
+-    private static function validatedFieldNames(array $names): array
++    private function validatedFieldNames(array $names): array
+     {
+         if (! array_is_list($names)) {
+             throw new DefinitionException('Decision fields must be a list of field names.');
+@@ Line 147 @@
+         return $names;
+     }
+
+-    private static function validateModel(string $class, string $base): void
++    private function validateModel(string $class, string $base): void
+     {
+         if (! is_a($class, $base, true) || ! (new ReflectionClass($class))->isInstantiable()) {
+             throw new StorageMismatchException("DatabaseSource model must be a concrete subclass of {$base}.");
+@@ Line 197 @@
+             return [];
+         }
+
+-        if ($tenant === null) {
++        if (!$tenant instanceof TenantRef) {
+             throw new DefinitionException('Dynamic permissions require an explicit tenant.');
+         }
+
+@@ Line 365 @@
+     /** @param array<mixed> $scopes
+      * @return list<AccessScope>
+      */
+-    private static function validatedScopes(array $scopes): array
++    private function validatedScopes(array $scopes): array
+     {
+         if (! array_is_list($scopes)) {
+             throw new InvalidSourceContributionException('Assignment scopes must be a list.');
+@@ Line 417 @@
+      */
+     private function read(StorageReadSession $session, string $kind, SubjectRef $subject, array $scopes, EvaluationContext $context, ?string $contextType = null): array
+     {
+-        $scopes = self::validatedScopes($scopes);
++        $scopes = $this->validatedScopes($scopes);
+         $storage = $this->resolvedStorage();
+         $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
+             ->where('panel', $context->panel()->id())->where('subject_type', $subject->type())
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+9) packages/core/src/Sources/Folder/FolderSource.php:4
+
+    ---------- begin diff ----------
+@@ Line 4 @@
+
+ namespace AzGuard\Sources\Folder;
+
++use Illuminate\Database\Eloquent\Model;
+ use AzGuard\Catalog\PermissionDefinition;
+ use AzGuard\Contracts\Authorization\EvaluationContext;
+ use AzGuard\Contracts\Sources\DescribesSchema;
+@@ Line 216 @@
+         $model = $context->subjectModel();
+         $panel = $context->panel();
+
+-        if ($model === null || ! $panel->accepts($subject) || ! $panel->accepts($model)) {
++        if (!$model instanceof Model || ! $panel->accepts($subject) || ! $panel->accepts($model)) {
+             return;
+         }
+
+@@ Line 249 @@
+     {
+         $panel = $context->panel();
+
+-        if ($context->subjectModel() === null || ! $panel->accepts($subject)) {
++        if (!$context->subjectModel() instanceof Model || ! $panel->accepts($subject)) {
+             return;
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+10) packages/core/src/Sources/Folder/PanelDiscovery.php:48
+
+    ---------- begin diff ----------
+@@ Line 48 @@
+         $collected = self::collect($roots, $names);
+         $restored = is_array($cached) ? DiscoverySnapshot::fromCache($cached) : null;
+
+-        if ($restored !== null && $restored->names === $names && $restored->roots === $roots && $restored->files === $collected['files']) {
++        if ($restored instanceof DiscoverySnapshot && $restored->names === $names && $restored->roots === $roots && $restored->files === $collected['files']) {
+             return $restored;
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+11) packages/core/src/Sources/PanelSources.php:236
+
+    ---------- begin diff ----------
+@@ Line 236 @@
+         foreach ($this->sources as $attached) {
+             $source = $attached['source'];
+             $descriptions[] = $source instanceof DescribesSchema
+-                ? self::described($panel, $source)
++                ? $this->described($panel, $source)
+                 : new SourceDescription(
+                     id: $source->id(),
+                     class: $source::class,
+@@ Line 301 @@
+         return $capabilities;
+     }
+
+-    private static function described(Panel $panel, DescribesSchema $source): SourceDescription
++    private function described(Panel $panel, DescribesSchema $source): SourceDescription
+     {
+         $description = $source->describe($panel);
+
+@@ Line 323 @@
+             return;
+         }
+
+-        $container->scoped($abstract, static function (Container $container) use ($name, $panel): Source {
+-            return $container->make(SourceManager::class)->make($name, $panel);
+-        });
++        $container->scoped($abstract, static fn(Container $container): Source => $container->make(SourceManager::class)->make($name, $panel));
+     }
+
+     private static function abstract(string $panel, string $name): string
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+ * ClosureToArrowFunctionRector
+
+
+12) packages/core/src/Storage/Storage.php:237
+
+    ---------- begin diff ----------
+@@ Line 237 @@
+                 $this->pendingTouches[$panel] = true;
+             }
+
+-            if ($parent === null) {
++            if (!$parent instanceof StorageMutation) {
+                 foreach (array_keys($this->pendingTouches) as $panel) {
+                     $this->table('panel_state')->where('panel', $panel)->increment('version', 1, ['updated_at' => gmdate('Y-m-d H:i:s')]);
+                 }
+@@ Line 256 @@
+             $mutation?->close();
+             $this->current = $parent;
+
+-            if ($parent === null) {
++            if (!$parent instanceof StorageMutation) {
+                 $this->locked = [];
+                 $this->pendingTouches = [];
+             }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+13) packages/core/src/Storage/StorageReadSession.php:93
+
+    ---------- begin diff ----------
+@@ Line 93 @@
+         $write = $connection->getRawPdo();
+
+         if ($connection->transactionLevel() > 0 || ($write instanceof PDO && $write->inTransaction())
+-            || ($readPdo !== null && $readPdo->inTransaction())) {
++            || ($readPdo instanceof PDO && $readPdo->inTransaction())) {
+             throw InvalidConfigurationException::failing('authority_transaction', 'Consumed authority reads cannot run inside an unrecognized transaction.');
+         }
+     }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+14) packages/core/src/Authorization/Authorizer.php:27
+
+    ---------- begin diff ----------
+@@ Line 27 @@
+
+     public function decide(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Decision
+     {
+-        $key = IdentityCodec::compose([$panel->id(), $request->subject()->type(), $request->subject()->id(), $request->permission()->full(), ($request->tenant() ?? TenantRef::global())->key(), ($request->context() ?? AssignmentScopeRef::global())->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
++        $key = IdentityCodec::compose([$panel->id(), $request->subject()->type(), $request->subject()->id(), $request->permission()->full(), ($request->tenant() ?? TenantRef::global())->key(), ($request->context() ?? AssignmentScopeRef::global())->key(), (string) (Fiber::getCurrent() instanceof Fiber ? spl_object_id(Fiber::getCurrent()) : 0)]);
+
+         if (isset($this->active[$key])) {
+             throw new RecursionDetectedException('Recursive authorization of the same panel, subject, permission and scope.');
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+15) packages/core/src/Authorization/Pipeline/AccessPipeline.php:40
+
+    ---------- begin diff ----------
+@@ Line 40 @@
+         $trace->record('boundary', $decision?->reason->value ?? 'pass');
+         $decision ??= $this->before->decide($request, $frame, $trace);
+
+-        if ($decision === null) {
++        if (!$decision instanceof Decision) {
+             [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
+             $trace->record('authority', $decision->reason->value);
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+16) packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php:4
+
+    ---------- begin diff ----------
+@@ Line 4 @@
+
+ namespace AzGuard\Authorization\Pipeline\Stages;
+
++use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Catalog\RoleCompiler;
+ use AzGuard\Authorization\EvaluationFrame;
+ use AzGuard\Authorization\Pipeline\Trace;
+ use AzGuard\Catalog\PanelCatalog;
+@@ Line 34 @@
+ use RuntimeException;
+ use Throwable;
+
+-/** @phpstan-import-type CompiledRole from \AzGuard\Catalog\RoleCompiler */
++/** @phpstan-import-type CompiledRole from RoleCompiler */
+ final readonly class AuthorityStage
+ {
+     public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies) {}
+@@ Line 137 @@
+                     continue;
+                 }
+                 $admin = $this->superAdmin($roleDefinition);
+-                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
++                $covers = $item instanceof Grant && PatternMatcher::covers($item->pattern->local(), $request->permission()->local());
+
+                 if ($item instanceof RoleContribution) {
+                     foreach ($roleDefinition['permissions'] as $pattern) {
+@@ Line 162 @@
+         try {
+             $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
+
+-            if ($veto !== null) {
++            if ($veto instanceof Decision) {
+                 return [$frame, $veto];
+             }
+         } catch (Throwable $error) {
+@@ Line 216 @@
+                 }
+             }
+
+-            if ($before === null || $before->equals($source->state($frame->panel(), $frame->scope()->tenant))) {
+-                return [$items, $before === null ? $frame : $frame->withState($before)];
++            if (!$before instanceof StateToken || $before->equals($source->state($frame->panel(), $frame->scope()->tenant))) {
++                return [$items, $before instanceof StateToken ? $frame->withState($before) : $frame];
+             }
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * TernaryToBooleanOrFalseToBooleanAndRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+17) packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php:59
+
+    ---------- begin diff ----------
+@@ Line 59 @@
+             decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(),
+         );
+
+-        if ($definition === null && $catalog->isDynamic()) {
++        if (!$definition instanceof PermissionDefinition && $catalog->isDynamic()) {
+             // Until scoped boundary resolution is installed, reject an explicit tenant/context before authority reads.
+             $reason = ! $frame->scope()->tenant->isGlobal() ? DecisionReason::TenantMismatch
+                 : (! $frame->scope()->context->isGlobal() ? DecisionReason::AssignmentScopeNotAccepted : null);
+@@ Line 69 @@
+                     Decision::deny($reason, $frame->state(), $frame->scope())];
+             }
+
+-            if ($error === null) {
++            if (!$error instanceof Throwable) {
+                 $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame);
+                 $frame = $frame->withReadAttempt($attempt);
+
+@@ Line 101 @@
+             }
+         }
+
+-        return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
++        return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error instanceof Throwable ? Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class) : null];
+     }
+ }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+18) packages/core/src/Authorization/Pipeline/Trace.php:17
+
+    ---------- begin diff ----------
+@@ Line 17 @@
+     public function record(string $stage, string $result, ?string $component = null, ?Throwable $error = null): void
+     {
+         if ($this->enabled) {
+-            $this->steps[] = ['stage' => $stage, 'result' => $result, 'component' => $component, 'exception' => $error === null ? null : $error::class];
++            $this->steps[] = ['stage' => $stage, 'result' => $result, 'component' => $component, 'exception' => $error instanceof Throwable ? $error::class : null];
+         }
+     }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+19) packages/core/src/Authorization/ReadAttempt.php:4
+
+    ---------- begin diff ----------
+@@ Line 4 @@
+
+ namespace AzGuard\Authorization;
+
++use AzGuard\Sources\PanelSources;
+ use AzGuard\Catalog\PanelCatalog;
+ use AzGuard\Contracts\Sources\FencesReads;
+ use AzGuard\Contracts\Sources\ProvidesGrants;
+@@ Line 20 @@
+ use AzGuard\Storage\StorageReadSession;
+
+ /** @internal One operation's consumed source revisions and pinned handles; never shared or cached.
+- * @phpstan-import-type Attached from \AzGuard\Sources\PanelSources
++ * @phpstan-import-type Attached from PanelSources
+  */
+ final class ReadAttempt
+ {
+@@ Line 37 @@
+
+     public function catalog(): PanelCatalog
+     {
+-        if ($this->overlay !== null) {
++        if ($this->overlay instanceof PanelCatalog) {
+             return $this->overlay;
+         }
+         $definitions = [];
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+20) packages/core/src/AzGuardManager.php:19
+
+    ---------- begin diff ----------
+@@ Line 19 @@
+  * The manager keeps no panel state and chooses no panel: each call forwards to the registry or reads the panel of
+  * the current request. The rule that picks a panel stays in the resolver.
+  */
+-final class AzGuardManager
++final readonly class AzGuardManager
+ {
+-    public function __construct(private readonly Application $app) {}
++    public function __construct(private Application $app) {}
+
+     /**
+      * @param  class-string<PanelProvider>  $provider
+    ----------- end diff -----------
+
+Applied rules:
+ * ReadOnlyClassRector
+
+
+21) packages/core/src/Catalog/PanelCatalog.php:118
+
+    ---------- begin diff ----------
+@@ Line 118 @@
+                 continue;
+             }
+
+-            foreach (self::untrusted($source->permissions($panel, null)) as $definition) {
++            foreach (self::untrusted($source->permissions($panel)) as $definition) {
+                 if (! $definition instanceof PermissionDefinition) {
+                     throw new InvalidSourceContributionException(
+                         'Source "'.$source->id().'" of panel "'.$panel->id().'" returned '.get_debug_type($definition)
+@@ Line 416 @@
+
+         if ($existing !== null && $this->owners[$local]['origin'] !== $owner['origin']) {
+             throw new DuplicatePermissionException(
+-                'Permission "'.$local.'" of panel "'.$this->panel.'" is contributed by '.self::owner($this->owners[$local]).' and '
+-                .self::owner($owner).': independent origins cannot share a permission name; rename one of them.',
++                'Permission "'.$local.'" of panel "'.$this->panel.'" is contributed by '.$this->owner($this->owners[$local]).' and '
++                .$this->owner($owner).': independent origins cannot share a permission name; rename one of them.',
+             );
+         }
+
+         if ($existing !== null && ! $existing->equals($definition)) {
+             throw new DuplicatePermissionException(
+-                'Permission "'.$local.'" of panel "'.$this->panel.'" is defined differently by '.self::owner($this->owners[$local]).' and '
+-                .self::owner($owner).': one permission has one definition; rename one of them.',
++                'Permission "'.$local.'" of panel "'.$this->panel.'" is defined differently by '.$this->owner($this->owners[$local]).' and '
++                .$this->owner($owner).': one permission has one definition; rename one of them.',
+             );
+         }
+
+-        if ($definition->case !== null) {
++        if ($definition->case instanceof BackedEnum) {
+             $enumKey = $definition->case::class.'::'.$definition->case->name;
+             $named = $this->enumKeys[$enumKey] ?? null;
+
+             if ($named !== null && $named !== $local) {
+                 throw new DuplicatePermissionException(
+-                    'Enum case '.$enumKey.' of panel "'.$this->panel.'" names "'.$named.'" in '.self::owner($this->owners[$named])
+-                    .' and "'.$local.'" in '.self::owner($owner).': a case names one permission of a panel.',
++                    'Enum case '.$enumKey.' of panel "'.$this->panel.'" names "'.$named.'" in '.$this->owner($this->owners[$named])
++                    .' and "'.$local.'" in '.$this->owner($owner).': a case names one permission of a panel.',
+                 );
+             }
+
+@@ Line 479 @@
+                         : $this->get($binding->permission)->local;
+                 } catch (UnknownPermissionException $error) {
+                     if ($binding->kind === 'gate') {
+-                        throw new DefinitionException('Native gate mapping requires a declared permission.', previous: $error);
++                        throw new DefinitionException('Native gate mapping requires a declared permission.', $error->getCode(), previous: $error);
+                     }
+
+                     throw $error;
+@@ Line 490 @@
+                 if ($bound !== null && ($bound->kind !== $binding->kind || $bound->policy !== $binding->policy
+                     || $bound->ability !== $binding->ability || $bound->resourceModel !== $binding->resourceModel)) {
+                     throw new DuplicatePolicyBindingException(
+-                        'Permission "'.$local.'" of panel "'.$this->panel.'" is bound to '.($bound->policy ?? 'gate:'.$bound->ability).' by '.self::owner($boundBy[$local])
+-                        .' and to '.($binding->policy ?? 'gate:'.$binding->ability).' by '.self::owner($owner).': bind a permission to one policy.',
++                        'Permission "'.$local.'" of panel "'.$this->panel.'" is bound to '.($bound->policy ?? 'gate:'.$bound->ability).' by '.$this->owner($boundBy[$local])
++                        .' and to '.($binding->policy ?? 'gate:'.$binding->ability).' by '.$this->owner($owner).': bind a permission to one policy.',
+                     );
+                 }
+
+@@ Line 501 @@
+                     try {
+                         $container->make(NativeGateBinding::class)->resolve($binding);
+                     } catch (Throwable $error) {
+-                        throw new DefinitionException('Panel "'.$this->panel.'" has an invalid native gate binding: '.$error->getMessage(), previous: $error);
++                        throw new DefinitionException('Panel "'.$this->panel.'" has an invalid native gate binding: '.$error->getMessage(), $error->getCode(), previous: $error);
+                     }
+                 } else {
+                     $method = $this->bindingMethodFor($binding);
+@@ Line 561 @@
+             }
+
+             foreach ($method->getAttributes(Decides::class) as $attribute) {
+-                if (self::samePermission($attribute->newInstance()->permission, $binding->permission)) {
++                if ($this->samePermission($attribute->newInstance()->permission, $binding->permission)) {
+                     $methods[$method->getName()] = true;
+                 }
+             }
+@@ Line 569 @@
+
+         if (count($methods) !== 1) {
+             throw new DefinitionException(
+-                'Panel "'.$this->panel.'" binds '.self::permissionName($binding->permission).' to '.$binding->policy
++                'Panel "'.$this->panel.'" binds '.$this->permissionName($binding->permission).' to '.$binding->policy
+                 .', which has '.count($methods).' public nonstatic methods with #[Decides] for that permission: the policy needs exactly one.',
+             );
+         }
+@@ Line 578 @@
+
+         if ($binding->method !== null && $binding->method !== $method) {
+             throw new DefinitionException(
+-                'Panel "'.$this->panel.'" binds '.self::permissionName($binding->permission).' to '.$binding->policy.'::'.$binding->method
++                'Panel "'.$this->panel.'" binds '.$this->permissionName($binding->permission).' to '.$binding->policy.'::'.$binding->method
+                 .', but #[Decides] selects '.$method.': the explicit method must match the attributed method.',
+             );
+         }
+@@ Line 586 @@
+         return $method;
+     }
+
+-    private static function samePermission(UnitEnum|string $declared, BackedEnum|string $wanted): bool
++    private function samePermission(UnitEnum|string $declared, BackedEnum|string $wanted): bool
+     {
+         if ($declared instanceof UnitEnum && $wanted instanceof UnitEnum) {
+             return $declared === $wanted;
+@@ Line 598 @@
+         return is_string($left) && $left === $right;
+     }
+
+-    private static function permissionName(BackedEnum|string $permission): string
++    private function permissionName(BackedEnum|string $permission): string
+     {
+         return $permission instanceof UnitEnum ? $permission::class.'::'.$permission->name : '"'.$permission.'"';
+     }
+@@ Line 633 @@
+     /**
+      * @param  Owner  $owner
+      */
+-    private static function owner(array $owner): string
++    private function owner(array $owner): string
+     {
+         return 'source "'.$owner['source'].'"'.($owner['origin'] === 'provider' ? '' : ' ('.$owner['origin'].')');
+     }
+    ----------- end diff -----------
+
+Applied rules:
+ * ThrowWithPreviousExceptionRector
+ * LocallyCalledStaticMethodToNonStaticRector
+ * FlipTypeControlToUseExclusiveTypeRector
+ * RemoveNullArgOnNullDefaultParamRector
+
+
+22) packages/core/src/Configuration/AzGuardConfig.php:4
+
+    ---------- begin diff ----------
+@@ Line 4 @@
+
+ namespace AzGuard\Configuration;
+
++use AzGuard\Storage\Models\RoleGrant;
++use AzGuard\Storage\Models\PermissionGrant;
++use AzGuard\Storage\Models\Permission;
+ use AzGuard\Exceptions\InvalidConfigurationException;
+ use Illuminate\Contracts\Config\Repository;
+ use ReflectionClass;
+@@ Line 99 @@
+     {
+         $models = self::section('defaults.models', $models);
+         $defaults = [
+-            'role_grant' => 'AzGuard\\Storage\\Models\\RoleGrant',
+-            'permission_grant' => 'AzGuard\\Storage\\Models\\PermissionGrant',
+-            'permission' => 'AzGuard\\Storage\\Models\\Permission',
++            'role_grant' => RoleGrant::class,
++            'permission_grant' => PermissionGrant::class,
++            'permission' => Permission::class,
+         ];
+         self::assertKnownKeys('defaults.models', $models, array_keys($defaults));
+         $parsed = [];
+    ----------- end diff -----------
+
+Applied rules:
+ * StringClassNameToClassConstantRector
+
+
+23) packages/core/src/Kernel/Decision/Grant.php:48
+
+    ---------- begin diff ----------
+@@ Line 48 @@
+         IdentityCodec::assertSourceLabel($source);
+         IdentityCodec::assertSourceLabel($origin);
+
+-        if ($role !== null && $role->panel() !== $pattern->panel()) {
++        if ($role instanceof RoleKey && $role->panel() !== $pattern->panel()) {
+             throw new InvalidSourceContributionException(sprintf(
+                 'Grant role "%s" belongs to another panel than pattern "%s".',
+                 $role->full(),
+@@ Line 92 @@
+
+     public function activeAt(DateTimeImmutable $now): bool
+     {
+-        return $this->expiresAt === null || $this->expiresAt > $now;
++        return !$this->expiresAt instanceof DateTimeImmutable || $this->expiresAt > $now;
+     }
+
+     private static function assertPlain(mixed $value, string $path): mixed
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+24) packages/core/src/Kernel/Decision/RoleContribution.php:58
+
+    ---------- begin diff ----------
+@@ Line 58 @@
+
+     public function activeAt(DateTimeImmutable $now): bool
+     {
+-        return $this->expiresAt === null || $this->expiresAt > $now;
++        return !$this->expiresAt instanceof DateTimeImmutable || $this->expiresAt > $now;
+     }
+ }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+
+
+25) packages/core/src/Kernel/Identity/IdentityCodec.php:109
+
+    ---------- begin diff ----------
+@@ Line 109 @@
+     public static function decode(array $encoded): PermissionKey|PermissionPattern|RoleKey|SubjectRef|TenantRef|AssignmentScopeRef|AccessScope|ActorRef
+     {
+         $parts = array_values($encoded);
+-        $shape = array_map(static fn (mixed $part): string => get_debug_type($part), $parts);
++        $shape = array_map(get_debug_type(...), $parts);
+
+         $ref = match ($shape) {
+             ['string', 'string', 'string'] => match ($parts[0]) {
+    ----------- end diff -----------
+
+Applied rules:
+ * ArrowFunctionDelegatingCallToFirstClassCallableRector
+
+
+26) packages/core/src/Panels/Panel.php:136
+
+    ---------- begin diff ----------
+@@ Line 136 @@
+      */
+     public function sources(): array
+     {
+-        return $this->resolved === null ? [] : $this->resolved->descriptions($this);
++        return $this->resolved instanceof PanelSources ? $this->resolved->descriptions($this) : [];
+     }
+
+     /**
+@@ Line 153 @@
+      */
+     public function writer(): ?StoresGrants
+     {
+-        if ($this->writer === null) {
++        if (!$this->writer instanceof Closure) {
+             return null;
+         }
+    ----------- end diff -----------
+
+Applied rules:
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+
+
+27) packages/core/src/Panels/PanelBuilder.php:28
+
+    ---------- begin diff ----------
+@@ Line 28 @@
+  * Every call is written to the panel recipe together with its origin; the builder exposes nothing to read back.
+  * Once the panel is compiled the builder is sealed and any further call throws `RegistryFrozenException`.
+  */
+-final class PanelBuilder
++final readonly class PanelBuilder
+ {
+     /**
+      * @internal built by the panel registry
+      */
+-    public function __construct(private readonly PanelRecipe $recipe) {}
++    public function __construct(private PanelRecipe $recipe) {}
+
+     /**
+      * Optional: the id always comes from `PanelProvider::getId()` and a different value is rejected.
+@@ Line 88 @@
+     public function resourcePrefix(string|bool $prefix = true): static
+     {
+         if (is_string($prefix) && ! PermissionGrammar::isSegment($prefix)) {
+-            throw $this->invalid('resourcePrefix() expects one name segment such as "backoffice", got '.self::describe($prefix));
++            throw $this->invalid('resourcePrefix() expects one name segment such as "backoffice", got '.$this->describe($prefix));
+         }
+
+         return $this->record(PanelRecipe::RESOURCE_PREFIX, $prefix);
+@@ Line 106 @@
+      */
+     public function for(string|array $model, ?string $guard = null, ?string $directory = null): static
+     {
+-        $models = self::input(is_array($model) ? $model : [$model]);
++        $models = $this->input(is_array($model) ? $model : [$model]);
+
+         if ($models === [] || ! array_is_list($models)) {
+             throw $this->invalid('for() expects a model class or a non-empty list of model classes');
+@@ Line 120 @@
+
+         foreach ($models as $class) {
+             if (! is_string($class) || ! is_subclass_of($class, Model::class)) {
+-                throw $this->invalid('for() expects Eloquent model classes, got '.self::describe($class));
++                throw $this->invalid('for() expects Eloquent model classes, got '.$this->describe($class));
+             }
+
+             $subjects[] = ['model' => ltrim($class, '\\'), 'guard' => $guard, 'directory' => $directory];
+@@ Line 141 @@
+     {
+         $names = [];
+
+-        foreach (self::input($middleware) as $name) {
++        foreach ($this->input($middleware) as $name) {
+             if (! is_string($name) || $name === '') {
+-                throw $this->invalid('middleware() expects middleware names or classes, got '.self::describe($name));
++                throw $this->invalid('middleware() expects middleware names or classes, got '.$this->describe($name));
+             }
+
+             $names[] = $name;
+@@ Line 195 @@
+      */
+     public function permissions(array $definitions): static
+     {
+-        return $this->record(PanelRecipe::PERMISSIONS, array_map($this->definition(...), array_values(self::input($definitions))));
++        return $this->record(PanelRecipe::PERMISSIONS, array_map($this->definition(...), array_values($this->input($definitions))));
+     }
+
+     /**
+@@ Line 210 @@
+     {
+         $classes = [];
+
+-        foreach (self::input($roles) as $role) {
++        foreach ($this->input($roles) as $role) {
+             if (! is_string($role) || ! is_subclass_of($role, BaseRole::class)) {
+-                throw $this->invalid('roles() expects classes that extend '.BaseRole::class.', got '.self::describe($role));
++                throw $this->invalid('roles() expects classes that extend '.BaseRole::class.', got '.$this->describe($role));
+             }
+
+             $classes[] = ltrim($role, '\\');
+@@ Line 255 @@
+     {
+         $declared = [];
+
+-        foreach (self::input($bindings) as $binding) {
++        foreach ($this->input($bindings) as $binding) {
+             if ($binding instanceof PolicyBinding) {
+                 $declared[] = $binding;
+
+@@ Line 268 @@
+                 continue;
+             }
+
+-            throw $this->invalid('policies() expects policy classes or '.PolicyBinding::class.' objects, got '.self::describe($binding));
++            throw $this->invalid('policies() expects policy classes or '.PolicyBinding::class.' objects, got '.$this->describe($binding));
+         }
+
+         return $this->record(PanelRecipe::POLICIES, $declared);
+@@ Line 294 @@
+      */
+     public function fields(FieldTarget $target, array $fields): static
+     {
+-        foreach (self::input($fields) as $field) {
++        foreach ($this->input($fields) as $field) {
+             if (! $field instanceof Field) {
+-                throw $this->invalid('fields() expects Field objects, got '.self::describe($field));
++                throw $this->invalid('fields() expects Field objects, got '.$this->describe($field));
+             }
+         }
+
+@@ Line 433 @@
+     {
+         return $this->record(
+             PanelRecipe::TENANT_RESOLVERS,
+-            array_map(fn (mixed $resolver): object|string => $this->resolver('tenantResolvers', $resolver, TenantResolver::class), array_values(self::input($resolvers))),
++            array_map(fn (mixed $resolver): object|string => $this->resolver('tenantResolvers', $resolver, TenantResolver::class), array_values($this->input($resolvers))),
+         );
+     }
+
+@@ Line 449 @@
+     {
+         return $this->record(
+             PanelRecipe::SCOPE_RESOLVERS,
+-            array_map(fn (mixed $resolver): object|string => $this->resolver('scopeResolvers', $resolver, AssignmentScopeResolver::class), array_values(self::input($resolvers))),
++            array_map(fn (mixed $resolver): object|string => $this->resolver('scopeResolvers', $resolver, AssignmentScopeResolver::class), array_values($this->input($resolvers))),
+         );
+     }
+
+@@ Line 465 @@
+     {
+         $scopes = [];
+
+-        foreach (self::input($resolvers) as $resource => $resolver) {
++        foreach ($this->input($resolvers) as $resource => $resolver) {
+             if (! is_string($resource) || ! is_subclass_of($resource, Model::class)) {
+-                throw $this->invalid('resourceScopes() expects Eloquent model classes as keys, got '.self::describe($resource));
++                throw $this->invalid('resourceScopes() expects Eloquent model classes as keys, got '.$this->describe($resource));
+             }
+
+             $scopes[] = [
+@@ Line 493 @@
+     {
+         return $this->record(
+             PanelRecipe::PLUGINS,
+-            array_map(fn (mixed $plugin): object|string => $this->resolver('plugins', $plugin, Plugin::class), array_values(self::input($plugins))),
++            array_map(fn (mixed $plugin): object|string => $this->resolver('plugins', $plugin, Plugin::class), array_values($this->input($plugins))),
+         );
+     }
+
+@@ Line 514 @@
+
+         $ids = [];
+
+-        foreach (self::input($pluginIds) as $id) {
++        foreach ($this->input($pluginIds) as $id) {
+             if (! is_string($id) || $id === '') {
+-                throw $this->invalid('withoutPlugins() expects plugin ids, got '.self::describe($id));
++                throw $this->invalid('withoutPlugins() expects plugin ids, got '.$this->describe($id));
+             }
+
+             $ids[] = $id;
+@@ Line 536 @@
+     }
+
+     /**
+-     * @return Source|class-string<BackedEnum>|string
+-     *
+      * @throws DefinitionException
+      */
+     private function definition(mixed $definition): Source|string
+@@ Line 548 @@
+
+         if (! is_string($definition) || $definition === '') {
+             throw $this->invalid(
+-                'permissions() expects string-backed enum classes, source objects or names of registered sources, got '.self::describe($definition),
++                'permissions() expects string-backed enum classes, source objects or names of registered sources, got '.$this->describe($definition),
+             );
+         }
+
+@@ Line 581 @@
+     {
+         foreach ($hooks as $hook) {
+             if (! is_object($hook) && (! is_string($hook) || $hook === '')) {
+-                throw $this->invalid($method.'() expects class names, objects or closures, got '.self::describe($hook));
++                throw $this->invalid($method.'() expects class names, objects or closures, got '.$this->describe($hook));
+             }
+         }
+
+@@ Line 603 @@
+             return ltrim($resolver, '\\');
+         }
+
+-        throw $this->invalid($method.'() expects objects or classes that implement '.$contract.', got '.self::describe($resolver));
++        throw $this->invalid($method.'() expects objects or classes that implement '.$contract.', got '.$this->describe($resolver));
+     }
+
+     /**
+@@ Line 612 @@
+      * @param  array<mixed>  $input
+      * @return array<mixed>
+      */
+-    private static function input(array $input): array
++    private function input(array $input): array
+     {
+         return $input;
+     }
+@@ Line 622 @@
+         return new DefinitionException('Panel "'.$this->recipe->panelId().'": '.$problem.'.');
+     }
+
+-    private static function describe(mixed $value): string
++    private function describe(mixed $value): string
+     {
+         return is_string($value) ? '"'.$value.'"' : get_debug_type($value);
+     }
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+ * RemoveUselessUnionReturnDocblockRector
+ * ReadOnlyClassRector
+
+
+28) packages/core/src/Panels/PanelCompiler.php:38
+
+    ---------- begin diff ----------
+@@ Line 38 @@
+  * @phpstan-type Resolved array{value: mixed, origin: string}
+  * @phpstan-type Attached array{plugin: Plugin, context: PluginContext}
+  */
+-final class PanelCompiler
++final readonly class PanelCompiler
+ {
+     private const string PLUGIN_ID = '/\A[a-z0-9][a-z0-9_.-]*(\/[a-z0-9][a-z0-9_.-]*)?\z/';
+
+@@ Line 49 @@
+      *                                                                           of the configuration by setting
+      *                                                                           name, read when a panel is compiled
+      */
+-    public function __construct(private readonly ?Closure $defaults = null) {}
++    public function __construct(private ?Closure $defaults = null) {}
+
+     /**
+      * Runs `register()` of every plugin of the panel and seals the recipe.
+@@ Line 147 @@
+             subjectModels: array_values(array_unique(array_column($recipe->subjects(), 'model'))),
+             pluginIds: $recipe->pluginIds(),
+             resolved: $sources,
+-            writable: $sources !== null && $sources->writable(),
+-            writer: $sources !== null && $container !== null ? $sources->writer($container) : null,
++            writable: $sources instanceof PanelSources && $sources->writable(),
++            writer: $sources instanceof PanelSources && $container instanceof Container ? $sources->writer($container) : null,
+             grantFields: $this->fields($recipe),
+             beforeHooks: $this->callbacks($recipe, PanelRecipe::BEFORE),
+             afterHooks: $this->callbacks($recipe, PanelRecipe::AFTER),
+@@ Line 242 @@
+      */
+     public function settings(PanelRecipe $recipe): PanelSettings
+     {
+-        $defaults = [...PanelSettings::DEFAULTS, ...($this->defaults === null ? [] : ($this->defaults)())];
++        $defaults = [...PanelSettings::DEFAULTS, ...($this->defaults instanceof Closure ? ($this->defaults)() : [])];
+         $values = $origins = [];
+
+         foreach (array_keys(PanelSettings::DEFAULTS) as $setting) {
+@@ Line 258 @@
+         $generation = $values[PanelSettings::CACHE_GENERATION];
+
+         if ((! is_int($ttl) && $ttl !== null) || (is_int($ttl) && $ttl < 1)) {
+-            throw self::invalid('enum', $panel, PanelSettings::CACHE_TTL, $ttl, 'a positive number of seconds or null');
++            throw $this->invalid('enum', $panel, PanelSettings::CACHE_TTL, $ttl, 'a positive number of seconds or null');
+         }
+
+         if (! is_int($generation) || $generation < 1) {
+-            throw self::invalid('enum', $panel, PanelSettings::CACHE_GENERATION, $generation, 'a positive integer');
++            throw $this->invalid('enum', $panel, PanelSettings::CACHE_GENERATION, $generation, 'a positive integer');
+         }
+
+         if ($store !== null && $ttl === null) {
+             throw InvalidConfigurationException::failing(
+                 'cache_ttl',
+-                'Panel "'.$panel.'" caches permission sets in the store '.self::describe($store).' without a ttl: set cache.ttl.',
++                'Panel "'.$panel.'" caches permission sets in the store '.$this->describe($store).' without a ttl: set cache.ttl.',
+             );
+         }
+
+@@ Line 278 @@
+                 $prefix === false => null,
+                 default => $panel,
+             },
+-            gateMode: self::enum(GateMode::class, $panel, PanelSettings::GATE_MODE, $values[PanelSettings::GATE_MODE]),
++            gateMode: $this->enum(GateMode::class, $panel, PanelSettings::GATE_MODE, $values[PanelSettings::GATE_MODE]),
+             cacheStore: is_string($store) ? $store : null,
+             cacheTtl: $ttl,
+             cacheGeneration: $generation,
+-            reads: self::enum(Reads::class, $panel, PanelSettings::READS, $values[PanelSettings::READS]),
+-            stateRefresh: self::enum(StateRefresh::class, $panel, PanelSettings::STATE_REFRESH, $values[PanelSettings::STATE_REFRESH]),
++            reads: $this->enum(Reads::class, $panel, PanelSettings::READS, $values[PanelSettings::READS]),
++            stateRefresh: $this->enum(StateRefresh::class, $panel, PanelSettings::STATE_REFRESH, $values[PanelSettings::STATE_REFRESH]),
+             traceDecisions: $values[PanelSettings::TRACE_DECISIONS] === true,
+             origins: $origins,
+         );
+@@ Line 445 @@
+
+         if (strlen($id) > self::PLUGIN_ID_BYTES || preg_match(self::PLUGIN_ID, $id) !== 1) {
+             throw new DefinitionException(
+-                'Panel "'.$panel.'": '.$plugin::class.' has the plugin id '.self::describe($id).'; an id is "name" or "vendor/name" of '
++                'Panel "'.$panel.'": '.$plugin::class.' has the plugin id '.$this->describe($id).'; an id is "name" or "vendor/name" of '
+                 .'lowercase letters, digits, ".", "_" and "-", at most '.self::PLUGIN_ID_BYTES.' bytes.',
+             );
+         }
+@@ Line 462 @@
+     {
+         $dependencies = [];
+
+-        foreach ($plugin instanceof DependsOnPlugins ? self::declared($plugin->requires()) : [] as $dependency) {
++        foreach ($plugin instanceof DependsOnPlugins ? $this->declared($plugin->requires()) : [] as $dependency) {
+             if (! is_string($dependency) || $dependency === '') {
+                 throw new DefinitionException(
+                     'Plugin "'.$id.'" of panel "'.$panel.'": requires() must list plugin ids, got '.get_debug_type($dependency).'.',
+@@ Line 481 @@
+      * @param  array<mixed>  $values
+      * @return array<mixed>
+      */
+-    private static function declared(array $values): array
++    private function declared(array $values): array
+     {
+         return $values;
+     }
+@@ Line 534 @@
+             if ($value !== $byPlugin[$first]) {
+                 throw new PluginConflictException(
+                     'Plugins "'.$first.'" and "'.$plugin.'" of panel "'.$panel.'" set "'.$setting.'" to different values ('
+-                    .self::describe($byPlugin[$first]).' and '.self::describe($value).'): set it in the panel provider.',
++                    .$this->describe($byPlugin[$first]).' and '.$this->describe($value).'): set it in the panel provider.',
+                 );
+             }
+         }
+@@ Line 550 @@
+      *
+      * @throws InvalidConfigurationException
+      */
+-    private static function enum(string $enum, string $panel, string $setting, mixed $value): BackedEnum
++    private function enum(string $enum, string $panel, string $setting, mixed $value): BackedEnum
+     {
+         $case = match (true) {
+             $value instanceof $enum => $value,
+@@ Line 558 @@
+             default => null,
+         };
+
+-        return $case ?? throw self::invalid(
+-            'enum',
+-            $panel,
+-            $setting,
+-            $value,
+-            'one of '.implode(', ', array_map(static fn (BackedEnum $case): string => (string) $case->value, $enum::cases())),
+-        );
++        return $case ?? throw $this->invalid('enum', $panel, $setting, $value, 'one of '.implode(', ', array_map(static fn (BackedEnum $case): string => (string) $case->value, $enum::cases())));
+     }
+
+-    private static function invalid(string $check, string $panel, string $setting, mixed $value, string $expected): InvalidConfigurationException
++    private function invalid(string $check, string $panel, string $setting, mixed $value, string $expected): InvalidConfigurationException
+     {
+         return InvalidConfigurationException::failing(
+             $check,
+-            'Panel "'.$panel.'": setting "'.$setting.'" is '.self::describe($value).', expected '.$expected.'.',
++            'Panel "'.$panel.'": setting "'.$setting.'" is '.$this->describe($value).', expected '.$expected.'.',
+         );
+     }
+
+-    private static function describe(mixed $value): string
++    private function describe(mixed $value): string
+     {
+         return match (true) {
+             $value instanceof BackedEnum => (string) $value->value,
+    ----------- end diff -----------
+
+Applied rules:
+ * LocallyCalledStaticMethodToNonStaticRector
+ * FlipTypeControlToUseExclusiveTypeRector
+ * FlipNegatedTernaryInstanceofRector
+ * ReadOnlyClassRector
+
+
+ [OK] 28 files would have been changed (dry-run) by Rector                      
+
+ [WARNING] Skipped rule                                                         
+           "Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector" is   
+           deprecated                                                           
+
+ [WARNING] This skipped rule is never registered. You can remove it from        
+           "->withSkip()"                                                       
+
+ * Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector
+
+$ vendor/bin/rector process --dry-run

@@ -1,0 +1,75 @@
+[
+  {
+    "id": "P05.composer-root",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.composer-core",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/core/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.composer-filament",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/filament/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.dump-autoload",
+    "argv": [
+      "composer",
+      "dump-autoload"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.show-core",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.show-filament",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard-filament"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.no-context",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "no-context"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.no-legacy-autoload",
+    "argv": [
+      "php",
+      "-r",
+      "require getcwd().\"/vendor/autoload.php\"; $class = \"AzGuard\\\\Panels\\\\Panel\"; $loaded = class_exists($class); echo \"legacy_class=\".$class.\" autoloaded=\".($loaded ? \"true\" : \"false\").PHP_EOL; exit($loaded ? 1 : 0);"
+    ],
+    "depends_on": []
+  }
+]

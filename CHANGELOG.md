@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: `RelationSource` читает роли из связей моделей хоста и возвращает raw witnesses для выбора сущностей. Источник ограничивает чтение точным субъектом и tenant/context, поддерживает статичную роль, pivot-атрибут и callback; конфигурация проверяется при сборке панели.
+
 - Ядро 1.0: opt-in dynamic definitions читаются для точного tenant поверх статичного каталога. Prepare и authority используют один fence на закреплённом read PDO; retry отбрасывает overlay и весь набор выдач. Статический PolicyOnly не читает dynamic/assignment storage.
 
 - Ядро 1.0: `DatabaseSource` читает точные назначения и выбранные поля выдач, поддерживает `rolesOnly`, builder и raw witnesses для query prefilter. Обе capability объединены fence с тремя попытками на закреплённом Primary/Default PDO; чужая транзакция даёт отказ только при потреблении DB authority. `Storage::own()` повторно использует каноническую пару connection/prefix с проверкой host keys.
@@ -18,6 +20,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **core:** Поля Grant и RoleContribution рекурсивно отделяются от внешних PHP-ссылок, сохраняя неизменяемые plain-data значения после проверки. API manifest отражает фактические значения default-констант.
 - **core:** Enum cases из статичных custom sources участвуют в выборе панели на live и cached путях. Равные permission definitions и одинаковый role class из независимых plugin/provider origins дают collision с id вкладов; повторы внутри одного origin сохраняют первого владельца (owning repair P2.5, R2/R3).
 - **core:** Явные policy bindings из FolderSource и custom ProvidesPolicies выбирают единственный public nonstatic метод с подходящим `#[Decides]`. Неверный explicit method, отсутствие или неоднозначность атрибута дают `DefinitionException`; найденный метод сохраняется в каталоге и после кэша (owning repair P2.8, R1).
 

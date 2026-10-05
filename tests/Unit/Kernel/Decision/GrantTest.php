@@ -73,6 +73,54 @@ it('rejects fields that are not plain data', function (array $fields): void {
     'closure' => [['fn' => static fn (): int => 1]],
 ]);
 
+it('detaches top-level and nested field references from grants and role contributions', function (): void {
+    $department = 'sales';
+    $priority = 7;
+    $labels = ['owner'];
+    $fields = ['department' => &$department, 'metadata' => [8 => &$priority, 'labels' => &$labels], 'note' => null];
+    $scope = AccessScope::in(TenantRef::global());
+    $values = [
+        Grant::of(PermissionPattern::of('admin', 'orders.view'), 'folder', $scope, fields: $fields),
+        RoleContribution::of(RoleKey::of('admin', 'manager'), $scope, 'folder', fields: $fields),
+    ];
+
+    $department = new stdClass;
+    $priority = static fn (): bool => true;
+    $labels[] = new stdClass;
+    $fields['metadata']['added'] = 'later';
+
+    foreach ($values as $value) {
+        expect($value->fields())->toBe([
+            'department' => 'sales',
+            'metadata' => [8 => 7, 'labels' => ['owner']],
+            'note' => null,
+        ]);
+    }
+});
+
+it('keeps stored fields unchanged when returned field arrays are modified', function (): void {
+    $department = 'sales';
+    $priority = 7;
+    $labels = ['owner'];
+    $fields = ['department' => &$department, 'metadata' => [8 => &$priority, 'labels' => &$labels]];
+    $scope = AccessScope::in(TenantRef::global());
+    $values = [
+        Grant::of(PermissionPattern::of('admin', 'orders.view'), 'folder', $scope, fields: $fields),
+        RoleContribution::of(RoleKey::of('admin', 'manager'), $scope, 'folder', fields: $fields),
+    ];
+
+    foreach ($values as $value) {
+        $returned = $value->fields();
+        $returned['department'] = new stdClass;
+        $returned['metadata'][8] = new stdClass;
+        $returned['metadata']['labels'][] = 'changed';
+
+        expect($value->fields())->toBe(['department' => 'sales', 'metadata' => [8 => 7, 'labels' => ['owner']]]);
+    }
+
+    expect($fields)->toBe(['department' => 'sales', 'metadata' => [8 => 7, 'labels' => ['owner']]]);
+});
+
 it('describes a role contribution with its owner', function (): void {
     $scope = AccessScope::in(TenantRef::of('org', 1));
     $contribution = RoleContribution::of(RoleKey::of('admin', 'analyst'), $scope, 'relation:project', fields: ['seller' => 5]);

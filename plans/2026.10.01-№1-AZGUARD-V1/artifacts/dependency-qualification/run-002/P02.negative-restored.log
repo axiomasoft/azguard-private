@@ -1,0 +1,9 @@
+$ php -d memory_limit=1G vendor/bin/pest tests/Regression/RegressionSpecsTest.php
+{"tool":"pest","result":"failed","tests":78,"passed":77,"assertions":584,"duration_ms":251,"failed":1,"failures":[{"test":"P\\Tests\\Regression\\RegressionSpecsTest::__pest_evaluable_it_keeps_every_required_field_filled_and_consistent_for_probe with data set \"('P01a', 'PLAN2.P4.7')\"","file":"/tmp/azguard-dependency-qualification/candidate/tests/Regression/RegressionSpecsTest.php","line":89,"message":"Failed asserting that two strings are identical.\n--- Expected\n+++ Actual\n@@ @@\n-'PLAN2.P4.7'\n+'PLAN2.P9.9'"}]}
+observed_exit=1
+negative_control=RED (expected owning-item assertion)
+spec_restored_sha256=2e48fda141ba61018c0e058be76f892d206e8df3c00f2e2ca0a737cf5d121264
+$ php -d memory_limit=1G vendor/bin/pest tests/Regression
+{"tool":"pest","result":"passed","tests":87,"passed":87,"assertions":628,"duration_ms":288}
+observed_exit=0
+restored_control=GREEN

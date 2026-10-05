@@ -1,0 +1,87 @@
+
+   PASS  Tests\Arch\AuthorizationArchTest
+  ✓ sources use contracts and values without importing authorization im… 0.14s  
+  ✓ it proves the authorization source boundary RED against a scratch c… 0.03s  
+  ✓ it keeps the coordinator provenance exception read only
+  ✓ authorization coordinator never reaches ambient auth or framework g… 0.03s  
+
+   PASS  Tests\Arch\SourceConventionsTest
+  ✓ it finds task codes only in comments                                 0.01s  
+  ✓ it tags every contract as api or spi
+  ✓ it keeps internal task codes out of source comments                  0.01s  
+  ✓ it finds panel selection calls and the request panel class but not declarations, strings or comments
+  ✓ it picks a panel only in the panel resolver                          0.01s  
+  ✓ it reads package configuration only in the configuration zone
+
+   PASS  Tests\Arch\ApiManifestTest
+  ✓ it keeps both api manifests current                                  0.05s  
+  ✓ it lets the filament package use only core classes from the manifest
+
+   PASS  Tests\Arch\BaselineArchTest
+  ✓ package sources declare strict types                                 0.30s  
+  ✓ it keeps package sources free of debug calls                         0.02s  
+  ✓ it finds debug calls but not methods, static calls or declarations with the same name
+
+   PASS  Tests\Arch\ZonesArchTest
+  ✓ production code does not import test helpers (AzGuard\Directories)
+  ✓ production code does not import test helpers (AzGuard\Attributes)
+  ✓ exceptions depend only on the kernel                                 1.59s  
+  ✓ code roles do not use storage, changes or authorization
+  ✓ it finds framework helper calls but not methods with the same name
+  ✓ sources other than the database source and plugins stay off storage (AzGuard\Plugins)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and c… 0.01s  
+  ✓ production code does not import test helpers (AzGuard\Facades)
+  ✓ production code does not import test helpers (AzGuard\Internal)
+  ✓ sources do not use changes or authorization
+  ✓ it only storage and database sources call storage models statically  0.05s  
+  ✓ grants are stored only through the change pipeline, the database so… 0.29s  
+  ✓ authorization and schema never change access (AzGuard\Authorization)
+  ✓ production code does not import test helpers (AzGuard\Roles)
+  ✓ it resolves grouped mutation imports and fully qualified internal dependencies
+  ✓ it only storage uses storage concerns and the guarded builder        0.10s  
+  ✓ only storage and the database source touch the database layer        0.06s  
+  ✓ production code does not import test helpers (AzGuard\Storage)       0.04s  
+  ✓ production code does not import test helpers (AzGuard\Panels)        0.05s  
+  ✓ storage does not use authorization or changes
+  ✓ it resolves model calls through imports aliases inheritance and class-relative names
+  ✓ production code does not import test helpers (AzGuard\AzGuardServiceProvider)
+  ✓ production code does not import test helpers (AzGuard\Concerns)
+  ✓ sources other than the database source and plugins stay off storage (AzGuard\Sources)
+  ✓ production code does not import test helpers (AzGuard\Permissions)
+  ✓ production code does not import test helpers (AzGuard\Configuration… 0.04s  
+  ✓ production code does not import test helpers (AzGuard\Plugins)
+  ✓ the catalog neither decides access nor reaches the framework adapte… 0.02s  
+  ✓ configuration depends only on the kernel, exceptions and the framew… 0.01s  
+  ✓ it rejects a policy file that imports storage or changes
+  ✓ production code does not import test helpers (AzGuard\Kernel)        0.03s  
+  ✓ production code does not import test helpers (AzGuard\Schema)
+  ✓ production code does not import test helpers (AzGuard\Contracts)     0.01s  
+  ✓ directories do not decide access or touch storage and changes (AzGuard\Directories)
+  ✓ contracts do not import implementations
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Catalog)
+  ✓ production code does not import test helpers (AzGuard\Events)
+  ✓ production code does not import test helpers (AzGuard\Changes)
+  ✓ it keeps the kernel free of framework helper calls
+  ✓ production code does not import test helpers (AzGuard\Exceptions)
+  ✓ authorization and schema never change access (AzGuard\Schema)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Scopes)
+  ✓ it rejects a StoresGrants transaction() call copied into the panel zone
+  ✓ production code does not import test helpers (AzGuard\Policies)
+  ✓ production code does not import test helpers (AzGuard\Laravel)
+  ✓ it only storage database sources change pipeline and testing use st… 0.09s  
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Panels)
+  ✓ it rejects a directory file that imports storage, changes or authorization
+  ✓ production code does not import test helpers (AzGuard\Authorization)
+  ✓ production code does not import test helpers (AzGuard\Sources)
+  ✓ production code does not import test helpers (AzGuard\Catalog)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Schema)
+  ✓ production code does not import test helpers (AzGuard\Diagnostics)
+  ✓ kernel depends on nothing but PHP                                    0.42s  
+  ✓ production code does not import test helpers (AzGuard\Scopes)
+  ✓ production code does not import test helpers (AzGuard\Filament)
+  ✓ plugins do not reach into internals
+
+  Tests:    72 passed (314 assertions)
+  Duration: 3.52s
+  Random Order Seed: 1791194464
+

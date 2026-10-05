@@ -1,0 +1,11 @@
+Actual archived packet bytes and source ACP prompt construction; provider process stubbed, no model invocation.
+{
+  "locator": {
+    "machine_manifest": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.5/owner-review/packet-5dec812bf66496ab5c169832/review-route.json",
+    "packet_path": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.5/owner-review/packet-5dec812bf66496ab5c169832/packet.md"
+  },
+  "misleading_parent_alias_created": false,
+  "native_ledger_readable": true,
+  "original_packet_unchanged": true,
+  "packet_sha256": "5b62c0e39d25d3e45fb07db6f72eaab8ba030b73e18b7dde731bb6227bc1bd7c"
+}

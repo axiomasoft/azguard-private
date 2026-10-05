@@ -1,0 +1,24 @@
+name     : axiomasoft/azguard-filament
+descrip. : Filament 5 editors for AzGuard panels, built from the panel schema
+keywords : admin, authorization, filament, laravel, permissions, roles
+versions : * 1.0.0
+type     : library
+license  : MIT License (MIT) (OSI approved) https://spdx.org/licenses/MIT.html#licenseText
+homepage : https://github.com/axiomasoft/azguard
+source   : []  
+dist     : [path] packages/filament 1e6113783ccf40458c9d4a881ada1170e2a19d86
+path     : /tmp/azguard-dependency-qualification/candidate/packages/filament
+names    : axiomasoft/azguard-filament
+
+support
+issues : https://github.com/axiomasoft/azguard/issues
+source : https://github.com/axiomasoft/azguard
+
+autoload
+psr-4
+AzGuard\Filament\ => src/
+
+requires
+axiomasoft/azguard self.version
+filament/filament ^5.0
+php ^8.3

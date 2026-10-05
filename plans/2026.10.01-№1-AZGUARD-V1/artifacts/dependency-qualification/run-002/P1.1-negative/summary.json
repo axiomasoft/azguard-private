@@ -1,0 +1,50 @@
+{
+  "item": "P1.1",
+  "candidate": "/tmp/azguard-dependency-qualification/candidate",
+  "passed": false,
+  "error": "compose-red: unexpected outcome; see its preserved log",
+  "results": [
+    {
+      "id": "compose-baseline",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Unit/Kernel/Identity/IdentityCodecTest.php",
+        "tests/Regression/P07Test.php",
+        "--filter",
+        "gives distinct.*tuples distinct digests|keeps an assignment scope key unambiguous"
+      ],
+      "exit_code": 0,
+      "expected": "green",
+      "expected_failure_names": [],
+      "passed": true,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.1-negative/compose-baseline.log"
+    },
+    {
+      "id": "compose-red",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Unit/Kernel/Identity/IdentityCodecTest.php",
+        "tests/Regression/P07Test.php",
+        "--filter",
+        "gives distinct.*tuples distinct digests|keeps an assignment scope key unambiguous"
+      ],
+      "exit_code": 1,
+      "expected": "red",
+      "expected_failure_names": [
+        "gives distinct",
+        "keeps an assignment scope key unambiguous"
+      ],
+      "passed": false,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.1-negative/compose-red.log"
+    }
+  ],
+  "candidate_unchanged": true
+}

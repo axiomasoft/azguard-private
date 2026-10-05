@@ -1,0 +1,39 @@
+{
+  "item": "P0.5",
+  "candidate_commit": "95c7f4a94c4916b85f54688e237e3f95645fea68",
+  "evidence_id": "E14",
+  "exit_code": 1,
+  "reason": "frozen rector exit 2, no-context RED, Panel class_exists true; new legacy-not-autoloaded is separate and GREEN",
+  "contract_sha256": "4e0f2d5716f8ecc95fe8b295ab480a4c93b8dee73338aab8ea18b872aed8254e",
+  "evaluate": {
+    "pre_mutation": "allow",
+    "pre_final": "block:VALIDATION_RECEIPT_NONZERO",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": {
+        "code": "policy-denied",
+        "internal_code": "VALIDATION_RECEIPT_NONZERO",
+        "message": "Change the requested action or obtain the required authority."
+      }
+    },
+    "content_hash": "4e0f2d5716f8ecc95fe8b295ab480a4c93b8dee73338aab8ea18b872aed8254e"
+  },
+  "receipt": {
+    "schema_version": "validation-receipt/v1",
+    "evidence_id": "E14",
+    "command": "1) `composer validate --strict` и `composer validate --strict packages/core/composer.json packages/filament/composer.json`; 2) `composer dump-autoload` и `composer show axiomasoft/azguard axiomasoft/azguard-filament` — path-пакеты установлены; 3) `composer test` — GREEN, ≥1 тест в каждой suite; 4) `vendor/bin/pint --test`; 5) `vendor/bin/phpstan analyse --memory-limit=1G` — 0 ошибок; 6) `vendor/bin/rector process --dry-run` — без изменений; 7) `vendor/bin/pest --type-coverage --min=98`; 8) `git grep -nE 'AzGuard\\\\\\\\Context|packages/context' -- ':!legacy' ':!audits' ':!plans' ':!CHANGELOG.md'` — пусто; 9) `php -r` автозагрузка `AzGuard\\Panels\\Panel` не находит класс (legacy вне autoload); 10) `git diff --check`.",
+    "contract_sha256": "4e0f2d5716f8ecc95fe8b295ab480a4c93b8dee73338aab8ea18b872aed8254e",
+    "spec_sha256": "207e971ab1a98bc999c9983903b5811d18486fc19c9f5a5f5e6a81537e147d40",
+    "head": "be075a70ccec8d3ed80469fc5e62b221a12df65d",
+    "tree": "4de2539d32f59a3c3a6ea39372e35163e85eb04767496af28426e4d64b130d56",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+    "exit_code": 1,
+    "executed_at": "2026-10-05T10:10:45Z"
+  },
+  "type_coverage": {
+    "rows": 192,
+    "src_php": 195,
+    "total": "99.7 %",
+    "warning": false
+  }
+}

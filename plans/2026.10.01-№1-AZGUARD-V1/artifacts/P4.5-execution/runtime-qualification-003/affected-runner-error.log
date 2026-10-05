@@ -1,0 +1,18 @@
+E.....................................................
+======================================================================
+ERROR: test_review_grok_acp (unittest.loader._FailedTest.test_review_grok_acp)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_review_grok_acp
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_review_grok_acp.py", line 15, in <module>
+    from task import review_grok_acp as acp
+ModuleNotFoundError: No module named 'task'
+
+
+----------------------------------------------------------------------
+Ran 54 tests in 9.423s
+
+FAILED (errors=1)

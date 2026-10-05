@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "composer",
+    "api:manifest"
+  ],
+  "exit_code": 0,
+  "manifest_sha256": "ca59e2ff3be78e476cc7451758649851160e06fb710e9ca3c93666457d62dc10",
+  "finished": "2026-10-05T07:28:09.352583+00:00"
+}

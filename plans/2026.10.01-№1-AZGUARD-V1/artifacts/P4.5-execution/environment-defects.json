@@ -1,0 +1,34 @@
+[
+  {
+    "ts": "2026-10-05T06:01:36.317537+00:00",
+    "component": "delegated test writer",
+    "observed": "Selected model is at capacity. Please try a different model.",
+    "impact": "Turn interrupted after fixtures; no validation result",
+    "action": "resume same agent/model from current files; no GREEN inferred"
+  },
+  {
+    "component": "canonical SKM current_validation_context",
+    "observed": "Files braces/globs were hashed as literal missing paths; source+test edits left tree digest unchanged",
+    "impact": "Closure validation context excluded selected product members; validation DAG and review snapshot retained actual concrete members",
+    "action": "Concurrent external owning-source fix now uses file_manifest.expand; delegated regression 8 GREEN and owning task_contract module 132 GREEN; full Task qualification RED remains separately logged"
+  },
+  {
+    "component": "canonical SKM concurrent transport refactor",
+    "observed": "Qualification initially hit NameError review_job undefined on actual review-run path; external writer then added import/pending-job guards",
+    "impact": "Second review launch was held until actual current transport qualification",
+    "action": "Preserve concurrent source edits and qualify current owning modules; do not treat initial RED as GREEN"
+  },
+  {
+    "component": "canonical SKM volatile carrier template",
+    "observed": "_carrier_pattern double-escapes <Pn.m> dot, impacting explicitly declared item-state paths",
+    "impact": "P4.5 Files has no such carrier; non-gating for current acceptance",
+    "action": "Recorded separately; not repaired in P4.5"
+  },
+  {
+    "component": "canonical SKM reviewer packet locator",
+    "observed": "attempt-0002 first read targeted missing owner-review/review-route.json advertised by packet; immutable manifest lives under packet-5dec812bf66496ab5c169832/",
+    "impact": "Native Grok session stopped incomplete after 13 seconds, consulted_files=0, no verdict; completed round budget remains one",
+    "action": "Repair exact immutable packet/manifest locator at owning runtime, regression qualify, rebuild packet with current runtime provenance before fresh read-only retry",
+    "evidence": "artifacts/P4.5/owner-review/attempt-0002/transport-result.json"
+  }
+]

@@ -1,0 +1,21 @@
+$ python3 /tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py no-context
+$ git grep -nE 'AzGuard\\Context|packages/context' -- ':!legacy' ':!audits' ':!plans' ':!CHANGELOG.md'
+docs/advanced/context.md:48:use AzGuard\Context\Contracts\ResolvesContext;
+docs/advanced/context.md:49:use AzGuard\Context\AuthorizationContext;
+docs/advanced/context.md:109:use AzGuard\Context\AuthorizationContext;
+docs/advanced/context.md:125:use AzGuard\Context\AuthorizationContext;
+docs/advanced/context.md:214:'merge_strategy' => \AzGuard\Context\Strategies\GlobalPlusContextStrategy::class,
+docs/advanced/context.md:226:use AzGuard\Context\Contracts\MergeStrategy;
+docs/recipes/multi-tenant.md:36:use AzGuard\Context\AuthorizationContext;
+docs/recipes/multi-tenant.md:37:use AzGuard\Context\AuthorizationContextManager;
+docs/ru/advanced/context.md:48:use AzGuard\Context\Contracts\ResolvesContext;
+docs/ru/advanced/context.md:49:use AzGuard\Context\AuthorizationContext;
+docs/ru/advanced/context.md:109:use AzGuard\Context\AuthorizationContext;
+docs/ru/advanced/context.md:125:use AzGuard\Context\AuthorizationContext;
+docs/ru/advanced/context.md:214:'merge_strategy' => \AzGuard\Context\Strategies\GlobalPlusContextStrategy::class,
+docs/ru/advanced/context.md:226:use AzGuard\Context\Contracts\MergeStrategy;
+docs/ru/advanced/extending.md:238:use AzGuard\Context\Contracts\MergeStrategy;
+docs/ru/recipes/multi-tenant.md:43:use AzGuard\Context\AuthorizationContext;
+docs/ru/recipes/multi-tenant.md:44:use AzGuard\Context\Contracts\ResolvesContext;
+observed_exit=0
+context_scan=RED unexpected live references

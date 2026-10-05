@@ -1,0 +1,9 @@
+
+Warning: PHP Startup: Unable to load dynamic library '/tmp/azguard-dependency-qualification/candidate-004/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so' (tried: /tmp/azguard-dependency-qualification/candidate-004/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so (Dynamic loading not supported), /lib/php/extensions/no-debug-non-zts-20240924//tmp/azguard-dependency-qualification/candidate-004/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so.so (Dynamic loading not supported)) in Unknown on line 0
+Note: Using configuration file /tmp/azguard-dependency-qualification/candidate-004/phpstan.neon.
+   0/195 [░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%[1G[2K 195/195 [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%
+
+
+ [OK] No errors                                                                 
+
+$ vendor/bin/phpstan analyse --memory-limit=1G

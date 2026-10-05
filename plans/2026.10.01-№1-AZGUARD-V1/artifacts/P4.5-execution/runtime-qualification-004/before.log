@@ -1,0 +1,141 @@
+.FFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_frozen_p45_numbered_validation_executes_only_nine_primary_commands (tests.test_plan_work.ValidationArgvTests.test_frozen_p45_numbered_validation_executes_only_nine_primary_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 42, in test_frozen_p45_numbered_validation_executes_only_nine_primary_commands
+    self.assertEqual(argv, ["bash", "-lc", " && ".join(commands)])
+AssertionError: Lists differ: ['bash', '-lc', '1) `vendor/bin/pest tests/Feature/Sources[408 chars]k`.'] != ['bash', '-lc', 'vendor/bin/pest tests/Feature/Sources/Rel[315 chars]eck']
+
+First differing element 2:
+'1) `vendor/bin/pest tests/Feature/Sources[407 chars]ck`.'
+'vendor/bin/pest tests/Feature/Sources/Rel[314 chars]heck'
+
+Diff is 1232 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_numbered_commands_stop_before_later_checks_after_failure (tests.test_plan_work.ValidationArgvTests.test_numbered_commands_stop_before_later_checks_after_failure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 48, in test_numbered_commands_stop_before_later_checks_after_failure
+    self.assertEqual(result.returncode, 1)
+AssertionError: 2 != 1
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='2) `first`')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first`; 1) `duplicate`')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first`; 3) `skipped`')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='01) `first`')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) first')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) ``')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `   `')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first`; echo undeclared')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first` unexpected text')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first` — GREEN 2) `second` — GREEN')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first` — after `unclosed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_numbering_and_clause_shape_fail_closed (tests.test_plan_work.ValidationArgvTests.test_numbering_and_clause_shape_fail_closed) (carrier='1) `first` —')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 59, in test_numbering_and_clause_shape_fail_closed
+    with self.subTest(carrier=carrier), self.assertRaisesRegex(
+AssertionError: WorkError not raised
+
+======================================================================
+FAIL: test_semicolon_in_command_and_explanatory_code_are_not_clause_boundaries (tests.test_plan_work.ValidationArgvTests.test_semicolon_in_command_and_explanatory_code_are_not_clause_boundaries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vostrikov/projects/packages/swissknifeman/packages/task/tests/test_plan_work.py", line 66, in test_semicolon_in_command_and_explanatory_code_are_not_clause_boundaries
+    self.assertEqual(argv, ["bash", "-lc", "printf 'a;b' && printf second"])
+AssertionError: Lists differ: ['bash', '-lc', "1) `printf 'a;b'` — GREEN после `ignored;[40 chars];  "] != ['bash', '-lc', "printf 'a;b' && printf second"]
+
+First differing element 2:
+"1) `printf 'a;b'` — GREEN после `ignored;[39 chars]N;  "
+"printf 'a;b' && printf second"
+
++ ['bash', '-lc', "printf 'a;b' && printf second"]
+- ['bash',
+-  '-lc',
+-  "1) `printf 'a;b'` — GREEN после `ignored; annotation`; 2) `printf second` — "
+-  'GREEN;  ']
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.017s
+
+FAILED (failures=15)

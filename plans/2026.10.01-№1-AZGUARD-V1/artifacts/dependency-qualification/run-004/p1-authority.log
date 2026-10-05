@@ -1,0 +1,67 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Roles\SuperAdminRoleTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit declares role attributes for classes only with ('AzGuard\Roles\A[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit declares role attributes for classes only with ('AzGuard\Roles\Attributes\Role')[39m
+  [32;1m✓[39;22m[90m [39m[90mit declares role attributes for classes only with ('AzGuard\Roles\Attributes\FormerKeys')[39m
+  [32;1m✓[39;22m[90m [39m[90mit declares role attributes for classes only with ('AzGuard\Roles\Attributes\SuperAdmin')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps the role attribute defaults[39m
+  [32;1m✓[39;22m[90m [39m[90mit translates the super-admin label with dataset "ru"[39m
+  [32;1m✓[39;22m[90m [39m[90mit translates the super-admin label with dataset "en"[39m
+  [32;1m✓[39;22m[90m [39m[90mit ships a grantable super-admin role without permissions[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Contracts\ScopeContractsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with data[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "resource scope resolver"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "provides access scope"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "assignment scope resolver"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "assignment scope membership"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "subject resolver"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "provides assignment scope"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "queryable definition"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "tenant resolver"[39m
+  [32;1m✓[39;22m[90m [39m[90mit repeats the scope and subject contracts of the dossier with dataset "definition"[39m
+  [32;1m✓[39;22m[90m [39m[90mit stores an alias that is a valid type alias and never a class name[39m
+  [32;1m✓[39;22m[90m [39m[90mit builds a fresh structural query without touching the database[39m[90m    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit lets several code roles share one scope definition by its alias with dataset "instance"[39m
+  [32;1m✓[39;22m[90m [39m[90mit lets several code roles share one scope definition by its alias with dataset "class-string"[39m
+  [32;1m✓[39;22m[90m [39m[90mit resolves no scope for a foreign type or the global scope with dataset "global"[39m
+  [32;1m✓[39;22m[90m [39m[90mit resolves no scope for a foreign type or the global scope with dataset "foreign type"[39m
+  [32;1m✓[39;22m[90m [39m[90mit names the four assignment scope phases[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a resolved scope a plain final readonly value[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\PermissionAuthorityTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in g[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in grants mode with dataset "grants"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers every mode in the table[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Roles\BaseRoleTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit defaults to a grantable, tenant-wide, level zero role without fo[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects the current key among former keys[39m
+  [32;1m✓[39;22m[90m [39m[90mit defines a role only by its class: no model, field or factory methods[39m
+  [32;1m✓[39;22m[90m [39m[90mit falls back to the key when no label is declared[39m
+  [32;1m✓[39;22m[90m [39m[90mit applies an automatic role by its code rule[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads a role declared by attributes[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a key outside the role grammar[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a role without a key with dataset "no attribute"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a role without a key with dataset "attribute without key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit treats a method override exactly like the attribute[39m
+  [32;1m✓[39;22m[90m [39m[90mit checks former keys by the role grammar[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps scopes and the scope requirement declared by the role[39m
+
+  [90mTests:[39m    [32;1m53 passed[39;22m[90m (137 assertions)[39m
+  [90mDuration:[39m [39m0.22s[39m
+  [90mRandom Order Seed:[39m [39m1791194061[39m
+
+$ php -d memory_limit=1G vendor/bin/pest tests/Unit/Kernel/Decision/PermissionAuthorityTest.php tests/Unit/Roles tests/Unit/Contracts

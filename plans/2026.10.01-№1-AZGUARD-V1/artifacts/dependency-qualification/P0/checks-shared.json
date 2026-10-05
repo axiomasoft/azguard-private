@@ -1,0 +1,67 @@
+[
+  {
+    "id": "shared.suite-with-counts",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "shared-suite"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.pint",
+    "argv": [
+      "vendor/bin/pint",
+      "--test"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.phpstan",
+    "argv": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "--memory-limit=1G"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.rector",
+    "argv": [
+      "vendor/bin/rector",
+      "process",
+      "--dry-run"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.types",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "--type-coverage",
+      "--min=98"
+    ],
+    "depends_on": [],
+    "env": {
+      "APP_ENV": "testing",
+      "DB_CONNECTION": "sqlite",
+      "DB_DATABASE": ":memory:",
+      "CACHE_STORE": "array",
+      "CACHE_DRIVER": "array",
+      "SESSION_DRIVER": "array",
+      "QUEUE_CONNECTION": "sync"
+    }
+  },
+  {
+    "id": "shared.diff",
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "depends_on": []
+  }
+]

@@ -1,0 +1,88 @@
+$ php -d memory_limit=1G vendor/bin/pest tests/Arch
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\ApiManifestTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps both api manifests current[39m[90m                                 [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit lets the filament package use only core classes from the manifest[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\BaselineArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mpackage sources declare strict types[39m[90m                                [39m [90m0.33s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit finds debug calls but not methods, static calls or declarations with the same name[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps package sources free of debug calls[39m[90m                        [39m [90m0.02s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\SourceConventionsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads package configuration only in the configuration zone[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps internal task codes out of source comments[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit tags every contract as api or spi[39m
+  [32;1m✓[39;22m[90m [39m[90mit picks a panel only in the panel resolver[39m[90m                         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit finds panel selection calls and the request panel class but not declarations, strings or comments[39m
+  [32;1m✓[39;22m[90m [39m[90mit finds task codes only in comments[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\AuthorizationArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mauthorization coordinator never reaches ambient auth or framework g[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90msources use contracts and values without importing authorization im[39m[90m…[39m [90m0.09s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the coordinator provenance exception read only[39m
+  [32;1m✓[39;22m[90m [39m[90mit proves the authorization source boundary RED against a scratch c[39m[90m…[39m [90m0.03s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\ZonesArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Internal)[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Schema)[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mconfiguration depends only on the kernel, exceptions and the framew[39m[90m…[39m [90m0.26s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdirectories do not decide access or touch storage and changes (AzGuard\Directories)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Policies)[39m[90m     [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Authorization)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Exceptions)[39m[90m   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Configuration)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Kernel)[39m[90m       [39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit resolves grouped mutation imports and fully qualified internal d[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Changes)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Directories)[39m
+  [32;1m✓[39;22m[90m [39m[90msources other than the database source and plugins stay off storage (AzGuard\Plugins)[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage and database sources call storage models statically[39m[90m [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Contracts)[39m[90m    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mkernel depends on nothing but PHP[39m[90m                                   [39m [90m1.73s[39m  
+  [32;1m✓[39;22m[90m [39m[90monly storage and the database source touch the database layer[39m[90m       [39m [90m0.33s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Laravel)[39m
+  [32;1m✓[39;22m[90m [39m[90mcontracts do not import implementations[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps the kernel free of framework helper calls[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Plugins)[39m
+  [32;1m✓[39;22m[90m [39m[90mthe catalog neither decides access nor reaches the framework adapte[39m[90m…[39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mexceptions depend only on the kernel[39m[90m                                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a directory file that imports storage, changes or authorization[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Policies)[39m
+  [32;1m✓[39;22m[90m [39m[90mcode roles do not use storage, changes or authorization[39m
+  [32;1m✓[39;22m[90m [39m[90mplugins do not reach into internals[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage uses storage concerns and the guarded builder[39m[90m       [39m [90m0.10s[39m  
+  [32;1m✓[39;22m[90m [39m[90mgrants are stored only through the change pipeline, the database source or test helpers[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Permissions)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Events)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Scopes)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Facades)[39m
+  [32;1m✓[39;22m[90m [39m[90msources other than the database source and plugins stay off storage (AzGuard\Sources)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Concerns)[39m
+  [32;1m✓[39;22m[90m [39m[90mauthorization and schema never change access (AzGuard\Schema)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Schema)[39m
+  [32;1m✓[39;22m[90m [39m[90msources do not use changes or authorization[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Diagnostics)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Catalog)[39m
+  [32;1m✓[39;22m[90m [39m[90mit finds framework helper calls but not methods with the same name[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Catalog)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Roles)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Panels)[39m[90m       [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Attributes)[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage database sources change pipeline and testing use st[39m[90m…[39m [90m0.09s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a policy file that imports storage or changes[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Filament)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Panels)[39m
+  [32;1m✓[39;22m[90m [39m[90mauthorization and schema never change access (AzGuard\Authorization)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Sources)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\AzGuardServiceProvider)[39m
+  [32;1m✓[39;22m[90m [39m[90mstorage does not use authorization or changes[39m[90m                       [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Storage)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Scopes)[39m
+  [32;1m✓[39;22m[90m [39m[90mit resolves model calls through imports aliases inheritance and cla[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a StoresGrants transaction() call copied into the panel zone[39m
+
+  [90mTests:[39m    [32;1m72 passed[39;22m[90m (314 assertions)[39m
+  [90mDuration:[39m [39m3.46s[39m
+  [90mRandom Order Seed:[39m [39m1791194682[39m
+

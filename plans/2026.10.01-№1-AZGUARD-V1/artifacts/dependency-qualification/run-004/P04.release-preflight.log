@@ -1,0 +1,2 @@
+release-preflight fixtures: PASS
+$ bash bin/test-release-preflight.sh

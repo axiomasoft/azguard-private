@@ -188,3 +188,8 @@ P05 (V60 → P8.1, но правило выбора панели вводит P2
 [consumer-fixture] discovered: AzGuard\Filament\AzGuardFilamentServiceProvider
 [consumer-fixture] OK
 ```
+
+
+## Новая квалификация зависимостей — 2026-10-05, не историческая переоценка
+
+Кандидат `a3f996563832861886fbe07fde90c2f705fd3fa5`; исходные terminal rows и frozen specs сохранены. Фактические прогоны и RED сохранены в `artifacts/dependency-qualification/current-observation.json`. Новые allow/allow observation rows не записаны: текущая квалификация заблокирована. Оба consumer fixture прошли; composer lock-sync с восстановлением прошёл; полный suite текущего продукта GREEN. Негативные пробы P1.1/P1.4/P1.8 реально RED на мутациях и GREEN после восстановления (run-003). P1.3 fields-ссылки исправлены; независимый повторный P1 review обнаружил ещё mutable references в Decision grants, подтверждено runtime exit1. P0.4/P0.5 нуждаются в owner resolution исторических stage-предикатов; Rector exit2,31 файлов — RED, не исправлялись будущие зоны. Подтверждения дополнительного Grok round не получено; предыдущий GREEN не квалифицирует новые изменения.

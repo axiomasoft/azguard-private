@@ -1,0 +1,43 @@
+{
+  "item": "P1.8",
+  "candidate": "/tmp/azguard-dependency-qualification/candidate",
+  "passed": false,
+  "error": "debug-call-red: unexpected outcome; see its preserved log",
+  "results": [
+    {
+      "id": "arch-baseline",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Arch"
+      ],
+      "exit_code": 0,
+      "expected": "green",
+      "expected_failure_names": [],
+      "passed": true,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.8-negative/arch-baseline.log"
+    },
+    {
+      "id": "debug-call-red",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Arch"
+      ],
+      "exit_code": 1,
+      "expected": "red",
+      "expected_failure_names": [
+        "keeps package sources free of debug calls"
+      ],
+      "passed": false,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.8-negative/debug-call-red.log"
+    }
+  ],
+  "candidate_unchanged": true
+}

@@ -1,0 +1,3 @@
+$ git status --porcelain=v1 --untracked-files=all
+observed_exit=0
+clean_tree=GREEN ignored build/ is omitted by git status

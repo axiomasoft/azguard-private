@@ -1,0 +1,3 @@
+Generating autoload files
+Generated autoload files
+$ composer dump-autoload

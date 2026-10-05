@@ -1,0 +1,13 @@
+
+V04: 100000 distinct tuples in 1.09 s
+
+   PASS  Tests\Unit\Kernel\Identity\IdentityCodecTest
+  ✓ it gives distinct (panel, subject, contexts) tuples distinct digest… 1.13s  
+
+   PASS  Tests\Regression\P07Test
+  ✓ it keeps an assignment scope key unambiguous and composite cache ke… 0.01s  
+
+  Tests:    2 passed (175656 assertions)
+  Duration: 1.18s
+  Random Order Seed: 1791194403
+

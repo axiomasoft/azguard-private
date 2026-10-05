@@ -1,0 +1,174 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Identity\PermissionKeyTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit exposes the three forms of a permission key[39m[90m                      [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "uppercase"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "invalid panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "one word"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "bare deep wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "bare one-segment wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "space"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a value outside the key grammar with dataset "pattern as key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a bare wildcard as a pattern with ('**')[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a bare wildcard as a pattern with ('*')[39m
+  [32;1m✓[39;22m[90m [39m[90mit round-trips a random permission key and pattern through the full[39m[90m…[39m [90m0.08s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit builds and parses a role key[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a key of the same panel through the matcher[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid role key with dataset "underscore"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid role key with dataset "empty key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid role key with dataset "invalid panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid role key with dataset "two colons"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid role key with dataset "no colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit parses only a full permission key with ('admin:orders', 'AzGuard\Exceptions\InvalidPer…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit parses only a full permission key with ('orders.view', 'AzGuard\Exceptions\InvalidPer…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit parses only a full permission key with ('Admin:orders.view', 'AzGuard\Exceptions\InvalidPan…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit parses only a full permission key with ('a:b:c.d', 'AzGuard\Exceptions\InvalidPer…eption')[39m
+
+V04: 100000 distinct tuples in 1.09 s
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Identity\IdentityCodecTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a source label and exposes the default origin[39m[90m          [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "scope too short"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "scope with bad context"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "int part"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "empty"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "actor without id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "permission without local"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "bare wildcard pattern"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "unknown kind"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "system actor with id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "subject without id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "context alias with colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "half global"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a malformed or invalid encoded reference with dataset "actor with int reason"[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps raw string boundaries in a composite key[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives distinct (panel, subject, contexts) tuples distinct digest[39m[90m…[39m [90m1.09s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit refuses a part that has no unambiguous encoding with dataset "foreign object"[39m
+  [32;1m✓[39;22m[90m [39m[90mit refuses a part that has no unambiguous encoding with dataset "float"[39m
+  [32;1m✓[39;22m[90m [39m[90mit refuses a part that has no unambiguous encoding with dataset "array with keys"[39m
+  [32;1m✓[39;22m[90m [39m[90mit refuses a part that has no unambiguous encoding with dataset "invalid utf-8"[39m
+  [32;1m✓[39;22m[90m [39m[90mit leads a composite key with the codec version[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "global tenant"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "tenant"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "context"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "actor without reason"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "role"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "actor"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "pattern"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "scope"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "system actor"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "subject"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "permission"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "tenant-wide scope"[39m
+  [32;1m✓[39;22m[90m [39m[90mit encodes a reference as a tagged list and decodes it back with dataset "global context"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\RegressionSpecsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit has a spec file for exactly the 19 probes[39m[90m                        [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P14', 'PLAN2.P1.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01a', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P03', 'PLAN2.P4.3')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P11', 'PLAN2.P5.4')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P09', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04c', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04b', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P05', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04a', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P08', 'PLAN2.P4.4')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10b', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01b', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P13', 'PLAN2.P5.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06b', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P07', 'PLAN2.P1.1')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P02', 'PLAN2.P4.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01c', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit documents the format and the closing rule in the README[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Identity\ReferencesTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit distinguishes subject, tenant and context with the same alias an[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the global form apart from an ordinary reference named global with ('AzGuard\Kernel\Identity\TenantRef')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps the global form apart from an ordinary reference named global with ('AzGuard\Kernel\Identity\Assig…opeRef')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts the longest alias[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps an assignment scope key unambiguous for random type and id[39m[90m [39m [90m0.09s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit separates tenants and the global context inside a tenant from the global tenant[39m
+  [32;1m✓[39;22m[90m [39m[90mit describes the system actor without an id[39m
+  [32;1m✓[39;22m[90m [39m[90mit canonicalizes an int id and keeps a string id byte for byte[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "tenant id with newline"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject id with space"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject alias of 129"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject id with tab"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject id of 65"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "actor id with control byte"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "context alias with colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "actor reserved type"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "context empty id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject alias uppercase"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject id non-ascii"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid alias or id with the reference exception with dataset "subject alias leading dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit offers every assignment scope only as a value of its own[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P07Test[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps an assignment scope key unambiguous and composite cache ke[39m[90m…[39m [90m0.01s[39m  
+
+  [90mTests:[39m    [32;1m156 passed[39;22m[90m (236383 assertions)[39m
+  [90mDuration:[39m [39m1.77s[39m
+  [90mRandom Order Seed:[39m [39m1791194058[39m
+
+$ php -d memory_limit=1G vendor/bin/pest tests/Unit/Kernel/Identity tests/Regression/P07Test.php tests/Regression/RegressionSpecsTest.php

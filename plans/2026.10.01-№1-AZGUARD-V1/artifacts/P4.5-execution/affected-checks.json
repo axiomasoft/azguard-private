@@ -1,0 +1,34 @@
+[
+  {
+    "id": "relation",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Sources/Relation"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "affected",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Authorization",
+      "tests/Feature/Sources"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "phpstan",
+    "argv": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "--memory-limit=1G"
+    ],
+    "depends_on": []
+  }
+]

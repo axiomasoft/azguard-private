@@ -1,0 +1,179 @@
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Sources\Relation\RelationSource;
+use AzGuard\Tests\Fixtures\Sources\Relation\Project;
+use AzGuard\Tests\Fixtures\Sources\Relation\ProjectDefinition;
+use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
+
+beforeEach(fn () => RelationWorld::seed());
+afterEach(function (): void {
+    RelationWorld::reset();
+    Model::preventLazyLoading(false);
+});
+
+it('preserves every raw same-ref role witness and narrows enumeration by tenant and type', function (): void {
+    $project = RelationWorld::project();
+    RelationWorld::attach($project, role: 'owner');
+    RelationWorld::attach($project, role: 'ghost');
+    RelationWorld::attach($project, 2, 'editor');
+    RelationWorld::attach(RelationWorld::project(8, 'B'));
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role');
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+
+    expect($selection->isEverywhere())->toBeFalse()->and($selection->refs())->toHaveCount(1)
+        ->and($selection->refs()[0]->id())->toBe('7')->and($selection->contributions())->toHaveCount(2)
+        ->and(array_map(fn ($role): string => $role->role->key(), $selection->contributions()))->toBe(['owner', 'ghost']);
+    foreach ($selection->contributions() as $role) {
+        expect($role->scope->equals(RelationWorld::scope(7)))->toBeTrue();
+    }
+    $wrongType = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'store', $frame);
+    expect($wrongType->refs())->toBe([])->and($wrongType->contributions())->toBe([]);
+});
+
+it('enumerates with a fixed root and membership query budget without per-record resolution or lazy loading', function (): void {
+    for ($id = 1; $id <= 20; $id++) {
+        $project = RelationWorld::project($id);
+        RelationWorld::attach($project, 2, 'owner');
+        RelationWorld::attach($project);
+    }
+    $definition = new ProjectDefinition;
+    $source = RelationSource::make($definition, 'members', 'pivot.role');
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    $queries = [];
+    Project::query()->getConnection()->listen(function (QueryExecuted $event) use (&$queries): void {
+        if (str_starts_with(strtolower(ltrim($event->sql)), 'select') && str_contains($event->sql, 'relation_')) {
+            $queries[] = $event->sql;
+        }
+    });
+    Model::preventLazyLoading();
+    $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+    expect($selection->refs())->toHaveCount(20)->and($selection->contributions())->toHaveCount(20)
+        ->and($queries)->toHaveCount(2)->and($definition->resolutions)->toBe(0);
+    foreach ($selection->contributions() as $role) {
+        expect($role->role->key())->toBe('editor');
+    }
+});
+
+it('groups scope callback OR clauses so they cannot broaden membership or tenant selection', function (): void {
+    RelationWorld::attach(RelationWorld::project(7, 'A', ['enabled' => false]));
+    RelationWorld::attach(RelationWorld::project(8, 'B', ['enabled' => true]));
+    RelationWorld::attach(RelationWorld::project(9, 'A', ['enabled' => true]), 2);
+    RelationWorld::attach(RelationWorld::project(10, 'A', ['enabled' => true]));
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role',
+        static fn (Builder $query): Builder => $query->where('enabled', true)->orWhereKey(7)->orWhereKey(8)->orWhereKey(9));
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+    $ids = array_map(fn ($ref): ?string => $ref->id(), $selection->refs());
+    sort($ids, SORT_STRING);
+    expect($ids)->toBe(['10', '7']);
+    $roles = RelationWorld::items($source->roleGrants(SubjectRef::of('user', 1), [RelationWorld::scope(10)], $frame));
+    expect($roles)->toHaveCount(1)->and($roles[0]->scope->context->id())->toBe('10');
+});
+
+it('lets scope callbacks narrow results and returns no refs for a subject without membership', function (): void {
+    RelationWorld::attach(RelationWorld::project(7, 'A', ['enabled' => false]));
+    RelationWorld::attach(RelationWorld::project(8));
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static fn (Builder $query): Builder => $query->where('enabled', true));
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+    expect($selection->refs())->toHaveCount(1)->and($selection->refs()[0]->id())->toBe('8');
+    $empty = $source->contextsCovering(SubjectRef::of('user', 2), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+    expect($empty->refs())->toBe([])->and($empty->contributions())->toBe([])->and($empty->isEverywhere())->toBeFalse();
+});
+
+it('propagates failed narrowing callbacks without yielding a partial selection', function (): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static function (Builder $query): void {
+        throw new RuntimeException('Broken scope callback');
+    });
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(RuntimeException::class, 'Broken scope callback');
+    expect(fn () => RelationWorld::items($source->roleGrants(SubjectRef::of('user', 1), [RelationWorld::scope(7)], $frame)))
+        ->toThrow(RuntimeException::class, 'Broken scope callback');
+});
+
+it('rejects scope callbacks that change query structure instead of grouped predicates', function (string $change): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static function (Builder $query) use ($change): void {
+        match ($change) {
+            'select' => $query->select('id'),
+            'from' => $query->from('relation_stores'),
+            'join' => $query->join('relation_members', 'relation_members.id', '=', 'relation_projects.id'),
+            'order' => $query->orderBy('id'),
+            'limit' => $query->limit(1),
+            'eager load' => $query->with('members'),
+        };
+    });
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(InvalidSourceContributionException::class);
+    expect(fn () => RelationWorld::items($source->roleGrants(SubjectRef::of('user', 1), [RelationWorld::scope(7)], $frame)))
+        ->toThrow(InvalidSourceContributionException::class);
+})->with(['select', 'from', 'join', 'order', 'limit', 'eager load']);
+
+it('rejects terminal operations before the callback can read or mutate the root query', function (string $terminal): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static function (Builder $query) use ($terminal): void {
+        match ($terminal) {
+            'get' => $query->get(),
+            'count' => $query->count(),
+            'exists' => $query->exists(),
+            'update' => $query->update(['enabled' => false]),
+            'delete' => $query->delete(),
+            'create' => $query->create(['id' => 88, 'tenant_id' => 'A']),
+            'nested delete' => $query->where(static fn (Builder $nested) => $nested->delete()),
+            'whereHas delete' => $query->whereHas('members', static fn (Builder $nested) => $nested->delete()),
+            'whereExists delete' => $query->whereExists(static fn (Illuminate\Database\Query\Builder $nested) => $nested->from('relation_members')->delete()),
+        };
+    });
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(InvalidSourceContributionException::class, 'terminal');
+    expect(Project::query()->count())->toBe(1)->and(Project::query()->findOrFail(7)->getAttribute('enabled'))->toBeTruthy();
+})->with(['get', 'count', 'exists', 'update', 'delete', 'create', 'nested delete', 'whereHas delete', 'whereExists delete']);
+
+it('bounds foreign-tenant and null-role roots before loading memberships', function (): void {
+    $rows = [];
+    $links = [];
+    for ($id = 1; $id <= 10001; $id++) {
+        $rows[] = ['id' => $id, 'tenant_id' => 'B', 'enabled' => true];
+        $links[] = ['project_id' => $id, 'member_id' => 1, 'role' => null];
+    }
+    foreach (array_chunk($rows, 500) as $chunk) {
+        Project::query()->insert($chunk);
+    }
+    foreach (array_chunk($links, 500) as $chunk) {
+        DB::table('relation_project_user')->insert($chunk);
+    }
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role');
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(InvalidSourceContributionException::class, 'related-root selection budget');
+});
+
+it('passes exactly the published single builder argument to a scope callback', function (): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static function (Builder $query): Builder {
+        expect(func_num_args())->toBe(1);
+
+        return $query->where('enabled', true);
+    });
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect($source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame)->refs())
+        ->toHaveCount(1);
+    expect(RelationWorld::items($source->roleGrants(SubjectRef::of('user', 1), [RelationWorld::scope(7)], $frame)))
+        ->toHaveCount(1);
+});

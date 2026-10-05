@@ -60,7 +60,7 @@ final readonly class Grant
     }
 
     /**
-     * Validates decision fields: string keys and plain data only (scalars, null, nested arrays), so they cache safely.
+     * Copies validated decision fields as plain data, detaching references so they remain safe to cache.
      *
      * @param  array<mixed>  $fields
      * @return array<non-empty-string, mixed>
@@ -69,16 +69,17 @@ final readonly class Grant
      */
     public static function assertFields(array $fields): array
     {
+        $plain = [];
+
         foreach ($fields as $key => $value) {
             if (! is_string($key) || $key === '') {
                 throw new InvalidSourceContributionException('Decision field names must be non-empty strings.');
             }
 
-            self::assertPlain($value, $key);
+            $plain[$key] = self::assertPlain($value, $key);
         }
 
-        /** @var array<non-empty-string, mixed> $fields */
-        return $fields;
+        return $plain;
     }
 
     /**
@@ -94,14 +95,16 @@ final readonly class Grant
         return $this->expiresAt === null || $this->expiresAt > $now;
     }
 
-    private static function assertPlain(mixed $value, string $path): void
+    private static function assertPlain(mixed $value, string $path): mixed
     {
         if (is_array($value)) {
+            $plain = [];
+
             foreach ($value as $key => $nested) {
-                self::assertPlain($nested, $path.'.'.$key);
+                $plain[$key] = self::assertPlain($nested, $path.'.'.$key);
             }
 
-            return;
+            return $plain;
         }
 
         if ($value !== null && ! is_scalar($value)) {
@@ -111,5 +114,7 @@ final readonly class Grant
                 get_debug_type($value),
             ));
         }
+
+        return $value;
     }
 }

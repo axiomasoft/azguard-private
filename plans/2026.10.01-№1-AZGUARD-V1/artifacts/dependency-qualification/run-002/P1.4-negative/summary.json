@@ -1,0 +1,43 @@
+{
+  "item": "P1.4",
+  "candidate": "/tmp/azguard-dependency-qualification/candidate",
+  "passed": false,
+  "error": "framework-import-red: unexpected outcome; see its preserved log",
+  "results": [
+    {
+      "id": "arch-baseline",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Arch"
+      ],
+      "exit_code": 0,
+      "expected": "green",
+      "expected_failure_names": [],
+      "passed": true,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.4-negative/arch-baseline.log"
+    },
+    {
+      "id": "framework-import-red",
+      "argv": [
+        "php",
+        "-d",
+        "memory_limit=1G",
+        "vendor/bin/pest",
+        "--colors=never",
+        "tests/Arch"
+      ],
+      "exit_code": 1,
+      "expected": "red",
+      "expected_failure_names": [
+        "kernel depends on nothing but PHP"
+      ],
+      "passed": false,
+      "log": "/tmp/azguard-dependency-qualification/run-002/P1.4-negative/framework-import-red.log"
+    }
+  ],
+  "candidate_unchanged": true
+}

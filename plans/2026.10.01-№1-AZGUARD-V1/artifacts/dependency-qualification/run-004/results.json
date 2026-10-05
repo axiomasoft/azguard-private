@@ -1,0 +1,571 @@
+[
+  {
+    "id": "P03.clean-tree",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "clean-tree"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.clean-tree.log",
+    "log_sha256": "01194815b41737274b6ba6c4c6d21f51a15379e93b90350f9f4b2e384ba630a9",
+    "seconds": 0.24,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.suite-with-counts",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "shared-suite"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.suite-with-counts.log",
+    "log_sha256": "44e94648a630a1d1eac248bf95ca7491958ba38614fcc9d2b3346db7ae6c2968",
+    "seconds": 17.72,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.pint",
+    "argv": [
+      "vendor/bin/pint",
+      "--test"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.pint.log",
+    "log_sha256": "d95e342421001fd1b2d74aa3322b62594fcac3b420124f06347843226281ce74",
+    "seconds": 7.1,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.phpstan",
+    "argv": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "--memory-limit=1G"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.phpstan.log",
+    "log_sha256": "9f92146fc7683f4f9f7840024b1e234d6d41c96eab24786d444042d6c62351f5",
+    "seconds": 3.97,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.rector",
+    "argv": [
+      "vendor/bin/rector",
+      "process",
+      "--dry-run"
+    ],
+    "exit_code": 2,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.rector.log",
+    "log_sha256": "11522390066e862fbc913d02f00d3503303f94fbb50c198ab85ab2a16b827d70",
+    "seconds": 5.07,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.types",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "--type-coverage",
+      "--min=98"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.types.log",
+    "log_sha256": "08a3fe1e6dd31aaa0009e126aef6fdc43f36b11396092bcc95e226e7383729eb",
+    "seconds": 3.44,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.diff",
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.diff.log",
+    "log_sha256": "3d4d50cd32af92c6d4df37c1df74a96622fca8cfb5643a155c91f034a42f2068",
+    "seconds": 0.0,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.arch",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.arch.log",
+    "log_sha256": "1e2c5470efa1a8098da47d569f6c8ea47f193f293b01f563cdf03d870113dd3d",
+    "seconds": 3.52,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "shared.manifest",
+    "argv": [
+      "php",
+      "bin/api-manifest.php",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/shared.manifest.log",
+    "log_sha256": "ddaf8f1f193c9c044ea80829045408dc29288245d61248d7ca0f4e247c024ab8",
+    "seconds": 0.04,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p1-identity",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Identity",
+      "tests/Regression/P07Test.php",
+      "tests/Regression/RegressionSpecsTest.php"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p1-identity.log",
+    "log_sha256": "c4eb321a657ccfd9c2d230813adedae80874bb68b912c4624a848a681f4268b2",
+    "seconds": 1.79,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p1-grammar",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Grammar",
+      "tests/Unit/Exceptions",
+      "tests/Regression/P14Test.php",
+      "tests/Regression/RegressionSpecsTest.php"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p1-grammar.log",
+    "log_sha256": "d2dcd90ecee633de51d6a73a24e1df365aaea3f805a8d143800ab17d4cb83702",
+    "seconds": 0.76,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p1-decision",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Decision",
+      "tests/Unit/Kernel/Permissions"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p1-decision.log",
+    "log_sha256": "b7f15fd3397107a93870266efe3126fc58a48ced32afd1fcd1ad21e376ef351b",
+    "seconds": 0.42,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p1-authority",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Decision/PermissionAuthorityTest.php",
+      "tests/Unit/Roles",
+      "tests/Unit/Contracts"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p1-authority.log",
+    "log_sha256": "65d7127833302488a5c7811b9e9479a80898527131051147c5e1da93f9d05400",
+    "seconds": 0.24,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p1-repair",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch",
+      "tests/Unit/Kernel/Decision",
+      "tests/Unit/Exceptions"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p1-repair.log",
+    "log_sha256": "a73424c9ba9e19274b6da5ca06bb63e4c69ecab6a22dfa12fc468bcedeb5e580",
+    "seconds": 3.82,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p4-relation",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Sources/Relation"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p4-relation.log",
+    "log_sha256": "08402935cb75fd338ea9f6a1e3d870c51970dcb47bc8db6fa036828e5bdd2165",
+    "seconds": 1.13,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "p4-auth-sources",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Authorization",
+      "tests/Feature/Sources"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/p4-auth-sources.log",
+    "log_sha256": "d492a401b686c4b5edf8931578c9530a4ef8407861f115bb385055e18ad9bf71",
+    "seconds": 1.83,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P02.regression",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Regression"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P02.regression.log",
+    "log_sha256": "732392ef278a5824b5f377f0f37bcf0053f8688eef7cfc97581e63ba18761d01",
+    "seconds": 0.38,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P03.shell-syntax",
+    "argv": [
+      "bash",
+      "-n",
+      "bin/consumer-fixture.sh"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.shell-syntax.log",
+    "log_sha256": "c6ddca9af272ac814bdad932d2485f8512d0fffe5028d0e6cf59b870353b7dfc",
+    "seconds": 0.0,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P03.shellcheck",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "shellcheck"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.shellcheck.log",
+    "log_sha256": "c75d7b9cd1050c3b409540d873408a52ea8632556ed1a8aafc0001d8dc9bb524",
+    "seconds": 0.03,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P03.workflow-yaml",
+    "argv": [
+      "python3",
+      "-c",
+      "import yaml; yaml.safe_load(open('.github/workflows/tests.yml'))"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.workflow-yaml.log",
+    "log_sha256": "9e960d370f2c0411f1c751f9f17ff627c25717bed74dde25550155233f7e11f1",
+    "seconds": 0.04,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P03.fixture",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "fixture"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.fixture.log",
+    "log_sha256": "d87263b16dc17b303ab259b7fc4f0e6a2b2df1fb73da136a6558e772179d5fe9",
+    "seconds": 21.16,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P03.fixture-filament",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "fixture-filament"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P03.fixture-filament.log",
+    "log_sha256": "0130f2fde1518292f0d9585ba9afc57ac60f1e615df82c53804389ba2c4345b8",
+    "seconds": 30.15,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.composer-root",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.composer-root.log",
+    "log_sha256": "fa4b1421100c642af07d10f39b4aa471f7b9dd9f09b0c2d9be2698ac0ef79423",
+    "seconds": 0.13,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.composer-core",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/core/composer.json"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.composer-core.log",
+    "log_sha256": "d374fc7a9b29dcfbf0892eff52ca7d5f2dde68f350f288d244853e0a0754457d",
+    "seconds": 0.11,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.composer-filament",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/filament/composer.json"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.composer-filament.log",
+    "log_sha256": "940369a394c18b0624c8f52a08803f63bdbe27079db1871d89026d6151dd3cc5",
+    "seconds": 0.12,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.release-preflight",
+    "argv": [
+      "bash",
+      "bin/test-release-preflight.sh"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.release-preflight.log",
+    "log_sha256": "a568b9775e1e23ac13f0d16d15c05c445a678aba3047ebb7003459a11b185001",
+    "seconds": 0.16,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.old-names",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "old-names"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.old-names.log",
+    "log_sha256": "3bef3ac9c35d75ab8a344064eff56268127965fbf5ca13ebfb8353e2e2cab9ec",
+    "seconds": 0.05,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.dump-autoload",
+    "argv": [
+      "composer",
+      "dump-autoload"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.dump-autoload.log",
+    "log_sha256": "e8a51670991900a93e572664b584a8462a5de9855ea174c817f862f623a11052",
+    "seconds": 0.24,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.show-core",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.show-core.log",
+    "log_sha256": "9694d6ec81837f50e68ee330a30354804e3d03c65b9ec05820b70e63e230a0e9",
+    "seconds": 0.08,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.show-filament",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard-filament"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.show-filament.log",
+    "log_sha256": "3cb593dd2255278c7c4c7e10914202403dd1d08d5db02a94858a7cfe92384d78",
+    "seconds": 0.08,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.no-context",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "no-context"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.no-context.log",
+    "log_sha256": "d5f5bcffa9987f61cd819e7a75d4ebd1cd50c30ce3e7b5d8755ebc9009d6abe3",
+    "seconds": 0.03,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.legacy-not-autoloaded",
+    "argv": [
+      "php",
+      "-r",
+      "require 'vendor/autoload.php'; foreach (['AzGuard\\\\Context\\\\ContextGuard','AzGuard\\\\Context\\\\ContextNotSetException'] as $c) { echo $c, class_exists($c)?' LOADED':' ABSENT', PHP_EOL; if (class_exists($c)) exit(1);} foreach (['legacy/0.3/packages/context/src/ContextGuard.php','legacy/0.3/packages/context/src/ContextNotSetException.php'] as $f) { if (!is_file($f)) exit(2);} echo \"legacy_autoload=absent\\n\";"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.legacy-not-autoloaded.log",
+    "log_sha256": "56fda88a62176bd9e01f30f4771c86765181aa848fd3bc64266b2f18fb410af1",
+    "seconds": 0.02,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P05.panel-absent-old",
+    "argv": [
+      "php",
+      "-r",
+      "require 'vendor/autoload.php'; exit(class_exists('AzGuard\\\\Panels\\\\Panel') ? 1 : 0);"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P05.panel-absent-old.log",
+    "log_sha256": "8623f1d74cfc1369a0d77843fe6d0dc88a08388b59368d66338df29b9a2a1b4a",
+    "seconds": 0.02,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "decision-reference-probe",
+    "argv": [
+      "php",
+      "plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/decision-reference-probe.php"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/decision-reference-probe.log",
+    "log_sha256": "7bc961b585305c472a842e2d12108de99617159b189a7ff77224c0ddf80c60d5",
+    "seconds": 0.02,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P02.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "regression-negative"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P02.negative-restored.log",
+    "log_sha256": "406bf278c559d90d2d16b157f9d20fb6c4048cd6b26430896f742d596320cddd",
+    "seconds": 0.74,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P04.lock-sync-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py",
+      "lock-update"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P04.lock-sync-restored.log",
+    "log_sha256": "a3576f50a893b0cf2cb110686cba33cdd9f6e0eb556c0497917437d146d0381a",
+    "seconds": 14.86,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P1.1.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate-004",
+      "--item",
+      "P1.1",
+      "--logs",
+      "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.1-negative"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.1.negative-restored.log",
+    "log_sha256": "d722ba67048130f7fa58cde3b9d3ff1f7228e841e9d3137426a64c3e61e5ade6",
+    "seconds": 0.06,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P1.4.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate-004",
+      "--item",
+      "P1.4",
+      "--logs",
+      "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.4-negative"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.4.negative-restored.log",
+    "log_sha256": "f9a6a93ebb237fce9e3de34d8adfafa48bbd680869d28c4c267a398754dfbf01",
+    "seconds": 0.06,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P1.8.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate-004",
+      "--item",
+      "P1.8",
+      "--logs",
+      "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.8-negative"
+    ],
+    "exit_code": 1,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.8.negative-restored.log",
+    "log_sha256": "3796e20d05fdbd436586239ee787efcafd36d14ccdf4f84db2d3de27ae3976c0",
+    "seconds": 0.05,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  },
+  {
+    "id": "P1.7.clean-status",
+    "argv": [
+      "git",
+      "status",
+      "--porcelain",
+      "--",
+      "packages",
+      "tests",
+      "bin"
+    ],
+    "exit_code": 0,
+    "log": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/run-004/P1.7.clean-status.log",
+    "log_sha256": "faa36e4eba99947cc20cdc8272718daadc9505d13ee6e63f11f9f0c417d009f7",
+    "seconds": 0.0,
+    "candidate_commit": "7649a3132240cd37a9e96b06741d969a2f8404f6"
+  }
+]

@@ -1,0 +1,250 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\DecisionTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries state, scope, component and traced grants[39m[90m                [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit refuses two different tokens for one storage panel in a set[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every reason of the dossier with its machine code[39m
+  [32;1m✓[39;22m[90m [39m[90mit keys the states of a mixed set apart[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / tenant_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / restricted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / policy_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / hook_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / tenant_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / context_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / restriction_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / tenant_required"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_filter_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_not_accepted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / condition_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / hook"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / not_applicable"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / super_admin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / not_granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / source_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / consistency_error"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / granted"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "allow / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_ineligible"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "not_applicable / resource_scope_missing"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / tenant_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit admits a reason for an effect only when they agree with dataset "deny / context_mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit detaches grant references and rejects a grant list that is not plain[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\ZonesArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a directory file that imports storage, changes or author[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Filament)[39m[90m     [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Permissions)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Scopes)[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mdirectories do not decide access or touch storage and changes (AzGu[39m[90m…[39m [90m0.08s[39m  
+  [32;1m✓[39;22m[90m [39m[90mkernel depends on nothing but PHP[39m[90m                                   [39m [90m1.94s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Configuration[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\AzGuardServiceProvider)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and c[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90monly storage and the database source touch the database layer[39m[90m       [39m [90m0.35s[39m  
+  [32;1m✓[39;22m[90m [39m[90mthe catalog neither decides access nor reaches the framework adapte[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Events)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Diagnostics)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Internal)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Schema)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Contracts)[39m[90m    [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mauthorization and schema never change access (AzGuard\Authorization[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Directories)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Sources)[39m[90m      [39m [90m0.08s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Attributes)[39m
+  [32;1m✓[39;22m[90m [39m[90mit finds framework helper calls but not methods with the same name[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Panels)[39m[90m       [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mstorage does not use authorization or changes[39m[90m                       [39m [90m0.04s[39m  
+  [32;1m✓[39;22m[90m [39m[90mcontracts do not import implementations[39m
+  [32;1m✓[39;22m[90m [39m[90msources other than the database source and plugins stay off storage (AzGuard\Plugins)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Changes)[39m
+  [32;1m✓[39;22m[90m [39m[90mexceptions depend only on the kernel[39m[90m                                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Authorization)[39m
+  [32;1m✓[39;22m[90m [39m[90mauthorization and schema never change access (AzGuard\Schema)[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Scopes)[39m
+  [32;1m✓[39;22m[90m [39m[90mgrants are stored only through the change pipeline, the database source or test helpers[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage and database sources call storage models statically[39m[90m [39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Kernel)[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage uses storage concerns and the guarded builder[39m[90m       [39m [90m0.10s[39m  
+  [32;1m✓[39;22m[90m [39m[90mplugins do not reach into internals[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Catalog)[39m
+  [32;1m✓[39;22m[90m [39m[90mconfiguration depends only on the kernel, exceptions and the framew[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90msources other than the database source and plugins stay off storage (AzGuard\Sources)[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps the kernel free of framework helper calls[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Policies)[39m
+  [32;1m✓[39;22m[90m [39m[90mcode roles do not use storage, changes or authorization[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Plugins)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Exceptions)[39m
+  [32;1m✓[39;22m[90m [39m[90mit resolves grouped mutation imports and fully qualified internal dependencies[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Schema)[39m
+  [32;1m✓[39;22m[90m [39m[90mit resolves model calls through imports aliases inheritance and class-relative names[39m
+  [32;1m✓[39;22m[90m [39m[90mpanels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Panels)[39m
+  [32;1m✓[39;22m[90m [39m[90mit only storage database sources change pipeline and testing use st[39m[90m…[39m [90m0.09s[39m  
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Storage)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Laravel)[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a policy file that imports storage or changes[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Facades)[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a StoresGrants transaction() call copied into the panel zone[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Roles)[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Concerns)[39m
+  [32;1m✓[39;22m[90m [39m[90msources do not use changes or authorization[39m
+  [32;1m✓[39;22m[90m [39m[90mproduction code does not import test helpers (AzGuard\Catalog)[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\ApiManifestTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit lets the filament package use only core classes from the manifes[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps both api manifests current[39m[90m                                 [39m [90m0.04s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\AuthorizationArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mauthorization coordinator never reaches ambient auth or framework g[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the coordinator provenance exception read only[39m
+  [32;1m✓[39;22m[90m [39m[90mit proves the authorization source boundary RED against a scratch c[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90msources use contracts and values without importing authorization implementations[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\BaselineArchTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit finds debug calls but not methods, static calls or declarations with the same name[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps package sources free of debug calls[39m[90m                        [39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mpackage sources declare strict types[39m[90m                                [39m [90m0.31s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Arch\SourceConventionsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads package configuration only in the configuration zone[39m[90m       [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit picks a panel only in the panel resolver[39m[90m                         [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit tags every contract as api or spi[39m
+  [32;1m✓[39;22m[90m [39m[90mit finds task codes only in comments[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps internal task codes out of source comments[39m[90m                 [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit finds panel selection calls and the request panel class but not declarations, strings or comments[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\AccessRequestTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit starts without tenant, context, resource or trace[39m[90m                [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the tenant when the context changes and treats null as not given[39m
+  [32;1m✓[39;22m[90m [39m[90mit returns a new request from every wither and keeps the original[39m
+  [32;1m✓[39;22m[90m [39m[90mit sets tenant and context together from a scope[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\GrantTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a grant whose role lives in another panel[39m
+  [32;1m✓[39;22m[90m [39m[90mit describes a role contribution with its owner[39m
+  [32;1m✓[39;22m[90m [39m[90mit lets a restriction only pass or deny with a snake_case reason[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps hook and authority values closed[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "uppercase source"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "space in origin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "leading colon origin"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects a source or origin outside the label grammar with dataset "empty source"[39m
+  [32;1m✓[39;22m[90m [39m[90mit builds a grant with the manual origin by default[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "int key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "nested object"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "empty key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "closure"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects fields that are not plain data with dataset "object"[39m
+  [32;1m✓[39;22m[90m [39m[90mit is active strictly before its expiry[39m
+  [32;1m✓[39;22m[90m [39m[90mit detaches top-level and nested field references from grants and role contributions[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps stored fields unchanged when returned field arrays are modified[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\PermissionAuthorityTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers every mode in the table[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / null / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / null / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / true / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "grants / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / unqualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit decides authority by the mode table with dataset "policy / false / qualified"[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in grants mode with dataset "policy"[39m
+  [32;1m✓[39;22m[90m [39m[90mit reads and accepts assignments and trusts a super admin only in grants mode with dataset "grants"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\StateTokenTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit separates the code token from the storage token[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage empty incarnation"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage negative version"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code empty fingerprint"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage negative generation"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "storage empty id"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code empty build"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an invalid token with dataset "code panel"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Exceptions\ExceptionHierarchyTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\DuplicateP…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\UnknownPan…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\InvalidSou…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\InvalidCon…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\DefaultPan…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\SubjectNot…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\RegistryFr…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\Consistenc…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\PluginException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\StorageException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\Authorizat…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\ChangeException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\Configurat…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit throws the definition branch itself where no narrower class exists[39m
+  [32;1m✓[39;22m[90m [39m[90mit roots every error in an abstract runtime exception with a machine code[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DefinitionException', 'AzGuard\Exceptions\AzGuardException', 'definition')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidSou…eption', 'AzGuard\Exceptions\Authorizat…eption', 'invalid_source_contribution')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidCon…eption', 'AzGuard\Exceptions\Configurat…eption', 'invalid_configuration')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidPan…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_panel_id')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DuplicateP…eption', 'AzGuard\Exceptions\DefinitionException', 'duplicate_panel')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidAss…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_context')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DefaultPan…eption', 'AzGuard\Exceptions\DefinitionException', 'default_panel_conflict')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidRol…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_role_key')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidPer…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_permission_key')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\RegistryFr…eption', 'AzGuard\Exceptions\DefinitionException', 'registry_frozen')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\SubjectNot…eption', 'AzGuard\Exceptions\DefinitionException', 'subject_not_accepted')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\UnknownPan…eption', 'AzGuard\Exceptions\DefinitionException', 'unknown_panel')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidIde…eption', 'AzGuard\Exceptions\AzGuardException', 'invalid_identity')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\Consistenc…eption', 'AzGuard\Exceptions\Authorizat…eption', 'consistency')[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Decision\DecisionDenialTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "boolean"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "integer"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "text"[39m
+  [32;1m✓[39;22m[90m [39m[90mit carries scalar policy response details on deny and allow without changing the effect with dataset "none"[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps details nullable by default and preserves the effect-reason consistency guard[39m
+
+  [90mTests:[39m    [32;1m220 passed[39;22m[90m (750 assertions)[39m
+  [90mDuration:[39m [39m3.94s[39m
+  [90mRandom Order Seed:[39m [39m1791194394[39m
+
+$ php -d memory_limit=1G vendor/bin/pest tests/Arch tests/Unit/Kernel/Decision tests/Unit/Exceptions

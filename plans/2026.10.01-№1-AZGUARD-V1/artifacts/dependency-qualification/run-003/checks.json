@@ -1,0 +1,41 @@
+[
+  {
+    "id": "P1.1.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.1",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-003/P1.1-negative"
+    ]
+  },
+  {
+    "id": "P1.4.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.4",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-003/P1.4-negative"
+    ]
+  },
+  {
+    "id": "P1.8.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.8",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-003/P1.8-negative"
+    ]
+  }
+]

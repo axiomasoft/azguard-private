@@ -3,7 +3,7 @@ projection: status-view
 projection_version: v1
 source_scope: plan core + phases + journal
 through: 2026-10-05
-inputs_sha256: 274d6898476f0183b4b17bef5dc523d117b169dbc4f3794921461eeea5ac3b90
+inputs_sha256: f25f4bc988f02e4224fc33db652754c03b3aa7c6f1f669d743ecd5803854616d
 generated_by: task plan-views status
 -->
 
@@ -27,7 +27,7 @@ generated_by: task plan-views status
 | P1 | Ядро понятий Kernel и arch-правила зон | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | 9/10 | 🟠 Done with deviations |
 | P3 | Хранилище | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 5/23 | 🟡 In progress |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | 6/23 | 🟡 In progress |
 | P5 | Модель и изменения | 0/5 | ⬜ Not started |
 | P6 | Laravel-поверхность и удаление legacy | 0/10 | ⬜ Not started |
 | P7 | Filament по схеме панели | 0/7 | ⬜ Not started |
@@ -38,22 +38,22 @@ generated_by: task plan-views status
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
 | P0.1 | ADR «Ecosystem conventions» в docs/adr | 🟢 Done | 2026-10-01 |
-| P0.2 | Probes 0.3 → спецификации регрессионных тестов с owning items | 🟢 Done | 2026-10-01 |
-| P0.3 | Каркас consumer-фикстуры из собранных архивов в CI | 🟢 Done | 2026-10-01 |
-| P0.4 | Composer-имена axiomasoft/*, homepage, удаление context-пакета из сборки | 🟢 Done | 2026-10-01 |
-| P0.5 | Legacy freeze и каркас пакетов 1.0 с зелёными гейтами | 🟢 Done | 2026-10-01 |
+| P0.2 | Probes 0.3 → спецификации регрессионных тестов с owning items | 🟢 Done | 2026-10-05 |
+| P0.3 | Каркас consumer-фикстуры из собранных архивов в CI | 🟢 Done | 2026-10-05 |
+| P0.4 | Composer-имена axiomasoft/*, homepage, удаление context-пакета из сборки | 🟢 Done | 2026-10-05 |
+| P0.5 | Legacy freeze и каркас пакетов 1.0 с зелёными гейтами | 🟢 Done | 2026-10-05 |
 
 ## Phase P1
 
 | ID | Title | Status | Updated |
 |:--|:--|:--|:--|
-| P1.1 | Kernel\Identity: ключи, ссылки, IdentityCodec | 🟢 Done | 2026-10-01 |
-| P1.2 | Грамматика имён и шаблонов | 🟢 Done | 2026-10-01 |
-| P1.3 | Значения решения: AccessRequest, Decision, Grant, токены, PermissionSet | 🟢 Done | 2026-10-01 |
-| P1.4 | Arch-правила зон | 🟢 Done | 2026-10-01 |
-| P1.6 | Authority semantics, кодовые роли и структурные SPI областей | 🟢 Done | 2026-10-01 |
-| P1.7 | Review P1: независимая read-only проверка фазы | 🟢 Done | 2026-10-02 |
-| P1.8 | Исправление находок Review P1 | 🟢 Done | 2026-10-02 |
+| P1.1 | Kernel\Identity: ключи, ссылки, IdentityCodec | 🟢 Done | 2026-10-05 |
+| P1.2 | Грамматика имён и шаблонов | 🟢 Done | 2026-10-05 |
+| P1.3 | Значения решения: AccessRequest, Decision, Grant, токены, PermissionSet | 🟢 Done | 2026-10-05 |
+| P1.4 | Arch-правила зон | 🟢 Done | 2026-10-05 |
+| P1.6 | Authority semantics, кодовые роли и структурные SPI областей | 🟢 Done | 2026-10-05 |
+| P1.7 | Review P1: независимая read-only проверка фазы | 🟢 Done | 2026-10-05 |
+| P1.8 | Исправление находок Review P1 | 🟢 Done | 2026-10-05 |
 
 ## Phase P2
 
@@ -88,7 +88,7 @@ generated_by: task plan-views status
 | P4.2 | Выдачи из папки: BaseRole, GrantedAutomatically, GrantedToAll, FormerKeys | 🟢 Done | 2026-10-04 |
 | P4.3 | Mode-aware policies, Decides, PolicyFor, GateSource::map | 🟢 Done | 2026-10-04 |
 | P4.4 | DatabaseSource: назначения, сроки, dynamicPermissions, писатель | 🟢 Done | 2026-10-04 |
-| P4.5 | RelationSource и видимость через связи | ⬜ Not started | — |
+| P4.5 | RelationSource и видимость через связи | 🟢 Done | 2026-10-05 |
 | P4.6 | Tenant, AssignmentScope и ресурс в проверке | ⬜ Not started | — |
 | P4.7 | Суперадмин — признак роли | ⬜ Not started | — |
 | P4.8 | Кэш наборов прав, StateToken, version fence, expiry | ⬜ Not started | — |
@@ -271,6 +271,31 @@ write-site: pre_mutation: allow · pre_final: allow |
 write-site: pre_mutation: allow · pre_final: allow |
 | 2026-10-05 | codex | plan-run · in-progress · — |
 | 2026-10-05 | codex | plan-run · closed-green · note abbreviated; full text: journal.jsonl:91 |
+| 2026-10-05 | codex | plan-run · in-progress · — |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · candidate 95c7f4a94c4916b85f54688e237e3f95645fea68 run 32f91b41b42a3e9843b66592224cc34008c701eff377463f27aa698d584c6926
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · Исторический closed-green остаётся; frozen-перепроверка по D17 не allow.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · Исторический closed-green остаётся; frozen-перепроверка по D17 не allow.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · Исторический closed-green остаётся; frozen-перепроверка по D17 не allow.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · local-repair · Исторический closed-green остаётся; frozen-перепроверка по D17 не allow.
+write-site: pre_mutation: allow · pre_final: allow |
+| 2026-10-05 | grok-4.7/high | plan-run · closed-green · Decision grants detached; D17; candidate 95c7f4a9; acceptance without new review
+write-site: pre_mutation: allow · pre_final: allow |
 
 ## Owner Gates
 

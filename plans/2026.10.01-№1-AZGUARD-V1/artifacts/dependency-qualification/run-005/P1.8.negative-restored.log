@@ -1,0 +1,2 @@
+{"item": "P1.8", "passed": true, "candidate_unchanged": true}
+$ python3 /tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P1/negative_probes.py --candidate /tmp/azguard-dependency-qualification/candidate-004 --item P1.8 --logs /tmp/azguard-run-005-probes/P1.8

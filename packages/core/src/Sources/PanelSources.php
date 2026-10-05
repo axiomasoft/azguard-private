@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources;
 
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\FiltersQueries;
@@ -22,10 +23,12 @@ use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\DiscoverySnapshot;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\Folder\PanelDiscovery;
+use AzGuard\Sources\Relation\RelationSource;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -118,6 +121,10 @@ final readonly class PanelSources
 
                 if ($source instanceof DatabaseSource) {
                     $source->bindPanel($panel);
+                }
+
+                if ($source instanceof RelationSource) {
+                    $source->bind($panel, self::scopeDefinitions($recipe, $discovery, $container));
                 }
 
                 $id = $source->id();
@@ -324,5 +331,32 @@ final readonly class PanelSources
     private static function abstract(string $panel, string $name): string
     {
         return 'azguard.sources.'.$panel.'.'.$name;
+    }
+
+    /** @return iterable<AssignmentScopeDefinition> */
+    private static function scopeDefinitions(PanelRecipe $recipe, DiscoverySnapshot $discovery, Container $container): iterable
+    {
+        foreach ($discovery->scopes as $class) {
+            $definition = $container->make($class);
+
+            if ($definition instanceof AssignmentScopeDefinition) {
+                yield $definition;
+            }
+        }
+
+        foreach (array_unique([...$discovery->roles, ...$recipe->roles()]) as $class) {
+            $role = $container->make($class);
+
+            if (! $role instanceof BaseRole) {
+                continue;
+            }
+            foreach ($role->scopes() as $declared) {
+                $definition = is_string($declared) ? $container->make($declared) : $declared;
+
+                if ($definition instanceof AssignmentScopeDefinition) {
+                    yield $definition;
+                }
+            }
+        }
     }
 }

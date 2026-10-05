@@ -1,0 +1,43 @@
+
+   FAIL  Tests\Unit\Kernel\Identity\IdentityCodecTest
+  ⨯ it gives distinct (panel, subject, contexts) tuples distinct digest… 1.22s  
+
+   FAIL  Tests\Regression\P07Test
+  ⨯ it keeps an assignment scope key unambiguous and composite cache ke… 0.01s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Unit\Kernel\Identity\IdentityCodecTest > it gives distinct…    
+  Failed asserting that actual size 99843 matches expected size 100000.
+
+  at tests/Unit/Kernel/Identity/IdentityCodecTest.php:138
+    134▕         expect($digests[$canonical] ?? $digest)->toBe($digest);
+    135▕         $digests[$canonical] = $digest;
+    136▕     }
+    137▕ 
+  ➜ 138▕     expect(array_unique($digests))->toHaveCount(100_000);
+    139▕ 
+    140▕     fwrite(STDERR, sprintf("\nV04: 100000 distinct tuples in %.2f s\n", (hrtime(true) - $started) / 1e9));
+    141▕ });
+    142▕
+
+  1   tests/Unit/Kernel/Identity/IdentityCodecTest.php:138
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Regression\P07Test > it keeps an assignment scope key unamb…   
+  Expecting '01e250789889e71a7440271fdbbf7…8a061d' not to be '01e250789889e71a7440271fdbbf7…8a061d'.
+
+  at tests/Regression/P07Test.php:19
+     15▕ 
+     16▕     $subject = SubjectRef::of('user', 1);
+     17▕ 
+     18▕     expect(IdentityCodec::digest(['admin', $subject, [AssignmentScopeRef::of('workspace', 'a:7')]]))
+  ➜  19▕         ->not->toBe(IdentityCodec::digest(['admin', $subject, [AssignmentScopeRef::of('workspace', 'a')], '7']));
+     20▕ });
+     21▕
+
+  1   tests/Regression/P07Test.php:19
+
+
+  Tests:    2 failed (175656 assertions)
+  Duration: 1.28s
+  Random Order Seed: 1791194401
+

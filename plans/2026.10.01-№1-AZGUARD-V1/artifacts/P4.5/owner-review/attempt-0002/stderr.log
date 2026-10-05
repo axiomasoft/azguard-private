@@ -1,0 +1,1 @@
+[2m2026-10-05T07:48:07.469262Z[0m [31mERROR[0m tool_error: tool_output_error [3msession_id[0m[2m=[0m01a10b08-9fac-7f52-8f92-9d619887768a [3mtool_name[0m[2m=[0m"read_file" [3meffective_tool_name[0m[2m=[0m"read_file" [3mmodel_id[0m[2m=[0m"grok-4.7" [3merror_kind[0m[2m=[0m"tool_output_error"

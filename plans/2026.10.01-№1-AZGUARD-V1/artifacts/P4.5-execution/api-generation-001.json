@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "composer",
+    "api:manifest"
+  ],
+  "exit_code": 0,
+  "manifest_before": "914ab23ab8326329be1bbaf2bf8fb31cd0ae4d0ca52e830a869f0ee3be927b6b",
+  "manifest_after": "ca59e2ff3be78e476cc7451758649851160e06fb710e9ca3c93666457d62dc10",
+  "finished": "2026-10-05T06:58:59.908128+00:00"
+}

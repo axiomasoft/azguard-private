@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -79,6 +80,25 @@ it('carries state, scope, component and traced grants', function (): void {
         ->and($deny->allowed())->toBeFalse()
         ->and($deny->grants)->toBe([])
         ->and(Decision::notApplicable(decisionState(), $scope)->allowed())->toBeFalse();
+});
+
+it('detaches grant references and rejects a grant list that is not plain', function (): void {
+    $scope = AccessScope::in(TenantRef::global());
+    $grant = Grant::of(PermissionPattern::of('admin', 'orders.view'), 'folder', $scope);
+    $decision = Decision::allow(DecisionReason::Granted, decisionState(), $scope, grants: [&$grant]);
+    $original = $decision->grants[0];
+    $grant = new stdClass;
+
+    expect($original)->toBeInstanceOf(Grant::class)
+        ->and($decision->grants[0])->toBeInstanceOf(Grant::class)
+        ->and($decision->grants[0])->toBe($original)
+        ->and($decision->grants[0]->pattern->full())->toBe('admin:orders.view');
+
+    expect(fn () => Decision::allow(DecisionReason::Granted, decisionState(), $scope, grants: ['role' => $original]))
+        ->toThrow(InvalidSourceContributionException::class, 'Decision grants must be a list.');
+
+    expect(fn () => Decision::allow(DecisionReason::Granted, decisionState(), $scope, grants: [new stdClass]))
+        ->toThrow(InvalidSourceContributionException::class, 'Decision grant must be a grant.');
 });
 
 it('keys the states of a mixed set apart', function (): void {

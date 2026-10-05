@@ -1,0 +1,14 @@
+{
+  "affected": {
+    "passed": 72,
+    "status": "green"
+  },
+  "full_task": {
+    "exit_code": 0,
+    "tests": 1430,
+    "skipped": 1,
+    "status": "passed with one reported skip"
+  },
+  "actual_prompt": "digest-bound exact immutable packet and manifest path accepted by ledger; mocked provider, no model expense",
+  "authorship": "narrow locator correction only; isolated own.diff preserves externally authored changes"
+}

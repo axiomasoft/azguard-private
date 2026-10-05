@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Kernel\Decision;
 
 use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
 
 /**
@@ -33,6 +34,7 @@ final readonly class Decision
      * @param  list<Grant>  $grants  grants that gave the permission, when traced
      *
      * @throws ConsistencyException when the reason cannot allow
+     * @throws InvalidSourceContributionException when grants are not a list of grants
      */
     public static function allow(
         DecisionReason $reason,
@@ -86,7 +88,10 @@ final readonly class Decision
     }
 
     /**
-     * @param  list<Grant>  $grants
+     * @param  array<mixed>  $grants
+     *
+     * @throws ConsistencyException when the effect does not admit the reason
+     * @throws InvalidSourceContributionException when grants are not a list of grants
      */
     private static function make(
         Effect $effect,
@@ -107,6 +112,33 @@ final readonly class Decision
             ));
         }
 
-        return new self($effect, $reason, $state, $scope, $component, $grants, $message, $status, $code);
+        return new self($effect, $reason, $state, $scope, $component, self::grants($grants), $message, $status, $code);
+    }
+
+    /**
+     * Copies the grant list so a caller reference cannot replace a stored grant.
+     *
+     * @param  array<mixed>  $grants
+     * @return list<Grant>
+     *
+     * @throws InvalidSourceContributionException
+     */
+    private static function grants(array $grants): array
+    {
+        if (! array_is_list($grants)) {
+            throw new InvalidSourceContributionException('Decision grants must be a list.');
+        }
+
+        $plain = [];
+
+        foreach ($grants as $grant) {
+            if (! $grant instanceof Grant) {
+                throw new InvalidSourceContributionException('Decision grant must be a grant.');
+            }
+
+            $plain[] = $grant;
+        }
+
+        return $plain;
     }
 }

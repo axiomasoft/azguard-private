@@ -4417,7 +4417,7 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "AzGuard\\Kernel\\Identity\\IdentityCodec::DEFAULT_ORIGIN"
+                            "default": "'manual'"
                         },
                         {
                             "name": "expiresAt",
@@ -4710,7 +4710,7 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "AzGuard\\Kernel\\Identity\\IdentityCodec::DEFAULT_ORIGIN"
+                            "default": "'manual'"
                         },
                         {
                             "name": "expiresAt",
@@ -6430,7 +6430,7 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "AzGuard\\Panels\\Reads::Primary"
+                            "default": "\\AzGuard\\Panels\\Reads::Primary"
                         },
                         {
                             "name": "refresh",
@@ -6438,7 +6438,7 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "AzGuard\\Panels\\StateRefresh::Request"
+                            "default": "\\AzGuard\\Panels\\StateRefresh::Request"
                         }
                     ],
                     "return": "static"
@@ -6591,7 +6591,7 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": true,
-                            "default": "AzGuard\\Panels\\GateMode::Authoritative"
+                            "default": "\\AzGuard\\Panels\\GateMode::Authoritative"
                         }
                     ],
                     "return": "static"
@@ -9558,6 +9558,203 @@
                         }
                     ],
                     "return": "iterable"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Sources\\Relation\\RelationSource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\DescribesSchema",
+                "AzGuard\\Contracts\\Sources\\FiltersQueries",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "bind",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "definitions",
+                            "type": "iterable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "contextsCovering",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "key",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextType",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Sources\\AssignmentScopeSelection"
+                },
+                {
+                    "name": "describe",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
+                },
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "make",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "via",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "Closure|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "roleGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
+                    "name": "validateCatalog",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "catalog",
+                            "type": "AzGuard\\Catalog\\PanelCatalog",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "volatility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Sources\\Volatility"
                 }
             ],
             "stability": "api",

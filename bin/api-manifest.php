@@ -173,9 +173,9 @@ function apiParameter(ReflectionParameter $parameter): array
 
     if ($parameter->isDefaultValueAvailable()) {
         $default = $parameter->getDefaultValue();
-        $described['default'] = $parameter->isDefaultValueConstant()
-            ? (string) $parameter->getDefaultValueConstantName()
-            : (is_object($default) ? 'new '.$default::class : var_export($default, true));
+        $described['default'] = is_object($default) && ! $default instanceof UnitEnum
+            ? 'new '.$default::class
+            : var_export($default, true);
     }
 
     return $described;

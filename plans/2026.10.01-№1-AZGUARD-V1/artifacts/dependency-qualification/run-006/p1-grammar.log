@@ -1,0 +1,253 @@
+$ php -d memory_limit=1G vendor/bin/pest tests/Unit/Kernel/Grammar tests/Unit/Exceptions tests/Regression/P14Test.php tests/Regression/RegressionSpecsTest.php
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Grammar\PermissionGrammarTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key except[39m[90m…[39m [90m0.05s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "null byte"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "single segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "space between words"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "wildcard before wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "wildcard first"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "trailing dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "deep wildcard in the middle"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "bare one-segment wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "dash and underscore inside"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "bare deep wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "empty"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "deep wildcard last"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "uppercase"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "two wildcards"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "triple star"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "leading dash"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "one-segment wildcard last"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "empty middle segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "leading dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "leading underscore"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "trailing dash in segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "trailing newline"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "256 bytes"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "star glued to a name"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "typical key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "space in segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "non-ascii"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "two segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "wildcard after three segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "one-segment wildcard in the middle"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "digits"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "single word"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "star before a name"[39m
+  [32;1m✓[39;22m[90m [39m[90mit asserts a local key and a pattern with the permission key exception with dataset "three segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit exposes the grammar limits as constants[39m
+  [32;1m✓[39;22m[90m [39m[90mit names the value and the rule in the message[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "uppercase"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "one letter"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "trailing newline"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "empty"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "leading dash"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "underscore"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "length 64"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "length 65"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "word"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "dash inside"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates a panel id and a role key with one id rule with dataset "digit"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "wildcard first"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "star glued to a name"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "leading dash"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "wildcard before wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "leading underscore"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "star before a name"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "empty middle segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "one-segment wildcard last"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "deep wildcard in the middle"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "single segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "exactly 255 bytes"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "uppercase"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "null byte"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "single word"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "trailing newline"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "typical key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "trailing dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "leading dot"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "bare deep wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "trailing dash in segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "deep wildcard last"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "two segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "space between words"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "one-segment wildcard in the middle"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "digits"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "two wildcards"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "bare one-segment wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "256 bytes"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "three segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "space in segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "empty"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "triple star"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "non-ascii"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "dash and underscore inside"[39m
+  [32;1m✓[39;22m[90m [39m[90mit classifies a local key and a pattern with dataset "wildcard after three segments"[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('orders', true)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('a', false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('_a', false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('a_b-c', true)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('9x', true)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('a.b', false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('', false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts exactly the segment rule with ('*', false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "panel of 64"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "no colon"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "uppercase panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "panel and local"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "one-segment local"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "panel of 65"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "pattern as local"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "underscore panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "two colons"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "empty local"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "dashed panel"[39m
+  [32;1m✓[39;22m[90m [39m[90mit validates and splits a full key with dataset "empty panel"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P14Test[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects bare wildcards as a permission key and as a grant patter[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects bare wildcards as a permission key and as a grant pattern with ('*')[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Kernel\Grammar\PatternMatcherTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an input outside the grammar instead of matching it with dataset "wildcard key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an input outside the grammar instead of matching it with dataset "uppercase key"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an input outside the grammar instead of matching it with dataset "deep wildcard not last"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an input outside the grammar instead of matching it with dataset "bare one-segment wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an input outside the grammar instead of matching it with dataset "bare deep wildcard"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "one segment, not deeper"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep under two-segment prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "one segment with underscore"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep does not cover its prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep, two levels"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "prefix is a whole segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "one segment under prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep, three levels"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "two-segment prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep prefix is a whole segment"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "other prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "exact is not a prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "deep, one level"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "two-segment prefix mismatch"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "exact different"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "one segment does not cover its prefix"[39m
+  [32;1m✓[39;22m[90m [39m[90mit covers a local key by a pattern segment-wise with dataset "exact equal"[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\RegressionSpecsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P07', 'PLAN2.P1.1')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01c', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04c', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10b', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04a', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P13', 'PLAN2.P5.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04b', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01a', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01b', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P08', 'PLAN2.P4.4')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P09', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P05', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06b', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P14', 'PLAN2.P1.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P02', 'PLAN2.P4.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P03', 'PLAN2.P4.3')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit documents the format and the closing rule in the README[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit has a spec file for exactly the 19 probes[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Unit\Exceptions\ExceptionHierarchyTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\ChangeException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\StorageException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\PluginException')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps a branch abstract under the base with ('AzGuard\Exceptions\Configurat…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit roots every error in an abstract runtime exception with a machine code[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidPer…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_permission_key')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\RegistryFr…eption', 'AzGuard\Exceptions\DefinitionException', 'registry_frozen')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidPan…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_panel_id')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidCon…eption', 'AzGuard\Exceptions\Configurat…eption', 'invalid_configuration')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DefaultPan…eption', 'AzGuard\Exceptions\DefinitionException', 'default_panel_conflict')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidRol…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_role_key')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidSou…eption', 'AzGuard\Exceptions\Authorizat…eption', 'invalid_source_contribution')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidIde…eption', 'AzGuard\Exceptions\AzGuardException', 'invalid_identity')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\Consistenc…eption', 'AzGuard\Exceptions\Authorizat…eption', 'consistency')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\SubjectNot…eption', 'AzGuard\Exceptions\DefinitionException', 'subject_not_accepted')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\UnknownPan…eption', 'AzGuard\Exceptions\DefinitionException', 'unknown_panel')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DuplicateP…eption', 'AzGuard\Exceptions\DefinitionException', 'duplicate_panel')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\InvalidAss…eption', 'AzGuard\Exceptions\InvalidIde…eption', 'invalid_context')[39m
+  [32;1m✓[39;22m[90m [39m[90mit gives a concrete exception its parent and stable code with ('AzGuard\Exceptions\DefinitionException', 'AzGuard\Exceptions\AzGuardException', 'definition')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\DuplicateP…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\SubjectNot…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\InvalidCon…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\InvalidSou…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\Consistenc…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\DefaultPan…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\RegistryFr…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps leaf exceptions final with ('AzGuard\Exceptions\UnknownPan…eption')[39m
+  [32;1m✓[39;22m[90m [39m[90mit throws the definition branch itself where no narrower class exists[39m
+
+  [90mTests:[39m    [32;1m237 passed[39;22m[90m (924 assertions)[39m
+  [90mDuration:[39m [39m0.79s[39m
+  [90mRandom Order Seed:[39m [39m1791194690[39m
+

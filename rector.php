@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Rector\CodeQuality\Rector\Catch_\ThrowWithPreviousExceptionRector;
 use Rector\CodeQuality\Rector\FuncCall\SimplifyRegexPatternRector;
 use Rector\Config\RectorConfig;
 use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
@@ -28,4 +29,10 @@ return RectorConfig::configure()
         ],
         // Keep identifier/permission grammar regex explicit; `\w` is not a documented contract.
         SimplifyRegexPatternRector::class,
+        // DefinitionException::code() is the machine code. Copying Throwable::getCode()
+        // into RuntimeException's int code changes the thrown code and can receive a string.
+        ThrowWithPreviousExceptionRector::class => [
+            __DIR__.'/packages/core/src/Sources/Relation/RelationBinding.php',
+            __DIR__.'/packages/core/src/Sources/Relation/RelationSource.php',
+        ],
     ]);

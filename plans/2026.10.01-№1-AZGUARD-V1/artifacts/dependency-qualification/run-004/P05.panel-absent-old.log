@@ -1,0 +1,1 @@
+$ php -r require 'vendor/autoload.php'; exit(class_exists('AzGuard\\Panels\\Panel') ? 1 : 0);

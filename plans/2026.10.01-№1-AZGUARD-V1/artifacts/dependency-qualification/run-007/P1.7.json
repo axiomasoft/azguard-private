@@ -1,0 +1,39 @@
+{
+  "item": "P1.7",
+  "candidate_commit": "95c7f4a94c4916b85f54688e237e3f95645fea68",
+  "evidence_id": "E15",
+  "exit_code": 1,
+  "reason": "checks 1-5 green; clause 6 needs a review and D17 forbids one. Empty candidate status is not that review",
+  "contract_sha256": "fa06288ce0a71712ec77fa3a3ca4a8cd2bae452df69ea3122fbbabd83100f42b",
+  "evaluate": {
+    "pre_mutation": "allow",
+    "pre_final": "block:VALIDATION_RECEIPT_NONZERO",
+    "reason_codes": {
+      "pre_mutation": null,
+      "pre_final": {
+        "code": "policy-denied",
+        "internal_code": "VALIDATION_RECEIPT_NONZERO",
+        "message": "Change the requested action or obtain the required authority."
+      }
+    },
+    "content_hash": "fa06288ce0a71712ec77fa3a3ca4a8cd2bae452df69ea3122fbbabd83100f42b"
+  },
+  "receipt": {
+    "schema_version": "validation-receipt/v1",
+    "evidence_id": "E15",
+    "command": "1) `composer test` — GREEN; 2) `vendor/bin/pint --test`; 3) `vendor/bin/phpstan analyse --memory-limit=1G`; 4) `php bin/api-manifest.php --check`; 5) `vendor/bin/pest --type-coverage --min=98`; 6) `git status --porcelain -- packages tests bin` пуст после review (read-only).",
+    "contract_sha256": "fa06288ce0a71712ec77fa3a3ca4a8cd2bae452df69ea3122fbbabd83100f42b",
+    "spec_sha256": "d1c945489f951c783b8c8cc70b7aa7104c777732a06996862b685eca5c9c3f5e",
+    "head": "be075a70ccec8d3ed80469fc5e62b221a12df65d",
+    "tree": "f5dfd35352f1e769a53a4e2b8fab4fd29e023c7e160a69049c017142c6420a13",
+    "environment_sha256": "609d004d41baff4e2a320a8df64c7920edf000fc257c824b3426077190d8cb16",
+    "exit_code": 1,
+    "executed_at": "2026-10-05T10:10:50Z"
+  },
+  "type_coverage": {
+    "rows": 192,
+    "src_php": 195,
+    "total": "99.7 %",
+    "warning": false
+  }
+}

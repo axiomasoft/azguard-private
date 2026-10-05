@@ -1,0 +1,109 @@
+
+   PASS  Tests\Arch\BaselineArchTest
+  ✓ it keeps package sources free of debug calls                         0.03s  
+  ✓ package sources declare strict types                                 0.38s  
+  ✓ it finds debug calls but not methods, static calls or declarations with the same name
+
+   PASS  Tests\Arch\ZonesArchTest
+  ✓ sources other than the database source and plugins stay off storage… 0.13s  
+  ✓ panels, catalog, scopes, policies and schema stay off storage and c… 0.01s  
+  ✓ production code does not import test helpers (AzGuard\Kernel)        0.03s  
+  ✓ production code does not import test helpers (AzGuard\Scopes)
+  ✓ code roles do not use storage, changes or authorization              0.03s  
+  ✓ production code does not import test helpers (AzGuard\Facades)
+  ✓ production code does not import test helpers (AzGuard\Roles)
+  ✓ production code does not import test helpers (AzGuard\Storage)       0.04s  
+  ✓ production code does not import test helpers (AzGuard\Permissions)
+  ✓ production code does not import test helpers (AzGuard\Authorization… 0.02s  
+  ✓ it rejects a policy file that imports storage or changes
+  ✓ authorization and schema never change access (AzGuard\Authorization)
+  ✓ storage does not use authorization or changes
+  ✓ only storage and the database source touch the database layer        0.36s  
+  ✓ production code does not import test helpers (AzGuard\Attributes)
+  ✓ production code does not import test helpers (AzGuard\Internal)
+  ✓ contracts do not import implementations                              0.11s  
+  ✓ directories do not decide access or touch storage and changes (AzGuard\Directories)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Scopes)
+  ✓ the catalog neither decides access nor reaches the framework adapte… 0.02s  
+  ✓ kernel depends on nothing but PHP                                    2.21s  
+  ✓ production code does not import test helpers (AzGuard\Laravel)       0.01s  
+  ✓ production code does not import test helpers (AzGuard\Schema)        0.02s  
+  ✓ production code does not import test helpers (AzGuard\Catalog)
+  ✓ production code does not import test helpers (AzGuard\Configuration… 0.01s  
+  ✓ sources other than the database source and plugins stay off storage (AzGuard\Plugins)
+  ✓ exceptions depend only on the kernel                                 0.02s  
+  ✓ configuration depends only on the kernel, exceptions and the framew… 0.01s  
+  ✓ production code does not import test helpers (AzGuard\Diagnostics)
+  ✓ it rejects a StoresGrants transaction() call copied into the panel zone
+  ✓ production code does not import test helpers (AzGuard\Exceptions)
+  ✓ it resolves grouped mutation imports and fully qualified internal dependencies
+  ✓ production code does not import test helpers (AzGuard\Panels)        0.06s  
+  ✓ it keeps the kernel free of framework helper calls                   0.01s  
+  ✓ it finds framework helper calls but not methods with the same name
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Panels)
+  ✓ authorization and schema never change access (AzGuard\Schema)
+  ✓ production code does not import test helpers (AzGuard\Plugins)
+  ✓ production code does not import test helpers (AzGuard\Contracts)
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Catalog)
+  ✓ production code does not import test helpers (AzGuard\Filament)
+  ✓ it rejects a directory file that imports storage, changes or authorization
+  ✓ it only storage uses storage concerns and the guarded builder        0.11s  
+  ✓ production code does not import test helpers (AzGuard\Changes)
+  ✓ plugins do not reach into internals
+  ✓ production code does not import test helpers (AzGuard\Events)
+  ✓ grants are stored only through the change pipeline, the database source or test helpers
+  ✓ production code does not import test helpers (AzGuard\Concerns)
+  ✓ production code does not import test helpers (AzGuard\Policies)      0.01s  
+  ✓ it resolves model calls through imports aliases inheritance and class-relative names
+  ✓ it only storage and database sources call storage models statically  0.05s  
+  ✓ sources do not use changes or authorization
+  ✓ production code does not import test helpers (AzGuard\AzGuardServiceProvider)
+  ✓ production code does not import test helpers (AzGuard\Sources)
+  ✓ it only storage database sources change pipeline and testing use st… 0.10s  
+  ✓ panels, catalog, scopes, policies and schema stay off storage and changes (AzGuard\Schema)
+  ✓ production code does not import test helpers (AzGuard\Directories)
+
+   PASS  Tests\Arch\ApiManifestTest
+  ✓ it lets the filament package use only core classes from the manifes… 0.04s  
+  ✓ it keeps both api manifests current                                  0.07s  
+
+   FAIL  Tests\Arch\SourceConventionsTest
+  ✓ it picks a panel only in the panel resolver                          0.02s  
+  ✓ it finds panel selection calls and the request panel class but not declarations, strings or comments
+  ✓ it finds task codes only in comments
+  ✓ it tags every contract as api or spi
+  ✓ it reads package configuration only in the configuration zone
+  ⨯ it keeps internal task codes out of source comments                  0.02s  
+
+   PASS  Tests\Arch\AuthorizationArchTest
+  ✓ it proves the authorization source boundary RED against a scratch c… 0.03s  
+  ✓ authorization coordinator never reaches ambient auth or framework gate
+  ✓ sources use contracts and values without importing authorization implementations
+  ✓ it keeps the coordinator provenance exception read only
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Arch\SourceConventionsTest > it keeps internal task codes o…   
+  Failed asserting that two arrays are identical.
+  -Array &0 []
+  +Array &0 [
+  +    0 => 'SubjectRef.php: P1.4',
+  +]
+  
+
+  at tests/Arch/SourceConventionsTest.php:47
+     43▕             $offenders[] = basename($file).': '.$code;
+     44▕         }
+     45▕     }
+     46▕ 
+  ➜  47▕     expect($offenders)->toBe([]);
+     48▕ });
+     49▕ 
+     50▕ it('reads package configuration only in the configuration zone', function (): void {
+     51▕     $offenders = array_values(array_filter(
+
+  1   tests/Arch/SourceConventionsTest.php:47
+
+
+  Tests:    1 failed, 71 passed (314 assertions)
+  Duration: 4.05s
+  Random Order Seed: 1791194424
+

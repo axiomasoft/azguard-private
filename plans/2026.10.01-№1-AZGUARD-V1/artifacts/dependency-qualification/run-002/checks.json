@@ -1,0 +1,383 @@
+[
+  {
+    "id": "shared.suite-with-counts",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "shared-suite"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.pint",
+    "argv": [
+      "vendor/bin/pint",
+      "--test"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.phpstan",
+    "argv": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "--memory-limit=1G"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.rector",
+    "argv": [
+      "vendor/bin/rector",
+      "process",
+      "--dry-run"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.types",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "--type-coverage",
+      "--min=98"
+    ],
+    "depends_on": [],
+    "env": {
+      "APP_ENV": "testing",
+      "DB_CONNECTION": "sqlite",
+      "DB_DATABASE": ":memory:",
+      "CACHE_STORE": "array",
+      "CACHE_DRIVER": "array",
+      "SESSION_DRIVER": "array",
+      "QUEUE_CONNECTION": "sync"
+    }
+  },
+  {
+    "id": "shared.diff",
+    "argv": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "shared.arch",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch"
+    ]
+  },
+  {
+    "id": "shared.manifest",
+    "argv": [
+      "php",
+      "bin/api-manifest.php",
+      "--check"
+    ]
+  },
+  {
+    "id": "p1-identity",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Identity",
+      "tests/Regression/P07Test.php",
+      "tests/Regression/RegressionSpecsTest.php"
+    ]
+  },
+  {
+    "id": "p1-grammar",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Grammar",
+      "tests/Unit/Exceptions",
+      "tests/Regression/P14Test.php",
+      "tests/Regression/RegressionSpecsTest.php"
+    ]
+  },
+  {
+    "id": "p1-decision",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Decision",
+      "tests/Unit/Kernel/Permissions"
+    ]
+  },
+  {
+    "id": "p1-authority",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Decision/PermissionAuthorityTest.php",
+      "tests/Unit/Roles",
+      "tests/Unit/Contracts"
+    ]
+  },
+  {
+    "id": "p1-repair",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch",
+      "tests/Unit/Kernel/Decision",
+      "tests/Unit/Exceptions"
+    ]
+  },
+  {
+    "id": "p4-affected",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Authorization",
+      "tests/Feature/Sources"
+    ]
+  },
+  {
+    "id": "P1.1.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.1",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-002/P1.1-negative"
+    ]
+  },
+  {
+    "id": "P1.4.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.4",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-002/P1.4-negative"
+    ]
+  },
+  {
+    "id": "P1.8.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P1/negative_probes.py",
+      "--candidate",
+      "/tmp/azguard-dependency-qualification/candidate",
+      "--item",
+      "P1.8",
+      "--logs",
+      "/tmp/azguard-dependency-qualification/run-002/P1.8-negative"
+    ]
+  },
+  {
+    "id": "P02.regression",
+    "argv": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Regression"
+    ],
+    "depends_on": [],
+    "env": {
+      "APP_ENV": "testing",
+      "DB_CONNECTION": "sqlite",
+      "DB_DATABASE": ":memory:",
+      "CACHE_STORE": "array",
+      "CACHE_DRIVER": "array",
+      "SESSION_DRIVER": "array",
+      "QUEUE_CONNECTION": "sync"
+    }
+  },
+  {
+    "id": "P02.negative-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "regression-negative"
+    ],
+    "depends_on": [
+      "P02.regression"
+    ]
+  },
+  {
+    "id": "P03.fixture",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "fixture"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P03.fixture-filament",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "fixture-filament"
+    ],
+    "depends_on": [
+      "P03.fixture"
+    ]
+  },
+  {
+    "id": "P03.shell-syntax",
+    "argv": [
+      "bash",
+      "-n",
+      "bin/consumer-fixture.sh"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P03.shellcheck",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "shellcheck"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P03.workflow-yaml",
+    "argv": [
+      "python3",
+      "-c",
+      "import yaml; yaml.safe_load(open(\".github/workflows/tests.yml\"))"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P03.clean-tree",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "clean-tree"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P04.composer-root",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P04.composer-core",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/core/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P04.composer-filament",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/filament/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P04.lock-sync-restored",
+    "argv": [
+      "python3",
+      "/tmp/azguard-dependency-qualification/P0/p0-adapter.py",
+      "lock-update"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P04.release-preflight",
+    "argv": [
+      "bash",
+      "bin/test-release-preflight.sh"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.composer-root",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.composer-core",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/core/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.composer-filament",
+    "argv": [
+      "composer",
+      "validate",
+      "--strict",
+      "packages/filament/composer.json"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.dump-autoload",
+    "argv": [
+      "composer",
+      "dump-autoload"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.show-core",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard"
+    ],
+    "depends_on": []
+  },
+  {
+    "id": "P05.show-filament",
+    "argv": [
+      "composer",
+      "show",
+      "axiomasoft/azguard-filament"
+    ],
+    "depends_on": []
+  }
+]
