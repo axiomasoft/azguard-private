@@ -1,0 +1,35 @@
+{
+  "candidate_sha256": "dfe4f16bbcfea7fcb6783a6ba983fba2d5552357e94f590cc0651d4bb1b7bea9",
+  "closure_commit": "554126502890563c02a3ef9b5a19fd71982c3cd0",
+  "schema_version": "review-source-recovery/v1",
+  "sources": [
+    {
+      "blob_path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.3/owner-review/source-recovery/dfe4f16bbcfea7fcb6783a6ba983fba2d5552357e94f590cc0651d4bb1b7bea9/source-blobs/5e3fde80482ba0142c684355e3b17292da7b58a8303a1e1bfd0c6446aa6ec571",
+      "identity": {
+        "identity_limit": "original-lock-not-bound",
+        "kind": "legacy-reviewed-bytes",
+        "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Gate.php",
+        "sha256": "5e3fde80482ba0142c684355e3b17292da7b58a8303a1e1bfd0c6446aa6ec571"
+      },
+      "member": {
+        "mode": 436,
+        "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Gate.php",
+        "sha256": "5e3fde80482ba0142c684355e3b17292da7b58a8303a1e1bfd0c6446aa6ec571"
+      }
+    },
+    {
+      "blob_path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.3/owner-review/source-recovery/dfe4f16bbcfea7fcb6783a6ba983fba2d5552357e94f590cc0651d4bb1b7bea9/source-blobs/d9dd2ec757621a82f51e022eb126dffd2082703959662e1a00b56166083fef13",
+      "identity": {
+        "identity_limit": "original-lock-not-bound",
+        "kind": "legacy-reviewed-bytes",
+        "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Response.php",
+        "sha256": "d9dd2ec757621a82f51e022eb126dffd2082703959662e1a00b56166083fef13"
+      },
+      "member": {
+        "mode": 436,
+        "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Response.php",
+        "sha256": "d9dd2ec757621a82f51e022eb126dffd2082703959662e1a00b56166083fef13"
+      }
+    }
+  ]
+}
