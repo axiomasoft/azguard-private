@@ -1,0 +1,152 @@
+{
+  "item": "P4.16",
+  "seeds": {
+    "engine": "Random\\Engine\\Mt19937",
+    "first": 1,
+    "last": 200,
+    "count_per_property": 200,
+    "replay": "AZGUARD_PROPERTY_SEED=<seed> DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization/Properties --filter P<N>"
+  },
+  "properties": {
+    "P1": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P1 adding unconditional authority never reduces an unchanged decision including admin exemptions",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P2": {
+      "test_file": "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "test": "P2 allows only after tenant resource membership mandatory restrictions and token caps pass",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P3": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P3 isolates panels and rejects a foreign RoleKey before local role lookup",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P4": {
+      "test_file": "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "test": "P4 implements the scope table and isolated C does not depend on C2 grants",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P5": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P5 identical inputs state now and source responses produce the same decision",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P6": {
+      "test_file": "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "test": "P6 typed subjects tenants and contexts with overlapping ids remain distinct in decisions",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P7": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P7 expiry at now denies direct and role contributions including repeated reads",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P8": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P8 errors at every evaluated step fail closed despite valid direct and admin authority",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P10": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P10 moving raw grants and roles between sources preserves qualification",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P11": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P11 presentation prefixes do not change enum or full name decisions",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P12": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P12 all source permutations preserve denial errors and admin exemption",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P13": {
+      "test_file": "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "test": "P13 foreign tenant roles and global ordinary grants never authorize a selected tenant",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    },
+    "P15": {
+      "test_file": "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+      "test": "P15 two partial grants cannot combine their condition fields into a witness",
+      "status": "GREEN",
+      "evidence": "final-002/V1.log"
+    }
+  },
+  "future_owners": {
+    "P9": "P4.11",
+    "P14": "P4.23",
+    "P16": "P4.20"
+  },
+  "checks": {
+    "V4": {
+      "id": "V4",
+      "cmd": "vendor/bin/pint --test tests/Fixtures/Authorization/AlphaPanel.php tests/Fixtures/Authorization/BetaPanel.php tests/Fixtures/Authorization/ScenarioGenerator.php tests/Fixtures/Authorization/ScenarioPermission.php tests/Feature/Authorization/Properties/EnginePropertiesTest.php tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "exit": 0,
+      "duration_s": 0.326,
+      "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+      "stable": true
+    },
+    "V9": {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "exit": 0,
+      "duration_s": 0.082,
+      "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+      "stable": true
+    },
+    "V1": {
+      "id": "V1",
+      "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization/Properties",
+      "exit": 0,
+      "duration_s": 8.297,
+      "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+      "stable": true
+    },
+    "V3": {
+      "id": "V3",
+      "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Arch",
+      "exit": 0,
+      "duration_s": 3.916,
+      "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+      "stable": true
+    },
+    "V2": {
+      "id": "V2",
+      "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes tests/Feature/Catalog tests/Feature/Policies tests/Feature/Panels tests/Unit/Authorization tests/Unit/Scopes tests/Unit/Kernel tests/Regression/P01aTest.php tests/Regression/P06Test.php tests/Regression/P06bTest.php --exclude-group=properties",
+      "exit": 0,
+      "duration_s": 5.915,
+      "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+      "stable": true
+    }
+  },
+  "review": {
+    "verdict": "GREEN",
+    "session": "edd55029-ef97-4ba6-95ce-4c22ac2dd955",
+    "provider": "grok",
+    "model": "grok-4.7",
+    "effort": "high",
+    "context_parameter": null,
+    "completed_rounds": 1,
+    "transport": "initial interrupted exit130; resumed same native session for final verdict exit0",
+    "text": "GREEN, no findings.\n\nThe six new PHP files and the Unreleased changelog entry match the in-scope P4.16 harness. P1–P8, P10–P13, and P15 each run seeds 1–200 on the real `Authorizer`, with alpha and beta panels, typed identities, positive controls, and oracles taken from the section 2 invariants and the section 3 scope table. Those oracles are fixed expectations: monotonic grant results, the inherit/isolated/required/none table, expiry strictly after `now` on a warm request memo, fail-closed reasons at each evaluated step, source-order permutations with scoped admin, global and foreign tenant decisions, and condition conjunction on one contribution. The changelog line matches that harness. The supplied run (13 properties, seeds 1–200, 27842 assertions, 1030 related core tests, 72 architecture tests, Pint on the six files, clean diff check) agrees with this scope. No runtime, API, or dependency change is in the diff.\n\nMaterial residual limits: P6 is covered for decision-cache keys and `IdentityCodec`; SQL and event storage qualification stays with its existing owners. P9, P14, and P16 stay with P4.11, P4.23, and P4.20. The shared-plugin request-state clause of P3 is only constrained here by per-panel decision and state-token equality."
+  },
+  "limits": [
+    "P6 covers real engine/request memo and typed identity codec; engine-specific SQL/events are separate storage qualification.",
+    "No production PHP/public API/dependency changes; no rerun of unchanged Filament or ecosystem packages."
+  ]
+}

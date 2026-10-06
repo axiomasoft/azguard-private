@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Квалификация ядра 1.0: 13 генеративных свойств движка и scope проверяются на 200 воспроизводимых seeds каждое, включая изоляцию панелей/тенантов, request cache, fail-closed ошибки и условия одной выдачи.
+
 - Ядро 1.0: общие фильтры контекста объединяются через AND до authority, ролевые фильтры проверяют отдельную выдачу. Native Builder защищает structural identity и owner; внешние области поддерживают типизированные access adapters без Eloquent. Runtime-входы вычисляются заново, panel/context изолированы между Fiber.
 
 - Ядро 1.0: raw contributions кэшируются по состоянию, субъекту и точной области с изоляцией источника и read authority. Request/check refresh и абсолютные сроки действуют также в request memo; условия, политики и ограничения вычисляются при каждой проверке.

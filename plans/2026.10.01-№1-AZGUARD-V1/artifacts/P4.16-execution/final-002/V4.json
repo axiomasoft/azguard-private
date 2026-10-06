@@ -1,0 +1,8 @@
+{
+  "id": "V4",
+  "cmd": "vendor/bin/pint --test tests/Fixtures/Authorization/AlphaPanel.php tests/Fixtures/Authorization/BetaPanel.php tests/Fixtures/Authorization/ScenarioGenerator.php tests/Fixtures/Authorization/ScenarioPermission.php tests/Feature/Authorization/Properties/EnginePropertiesTest.php tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+  "exit": 0,
+  "duration_s": 0.326,
+  "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+  "stable": true
+}

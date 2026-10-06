@@ -1,0 +1,11 @@
+{
+  "info": {
+    "id": "edd55029-ef97-4ba6-95ce-4c22ac2dd955",
+    "cwd": "/tmp/azguard-p416-review-edd55029-ef97-4ba6-95ce-4c22ac2dd955"
+  },
+  "created_at": "2026-10-06T10:41:46.427537892Z",
+  "current_model_id": "grok-4.7",
+  "reasoning_effort": "high",
+  "sandbox_profile": "off",
+  "session_kind": "headless"
+}

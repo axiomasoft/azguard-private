@@ -1,0 +1,8 @@
+{
+  "id": "V3",
+  "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Arch",
+  "exit": 0,
+  "duration_s": 3.916,
+  "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
+  "stable": true
+}
