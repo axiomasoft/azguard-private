@@ -1,0 +1,64 @@
+{
+  "item": "P4.23",
+  "verdict": "GREEN",
+  "reviewer": {
+    "provider": "grok",
+    "model": "grok-4.7",
+    "effort": "high",
+    "session": "01a112fe-1871-7380-b804-b68e0ce44e37"
+  },
+  "executor": {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "session": "01a112c6-464a-7961-a2b1-51fcbd17e831",
+    "attempt_id": "P4.23-final-01a112c6",
+    "commit": "e46362e24770796a6876d7fc50242650e461ef07"
+  },
+  "candidate": {
+    "head_before_review_edit": "e46362e24770796a6876d7fc50242650e461ef07",
+    "review_candidate_hashes": "all 20 paths in review-candidate.json matched the working tree before the README correction"
+  },
+  "findings": [],
+  "corrected": [
+    {
+      "severity": "Minor",
+      "file": "tests/Acceptance/Crm/README.md",
+      "trigger": "The acceptance note said VisibilityExplainTest checks host index crm_clients_tenant_project on both engines.",
+      "consequence": "MySQL EXPLAIN chose clients_project_id_organization_id_foreign. The sentence overclaimed the physical index name.",
+      "contract": "Record the index the planner actually selected, not possible_keys and not an unused index name.",
+      "fix": "README now names azg_rg_subject for authority and the engine-specific chosen clients composite.",
+      "confidence": "high"
+    }
+  ],
+  "judged": [
+    "Scalar and query paths share one frozen clock in the CRM and visibility fixtures. ParityPropertyTest and VisibilityExplainTest compare the full allowed id set and count. Denial controls use independent literal ids that match the seeded grants, city, active, region, policy and restriction rules.",
+    "Tenant non-membership is one subject/tenant fact. whereRaw('1 = 0') on the outer AND group denies the same rows as the previous per-branch denial: before cannot short-circuit to allow, and every included authority branch was already conjoined with that denial.",
+    "Scope membership and role filters stay on each contribution branch. The common context predicate is an additional AND. The 10k oracle stays 8000 because analyst coverage of the other city is not replaced by the seller city filter.",
+    "PredicateCompiler column cache is keyed by connection name and table, created once per Visibility::build, and discarded with that compilation. Bounded and null-subject paths use separate compilers.",
+    "Unsupported policy, before, condition, resolver and external model=null throw while assembling the detached predicate. The acceptance tests assert no clients query and unchanged caller SQL.",
+    "EXPLAIN walkers read only key and Index Name. possible_keys are not evidence. Saved plans: both engines choose azg_rg_subject for authority. PostgreSQL selective host scan uses crm_clients_tenant_project. MySQL clients access uses the physical FK composite. The unfiltered PostgreSQL list seq-scans clients at about 80 percent selectivity; that is the chosen plan, and the selective probe shows the composite index is used when the predicate is selective.",
+    "Scale evidence is 10000 clients, 100 scopes, 8000 ids, 14 selects, 2 assignment selects, 4 resource selects, 1113 parameters, 87753 SQL bytes. chunkById(500) is the DatabaseSource selection chunk. Checks V1-V12 were not re-run: the only post-candidate edit is the README sentence, and git diff --check on that file exited 0."
+  ],
+  "reused_evidence": [
+    "artifacts/P4.23-execution/qualification-summary.json",
+    "artifacts/P4.23-execution/review-candidate.json",
+    "artifacts/P4.23-execution/scale-budget.json",
+    "artifacts/P4.23-execution/observed-index-use.json",
+    "artifacts/P4.23-execution/explain-pgsql.json",
+    "artifacts/P4.23-execution/explain-mysql.json"
+  ],
+  "checks_this_session": [
+    {
+      "id": "readme-diff-check",
+      "command": "git diff --check -- tests/Acceptance/Crm/README.md",
+      "exit": 0
+    }
+  ],
+  "deviations_retained": [
+    "Owner limited qualification to the affected scope. Unchanged Filament, Redis, replica and fleet suites were not run and are not counted as passed."
+  ],
+  "pending_removed": [
+    "Independent Grok review of the final candidate. This session is that review."
+  ]
+}

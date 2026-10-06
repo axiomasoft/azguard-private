@@ -117,6 +117,11 @@
       "id": "P4.23-review-disposition",
       "title": "P4.23 — implementation complete; external review pending by owner",
       "text": "All affected implementation checks passed. Final Grok review returned no verdict after native transport/offload and prolonged generation defects; all cancelled attempts exit130, completed review rounds0, no GREEN review claimed. Owner explicitly instructed no further Grok calls and moved review to their own separate session (quoted in log). Implementation closes done_with_deviations with pending review. Final current-source manifest review-candidate.json, full compact60kB/all20paths native-delivery proof review-fresh-packet-delivery.json; qualification-summary.json and SQL/type/raw checks are in artifacts/P4.23-execution. Actual chosen indexes: PG authority azg_rg_subject / host crm_clients_tenant_project; MySQL authority azg_rg_subject / host physical composite clients_project_id_organization_id_foreign. Product candidate unchanged; no unchanged package or fleet reruns."
+    },
+    {
+      "id": "P4.23-grok-review",
+      "title": "P4.23 — независимый Grok review GREEN",
+      "text": "Reviewer grok/grok-4.7/high, session 01a112fe-1871-7380-b804-b68e0ce44e37. Executor remains Codex e46362e attempt P4.23-final-01a112c6. Verdict GREEN, findings []. One README sentence corrected: MySQL chosen clients index is clients_project_id_organization_id_foreign, PostgreSQL selective host index is crm_clients_tenant_project, authority on both is azg_rg_subject. possible_keys are not evidence. Original V1–V12 exits reused, not re-run; git diff --check on the README exited 0. Owner-scoped omission of unchanged Filament/Redis/replica/fleet remains a deviation and is not counted passed. Pending Grok review removed. Evidence: artifacts/P4.23-execution/review-grok-verdict.json."
     }
   ],
   "applies_to": [

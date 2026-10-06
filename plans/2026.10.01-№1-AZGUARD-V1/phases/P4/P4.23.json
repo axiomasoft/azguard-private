@@ -234,81 +234,82 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-06T19:53:37Z",
-    "finished_at": "2026-10-06T20:50:14Z",
+    "started_at": "2026-10-06T21:21:37Z",
+    "finished_at": "2026-10-06T21:21:47Z",
     "executor": {
       "provider": "codex",
       "model": "gpt-6.1-sol",
-      "effort": "high",
-      "session": "01a112c6-464a-7961-a2b1-51fcbd17e831"
+      "effort": "high"
     },
-    "attempt_id": "P4.23-final-01a112c6",
-    "notes": "CRM exact literal ids/count/pages, native/external scopes, bounded universe/outage modes, 100-seed parity, 10k scale, real PG/MySQL 100k EXPLAIN qualified. Shared schema compiler and common fixed membership reduce measured scale SELECTs 823 to14. Full observed checks and final actual-index assertions recorded in artifacts/P4.23-execution/qualification-summary.json.",
+    "registered_by": {
+      "provider": "grok",
+      "model": "grok-4.7",
+      "effort": "high"
+    },
+    "attempt_id": "P4.23-grok-review-01a112fe",
+    "notes": "Independent Grok 4.7/high review GREEN, session 01a112fe-1871-7380-b804-b68e0ce44e37. Original execution remains Codex gpt-6.1-sol/high session 01a112c6-464a-7961-a2b1-51fcbd17e831, attempt P4.23-final-01a112c6, commit e46362e, window 2026-10-06T19:53:37Z–20:50:14Z. No authorization defect. README now names the actually chosen clients indexes. V1–V12 exits are the original qualification, not a new run; only git diff --check on the README was repeated (exit 0). Check timestamps are this registration. Pending Grok review removed. Evidence: artifacts/P4.23-execution/review-grok-verdict.json.",
     "deviations": [
-      "Owner requested affected-scope qualification only; unchanged fleet/Filament/Redis/replica suites not run. Owner moved Grok review to separate session after no completed verdict; no review GREEN claimed."
-    ],
-    "pending": [
-      "Independent Grok 4.7/high review of final 20-path candidate remains pending for owner separate session. No further Grok calls per owner instruction."
+      "Owner requested affected-scope qualification only; unchanged Filament/Redis/replica/fleet suites were not run and are not counted as passed."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V10",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       },
       {
         "id": "V12",
         "exit": 0,
-        "at": "2026-10-06T20:50:14Z"
+        "at": "2026-10-06T21:21:47Z"
       }
     ]
   },
-  "updated_at": "2026-10-06T20:50:14Z",
+  "updated_at": "2026-10-06T21:21:47Z",
   "sections": [
     {
       "id": "Intent",
