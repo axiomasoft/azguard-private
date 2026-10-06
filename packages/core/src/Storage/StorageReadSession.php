@@ -28,12 +28,15 @@ final class StorageReadSession
 
     private bool $schemaChecked = false;
 
+    private readonly ?AuthorityTransaction $transaction;
+
     /** @param Closure(string, ?string): Model $models */
     public function __construct(private readonly Storage $storage, private readonly Reads $reads, private readonly Closure $models)
     {
+        $this->transaction = $storage->authorityTransaction();
         $this->assertNoTransaction();
         $authority = $storage->connection();
-        $pdo = $reads === Reads::Primary ? $authority->getPdo() : $authority->getRawReadPdo();
+        $pdo = $this->transaction !== null || $reads === Reads::Primary ? $authority->getPdo() : $authority->getRawReadPdo();
 
         if ($reads === Reads::Default && $pdo === null) {
             if ($authority->getConfig('read') !== null) {
@@ -86,6 +89,13 @@ final class StorageReadSession
         return spl_object_id($this->pdo);
     }
 
+    public function transaction(): ?AuthorityTransaction
+    {
+        $this->assertUsable();
+
+        return $this->transaction;
+    }
+
     public function assertUsable(): void
     {
         $this->assertNoTransaction($this->pdo);
@@ -102,6 +112,7 @@ final class StorageReadSession
     public function state(string $panel): ?PanelState
     {
         PermissionGrammar::assertPanelId($panel);
+        $this->storage->authorityTransaction($panel);
         $this->assertSchema();
         $row = $this->table('panel_state')->where('panel', $panel)->first();
 
@@ -113,6 +124,16 @@ final class StorageReadSession
     {
         $connection = $this->storage->connection();
         $write = $connection->getRawPdo();
+
+        if ($this->transaction !== null) {
+            $this->transaction->assertActive();
+
+            if ($this->storage->authorityTransaction() !== $this->transaction || ($readPdo !== null && $readPdo !== $write)) {
+                throw InvalidConfigurationException::failing('authority_transaction', 'Tentative authority must use the registered root write handle.');
+            }
+
+            return;
+        }
 
         if ($connection->transactionLevel() > 0 || ($write instanceof PDO && $write->inTransaction())
             || ($readPdo !== null && $readPdo->inTransaction())) {

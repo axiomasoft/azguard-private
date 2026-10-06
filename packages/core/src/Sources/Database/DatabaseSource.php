@@ -256,6 +256,19 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
         return $definitions;
     }
 
+    /** @internal Joint root helper; the public host facade is defined separately.
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
+    {
+        $this->bindPanel($panel->id());
+
+        return $this->resolvedStorage()->withinAuthorityTransaction($panel->id(), $callback);
+    }
+
     /** @template T
      * @param  Closure(): T  $callback
      * @return T

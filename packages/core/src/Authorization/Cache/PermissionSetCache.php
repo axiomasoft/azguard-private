@@ -26,7 +26,24 @@ final class PermissionSetCache
     /** @var array<string, StateToken> */
     private array $states = [];
 
+    /** @var array<string, string> */
+    private array $panels = [];
+
     public function __construct(private readonly Factory $stores) {}
+
+    public function forgetPanel(string $panel): void
+    {
+        foreach ($this->panels as $key => $id) {
+            if ($id === $panel) {
+                unset($this->sets[$key], $this->panels[$key]);
+            }
+        }
+        foreach ($this->states as $key => $state) {
+            if ($state->panel === $panel) {
+                unset($this->states[$key]);
+            }
+        }
+    }
 
     /** @param list<AccessScope> $scopes */
     public static function key(StateToken|CodeStateToken $state, SubjectRef $subject, TenantRef $tenant, array $scopes, string $source, string $readMode, string $authority, int $generation): string
@@ -60,11 +77,12 @@ final class PermissionSetCache
         }
 
         if ($entry === null || $entry['validUntil'] <= $now) {
-            unset($this->sets[$key]);
+            unset($this->sets[$key], $this->panels[$key]);
 
             return null;
         }
         $this->sets[$key] = $entry;
+        $this->panels[$key] = $panel->id();
 
         return array_values(array_filter($entry['items'], static fn (Grant|RoleContribution $item): bool => $item->activeAt($now)));
     }
@@ -85,6 +103,7 @@ final class PermissionSetCache
         }
         $entry = ['items' => $items, 'validUntil' => $validUntil];
         $this->sets[$key] = $entry;
+        $this->panels[$key] = $panel->id();
         $store = $panel->settings()->cacheStore();
 
         if ($volatility === Volatility::Stable && $fenced && $store !== null) {
@@ -101,6 +120,7 @@ final class PermissionSetCache
     {
         if (isset($this->states[$key]) && ! $this->states[$key]->equals($state)) {
             $this->sets = [];
+            $this->panels = [];
         }
         $this->states[$key] = $state;
     }
@@ -109,5 +129,6 @@ final class PermissionSetCache
     {
         unset($this->states[$key]);
         $this->sets = [];
+        $this->panels = [];
     }
 }

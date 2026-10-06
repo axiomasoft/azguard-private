@@ -74,6 +74,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Ядро 1.0: собственные mutations и совместный authority root читают tentative данные с write PDO без публикации в кэш. Marker связан с root attempt и Fiber; rollback/retry снимает его, touch инвалидирует request contributions только после root commit.
+
 - **repo:** Arch-правило `StoresGrants` разрешает тип в `Panels\Panel` и `Sources\PanelSources` (признак писателя и тип `writer()`); вызов `transaction()` там по-прежнему запрещён. Зона `AzGuard\Attributes` добавлена во внешние зоны (план 2026.10.01-№1-AZGUARD-V1 P2.7).
 - **repo:** Arch-правило выбора панели разрешает имя `CurrentPanel` в `AzGuard\AzGuardManager`: менеджер читает панель текущего запроса для `currentPanel()` и не выбирает панель (план 2026.10.01-№1-AZGUARD-V1 P2.6).
 - **core:** Неквалифицированная Gate ability с точкой принадлежит панели-кандидату (панель запроса или модели), только если она есть в каталоге этой панели; иначе ability чужая. Префикс панели не может совпадать с первым сегментом статичного имени права любой панели, в том числе из плагина (`PrefixConflictException`). Каталог входит в отпечаток панели. Arch-правило: `Catalog` не зависит от `Authorization` и `Laravel` (план 2026.10.01-№1-AZGUARD-V1 P2.5).

@@ -8,6 +8,7 @@ use AzGuard\Authorization\Pipeline\AccessPipeline;
 use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RecursionDetectedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
@@ -18,6 +19,8 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Sources\Database\DatabaseSource;
+use Closure;
 use Fiber;
 use Illuminate\Support\Carbon;
 use Throwable;
@@ -28,6 +31,23 @@ final class Authorizer
     private array $active = [];
 
     public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority) {}
+
+    /** @internal Joint host work on the panel's authority connection.
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
+    {
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource) {
+            throw InvalidConfigurationException::failing('authority_transaction', 'Joint authority work requires a DatabaseSource writer.');
+        }
+
+        return $writer->withinAuthorityTransaction($panel, $callback);
+    }
 
     public function isSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope): bool
     {

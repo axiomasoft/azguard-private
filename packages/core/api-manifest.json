@@ -9862,6 +9862,28 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "AzGuard\\Contracts\\Sources\\Volatility"
+                },
+                {
+                    "name": "withinAuthorityTransaction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "mixed"
                 }
             ],
             "stability": "api",
@@ -12420,6 +12442,22 @@
                     "return": null
                 },
                 {
+                    "name": "authorityTransaction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "?AzGuard\\Storage\\AuthorityTransaction"
+                },
+                {
                     "name": "connection",
                     "static": false,
                     "abstract": false,
@@ -12590,6 +12628,28 @@
                         }
                     ],
                     "return": "Illuminate\\Database\\Query\\Builder"
+                },
+                {
+                    "name": "withinAuthorityTransaction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "work",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "mixed"
                 }
             ],
             "stability": "api",

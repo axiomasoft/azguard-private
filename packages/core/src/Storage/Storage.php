@@ -26,6 +26,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use JsonException;
+use PDO;
 use ReflectionClass;
 use stdClass;
 use Throwable;
@@ -45,6 +46,8 @@ final class Storage
     private array $locked = [];
 
     private ?StorageMutation $current = null;
+
+    private ?AuthorityTransaction $authorityTransaction = null;
 
     private bool $schemaChecked = false;
 
@@ -75,6 +78,35 @@ final class Storage
     public function readSession(Reads $reads): StorageReadSession
     {
         return new StorageReadSession($this, $reads, fn (string $kind, ?string $class): Model => $this->makeModel($kind, $class));
+    }
+
+    /** @internal Only the storage's currently registered capability can authorize tentative reads. */
+    public function authorityTransaction(?string $panel = null): ?AuthorityTransaction
+    {
+        $this->authorityTransaction?->assertActive();
+
+        if ($this->authorityTransaction !== null && $panel !== null && ! isset($this->locked[$panel])) {
+            throw InvalidConfigurationException::failing('authority_transaction', 'Panel state must be locked by the authority root before reading.');
+        }
+
+        return $this->authorityTransaction;
+    }
+
+    /** @internal Start a joint host/authority root, locking state before the host callback.
+     * @template T
+     *
+     * @param  Closure(): T  $work
+     * @return T
+     */
+    public function withinAuthorityTransaction(string $panel, Closure $work): mixed
+    {
+        $pdo = $this->connection->getRawPdo();
+
+        if ($this->connection->transactionLevel() !== 0 || ($pdo instanceof PDO && $pdo->inTransaction())) {
+            throw InvalidConfigurationException::failing('authority_transaction', 'Joint authority work requires a new root transaction.');
+        }
+
+        return $this->mutate($panel, static fn (): mixed => $work());
     }
 
     public function connectionName(): string
@@ -223,9 +255,14 @@ final class Storage
         $parent = $this->current;
         $previousLocks = $this->locked;
         $previousTouches = $this->pendingTouches;
+        $previousTransaction = $this->authorityTransaction;
         $mutation = null;
 
         try {
+            if (! $nested) {
+                $this->authorityTransaction = AuthorityTransaction::begin($this);
+            }
+            $this->authorityTransaction?->assertActive();
             $states = [];
             foreach ($panels as $panel) {
                 $states[$panel] = $this->locked[$panel] ??= $this->lockPanel($panel);
@@ -233,14 +270,20 @@ final class Storage
             $mutation = new StorageMutation($this, $states, $nested);
             $this->current = $mutation;
             $result = $work($mutation);
+            $this->authorityTransaction?->assertActive();
             foreach ($mutation->touched() as $panel) {
                 $this->pendingTouches[$panel] = true;
             }
 
             if ($parent === null) {
-                foreach (array_keys($this->pendingTouches) as $panel) {
+                $touched = array_keys($this->pendingTouches);
+                foreach ($touched as $panel) {
                     $this->table('panel_state')->where('panel', $panel)->increment('version', 1, ['updated_at' => gmdate('Y-m-d H:i:s')]);
                 }
+            }
+
+            if ($parent === null && $touched !== []) {
+                $this->connection->afterCommit(static fn () => event(new StorageTouched($touched)));
             }
             foreach ($mutation->callbacks() as $callback) {
                 $this->connection->afterCommit($callback);
@@ -253,6 +296,10 @@ final class Storage
 
             throw $error;
         } finally {
+            if ($previousTransaction !== $this->authorityTransaction) {
+                $this->authorityTransaction?->close();
+                $this->authorityTransaction = $previousTransaction;
+            }
             $mutation?->close();
             $this->current = $parent;
 

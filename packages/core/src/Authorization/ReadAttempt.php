@@ -21,6 +21,7 @@ use AzGuard\Panels\StateRefresh;
 use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
+use AzGuard\Storage\AuthorityTransaction;
 use AzGuard\Storage\StorageReadSession;
 
 /** @internal One operation's consumed source revisions and pinned handles; never shared or cached.
@@ -35,6 +36,8 @@ final class ReadAttempt
     private array $states = [];
 
     private ?PanelCatalog $overlay = null;
+
+    private ?AuthorityTransaction $transaction = null;
 
     /** @var array<string, string> */
     private array $stateKeys = [];
@@ -79,6 +82,12 @@ final class ReadAttempt
     {
         $contributions = [];
         $pending = [];
+        // Authority is now consumed: recognize its root before any source can reuse request memo.
+        foreach ($this->sources as ['source' => $source]) {
+            if ($source instanceof DatabaseSource) {
+                $this->begin($source);
+            }
+        }
         foreach ($this->sources as ['source' => $source]) {
             if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
                 continue;
@@ -90,7 +99,7 @@ final class ReadAttempt
             // Automatic role predicates consume live subject/host data on every operation.
             $liveAutomatic = $source instanceof FolderSource && array_filter(array_column($this->static->roles(), 'class'),
                 static fn (string $class): bool => is_subclass_of($class, GrantedAutomatically::class)) !== [];
-            $items = $liveAutomatic ? null : $this->cache?->get($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $frame->now());
+            $items = $liveAutomatic || $this->transaction !== null ? null : $this->cache?->get($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $frame->now());
 
             if ($items !== null) {
                 foreach ($items as $item) {
@@ -137,7 +146,7 @@ final class ReadAttempt
                 $contributions[] = [$source, $item];
             }
 
-            if (! $liveAutomatic) {
+            if (! $liveAutomatic && $this->transaction === null) {
                 $pending[] = ['key' => $key, 'source' => $source, 'items' => $items];
             }
         }
@@ -148,6 +157,7 @@ final class ReadAttempt
 
     public function confirm(EvaluationFrame $frame): EvaluationFrame
     {
+        $this->transaction?->assertActive();
         $stable = true;
         foreach ($this->sources as ['source' => $source]) {
             if (! $source instanceof FencesReads || ! isset($this->states[$source->id()])) {
@@ -175,7 +185,7 @@ final class ReadAttempt
         }
 
         foreach ($this->stateKeys as $id => $key) {
-            if (isset($this->states[$id])) {
+            if ($this->transaction === null && isset($this->states[$id])) {
                 $this->cache?->rememberState($key, $this->states[$id]);
             }
         }
@@ -196,7 +206,7 @@ final class ReadAttempt
             }
         }
 
-        return $frame->withSourceStates($this->states, $database);
+        return $frame->withSourceStates($this->states, $database)->withAuthorityTransaction($this->transaction);
     }
 
     private function begin(Source $source): void
@@ -207,6 +217,7 @@ final class ReadAttempt
 
         if ($source instanceof DatabaseSource) {
             $this->sessions[$source->id()] = $source->openReadSession($this->initial);
+            $this->transaction ??= $this->sessions[$source->id()]->transaction();
         }
         $authority = $source instanceof DatabaseSource
             ? [$this->sessions[$source->id()]->authorityIdentity(), $this->sessions[$source->id()]->handleIdentity()]
@@ -217,7 +228,7 @@ final class ReadAttempt
             $this->initial->panel()->settings()->cacheGeneration(), $partition, $source::class, $source->id(),
             $this->initial->panel()->settings()->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
-        $memo = $this->initial->panel()->settings()->stateRefresh() === StateRefresh::Request ? $this->cache?->state($key) : null;
+        $memo = $this->transaction === null && $this->initial->panel()->settings()->stateRefresh() === StateRefresh::Request ? $this->cache?->state($key) : null;
         $this->fresh[$source->id()] = $memo === null;
         $this->states[$source->id()] = $memo ?? $this->readState($source);
     }

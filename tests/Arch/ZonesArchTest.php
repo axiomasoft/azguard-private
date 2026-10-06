@@ -275,6 +275,7 @@ arch('grants are stored only through the change pipeline, the database source or
         'AzGuard\Changes\ChangePipeline', 'AzGuard\Sources\Database', 'AzGuard\Testing',
         'AzGuard\Panels\Panel', 'AzGuard\Sources\PanelSources',
         'AzGuard\Authorization\Pipeline\Stages\AuthorityStage', // read-only provenance check; no transaction calls
+        'AzGuard\Authorization\Authorizer', // internal supported root helper; delegates to DatabaseSource
 
     ])
     ->ignoring('AzGuard\Tests');

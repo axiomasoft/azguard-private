@@ -1,0 +1,29 @@
+{
+  "session": "06ed0edf-b581-440b-b6c5-ad286cbb9010",
+  "requested": {
+    "provider": "grok",
+    "model": "grok-4.7",
+    "effort": "high",
+    "context_parameter": null
+  },
+  "observed_native_model_routes": [
+    [
+      "grok-4.7-build",
+      "high"
+    ]
+  ],
+  "observed_tools": {
+    "list_dir": 2,
+    "read_file": 32,
+    "grep": 26
+  },
+  "input_snapshot": "/tmp/azguard-p420-review-06ed0edf-b581-440b-b6c5-ad286cbb9010",
+  "separate_home": "/tmp/azguard-p420-grok-06ed0edf-b581-440b-b6c5-ad286cbb9010",
+  "verdict_pending": false,
+  "completed_rounds": 1,
+  "interrupted_transports": 1,
+  "finalization_extra_readonly_calls": 6,
+  "native_exit": 0,
+  "verdict": "GREEN",
+  "findings": 0
+}

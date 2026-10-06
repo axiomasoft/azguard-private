@@ -21,6 +21,7 @@ use AzGuard\Scopes\CurrentContext;
 use AzGuard\Scopes\WithinContext;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\StorageRegistry;
+use AzGuard\Storage\StorageTouched;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
@@ -53,6 +54,11 @@ final class AzGuardServiceProvider extends ServiceProvider
 
         $this->app->singleton(Authorizer::class);
         $this->app->scoped(PermissionSetCache::class);
+        $this->app->make('events')->listen(StorageTouched::class, function (StorageTouched $event): void {
+            foreach ($event->panels as $panel) {
+                $this->app->make(PermissionSetCache::class)->forgetPanel($panel);
+            }
+        });
 
         $this->app->scoped(CurrentPanel::class);
         $this->app->scoped(CurrentContext::class);

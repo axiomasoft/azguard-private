@@ -1,0 +1,98 @@
+{
+  "checks": {
+    "V1": {
+      "exit": 0,
+      "command": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization/Cache tests/Feature/Authorization/Properties/TransactionPropertiesTest.php tests/Regression/P10bTest.php tests/Regression/RegressionSpecsTest.php tests/Acceptance/Crm/BuildStateTest.php --compact",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V1-final.log"
+    },
+    "V2": {
+      "exit": 0,
+      "command": "php -d memory_limit=1G vendor/bin/pest tests/Acceptance/Crm/AuthorityModesTest.php tests/Acceptance/Crm/BuildInputsTest.php tests/Acceptance/Crm/ConsumerSpiTest.php tests/Acceptance/Crm/ContextRolesTest.php tests/Acceptance/Crm/DiagnosticsTest.php tests/Acceptance/Crm/ExternalScopeTest.php tests/Acceptance/Crm/FreshInputsTest.php tests/Acceptance/Crm/NativeFiltersTest.php tests/Acceptance/Crm/PoliciesTest.php tests/Acceptance/Crm/RuntimeInputsTest.php tests/Acceptance/Crm/SourcesTest.php tests/Acceptance/Crm/TenancyTest.php tests/Feature/Authorization/AuthorityDispatchTest.php tests/Feature/Authorization/ContributionQualificationTest.php tests/Feature/Authorization/HookListsTest.php tests/Feature/Authorization/Properties/EnginePropertiesTest.php tests/Feature/Authorization/Properties/ScopePropertiesTest.php tests/Feature/Authorization/RecursionTest.php tests/Feature/Authorization/StepErrorsTest.php tests/Feature/Authorization/SubjectResolverTest.php tests/Feature/Authorization/SuperAdminTest.php tests/Feature/Catalog/AbilityIndexTest.php tests/Feature/Catalog/CatalogCacheTest.php tests/Feature/Catalog/CatalogCollisionTest.php tests/Feature/Catalog/CatalogResolverTest.php tests/Feature/Catalog/PolicyBindingsCompatibilityTest.php tests/Feature/Catalog/PrefixCatalogTest.php tests/Feature/Modules/ModuleExtensionTest.php tests/Feature/Modules/ModulePanelTest.php tests/Feature/Panels/PanelBootTest.php tests/Feature/Panels/PanelFieldsTest.php tests/Feature/Panels/PanelSelectionMatrixTest.php tests/Feature/Panels/PanelSettingsPrecedenceTest.php tests/Feature/Panels/PrefixTest.php tests/Feature/Plugins/PluginIsolationTest.php tests/Feature/Plugins/PluginLifecycleTest.php tests/Feature/Plugins/PluginSettingsConflictTest.php tests/Feature/Policies/DecidesBindingTest.php tests/Feature/Policies/PolicyArgumentsTest.php tests/Feature/Policies/PolicyModesTest.php tests/Feature/Policies/PolicyResponseTest.php tests/Feature/Policies/TokenAuthorityTest.php tests/Feature/Scopes/BaseAssignmentScopeResolveTest.php tests/Feature/Scopes/ExternalEligibilityTest.php tests/Feature/Scopes/FilterConfigurationTest.php tests/Feature/Scopes/MembershipTest.php tests/Feature/Scopes/NativeBuilderTest.php tests/Feature/Scopes/ResourceScopeTest.php tests/Feature/Scopes/RuntimeInputsTest.php tests/Feature/Scopes/ScopeFiltersTest.php tests/Feature/Scopes/ScopePolicyBuildTest.php tests/Feature/Scopes/ScopeTableTest.php tests/Feature/Scopes/WithinContextTest.php tests/Feature/ServiceProviderTest.php tests/Feature/Sources/Database/DatabaseBuilderTest.php tests/Feature/Sources/Database/DatabaseReadsTest.php tests/Feature/Sources/Database/DecisionFieldsTest.php tests/Feature/Sources/Database/DynamicCatalogTest.php tests/Feature/Sources/Database/DynamicFenceTest.php tests/Feature/Sources/Database/FenceTest.php tests/Feature/Sources/Database/SelectionWitnessTest.php tests/Feature/Sources/Database/StorageOwnTest.php tests/Feature/Sources/Folder/AutomaticRolesTest.php tests/Feature/Sources/Folder/FolderPanelTest.php tests/Feature/Sources/Folder/GrantedToAllTest.php tests/Feature/Sources/Folder/PolicyBindingTest.php tests/Feature/Sources/Folder/RoleKeyIdentityTest.php tests/Feature/Sources/Gate/GateSourceTest.php tests/Feature/Sources/PanelSourcesTest.php tests/Feature/Sources/Relation/RelationBuildTest.php tests/Feature/Sources/Relation/RelationRolesTest.php tests/Feature/Sources/Relation/RelationSelectionTest.php tests/Feature/Sources/ScopedIntegrationTest.php tests/Feature/Storage/CustomModelTest.php tests/Feature/Storage/DirectWritesTest.php tests/Feature/Storage/GrantFieldsTest.php tests/Feature/Storage/GrantModelsTest.php tests/Feature/Storage/MutateSqliteFileTest.php tests/Feature/Storage/MutateTest.php tests/Feature/Storage/StorageMigrationCommandTest.php tests/Feature/Storage/StorageRegistryTest.php tests/Feature/Storage/StorageSchemaTest.php tests/Feature/Storage/StorageStateTest.php tests/Feature/Storage/TwoStoragesTest.php tests/Regression/LegacyIsolationTest.php tests/Regression/P01aTest.php tests/Regression/P01bTest.php tests/Regression/P01cTest.php tests/Regression/P02Test.php tests/Regression/P05Test.php tests/Regression/P06Test.php tests/Regression/P06bTest.php tests/Regression/P07Test.php tests/Regression/P08Test.php tests/Regression/P09Test.php tests/Regression/P10Test.php tests/Regression/P14Test.php tests/Unit/Authorization/EvaluationFrameTest.php tests/Unit/Authorization/TraceTest.php tests/Unit/Catalog/PanelCatalogTest.php tests/Unit/Catalog/PermissionDefinitionTest.php tests/Unit/Catalog/RoleCompilerTest.php tests/Unit/Configuration/AzGuardConfigTest.php tests/Unit/Configuration/StoragesConfigTest.php tests/Unit/Contracts/ScopeContractsTest.php tests/Unit/Directories/LookupContextTest.php tests/Unit/Exceptions/ExceptionHierarchyTest.php tests/Unit/Facades/AzGuardFacadeTest.php tests/Unit/Kernel/Decision/AccessRequestTest.php tests/Unit/Kernel/Decision/DecisionDenialTest.php tests/Unit/Kernel/Decision/DecisionTest.php tests/Unit/Kernel/Decision/GrantTest.php tests/Unit/Kernel/Decision/PermissionAuthorityTest.php tests/Unit/Kernel/Decision/StateTokenTest.php tests/Unit/Kernel/Grammar/PatternMatcherTest.php tests/Unit/Kernel/Grammar/PermissionGrammarTest.php tests/Unit/Kernel/Identity/IdentityCodecTest.php tests/Unit/Kernel/Identity/PermissionKeyTest.php tests/Unit/Kernel/Identity/ReferencesTest.php tests/Unit/Kernel/Permissions/PermissionSetTest.php tests/Unit/Panels/CurrentPanelTest.php tests/Unit/Panels/PanelBuilderTest.php tests/Unit/Panels/PanelRegistryTest.php tests/Unit/Panels/PanelResolverTest.php tests/Unit/Panels/PanelSettingsTest.php tests/Unit/Panels/PanelTest.php tests/Unit/Plugins/BasePluginTest.php tests/Unit/Plugins/PluginContextTest.php tests/Unit/Roles/BaseRoleTest.php tests/Unit/Roles/SuperAdminRoleTest.php tests/Unit/Schema/FieldTest.php tests/Unit/Scopes/AssignmentScopeRuntimeTest.php tests/Unit/Scopes/BaseAssignmentScopeTest.php tests/Unit/ServiceProviderContractTest.php tests/Unit/Sources/Folder/FolderSourceTest.php tests/Unit/Sources/SourceContractsTest.php tests/Unit/Sources/SourceManagerTest.php tests/Unit/Storage/HostKeyColumnsTest.php --exclude-group=engines --compact",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V2.log"
+    },
+    "V3": {
+      "exit": 0,
+      "command": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V3-final.log"
+    },
+    "V4": {
+      "exit": 0,
+      "command": "vendor/bin/pint --test packages/core/src/Authorization/Authorizer.php packages/core/src/Authorization/Cache/PermissionSetCache.php packages/core/src/Authorization/EvaluationFrame.php packages/core/src/Authorization/ReadAttempt.php packages/core/src/AzGuardServiceProvider.php packages/core/src/Sources/Database/DatabaseSource.php packages/core/src/Storage/AuthorityTransaction.php packages/core/src/Storage/Storage.php packages/core/src/Storage/StorageReadSession.php packages/core/src/Storage/StorageTouched.php tests/Acceptance/Crm/BuildStateTest.php tests/Arch/ZonesArchTest.php tests/Feature/Authorization/Cache/HostTransactionTest.php tests/Feature/Authorization/Cache/IncarnationTest.php tests/Feature/Authorization/Cache/OwnMutationTest.php tests/Feature/Authorization/Cache/TouchTest.php tests/Feature/Authorization/Properties/TransactionPropertiesTest.php tests/Regression/P10bTest.php",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V4-candidate.log"
+    },
+    "V5": {
+      "exit": 0,
+      "command": "vendor/bin/phpstan analyse packages/core/src --memory-limit=1G --no-progress",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V5-candidate.log"
+    },
+    "V6": {
+      "exit": 0,
+      "command": "__PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --compact -c /tmp/azguard-p420-types.xml",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V6-candidate.log"
+    },
+    "V7": {
+      "exit": 0,
+      "command": "php bin/api-manifest.php --check",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V7-final.log"
+    },
+    "V8": {
+      "exit": 0,
+      "command": "php bin/api-manifest.php --write",
+      "evidence": "api generator run via exec twice; only core manifest changed, --check V7 accepted"
+    },
+    "V9": {
+      "exit": 0,
+      "command": "git diff --check",
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/V9-candidate.log"
+    }
+  },
+  "supplements": {
+    "A1": {
+      "exit": 0,
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/A1-final.log",
+      "tests": 150
+    },
+    "A2": {
+      "exit": 0,
+      "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.20-execution/A2-candidate.log"
+    }
+  },
+  "tests": {
+    "V1": 141,
+    "V2": 2410,
+    "V3": 72
+  },
+  "type_coverage": 99.8,
+  "excluded": [
+    "unchanged Filament test suites",
+    "unchanged ecosystem packages",
+    "P4.21 concurrency/Redis suites"
+  ],
+  "environment": [
+    "APP_ENV=testing, SQLite :memory:",
+    "optional PHPStan turbo startup warning; completed analysis errors0"
+  ],
+  "product_hashes": {
+    "CHANGELOG.md": "428c9d726f4602d36aecd20181ee73acab8df0ff6f53228f39997e5ce60c3ab6",
+    "packages/core/api-manifest.json": "a5165f55ae985ec36070ee84d2857ee944e46a3a2b9efdae7feb4a6057de0d99",
+    "packages/core/src/Authorization/Authorizer.php": "c5869cc1e198dc71a9a61d1b8614bd8f39e0a9a6636711ab1920a81b53fcd9a7",
+    "packages/core/src/Authorization/Cache/PermissionSetCache.php": "e04d9666a3f7ca27604e72b0b6419460196820a8cf688b75c027661161bd4eea",
+    "packages/core/src/Authorization/EvaluationFrame.php": "12d00278bc2963e04a6d0368d0f19ab6da9b7759bc8c7070ea69ec5f6370b437",
+    "packages/core/src/Authorization/ReadAttempt.php": "91ce390bf5e86e80d79592ac4837dd800d3ed60b8b4b1028aa7b5844e23a30b7",
+    "packages/core/src/AzGuardServiceProvider.php": "844bf2f7867409f79dcddab83082241839c9c78b18a06b764888c2876a9dcc08",
+    "packages/core/src/Sources/Database/DatabaseSource.php": "511a7b5d3158c959c4cb482ebc5a4f5a6913c9b4574e76cfaf06096eb0e033a8",
+    "packages/core/src/Storage/AuthorityTransaction.php": "b05de21d2dbcbfdfd2a973006779343226055bdc2e7ff5ba6a28cc34fef018ce",
+    "packages/core/src/Storage/Storage.php": "620c6649965ccb6d2d3e3aa601156d0f18fbc019e22d8c289602ac9f6fad43eb",
+    "packages/core/src/Storage/StorageReadSession.php": "8db814c8d49dfddfaea0a42ed85c4d4d23fd5ba25e89cdc313e81f65a45582c4",
+    "packages/core/src/Storage/StorageTouched.php": "371dfaf2a37c97184b3f8f966ad64728c4659d21b0cc77ac000df85a516108bc",
+    "tests/Acceptance/Crm/BuildStateTest.php": "1154f07aa1e4a675e02ccdf76ef658babbda2a4e4c4f94d46886bf1e909d5b15",
+    "tests/Arch/ZonesArchTest.php": "16d4075b5bc4e4777a9c72da1d8b9fdd0f6b1c7f0cf6b8c56b48c6b02ae09dc2",
+    "tests/Feature/Authorization/Cache/HostTransactionTest.php": "c078f69c90d9e67ac5879baed0ef27326d68e440503cdcb9896f893d7ab59642",
+    "tests/Feature/Authorization/Cache/IncarnationTest.php": "8286674e15236f1dd6f33a2c422b34d8fc637c489c0c181bdfc99892f6987a9b",
+    "tests/Feature/Authorization/Cache/OwnMutationTest.php": "7405cda7a0d27230e08d0520b8f4494115d5578612332f509aaead550faaf5d8",
+    "tests/Feature/Authorization/Cache/TouchTest.php": "ea397a0116972f6fa40fb20adca85d2d8b9ed2cdf8379ccacd2c0ca4d8a13cdb",
+    "tests/Feature/Authorization/Properties/TransactionPropertiesTest.php": "1f5bb01aa5567af0c62ed4bebe8e78d3d2227684965f0cc9ece99e583fda4bca",
+    "tests/Regression/P10bTest.php": "53e7f6766e79806d842e65f7144387464d343869b11c7d8daaf775c158d657a9",
+    "tests/Regression/specs/P10b.md": "33dc232e7b5df377735956edac522d9f9710bcd7f9a0384f97da001b4327589c"
+  }
+}
