@@ -1,0 +1,10 @@
+{
+  "session": "f2e0f845-fbc9-48c1-ba05-4f3e756e06e0",
+  "prompt_index": 3,
+  "full_final_prompt_in_native_message": true,
+  "offload_marker_present": false,
+  "prompt_sha256": "1dfb9b49b3f43411135db0ffbd43560ef8b82c43afa167442cef87a076da67c9",
+  "prompt_bytes": 60743,
+  "native_message_chars": 60392,
+  "all20_file_markers_present": true
+}

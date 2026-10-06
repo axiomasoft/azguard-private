@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Resolvers\ClientScopeResolver;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
+use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as Query;
@@ -62,3 +65,33 @@ it('R20 resolver query and owner exceptions refuse without a global fallback', f
     }
     World::assertDecision(World::decide($panel), false, DecisionReason::AssignmentScopeFilterError);
 })->with(['resource', 'resolve', 'query', 'owner']);
+
+it('R18 R50 exact native whereHas local scope and grouped OR preserve scalar list and count', function (string $shape): void {
+    DB::table('project_members')->insert(['project_id' => 1, 'user_id' => 1, 'role' => 'seller']);
+    $definition = ProjectScope::make()->filter(match ($shape) {
+        'whereHas' => fn (Builder $q) => $q->whereHas('members', fn (Builder $users) => $users->whereKey(1)),
+        'local' => fn (Builder $q) => $q->active(),
+        default => fn (Builder $q) => $q->orWhere('id', 1)->orWhere('id', 4)->orWhere('id', 3),
+    });
+    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)));
+    $expected = $shape === 'local' ? [1, 2, 3] : [1, 2];
+    $query = ClientVisibility::query($panel);
+    expect((clone $query)->orderBy('id')->pluck('id')->all())->toBe($expected)->and($query->count())->toBe(count($expected));
+    $scalar = Client::query()->orderBy('id')->get()->filter(fn ($client) => World::decide($panel, $client)->allowed())->values()->modelKeys();
+    expect($scalar)->toBe($expected);
+})->with(['whereHas', 'local', 'OR']);
+
+it('R18 unsafe native exact mutations throw before pagination and preserve caller SQL', function (Closure $filter): void {
+    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter($filter))));
+    $host = Client::query()->where('id', '>', 0);
+    $sql = $host->toSql();
+    expect(fn () => ClientVisibility::query($panel, host: $host)->paginate(1))->toThrow(VisibilityNotSupportedException::class);
+    expect($host->toSql())->toBe($sql);
+})->with([
+    'from' => [fn (Builder $q) => $q->from('clients')],
+    'connection' => [function (Builder $q): void {
+        $q->getQuery()->connection = DB::connection('secondary');
+    }],
+    'replacement' => [fn (Builder $q) => Project::query()],
+    'write' => [fn (Builder $q) => $q->delete()],
+]);

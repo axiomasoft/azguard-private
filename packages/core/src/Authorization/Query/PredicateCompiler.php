@@ -16,6 +16,9 @@ use ReflectionNamedType;
 /** Compiles exact descriptors as one AND group; never executes a resource query. */
 final class PredicateCompiler
 {
+    /** @var array<string, list<string>> Schema observations live only for this compilation. */
+    private array $columns = [];
+
     /**
      * @template TModel of Model
      *
@@ -41,12 +44,11 @@ final class PredicateCompiler
                 throw new DefinitionException('Group host OR conditions before applying exact predicates.');
             }
         }
-        $columns = [];
         // Build on a detached group: unsupported siblings and invalid identifiers
         // leave the host query untouched, including its bindings and structure.
         $group = $effective->getModel()->newModelQuery();
         $group->setQuery($effective->getQuery()->forNestedWhere());
-        $this->compile($group, $predicate, $effective->getModel(), $columns);
+        $this->compile($group, $predicate, $effective->getModel(), $this->columns);
         $effective->getQuery()->addNestedWhereQuery($group->getQuery());
         $query->setQuery($effective->getQuery());
         $query->setEagerLoads($effective->getEagerLoads());

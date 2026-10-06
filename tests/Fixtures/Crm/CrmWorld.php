@@ -38,9 +38,12 @@ use AzGuard\Tests\Fixtures\Crm\Models\User;
 use Closure;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
+use RuntimeException;
 
 final class CrmWorld
 {
+    public static bool $exactMapping = false;
+
     public static ?Closure $configure = null;
 
     public static ?Closure $backofficeConfigure = null;
@@ -54,8 +57,14 @@ final class CrmWorld
 
     public static function seed(): void
     {
-        expect(config('database.connections.testbench.database'))->toBe(':memory:');
-        self::storage()->connection()->statement('PRAGMA foreign_keys = ON');
+        $connection = self::storage()->connection();
+
+        if ($connection->getDriverName() === 'sqlite') {
+            expect($connection->getDatabaseName())->toBe(':memory:');
+            $connection->statement('PRAGMA foreign_keys = ON');
+        } elseif (! str_ends_with($connection->getDatabaseName(), '_test')) {
+            throw new RuntimeException('CRM fixture requires an isolated *_test database.');
+        }
         Relation::morphMap(['crm.user' => User::class, 'crm.organization' => Organization::class], false);
         Carbon::setTestNow('2026-10-06T12:00:00Z');
         (new CrmSchema)->up();
@@ -97,11 +106,13 @@ final class CrmWorld
 
     public static function resetRuntime(): void
     {
+        self::$exactMapping = false;
         self::$configure = null;
         self::$backofficeConfigure = null;
         self::$sources = [];
         ProjectScope::$failure = null;
         ClientScopeResolver::$throws = false;
+        ClientPolicy::$unsupported = false;
         ClientPolicy::$override = false;
         ClientPolicy::$result = true;
         ActiveProjects::$observed = SellerProjects::$observed = AnalystProjects::$observed = [];
@@ -113,8 +124,9 @@ final class CrmWorld
             ->decisionFields(roleGrant: ['region', 'eligible'], permissionGrant: ['region', 'eligible']);
     }
 
-    public static function compile(?Closure $configure = null, ?array $sources = null, ?Closure $backoffice = null): Panel
+    public static function compile(?Closure $configure = null, ?array $sources = null, ?Closure $backoffice = null, bool $exact = false): Panel
     {
+        self::$exactMapping = $exact;
         self::$configure = $configure;
         self::$backofficeConfigure = $backoffice;
         self::$sources = $sources ?? [self::database()];

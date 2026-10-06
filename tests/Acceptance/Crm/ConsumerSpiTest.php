@@ -17,11 +17,15 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\AssignmentScopePhase;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\OrganizationMembership;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
+use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use AzGuard\Tests\Fixtures\Crm\ProjectDirectory;
 use AzGuard\Tests\Fixtures\Crm\PublicPanel;
@@ -50,7 +54,9 @@ it('R50 local public definition filter and directory use structural queries befo
 
 it('R67 renamed Decides method still supplies local public consumer policy authority', function (): void {
     [,, $registry] = PanelWorld::compile([PublicPanel::class => fn (PanelBuilder $p) => $p->for(User::class)
-        ->permissions([Action::class])->policies([PolicyBinding::for(Action::ViewOwnProfile, RenamedClientPolicy::class)])]);
+        ->permissions([Action::class])->policies([PolicyBinding::for(Action::ViewOwnProfile, RenamedClientPolicy::class)])
+        ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))
+        ->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()))]);
     app()->instance(PanelRegistry::class, $registry);
     app()->forgetInstance(Authorizer::class);
     $panel = $registry->get('crm-public');

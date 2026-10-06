@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **core:** Exact visibility reuses schema observations within one compilation and checks fixed tenant membership once per operation. CRM literal lists/count/pages, 100 seeded scalar/query parity cases, 10k-client SQL budgets and real PostgreSQL/MySQL EXPLAIN on 100k clients verify the complete visibility contract.
+
 - **core:** `Visibility::visibleTo()` and `Authorizer::visibleTo()` compose exact owner, context, before, policy, restriction and complete assignment witness predicates before count/pagination. Explicit `ContextAware` relation mappings preserve resource/context identity; unsupported components and unstable sources fail closed with safe diagnostics. Fenced materialized selections support separate assignment connections with a 1000-ref budget. `bounded()` checks the complete bounded host universe with one clock and honest permitted totals.
 
 - **core:** Exact query SPI `FiltersAccessQueries` and pure `AccessPredicate` describe bound comparisons, logical/EXISTS trees, policy and before partitions, and complete contribution witnesses. `PredicateCompiler` validates model columns and typed relations, normalizes SQL NULL, and adds an atomic nested AND constraint; unsupported trees and unsafe host roots fail before resource execution.

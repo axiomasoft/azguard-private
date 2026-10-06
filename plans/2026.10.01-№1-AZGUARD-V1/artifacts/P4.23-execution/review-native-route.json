@@ -1,0 +1,18 @@
+{
+  "provider": "grok",
+  "session": "f2e0f845-fbc9-48c1-ba05-4f3e756e06e0",
+  "selected_model": "grok-4.7",
+  "observed_current_model_id": "grok-4.7",
+  "observed_assistant_models": [
+    "grok-4.7-build"
+  ],
+  "observed_reasoning_effort": "high",
+  "session_kind": "headless",
+  "context_parameter": null,
+  "tool_calls": {
+    "search_tool": 17,
+    "use_tool": 6
+  },
+  "evidence_source": "/home/vostrikov/.grok/sessions/%2Ftmp%2Fazguard-P4.23-review-s21n8t_q/f2e0f845-fbc9-48c1-ba05-4f3e756e06e0/summary.json",
+  "verdict": "pending"
+}

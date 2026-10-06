@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -14,6 +15,8 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\ExternalProjectScope;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility;
+use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use Illuminate\Support\Facades\DB;
 
 it('R19 R50 scalar external definition resolves model null without a project query and denies timeout', function (): void {
@@ -39,4 +42,18 @@ it('R19 R50 scalar external definition resolves model null without a project que
     } finally {
         ExternalProjectScope::$timeout = false;
     }
+});
+
+it('R19 R50 refuses the external model null exact list before count or pagination after a scalar positive control', function (): void {
+    $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('external.project', 1));
+    World::assign('clients.view_any', 1, 1, kind: 'permission', scope: $scope);
+    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(new ExternalProjectScope)));
+    $request = AccessRequest::for(SubjectRef::of('crm.user', 1), PermissionKey::of('crm', 'clients.view_any'))->inScope($scope);
+    World::assertDecision(app(Authorizer::class)->decide($panel, $request), true, DecisionReason::Granted);
+    $query = Client::query();
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    expect(fn () => app(Authorizer::class)->visibleTo($panel, $query, SubjectRef::of('crm.user', 1), 'clients.view_any', $scope)->paginate(1))->toThrow(VisibilityNotSupportedException::class);
+    expect(array_filter(DB::getQueryLog(), fn (array $row) => preg_match('/\bfrom ["`]clients["`]/', $row['query'])))->toBe([]);
+    DB::disableQueryLog();
 });

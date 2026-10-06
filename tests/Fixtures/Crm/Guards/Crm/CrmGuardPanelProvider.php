@@ -30,9 +30,12 @@ final class CrmGuardPanelProvider extends PanelProvider
         $panel->for(model: User::class, guard: 'web')->permissions(CrmWorld::$sources)
             ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))
             ->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(new ActiveProjects)))
-            ->resourceScopes([Client::class => new ClientScopeResolver])
             ->restrictions([new AccountLockedRestriction])->grantConditions([new RegionCondition])
             ->consistency(refresh: StateRefresh::Check);
+
+        if (! CrmWorld::$exactMapping) {
+            $panel->resourceScopes([Client::class => new ClientScopeResolver]);
+        }
 
         if (CrmWorld::$configure !== null) {
             (CrmWorld::$configure)($panel);

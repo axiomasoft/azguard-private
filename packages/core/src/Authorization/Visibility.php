@@ -97,17 +97,27 @@ final readonly class Visibility
             $catalog = $sourceRead->catalog();
         }
         $definition = $catalog->get($request->permission());
-        $mapping = $this->mapping($query, $frame);
+        $compiler = new PredicateCompiler;
+        $mapping = $this->mapping($query, $frame, $compiler);
         $type = $mapping?->definition->type() ?? 'global';
         $contributions = $definition->authority === PermissionAuthority::Grants ? $sourceRead->selections($request, $frame, $type) : [];
         $frame = $sourceRead->consumedFrame($frame);
-        $compiler = new PredicateCompiler;
         $compiler->constrain($query, P::pass());
         // Assemble on a detached group so an unsupported sibling never mutates the caller.
         $group = $query->getModel()->newModelQuery();
 
         if ($mapping !== null) {
             $mapping->constrain($group, $mapping->query($request, $frame, common: true));
+        }
+        // Tenant membership is one fixed subject/tenant input for the entire operation.
+        $declared = $panel->tenants()->membership();
+
+        if ($declared !== null && ! $frame->scope()->tenant->isGlobal()) {
+            $member = is_string($declared) ? $this->container->make($declared) : $declared;
+
+            if (! $member->isMember($request->subject(), $frame->scope()->tenant)) {
+                $group->whereRaw('1 = 0');
+            }
         }
         foreach ($panel->before() as $declared) {
             $hook = is_string($declared) ? $this->container->make($declared) : $declared;
@@ -129,7 +139,7 @@ final readonly class Visibility
 
         if ($definition->authority === PermissionAuthority::Policy) {
             $compiler->constrain($authority, $policy->outcome('allow'));
-            $this->membership($authority, $request, $frame, $mapping);
+            $this->membership($authority, $request, $frame, $mapping, $compiler);
             $this->restrictions($authority, $request, $frame, $compiler);
         } else {
             $branches = [];
@@ -185,7 +195,7 @@ final readonly class Visibility
                     continue;
                 }
                 $qualified = $branchFrame->withAuthority([], $admin);
-                $this->membership($branch, $request, $qualified, $mapping);
+                $this->membership($branch, $request, $qualified, $mapping, $compiler);
                 $this->restrictions($branch, $request, $qualified, $compiler);
                 $branches[] = $branch;
             }
@@ -250,7 +260,7 @@ final readonly class Visibility
     }
 
     /** @param Builder<*> $query */
-    private function mapping(Builder $query, EvaluationFrame $frame): ?VisibilityScope
+    private function mapping(Builder $query, EvaluationFrame $frame, PredicateCompiler $compiler): ?VisibilityScope
     {
         $panel = $frame->panel();
         $model = $query->getModel();
@@ -276,7 +286,7 @@ final readonly class Visibility
             throw new VisibilityNotSupportedException('resource_context_type');
         }
 
-        return new VisibilityScope($query, $definition, $model->azguardContextRelation(), $this->container);
+        return new VisibilityScope($query, $definition, $model->azguardContextRelation(), $this->container, $compiler);
     }
 
     private function predicate(mixed $component, AccessRequest $request, EvaluationFrame $frame, string $type, Grant|RoleContribution|null $contribution = null): P
@@ -322,22 +332,12 @@ final readonly class Visibility
     /** @template TModel of Model
      * @param  Builder<TModel>  $query
      */
-    private function membership(Builder $query, AccessRequest $request, EvaluationFrame $frame, ?VisibilityScope $mapping): void
+    private function membership(Builder $query, AccessRequest $request, EvaluationFrame $frame, ?VisibilityScope $mapping, PredicateCompiler $compiler): void
     {
         if ($frame->panel()->scopes()->membership() !== null && $mapping !== null) {
             $declared = $frame->panel()->scopes()->membership();
             $member = is_string($declared) ? $this->container->make($declared) : $declared;
-            (new PredicateCompiler)->constrain($query, $this->predicate($member, $request, $frame, $query->getModel()::class));
-        }
-        // Tenant membership is one fixed subject/tenant input, independent of resource rows.
-        $declared = $frame->panel()->tenants()->membership();
-
-        if ($declared !== null && ! $frame->scope()->tenant->isGlobal()) {
-            $member = is_string($declared) ? $this->container->make($declared) : $declared;
-
-            if (! $member->isMember($request->subject(), $frame->scope()->tenant)) {
-                $query->whereRaw('1 = 0');
-            }
+            $compiler->constrain($query, $this->predicate($member, $request, $frame, $query->getModel()::class));
         }
     }
 
@@ -366,7 +366,7 @@ final readonly class Visibility
 
         // Narrow only structural ownership, never assignments or arbitrary authority candidates.
         if (method_exists($candidate->getModel(), 'azguardContextType')) {
-            $mapping = $this->mapping($candidate, $frame);
+            $mapping = $this->mapping($candidate, $frame, new PredicateCompiler);
 
             if ($mapping !== null) {
                 $mapping->constrain($candidate, $mapping->query($request, $frame, eligibility: false));

@@ -1,0 +1,12 @@
+{
+    "clients": 10000,
+    "scopes": 100,
+    "roles": 2,
+    "allowed": 8000,
+    "selects": 14,
+    "assignment_selects": 2,
+    "resource_selects": 4,
+    "selection_chunk_size": 500,
+    "max_parameters": 1113,
+    "max_sql_bytes": 87753
+}

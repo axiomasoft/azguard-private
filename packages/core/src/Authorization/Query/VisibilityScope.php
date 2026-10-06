@@ -33,6 +33,7 @@ final readonly class VisibilityScope
         public QueryableAssignmentScopeDefinition $definition,
         private ?string $relation,
         private Container $container,
+        private PredicateCompiler $compiler,
     ) {
         $model = $definition->model();
 
@@ -74,7 +75,7 @@ final readonly class VisibilityScope
             || $query->getModel()->getConnection() !== $this->host->getModel()->getConnection()) {
             throw new VisibilityNotSupportedException('context_query_identity');
         }
-        $compiler = new PredicateCompiler;
+        $compiler = $this->compiler;
         $compiler->constrain($query, $this->owner($query, $request, $frame));
 
         if (! $frame->scope()->context->isGlobal()) {

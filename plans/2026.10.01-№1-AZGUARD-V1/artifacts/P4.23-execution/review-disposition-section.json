@@ -1,0 +1,5 @@
+{
+  "id": "P4.23-review-disposition",
+  "title": "P4.23 — implementation complete; external review pending by owner",
+  "text": "All affected implementation checks passed. Final Grok review returned no verdict after native transport/offload and prolonged generation defects; all cancelled attempts exit130, completed review rounds0, no GREEN review claimed. Owner explicitly instructed no further Grok calls and moved review to their own separate session (quoted in log). Implementation closes done_with_deviations with pending review. Final current-source manifest review-candidate.json, full compact60kB/all20paths native-delivery proof review-fresh-packet-delivery.json; qualification-summary.json and SQL/type/raw checks are in artifacts/P4.23-execution. Actual chosen indexes: PG authority azg_rg_subject / host crm_clients_tenant_project; MySQL authority azg_rg_subject / host physical composite clients_project_id_organization_id_foreign. Product candidate unchanged; no unchanged package or fleet reruns."
+}
