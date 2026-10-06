@@ -54,16 +54,21 @@ final readonly class AuthorityStage
             if ($denial !== null) {
                 return [$frame, $denial];
             }
+        } else {
+            $trace->record('sources', 'skipped');
+            $trace->record('superadmin', 'skipped');
         }
 
         try {
             $membership = new MembershipRestriction($this->container);
 
-            if (($qualified || $definition->authority === PermissionAuthority::Policy)
-                && $membership->check(request: $request, context: $frame)->denied()) {
-                $trace->record('membership', 'restricted', 'membership');
+            if ($qualified || $definition->authority === PermissionAuthority::Policy) {
+                $denied = $membership->check(request: $request, context: $frame)->denied();
+                $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
 
-                return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
+                if ($denied) {
+                    return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
+                }
             }
         } catch (Throwable $error) {
             $trace->error('membership', 'restriction_error', 'membership', $error);
@@ -73,6 +78,11 @@ final readonly class AuthorityStage
 
         try {
             $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
+            $binding = $catalog->policyBindings()[$request->permission()->local()] ?? null;
+            $trace->record('policy', $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'),
+                $binding === null ? null : ($binding->policy ?? $binding->ability),
+                detail: ['message' => $veto?->message, 'status' => $veto?->status, 'code' => $veto?->code],
+                outcome: $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'));
 
             if ($veto !== null) {
                 return [$frame, $veto];
@@ -101,7 +111,7 @@ final readonly class AuthorityStage
         $qualified = false;
 
         try {
-            $contributions = $frame->readAttempt?->contributions($request, $frame);
+            $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
 
             if ($frame->readAttempt !== null) {
                 $frame = $frame->readAttempt->consumedFrame($frame);
@@ -115,7 +125,7 @@ final readonly class AuthorityStage
                         $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
                     }
 
-                    [$items, $frame] = $this->readSource($source, $request, $frame);
+                    [$items, $frame] = $this->readSource($source, $request, $frame, $trace);
                     foreach ($items as $item) {
                         $contributions[] = [$source, $item];
                     }
@@ -135,11 +145,13 @@ final readonly class AuthorityStage
         } catch (Throwable $error) {
             $component = isset($source) ? $source::class : 'sources';
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
-            $trace->error('authority', $reason->value, $component, $error);
+            $trace->error('sources', $reason->value, $component, $error);
 
             return [$frame, false, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
         }
         foreach ($contributions as [$source,$item]) {
+            $trace->qualifying($item);
+
             if (! $item->activeAt($frame->now())) {
                 $trace->record('contribution', 'expired', $source::class);
 
@@ -188,13 +200,13 @@ final readonly class AuthorityStage
                 $branch = $frame->forContribution($item, $role);
 
                 try {
-                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs)) {
+                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs, $trace)) {
                         $trace->record('contribution', 'scope_ineligible', $source::class);
 
                         continue;
                     }
                 } catch (Throwable $error) {
-                    $trace->error('eligibility', DecisionReason::AssignmentScopeFilterError->value, $source::class, $error);
+                    $trace->error('filter', DecisionReason::AssignmentScopeFilterError->value, $source::class, $error);
 
                     return [$frame, false, Decision::deny(DecisionReason::AssignmentScopeFilterError, $frame->state(), $frame->scope(), $source::class)];
                 }
@@ -206,7 +218,10 @@ final readonly class AuthorityStage
                         throw new RuntimeException('Condition resolver did not return GrantCondition.');
                     }
 
-                    if (! $condition->allows($item, $request, $branch)) {
+                    $allowed = $condition->allows($item, $request, $branch);
+                    $trace->record('condition', $allowed ? 'pass' : 'condition_false', $condition::class);
+
+                    if (! $allowed) {
                         $passes = false;
 
                         break;
@@ -245,15 +260,19 @@ final readonly class AuthorityStage
                 if ($admin && $roleDefinition['permissions'] === []) {
                     $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
                 }
+            } else {
+                $trace->record('contribution', 'not_matching', $source::class, outcome: 'skipped');
             }
         }
         $frame = $frame->withAuthority($matching, $superAdmin);
+        $trace->record('sources', 'evaluated', detail: ['count' => count($contributions)]);
+        $trace->record('superadmin', $superAdmin ? 'qualified' : 'not_granted');
 
         return [$frame, $qualified, null];
     }
 
     /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */
-    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame): array
+    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
     {
         if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
             return [[], $frame];
@@ -261,6 +280,9 @@ final readonly class AuthorityStage
 
         if ($source instanceof DatabaseSource) {
             $snapshot = $source->readContributions($request->subject(), $frame->sourceScopes(), $frame);
+            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
+                $trace->contribution($item, $source::class);
+            }
 
             return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
         }
@@ -274,6 +296,7 @@ final readonly class AuthorityStage
                     if (! $item instanceof Grant) {
                         throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
                     }
+                    $trace->contribution($item, $source::class);
                     $items[] = $item;
                 }
             }
@@ -283,6 +306,7 @@ final readonly class AuthorityStage
                     if (! $item instanceof RoleContribution) {
                         throw new InvalidSourceContributionException('Unexpected role contribution type.');
                     }
+                    $trace->contribution($item, $source::class);
                     $items[] = $item;
                 }
             }

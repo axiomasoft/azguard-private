@@ -20,6 +20,9 @@ final readonly class AfterStage
 
     public function observe(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace): void
     {
+        if ($frame->panel()->after() === []) {
+            $trace->record('after', 'skipped');
+        }
         foreach ($frame->panel()->after() as $hook) {
             $component = is_string($hook) ? $hook : $hook::class;
 

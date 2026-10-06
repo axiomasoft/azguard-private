@@ -119,7 +119,7 @@ final readonly class PrepareStage
         $error = null;
 
         if ($definition === null && $catalog->isDynamic()) {
-            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject());
+            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic);
             $frame = $frame->withReadAttempt($attempt);
 
             try {
@@ -151,7 +151,7 @@ final readonly class PrepareStage
 
         if ($definition?->authority === PermissionAuthority::Grants && $frame->readAttempt === null) {
             try {
-                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, $batch, $request->subject()));
+                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic));
             } catch (Throwable $caught) {
                 $error = $caught;
                 $trace->error('prepare', 'source_error', 'sources', $caught);
@@ -161,11 +161,11 @@ final readonly class PrepareStage
         return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
     }
 
-    private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject): ReadAttempt
+    private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject, bool $publish = true): ReadAttempt
     {
         $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container)->all();
         $cache = $this->container->make(PermissionSetCache::class);
 
-        return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);
+        return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache, publish: $publish) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);
     }
 }

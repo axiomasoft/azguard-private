@@ -60,6 +60,9 @@ final readonly class RestrictionStage
     /** @param list<Restriction> $restrictions */
     public function decide(AccessRequest $request, EvaluationFrame $frame, array $restrictions, Trace $trace): ?Decision
     {
+        if ($restrictions === []) {
+            $trace->record('restriction', 'skipped');
+        }
         foreach ($restrictions as $restriction) {
             $component = $restriction::class;
 
@@ -78,7 +81,7 @@ final readonly class RestrictionStage
                     continue;
                 }
                 $result = $restriction->check($request, $frame);
-                $trace->record('restriction', $result->reason() ?? 'pass', $component);
+                $trace->record('restriction', $result->reason() ?? 'pass', $component, outcome: $result->denied() ? 'deny' : 'pass');
 
                 if ($result->denied()) {
                     return Decision::deny(DecisionReason::Restricted, $frame->state(), $frame->scope(), $component);

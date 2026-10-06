@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Authorization\Cache\PermissionSetCache;
+use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -53,7 +54,7 @@ final class ReadAttempt
     private array $pending = [];
 
     /** @param list<Attached> $sources */
-    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null) {}
+    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true) {}
 
     /** @var list<AccessScope>|null */
     private ?array $batchScopes = null;
@@ -157,7 +158,7 @@ final class ReadAttempt
     }
 
     /** @return list<array{Source, Grant|RoleContribution}> */
-    public function contributions(AccessRequest $request, EvaluationFrame $frame): array
+    public function contributions(AccessRequest $request, EvaluationFrame $frame, ?Trace $trace = null): array
     {
         $contributions = [];
         $pending = [];
@@ -182,6 +183,7 @@ final class ReadAttempt
 
             if ($items !== null) {
                 foreach ($items as $item) {
+                    $trace?->contribution($item, $source::class);
                     $contributions[] = [$source, $item];
                 }
 
@@ -203,6 +205,8 @@ final class ReadAttempt
                         if (! $item instanceof Grant) {
                             throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
                         }
+                        // Capture declared secrets before advancing a potentially throwing lazy iterator.
+                        $trace?->contribution($item, $source::class);
                         $items[] = $item;
                     }
                 }
@@ -212,11 +216,16 @@ final class ReadAttempt
                         if (! $item instanceof RoleContribution) {
                             throw new InvalidSourceContributionException('Unexpected role contribution type.');
                         }
+                        $trace?->contribution($item, $source::class);
                         $items[] = $item;
                     }
                 }
             }
             foreach ($items as $item) {
+                if ($source instanceof DatabaseSource) {
+                    $trace?->contribution($item, $source::class);
+                }
+
                 if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
                     || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $frame->acceptsContributionScope($item->scope)) {
                     throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
@@ -270,12 +279,14 @@ final class ReadAttempt
         }
 
         foreach ($this->stateKeys as $id => $key) {
-            if ($this->transaction === null && isset($this->states[$id])) {
+            if ($this->publish && $this->transaction === null && isset($this->states[$id])) {
                 $this->cache?->rememberState($key, $this->states[$id]);
             }
         }
         foreach ($this->pending as ['key' => $key, 'source' => $source, 'items' => $items]) {
-            $this->cache?->put($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $items, $frame->now());
+            if ($this->publish) {
+                $this->cache?->put($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $items, $frame->now());
+            }
         }
         $this->pending = [];
 

@@ -33,11 +33,17 @@ final readonly class AccessPipeline
 
         if ($decision === null) {
             [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
-            $trace->record('authority', $decision->reason->value);
+            $trace->record('authority', $decision->reason->value, outcome: $decision->allowed() ? 'pass' : 'deny');
+        } else {
+            foreach (['sources', 'superadmin', 'policy', 'authority'] as $stage) {
+                $trace->record($stage, 'skipped');
+            }
         }
 
         if ($decision->allowed()) {
             $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
+        } else {
+            $trace->record('restriction', 'skipped');
         }
 
         if ($deferred) {
@@ -52,6 +58,7 @@ final readonly class AccessPipeline
     /** @return array{?Decision, list<Restriction>, ?Decision} */
     public function start(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?Decision $denial): array
     {
+        $trace->inputs($frame);
         $trace->record('prepare', 'prepared');
         $restrictions = [];
         $restrictionDenial = null;
@@ -65,14 +72,21 @@ final readonly class AccessPipeline
         $restrictionDenial ??= $this->restrictions->validateKeys($frame, $restrictions, $trace);
 
         $decision = $denial ?? $this->boundary->decide($frame);
-        $trace->record('boundary', $decision?->reason->value ?? 'pass');
-        $decision ??= $this->before->decide($request, $frame, $trace);
+        $trace->record('boundary', $decision?->reason->value ?? 'pass', outcome: $decision === null ? 'pass' : 'deny');
+
+        if ($decision === null) {
+            $decision = $this->before->decide($request, $frame, $trace);
+        } else {
+            $trace->record('before', 'skipped');
+        }
 
         return [$decision, $restrictions, $restrictionDenial];
     }
 
     public function complete(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace, bool $confirm = true): Decision
     {
+        $confirmed = true;
+
         if ($confirm && $frame->readAttempt !== null) {
             try {
                 $frame = $frame->readAttempt->confirm($frame);
@@ -83,6 +97,7 @@ final readonly class AccessPipeline
                 // The root retries every stage; no observer sees a discarded decision.
                 throw $changed;
             } catch (Throwable $error) {
+                $confirmed = false;
                 $trace->error('state', 'source_error', 'dynamic_sources', $error);
                 $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
             }
@@ -90,6 +105,7 @@ final readonly class AccessPipeline
         $decision = $decision->allowed()
             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
+        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(static fn ($state): array => get_object_vars($state), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

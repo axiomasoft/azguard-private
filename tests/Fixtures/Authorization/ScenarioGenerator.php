@@ -98,6 +98,14 @@ final class ScenarioGenerator
         return $this->now->modify(sprintf('%+d seconds', $offset));
     }
 
+    /** Same explicit scalar scope and resource inputs for the Laravel adapter.
+     * @return array{?object, AccessScope}
+     */
+    public function gateArguments(AccessRequest $request): array
+    {
+        return [$request->resource(), AccessScope::in($request->tenant() ?? TenantRef::global(), $request->context())];
+    }
+
     public function scope(bool $context = false, bool $global = false): AccessScope
     {
         return AccessScope::in($global ? TenantRef::global() : $this->tenant, $context ? $this->context : null);
@@ -142,6 +150,7 @@ final class ScenarioGenerator
             BetaPanel::class => fn (PanelBuilder $p) => $describe($p, 'beta', $this->panel === 'beta' ? $sources : [$otherSource ?? new GeneratedSource(name: 'other')]),
         ]);
         app()->instance(PanelRegistry::class, $registry);
+        app()->instance(PanelResolver::class, $resolver);
         app()->forgetInstance(Authorizer::class);
 
         return [app(Authorizer::class), $registry->get($this->panel), AccessRequest::for($this->subject, PermissionKey::of($this->panel, 'orders.view')), $resolver, $registry];

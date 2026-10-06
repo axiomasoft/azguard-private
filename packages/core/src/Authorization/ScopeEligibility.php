@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization;
 
+use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\Query\EligibilityBuilder;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -21,7 +22,7 @@ final readonly class ScopeEligibility
 {
     public function __construct(private Container $container) {}
 
-    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
+    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null, ?Trace $trace = null): bool
     {
         if ($frame->scope()->context->isGlobal()) {
             return true;
@@ -30,11 +31,11 @@ final readonly class ScopeEligibility
         $definition = $this->definition($frame);
         $runtime = $this->runtime($request->subject(), $frame, common: true);
 
-        return $this->native($definition, $definition, $frame, $runtime, $batch)
-            && $this->external($frame, $runtime, $batch);
+        return $this->native($definition, $definition, $frame, $runtime, $batch, $trace)
+            && $this->external($frame, $runtime, $batch, $trace);
     }
 
-    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
+    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null, ?Trace $trace = null): bool
     {
         if ($frame->scope()->context->isGlobal()) {
             return true;
@@ -78,13 +79,13 @@ final readonly class ScopeEligibility
                     throw new RuntimeException('A model-required scope binding has no resolved record.');
                 }
 
-                if (! $this->native($definition, $binding, $frame, $runtime, $batch)) {
+                if (! $this->native($definition, $binding, $frame, $runtime, $batch, $trace)) {
                     return false;
                 }
             }
         }
 
-        return $this->external($frame, $runtime, $batch);
+        return $this->external($frame, $runtime, $batch, $trace);
     }
 
     private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
@@ -93,7 +94,7 @@ final readonly class ScopeEligibility
             ?? throw new RuntimeException('Selected scope definition is missing.');
     }
 
-    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
+    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch, ?Trace $trace = null): bool
     {
         $filters = $configuration instanceof ConfigurableAssignmentScopeDefinition ? $configuration->settings()->filters : [];
 
@@ -107,11 +108,16 @@ final readonly class ScopeEligibility
 
         $resolved = $frame->assignmentScope ?? throw new RuntimeException('Scope eligibility requires structural resolution.');
 
-        return $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
+        $allowed = $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
             : $batch->native($definition, $configuration, $filters, $runtime, $frame);
+        $trace?->record('filter', $allowed ? 'pass' : 'false', $definition::class,
+            detail: ['filters' => array_map(static fn ($filter): string => is_string($filter) ? $filter : $filter::class, $filters)],
+            outcome: $allowed ? 'pass' : 'deny');
+
+        return $allowed;
     }
 
-    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
+    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch, ?Trace $trace = null): bool
     {
         $declared = $frame->panel()->scopes()->adapters()[$frame->scope()->context->type() ?? ''] ?? null;
 
@@ -125,8 +131,11 @@ final readonly class ScopeEligibility
             throw new RuntimeException('Scope adapter resolver did not return AssignmentScopeAccessAdapter.');
         }
 
-        return $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
+        $allowed = $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
             : $batch->external($adapter, $frame, $runtime);
+        $trace?->record('filter', $allowed ? 'pass' : 'false', $adapter::class, outcome: $allowed ? 'pass' : 'deny');
+
+        return $allowed;
     }
 
     public function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime

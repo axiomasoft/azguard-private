@@ -22,6 +22,9 @@ final readonly class BeforeStage
 
     public function decide(AccessRequest $request, EvaluationFrame $frame, Trace $trace): ?Decision
     {
+        if ($frame->panel()->before() === []) {
+            $trace->record('before', 'skipped');
+        }
         foreach ($frame->panel()->before() as $hook) {
             $component = is_string($hook) ? $hook : $hook::class;
 

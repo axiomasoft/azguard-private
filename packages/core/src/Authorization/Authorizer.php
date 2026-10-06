@@ -14,6 +14,7 @@ use AzGuard\Exceptions\RecursionDetectedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionSet;
+use AzGuard\Kernel\Decision\Explanation;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -25,6 +26,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Sources\Database\DatabaseSource;
 use Closure;
+use DateTimeImmutable;
 use Fiber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -138,6 +140,19 @@ final class Authorizer
 
     public function decide(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Decision
     {
+        return $this->evaluate($panel, $request, $actor)[0];
+    }
+
+    public function explain(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Explanation
+    {
+        [$decision, $trace, $now] = $this->evaluate($panel, $request, $actor, diagnostic: true);
+
+        return new Explanation($decision, $trace->steps(), $now, $request->subject(), $trace->resource());
+    }
+
+    /** @return array{Decision, Trace, DateTimeImmutable} */
+    private function evaluate(Panel $panel, AccessRequest $request, ?ActorRef $actor, bool $diagnostic = false): array
+    {
         if ($panel->id() !== $request->permission()->panel()) {
             throw new ConflictingPanelException('The selected panel differs from the request permission panel.');
         }
@@ -151,15 +166,21 @@ final class Authorizer
         try {
             $now = Carbon::now('UTC')->toDateTimeImmutable();
             for ($attempt = 0; ; $attempt++) {
-                $trace = new Trace($request->isTraced());
+                $trace = new Trace($diagnostic || $request->isTraced(), diagnostic: $diagnostic);
 
                 try {
                     [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace, $now);
 
-                    return $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
+                    $decision = $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
+                    $trace->finish();
+
+                    return [$decision, $trace, $now];
                 } catch (ReadAttemptChanged $changed) {
                     if ($attempt === 2) {
-                        return $this->pipeline->inconsistent($request, $changed->frame, $trace);
+                        $decision = $this->pipeline->inconsistent($request, $changed->frame, $trace);
+                        $trace->finish();
+
+                        return [$decision, $trace, $now];
                     }
                 }
             }

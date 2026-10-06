@@ -4293,6 +4293,107 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Kernel\\Decision\\Explanation",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "result",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "steps",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "evaluatedAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resource",
+                            "type": "?array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "decision",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\Decision"
+                },
+                {
+                    "name": "now",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "DateTimeImmutable"
+                },
+                {
+                    "name": "scope",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AccessScope"
+                },
+                {
+                    "name": "state",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken"
+                },
+                {
+                    "name": "steps",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Kernel\\Decision\\Grant",
             "kind": "class",
             "final": true,

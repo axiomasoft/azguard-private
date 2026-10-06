@@ -123,11 +123,11 @@ final readonly class BoundaryStage
                 }
                 $frame = $frame->withAssignmentScope($resolved);
 
-                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs)) {
+                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs, $trace)) {
                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
                 }
             } catch (Throwable $error) {
-                $trace->error('boundary', DecisionReason::AssignmentScopeFilterError->value, $definition::class, $error);
+                $trace->error('filter', DecisionReason::AssignmentScopeFilterError->value, $definition::class, $error);
 
                 return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeFilterError)];
             }

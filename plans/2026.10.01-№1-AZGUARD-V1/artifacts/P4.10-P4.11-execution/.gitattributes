@@ -1,0 +1,2 @@
+# Preserve byte-exact tool evidence, including whitespace emitted by failed tools.
+*.log -whitespace
