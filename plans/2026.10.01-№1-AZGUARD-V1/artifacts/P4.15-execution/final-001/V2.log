@@ -1,0 +1,2 @@
+> php -d memory_limit=1G vendor/bin/pest --exclude-group=engines 'tests/Acceptance/Crm' 'tests/Feature/Authorization' 'tests/Feature/Scopes' 'tests/Feature/Sources' '--exclude-group=properties'
+{"tool":"pest","result":"passed","tests":506,"passed":506,"assertions":102120,"duration_ms":4236}

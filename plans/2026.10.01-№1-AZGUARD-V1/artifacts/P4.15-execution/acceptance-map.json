@@ -1,0 +1,266 @@
+{
+  "R01": [
+    {
+      "test_file": "tests/Acceptance/Crm/TenancyTest.php",
+      "test": "R01 reads literal clients in the selected tenant through actual DB assignments"
+    }
+  ],
+  "R02": [
+    {
+      "test_file": "tests/Acceptance/Crm/TenancyTest.php",
+      "test": "R02 keeps CRM assignments separate from a positive backoffice assignment"
+    }
+  ],
+  "R06": [
+    {
+      "test_file": "tests/Acceptance/Crm/TenancyTest.php",
+      "test": "R06 enforces membership unknown tenants and resource ownership even for policy and admin"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/TenancyTest.php",
+      "test": "R06 rejects an owner forged to the selected tenant while the project belongs to B"
+    }
+  ],
+  "R07": [
+    {
+      "test_file": "tests/Acceptance/Crm/TenancyTest.php",
+      "test": "R07 host composite FK rejects a cross tenant client without changing the original row"
+    }
+  ],
+  "R49": [
+    {
+      "test_file": "tests/Acceptance/Crm/DiagnosticsTest.php",
+      "test": "R49 local declared grant fields expose no undeclared assignment secret in a traced decision"
+    }
+  ],
+  "R19": [
+    {
+      "test_file": "tests/Acceptance/Crm/ExternalScopeTest.php",
+      "test": "R19 R50 scalar external definition resolves model null without a project query and denies timeout"
+    }
+  ],
+  "R50": [
+    {
+      "test_file": "tests/Acceptance/Crm/ExternalScopeTest.php",
+      "test": "R19 R50 scalar external definition resolves model null without a project query and denies timeout"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/ConsumerSpiTest.php",
+      "test": "R50 local public definition filter and directory use structural queries before eligibility"
+    }
+  ],
+  "R18": [
+    {
+      "test_file": "tests/Acceptance/Crm/NativeFiltersTest.php",
+      "test": "R18 V110 scalar supports native local scope whereHas nested OR and whereExists"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/NativeFiltersTest.php",
+      "test": "R18 root OR remains grouped under common active and immutable owner predicates"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/NativeFiltersTest.php",
+      "test": "R18 unsafe builder changes fail closed instead of widening the scalar check"
+    }
+  ],
+  "V110": [
+    {
+      "test_file": "tests/Acceptance/Crm/NativeFiltersTest.php",
+      "test": "R18 V110 scalar supports native local scope whereHas nested OR and whereExists"
+    }
+  ],
+  "R20": [
+    {
+      "test_file": "tests/Acceptance/Crm/NativeFiltersTest.php",
+      "test": "R20 resolver query and owner exceptions refuse without a global fallback"
+    }
+  ],
+  "R67": [
+    {
+      "test_file": "tests/Acceptance/Crm/ConsumerSpiTest.php",
+      "test": "R67 renamed Decides method still supplies local public consumer policy authority"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R67 typed filter class removal and incorrect factory inputs are actionable failures"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R67 removed declared policy or Decides attribute is a compile error instead of optional pass"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings"
+    }
+  ],
+  "R15": [
+    {
+      "test_file": "tests/Acceptance/Crm/FreshInputsTest.php",
+      "test": "R15 V112 host city and active fields refresh under the identical grant state token"
+    }
+  ],
+  "V112": [
+    {
+      "test_file": "tests/Acceptance/Crm/FreshInputsTest.php",
+      "test": "R15 V112 host city and active fields refresh under the identical grant state token"
+    }
+  ],
+  "R45": [
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R45 R46 local typed plugin inputs are independent in CRM and backoffice"
+    }
+  ],
+  "R46": [
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R45 R46 local typed plugin inputs are independent in CRM and backoffice"
+    }
+  ],
+  "R48": [
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R48 local duplicate plugin is rejected and worker rebuild boots once per new registry"
+    }
+  ],
+  "R57": [
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R57 local filter build fingerprint changes while equal configuration remains deterministic"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/BuildInputsTest.php",
+      "test": "R57 build rejects a captured live host model instead of retaining request inputs"
+    }
+  ],
+  "R09": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R09 common active filter vetoes direct role policy before Continue and scoped admin"
+    }
+  ],
+  "R10": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R10 seller city binding qualifies both view and update instead of granting foreign city"
+    }
+  ],
+  "R11": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R11 seller city never vetoes an independent analyst contribution"
+    }
+  ],
+  "R12": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R12 independent witnesses survive DB relation source and assignment order permutations"
+    }
+  ],
+  "R13": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R13 each contribution must satisfy city region and all its own fields as one witness"
+    }
+  ],
+  "R14": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R14 two PHP roles use the actual target actor and branch via real DB and Project members"
+    }
+  ],
+  "R16": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R16 direct grants expose role null and cannot manufacture a required PHP role"
+    }
+  ],
+  "R17": [
+    {
+      "test_file": "tests/Acceptance/Crm/ContextRolesTest.php",
+      "test": "R17 empty permission admin still obeys city inactive tenant scope and restriction boundaries"
+    }
+  ],
+  "R61": [
+    {
+      "test_file": "tests/Acceptance/Crm/AuthorityModesTest.php",
+      "test": "R61 PolicyOnly never reads an assignment connection that aborts every SQL operation"
+    }
+  ],
+  "R62": [
+    {
+      "test_file": "tests/Acceptance/Crm/AuthorityModesTest.php",
+      "test": "R62 policy true and before Continue never replace an assignment and admin cannot bypass policy veto"
+    }
+  ],
+  "R65": [
+    {
+      "test_file": "tests/Acceptance/Crm/AuthorityModesTest.php",
+      "test": "R65 enum assignments work without dynamic definitions or a copied permission row"
+    }
+  ],
+  "R63": [
+    {
+      "test_file": "tests/Acceptance/Crm/AuthorityModesTest.php",
+      "test": "R63 read slice wildcard and superadmin cannot replace PolicyOnly owner policy"
+    }
+  ],
+  "R66": [
+    {
+      "test_file": "tests/Acceptance/Crm/AuthorityModesTest.php",
+      "test": "R66 removed role key contributes no authority until a registered PHP role is assigned"
+    }
+  ],
+  "R21": [
+    {
+      "test_file": "tests/Acceptance/Crm/PoliciesTest.php",
+      "test": "R21 caller can update normal C1 while policy vetoes do not call C2"
+    }
+  ],
+  "R22": [
+    {
+      "test_file": "tests/Acceptance/Crm/PoliciesTest.php",
+      "test": "R22 policy modes distinguish null true false and Response with and without grants"
+    }
+  ],
+  "R47": [
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings"
+    },
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 direct and PolicyOnly callbacks carry explicit null role and grant"
+    }
+  ],
+  "V109": [
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings"
+    }
+  ],
+  "V111": [
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings"
+    }
+  ],
+  "V113": [
+    {
+      "test_file": "tests/Acceptance/Crm/RuntimeInputsTest.php",
+      "test": "R47 R67 V109 V111 V113 DI receives live Access target and actor without global model bindings"
+    }
+  ],
+  "R44": [
+    {
+      "test_file": "tests/Acceptance/Crm/SourcesTest.php",
+      "test": "R44 a failing source denies after a valid DB grant or admin in either source order"
+    }
+  ],
+  "R42": [
+    {
+      "test_file": "tests/Acceptance/Crm/SourcesTest.php",
+      "test": "R42 DB and relation assignments independently support the same PHP role on reads"
+    }
+  ]
+}

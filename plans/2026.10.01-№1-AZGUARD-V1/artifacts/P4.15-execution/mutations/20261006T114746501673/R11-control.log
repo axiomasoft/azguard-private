@@ -1,0 +1,12 @@
+PHPUnit 12.5.33 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.1
+Configuration: /tmp/azguard-p415-mutations-tsa0zog_/phpunit.xml
+Random Seed:   1791287266
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.077, Memory: 34.50 MB
+
+[30;42mOK (1 test, 9 assertions)[0m
+{"tool":"pest","result":"passed","tests":1,"passed":1,"assertions":9,"duration_ms":77}

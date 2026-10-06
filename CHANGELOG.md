@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- CRM-приёмка ядра 1.0: реальный стенд с двумя панелями, tenant/project, PHP-ролями, DB/relation-назначениями и литеральными ожиданиями проверяет границы доступа, policy/grant modes, typed filters и host freshness; реестр R01–R68 фиксирует проверенные срезы и будущие поверхности.
+
 - Квалификация scoped sources ядра 1.0: итоговые решения Database/Folder/Relation, изоляция tenant/context, поля выдачи и dynamic fence проверены на SQLite, PostgreSQL, MySQL и MariaDB; регрессия P08 покрывает одинаковые права DB-роли глобально и в точной области назначения.
 - Квалификация ядра 1.0: 13 генеративных свойств движка и scope проверяются на 200 воспроизводимых seeds каждое, включая изоляцию панелей/тенантов, request cache, fail-closed ошибки и условия одной выдачи.
 

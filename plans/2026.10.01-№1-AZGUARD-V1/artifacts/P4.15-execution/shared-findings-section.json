@@ -1,0 +1,5 @@
+{
+  "id": "P4.15-evidence",
+  "title": "P4.15 — CRM fixture and scalar acceptance",
+  "text": "Owning result and case→test map: knowledge/findings-P4.15-execution.json; artifacts/P4.15-execution/acceptance-map.json. 67CRM/499assertions,506relatedcore/102120,changedPHP Pint,diff,scratchR11/R13/R14GREEN. No production change; all68README future/partial owners explicit. Native final Grok4.7/high review pending; item not yet closed."
+}
