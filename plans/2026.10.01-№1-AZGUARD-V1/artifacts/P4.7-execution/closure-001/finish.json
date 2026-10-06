@@ -1,0 +1,25 @@
+{
+  "item": "P4.7",
+  "status": "done",
+  "phase_closed": null,
+  "plan_done": false,
+  "next": {
+    "kind": "run-items",
+    "exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8",
+    "phase": "P4",
+    "batch": "BP4-8",
+    "items": [
+      "P4.8"
+    ],
+    "route": {
+      "class": "frontier",
+      "effort": "high"
+    },
+    "launch": {
+      "claude": "/task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8",
+      "codex": "$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8"
+    },
+    "command": "task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.8",
+    "reason": ""
+  }
+}

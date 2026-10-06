@@ -1,0 +1,40 @@
+{
+  "command": "vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "PHP_INI_SCAN_DIR": ":/tmp/azguard-p47-php-conf"
+  },
+  "exit_code": 0,
+  "started_at": "2026-10-06T07:37:09.647457+00:00",
+  "duration_seconds": 0.78,
+  "candidate_before": "b6a4676311705e4c88e6723c853775d3d6fda619eb12373b9fe7037bf3a674ca",
+  "candidate_after": "b6a4676311705e4c88e6723c853775d3d6fda619eb12373b9fe7037bf3a674ca",
+  "candidate_stable": true,
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.7-execution/affected-002/V2.log",
+  "head": "13ac922c5fe3659a63115eb80afb1871256ef092",
+  "$schema": "urn:swissknifeman:orch:exec:check-evidence:v1",
+  "contract_version": "exec/v1",
+  "check_id": "V2",
+  "candidate": {
+    "head": "13ac922c5fe3659a63115eb80afb1871256ef092",
+    "product_sha256": "b6a4676311705e4c88e6723c853775d3d6fda619eb12373b9fe7037bf3a674ca"
+  },
+  "finished_at": "2026-10-06T07:37:10.428690+00:00",
+  "evidence_id": "azguard-p47:affected-002:V2",
+  "subject": "PLAN2.P4.7",
+  "procedure": {
+    "cmd": "vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "medium"
+    }
+  },
+  "exit": 0
+}

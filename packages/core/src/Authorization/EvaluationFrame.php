@@ -12,6 +12,7 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use DateTimeImmutable;
@@ -53,17 +54,28 @@ final readonly class EvaluationFrame implements EvaluationContext
     /** @return list<AssignmentScopeRef> */
     public function scopes(): array
     {
-        return array_map(static fn (AccessScope $scope): AssignmentScopeRef => $scope->context, $this->sourceScopes());
+        $contexts = [];
+        foreach ($this->sourceScopes() as $scope) {
+            $contexts[$scope->context->key()] = $scope->context;
+        }
+
+        return array_values($contexts);
     }
 
     /** @return list<AccessScope> */
     public function sourceScopes(): array
     {
-        if ($this->selectedScope->context->isGlobal() || $this->selectedPanel->scopes()->mode() === 'isolated') {
-            return [$this->selectedScope];
+        $scopes = $this->selectedScope->context->isGlobal() || $this->selectedPanel->scopes()->mode() === 'isolated'
+            ? [$this->selectedScope]
+            : [AccessScope::in($this->selectedScope->tenant), $this->selectedScope];
+
+        if (! $this->selectedScope->tenant->isGlobal() && $this->selectedPanel->tenants()->globalRoles() !== []) {
+            foreach ($scopes as $scope) {
+                $scopes[] = AccessScope::in(tenant: TenantRef::global(), context: $scope->context);
+            }
         }
 
-        return [AccessScope::in($this->selectedScope->tenant), $this->selectedScope];
+        return $scopes;
     }
 
     public function acceptsContributionScope(AccessScope $scope): bool

@@ -19,6 +19,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
@@ -36,11 +37,35 @@ final readonly class PrepareStage
     /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
     public function prepare(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null): array
     {
+        return $this->prepareRequest($panel, $request, $actor, $trace, $now);
+    }
+
+    /** @return array{AccessRequest,PanelCatalog,EvaluationFrame,?Decision} */
+    public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $scope, Trace $trace, DateTimeImmutable $now): array
+    {
+        $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), 'superadmin.qualify'))->inScope($scope);
+        [$catalog, , $frame, $denial] = $this->prepareRequest($panel, $request, null, $trace, $now, qualificationOnly: true);
+
+        if ($denial === null) {
+            try {
+                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame));
+            } catch (Throwable $error) {
+                $trace->error('prepare', 'source_error', 'sources', $error);
+                $denial = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'sources');
+            }
+        }
+
+        return [$request, $catalog, $frame, $denial];
+    }
+
+    /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
+    private function prepareRequest(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null, bool $qualificationOnly = false): array
+    {
         if (! $panel->accepts($request->subject())) {
             throw new SubjectNotAcceptedException('Panel '.$panel->id().' does not accept subject '.$request->subject()->type().'.');
         }
         $catalog = $this->registry->catalog($panel->id());
-        $definition = $catalog->find($request->permission());
+        $definition = $qualificationOnly ? new PermissionDefinition('superadmin.qualify', PermissionAuthority::Grants) : $catalog->find($request->permission());
 
         if ($definition === null && ! $catalog->isDynamic()) {
             $definition = $catalog->get($request->permission());

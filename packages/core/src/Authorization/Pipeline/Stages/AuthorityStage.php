@@ -22,6 +22,7 @@ use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Grammar\PatternMatcher;
+use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
@@ -43,127 +44,14 @@ final readonly class AuthorityStage
     /** @return array{EvaluationFrame,Decision} */
     public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace): array
     {
-        $matching = [];
-        $superAdmin = false;
         $qualified = false;
 
         if ($definition->authority === PermissionAuthority::Grants) {
-            try {
-                $contributions = $frame->readAttempt?->contributions($request, $frame);
+            [$frame, $qualified, $denial] = $this->qualify($request, $frame, $catalog, $trace);
 
-                if ($contributions === null) {
-                    $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
-                    $contributions = [];
-                    foreach ($sources->all() as ['source' => $source]) {
-                        if ($source instanceof FolderSource) {
-                            $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
-                        }
-
-                        [$items, $frame] = $this->readSource($source, $request, $frame);
-                        foreach ($items as $item) {
-                            $contributions[] = [$source, $item];
-                        }
-                    }
-                }
-                foreach ($contributions as [$source, $item]) {
-                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $frame->acceptsContributionScope($item->scope)) {
-                        throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
-                    }
-                }
-            } catch (Throwable $error) {
-                $component = isset($source) ? $source::class : 'sources';
-                $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
-                $trace->error('authority', $reason->value, $component, $error);
-
-                return [$frame, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
+            if ($denial !== null) {
+                return [$frame, $denial];
             }
-            foreach ($contributions as [$source,$item]) {
-                if (! $item->activeAt($frame->now())) {
-                    $trace->record('contribution', 'expired', $source::class);
-
-                    continue;
-                }
-                $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
-
-                $automatic = $item instanceof RoleContribution && $source instanceof FolderSource && $roleDefinition !== null
-                    && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
-
-                if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
-                    $current = null;
-                    foreach ($catalog->roles() as $candidate) {
-                        if (in_array($item->role->key(), $candidate['former_keys'], true)) {
-                            $current = $candidate['key'];
-
-                            break;
-                        }
-                    }
-                    $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
-                    $trace->record('contribution', $reason, $source::class);
-                    Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
-
-                    continue;
-                }
-
-                if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {
-                    $trace->record('contribution', 'role_scope_not_accepted', $source::class);
-
-                    continue;
-                }
-
-                try {
-                    $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
-
-                    if ($role !== null && ! $role instanceof BaseRole) {
-                        throw new RuntimeException('Role resolver did not return BaseRole.');
-                    }
-                    $branch = $frame->forContribution($item, $role);
-                    $passes = true;
-                    foreach ($frame->panel()->grantConditions() as $declared) {
-                        $condition = is_string($declared) ? $this->container->make($declared) : $declared;
-
-                        if (! $condition instanceof GrantCondition) {
-                            throw new RuntimeException('Condition resolver did not return GrantCondition.');
-                        }
-
-                        if (! $condition->allows($item, $request, $branch)) {
-                            $passes = false;
-
-                            break;
-                        }
-                    }
-                } catch (Throwable $error) {
-                    $component = isset($condition) ? $condition::class : $source::class;
-                    $trace->error('condition', 'condition_error', $component, $error);
-
-                    return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component)];
-                }
-
-                if (! $passes) {
-                    $trace->record('contribution', 'condition_false', $source::class);
-
-                    continue;
-                }
-                $admin = $this->superAdmin($roleDefinition);
-                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
-
-                if ($item instanceof RoleContribution) {
-                    foreach ($roleDefinition['permissions'] as $pattern) {
-                        $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
-                    }
-                }
-
-                if ($admin || $covers) {
-                    $qualified = true;
-                    $superAdmin = $superAdmin || $admin;
-
-                    if ($item instanceof Grant && $covers) {
-                        $matching[] = $item;
-                    }
-                    $trace->record('contribution', 'qualified', $source::class);
-                }
-            }
-            $frame = $frame->withAuthority($matching, $superAdmin);
-
         }
 
         try {
@@ -198,9 +86,150 @@ final readonly class AuthorityStage
         if ($definition->authority === PermissionAuthority::Grants && ! $qualified) {
             return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
         }
-        $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($superAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
+        $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($frame->qualifiedSuperAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
 
-        return [$frame, Decision::allow($reason, $frame->state(), $frame->scope(), grants: $request->isTraced() ? $matching : [])];
+        return [$frame, Decision::allow($reason, $frame->state(), $frame->scope(), grants: $request->isTraced() ? $frame->matchingGrants() : [])];
+    }
+
+    /** @return array{EvaluationFrame,bool,?Decision} */
+    public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, Trace $trace): array
+    {
+        $matching = [];
+        $superAdmin = false;
+        $qualified = false;
+
+        try {
+            $contributions = $frame->readAttempt?->contributions($request, $frame);
+
+            if ($contributions === null) {
+                $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
+                $contributions = [];
+                foreach ($sources->all() as ['source' => $source]) {
+                    if ($source instanceof FolderSource) {
+                        $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
+                    }
+
+                    [$items, $frame] = $this->readSource($source, $request, $frame);
+                    foreach ($items as $item) {
+                        $contributions[] = [$source, $item];
+                    }
+                }
+            }
+            foreach ($contributions as [$source, $item]) {
+                if ($item instanceof Grant) {
+                    PermissionGrammar::assertPattern($item->pattern->local());
+                }
+
+                if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $frame->acceptsContributionScope($item->scope)) {
+                    throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
+                }
+            }
+        } catch (Throwable $error) {
+            $component = isset($source) ? $source::class : 'sources';
+            $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
+            $trace->error('authority', $reason->value, $component, $error);
+
+            return [$frame, false, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
+        }
+        foreach ($contributions as [$source,$item]) {
+            if (! $item->activeAt($frame->now())) {
+                $trace->record('contribution', 'expired', $source::class);
+
+                continue;
+            }
+            $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
+
+            if (! $item->scope->tenant->equals($frame->scope()->tenant)
+                && ($roleDefinition === null || ! in_array($roleDefinition['class'], $frame->panel()->tenants()->globalRoles(), true))) {
+                $trace->record('contribution', 'global_role_not_allowed', $source::class);
+
+                continue;
+            }
+
+            $automatic = $item instanceof RoleContribution && $source instanceof FolderSource && $roleDefinition !== null
+                && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
+
+            if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
+                $current = null;
+                foreach ($catalog->roles() as $candidate) {
+                    if (in_array($item->role->key(), $candidate['former_keys'], true)) {
+                        $current = $candidate['key'];
+
+                        break;
+                    }
+                }
+                $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
+                $trace->record('contribution', $reason, $source::class);
+                Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
+
+                continue;
+            }
+
+            if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {
+                $trace->record('contribution', 'role_scope_not_accepted', $source::class);
+
+                continue;
+            }
+
+            try {
+                $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
+
+                if ($role !== null && ! $role instanceof BaseRole) {
+                    throw new RuntimeException('Role resolver did not return BaseRole.');
+                }
+                $branch = $frame->forContribution($item, $role);
+                $passes = true;
+                foreach ($frame->panel()->grantConditions() as $declared) {
+                    $condition = is_string($declared) ? $this->container->make($declared) : $declared;
+
+                    if (! $condition instanceof GrantCondition) {
+                        throw new RuntimeException('Condition resolver did not return GrantCondition.');
+                    }
+
+                    if (! $condition->allows($item, $request, $branch)) {
+                        $passes = false;
+
+                        break;
+                    }
+                }
+            } catch (Throwable $error) {
+                $component = isset($condition) ? $condition::class : $source::class;
+                $trace->error('condition', 'condition_error', $component, $error);
+
+                return [$frame, false, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component)];
+            }
+
+            if (! $passes) {
+                $trace->record('contribution', 'condition_false', $source::class);
+
+                continue;
+            }
+            $admin = $this->superAdmin($roleDefinition);
+            $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
+
+            if ($item instanceof RoleContribution) {
+                foreach ($roleDefinition['permissions'] as $pattern) {
+                    $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
+                }
+            }
+
+            if ($admin || $covers) {
+                $qualified = true;
+                $superAdmin = $superAdmin || $admin;
+
+                if ($item instanceof Grant && $covers) {
+                    $matching[] = $item;
+                }
+                $trace->record('contribution', 'qualified', $source::class);
+
+                if ($admin && $roleDefinition['permissions'] === []) {
+                    $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
+                }
+            }
+        }
+        $frame = $frame->withAuthority($matching, $superAdmin);
+
+        return [$frame, $qualified, null];
     }
 
     /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */
