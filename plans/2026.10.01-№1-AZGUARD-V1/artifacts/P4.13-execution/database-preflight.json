@@ -1,0 +1,45 @@
+{
+  "connections": {
+    "postgres": {
+      "database": "azguard_test",
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 5432,
+          "published": "5432",
+          "protocol": "tcp"
+        }
+      ],
+      "isolated_suffix": true
+    },
+    "mysql": {
+      "database": "azguard_test",
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 3306,
+          "published": "3306",
+          "protocol": "tcp"
+        }
+      ],
+      "isolated_suffix": true
+    },
+    "mariadb": {
+      "database": "azguard_test",
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 3306,
+          "published": "3307",
+          "protocol": "tcp"
+        }
+      ],
+      "isolated_suffix": true
+    }
+  },
+  "scalar_sqlite": ":memory:",
+  "testcase": "tests/TestCase.php guard asserts *_test before any SQL"
+}

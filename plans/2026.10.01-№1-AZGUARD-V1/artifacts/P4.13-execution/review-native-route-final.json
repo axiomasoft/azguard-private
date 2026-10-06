@@ -1,0 +1,10 @@
+{
+  "info": {
+    "id": "d260b1f5-e57d-4939-acdd-29015c5233f6",
+    "cwd": "/tmp/azguard-p413-review-d260b1f5-e57d-4939-acdd-29015c5233f6"
+  },
+  "current_model_id": "grok-4.7",
+  "reasoning_effort": "high",
+  "sandbox_profile": "off",
+  "session_kind": "headless"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "V7",
+  "argv": [
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "--configuration=/tmp/azguard-p413-types.xml",
+    "--type-coverage",
+    "--min=98",
+    "--compact"
+  ],
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:"
+  },
+  "exit_code": 0,
+  "duration_seconds": 0.21
+}

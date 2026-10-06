@@ -1,0 +1,196 @@
+{
+  "verdict": "GREEN",
+  "validation_verdict": "RED",
+  "findings": [
+    {
+      "id": "P413-V4-PINT",
+      "severity": "minor",
+      "location": "tests/Acceptance/Crm/ContextRolesTest.php:28",
+      "source": "contracts/P4.13.json Validation V4 (vendor/bin/pint --test); pint.json trailing_comma_in_multiline includes match and arguments",
+      "scenario": "Executor V4 exit 1. validation/V4.log reports fixer trailing_comma_in_multiline on tests/Acceptance/Crm/ContextRolesTest.php. The only missing trailing comma is the R09 match default arm at line 28 after 'analyst'. The executor scratch Pint copy changes exactly that one comma. World::compile() at lines 123-127 already has a trailing comma.",
+      "impact": "The lint acceptance gate fails. Runtime authorization is unchanged. P4.13 cannot be accepted while this gate is red.",
+      "owning_item": "P4.15",
+      "history": [
+        {
+          "id": "P413-V4-PINT",
+          "severity": "minor",
+          "location": "tests/Acceptance/Crm/ContextRolesTest.php:28",
+          "source": "contracts/P4.13.json Validation V4 (vendor/bin/pint --test); pint.json trailing_comma_in_multiline includes match and arguments",
+          "scenario": "Executor V4 exit 1. validation/V4.log reports fixer trailing_comma_in_multiline on tests/Acceptance/Crm/ContextRolesTest.php. The multiline match at line 28 has no trailing comma after the default arm; the sibling match at line 34 does. The multiline World::compile() argument at lines 123-127 is the same fixer.",
+          "impact": "The lint acceptance gate fails. Runtime authorization is unchanged. P4.13 cannot be accepted while this gate is red.",
+          "owning_item": "P4.15"
+        }
+      ]
+    }
+  ],
+  "checklist": [
+    {
+      "dimension": "Stage order, fail-closed, source order, source errors not hidden",
+      "status": "pass",
+      "evidence": "AccessPipeline.php:31-67 resolves restrictions, then boundary, before, authority, restrictions only on Allow, then confirm, then after. BeforeStage.php:41-47 returns only Deny or HookError; BeforeResult has Continue/Deny only. AfterStage.php:34-36 logs and does not replace the decision. AuthorityStage.php:103-140 and ReadAttempt.php:82-146 read every grant source before qualification; a throwable becomes SourceError or ConsistencyError for the whole decision. EnginePropertiesTest P8/P12 and CRM SourcesTest R44 passed in V1."
+    },
+    {
+      "dimension": "PolicyOnly reads no assignment state; policy true cannot replace grants",
+      "status": "pass",
+      "evidence": "PrepareStage.php:131-133 opens ReadAttempt only for Grants. PolicyDecider.php:80-90 denies false/null Policy and Grants false; a bool true or an unqualified allow Response does not Allow. AuthorityStage.php:51-89 qualifies only Grants, then membership, then policy veto, then NotGranted. CRM AuthorityModesTest R61 recorded zero SQL on a connection that aborts every statement and a CodeStateToken; R62/R63 deny policy-true and superadmin substitutes for a missing grant or a PolicyOnly veto."
+    },
+    {
+      "dimension": "Scope, exact expiry, conditions and role filters AND per witness; contributions OR",
+      "status": "pass",
+      "evidence": "Grant.php:93-96 and RoleContribution.php:59-62 treat expiresAt == now as expired. AuthorityStage.php:142-248 skips a witness on expiry, scope, eligibility or any false condition, and sets qualified only after that witness passes; a condition or eligibility throwable denies the decision. ScopeEligibility.php:61-87 AND-combines matching role filters, then the external adapter. forContribution keeps that grant and role. CRM R11/R13/R14 use literal DecisionReason expectations; mutations.json shows AND-to-OR and seller-filter removal fail those tests."
+    },
+    {
+      "dimension": "Four scope policies, resource/tenant owner, global ordinary, invalid refs",
+      "status": "pass",
+      "evidence": "EvaluationFrame.php:69-91: isolated or global context queries only the selected scope; inherit/required add tenant-wide; allowGlobalRoles also queries the global tenant. BoundaryStage.php:48-118 and 130-157 deny TenantRequired, TenantMismatch, AssignmentScopeMismatch, ResourceScopeMissing, AssignmentScopeRequired and AssignmentScopeNotAccepted, including an explicit tenant/context that disagrees with the resource owner. AuthorityStage.php:150-154 drops a non-matching tenant unless the role class is allowlisted. ScopePropertiesTest P4 covers the 12-cell table; P13 covers foreign and ordinary global grants."
+    },
+    {
+      "dimension": "Superadmin only in Grants, after witness qualification, without implicit exemptions",
+      "status": "pass",
+      "evidence": "qualify() is Grants-only. Superadmin is set at AuthorityStage.php:227-238 only after expiry, role identity, scope, eligibility and conditions. MembershipRestriction.php:64-66 returns exemptsSuperAdmin false and AuthorityStage.php:60-66 always applies it. RestrictionStage.php:75-78 skips a restriction only when that restriction exempts. Owner and common eligibility run in BoundaryStage before authority. isSuperAdmin uses the same qualify path and is not an access decision. SuperAdminTest and CRM R17 passed in V1."
+    },
+    {
+      "dimension": "Early raw T_before/T_after including dynamic Prepare overlay, max 3 whole-attempt retries",
+      "status": "pass",
+      "evidence": "ReadAttempt.php:202-247 records state in begin() before permissions or assignments; catalog() uses that same attempt. confirm() at 149-175 re-reads materialized fenced sources and throws ReadAttemptChanged. Authorizer.php:83-93 retries the whole prepare/evaluate on attempt 0 and 1 and returns ConsistencyError on attempt 2. PrepareStage.php:98-110 rethrows ReadAttemptChanged from the dynamic overlay. DatabaseSource readPermissions/readAssignments used by the engine are unfenced; the attempt owns the fence. Cache freshness, Redis, replica and transaction protocols stay with P4.14/P4.20/P4.21."
+    },
+    {
+      "dimension": "Unknown, former and NotGrantable role keys grant nothing; no FQCN storage",
+      "status": "pass",
+      "evidence": "PermissionGrammar.php:59-62 role keys match a panel-id pattern, so a class name cannot be a key. RoleGrant.php:20-22 builds RoleKey from the stored role string. AuthorityStage.php:160-172 continues with former_role_key, unknown_role or not_grantable_role; only a FolderSource GrantedAutomatically contribution may bypass grantable=false. RoleCompiler.php:181-186 rejects PolicyOnly permissions on a role. CRM R66 and DatabaseReadsTest malformed-identity SourceError passed in V1."
+    },
+    {
+      "dimension": "Built-in sources stay inside the D15 section 7 allowlist; arch checks are effective",
+      "status": "pass",
+      "evidence": "D15 section 7 allows Contracts, public Kernel values, Panel/PanelCatalog, BaseRole, PermissionDefinition/PolicyBinding, public scope values, and Storage only for DatabaseSource. AuthorizationArchTest.php:9-18 forbids AzGuard\\Authorization under Sources and proves a scratch source importing Authorizer goes red. ZonesArchTest.php:155-169 and 266-270 keep Storage off every source except Database. Arch executor result: 72 tests, 314 assertions, exit 0."
+    },
+    {
+      "dimension": "Generic model=null resolution does not query; typed, native and external DI is correct",
+      "status": "pass",
+      "evidence": "BoundaryStage.php:94 calls definition->resolve() and does not call query(). ScopeEligibility.php:96-101 returns before EligibilityBuilder when there are no native filters; ScopeConfiguration.php:34-35 rejects native filters on model=null. EligibilityBuilder.php:39-67 gives each filter a fresh nested predicate and RuntimeInvoker named user/role/grant/actor inputs. RuntimeInvoker.php:64-67 refuses to let the container invent a Model. CRM ExternalScopeTest R19 and RuntimeInputsTest required-user denial passed in V1."
+    },
+    {
+      "dimension": "CRM controls are literal, V15 in-slice properties are present, residuals are explicit",
+      "status": "pass",
+      "evidence": "CrmWorld.php:145-151 asserts a caller-supplied allow flag and DecisionReason, not a recomputed decision. Mutations R11/R13/R14 changed production copies in scratch only and the mutants failed. EnginePropertiesTest and ScopePropertiesTest contain P1-P8, P10-P13 and P15. P9, P14 and P16 remain named for P4.11, P4.23 and P4.20 in D14 section 7. Malformed dynamic rows, single-pass generators, Fiber-local CurrentContext/WithinContext finally, and per-contribution condition frames were inspected and do not show a blocker or major."
+    }
+  ],
+  "checks": {
+    "V1": "pass exit 0; scoped core Pest as listed in validation/qualification-summary.json; validation/V1.log 2529 passed, 372805 assertions, --fail-on-skipped; this review did not rerun it",
+    "V2": "not executed separately; owner instruction says the merged V1 run covers it",
+    "V4": "RED exit 1; validation/V4.json and V4.log; Pint trailing_comma_in_multiline on tests/Acceptance/Crm/ContextRolesTest.php",
+    "V5": "pass exit 0; validation/V5.log PHPStan errors 0; turbo extension warning is environmental and analysis finished",
+    "V6": "pass exit 0; validation/V6.json php bin/api-manifest.php --check",
+    "V7": "Fresh no-cache native process exit0,205 core files,99.8%; V7-fresh.json/log/type-report; initial cached receipt retained.",
+    "V8": "pass exit 0; validation/V8.json git status --porcelain -- packages tests bin produced no diff output",
+    "arch": "pass exit 0; validation/arch.log 72 tests, 314 assertions",
+    "engines": "pass exit 0 on pgsql, mysql and mariadb; each log 14 tests, 130 assertions, DatabaseSourceEngineTest and ScopedSourceIntegrationTest, --fail-on-skipped",
+    "mutations": "pass exit 0; validation/mutations.log scratch R11/R13/R14 controls exit 0 and mutants exit 1; production_modified false",
+    "product": "validation/qualification-summary.json product_unchanged true",
+    "not_run_by_reviewer": "No tests, Pint, PHPStan, arch, engines or mutations were run in this session"
+  },
+  "residual_owners": {
+    "P4.8": "Permission-set cache key, freshness and invalidation; present in the tree but not a slice defect here",
+    "P4.9": "decideMany batch",
+    "P4.10": "explain",
+    "P4.11": "Gate bridge and V15 P9; V27",
+    "P4.12": "visibleTo integration",
+    "P4.14": "final review after P4.23, including cache freshness",
+    "P4.20": "withinAuthorityTransaction, touch, incarnation; V15 P16",
+    "P4.21": "cache races, Redis, replica lag, V43/V46",
+    "P4.22": "AccessPredicate compiler",
+    "P4.23": "CRM list/count/EXPLAIN parity; V15 P14",
+    "P5.2_P5.3": "FormerKeys migration and NotGrantable write rejection; V10",
+    "P5.1_P6.1_P6.2": "SubjectAccess trait, facade, middleware; panel admission",
+    "P6.4_P6.6_P7_P8": "doctor V11, reset/restore, UI, installed external consumer/version matrix"
+  },
+  "reviewed_files": [
+    "contracts/P4.13.json",
+    "contracts/D14.json",
+    "contracts/D15.json",
+    "contracts/D16.json",
+    "contracts/brief-P4-acceptance-matrix.md.json",
+    "diff/stat.txt",
+    "validation/qualification-summary.json",
+    "validation/V1.log",
+    "validation/V4.log",
+    "validation/V4.json",
+    "validation/V5.log",
+    "validation/V6.json",
+    "validation/V7.json",
+    "validation/V7-fresh.log",
+    "validation/V8.json",
+    "validation/arch.log",
+    "validation/engine-pgsql.log",
+    "validation/engine-mysql.log",
+    "validation/engine-mariadb.log",
+    "validation/mutations.json",
+    "validation/mutations.log",
+    "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+    "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+    "packages/core/src/Authorization/Authorizer.php",
+    "packages/core/src/Authorization/ReadAttempt.php",
+    "packages/core/src/Authorization/EvaluationFrame.php",
+    "packages/core/src/Authorization/ScopeEligibility.php",
+    "packages/core/src/Authorization/Pipeline/AccessPipeline.php",
+    "packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/AfterStage.php",
+    "packages/core/src/Authorization/Query/EligibilityBuilder.php",
+    "packages/core/src/Policies/PolicyDecider.php",
+    "packages/core/src/Policies/RuntimeInvoker.php",
+    "packages/core/src/Catalog/PanelCatalog.php",
+    "packages/core/src/Catalog/RoleCompiler.php",
+    "packages/core/src/Panels/PanelBuilder.php",
+    "packages/core/src/Sources/Database/DatabaseSource.php",
+    "packages/core/src/Sources/Relation/RelationSource.php",
+    "packages/core/src/Sources/Folder/FolderSource.php",
+    "packages/core/src/Storage/StorageReadSession.php",
+    "packages/core/src/Storage/Models/RoleGrant.php",
+    "packages/core/src/Kernel/Decision/Grant.php",
+    "packages/core/src/Kernel/Decision/RoleContribution.php",
+    "packages/core/src/Kernel/Grammar/PermissionGrammar.php",
+    "packages/core/src/Scopes/AssignmentScopePolicy.php",
+    "packages/core/src/Scopes/TenantPolicy.php",
+    "packages/core/src/Scopes/MembershipRestriction.php",
+    "packages/core/src/Scopes/BaseAssignmentScope.php",
+    "packages/core/src/Scopes/WithinContext.php",
+    "packages/core/src/Scopes/CurrentContext.php",
+    "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+    "tests/Arch/AuthorizationArchTest.php",
+    "tests/Arch/ZonesArchTest.php",
+    "tests/Acceptance/Crm/AuthorityModesTest.php",
+    "tests/Acceptance/Crm/ContextRolesTest.php",
+    "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+    "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+    "tests/Fixtures/Crm/CrmWorld.php",
+    "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+    "audits/2026-09-29-audit/opus/14-verification.md",
+    "contracts/P4.1.json",
+    "contracts/P4.2.json",
+    "contracts/P4.3.json",
+    "contracts/P4.4.json",
+    "contracts/P4.5.json",
+    "contracts/P4.6.json",
+    "contracts/P4.7.json",
+    "contracts/P4.15.json",
+    "contracts/P4.16.json",
+    "contracts/P4.17.json",
+    "contracts/P4.18.json",
+    "contracts/P4.19.json",
+    "tests/Acceptance/Crm/README.md"
+  ],
+  "explain": "Code verdict stays GREEN: the added audits and twelve owner contracts do not add a blocker or major against the already-reviewed implementation. validation_verdict stays RED. Executor V4 Pint exited 1 on trailing_comma_in_multiline, and a failed gate cannot be called GREEN, so overall acceptance remains blocked. The only product-file style miss is ContextRolesTest.php:28; it does not change allow or deny. Fresh no-cache V7 was explicitly captured at process exit 0, 205 core files, 99.8%, with no product edits; the earlier 0.21s V7 figure was the plugin-cache run. This session did not rerun gates, edit code, or start a new audit.",
+  "input_completeness": {
+    "status": "complete",
+    "prior_omission": "The first report did not read 17-crm-acceptance-tests.md, 14-verification.md, or contracts/P4.1-P4.7 and P4.15-P4.19. That was a review-input gap, not a product defect.",
+    "compared": "In-scope acceptance and residual ownership in those documents match the already-reviewed core, CRM tests, README residual table, and executor evidence. No additional blocker or major.",
+    "crm": "17 §3 requires literal ids and reasons and forbids an oracle that calls the production helper. 17 §4 says cases grow with owning items, skipped is not passed, and full R01-R68 is later. P4.15 owns the early scalar set (R01, R02, R06, R09-R14, R16, R17, R20-R22, R44, R61, R62, R65 read, plus R15, R18, R19, R47, R50, R57, R67). README marks that set exercised and names later owners for partial and future rows. Missing list, write, cache, HTTP, UI, and P8.7 rows are residuals.",
+    "verification": "14 is a future-requirement dossier, later corrected by D14, D15, and the item contracts. In-slice rows stay with P4.1-P4.7 and P4.15-P4.19. V15 P1-P8, P10-P13, and P15 stay with P4.16. P9 is P4.11, P14 is P4.23, and P16 is P4.20. Doctor, rename-key, touch, Gate, visibility, cache, transaction, and the installed consumer matrix stay outside this slice.",
+    "owners": "P4.1 pipeline and fail-closed; P4.2 unknown, former, and NotGrantable zero authority and no FQCN storage; P4.3 PolicyDecider; P4.4 fenced DatabaseSource reads; P4.5 RelationSource; P4.6 boundary and model=null resolve; P4.7 qualified superadmin; P4.15 scalar CRM; P4.16 V15 properties; P4.17 dynamic overlay; P4.18 scoped end-to-end; P4.19 filters and DI. Each exclude list matches the residuals already recorded.",
+    "out_of_scope": "P4.8 and later future APIs remain outside scope and are not slice defects."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "V7-fresh",
+  "argv": [
+    "php",
+    "-d",
+    "variables_order=EGPCS",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "--configuration=/tmp/azguard-p413-types.xml",
+    "--type-coverage",
+    "--min=98",
+    "--no-cache",
+    "--type-coverage-json=plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.13-execution/V7-type-report.json"
+  ],
+  "environment": {
+    "__PEST_PLUGIN_ENV": "1",
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite"
+  },
+  "exit_code": 0,
+  "duration_seconds": 8.67,
+  "reason": "Capture native PHP exit explicitly, first fresh wrapper masked child exit with trailing report-printer",
+  "reported_files": 205,
+  "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.13-execution/V7-fresh-receipt.log"
+}

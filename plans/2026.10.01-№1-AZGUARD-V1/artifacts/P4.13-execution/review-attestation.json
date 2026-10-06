@@ -1,0 +1,45 @@
+{
+  "session": "d260b1f5-e57d-4939-acdd-29015c5233f6",
+  "actual_route": {
+    "provider": "grok",
+    "model": "grok-4.7",
+    "effort": "high"
+  },
+  "independent_fresh_initial_session": true,
+  "supplement_same_native_session": true,
+  "no_context_parameter": true,
+  "tools_allowlisted": [
+    "read_file",
+    "grep",
+    "list_dir"
+  ],
+  "native_extra_tools": [
+    "search_tool",
+    "use_tool"
+  ],
+  "native_mcp_tool_calls_observed": 0,
+  "no_tests_or_writes_by_reviewer": true,
+  "code_green_acceptance_red": true,
+  "product_unchanged": true,
+  "auto_compaction_during_supplement": true,
+  "initial_model_usage": {
+    "grok-4.7-build": {
+      "inputTokens": 193387,
+      "outputTokens": 54554,
+      "cacheReadInputTokens": 2689536,
+      "cacheCreationInputTokens": 0,
+      "modelCalls": 29,
+      "costUSD": 0.70001444
+    }
+  },
+  "supplement_model_usage": {
+    "grok-4.7-build": {
+      "inputTokens": 227785,
+      "outputTokens": 9447,
+      "cacheReadInputTokens": 997248,
+      "cacheCreationInputTokens": 0,
+      "modelCalls": 9,
+      "costUSD": 0.41856516
+    }
+  }
+}

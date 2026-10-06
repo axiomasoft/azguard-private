@@ -1,0 +1,22 @@
+{
+  "id": "engine-mysql",
+  "argv": [
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Engines/DatabaseSourceEngineTest.php",
+    "tests/Engines/ScopedSourceIntegrationTest.php",
+    "--fail-on-skipped",
+    "--compact"
+  ],
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "mysql",
+    "DB_DATABASE": ":memory:",
+    "MYSQL_PORT": "23306",
+    "MYSQL_DATABASE": "azguard_test"
+  },
+  "exit_code": 0,
+  "duration_seconds": 10.51
+}

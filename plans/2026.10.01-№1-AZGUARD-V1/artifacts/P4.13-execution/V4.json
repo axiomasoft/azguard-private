@@ -1,0 +1,20 @@
+{
+  "id": "V4",
+  "argv": [
+    "vendor/bin/pint",
+    "--test",
+    "packages/core",
+    "tests/Acceptance/Crm",
+    "tests/Feature/Authorization",
+    "tests/Feature/Scopes",
+    "tests/Feature/Sources",
+    "tests/Fixtures/Crm"
+  ],
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:"
+  },
+  "exit_code": 1,
+  "duration_seconds": 5.76
+}
