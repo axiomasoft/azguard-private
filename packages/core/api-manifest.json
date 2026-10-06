@@ -273,6 +273,58 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Authorization\\FiltersAccessQueries",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "predicate",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resourceType",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contribution",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\AccessPredicate"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Authorization\\GrantCondition",
             "kind": "interface",
             "final": false,
@@ -3449,6 +3501,421 @@
             "constants": [],
             "properties": [],
             "methods": [],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Kernel\\Decision\\AccessPredicate",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "contribution",
+                    "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "identifier",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "operands",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "operation",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "values",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "all",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "predicates",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "any",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "predicates",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "assertBoolean",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "assertContribution",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "contribution",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertPartition",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "before",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "beforePartition",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "deny",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "pass",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "beforeResult",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "result",
+                            "type": "AzGuard\\Kernel\\Decision\\BeforeResult",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "branch",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "contribution",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "predicate",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "deny",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "eq",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "value",
+                            "type": "string|int|float|bool|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "exists",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "relation",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "predicate",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "gte",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "value",
+                            "type": "string|int|float|bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "in",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "values",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isNull",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isSupported",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "lt",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "value",
+                            "type": "string|int|float|bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "not",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "predicate",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "notNull",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "outcome",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "outcome",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "partition",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "allow",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "deny",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "abstain",
+                            "type": "self",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "pass",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "policyResult",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "result",
+                            "type": "?bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "unsupported",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                }
+            ],
             "stability": "api",
             "via": "location"
         },

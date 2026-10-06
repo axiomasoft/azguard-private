@@ -1,0 +1,6 @@
+{
+  "id": "V8",
+  "command": "composer api:manifest",
+  "exit_code": 0,
+  "evidence": "Observed exec 492ba9: updated packages/core/api-manifest.json; already generated before V7."
+}

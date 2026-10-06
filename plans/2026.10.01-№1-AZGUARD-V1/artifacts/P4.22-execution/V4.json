@@ -1,0 +1,6 @@
+{
+  "id": "V4",
+  "command": "vendor/bin/pint --test packages/core/src/Authorization/Query/PredicateCompiler.php tests/Feature/Visibility/PredicateCompilerTest.php",
+  "exit_code": 0,
+  "elapsed_seconds": 0.124
+}

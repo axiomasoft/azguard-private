@@ -1,0 +1,6 @@
+{
+  "id": "V3",
+  "command": "vendor/bin/pest tests/Arch",
+  "exit_code": 255,
+  "elapsed_seconds": 2.723
+}

@@ -1,0 +1,6 @@
+{
+  "id": "V2",
+  "command": "vendor/bin/pest tests/Unit/Kernel tests/Unit/Contracts tests/Feature/Policies tests/Feature/Scopes/NativeBuilderTest.php tests/Feature/Authorization/AuthorityDispatchTest.php --fail-on-skipped",
+  "exit_code": 0,
+  "elapsed_seconds": 2.711
+}

@@ -1,0 +1,6 @@
+{
+  "id": "V5",
+  "command": "vendor/bin/phpstan analyse packages/core/src/Authorization/Query/PredicateCompiler.php --memory-limit=1G --no-progress",
+  "exit_code": 0,
+  "elapsed_seconds": 1.109
+}

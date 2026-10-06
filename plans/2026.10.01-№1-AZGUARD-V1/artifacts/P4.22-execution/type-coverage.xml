@@ -1,0 +1,29 @@
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="/home/vostrikov/projects/packages/azguard/vendor/autoload.php" colors="true" executionOrder="random" failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true">
+    <testsuites>
+        <testsuite name="Acceptance">
+            <directory>tests/Acceptance</directory>
+        </testsuite>
+        <testsuite name="Arch">
+            <directory>tests/Arch</directory>
+        </testsuite>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Regression">
+            <directory>tests/Regression</directory>
+        </testsuite>
+        <testsuite name="Engines">
+            <directory>tests/Engines</directory>
+        </testsuite>
+    </testsuites>
+
+    <source><include><directory>/home/vostrikov/projects/packages/azguard/packages/core/src/Kernel/Decision</directory><directory>/home/vostrikov/projects/packages/azguard/packages/core/src/Contracts/Authorization</directory><directory>/home/vostrikov/projects/packages/azguard/packages/core/src/Authorization/Query</directory></include></source><php>
+        <env name="APP_ENV" value="testing" />
+        <env name="CACHE_DRIVER" value="array" />
+        <env name="DB_CONNECTION" value="sqlite" />
+        <env name="DB_DATABASE" value=":memory:" />
+    </php>
+</phpunit>

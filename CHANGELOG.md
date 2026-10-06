@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **core:** Exact query SPI `FiltersAccessQueries` and pure `AccessPredicate` describe bound comparisons, logical/EXISTS trees, policy and before partitions, and complete contribution witnesses. `PredicateCompiler` validates model columns and typed relations, normalizes SQL NULL, and adds an atomic nested AND constraint; unsupported trees and unsafe host roots fail before resource execution.
+
 - **core:** `Authorizer::explain()` and readonly `Kernel\Decision\Explanation` capture one evaluation, contribution origins/qualification, skipped stages and scalar scope/state; nested secrets and matching message values are redacted. `azguard:explain` prints JSON or a step table without publishing cold diagnostic cache reads (P4.10).
 - **core:** Authoritative `Laravel\Gate\GateBridge` uses the common resolver/pipeline for registered full/prefix names, local static/dynamic names and indexed model abilities; owned denial is final, ambiguous pairs deny, foreign abilities fall through. `toGateResult()` preserves policy Response details. P03/P09, Blade and 200 seeded P9 parity cover current surfaces; earlier host Gate::before callbacks remain an integration constraint (P4.11).
 
