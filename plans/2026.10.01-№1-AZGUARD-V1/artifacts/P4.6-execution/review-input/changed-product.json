@@ -1,0 +1,187 @@
+{
+  "base_commit": "ed3e19c086171c3e7deb9fa56670ee416436194f",
+  "candidate_sha256": "e4a4f99931a450225c567e2a86b0f3a91e6de06b2d32a9bad70b8931abcb1af8",
+  "files": [
+    {
+      "status": "M",
+      "path": "CHANGELOG.md"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/api-manifest.json"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Authorization/EvaluationFrame.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Authorization/ReadAttempt.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/AzGuardServiceProvider.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Catalog/RoleCompiler.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Panels/Panel.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Panels/PanelBuilder.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Panels/PanelCompiler.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Panels/PanelFingerprint.php"
+    },
+    {
+      "status": "M",
+      "path": "packages/core/src/Panels/PanelRecipe.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/AssignmentScopePolicy.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/CurrentContext.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/MembershipRestriction.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/ModelAssignmentScopeDefinition.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/ModelTenantDefinition.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/TenantPolicy.php"
+    },
+    {
+      "status": "A",
+      "path": "packages/core/src/Scopes/WithinContext.php"
+    },
+    {
+      "status": "M",
+      "path": "tests/Feature/Catalog/CatalogCacheTest.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Feature/Scopes/MembershipTest.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Feature/Scopes/ResourceScopeTest.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Feature/Scopes/ScopePolicyBuildTest.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Feature/Scopes/ScopeTableTest.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Feature/Scopes/WithinContextTest.php"
+    },
+    {
+      "status": "M",
+      "path": "tests/Fixtures/Panels/PanelModuleProvider.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/ContextMembership.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/Membership.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/Organization.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/ReaderRole.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/ScopeSource.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/ScopeWorld.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/ScopedResource.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/StoreScope.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/TenantDynamicSource.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Fixtures/Scopes/WideReaderRole.php"
+    },
+    {
+      "status": "M",
+      "path": "tests/Fixtures/Sources/Relation/RelationWorld.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Regression/P06Test.php"
+    },
+    {
+      "status": "A",
+      "path": "tests/Regression/P06bTest.php"
+    },
+    {
+      "status": "M",
+      "path": "tests/Regression/specs/P06.md"
+    },
+    {
+      "status": "M",
+      "path": "tests/Regression/specs/P06b.md"
+    },
+    {
+      "status": "M",
+      "path": "tests/Unit/Catalog/RoleCompilerTest.php"
+    },
+    {
+      "status": "M",
+      "path": "tests/Unit/Panels/PanelRegistryTest.php"
+    }
+  ],
+  "deleted": []
+}

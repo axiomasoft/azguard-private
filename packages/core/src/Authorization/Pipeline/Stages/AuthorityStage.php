@@ -26,6 +26,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Scopes\MembershipRestriction;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
@@ -65,7 +66,7 @@ final readonly class AuthorityStage
                     }
                 }
                 foreach ($contributions as [$source, $item]) {
-                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $item->scope->equals($frame->scope())) {
+                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id()) || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $frame->acceptsContributionScope($item->scope)) {
                         throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
                     }
                 }
@@ -99,6 +100,12 @@ final readonly class AuthorityStage
                     $reason = $current !== null ? 'former_role_key' : ($roleDefinition === null ? 'unknown_role' : 'not_grantable_role');
                     $trace->record('contribution', $reason, $source::class);
                     Log::notice('AzGuard ignored role contribution.', ['component' => $source::class, 'reason' => $reason, 'role' => $item->role->full(), 'current_key' => $current ?? $roleDefinition['key'] ?? null]);
+
+                    continue;
+                }
+
+                if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {
+                    $trace->record('contribution', 'role_scope_not_accepted', $source::class);
 
                     continue;
                 }
@@ -160,6 +167,21 @@ final readonly class AuthorityStage
         }
 
         try {
+            $membership = new MembershipRestriction($this->container);
+
+            if (($qualified || $definition->authority === PermissionAuthority::Policy)
+                && $membership->check(request: $request, context: $frame)->denied()) {
+                $trace->record('membership', 'restricted', 'membership');
+
+                return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
+            }
+        } catch (Throwable $error) {
+            $trace->error('membership', 'restriction_error', 'membership', $error);
+
+            return [$frame, Decision::deny(reason: DecisionReason::RestrictionError, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
+        }
+
+        try {
             $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
 
             if ($veto !== null) {
@@ -189,7 +211,7 @@ final readonly class AuthorityStage
         }
 
         if ($source instanceof DatabaseSource) {
-            $snapshot = $source->readContributions($request->subject(), [$frame->scope()], $frame);
+            $snapshot = $source->readContributions($request->subject(), $frame->sourceScopes(), $frame);
 
             return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
         }
@@ -199,7 +221,7 @@ final readonly class AuthorityStage
             $items = [];
 
             if ($source instanceof ProvidesGrants) {
-                foreach (PanelCatalog::untrusted($source->grants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
                     if (! $item instanceof Grant) {
                         throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
                     }
@@ -208,7 +230,7 @@ final readonly class AuthorityStage
             }
 
             if ($source instanceof ProvidesRoleGrants) {
-                foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
                     if (! $item instanceof RoleContribution) {
                         throw new InvalidSourceContributionException('Unexpected role contribution type.');
                     }
@@ -228,5 +250,21 @@ final readonly class AuthorityStage
     private function superAdmin(?array $role): bool
     {
         return $role !== null && $role['super_admin'];
+    }
+
+    /** @param CompiledRole $role */
+    private function roleScopeAccepted(array $role, Grant|RoleContribution $contribution): bool
+    {
+        if ($contribution->scope->context->isGlobal()) {
+            return ! $role['scope_required'];
+        }
+
+        foreach ($role['scopes'] as $scope) {
+            if ($scope['type'] === $contribution->scope->context->type()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

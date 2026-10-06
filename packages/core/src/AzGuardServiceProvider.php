@@ -16,6 +16,8 @@ use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Scopes\CurrentContext;
+use AzGuard\Scopes\WithinContext;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\StorageRegistry;
 use Illuminate\Contracts\Foundation\Application;
@@ -51,6 +53,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->singleton(Authorizer::class);
 
         $this->app->scoped(CurrentPanel::class);
+        $this->app->scoped(CurrentContext::class);
+        $this->app->scoped(WithinContext::class);
 
         $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 

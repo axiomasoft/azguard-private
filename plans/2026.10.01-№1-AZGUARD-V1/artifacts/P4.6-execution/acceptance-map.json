@@ -1,0 +1,77 @@
+{
+  "V12": {
+    "tests": [
+      "tests/Feature/Scopes/ScopeTableTest.php",
+      "tests/Feature/Scopes/ResourceScopeTest.php"
+    ],
+    "cases": [
+      "8 table cells x direct/role",
+      "isolated excludes tenant-wide",
+      "one complete witness",
+      "malicious global/foreign contributions rejected",
+      "coherent/fallback scope arrays",
+      "explicit/resource/current precedence",
+      "dynamic source selected tenant"
+    ]
+  },
+  "V13": {
+    "tests": [
+      "tests/Regression/P06Test.php",
+      "tests/Regression/P06bTest.php"
+    ],
+    "cases": [
+      "none ignores unrelated ambient context",
+      "explicit unsupported context rejected"
+    ]
+  },
+  "V14": {
+    "tests": [
+      "tests/Feature/Scopes/WithinContextTest.php"
+    ],
+    "cases": [
+      "nested same/different panel restore",
+      "callback exception restore",
+      "entry resolver rejection/exception restore",
+      "forged identity rejected"
+    ]
+  },
+  "V16": {
+    "tests": [
+      "tests/Feature/Scopes/MembershipTest.php"
+    ],
+    "cases": [
+      "tenant A/B/outsider/error for grant/policy/admin",
+      "context membership opt-in"
+    ]
+  },
+  "V86,V88": {
+    "tests": [
+      "tests/Feature/Scopes/ResourceScopeTest.php"
+    ],
+    "cases": [
+      "required tenant",
+      "authoritative resource owner",
+      "owner mismatch before policy=true/admin",
+      "resolver foreign context/tenant",
+      "external model=null positive no query",
+      "null/exception/forged snapshot"
+    ]
+  },
+  "compile": {
+    "tests": [
+      "tests/Feature/Scopes/ScopePolicyBuildTest.php",
+      "tests/Unit/Catalog/RoleCompilerTest.php"
+    ],
+    "cases": [
+      "missing membership adapter",
+      "unsupported common/role filters fail closed",
+      "registered scope identity",
+      "tenant model shortcut owner required"
+    ]
+  },
+  "residual_owners": {
+    "query_eligibility": "P4.19",
+    "generative_P4_P13": "P4.16",
+    "admin_role_exemptions": "P4.7"
+  }
+}

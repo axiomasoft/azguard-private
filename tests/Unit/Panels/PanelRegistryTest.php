@@ -12,6 +12,7 @@ use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\AdminReplacementPanel;
 use AzGuard\Tests\Fixtures\Panels\AnyIdPanel;
@@ -27,6 +28,7 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
+use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use Illuminate\Support\ServiceProvider;
 
@@ -195,6 +197,7 @@ it('compiles an empty registry', function (): void {
 it('applies configure callbacks as the provider and configureAll callbacks below it, once per panel', function (): void {
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Admin')
         ->permissions([StaticSource::names('clients', 'clients.view', 'clients.update')])
+        ->scopes(AssignmentScopePolicy::inherit(ProjectScope::class))
         ->roles([SellerRole::class]));
     $calls = ['configure' => 0, 'all' => []];
 

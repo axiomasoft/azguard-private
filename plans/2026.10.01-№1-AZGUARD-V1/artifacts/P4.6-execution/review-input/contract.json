@@ -1,0 +1,76 @@
+{
+  "id": "P4.6",
+  "title": "Tenant, AssignmentScope и ресурс в проверке",
+  "summary": "Structural tenant/context/resource boundary 09 §3, политики панели, owner/membership/resolvers/stack cleanup. Query eligibility — P4.19; генеративные P4/P13 — P4.16.",
+  "scope": {
+    "include": [
+      "TenantPolicy и AssignmentScopePolicy APIs по исходному досье, ModelAssignmentScopeDefinition/ModelTenantDefinition, builder/panel policies, compile scopes role checks; BoundaryStage таблица09§3, MembershipRestriction, CurrentContext/WithinContext и resolver calls. Generic structural resolve поддерживает model=null без query. P06/P06b и локальные owner/membership cases."
+    ],
+    "exclude": [
+      "Common/role filters и native/external adapters — P4.19; P4/P13 properties — P4.16; CRM P4.15; admin P4.7; predicates P4.22/P4.12; Assignment/Revocation P5.2/P5.3; lifecycle wrappers P6.2/P6.10."
+    ]
+  },
+  "rules": [
+    "Разрешение scope (09 §3): явный `inTenant`/`on:` запроса → иначе scope ресурса (`resourceScopes` резолвер по классу ресурса либо `ProvidesAccessScope`) → иначе текущий scope этой панели (`CurrentContext`). Явный/текущий tenant должен совпасть с владельцем ресурса (`Deny(TenantMismatch)`), выбранный context — с context ресурса (`Deny(AssignmentScopeMismatch)`); ресурс в tenant-панели без резолвера — `Deny(ResourceScopeMissing)`; tenant-панель без выбранного tenant — `Deny(TenantRequired)`, без fallback на глобальные права. `AssignmentScopeRef` проверяется `AssignmentScopeDefinition::resolve()` (null — `Deny(AssignmentScopeNotAccepted)`; исключение — `Deny(AssignmentScopeFilterError)`; вернувшийся ref/tenant не совпал с запросом — `Deny(AssignmentScopeMismatch)`); тип, которого нет в политике панели, — `Deny(AssignmentScopeNotAccepted)` (явный ref не игнорируется). Scopes для источников по таблице 09 §3: inherit — `[(T, global), (T, C)]`; isolated — `[(T, C)]` при C, `[(T, global)]` при global; required — при global `Deny(AssignmentScopeRequired)`, при C `[(T, global), (T, C)]`; none — `[(T, global)]`, C → `Deny(AssignmentScopeNotAccepted)`. Глобальная (`tenant = global`) ordinary выдача не включается в tenant T ни в одном режиме (P13). Членство: TenantPolicy::required() включает tenant requireMembership по умолчанию; AssignmentScopePolicy::requireMembership() для context опционален. Отсутствие tenant membership адаптера — `DefinitionException` при сборке; не член — `Deny(Restricted, component=membership)`, исключение — `Deny(RestrictionError)`; членство проверяет активное членство, не наличие выдачи. Generic Definition structural resolve никогда не вызывает query, model nullable. До P4.19 unsupported configured filter fail closed DefinitionException, permissive временного пути нет. Allow требует целого witness. `WithinContext::run(Panel, AccessScope, Closure)` восстанавливает прежний scope в `finally`, включая исключение резолвера на входе."
+  ],
+  "guidance": "V12 все строки 09§3/resource precedence; V13 ambient ignored none/explicit rejected, P06/P06b; V14 callback/resolver exception cleanup; V16 membership A/B/outsider/error; V86/V88 owner/missing tenant даже policy true/admin. External Definition resolve model=null positive без Eloquent query. Query V47/V89/V118/V110/V111/V113 — P4.19, properties P4/P13 — P4.16.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Feature/Scopes tests/Feature/Authorization tests/Regression/P06Test.php tests/Regression/P06bTest.php tests/Regression/RegressionSpecsTest.php",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer api:manifest",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Structural boundary/policies/owner/membership/stack, P06/P06b covered, external model-null positive, findings table→test. Eligibility owner P4.19; property owner P4.16."
+  ]
+}

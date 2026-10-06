@@ -1,0 +1,13 @@
+[
+  {
+    "id": "V8",
+    "command": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache",
+    "exit_code": 0,
+    "started_at": "2026-10-06T07:21:19.378887+00:00",
+    "finished_at": "2026-10-06T07:21:28.248725+00:00",
+    "seconds": 8.869838,
+    "candidate_before": "e4a4f99931a450225c567e2a86b0f3a91e6de06b2d32a9bad70b8931abcb1af8",
+    "candidate_after": "e4a4f99931a450225c567e2a86b0f3a91e6de06b2d32a9bad70b8931abcb1af8",
+    "log": "01-V8.log"
+  }
+]

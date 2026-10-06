@@ -1,0 +1,11 @@
+{
+  "command": [
+    "composer",
+    "api:manifest"
+  ],
+  "exit": 0,
+  "started_at": "2026-10-06T07:13:51.110918+00:00",
+  "candidate_before": "b21f3d0df2eec83048b89215a35a1fe3e640a44225068e2b64d1c8a63011eb28",
+  "candidate_after": "91070cc37daece0bfc1d184cbc406797273fd62619b88a6c8502b2c672f395df",
+  "kind": "public scope API manifest completeness"
+}

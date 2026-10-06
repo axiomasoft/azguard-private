@@ -1,0 +1,16 @@
+{
+  "command": [
+    "vendor/bin/pint",
+    "packages/core/src/Scopes/TenantPolicy.php",
+    "packages/core/src/Scopes/AssignmentScopePolicy.php",
+    "packages/core/src/Scopes/ModelAssignmentScopeDefinition.php",
+    "packages/core/src/Scopes/ModelTenantDefinition.php",
+    "packages/core/src/Scopes/WithinContext.php",
+    "packages/core/src/Scopes/CurrentContext.php"
+  ],
+  "exit": 0,
+  "started_at": "2026-10-06T07:13:51.478002+00:00",
+  "candidate_before": "91070cc37daece0bfc1d184cbc406797273fd62619b88a6c8502b2c672f395df",
+  "candidate_after": "91070cc37daece0bfc1d184cbc406797273fd62619b88a6c8502b2c672f395df",
+  "kind": "public scope API manifest completeness"
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "command": [
+      "python3",
+      "/home/vostrikov/projects/packages/swissknifeman/packages/task/scripts/plan.py",
+      "check",
+      "2026.10.01-№1-AZGUARD-V1"
+    ],
+    "exit": 0,
+    "started_at": "2026-10-06T07:20:02.547862+00:00",
+    "log": "01.log"
+  },
+  {
+    "command": [
+      "python3",
+      "/home/vostrikov/projects/packages/swissknifeman/packages/task/scripts/plan.py",
+      "render",
+      "2026.10.01-№1-AZGUARD-V1",
+      "--check"
+    ],
+    "exit": 0,
+    "started_at": "2026-10-06T07:20:02.767693+00:00",
+    "log": "02.log"
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "started_at": "2026-10-06T07:20:02.902201+00:00",
+    "log": "03.log"
+  }
+]

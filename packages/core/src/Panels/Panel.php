@@ -6,11 +6,17 @@ namespace AzGuard\Panels;
 
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
+use AzGuard\Contracts\Scopes\ResourceScopeResolver;
+use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\PanelSources;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -47,7 +53,56 @@ final readonly class Panel
         private array $accessRestrictions = [],
         /** @var list<GrantCondition|class-string<GrantCondition>> */
         private array $conditions = [],
+        private ?TenantPolicy $tenantPolicy = null,
+        private ?AssignmentScopePolicy $scopePolicy = null,
+        /** @var array<string, AssignmentScopeDefinition> */
+        private array $scopeDefinitions = [],
+        /** @var list<TenantResolver|class-string<TenantResolver>> */
+        private array $tenantResolvers = [],
+        /** @var list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>> */
+        private array $scopeResolvers = [],
+        /** @var array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
+        private array $resourceScopes = [],
     ) {}
+
+    public function tenants(): TenantPolicy
+    {
+        return $this->tenantPolicy ?? TenantPolicy::none();
+    }
+
+    public function scopes(): AssignmentScopePolicy
+    {
+        return $this->scopePolicy ?? AssignmentScopePolicy::none();
+    }
+
+    public function scopeDefinition(string $type): ?AssignmentScopeDefinition
+    {
+        return $this->scopeDefinitions[$type] ?? null;
+    }
+
+    /** @return array<string, AssignmentScopeDefinition> */
+    public function scopeDefinitions(): array
+    {
+        return $this->scopeDefinitions;
+    }
+
+    /** @return list<TenantResolver|class-string<TenantResolver>> */
+    public function tenantResolvers(): array
+    {
+        return $this->tenantResolvers;
+    }
+
+    /** @return list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>> */
+    public function scopeResolvers(): array
+    {
+        return $this->scopeResolvers;
+    }
+
+    /** @return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
+    public function resourceScopes(): array
+    {
+        return $this->resourceScopes;
+    }
 
     /** @return list<Closure|class-string> */
     public function before(): array

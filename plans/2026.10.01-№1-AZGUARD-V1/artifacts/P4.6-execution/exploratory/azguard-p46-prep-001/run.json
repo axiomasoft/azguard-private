@@ -1,0 +1,8 @@
+{
+  "command": "composer api:manifest",
+  "exit": 0,
+  "started_at": "2026-10-06T07:07:59.433777+00:00",
+  "candidate_before": "0e0b03376a494dea415f442508e0ea700ac78b6f15a653803c440af43baa8619",
+  "candidate_after": "cbcb8859410b31c557739f37b1581a6cb686c99ff9622888b7b93dba45e72c47",
+  "kind": "preparation"
+}

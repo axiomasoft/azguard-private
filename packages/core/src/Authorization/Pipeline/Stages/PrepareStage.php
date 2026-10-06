@@ -31,7 +31,7 @@ use Throwable;
 
 final readonly class PrepareStage
 {
-    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $resolver, private Container $container) {}
+    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $resolver, private Container $container, private BoundaryStage $boundary) {}
 
     /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
     public function prepare(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null): array
@@ -41,6 +41,10 @@ final readonly class PrepareStage
         }
         $catalog = $this->registry->catalog($panel->id());
         $definition = $catalog->find($request->permission());
+
+        if ($definition === null && ! $catalog->isDynamic()) {
+            $definition = $catalog->get($request->permission());
+        }
         $actor ??= ActorRef::of($request->subject()->type(), $request->subject()->id());
         $now ??= Carbon::now('UTC')->toDateTimeImmutable();
         $subject = $actorModel = null;
@@ -59,16 +63,13 @@ final readonly class PrepareStage
             decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(),
         );
 
+        [$frame, $boundaryDenial] = $this->boundary->resolve(request: $request, frame: $frame, trace: $trace);
+
+        if ($boundaryDenial !== null) {
+            return [$catalog, $definition ?? new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame, $boundaryDenial];
+        }
+
         if ($definition === null && $catalog->isDynamic()) {
-            // Until scoped boundary resolution is installed, reject an explicit tenant/context before authority reads.
-            $reason = ! $frame->scope()->tenant->isGlobal() ? DecisionReason::TenantMismatch
-                : (! $frame->scope()->context->isGlobal() ? DecisionReason::AssignmentScopeNotAccepted : null);
-
-            if ($reason !== null) {
-                return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
-                    Decision::deny($reason, $frame->state(), $frame->scope())];
-            }
-
             if ($error === null) {
                 $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame);
                 $frame = $frame->withReadAttempt($attempt);

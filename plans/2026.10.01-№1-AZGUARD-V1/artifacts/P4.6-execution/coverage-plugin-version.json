@@ -1,0 +1,61 @@
+{
+    "name": "pestphp/pest-plugin-type-coverage",
+    "description": "The Type Coverage plugin for Pest PHP.",
+    "keywords": [
+        "coverage",
+        "framework",
+        "pest",
+        "php",
+        "plugin",
+        "test",
+        "testing",
+        "type-coverage",
+        "unit"
+    ],
+    "type": "library",
+    "homepage": null,
+    "names": [
+        "pestphp/pest-plugin-type-coverage"
+    ],
+    "versions": [
+        "v4.0.4"
+    ],
+    "licenses": [
+        {
+            "name": "MIT License",
+            "osi": "MIT",
+            "url": "https://spdx.org/licenses/MIT.html#licenseText"
+        }
+    ],
+    "source": {
+        "type": "git",
+        "url": "https://github.com/pestphp/pest-plugin-type-coverage.git",
+        "reference": "f485d40ec4e2081f9d3456c00f2c008f145d7896"
+    },
+    "dist": {
+        "type": "zip",
+        "url": "https://api.github.com/repos/pestphp/pest-plugin-type-coverage/zipball/f485d40ec4e2081f9d3456c00f2c008f145d7896",
+        "reference": "f485d40ec4e2081f9d3456c00f2c008f145d7896"
+    },
+    "path": "/home/vostrikov/projects/packages/azguard/vendor/pestphp/pest-plugin-type-coverage",
+    "released": "2026-04-06T14:00:30+00:00",
+    "support": {
+        "source": "https://github.com/pestphp/pest-plugin-type-coverage/tree/v4.0.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pest\\TypeCoverage\\": "src/"
+        }
+    },
+    "requires": {
+        "nunomaduro/pokio": "^1.0.0",
+        "pestphp/pest-plugin": "^4.0.0",
+        "php": "^8.3",
+        "phpstan/phpstan": "^1.12.24|^2.1.46",
+        "tomasvotruba/type-coverage": "^1.0.0|^2.1.0"
+    },
+    "devRequires": {
+        "pestphp/pest": "^4.4.5",
+        "pestphp/pest-dev-tools": "^4.1.0"
+    }
+}

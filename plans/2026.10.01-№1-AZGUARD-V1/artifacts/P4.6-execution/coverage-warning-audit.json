@@ -1,0 +1,24 @@
+{
+  "observed_at": "2026-10-06T07:21:44.105418+00:00",
+  "original_V8_accepted": false,
+  "original_eligible_source_files": 199,
+  "original_printed_files": 181,
+  "warnings": 18,
+  "cause": "Analyser.php139-141 iterates await chunk results without null guard; missing/empty fork IPC returns null; no postProcessedFile means no total aggregation for missing results.",
+  "primary_source": [
+    "vendor/pestphp/pest-plugin-type-coverage/src/Analyser.php:66",
+    "vendor/pestphp/pest-plugin-type-coverage/src/Analyser.php:106",
+    "vendor/pestphp/pest-plugin-type-coverage/src/Analyser.php:139",
+    "vendor/pestphp/pest-plugin-type-coverage/src/Plugin.php:187"
+  ],
+  "correction": "Installed analyser sync path selected with __PEST_PLUGIN_ENV=1 and variables_order=EGPCS; --no-cache ensures complete fresh analysis, unchanged98% threshold and full source scope. No vendor changes.",
+  "serial_validation": {
+    "status": "PASS",
+    "run": "final-005",
+    "unique_processed": 199,
+    "eligible": 199,
+    "missing": [],
+    "warnings": 0
+  },
+  "existing_baseline": "P4.5 original warning run followed by warning-free accepted run; preexisting/intermittent defect does not validate current incomplete run."
+}

@@ -1,0 +1,13 @@
+[
+  {
+    "id": "V2",
+    "command": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+    "exit_code": 1,
+    "started_at": "2026-10-06T07:10:24.733373+00:00",
+    "finished_at": "2026-10-06T07:10:28.324664+00:00",
+    "seconds": 3.591291,
+    "candidate_before": "acb8a3e28898e29f62f289c72b0122b60b1e9965d52a41c8300d60b78fb6d32e",
+    "candidate_after": "acb8a3e28898e29f62f289c72b0122b60b1e9965d52a41c8300d60b78fb6d32e",
+    "log": "01-V2.log"
+  }
+]

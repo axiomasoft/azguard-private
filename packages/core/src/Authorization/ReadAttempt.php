@@ -72,13 +72,13 @@ final class ReadAttempt
             }
 
             if ($source instanceof DatabaseSource) {
-                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), [$frame->scope()], $frame);
+                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
                 $items = [...$snapshot['grants'], ...$snapshot['roles']];
             } else {
                 $items = [];
 
                 if ($source instanceof ProvidesGrants) {
-                    foreach (PanelCatalog::untrusted($source->grants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                    foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
                         if (! $item instanceof Grant) {
                             throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
                         }
@@ -87,7 +87,7 @@ final class ReadAttempt
                 }
 
                 if ($source instanceof ProvidesRoleGrants) {
-                    foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), [$frame->scope()], $frame)) as $item) {
+                    foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
                         if (! $item instanceof RoleContribution) {
                             throw new InvalidSourceContributionException('Unexpected role contribution type.');
                         }

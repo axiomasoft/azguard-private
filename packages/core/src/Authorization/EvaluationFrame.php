@@ -53,7 +53,33 @@ final readonly class EvaluationFrame implements EvaluationContext
     /** @return list<AssignmentScopeRef> */
     public function scopes(): array
     {
-        return [$this->selectedScope->context];
+        return array_map(static fn (AccessScope $scope): AssignmentScopeRef => $scope->context, $this->sourceScopes());
+    }
+
+    /** @return list<AccessScope> */
+    public function sourceScopes(): array
+    {
+        if ($this->selectedScope->context->isGlobal() || $this->selectedPanel->scopes()->mode() === 'isolated') {
+            return [$this->selectedScope];
+        }
+
+        return [AccessScope::in($this->selectedScope->tenant), $this->selectedScope];
+    }
+
+    public function acceptsContributionScope(AccessScope $scope): bool
+    {
+        foreach ($this->sourceScopes() as $accepted) {
+            if ($accepted->equals($scope)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function withScope(AccessScope $scope): self
+    {
+        return new self($this->selectedPanel, $scope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates);
     }
 
     public function resource(): ?object

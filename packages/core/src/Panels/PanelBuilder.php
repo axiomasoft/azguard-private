@@ -16,6 +16,8 @@ use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\TenantPolicy;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -419,6 +421,16 @@ final class PanelBuilder
     public function consistency(Reads $reads = Reads::Primary, StateRefresh $refresh = StateRefresh::Request): static
     {
         return $this->record(PanelSettings::READS, $reads)->record(PanelSettings::STATE_REFRESH, $refresh);
+    }
+
+    public function tenants(TenantPolicy $policy): static
+    {
+        return $this->record(PanelRecipe::TENANTS, $policy);
+    }
+
+    public function scopes(AssignmentScopePolicy $policy): static
+    {
+        return $this->record(PanelRecipe::SCOPES, $policy);
     }
 
     /**

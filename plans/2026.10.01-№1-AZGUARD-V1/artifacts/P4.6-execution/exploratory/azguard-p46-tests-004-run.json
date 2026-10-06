@@ -1,0 +1,12 @@
+{
+  "command": [
+    "vendor/bin/pest",
+    "tests/Feature/Scopes/ScopePolicyBuildTest.php"
+  ],
+  "start": "2026-10-06T07:06:20.135497+00:00",
+  "end": "2026-10-06T07:06:20.257500+00:00",
+  "exit_code": 1,
+  "before": "7e4aa17aafab11bd6384979d1ab3a6efbf42aa8f616952946881a531efecc027",
+  "after": "7e4aa17aafab11bd6384979d1ab3a6efbf42aa8f616952946881a531efecc027",
+  "stable": true
+}

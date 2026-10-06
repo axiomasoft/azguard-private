@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Catalog;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicateRoleException;
@@ -209,6 +210,19 @@ final readonly class RoleCompiler
                     'Role '.$role::class.' of panel "'.$panel->id().'" lists '.(is_string($scope) ? $scope : get_debug_type($scope))
                     .' in scopes(); a scope is an '.AssignmentScopeDefinition::class.' object or class.',
                 );
+            }
+
+            if ($scope instanceof ConfigurableAssignmentScopeDefinition && $scope->settings()->filters !== []) {
+                throw new DefinitionException('Role '.$role::class.' configures unsupported assignment scope filters.');
+            }
+            $registered = $panel->scopeDefinition($scope->type());
+
+            if ($registered === null || $registered::class !== $scope::class || $registered->model() !== $scope->model()) {
+                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
+            }
+
+            if ($registered != $scope) {
+                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" changes the registered structural assignment scope '.$scope->type().'.');
             }
 
             $scopes[] = ['type' => $scope->type(), 'class' => $scope::class];

@@ -9,20 +9,32 @@ use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
+use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\ResourceScopeResolver;
+use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
+use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Model;
+use ReflectionClass;
 use ReflectionMethod;
+use Throwable;
 
 /**
  * Registers the plugins of a panel, turns its sealed recipe into a panel and checks what only the whole set of
@@ -138,6 +150,14 @@ final class PanelCompiler
     {
         $id = $recipe->panelId();
         $label = $this->resolved($recipe, PanelRecipe::LABEL)['value'] ?? null;
+        $tenants = $this->resolved($recipe, PanelRecipe::TENANTS)['value'] ?? TenantPolicy::none();
+        $scopes = $this->resolved($recipe, PanelRecipe::SCOPES)['value'] ?? AssignmentScopePolicy::none();
+
+        if (! $tenants instanceof TenantPolicy || ! $scopes instanceof AssignmentScopePolicy) {
+            throw new DefinitionException('Panel '.$id.' requires tenant and assignment scope policy objects.');
+        }
+        $this->membership($tenants->membership(), $container);
+        $this->membership($scopes->membership(), $container);
 
         return new Panel(
             id: $id,
@@ -154,7 +174,97 @@ final class PanelCompiler
             afterHooks: $this->callbacks($recipe, PanelRecipe::AFTER),
             accessRestrictions: $this->components($recipe, PanelRecipe::RESTRICTIONS, Restriction::class),
             conditions: $this->components($recipe, PanelRecipe::GRANT_CONDITIONS, GrantCondition::class),
+            tenantPolicy: $tenants,
+            scopePolicy: $scopes,
+            scopeDefinitions: $this->scopes($recipe, $tenants, $scopes, $container),
+            tenantResolvers: $this->components($recipe, PanelRecipe::TENANT_RESOLVERS, TenantResolver::class),
+            scopeResolvers: $this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class),
+            resourceScopes: $this->resourceScopes($recipe),
         );
+    }
+
+    /** @return array<string, AssignmentScopeDefinition> */
+    private function scopes(PanelRecipe $recipe, TenantPolicy $tenants, AssignmentScopePolicy $policy, ?Container $container): array
+    {
+        $compiled = [];
+        foreach ($policy->definitions() as $declared) {
+            if (is_string($declared) && is_subclass_of($declared, Model::class)) {
+                if ($tenants->mode() === 'required') {
+                    throw new DefinitionException('Tenant panel '.$recipe->panelId().' requires a scope descriptor with an authoritative tenant owner.');
+                }
+                $definition = ModelAssignmentScopeDefinition::make($declared);
+            } else {
+                $definition = is_string($declared) ? $container?->make($declared) : $declared;
+            }
+
+            if (! $definition instanceof AssignmentScopeDefinition) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' requires assignment scope definition objects or classes.');
+            }
+
+            if ($definition instanceof ModelAssignmentScopeDefinition && $tenants->mode() === 'required' && ! $definition->hasOwner()) {
+                throw new DefinitionException('Tenant panel '.$recipe->panelId().' requires an explicit scope owner callback.');
+            }
+
+            try {
+                IdentityCodec::assertTypeAlias($definition->type());
+            } catch (Throwable $error) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' has an invalid assignment scope type.', previous: $error);
+            }
+            $model = $definition->model();
+
+            if ($model !== null && ! is_subclass_of($model, Model::class)) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' scope '.$definition->type().' declares an invalid Eloquent model.');
+            }
+
+            if ($definition instanceof ConfigurableAssignmentScopeDefinition && $definition->settings()->filters !== []) {
+                throw new DefinitionException('Configured assignment scope filters are not supported.');
+            }
+            $existing = $compiled[$definition->type()] ?? null;
+
+            if ($existing !== null && ($existing::class !== $definition::class || $existing->model() !== $model || $existing != $definition)) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' declares conflicting assignment scope definitions for '.$definition->type().'.');
+            }
+            $compiled[$definition->type()] = $definition;
+        }
+
+        if ($policy->mode() === 'required' && $compiled === []) {
+            throw new DefinitionException('Panel '.$recipe->panelId().' requires an assignment scope but registers no definitions.');
+        }
+
+        return $compiled;
+    }
+
+    /** @param object|class-string|null $adapter */
+    private function membership(object|string|null $adapter, ?Container $container): void
+    {
+        if (is_string($adapter) && ! ($container?->bound($adapter) ?? false) && ! (new ReflectionClass($adapter))->isInstantiable()) {
+            throw new DefinitionException('Membership adapter '.$adapter.' has no container binding.');
+        }
+    }
+
+    /** @return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
+    private function resourceScopes(PanelRecipe $recipe): array
+    {
+        $compiled = [];
+        foreach ($recipe->items(PanelRecipe::RESOURCE_SCOPES) as $item) {
+            if (! is_array($item) || ! is_string($item['resource'] ?? null) || ! isset($item['resolver'])) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' has an invalid resource scope resolver binding.');
+            }
+            $resource = $item['resource'];
+            $resolver = $item['resolver'];
+
+            if (! is_subclass_of($resource, Model::class) || (! $resolver instanceof ResourceScopeResolver
+                && (! is_string($resolver) || ! is_subclass_of($resolver, ResourceScopeResolver::class)))) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' requires resource models and authoritative resource scope resolvers.');
+            }
+
+            if (isset($compiled[$resource]) && $compiled[$resource] != $resolver) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' declares conflicting resource scope resolvers for '.$resource.'.');
+            }
+            $compiled[$resource] = $resolver;
+        }
+
+        return $compiled;
     }
 
     /** @return list<Closure|class-string> */
@@ -531,7 +641,11 @@ final class PanelCompiler
         $first = array_key_first($byPlugin);
 
         foreach ($byPlugin as $plugin => $value) {
-            if ($value !== $byPlugin[$first]) {
+            $same = ($value instanceof TenantPolicy || $value instanceof AssignmentScopePolicy)
+                ? $value == $byPlugin[$first]
+                : $value === $byPlugin[$first];
+
+            if (! $same) {
                 throw new PluginConflictException(
                     'Plugins "'.$first.'" and "'.$plugin.'" of panel "'.$panel.'" set "'.$setting.'" to different values ('
                     .self::describe($byPlugin[$first]).' and '.self::describe($value).'): set it in the panel provider.',

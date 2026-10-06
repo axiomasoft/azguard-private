@@ -6180,6 +6180,54 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "tenantPolicy",
+                            "type": "?AzGuard\\Scopes\\TenantPolicy",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "scopePolicy",
+                            "type": "?AzGuard\\Scopes\\AssignmentScopePolicy",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "scopeDefinitions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "tenantResolvers",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "scopeResolvers",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "resourceScopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
                         }
                     ],
                     "return": null
@@ -6278,11 +6326,54 @@
                     "return": "?string"
                 },
                 {
+                    "name": "resourceScopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "restrictions",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                },
+                {
+                    "name": "scopeDefinition",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition"
+                },
+                {
+                    "name": "scopeDefinitions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "scopeResolvers",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "scopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\AssignmentScopePolicy"
                 },
                 {
                     "name": "settings",
@@ -6304,6 +6395,20 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                },
+                {
+                    "name": "tenantResolvers",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "tenants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Scopes\\TenantPolicy"
                 },
                 {
                     "name": "writer",
@@ -6815,6 +6920,21 @@
                     "return": "static"
                 },
                 {
+                    "name": "scopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "policy",
+                            "type": "AzGuard\\Scopes\\AssignmentScopePolicy",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
                     "name": "tenantResolvers",
                     "static": false,
                     "abstract": false,
@@ -6822,6 +6942,21 @@
                         {
                             "name": "resolvers",
                             "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tenants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "policy",
+                            "type": "AzGuard\\Scopes\\TenantPolicy",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -8366,6 +8501,110 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Scopes\\AssignmentScopePolicy",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "definitions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "inherit",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isolated",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "membership",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership|string|null"
+                },
+                {
+                    "name": "mode",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "none",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "requireMembership",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "membership",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'AzGuard\\\\Contracts\\\\Scopes\\\\AssignmentScopeMembership'"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "required",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Scopes\\AssignmentScopeRuntime",
             "kind": "class",
             "final": true,
@@ -8702,6 +8941,427 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\CurrentContext",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "get",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Kernel\\Identity\\AccessScope"
+                },
+                {
+                    "name": "set",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "?AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\ModelAssignmentScopeDefinition",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Scopes\\BaseAssignmentScope",
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+                "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "owner",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "hasOwner",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "make",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "owner",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "model",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "query",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "tenantOf",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "record",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Identity\\TenantRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\ModelTenantDefinition",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "make",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "model",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "resolve",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?Illuminate\\Database\\Eloquent\\Model"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\TenantPolicy",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allowGlobalRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "definition",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Scopes\\ModelTenantDefinition"
+                },
+                {
+                    "name": "globalRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "membership",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Scopes\\TenantMembership|string|null"
+                },
+                {
+                    "name": "mode",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "none",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "requireMembership",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "membership",
+                            "type": "AzGuard\\Contracts\\Scopes\\TenantMembership|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'AzGuard\\\\Contracts\\\\Scopes\\\\TenantMembership'"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "required",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Scopes\\ModelTenantDefinition|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Scopes\\WithinContext",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "current",
+                            "type": "AzGuard\\Scopes\\CurrentContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "run",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "mixed"
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {

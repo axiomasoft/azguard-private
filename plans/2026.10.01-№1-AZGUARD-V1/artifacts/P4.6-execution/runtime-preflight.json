@@ -1,0 +1,30 @@
+{
+  "recorded_at": "2026-10-06T07:00:21.476352+00:00",
+  "grok_version": "1.0.46 (2765805b9442)",
+  "binary": "/home/vostrikov/.local/bin/grok",
+  "model": "grok-4.7",
+  "effort": "high",
+  "required_context_window": "500k",
+  "probe": {
+    "command": "grok --context-window=500k --help",
+    "exit": 2,
+    "stderr": "unexpected argument '--context-window'"
+  },
+  "catalogue_probe": {
+    "command": "grok models",
+    "exit": 0,
+    "models": [
+      "grok-4.7",
+      "grok-4.7-build-fast",
+      "grok-4.6",
+      "grok-4.5"
+    ]
+  },
+  "native_reviewer_launched": false,
+  "verdict": "BLOCKED_ROUTE",
+  "notes": [
+    "No canonical SKM native wrapper accepting flag found by fresh read-only explorer.",
+    "agent binary is Cursor, not Grok; no provider substitution.",
+    "Historical session context_window=500000 is not proof of fresh session capacity."
+  ]
+}

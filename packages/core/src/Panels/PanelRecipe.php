@@ -74,6 +74,10 @@ final class PanelRecipe
 
     public const string DOCTOR_CHECKS = 'doctor_checks';
 
+    public const string TENANTS = 'tenants';
+
+    public const string SCOPES = 'scopes';
+
     public const string TENANT_RESOLVERS = 'tenant_resolvers';
 
     public const string SCOPE_RESOLVERS = 'scope_resolvers';

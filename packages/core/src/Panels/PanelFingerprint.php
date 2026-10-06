@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Policies\PolicyBinding;
 use Closure;
@@ -85,6 +86,24 @@ final class PanelFingerprint
                 $recipe->sources(),
             ),
             'hooks' => $hooks,
+            'tenants' => [
+                'mode' => $panel->tenants()->mode(),
+                'definition' => $panel->tenants()->definition() === null ? null : [
+                    'type' => $panel->tenants()->definition()->type(),
+                    'model' => $panel->tenants()->definition()->model(),
+                ],
+                'membership' => self::name($panel->tenants()->membership()),
+                'global_roles' => $panel->tenants()->globalRoles(),
+            ],
+            'scopes' => [
+                'mode' => $panel->scopes()->mode(),
+                'definitions' => array_map(static fn (AssignmentScopeDefinition $definition): array => [
+                    'type' => $definition->type(),
+                    'class' => $definition::class,
+                    'model' => $definition->model(),
+                ], $panel->scopeDefinitions()),
+                'membership' => self::name($panel->scopes()->membership()),
+            ],
             'resource_scopes' => array_map(
                 static fn (mixed $scope): array => is_array($scope)
                     ? ['resource' => self::name($scope['resource'] ?? null), 'resolver' => self::name($scope['resolver'] ?? null)]

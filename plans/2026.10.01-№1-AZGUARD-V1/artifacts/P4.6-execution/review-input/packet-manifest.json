@@ -1,0 +1,25 @@
+{
+  "candidate_sha256": "e4a4f99931a450225c567e2a86b0f3a91e6de06b2d32a9bad70b8931abcb1af8",
+  "files_sha256": {
+    "acceptance-map.json": "fb1c50ef8fcb4c1477d73a0b67063ecf4b364d6c4530ee41b9cfec355d3b7dc4",
+    "changed-product.json": "37cc5700281e9d86e2d36fea7a95ed7bf436f4e7390a8f3f46d11d2d5bed9021",
+    "contract.json": "7910ba0fddafd645997c029a3a7eb4acca2e33887f45c6931867a628b373a2b1",
+    "norms.json": "a36b43805eada1af0b935b5b0f007b1d8fd1da86bd0096f199119800fa03f7f8",
+    "product-and-dependencies.tar.gz": "d8ca8fdc944809446e3b8257f5c93c3195a9bae13eeec8ce7fc1e405f285e947",
+    "product.diff.gz": "8ee19ee6e5fbe78dd5624e3b58ab3b82fa0e4e6188fd22a6c7533c29e6b59ee9",
+    "review-prompt.txt": "7aef19944456aadd9f308287dffab232dc9e426632ae55fe91d9b0db5f18b0f4",
+    "validation/V1.log": "859852d9ce246c24e357d15beeaaa6f749e3e6df77aa0ad337d4416b17cb1ea3",
+    "validation/V2.log": "3893c935325754ed25dc2c13d980e5427d3538fe3455dbc3f7d42be63de3b05f",
+    "validation/V3.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "validation/V4.log": "7d53ebe4f278db7f58bf829dabd69d7a0bf16032103a62a48667a6de74c43878",
+    "validation/V5.log": "f82c199dc3c517ef54efcab4fcb405ffde8c7aaef29031125ec38464c6750a12",
+    "validation/V6.log": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2",
+    "validation/V7.log": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367",
+    "validation/V8.log": "ed0e97639d999b52c88fe2c7bfc9ce499acb93d178182bf6bfe76539a6a38ae6",
+    "validation/V9.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "validation-evidence.json": "ef4f4320ae61361913a38c1651f27fd22a065b8697c1165bbe8c6ea47d1d8e6f"
+  },
+  "review_status": "pending",
+  "reviewer_session": null,
+  "executor_history_included": false
+}

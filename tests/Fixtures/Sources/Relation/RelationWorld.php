@@ -18,6 +18,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use DateTimeImmutable;
@@ -80,6 +81,7 @@ final class RelationWorld
     {
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for([Member::class, Vendor::class])->resourcePrefix(false)->permissions([RelationPermission::class, ...$sources])
+            ->scopes(AssignmentScopePolicy::inherit(...EditorRole::$definitions))
             ->roles([EditorRole::class, OwnerRole::class])]);
         app()->instance(PanelRegistry::class, $registry);
         app()->forgetInstance(Authorizer::class);

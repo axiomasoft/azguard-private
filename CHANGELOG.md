@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: панели независимо задают tenant и assignment scope; проверка прав учитывает владельца ресурса, членство и режимы `inherit`/`isolated`/`required`/`none`. Контекст хранится отдельно для каждой панели и восстанавливается после вложенных вызовов и исключений.
+
 - Ядро 1.0: `RelationSource` читает роли из связей моделей хоста и возвращает raw witnesses для выбора сущностей. Источник ограничивает чтение точным субъектом и tenant/context, поддерживает статичную роль, pivot-атрибут и callback; конфигурация проверяется при сборке панели.
 
 - Ядро 1.0: opt-in dynamic definitions читаются для точного tenant поверх статичного каталога. Prepare и authority используют один fence на закреплённом read PDO; retry отбрасывает overlay и весь набор выдач. Статический PolicyOnly не читает dynamic/assignment storage.
