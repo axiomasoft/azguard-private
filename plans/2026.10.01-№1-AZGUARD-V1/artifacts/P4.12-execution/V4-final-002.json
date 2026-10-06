@@ -1,0 +1,6 @@
+{
+  "id": "V4",
+  "command": "vendor/bin/pint --test packages/core/src/Authorization/Authorizer.php packages/core/src/Authorization/ReadAttempt.php packages/core/src/Authorization/Visibility.php packages/core/src/Authorization/Query/VisibilityScope.php packages/core/src/Authorization/Query/EligibilityBuilder.php packages/core/src/Scopes/ContextAware.php packages/core/src/Exceptions/VisibilityNotSupportedException.php packages/core/src/Sources/Database/DatabaseSource.php packages/core/src/Sources/Folder/FolderSource.php tests/Feature/Visibility/BeforePredicateTest.php tests/Feature/Visibility/UnsupportedTest.php tests/Feature/Visibility/BoundedCandidatesTest.php tests/Feature/Visibility/CrossConnectionTest.php tests/Feature/Visibility/WitnessBranchesTest.php tests/Feature/Visibility/VisibleToTest.php tests/Fixtures/Visibility/VisibilityWorld.php tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Fixtures/Visibility/VisibilityProject.php",
+  "exit": 0,
+  "duration_seconds": 1.1
+}

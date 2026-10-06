@@ -1,0 +1,184 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04bTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04b returns no rows when an existing subject has no grant or gl[39m[90m…[39m [90m0.06s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\VisibleToTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit uses one fixed now and preserves conditions on individual witnes[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit preserves literal scalar parity for disjoint scoped witnesses an[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit throws before resource execution without partially mutating the caller when an adapter is missing[39m
+  [32;1m✓[39;22m[90m [39m[90mit applies one grouped final constraint before count and pagination[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the authoritative tenant owner for tenant-wide grants and relation resources[39m
+  [32;1m✓[39;22m[90m [39m[90mit never inherits a tenant-wide assignment into isolated contexts[39m
+  [32;1m✓[39;22m[90m [39m[90mit applies native common and role filters as separate AND groups pe[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04cTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04c ORs a role in two projects while hiding the unassigned thir[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\CrossConnectionTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit supports 1000 materialized scope refs and rejects 1001 before qu[39m[90m…[39m [90m0.10s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit materializes a fenced foreign-connection DatabaseSource without[39m[90m… [39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\RegressionSpecsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit accepts only pending or an existing covering test as status for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit points the defect description at an existing 0.3 probe test for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P05')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P14')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P03')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P06')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P09')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P13')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04a')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P07')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P01b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04c')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P10')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P08')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P04b')[39m
+  [32;1m✓[39;22m[90m [39m[90mit references scenario ids that exist in the verification matrix for probe with ('P02')[39m
+  [32;1m✓[39;22m[90m [39m[90mit has a spec file for exactly the 19 probes[39m
+  [32;1m✓[39;22m[90m [39m[90mit documents the format and the closing rule in the README[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P02', 'PLAN2.P4.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P09', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10b', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P11', 'PLAN2.P5.4')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01a', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P03', 'PLAN2.P4.11')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04b', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04a', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06b', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P08', 'PLAN2.P4.18')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P06', 'PLAN2.P4.6')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P10', 'PLAN2.P4.8')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P14', 'PLAN2.P1.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P13', 'PLAN2.P5.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01c', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P05', 'PLAN2.P2.2')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P01b', 'PLAN2.P4.7')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P04c', 'PLAN2.P4.12')[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps every required field filled and consistent for probe with ('P07', 'PLAN2.P1.1')[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\BeforePredicateTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps qualified admin exemptions inside its own complete witness[39m[90m…[39m [90m0.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit does not let policy allow or a root role bypass before deny with ('orders.policy')[39m
+  [32;1m✓[39;22m[90m [39m[90mit does not let policy allow or a root role bypass before deny with ('orders.view')[39m
+  [32;1m✓[39;22m[90m [39m[90mit uses policy as a veto and preserves abstain only with a grant[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles before pass and PolicyOnly allow while leaving all assignment sources unread[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04aTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04a returns no rows for an explicit null subject without readin[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\PredicateCompilerTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects ungrouped host OR without weakening it[39m[90m                   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects partition trees until the caller chooses an outcome[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "in NULL"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "empty all"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "is NULL"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "nested relation"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements includi[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "empty any"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "pass"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "range"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "exists single any"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "nested exists any"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "in"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "gte"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "nested exists"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "deny"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "any"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "exists any"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "in only NULL"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "lt"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "eq"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "not NULL"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "eq NULL"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "empty in"[39m
+  [32;1m✓[39;22m[90m [39m[90mit compiles total boolean comparisons and their complements including NULL with dataset "self relation"[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects replaced and aliased roots without mutating their queries with ('predicate_resources as resource')[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects replaced and aliased roots without mutating their queries with ('predicate_projects')[39m
+  [32;1m✓[39;22m[90m [39m[90mit preserves the grouped host WHERE and all non-WHERE query settings[39m
+  [32;1m✓[39;22m[90m [39m[90mit materializes supported global scopes once before attaching the predicate[39m
+  [32;1m✓[39;22m[90m [39m[90mit before pass constrains rows without creating policy authority[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects host UNION arms before appending a predicate with (false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects host UNION arms before appending a predicate with (true)[39m
+  [32;1m✓[39;22m[90m [39m[90mit maps boolean NULL and Laravel Response policy outcomes into exha[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #8[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #9[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #1[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #2[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #6[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #5[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #7[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #4[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported or unknown nodes atomically even behind a constant with (AzGuard\Kernel\Decision\AccessPredicate) #3[39m
+  [32;1m✓[39;22m[90m [39m[90mit keeps bound SQL-looking values literal[39m
+  [32;1m✓[39;22m[90m [39m[90mit ORs complete typed contribution branches without mixing witness conditions[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects UNION introduced by a deferred global scope atomically[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\WitnessBranchesTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit uses fixed GrantedToAll folder witnesses in isolated and require[39m[90m…[39m [90m0.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit uses fixed GrantedToAll folder witnesses in isolated and require[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit blocks native scope filter structure changes and caught terminal query execution with (false)[39m
+  [32;1m✓[39;22m[90m [39m[90mit blocks native scope filter structure changes and caught terminal query execution with (true)[39m
+  [32;1m✓[39;22m[90m [39m[90mit constrains a queryable external scope adapter without letting it[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\UnsupportedTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit retries the entire consumed fence at the same now and fails clos[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects unsupported conditions before host aggregation[39m
+  [32;1m✓[39;22m[90m [39m[90mit never silently omits arbitrary automatic folder roles[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an explicitly unsupported scope instead of widening the query[39m
+  [32;1m✓[39;22m[90m [39m[90mit passes a deterministically irrelevant restriction without an adapter[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an unsupported, throwing or malformed source after another source allows, with safe diagnostics with ('throws')[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an unsupported, throwing or malformed source after another source allows, with safe diagnostics with ('malformed')[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an unsupported, throwing or malformed source after another source allows, with safe diagnostics with ('null')[39m
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\BoundedCandidatesTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit rejects an oversized universe and an already paginated builder[39m[90m   [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit checks the full PolicyOnly host universe outside any grant prefi[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit evaluates every grant candidate before slicing and reports an em[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit bounds the full selected-tenant universe before scalar checks an[39m[90m…[39m [90m0.01s[39m  
+
+  [90mTests:[39m    [32;1m157 passed[39;22m[90m (880 assertions)[39m
+  [90mDuration:[39m [39m0.86s[39m
+  [90mRandom Order Seed:[39m [39m1791314726[39m
+

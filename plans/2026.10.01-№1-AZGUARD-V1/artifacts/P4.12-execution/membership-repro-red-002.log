@@ -1,0 +1,17 @@
+
+  [41;1m ERROR [49;22m Test case [AzGuard\Tests\TestCase] can not be used. The folder [/home/vostrikov/projects/packages/azguard/tests/Feature/Visibility/MembershipReproTest.php] already uses the test case [AzGuard\Tests\TestCase].
+
+Location: /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Repositories/TestRepository.php:191
+
+#0 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Repositories/TestRepository.php(173): Pest\Repositories\TestRepository->make(Object(Pest\Factories\TestCaseFactory))
+#1 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/overrides/Runner/TestSuiteLoader.php(97): Pest\Repositories\TestRepository->makeIfNeeded('/home/vostrikov...')
+#2 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/overrides/Runner/TestSuiteLoader.php(98): PHPUnit\Runner\TestSuiteLoader::{closure:PHPUnit\Runner\TestSuiteLoader::load():90}()
+#3 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Configuration/TestSuiteBuilder.php(119): PHPUnit\Runner\TestSuiteLoader->load('/home/vostrikov...')
+#4 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Configuration/TestSuiteBuilder.php(58): PHPUnit\TextUI\Configuration\TestSuiteBuilder->testSuiteFromPath('/home/vostrikov...', Array)
+#5 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Application.php(389): PHPUnit\TextUI\Configuration\TestSuiteBuilder->build(Object(PHPUnit\TextUI\Configuration\Configuration))
+#6 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Application.php(196): PHPUnit\TextUI\Application->buildTestSuite(Object(PHPUnit\TextUI\Configuration\Configuration))
+#7 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Kernel.php(103): PHPUnit\TextUI\Application->run(Array)
+#8 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest(196): Pest\Kernel->handle(Array, Array)
+#9 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest(204): {closure:/home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest:19}()
+#10 /home/vostrikov/projects/packages/azguard/vendor/bin/pest(119): include('/home/vostrikov...')
+#11 {main}.

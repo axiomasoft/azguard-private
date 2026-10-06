@@ -1,0 +1,377 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P4.12",
+  "title": "Visibility и exact query adapters",
+  "status": "done_with_deviations",
+  "summary": "Дать exact видимость окончательного доступа: `visibleTo` добавляет к запросу хоста одну сгруппированную predicate, которая повторяет скалярную семантику того же права (tenant/owner AND фильтры областей AND restrictions AND authority по режиму), строится до count/order/limit/pagination, а любой влияющий компонент без exact query adapter даёт `VisibilityNotSupportedException`, а не широкий список.",
+  "why": "RAG:— 09 §10 (visibleTo, план запроса, superadmin, нет субъекта, cross-connection, `candidates()`), §15, §2 (P14); 06 §7 «Условия выдач и точная видимость» (`FiltersAccessQueries`, `AccessPredicate`); 18 §4 (формула и query boundary); 16 §8–§9 (`ClientVisibility`); D31, D66, D76 досье; 20 F07; V31–V33, V95, V15 (P14), V119 (exact visibility); R31–R33, R35, R64; probes P04a–c; D6 п.1, D8 п.3, D14 п.3, п.6 плана.",
+  "scope": {
+    "include": [
+      "Visibility/Authorizer::visibleTo/ContextAware/VisibilityNotSupportedException integration с tree/SPI/compiler уже P4.22. Selection full witnesses и folder fixed code witnesses; exact composition D15§6. Internal candidates/bounded full bounded host universe для PolicyOnly. Local integration/unsupported/cross-connection, P04a–c. CRM/parity/EXPLAIN — P4.23."
+    ],
+    "exclude": [
+      "UI-поверхности списков, export, виджеты, global search, relation attach (V95 часть P7.2, R34); bounded export (запрещён досье); пакетная видимость нескольких прав одним запросом; общий компилятор PHP → SQL (не вводится)."
+    ]
+  },
+  "depends_on": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.17",
+    "P4.5",
+    "P4.6",
+    "P4.19",
+    "P4.7",
+    "P4.16",
+    "P4.18",
+    "P4.15",
+    "P4.13",
+    "P4.8",
+    "P4.20",
+    "P4.21",
+    "P4.9",
+    "P4.10",
+    "P4.11",
+    "P4.22"
+  ],
+  "decisions": [
+    "D16",
+    "D14",
+    "D15"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/decisions/D16.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P4/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D14.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D15.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "@plan/brief.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/brief.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/RoleCompiler.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Panels/PanelBuilder.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Authorization/{Visibility,Authorizer}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Scopes/ContextAware.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Exceptions/VisibilityNotSupportedException.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Sources/{Database/DatabaseSource,Relation/RelationSource,Folder/FolderSource}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Authorization/Query/VisibilityScope.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Authorization/Query/EligibilityBuilder.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Authorization/ReadAttempt.php",
+      "change": "any"
+    },
+    {
+      "path": "tests/Fixtures/Visibility/VisibilityWorld.php",
+      "change": "any"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "P4.12-checks",
+      "path": "@plan/artifacts/P4.12-execution/qualification-summary.json",
+      "role": "output"
+    },
+    {
+      "id": "P4.12-execution",
+      "path": "@plan/artifacts/P4.12-execution/execution-summary.json",
+      "role": "output"
+    },
+    {
+      "id": "P4.12-review",
+      "path": "@plan/artifacts/P4.12-execution/review-verdict.json",
+      "role": "output"
+    }
+  ],
+  "rules": [
+    "Все consumed grant/role source iterables/selection exhaust+validate; source exception/malformed witness/ConsistencyError → VisibilityNotSupportedException с безопасной source/consistency диагностикой до SQL count/order/limit; partial OR успешных источников запрещён. contextsCovering=null у relevant source → то же исключение, не skip/nowhere. PolicyOnly не читает assignment источники.  План запроса: `(существующие WHERE хоста) AND (tenant/owner ресурса) AND (общие фильтры областей) AND (before-pass) AND (restrictions) AND (authority)`; наш вклад — одна вложенная группа `where(fn …)`, существующие условия не ослабляются внешним OR. Authority: PolicyOnly — `allow`-predicate политики (назначения не читаются); Grants — `OR` по веткам-вкладам (каждая ветка — контексты из `contextsCovering` источника AND фильтры роли AND predicate условий этой contribution) или superadmin-ветка, затем `AND NOT deny` политики-veto; `null` политики — явный `abstain`, SQL NULL нормализуется адаптером. Superadmin требует qualified whole-witness branch: common/owner/before/policy остаются, exemptions restrictions применяются лишь в этой ветке. Компонент, влияющий на право, без exact пути (`FiltersAccessQueries` для policy/before/restriction/condition; native validated Builder для AssignmentScopeFilter; queryable accessAdapter::constrain) или вернувший `unsupported` — `VisibilityNotSupportedException` (одного warning недостаточно); компонент, детерминированно не применимый к запросу (`appliesTo` false), — `pass`. Нет субъекта → пустой результат (`whereRaw('1 = 0')`), Auth не читается (P04a). Явный неподдержанный scope → исключение. Подключение модели ресурса ≠ подключение хранилища: join с таблицами выдач запрещён; допускается только материализованный выбор `AssignmentScopeSelection::in()` из fenced чтения, не более 1000 ссылок, иначе `VisibilityNotSupportedException`. `decisionNow` один на вызов; predicate вычисляется на нём (сроки выдач). Scope ресурса строится через relation контекста (Client → project), не сравнением id разных типов. `candidates()` — внутренний, не публичная безопасная коллекция; `bounded()` проверяет каждого кандидата и считает total по разрешённым. Дерево partitions и branch evidence D15§5–§6. Ref candidate prefilter не authority; expiry/fields/role/scopes/conditions одной contribution. Before Continue/Deny exact partition в обоих modes. Folder constant witnesses supported, arbitrary automatic без adapter — unsupported. PolicyOnly bounded full host universe; превышен limit — ошибка, total честный. External model=null без SQL adapter exact unsupported."
+  ],
+  "guidance": "Source1 allows + Source2 throws/malformed/null selection: scalar SourceError (null exact unsupported) и visibility throws до pagination, никакие partial rows не выходят.  Whole witnesses одной scope с разными conditions/expiry/fields; false before при policy true/admin; NULL partition; role seller/analyst OR; host WHERE сохранён. Folder constant vs arbitrary unsupported. No subject/no grant empty; cross-connection ≤1000 refs+evidence vs1001 exception. Bounded PolicyOnly own-resource вне grant candidates, full universe limit/total. P04a–c covered; CRM/P14/EXPLAIN/R58 — P4.23.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Visibility tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Regression/RegressionSpecsTest.php",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes tests/Feature/Sources tests/Feature/Policies tests/Feature/Catalog tests/Feature/Gate tests/Regression/P01aTest.php tests/Regression/P09Test.php tests/Regression/P01cTest.php tests/Regression/P03Test.php tests/Regression/P08Test.php tests/Regression/P14Test.php tests/Regression/P05Test.php tests/Regression/P10bTest.php tests/Regression/P06bTest.php tests/Regression/P06Test.php tests/Regression/P01bTest.php tests/Regression/LegacyIsolationTest.php tests/Regression/P10Test.php tests/Regression/P02Test.php tests/Regression/P07Test.php --exclude-group=engines,redis",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/pint --test packages/core/src/Authorization/Authorizer.php packages/core/src/Authorization/ReadAttempt.php packages/core/src/Authorization/Visibility.php packages/core/src/Authorization/Query/VisibilityScope.php packages/core/src/Authorization/Query/EligibilityBuilder.php packages/core/src/Scopes/ContextAware.php packages/core/src/Exceptions/VisibilityNotSupportedException.php packages/core/src/Sources/Database/DatabaseSource.php packages/core/src/Sources/Folder/FolderSource.php tests/Feature/Visibility/BeforePredicateTest.php tests/Feature/Visibility/UnsupportedTest.php tests/Feature/Visibility/BoundedCandidatesTest.php tests/Feature/Visibility/CrossConnectionTest.php tests/Feature/Visibility/WitnessBranchesTest.php tests/Feature/Visibility/VisibleToTest.php tests/Fixtures/Visibility/VisibilityWorld.php tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Fixtures/Visibility/VisibilityProject.php tests/Feature/Visibility/MembershipReproTest.php",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/phpstan analyse packages/core/src tests/Fixtures/Visibility/VisibilityProject.php --memory-limit=1G --no-progress",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "__PEST_PLUGIN_ENV=1 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --configuration=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.12-execution/type-coverage.xml --type-coverage-json=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.12-execution/type-coverage.json",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "composer api:manifest",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Exact integration/ContextAware/unsupported/bounded/witness/before tests и P04a–c covered. Tree owner P4.22, CRM/parity/EXPLAIN P4.23."
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-06T19:05:55Z",
+    "finished_at": "2026-10-06T19:44:34Z",
+    "executor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a1129a-dcb2-78b2-ac73-176f10d702ae"
+    },
+    "attempt_id": "P4.12-final-01a1129a",
+    "notes": "Exact visibleTo, ContextAware relation identity, fenced whole witnesses, before/policy/restrictions/conditions and qualified-admin branches; membership on every candidate; bounded full universe and honest totals. P04a-c covered. Independent native Grok GREEN; one confirmed correction RED003->GREEN. All adapted V1-V9=0; proofs and RED logs in artifacts/P4.12-execution. Owner JSON migration preserved.",
+    "deviations": [
+      "По явному указанию владельца проверки ограничены затронутым core и его зависимыми тестами; неизменённые Filament/SKM/SQL/Redis не повторялись. Grok4.7/high выполнен в конце без context-параметра. Консервативные bounded owner/native-runtime paths имеют явный лимит1000; CRM/P14/EXPLAIN остаются P4.23."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-06T19:44:34Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-06T19:44:34Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Дать exact видимость окончательного доступа: `visibleTo` добавляет к запросу хоста одну сгруппированную predicate, которая повторяет скалярную семантику того же права (tenant/owner AND фильтры областей AND restrictions AND authority по режиму), строится до count/order/limit/pagination, а любой влияющий компонент без exact query adapter даёт `VisibilityNotSupportedException`, а не широкий список."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— 09 §10 (visibleTo, план запроса, superadmin, нет субъекта, cross-connection, `candidates()`), §15, §2 (P14); 06 §7 «Условия выдач и точная видимость» (`FiltersAccessQueries`, `AccessPredicate`); 18 §4 (формула и query boundary); 16 §8–§9 (`ClientVisibility`); D31, D66, D76 досье; 20 F07; V31–V33, V95, V15 (P14), V119 (exact visibility); R31–R33, R35, R64; probes P04a–c; D6 п.1, D8 п.3, D14 п.3, п.6 плана."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "Visibility/Authorizer::visibleTo/ContextAware/VisibilityNotSupportedException integration с tree/SPI/compiler уже P4.22. Selection full witnesses и folder fixed code witnesses; exact composition D15§6. Internal candidates/bounded full bounded host universe для PolicyOnly. Local integration/unsupported/cross-connection, P04a–c. CRM/parity/EXPLAIN — P4.23."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "UI-поверхности списков, export, виджеты, global search, relation attach (V95 часть P7.2, R34); bounded export (запрещён досье); пакетная видимость нескольких прав одним запросом; общий компилятор PHP → SQL (не вводится)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/decisions/D16.json` · `@plan/plan.json` · `@plan/phases/P4/phase.json` · `@plan/decisions/D14.json` · `@plan/decisions/D15.json` · `@plan/brief.json` · `@plan/brief.json`"
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`packages/core/src/Authorization/{Visibility,Authorizer}.php` · `packages/core/src/Scopes/ContextAware.php` · `packages/core/src/Exceptions/VisibilityNotSupportedException.php` · `packages/core/src/Sources/{Database/DatabaseSource,Relation/RelationSource,Folder/FolderSource}.php` · `packages/core/api-manifest.json` · `tests/Feature/Visibility/{VisibleToTest,UnsupportedTest,CrossConnectionTest,BoundedCandidatesTest,BeforePredicateTest,WitnessBranchesTest}.php` · `tests/Regression/{P04aTest,P04bTest,P04cTest}.php` · `tests/Regression/specs/{P04a,P04b,P04c}.md` · `CHANGELOG.md`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/09-authorization-semantics.md` 2) `audits/2026-09-29-audit/opus/06-extension-points.md` 3) `audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md` 4) `audits/2026-09-29-audit/opus/14-verification.md` 5) `packages/core/src/Contracts/Authorization/EvaluationContext.php` 6) `packages/core/src/Catalog/PanelCatalog.php` 7) `packages/core/src/Catalog/RoleCompiler.php` 8) `packages/core/src/Panels/PanelBuilder.php` 9) `tests/Regression/specs/P04a.md` 10) `tests/Regression/specs/P04b.md` 11) `tests/Regression/specs/P04c.md` 12) `@plan/decisions/D15.json` 13) `@plan/brief.json`"
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Все consumed grant/role source iterables/selection exhaust+validate; source exception/malformed witness/ConsistencyError → VisibilityNotSupportedException с безопасной source/consistency диагностикой до SQL count/order/limit; partial OR успешных источников запрещён. contextsCovering=null у relevant source → то же исключение, не skip/nowhere. PolicyOnly не читает assignment источники.  План запроса: `(существующие WHERE хоста) AND (tenant/owner ресурса) AND (общие фильтры областей) AND (before-pass) AND (restrictions) AND (authority)`; наш вклад — одна вложенная группа `where(fn …)`, существующие условия не ослабляются внешним OR. Authority: PolicyOnly — `allow`-predicate политики (назначения не читаются); Grants — `OR` по веткам-вкладам (каждая ветка — контексты из `contextsCovering` источника AND фильтры роли AND predicate условий этой contribution) или superadmin-ветка, затем `AND NOT deny` политики-veto; `null` политики — явный `abstain`, SQL NULL нормализуется адаптером. Superadmin требует qualified whole-witness branch: common/owner/before/policy остаются, exemptions restrictions применяются лишь в этой ветке. Компонент, влияющий на право, без exact пути (`FiltersAccessQueries` для policy/before/restriction/condition; native validated Builder для AssignmentScopeFilter; queryable accessAdapter::constrain) или вернувший `unsupported` — `VisibilityNotSupportedException` (одного warning недостаточно); компонент, детерминированно не применимый к запросу (`appliesTo` false), — `pass`. Нет субъекта → пустой результат (`whereRaw('1 = 0')`), Auth не читается (P04a). Явный неподдержанный scope → исключение. Подключение модели ресурса ≠ подключение хранилища: join с таблицами выдач запрещён; допускается только материализованный выбор `AssignmentScopeSelection::in()` из fenced чтения, не более 1000 ссылок, иначе `VisibilityNotSupportedException`. `decisionNow` один на вызов; predicate вычисляется на нём (сроки выдач). Scope ресурса строится через relation контекста (Client → project), не сравнением id разных типов. `candidates()` — внутренний, не публичная безопасная коллекция; `bounded()` проверяет каждого кандидата и считает total по разрешённым. Дерево partitions и branch evidence D15§5–§6. Ref candidate prefilter не authority; expiry/fields/role/scopes/conditions одной contribution. Before Continue/Deny exact partition в обоих modes. Folder constant witnesses supported, arbitrary automatic без adapter — unsupported. PolicyOnly bounded full host universe; превышен limit — ошибка, total честный. External model=null без SQL adapter exact unsupported."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Source1 allows + Source2 throws/malformed/null selection: scalar SourceError (null exact unsupported) и visibility throws до pagination, никакие partial rows не выходят.  Whole witnesses одной scope с разными conditions/expiry/fields; false before при policy true/admin; NULL partition; role seller/analyst OR; host WHERE сохранён. Folder constant vs arbitrary unsupported. No subject/no grant empty; cross-connection ≤1000 refs+evidence vs1001 exception. Bounded PolicyOnly own-resource вне grant candidates, full universe limit/total. P04a–c covered; CRM/P14/EXPLAIN/R58 — P4.23."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "`vendor/bin/pest tests/Feature/Visibility tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Regression/RegressionSpecsTest.php`; `composer test`; `vendor/bin/pest tests/Arch`; `vendor/bin/pint --test`; `vendor/bin/phpstan analyse --memory-limit=1G`; `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; `php bin/api-manifest.php --check` после `composer api:manifest`; `git diff --check`. Full real-engine qualification — P4.23."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "Exact integration/ContextAware/unsupported/bounded/witness/before tests и P04a–c covered. Tree owner P4.22, CRM/parity/EXPLAIN P4.23."
+    }
+  ]
+}

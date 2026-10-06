@@ -1,0 +1,36 @@
+
+  [39;41;1m FAIL [39;49;22m[39m Tests\Feature\Visibility\VisibleToTest[39m
+  [31;1m⨯[39;22m[90m [39m[90mit applies one grouped final constraint before count and pagination[39m[90m…[39m [90m0.10s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit applies native common and role filters as separate AND groups pe[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit preserves literal scalar parity for disjoint scoped witnesses an[39m[90m…[39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit never inherits a tenant-wide assignment into isolated contexts[39m
+  [32;1m✓[39;22m[90m [39m[90mit throws before resource execution without partially mutating the[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps the authoritative tenant owner for tenant-wide grants and[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit uses one fixed now and preserves conditions on individual witnesses[39m
+  [31m────────────────────────────────────────────────────────────────────────────[39m  
+  [41;1m FAILED [49;22m [1mTests\Feature\Visibility\VisibleToTest[22m [90m>[39m it applies one grouped f…   
+[39;1m  Failed asserting that two arrays are identical.
+  [39;22m[32m Array &0 [[39m[39;1m
+  [39;22m[32m     0 => 101,[39m[39;1m
+  [39;22m[31m-    1 => 102,[39m[39;1m
+  [39;22m[32m ][39m[39;1m
+  [39;22m
+
+  at [32mtests/Feature/Visibility/VisibleToTest.php[39m:[32m28[39m
+     24▕     $host = VisibilityClient::query()->where(fn (Builder $query) => $query->where('city', 'Paris')->orWhere('city', 'Rome'))->orderBy('id');
+     25▕     $query = $authorizer->visibleTo($panel, $host, W::subject(), 'orders.view');
+     26▕     expect($query)->toBe($host)->and($query->count())->toBe(2)
+     27▕         ->and($query->paginate(1)->total())->toBe(2)
+  ➜  28▕         ->and($query->pluck('id')->all())->toBe([101, 102]);
+     29▕ });
+     30▕ 
+     31▕ it('preserves literal scalar parity for disjoint scoped witnesses and an unassigned resource', function (): void {
+     32▕     [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource(direct: [W::grant(1), W::grant(2)]));
+
+  [33m1   [39m[39;1mtests/Feature/Visibility/VisibleToTest.php[39;22m:[39;1m28[39;22m
+
+
+  [90mTests:[39m    [31;1m1 failed[39;22m[90m,[39m[39m [39m[32;1m6 passed[39;22m[90m (18 assertions)[39m
+  [90mDuration:[39m [39m0.19s[39m
+  [90mRandom Order Seed:[39m [39m1791314076[39m
+

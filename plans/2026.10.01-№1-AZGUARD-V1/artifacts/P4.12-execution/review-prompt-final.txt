@@ -1,0 +1,592 @@
+Resume your independent final full-scope Grok4.7/high review in this same session. The previous transport was interrupted before a verdict after receiving the complete initial P4.12 candidate and normative packet and10read-only calls. That cancellation is not a completed round and not GREEN. You already have the full unchanged scope in session history. Assess the corrected candidate NOW and return the final full-scope verdict; tools are disabled for this finalization, and no further exploration/repeated reads are needed. No edits, external actions or subagents. Do not report an old-candidate defect that the exact amendment below fixes. Keep any OTHER demonstrated finding from your prior inspection. Return only JSON {"verdict":"GREEN"|"FINDINGS","findings":[{"severity":"P1|P2|P3","file":"...","line":n,"issue":"...","trigger":"...","impact":"...","suggested_fix":"..."}],"scope":"full P4.12 candidate incl amended files"}.
+
+Executor self-check RED003 proved scalar denies an ordinary grant when fixed tenant membership is absent but initial SQL exact returned id1. One owning correction applies membership to EVERY qualified grant branch (ordinary and admin), uses that branch's qualified frame for restriction applicability, preserves scoped/tenant owner and separate condition witnesses. Regression is now GREEN. All other files from the fully supplied original scope are unchanged; the exact changed full files and original-to-corrected patch are below. FinalV1:159tests; V4changed-file Pint; V5core+actual trait consumerPHPStan; V9diff allGREEN. Unchanged635related tests/72Arch/type99.3/APIchecks reused: semantic membership-only fix alters no types/API/source-producer code. First repro001/002 were bootstrap errors; only actualRED003 and correctedGREEN establish the behavior. No source/semantic scope is silently waived.
+
+FINAL CANDIDATE HASHES
+[
+  {
+    "path": "packages/core/src/Authorization/Authorizer.php",
+    "sha256": "dd0e92026b9a4ea5e1c6e7b597eb3f438d6a353c76730056e0fc0620fc1e2803"
+  },
+  {
+    "path": "packages/core/src/Authorization/ReadAttempt.php",
+    "sha256": "b6add9a57de5987c0ab7c87da500881b48e470f4340cc73eb7052d9437245f46"
+  },
+  {
+    "path": "packages/core/src/Authorization/Visibility.php",
+    "sha256": "5d091a728809dae71d80f994c09981c574c2c72d2c09bc683e3205e5e22960ee"
+  },
+  {
+    "path": "packages/core/src/Authorization/Query/VisibilityScope.php",
+    "sha256": "2e0f9a37bfae06cd7502c43db4dfa54c36365e0f5ca973781ca44659ac106930"
+  },
+  {
+    "path": "packages/core/src/Authorization/Query/EligibilityBuilder.php",
+    "sha256": "fc70266ca9e2a41a3ca5f4743b12580f93724f8c656510163eb52f45fe449f56"
+  },
+  {
+    "path": "packages/core/src/Scopes/ContextAware.php",
+    "sha256": "dbdc820b3f69b2183f427197fe8d62ee96afb0d7a1defffeac7e3ddc6b88ae8c"
+  },
+  {
+    "path": "packages/core/src/Exceptions/VisibilityNotSupportedException.php",
+    "sha256": "af1d80376659b99bcea5a33604658861fcf0c227c560a8da18236fc137eff617"
+  },
+  {
+    "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+    "sha256": "0741198dec76095d10dad08a5480facad4239f94289d763230f874f6be1ab433"
+  },
+  {
+    "path": "packages/core/src/Sources/Folder/FolderSource.php",
+    "sha256": "de440819bf3ff79691dbc3e8780dba8c9583c4bf8f9f34ea59548dff926d5f44"
+  },
+  {
+    "path": "tests/Feature/Visibility/BeforePredicateTest.php",
+    "sha256": "0d2de358b5d62d6b6182a87bc7f2f9ed6169de4f5793e6a5c2472b93199cb1cb"
+  },
+  {
+    "path": "tests/Feature/Visibility/UnsupportedTest.php",
+    "sha256": "856ded7674761272074ec3e69372263b4bfe108314642ac469844e0bb8e35389"
+  },
+  {
+    "path": "tests/Feature/Visibility/BoundedCandidatesTest.php",
+    "sha256": "2c730067e86935edb2cd4d176b2603c7538496920270c8e256516c38de38c977"
+  },
+  {
+    "path": "tests/Feature/Visibility/CrossConnectionTest.php",
+    "sha256": "7a6d359a4c02bb9dcbac4a7d2fb49bec26b8fb4d6f937ff23cbb600fe8cdde0c"
+  },
+  {
+    "path": "tests/Feature/Visibility/WitnessBranchesTest.php",
+    "sha256": "23244b19fcaee4d3bb6c6494b6a0db89e09fcfe92b299f09d50c2174f6335cdc"
+  },
+  {
+    "path": "tests/Feature/Visibility/VisibleToTest.php",
+    "sha256": "cdcbdd4b721d8f874229d1b8d694ed10da2f7b8ba521f806ec1525210d686350"
+  },
+  {
+    "path": "tests/Fixtures/Visibility/VisibilityWorld.php",
+    "sha256": "8087f46bf705001231e498768fc7462847734391167aab6d17be9e5c857ec5f5"
+  },
+  {
+    "path": "tests/Regression/P04aTest.php",
+    "sha256": "4e5dec60e26000d5e129cf748d84fa4c47792ee28650b622a9f3ad2e541ea21d"
+  },
+  {
+    "path": "tests/Regression/P04bTest.php",
+    "sha256": "812c2aaf1391e156140f65e13adb7da3156af3a12fb8e189b49002363ea396b3"
+  },
+  {
+    "path": "tests/Regression/P04cTest.php",
+    "sha256": "7b73b9a93df69d511df5e63edbfe6d800ae86927b90f41cbd9a5660049028432"
+  },
+  {
+    "path": "tests/Fixtures/Visibility/VisibilityProject.php",
+    "sha256": "5463c78edc19f9f03f339b6014a69b0800b03ce3dd061048f97d049c0b79102a"
+  },
+  {
+    "path": "CHANGELOG.md",
+    "sha256": "360c58e2b225f572ff262c0146fed2cc93895343b0ed63ca550aceececfaafaf"
+  },
+  {
+    "path": "packages/core/api-manifest.json",
+    "sha256": "d8009a1911e84ba6df303988d157f26963d05dff6ccc7fb7e1cf3cb726a8e551"
+  },
+  {
+    "path": "tests/Regression/specs/P04a.md",
+    "sha256": "eafd6b53134af9e932d76479c9b6db1f22ebd3617d9ee19971741b6c5f70dce4"
+  },
+  {
+    "path": "tests/Regression/specs/P04b.md",
+    "sha256": "ea18bc1cc546aa9c65b057c0cf04c5b5723299808a415cd694c6cc20d5a5f6ca"
+  },
+  {
+    "path": "tests/Regression/specs/P04c.md",
+    "sha256": "2d3eafec1bc2192aeb08d6c40d4d4917074f1f78ba209432a080547de5d5a12f"
+  },
+  {
+    "path": "tests/Feature/Visibility/MembershipReproTest.php",
+    "sha256": "f4e1f1740e2c85bbe933a9d3199a5e699cb740833c15b5e7b2f82b3dcc6bdeb1"
+  }
+]
+CHECK RECEIPTS
+[
+  {
+    "id": "V1",
+    "command": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Visibility tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Regression/RegressionSpecsTest.php",
+    "exit": 0,
+    "duration_seconds": 1.05
+  },
+  {
+    "id": "V2",
+    "command": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes tests/Feature/Sources tests/Feature/Policies tests/Feature/Catalog tests/Feature/Gate tests/Regression/P01aTest.php tests/Regression/P09Test.php tests/Regression/P01cTest.php tests/Regression/P03Test.php tests/Regression/P08Test.php tests/Regression/P14Test.php tests/Regression/P05Test.php tests/Regression/P10bTest.php tests/Regression/P06bTest.php tests/Regression/P06Test.php tests/Regression/P01bTest.php tests/Regression/LegacyIsolationTest.php tests/Regression/P10Test.php tests/Regression/P02Test.php tests/Regression/P07Test.php --exclude-group=engines,redis",
+    "exit": 0,
+    "duration_seconds": 16.6,
+    "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/V2-final.log"
+  },
+  {
+    "id": "V3",
+    "command": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+    "exit": 0,
+    "duration_seconds": 4.5,
+    "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/V3-final.log"
+  },
+  {
+    "id": "V4",
+    "command": "vendor/bin/pint --test packages/core/src/Authorization/Authorizer.php packages/core/src/Authorization/ReadAttempt.php packages/core/src/Authorization/Visibility.php packages/core/src/Authorization/Query/VisibilityScope.php packages/core/src/Authorization/Query/EligibilityBuilder.php packages/core/src/Scopes/ContextAware.php packages/core/src/Exceptions/VisibilityNotSupportedException.php packages/core/src/Sources/Database/DatabaseSource.php packages/core/src/Sources/Folder/FolderSource.php tests/Feature/Visibility/BeforePredicateTest.php tests/Feature/Visibility/UnsupportedTest.php tests/Feature/Visibility/BoundedCandidatesTest.php tests/Feature/Visibility/CrossConnectionTest.php tests/Feature/Visibility/WitnessBranchesTest.php tests/Feature/Visibility/VisibleToTest.php tests/Fixtures/Visibility/VisibilityWorld.php tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Fixtures/Visibility/VisibilityProject.php tests/Feature/Visibility/MembershipReproTest.php",
+    "exit": 0,
+    "duration_seconds": 1.16
+  },
+  {
+    "id": "V5",
+    "command": "vendor/bin/phpstan analyse packages/core/src tests/Fixtures/Visibility/VisibilityProject.php --memory-limit=1G --no-progress",
+    "exit": 0,
+    "duration_seconds": 3.51
+  },
+  {
+    "id": "V6",
+    "command": "__PEST_PLUGIN_ENV=1 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --configuration=plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/type-coverage.xml --type-coverage-json=plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/type-coverage.json",
+    "exit": 0,
+    "duration_seconds": 9.87,
+    "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/V6-final.log"
+  },
+  {
+    "id": "V7",
+    "command": "php bin/api-manifest.php --check",
+    "exit": 0,
+    "duration_seconds": 0.04,
+    "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/V7-final.log"
+  },
+  {
+    "id": "V8",
+    "command": "composer api:manifest",
+    "exit": 0,
+    "duration_seconds": 0.28,
+    "log": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.12-execution/V8-final.log"
+  },
+  {
+    "id": "V9",
+    "command": "git diff --check",
+    "exit": 0,
+    "duration_seconds": 0.06
+  }
+]
+FULL CORRECTED FILE packages/core/src/Authorization/Visibility.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Authorization;
+
+use AzGuard\Authorization\Query\PredicateCompiler;
+use AzGuard\Authorization\Query\VisibilityScope;
+use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Contracts\Authorization\FiltersAccessQueries;
+use AzGuard\Contracts\Scopes\ProvidesAccessScope;
+use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
+use AzGuard\Kernel\Decision\AccessPredicate as P;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\CodeStateToken;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Grammar\PatternMatcher;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelRegistry;
+use AzGuard\Policies\NativeGateBinding;
+use AzGuard\Scopes\CurrentContext;
+use AzGuard\Sources\Folder\FolderSource;
+use AzGuard\Sources\PanelSources;
+use DateTimeImmutable;
+use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Throwable;
+use UnitEnum;
+
+/**
+ * Exact final access before aggregation or pagination. Bounded fallback checks the whole host universe.
+ *
+ * @api
+ */
+final readonly class Visibility
+{
+    public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $subjects, private Container $container, private CurrentContext $current) {}
+
+    /** @template TModel of Model
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    public function visibleTo(Panel $panel, Builder $query, Model|SubjectRef|null $subject, UnitEnum|string $permission, ?AccessScope $scope = null): Builder
+    {
+        if ($subject === null) {
+            try {
+                return (new PredicateCompiler)->constrain($query, P::deny());
+            } catch (Throwable $error) {
+                throw new VisibilityNotSupportedException('unsafe_host_query', $error::class);
+            }
+        }
+        $now = Carbon::now('UTC')->toDateTimeImmutable();
+        for ($attempt = 0; ; $attempt++) {
+            try {
+                $candidate = $this->build($panel, clone $query, $subject, $permission, $scope, $now);
+                $query->setQuery($candidate->getQuery())->setEagerLoads($candidate->getEagerLoads())->withoutGlobalScopes();
+
+                return $query;
+            } catch (ReadAttemptChanged) {
+                if ($attempt === 2) {
+                    throw new VisibilityNotSupportedException('consistency_error', 'sources');
+                }
+            } catch (VisibilityNotSupportedException|ConflictingPanelException|SubjectNotAcceptedException $error) {
+                throw $error;
+            } catch (Throwable $error) {
+                throw new VisibilityNotSupportedException($error instanceof ConsistencyException ? 'consistency_error' : 'source_error', $error::class);
+            }
+        }
+    }
+
+    /** @template TModel of Model
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    private function build(Panel $panel, Builder $query, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): Builder
+    {
+        [$request, $frame, $catalog] = $this->inputs($panel, $subject, $permission, $scope, $now);
+        $sourceRead = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, publish: false);
+
+        if (! $catalog->has($request->permission()) && $catalog->isDynamic()) {
+            $catalog = $sourceRead->catalog();
+        }
+        $definition = $catalog->get($request->permission());
+        $mapping = $this->mapping($query, $frame);
+        $type = $mapping?->definition->type() ?? 'global';
+        $contributions = $definition->authority === PermissionAuthority::Grants ? $sourceRead->selections($request, $frame, $type) : [];
+        $frame = $sourceRead->consumedFrame($frame);
+        $compiler = new PredicateCompiler;
+        $compiler->constrain($query, P::pass());
+        // Assemble on a detached group so an unsupported sibling never mutates the caller.
+        $group = $query->getModel()->newModelQuery();
+
+        if ($mapping !== null) {
+            $mapping->constrain($group, $mapping->query($request, $frame, common: true));
+        }
+        foreach ($panel->before() as $declared) {
+            $hook = is_string($declared) ? $this->container->make($declared) : $declared;
+            $predicate = $this->predicate($hook, $request, $frame, $query->getModel()::class);
+            $predicate->assertPartition(before: true);
+            $compiler->constrain($group, $predicate->outcome('pass'));
+        }
+        $binding = $catalog->policyBindings()[$request->permission()->local()] ?? null;
+        $policy = P::policyResult(null);
+
+        if ($binding !== null) {
+            $component = $binding->kind === 'gate'
+                ? $this->container->make(NativeGateBinding::class)->resolve($binding)['policy']
+                : $this->container->make($binding->policy ?? throw new VisibilityNotSupportedException('policy_binding'));
+            $policy = $this->predicate($component, $request, $frame, $query->getModel()::class);
+            $policy->assertPartition();
+        }
+        $authority = $query->getModel()->newModelQuery();
+
+        if ($definition->authority === PermissionAuthority::Policy) {
+            $compiler->constrain($authority, $policy->outcome('allow'));
+            $this->membership($authority, $request, $frame, $mapping);
+            $this->restrictions($authority, $request, $frame, $compiler);
+        } else {
+            $branches = [];
+            foreach ($contributions as [$source, $item]) {
+                if (! $item->activeAt($now)) {
+                    continue;
+                }
+                $roleDefinition = $item->role === null ? null : ($catalog->roles()[$item->role->key()] ?? null);
+
+                if ($item->role !== null && ($roleDefinition === null || ! $roleDefinition['grantable'])) {
+                    continue;
+                }
+
+                if (! $item->scope->tenant->equals($frame->scope()->tenant)
+                    && ($roleDefinition === null || ! in_array($roleDefinition['class'], $panel->tenants()->globalRoles(), true))) {
+                    continue;
+                }
+                $ref = $item->scope->context;
+                $fixed = $source instanceof FolderSource && $item instanceof Grant && $item->origin === 'granted_to_all';
+
+                if ($ref->isGlobal() && $mapping !== null && $panel->scopes()->mode() === 'isolated' && ! $fixed) {
+                    continue;
+                }
+
+                if (! $ref->isGlobal() && (! $frame->scope()->context->isGlobal() && ! $ref->equals($frame->scope()->context))) {
+                    continue;
+                }
+
+                if ($roleDefinition !== null && ($ref->isGlobal() ? $roleDefinition['scope_required'] : ! in_array($ref->type(), array_column($roleDefinition['scopes'], 'type'), true))) {
+                    continue;
+                }
+                $admin = $roleDefinition['super_admin'] ?? false;
+                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local())
+                    : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::covers($pattern, $request->permission()->local())) !== [];
+                // Conditions and role eligibility qualify each live contribution before permission matching.
+                $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
+                $branchFrame = ($ref->isGlobal() ? $frame : $frame->withScope(AccessScope::in($frame->scope()->tenant, $ref)))->forContribution($item, $role);
+                $branch = $query->getModel()->newModelQuery();
+
+                if ($mapping !== null) {
+                    $mapping->constrain($branch, $mapping->query($request, $branchFrame));
+                } elseif (! $ref->isGlobal()) {
+                    throw new VisibilityNotSupportedException('unexpected_scoped_witness');
+                }
+                $conditions = [];
+                foreach ($panel->grantConditions() as $declared) {
+                    $condition = is_string($declared) ? $this->container->make($declared) : $declared;
+                    $conditions[] = $this->predicate($condition, $request, $branchFrame, $query->getModel()::class, $item);
+                }
+                $compiler->constrain($branch, P::branch($item, P::all(...$conditions)));
+
+                if (! $admin && ! $covers) {
+                    continue;
+                }
+                $qualified = $branchFrame->withAuthority([], $admin);
+                $this->membership($branch, $request, $qualified, $mapping);
+                $this->restrictions($branch, $request, $qualified, $compiler);
+                $branches[] = $branch;
+            }
+            $this->orBranches($authority->getQuery(), array_map(static fn (Builder $branch): QueryBuilder => $branch->getQuery(), $branches));
+            $compiler->constrain($authority, P::not($policy->outcome('deny')));
+        }
+        $group->getQuery()->addNestedWhereQuery($authority->getQuery());
+        $sourceRead->confirm($frame);
+        $query->getQuery()->addNestedWhereQuery($group->getQuery());
+
+        return $query;
+    }
+
+    /** @param list<QueryBuilder> $branches */
+    private function orBranches(QueryBuilder $query, array $branches): void
+    {
+        $or = $query->forNestedWhere();
+
+        if ($branches === []) {
+            $or->whereRaw('1 = 0');
+        } elseif (count($branches) <= 16) {
+            foreach ($branches as $branch) {
+                $or->addNestedWhereQuery($branch, 'or');
+            }
+        } else {
+            $halves = [array_slice($branches, 0, intdiv(count($branches), 2)), array_slice($branches, intdiv(count($branches), 2))];
+            foreach ($halves as $chunk) {
+                $group = $query->forNestedWhere();
+                $this->orBranches($group, $chunk);
+                $or->addNestedWhereQuery($group, 'or');
+            }
+        }
+        $query->addNestedWhereQuery($or);
+    }
+
+    /** @return array{AccessRequest, EvaluationFrame, PanelCatalog} */
+    private function inputs(Panel $panel, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): array
+    {
+        $ref = $subject instanceof Model ? SubjectRef::of($subject->getMorphClass(), $subject->getKey()) : $subject;
+
+        if (! $panel->accepts($ref)) {
+            throw new SubjectNotAcceptedException('Selected panel does not accept this subject.');
+        }
+        $catalog = $this->registry->catalog($panel->id());
+        $key = $permission instanceof UnitEnum ? $catalog->keyOf($permission) : (str_contains($permission, ':') ? PermissionKey::parse($permission) : PermissionKey::of($panel->id(), $permission));
+
+        if ($key->panel() !== $panel->id()) {
+            throw new ConflictingPanelException('Visibility permission belongs to another panel.');
+        }
+        $scope ??= $this->current->get($panel) ?? AccessScope::in(TenantRef::global());
+
+        if (($panel->tenants()->mode() === 'required' && ($scope->tenant->isGlobal() || $scope->tenant->type() !== $panel->tenants()->definition()?->type()))
+            || ($panel->tenants()->mode() === 'none' && ! $scope->tenant->isGlobal())
+            || (! $scope->context->isGlobal() && ($panel->scopes()->mode() === 'none' || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
+            throw new VisibilityNotSupportedException('selected_scope');
+        }
+        $model = $this->subjects->resolve($panel, $ref);
+        $frame = new EvaluationFrame($panel, $scope, CodeStateToken::of($panel->id(), $this->registry->buildId(), $this->registry->fingerprint($panel->id())), $now,
+            ActorRef::of($ref->type(), $ref->id()), $model, $model);
+
+        return [AccessRequest::for($ref, $key)->inScope($scope), $frame, $catalog];
+    }
+
+    /** @param Builder<*> $query */
+    private function mapping(Builder $query, EvaluationFrame $frame): ?VisibilityScope
+    {
+        $panel = $frame->panel();
+        $model = $query->getModel();
+
+        if ($panel->scopes()->mode() === 'none') {
+            if ($panel->tenants()->mode() !== 'none' || $model instanceof ProvidesAccessScope || $model instanceof ProvidesAssignmentScope || $panel->resourceScopes() !== []) {
+                throw new VisibilityNotSupportedException('resource_owner_adapter');
+            }
+
+            return null;
+        }
+
+        if (! method_exists($model, 'azguardContextType') || ! method_exists($model, 'azguardContextRelation')
+            || ($panel->tenants()->mode() === 'required' ? ! $model instanceof ProvidesAccessScope : ! $model instanceof ProvidesAssignmentScope)
+            || $panel->resourceScopes() !== []) {
+            throw new VisibilityNotSupportedException('resource_context_mapping');
+        }
+        $type = $model->azguardContextType();
+        $definition = $panel->scopeDefinition($type);
+
+        if (! $definition instanceof QueryableAssignmentScopeDefinition
+            || (! $frame->scope()->context->isGlobal() && $frame->scope()->context->type() !== $type)) {
+            throw new VisibilityNotSupportedException('resource_context_type');
+        }
+
+        return new VisibilityScope($query, $definition, $model->azguardContextRelation(), $this->container);
+    }
+
+    private function predicate(mixed $component, AccessRequest $request, EvaluationFrame $frame, string $type, Grant|RoleContribution|null $contribution = null): P
+    {
+        if (! $component instanceof FiltersAccessQueries) {
+            throw new VisibilityNotSupportedException('missing_exact_adapter', is_object($component) ? $component::class : null);
+        }
+        $predicate = $component->predicate($request, $type, $frame, $contribution);
+
+        if (! $predicate->isSupported()) {
+            throw new VisibilityNotSupportedException('unsupported_predicate', $component::class);
+        }
+
+        if ($contribution !== null) {
+            $predicate->assertContribution($contribution);
+        }
+
+        return $predicate;
+    }
+
+    /** @template TModel of Model
+     * @param  Builder<TModel>  $query
+     */
+    private function restrictions(Builder $query, AccessRequest $request, EvaluationFrame $frame, PredicateCompiler $compiler): void
+    {
+        $keys = [];
+        foreach ($frame->panel()->restrictions() as $declared) {
+            $restriction = is_string($declared) ? $this->container->make($declared) : $declared;
+            $key = $restriction->key();
+
+            if (isset($keys[$key])) {
+                throw new VisibilityNotSupportedException('duplicate_restriction');
+            }
+            $keys[$key] = true;
+
+            if (! $restriction->appliesTo($request, $frame) || ($frame->qualifiedSuperAdmin && $restriction->exemptsSuperAdmin())) {
+                continue;
+            }
+            $compiler->constrain($query, $this->predicate($restriction, $request, $frame, $query->getModel()::class));
+        }
+    }
+
+    /** @template TModel of Model
+     * @param  Builder<TModel>  $query
+     */
+    private function membership(Builder $query, AccessRequest $request, EvaluationFrame $frame, ?VisibilityScope $mapping): void
+    {
+        if ($frame->panel()->scopes()->membership() !== null && $mapping !== null) {
+            $declared = $frame->panel()->scopes()->membership();
+            $member = is_string($declared) ? $this->container->make($declared) : $declared;
+            (new PredicateCompiler)->constrain($query, $this->predicate($member, $request, $frame, $query->getModel()::class));
+        }
+        // Tenant membership is one fixed subject/tenant input, independent of resource rows.
+        $declared = $frame->panel()->tenants()->membership();
+
+        if ($declared !== null && ! $frame->scope()->tenant->isGlobal()) {
+            $member = is_string($declared) ? $this->container->make($declared) : $declared;
+
+            if (! $member->isMember($request->subject(), $frame->scope()->tenant)) {
+                $query->whereRaw('1 = 0');
+            }
+        }
+    }
+
+    /** @template TModel of Model
+     * @param  Builder<TModel>  $query
+     * @return LengthAwarePaginator<int, TModel>
+     */
+    public function bounded(Panel $panel, Builder $query, Model|SubjectRef|null $subject, UnitEnum|string $permission, ?AccessScope $scope = null, int $limit = 1000, int $perPage = 15, int $page = 1): LengthAwarePaginator
+    {
+        if ($limit < 1 || $perPage < 1 || $page < 1) {
+            throw new VisibilityNotSupportedException('invalid_bounds');
+        }
+
+        if ($subject === null) {
+            return new LengthAwarePaginator([], 0, $perPage, $page);
+        }
+        $now = Carbon::now('UTC')->toDateTimeImmutable();
+        [$request, $frame] = $this->inputs($panel, $subject, $permission, $scope, $now);
+        $candidate = (new PredicateCompiler)->constrain(clone $query, P::pass());
+
+        if ($candidate->getQuery()->limit !== null || $candidate->getQuery()->offset !== null
+            || $candidate->getQuery()->groups !== null || $candidate->getQuery()->havings !== null
+            || $candidate->getQuery()->columns !== null) {
+            throw new VisibilityNotSupportedException('incomplete_host_universe');
+        }
+
+        // Narrow only structural ownership, never assignments or arbitrary authority candidates.
+        if (method_exists($candidate->getModel(), 'azguardContextType')) {
+            $mapping = $this->mapping($candidate, $frame);
+
+            if ($mapping !== null) {
+                $mapping->constrain($candidate, $mapping->query($request, $frame, eligibility: false));
+            }
+        }
+        $records = $candidate->limit($limit + 1)->get();
+
+        if ($records->count() > $limit) {
+            throw new VisibilityNotSupportedException('bounded_universe_limit');
+        }
+        $authorizer = $this->container->make(Authorizer::class);
+        $context = $request->context();
+        $allowed = [];
+        foreach ($records as $record) {
+            if ($authorizer->decideAt($panel, $request->on($context?->isGlobal() ? null : $context, $record), $now)->allowed()) {
+                $allowed[] = $record;
+            }
+        }
+
+        return new LengthAwarePaginator(array_slice($allowed, ($page - 1) * $perPage, $perPage), count($allowed), $perPage, $page);
+    }
+}
+
+FULL CORRECTED FILE tests/Feature/Visibility/MembershipReproTest.php
+<?php
+
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tests\Fixtures\Scopes\Membership;
+use AzGuard\Tests\Fixtures\Scopes\Organization;
+use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
+use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
+use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+
+afterEach(fn () => W::reset());
+it('denies ordinary granted visibility when fixed tenant membership is absent', function () {
+    W::seed();
+    $source = new VisibilitySource;
+    [$visibility,$panel,$authorizer] = W::compile($source, fn (PanelBuilder $panel) => $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(members: []))), tenant: true);
+    $source->direct = [W::grant(1)];
+    $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, VisibilityProject::query()->find(1))->inTenant(W::tenant());
+    expect($authorizer->decide($panel, $request)->allowed())->toBeFalse();
+    expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([]);
+    W::reset();
+});
+
+Original correction: replace `qualified=frame.withAuthority([],admin); if(admin) membership(branch,request,branchFrame.withAuthority([],true),mapping); restrictions(...qualified...)` with `qualified=branchFrame.withAuthority([],admin); membership(branch,request,qualified,mapping); restrictions(...qualified...)`.

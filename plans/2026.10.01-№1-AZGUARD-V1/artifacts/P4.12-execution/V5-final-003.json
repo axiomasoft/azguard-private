@@ -1,0 +1,6 @@
+{
+  "id": "V5",
+  "command": "vendor/bin/phpstan analyse packages/core/src tests/Fixtures/Visibility/VisibilityProject.php --memory-limit=1G --no-progress",
+  "exit": 0,
+  "duration_seconds": 0.94
+}

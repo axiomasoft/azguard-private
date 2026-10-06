@@ -1,0 +1,47 @@
+
+  [41;1m ERROR [49;22m Unable to create test case for test file at /home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.12-execution/membership-repro.php.
+
+ namespace P\Plans\202610011AZGUARDV1\artifacts\P412execution;
+
+use Pest\Exceptions\DatasetProviderError as __PestDatasetProviderError;
+use Pest\Repositories\DatasetsRepository as __PestDatasets;
+use Pest\TestSuite as __PestTestSuite;
+
+    #[\PHPUnit\Framework\Attributes\TestDox('/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.12-execution/membership-repro.php')]
+#[\AllowDynamicProperties]
+final class membershiprepro extends \AzGuard\Tests\TestCase implements \Pest\Contracts\HasPrintableTestCaseName {
+    use \Pest\Concerns\Testable, \Pest\Concerns\Expectable, \Pest\Arch\Concerns\Architectable;
+
+    public static $__filename = '/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.12-execution/membership-repro.php';
+
+        #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\TestDox('it denies ordinary granted visibility when fixed tenant membership is absent')]
+    public function __pest_evaluable_it_denies_ordinary_granted_visibility_when_fixed_tenant_membership_is_absent(...$arguments)
+    {
+        if (count($arguments) === 1 && $arguments[array_key_first($arguments)] instanceof __PestDatasetProviderError) {
+            throw $arguments[array_key_first($arguments)]->getPrevious() ?? $arguments[array_key_first($arguments)];
+        }
+
+        return $this->__runTest(
+            $this->__test,
+            ...$arguments,
+        );
+    }
+
+}
+Location: /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Factories/TestCaseFactory.php(179) : eval()'d code:1
+
+#0 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Factories/TestCaseFactory.php(81): Pest\Factories\TestCaseFactory->evaluate('/home/vostrikov...', Array)
+#1 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Repositories/TestRepository.php(220): Pest\Factories\TestCaseFactory->make()
+#2 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Repositories/TestRepository.php(173): Pest\Repositories\TestRepository->make(Object(Pest\Factories\TestCaseFactory))
+#3 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/overrides/Runner/TestSuiteLoader.php(97): Pest\Repositories\TestRepository->makeIfNeeded('/home/vostrikov...')
+#4 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/overrides/Runner/TestSuiteLoader.php(98): PHPUnit\Runner\TestSuiteLoader::{closure:PHPUnit\Runner\TestSuiteLoader::load():90}()
+#5 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Configuration/TestSuiteBuilder.php(119): PHPUnit\Runner\TestSuiteLoader->load('/home/vostrikov...')
+#6 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Configuration/TestSuiteBuilder.php(58): PHPUnit\TextUI\Configuration\TestSuiteBuilder->testSuiteFromPath('/home/vostrikov...', Array)
+#7 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Application.php(389): PHPUnit\TextUI\Configuration\TestSuiteBuilder->build(Object(PHPUnit\TextUI\Configuration\Configuration))
+#8 /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/TextUI/Application.php(196): PHPUnit\TextUI\Application->buildTestSuite(Object(PHPUnit\TextUI\Configuration\Configuration))
+#9 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/src/Kernel.php(103): PHPUnit\TextUI\Application->run(Array)
+#10 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest(196): Pest\Kernel->handle(Array, Array)
+#11 /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest(204): {closure:/home/vostrikov/projects/packages/azguard/vendor/pestphp/pest/bin/pest:19}()
+#12 /home/vostrikov/projects/packages/azguard/vendor/bin/pest(119): include('/home/vostrikov...')
+#13 {main}.

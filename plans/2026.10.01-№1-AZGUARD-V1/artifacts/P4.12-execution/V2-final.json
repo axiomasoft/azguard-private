@@ -1,0 +1,6 @@
+{
+  "id": "V2",
+  "command": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Scopes tests/Feature/Sources tests/Feature/Policies tests/Feature/Catalog tests/Feature/Gate tests/Regression/P01aTest.php tests/Regression/P09Test.php tests/Regression/P01cTest.php tests/Regression/P03Test.php tests/Regression/P08Test.php tests/Regression/P14Test.php tests/Regression/P05Test.php tests/Regression/P10bTest.php tests/Regression/P06bTest.php tests/Regression/P06Test.php tests/Regression/P01bTest.php tests/Regression/LegacyIsolationTest.php tests/Regression/P10Test.php tests/Regression/P02Test.php tests/Regression/P07Test.php --exclude-group=engines,redis",
+  "exit": 0,
+  "duration_seconds": 16.6
+}

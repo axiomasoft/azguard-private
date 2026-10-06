@@ -1,0 +1,6 @@
+{
+  "id": "V5",
+  "command": "vendor/bin/phpstan analyse packages/core/src --memory-limit=1G --no-progress",
+  "exit": 1,
+  "duration_seconds": 3.68
+}

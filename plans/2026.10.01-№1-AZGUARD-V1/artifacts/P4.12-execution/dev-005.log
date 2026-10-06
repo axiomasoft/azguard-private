@@ -1,0 +1,18 @@
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04aTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04a returns no rows for an explicit null subject without readin[39m[90m…[39m [90m0.07s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04bTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04b returns no rows when an existing subject has no grant or gl[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Regression\P04cTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit P04c ORs a role in two projects while hiding the unassigned thir[39m[90m…[39m [90m0.01s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Feature\Visibility\CrossConnectionTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit materializes a fenced foreign-connection DatabaseSource without[39m[90m… [39m [90m0.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit supports 1000 materialized scope refs and rejects 1001 before qu[39m[90m…[39m [90m0.10s[39m  
+
+  [90mTests:[39m    [32;1m5 passed[39;22m[90m (13 assertions)[39m
+  [90mDuration:[39m [39m0.24s[39m
+  [90mRandom Order Seed:[39m [39m1791314288[39m
+

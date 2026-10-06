@@ -1,0 +1,2 @@
+> php bin/api-manifest.php --write
+updated packages/core/api-manifest.json

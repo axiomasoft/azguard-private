@@ -1,0 +1,6 @@
+
+Warning: PHP Startup: Unable to load dynamic library '/home/vostrikov/projects/packages/azguard/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so' (tried: /home/vostrikov/projects/packages/azguard/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so (Dynamic loading not supported), /lib/php/extensions/no-debug-non-zts-20240924//home/vostrikov/projects/packages/azguard/vendor/phpstan/phpstan/turbo-ext/linux-gnu-x86_64/phpstan_turbo-8.4.so.so (Dynamic loading not supported)) in Unknown on line 0
+Note: Using configuration file /home/vostrikov/projects/packages/azguard/phpstan.neon.
+
+ [OK] No errors                                                                 
+
