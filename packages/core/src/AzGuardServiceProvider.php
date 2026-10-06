@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard;
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
@@ -51,6 +52,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
         $this->app->singleton(Authorizer::class);
+        $this->app->scoped(PermissionSetCache::class);
 
         $this->app->scoped(CurrentPanel::class);
         $this->app->scoped(CurrentContext::class);

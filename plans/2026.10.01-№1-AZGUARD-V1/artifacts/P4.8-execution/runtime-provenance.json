@@ -1,0 +1,58 @@
+{
+  "root_session": {
+    "id": "01a11032-58c2-76f0-b63c-628d15302474",
+    "cwd": "/home/vostrikov/projects/packages/azguard",
+    "cli_version": "0.160.1",
+    "model_provider": "openai"
+  },
+  "latest_turn": {
+    "turn_id": "01a11032-6646-7c62-ac1b-c88b762186ff",
+    "cwd": "/home/vostrikov/projects/packages/azguard",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "approval_policy": "never",
+    "sandbox_policy": {
+      "type": "danger-full-access"
+    }
+  },
+  "observed_source": "/home/vostrikov/.codex/sessions/2026/10/06/rollout-2026-10-06T10-51-37-01a11032-58c2-76f0-b63c-628d15302474.jsonl",
+  "baseline_head": "c8fe63e8be52c7d3996ecb1dec86d0b4f5ac4f7a",
+  "canonical_files": {
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/commands/plan-run.md": "86de7bbaeb7f0b86a7613e031a8ce4064b413554234ab449354859deff9bf184",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/__init__.py": "bd902b6b4adb9effdee3412ea99d47657c4b76c6014ab49777c47db054d39288",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/brief.py": "f187f71c266f19ccd9bb36917cb776a6699aa79298e0400b6ed027350ec01d6a",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/check.py": "644ac2ec3245507577e648c63ec6b47214f12a15f1b9ae118989702810d5444d",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/cli.py": "d51aea16de08dfa8d85aa8991c625b0c9b23851b556dd2a8b8dfa1cb087efb98",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/context.py": "66b543329dbdfdb9af1a55c0786a4037bfe6912725fd2be9068bd89b99f5ddbd",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/lifecycle.py": "e90f3c86337583d6b5edcd2570044e6e7d2567d281f2856c6e930b77b6a0fd3a",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/model.py": "8b84d8a17bcd5e2d19e19e3463f63dd554b25b5446f31a3a0c8e3c3da4f9b65e",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/ops.py": "c6c0e8561fe5df65c40933d35fed0bca9eb8d865e04a457c3f6f72c926ffb050",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/refs.py": "4bafc874023b301e58fa30be1f8dff5479874861bed280548afecaad2a7b348e",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/schema.py": "57e73697be42e13a16c1390dcdcf8a997f58897ce956caaa8224bf7606329e71",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/scout.py": "e6050b3d65aaf640d163bc15d5583b9e1b9cc9bfc75c29b2e2e5e5efae8d96a1",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/snapshot.py": "1ac139ddf00d2d97ac7ce6ac075d05151a48864c2e2cba07d1279077a9b2f866",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/stats.py": "991898d0af806f4737285780e4d103e755a19cb8c16a031215750ff4d0549fa7",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/store.py": "4f25f94ade3c6eb27b19bdd449063e6c38fbadbcfc80e376602d45cf9514c994",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/templating.py": "003e437783e7beef691ab216cf24668bf36de71dd6d533125e5e5bc6e3febd3e",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/units.py": "31c38ee5bdc0ab55eb57fe94a2516b50319bb56087fc093e56145f54eb719103",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan/views.py": "9c12087c1b8fdb701dba70fc0c99b3079e91a0e499b3cca43f910bd58c4f64e1",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/references/reviewer-selection.md": "556c7c448782b143bf0329bef5f08aaf4d2d68eeebdac029b65207a632e95f8a",
+    "/home/vostrikov/projects/packages/swissknifeman/packages/task/scripts/plan.py": "66f7e7d5d7d3c7380ab08374725d68c507589e5dfaa82cb416ac3e1e6da3f964"
+  },
+  "review_request": "grok/grok-4.7/high",
+  "grok_binary": "/home/vostrikov/.grok/downloads/grok-linux-x86_64",
+  "preflight": {
+    "version": "1.0.46 (2765805b9442)",
+    "model_available": true,
+    "ignored_config_fields": [
+      "model.grok-4.7.default_reasoning_effort",
+      "privacy"
+    ],
+    "mitigation": "explicit --model grok-4.7 --reasoning-effort high; fresh read-only session; no slash-command facade"
+  },
+  "validation_isolation": {
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "source": "tests/TestCase.php canonical serial resolver; phpunit.xml; no engine tests for this item"
+  }
+}

@@ -6,6 +6,7 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\GrantCondition;
@@ -101,6 +102,10 @@ final readonly class AuthorityStage
         try {
             $contributions = $frame->readAttempt?->contributions($request, $frame);
 
+            if ($frame->readAttempt !== null) {
+                $frame = $frame->readAttempt->consumedFrame($frame);
+            }
+
             if ($contributions === null) {
                 $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
                 $contributions = [];
@@ -124,6 +129,8 @@ final readonly class AuthorityStage
                     throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
                 }
             }
+        } catch (ReadAttemptChanged $changed) {
+            throw $changed;
         } catch (Throwable $error) {
             $component = isset($source) ? $source::class : 'sources';
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;

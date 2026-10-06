@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Pipeline\Stages;
 
+use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\Pipeline\Trace;
@@ -48,7 +49,7 @@ final readonly class PrepareStage
 
         if ($denial === null) {
             try {
-                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame));
+                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class)));
             } catch (Throwable $error) {
                 $trace->error('prepare', 'source_error', 'sources', $error);
                 $denial = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'sources');
@@ -96,7 +97,7 @@ final readonly class PrepareStage
 
         if ($definition === null && $catalog->isDynamic()) {
             if ($error === null) {
-                $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame);
+                $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class));
                 $frame = $frame->withReadAttempt($attempt);
 
                 try {
@@ -124,6 +125,15 @@ final readonly class PrepareStage
                 $definition = $catalog->get($request->permission());
             } else {
                 $definition = new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants);
+            }
+        }
+
+        if ($error === null && $definition?->authority === PermissionAuthority::Grants && $frame->readAttempt === null) {
+            try {
+                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class)));
+            } catch (Throwable $caught) {
+                $error = $caught;
+                $trace->error('prepare', 'source_error', 'sources', $caught);
             }
         }
 

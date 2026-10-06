@@ -1,0 +1,327 @@
+{
+  "item": "2026.10.01-№1-AZGUARD-V1 P4.8",
+  "generated_at": "2026-10-06T08:51:20.458030+00:00",
+  "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+  "all_required_checks_green": true,
+  "all_required_checks_candidate_stable": true,
+  "accepted_checks": {
+    "V1": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pest tests/Feature/Authorization/Cache tests/Regression/P10Test.php tests/Regression/RegressionSpecsTest.php",
+      "effective_command": "vendor/bin/pest tests/Feature/Authorization/Cache tests/Regression/P10Test.php tests/Regression/RegressionSpecsTest.php",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:48:21.271771+00:00",
+      "finished_at": "2026-10-06T08:48:22.884134+00:00"
+    },
+    "V2": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V2.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V2.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "composer test",
+      "effective_command": "composer test",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:48.426831+00:00",
+      "finished_at": "2026-10-06T08:50:07.085671+00:00"
+    },
+    "V3": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V3.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V3.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pest tests/Arch",
+      "effective_command": "vendor/bin/pest tests/Arch",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:11.831355+00:00",
+      "finished_at": "2026-10-06T08:50:15.479238+00:00"
+    },
+    "V4": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V4.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V4.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pint --test",
+      "effective_command": "vendor/bin/pint --test",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:22.042971+00:00",
+      "finished_at": "2026-10-06T08:50:22.612428+00:00"
+    },
+    "V5": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V5.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V5.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "effective_command": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:22.753810+00:00",
+      "finished_at": "2026-10-06T08:50:25.825228+00:00"
+    },
+    "V6": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+      "effective_command": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --type-coverage-json=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-type-report.json",
+      "command_matches_literal": false,
+      "started_at": "2026-10-06T08:50:34.452199+00:00",
+      "finished_at": "2026-10-06T08:50:42.555973+00:00"
+    },
+    "V7": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V7.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V7.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "php bin/api-manifest.php --check",
+      "effective_command": "php bin/api-manifest.php --check",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:48.226428+00:00",
+      "finished_at": "2026-10-06T08:49:48.306924+00:00"
+    },
+    "V8": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V8.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V8.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "composer api:manifest",
+      "effective_command": "composer api:manifest",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:47.773102+00:00",
+      "finished_at": "2026-10-06T08:49:48.116029+00:00"
+    },
+    "V9": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V9.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V9.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "git diff --check",
+      "effective_command": "git diff --check",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:54.736175+00:00",
+      "finished_at": "2026-10-06T08:50:54.858549+00:00"
+    }
+  },
+  "execution_order": [
+    "affected-004/V1",
+    "full-003/V8",
+    "full-003/V7",
+    "full-003/V2",
+    "full-003/V3",
+    "full-003/V4",
+    "full-003/V5",
+    "full-003/V6",
+    "full-003/V9"
+  ],
+  "V1_reuse": "Affected004 V1 retained on identical final candidate; no redundant final rerun.",
+  "tests": {
+    "V1": {
+      "passed": 120,
+      "assertions": 100823
+    },
+    "V2": {
+      "passed": 2444,
+      "assertions": 344406
+    },
+    "V3": {
+      "passed": 72,
+      "assertions": 314
+    }
+  },
+  "phpstan": {
+    "errors": 0,
+    "exit_code": 0,
+    "warning": "Optional PHPStan turbo extension cannot dynamically load on installed PHP (Dynamic loading not supported); full analysis completed successfully, errors0. Raw warning preserved in V5.log."
+  },
+  "source_file_coverage": {
+    "source_configuration": "phpunit.xml source include packages/core/src and packages/filament/src",
+    "eligibility_rule": "Installed Pest type coverage Plugin.php: *.php excluding *.blade.php and file contents containing literal trait ",
+    "physical": 203,
+    "eligible": 200,
+    "processed": 200,
+    "processed_unique": 200,
+    "excluded_traits": [
+      "packages/core/src/Storage/Concerns/BelongsToStorage.php",
+      "packages/core/src/Storage/Concerns/GrantIdentity.php",
+      "packages/core/src/Storage/Concerns/GuardsDirectWrites.php"
+    ],
+    "missing": [],
+    "unexpected": [],
+    "duplicates": 0,
+    "percent": 99.75,
+    "threshold": 98,
+    "report": "V6-type-report.json"
+  },
+  "type_coverage_full_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-coverage-inventory.json",
+  "type_coverage_raw_report": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-type-report.json",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "PHP_INI_SCAN_DIR": ":/tmp/azguard-p48-php-conf"
+  },
+  "isolation_proof": {
+    "phpunit": "phpunit.xml sets testing/sqlite/:memory:",
+    "canonical_resolver": "tests/TestCase.php databaseConnectionConfig() sqlite branch returns :memory:; getEnvironmentSetUp() applies it to testbench and secondary. Every command pins testing/sqlite/:memory:.",
+    "engine_redis_scope": "No engine or Redis qualification performed; composer test excludes engines by its canonical script; real engine/Redis acceptance belongs P4.21."
+  },
+  "command_deviations": [
+    {
+      "scope": "All PHP commands",
+      "change": "PHP_INI_SCAN_DIR appends task-local memory_limit=1G ini; native literal V1/V3 commands retained.",
+      "reason": "Default128M known architecture OOM; preserve native commands while applying explicit1G runtime budget.",
+      "ini_file": "/tmp/azguard-p48-php-conf/memory.ini",
+      "ini_contents": "memory_limit=1G\n"
+    },
+    {
+      "scope": "V6",
+      "change": "Added env __PEST_PLUGIN_ENV=1, -d variables_order=EGPCS, --no-cache and --type-coverage-json path to literal1G command.",
+      "reason": "Installed plugin checks $_ENV marker to disable fork; no-cache forces complete analysis; JSON export proves each untruncated processed file. Percent alone is not acceptance."
+    }
+  ],
+  "nonaccepted_attempts": [
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-001/V1.json",
+      "check_id": "V1",
+      "exit_code": 2,
+      "candidate_sha256": "c89ae2981f32db8c9286d51f9148fa7cd0e7105e47fda0cef6e9e27e1007fc15",
+      "classification": "Failed attempt; never acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-002/V1.json",
+      "check_id": "V1",
+      "exit_code": 0,
+      "candidate_sha256": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-002/affected-phpstan.json",
+      "check_id": "affected-phpstan",
+      "exit_code": 0,
+      "candidate_sha256": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-003/V1.json",
+      "check_id": "V1",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-003/affected-phpstan.json",
+      "check_id": "affected-phpstan",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-003/automatic-roles.json",
+      "check_id": "automatic-roles",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/affected-phpstan.json",
+      "check_id": "affected-phpstan",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "classification": "Supplemental affected gate; not a mandatory acceptance receipt."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V2.json",
+      "check_id": "V2",
+      "exit_code": 1,
+      "candidate_sha256": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+      "classification": "Failed attempt; never acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V7.json",
+      "check_id": "V7",
+      "exit_code": 0,
+      "candidate_sha256": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V8.json",
+      "check_id": "V8",
+      "exit_code": 0,
+      "candidate_sha256": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V2.json",
+      "check_id": "V2",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V3.json",
+      "check_id": "V3",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V4.json",
+      "check_id": "V4",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V5.json",
+      "check_id": "V5",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V6.json",
+      "check_id": "V6",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V7.json",
+      "check_id": "V7",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V8.json",
+      "check_id": "V8",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    },
+    {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-002/V9.json",
+      "check_id": "V9",
+      "exit_code": 0,
+      "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+      "classification": "Superseded candidate; never final acceptance."
+    }
+  ],
+  "snapshot": {
+    "helper": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/run-check.py",
+    "scope": "All tracked/new paths plus recursive files under tests, bin, packages/*/src and packages/*/config; package API/composer manifests; root composer/phpunit/phpstan/pint/rector/type-coverage config, coverage.php and CHANGELOG. Tests exclude vendor/testbench-core/.pest/.phpunit.cache generated trees.",
+    "deleted_paths": "Tracked scoped missing files retained with null digest; parent directory inventory records directory/missing. New files included.",
+    "digest_algorithm": "sha256(json.dumps({files: sorted-relative-path-to-sha256-or-null, directories: sorted-parent-path-to-directory-or-missing}, sort_keys=True, separators=(comma,colon)).encode())",
+    "freshness_command": "python3 -c \"import importlib.util; s=importlib.util.spec_from_file_location('p48checks','plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/run-check.py'); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); print(m.snapshot()['sha256'])\""
+  },
+  "qualification_reason": "Qualifies DB panel-wide revision promotion across tenant scopes and preserves tenant-specific state partitions for generic FencesReads sources; regression tests cover revoked warmed DB authority and stale generic persistent sets.",
+  "freshness_at_summary": {
+    "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+    "file_count": 583,
+    "deleted_file_count": 0,
+    "checked_at": "2026-10-06T08:51:20.506310+00:00"
+  }
+}

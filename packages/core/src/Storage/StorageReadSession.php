@@ -7,6 +7,7 @@ namespace AzGuard\Storage;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Reads;
 use Closure;
 use DateTimeImmutable;
@@ -28,7 +29,7 @@ final class StorageReadSession
     private bool $schemaChecked = false;
 
     /** @param Closure(string, ?string): Model $models */
-    public function __construct(private readonly Storage $storage, Reads $reads, private readonly Closure $models)
+    public function __construct(private readonly Storage $storage, private readonly Reads $reads, private readonly Closure $models)
     {
         $this->assertNoTransaction();
         $authority = $storage->connection();
@@ -67,6 +68,27 @@ final class StorageReadSession
         $this->assertNoTransaction($this->pdo);
 
         return $this->connection->table($this->storage->prefix().$base);
+    }
+
+    /** Stable route namespace; credentials are never retained in a cache entry. */
+    public function authorityIdentity(): string
+    {
+        $connection = $this->storage->connection();
+
+        return IdentityCodec::digest([$this->storage->id(), $this->storage->connectionName(), $this->storage->prefix(),
+            $this->storage->hostKeys(), $this->reads->value, (string) json_encode(array_intersect_key($connection->getConfig(),
+                array_flip(['driver', 'database', 'host', 'port', 'unix_socket', 'read', 'write'])), JSON_THROW_ON_ERROR)]);
+    }
+
+    /** Request memo is also tied to the currently resolved physical handle. */
+    public function handleIdentity(): int
+    {
+        return spl_object_id($this->pdo);
+    }
+
+    public function assertUsable(): void
+    {
+        $this->assertNoTransaction($this->pdo);
     }
 
     public function model(string $kind, ?string $class = null): Model

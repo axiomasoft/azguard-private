@@ -1,0 +1,271 @@
+{
+  "item": "2026.10.01-№1-AZGUARD-V1 P4.8",
+  "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+  "all_mapped_acceptance_checks_green": true,
+  "acceptance_cases": [
+    {
+      "requirement": "raw_serialized_shape",
+      "behavior": "Only raw kernel contributions/declared scalars; no Decision/Model/Builder/Closure/policy",
+      "test_file": "tests/Feature/Authorization/Cache/IsolationTest.php",
+      "test_lines": [
+        61,
+        74,
+        89
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "V04_key_digest",
+      "behavior": "100000 seeded distinct digest tuples; all identity components; typed tenant/subject, source, read mode, authority, codec and sorted scope canonicalization",
+      "test_file": "tests/Feature/Authorization/Cache/CacheKeyTest.php",
+      "test_lines": [
+        15,
+        29
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "P10_V19_refresh_budget",
+      "behavior": "Warm request ten checks one state zero grants; check mode ten states; cold read surrounds both capability reads with coherent fence",
+      "test_file": "tests/Regression/P10Test.php",
+      "test_lines": [
+        10
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "cold_fence_refresh",
+      "behavior": "Cold coherent fence; request/check refresh; newest cold revision promotion clears prior raw sets",
+      "test_file": "tests/Feature/Authorization/Cache/RefreshModesTest.php",
+      "test_lines": [
+        36,
+        44,
+        76
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "V18_revoke",
+      "behavior": "Primary new request / next check observes committed revoke and larger state version",
+      "test_file": "tests/Feature/Authorization/Cache/RefreshModesTest.php",
+      "test_lines": [
+        56
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "absolute_expiry_admin",
+      "behavior": "Ordinary and administrative grants expire at equality; validUntil nearest expiry; absoluteTTL even nonexpiring contributions",
+      "test_file": "tests/Feature/Authorization/Cache/ExpiryTest.php",
+      "test_lines": [
+        18,
+        43,
+        58
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "volatility_lifecycle",
+      "behavior": "Stable fenced persistence; Request memory only; Volatile uncached; forgetScopedInstances replaces scoped memo and retains only allowed persistent entries",
+      "test_file": "tests/Feature/Authorization/Cache/IsolationTest.php",
+      "test_lines": [
+        22,
+        46
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "storage_subject_isolation",
+      "behavior": "Different physical authority storage and different subjects never share warmed raw grants; key properties isolate panel/storage/read authority",
+      "test_file": "tests/Feature/Authorization/Cache/IsolationTest.php",
+      "test_lines": [
+        103
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "live_inputs_V100_V112",
+      "behavior": "Policy, subject/resource, grant conditions, restrictions, active membership re-evaluated on same DBT cachedraw",
+      "test_file": "tests/Feature/Authorization/Cache/LiveInputsTest.php",
+      "test_lines": [
+        32,
+        52,
+        82
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "unknown_transaction_consumption_boundary",
+      "behavior": "Unknown assignment transaction denied cold/warm consumedDB authority; PolicyOnly/code/realRelation-only ignore unrelated assignment transaction",
+      "test_file": "tests/Feature/Authorization/Cache/TransactionGuardTest.php",
+      "test_lines": [
+        27,
+        56,
+        71,
+        88
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "automatic_predicates_live",
+      "behavior": "Built-in Folder automatic seller/root predicates re-evaluated after host membership changes",
+      "test_file": "tests/Feature/Sources/Folder/AutomaticRolesTest.php",
+      "test_lines": [
+        30
+      ],
+      "acceptance_check": "V2",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V2.json"
+    },
+    {
+      "requirement": "cross_tenant_DB_revision",
+      "behavior": "A cold tenant miss promotes the panel-wide DatabaseSource revision, evicts previously warmed tenant raw sets and observes a revoke in the original tenant; warm follow-up zero state/grant reads.",
+      "test_file": "tests/Feature/Authorization/Cache/RefreshModesTest.php",
+      "test_lines": [
+        102
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    },
+    {
+      "requirement": "generic_tenant_partition",
+      "behavior": "Generic FencesReads state remains tenant-specific; warming another tenant with an old token cannot restore the first tenant stale persistent authority set.",
+      "test_file": "tests/Feature/Authorization/Cache/RefreshModesTest.php",
+      "test_lines": [
+        129
+      ],
+      "acceptance_check": "V1",
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json"
+    }
+  ],
+  "mandatory_checks": {
+    "V1": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-004/V1.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pest tests/Feature/Authorization/Cache tests/Regression/P10Test.php tests/Regression/RegressionSpecsTest.php",
+      "effective_command": "vendor/bin/pest tests/Feature/Authorization/Cache tests/Regression/P10Test.php tests/Regression/RegressionSpecsTest.php",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:48:21.271771+00:00",
+      "finished_at": "2026-10-06T08:48:22.884134+00:00"
+    },
+    "V2": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V2.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V2.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "composer test",
+      "effective_command": "composer test",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:48.426831+00:00",
+      "finished_at": "2026-10-06T08:50:07.085671+00:00"
+    },
+    "V3": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V3.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V3.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pest tests/Arch",
+      "effective_command": "vendor/bin/pest tests/Arch",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:11.831355+00:00",
+      "finished_at": "2026-10-06T08:50:15.479238+00:00"
+    },
+    "V4": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V4.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V4.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/pint --test",
+      "effective_command": "vendor/bin/pint --test",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:22.042971+00:00",
+      "finished_at": "2026-10-06T08:50:22.612428+00:00"
+    },
+    "V5": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V5.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V5.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "effective_command": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:22.753810+00:00",
+      "finished_at": "2026-10-06T08:50:25.825228+00:00"
+    },
+    "V6": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+      "effective_command": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --type-coverage-json=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-type-report.json",
+      "command_matches_literal": false,
+      "started_at": "2026-10-06T08:50:34.452199+00:00",
+      "finished_at": "2026-10-06T08:50:42.555973+00:00"
+    },
+    "V7": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V7.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V7.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "php bin/api-manifest.php --check",
+      "effective_command": "php bin/api-manifest.php --check",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:48.226428+00:00",
+      "finished_at": "2026-10-06T08:49:48.306924+00:00"
+    },
+    "V8": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V8.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V8.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "composer api:manifest",
+      "effective_command": "composer api:manifest",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:49:47.773102+00:00",
+      "finished_at": "2026-10-06T08:49:48.116029+00:00"
+    },
+    "V9": {
+      "receipt": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V9.json",
+      "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V9.log",
+      "exit_code": 0,
+      "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+      "literal_command": "git diff --check",
+      "effective_command": "git diff --check",
+      "command_matches_literal": true,
+      "started_at": "2026-10-06T08:50:54.736175+00:00",
+      "finished_at": "2026-10-06T08:50:54.858549+00:00"
+    }
+  },
+  "qualification_summary": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/qualification-summary.json",
+  "scope_limits": [
+    "Supported transaction markers, own mutation protocol, incarnation/touch/reset/restore qualification P4.20.",
+    "Races, Redis, real replica lag/performance and real engine qualification P4.21.",
+    "Source file type coverage follows installed plugin exclusions (3 traits); eligible set fully processed."
+  ],
+  "qualification_reason": "Qualifies DB panel-wide revision promotion across tenant scopes and preserves tenant-specific state partitions for generic FencesReads sources; regression tests cover revoked warmed DB authority and stale generic persistent sets."
+}

@@ -1,0 +1,22 @@
+{
+  "check_id": "V2",
+  "command": "composer test",
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "PHP_INI_SCAN_DIR": ":/tmp/azguard-p48-php-conf"
+  },
+  "started_at": "2026-10-06T08:03:55.961805+00:00",
+  "finished_at": "2026-10-06T08:04:14.875301+00:00",
+  "duration_seconds": 18.913,
+  "exit_code": 1,
+  "candidate_before": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+  "candidate_after": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+  "candidate_stable": true,
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V2.log",
+  "before_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V2-before.json",
+  "after_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-001/V2-after.json",
+  "head": "c8fe63e8be52c7d3996ecb1dec86d0b4f5ac4f7a"
+}

@@ -1,0 +1,22 @@
+{
+  "check_id": "V6",
+  "command": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --type-coverage-json=plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-type-report.json",
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "PHP_INI_SCAN_DIR": ":/tmp/azguard-p48-php-conf"
+  },
+  "started_at": "2026-10-06T08:50:34.452199+00:00",
+  "finished_at": "2026-10-06T08:50:42.555973+00:00",
+  "duration_seconds": 8.104,
+  "exit_code": 0,
+  "candidate_before": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+  "candidate_after": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+  "candidate_stable": true,
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6.log",
+  "before_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-before.json",
+  "after_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/full-003/V6-after.json",
+  "head": "c8fe63e8be52c7d3996ecb1dec86d0b4f5ac4f7a"
+}

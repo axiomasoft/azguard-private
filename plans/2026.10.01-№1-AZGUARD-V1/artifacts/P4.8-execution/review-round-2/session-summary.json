@@ -1,0 +1,24 @@
+{
+  "info": {
+    "id": "dc221863-8521-4f31-8871-d933a96593e0",
+    "cwd": "/work"
+  },
+  "agent_id": "ag1.ed9fc963867e41a4a4327b60309c7de7",
+  "attempt_id": "at1.161ecfdf3a6444ba93a9819d4f6417b8",
+  "session_summary": "Cross-tenant panel_state revision-memo P1 re-review",
+  "created_at": "2026-10-06T08:53:51.424989274Z",
+  "updated_at": "2026-10-06T08:57:52.903625075Z",
+  "num_messages": 6,
+  "num_chat_messages": 8,
+  "current_model_id": "grok-4.7",
+  "next_trace_turn": 1,
+  "chat_format_version": 1,
+  "session_kind": "headless",
+  "request_id": "4c3394e3-e595-41df-8e71-ab9698799b19",
+  "grok_home": "/tmp/grok-home",
+  "last_active_at": "2026-10-06T08:57:52.903625075Z",
+  "generated_title": "Cross-tenant panel_state revision-memo P1 re-review",
+  "agent_name": "grok-build-plan",
+  "sandbox_profile": "off",
+  "reasoning_effort": "high"
+}

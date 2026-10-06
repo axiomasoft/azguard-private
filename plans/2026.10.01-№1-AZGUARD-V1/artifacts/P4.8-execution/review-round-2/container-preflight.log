@@ -1,0 +1,5 @@
+READONLY_PROVEN:/etc/p48-readonly-probe
+READONLY_PROVEN:/work/p48-readonly-probe
+READONLY_PROVEN:/deps/vendor/p48-readonly-probe
+grok 1.0.46 (2765805b9442)
+ripgrep 15.2.0 (rev e89fff89ac)

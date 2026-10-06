@@ -1,0 +1,22 @@
+{
+  "check_id": "affected-phpstan",
+  "command": "vendor/bin/phpstan analyse --memory-limit=1G packages/core/src/Authorization/Cache/PermissionSetCache.php packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php packages/core/src/Authorization/ReadAttempt.php packages/core/src/AzGuardServiceProvider.php packages/core/src/Storage/StorageReadSession.php",
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "PHP_INI_SCAN_DIR": ":/tmp/azguard-p48-php-conf"
+  },
+  "started_at": "2026-10-06T08:03:26.803862+00:00",
+  "finished_at": "2026-10-06T08:03:29.424158+00:00",
+  "duration_seconds": 2.62,
+  "exit_code": 0,
+  "candidate_before": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+  "candidate_after": "dd0a8393674f6f287514108b697f4c7f8dbccbd1b4d125d639b0e25441ced959",
+  "candidate_stable": true,
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-002/affected-phpstan.log",
+  "before_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-002/affected-phpstan-before.json",
+  "after_inventory": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.8-execution/runs/affected-002/affected-phpstan-after.json",
+  "head": "c8fe63e8be52c7d3996ecb1dec86d0b4f5ac4f7a"
+}

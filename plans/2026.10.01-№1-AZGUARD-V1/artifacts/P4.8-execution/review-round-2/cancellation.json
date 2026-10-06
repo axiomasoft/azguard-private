@@ -1,0 +1,9 @@
+{
+  "status": "cancelled_by_owner",
+  "owner_message": "не делай, завершай",
+  "native_exit": 130,
+  "completed_review_round": false,
+  "review_verdict": "not established; no GREEN claimed",
+  "candidate_sha256": "2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f",
+  "session_id": "dc221863-8521-4f31-8871-d933a96593e0"
+}

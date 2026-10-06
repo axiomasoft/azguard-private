@@ -1,0 +1,17 @@
+{
+  "session_id": "4f891a7f-20e7-4e65-8564-8352d1953cbd",
+  "container": "azguard-p48-grok-4f891a7f",
+  "host_snapshot": "/tmp/azguard-p48-review-3555156c-f857-4f52-ae47-8b5da7fefae7",
+  "native_cwd": "/work",
+  "candidate_sha256": "ca5b624ed115f4f617da950864432052dbd124e41c2a33979f50009f09bb8476",
+  "native_sandbox": "off",
+  "external_os_sandbox": "Docker read-only root + RO mounts, cap-dropALL, no-new-privileges, default seccomp/AppArmor, private tmpfs, bridge",
+  "read_only_tools": [
+    "read_file",
+    "grep",
+    "list_dir"
+  ],
+  "source_profile_failure": "bwrap uid map denied by host AppArmor before modelcall",
+  "auth_location": "private tmpfs; read-only original source; never archived",
+  "config": "fresh, no inherited hooks/plugins/MCP/history"
+}

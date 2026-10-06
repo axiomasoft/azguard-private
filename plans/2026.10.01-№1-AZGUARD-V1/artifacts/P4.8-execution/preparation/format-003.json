@@ -1,0 +1,9 @@
+{
+  "command": [
+    "vendor/bin/pint",
+    "packages/core/src/Authorization/ReadAttempt.php"
+  ],
+  "exit": 0,
+  "started_at": "2026-10-06T08:08:49.182020+00:00",
+  "finished_at": "2026-10-06T08:08:49.399597+00:00"
+}
