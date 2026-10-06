@@ -14,6 +14,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
+use Throwable;
 
 /** Isolates every predicate from structural identity and from every other predicate. */
 final class EligibilityBuilder
@@ -36,6 +37,53 @@ final class EligibilityBuilder
             return false;
         }
 
+        self::apply($definition, $query, $filters, $runtime, $container);
+
+        return $query->exists();
+    }
+
+    /** @param array<string, array{ResolvedAssignmentScope, AssignmentScopeRuntime}> $witnesses
+     * @param  list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure>  $filters
+     * @return array<string, bool|Throwable>
+     */
+    public static function matchesMany(QueryableAssignmentScopeDefinition $definition, array $witnesses, array $filters, Container $container): array
+    {
+        $results = array_fill_keys(array_keys($witnesses), false);
+        $query = null;
+        $keys = array_keys($witnesses);
+        foreach (array_values($witnesses) as $i => [$resolved, $runtime]) {
+            if (! $resolved->tenant->equals($runtime->scope->tenant)) {
+                continue;
+            }
+
+            try {
+                $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
+                $branch = clone $structural;
+                $branch->getQuery()->wheres = [];
+                $branch->getQuery()->setBindings([], 'where');
+                $branch->getQuery()->addNestedWhereQuery($structural->getQuery());
+                $branch->whereKey($resolved->ref->id());
+                self::apply($definition, $branch, $filters, $runtime, $container);
+                // A witness tag prevents one passing role/field predicate from granting a sibling witness.
+                $branch->selectRaw('? as azguard_batch_witness', [$i]);
+                $query = $query === null ? $branch->toBase() : $query->unionAll($branch->toBase());
+            } catch (Throwable $error) {
+                $results[$keys[$i]] = $error;
+            }
+        }
+        foreach ($query?->get() ?? [] as $row) {
+            $results[$keys[(int) $row->azguard_batch_witness]] = true;
+        }
+
+        return $results;
+    }
+
+    /** @param Builder<Model> $query
+     * @param  list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure>  $filters
+     */
+    private static function apply(QueryableAssignmentScopeDefinition $definition, Builder $query, array $filters, AssignmentScopeRuntime $runtime, Container $container): void
+    {
+        $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
         foreach ($filters as $filter) {
             $group = clone $structural;
             $group->getQuery()->wheres = [];
@@ -67,7 +115,6 @@ final class EligibilityBuilder
             $query->getQuery()->addNestedWhereQuery($predicate->getQuery());
         }
 
-        return $query->exists();
     }
 
     /** @param Builder<Model> $builder

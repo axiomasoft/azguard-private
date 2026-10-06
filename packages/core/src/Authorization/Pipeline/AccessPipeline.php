@@ -13,16 +13,44 @@ use AzGuard\Authorization\Pipeline\Stages\RestrictionStage;
 use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
+use Closure;
 use Throwable;
 
 final readonly class AccessPipeline
 {
     public function __construct(private BoundaryStage $boundary, private BeforeStage $before, private AuthorityStage $authority, private RestrictionStage $restrictions, private AfterStage $after) {}
 
-    public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace, ?Decision $denial = null): Decision
+    /** @param array{?Decision, list<Restriction>, ?Decision}|null $started
+     * @param  Closure(EvaluationFrame): void|null  $capture
+     */
+    public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace, ?Decision $denial = null, bool $deferred = false, ?Closure $capture = null, ?array $started = null): Decision
+    {
+        [$decision, $restrictions, $restrictionDenial] = $started ?? $this->start($request, $frame, $trace, $denial);
+
+        if ($decision === null) {
+            [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
+            $trace->record('authority', $decision->reason->value);
+        }
+
+        if ($decision->allowed()) {
+            $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
+        }
+
+        if ($deferred) {
+            $capture?->__invoke($frame);
+
+            return $decision;
+        }
+
+        return $this->complete($request, $frame, $decision, $trace);
+    }
+
+    /** @return array{?Decision, list<Restriction>, ?Decision} */
+    public function start(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?Decision $denial): array
     {
         $trace->record('prepare', 'prepared');
         $restrictions = [];
@@ -40,16 +68,12 @@ final readonly class AccessPipeline
         $trace->record('boundary', $decision?->reason->value ?? 'pass');
         $decision ??= $this->before->decide($request, $frame, $trace);
 
-        if ($decision === null) {
-            [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
-            $trace->record('authority', $decision->reason->value);
-        }
+        return [$decision, $restrictions, $restrictionDenial];
+    }
 
-        if ($decision->allowed()) {
-            $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
-        }
-
-        if ($frame->readAttempt !== null) {
+    public function complete(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace, bool $confirm = true): Decision
+    {
+        if ($confirm && $frame->readAttempt !== null) {
             try {
                 $frame = $frame->readAttempt->confirm($frame);
                 $decision = $decision->allowed()
@@ -63,6 +87,9 @@ final readonly class AccessPipeline
                 $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
             }
         }
+        $decision = $decision->allowed()
+            ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
+            : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

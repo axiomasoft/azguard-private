@@ -1,0 +1,18 @@
+{
+  "verdict": "GREEN",
+  "provider": "grok",
+  "model": "grok-4.7",
+  "effort": "high",
+  "native_session": "12c56425-8c58-4f74-b0fa-e9ed0e1a24b1",
+  "context_parameter": null,
+  "completed_rounds": 1,
+  "finalization_exit": 0,
+  "read_only_tool_calls": {
+    "list_dir": 1,
+    "read_file": 52,
+    "grep": 20
+  },
+  "candidate_hashes_stable": true,
+  "coverage_limits": "`DecideManyParityTest`, the V1–V10 log bodies, `AfterStage`, the rest of `AuthorityStage`, and the CRM filter classes.",
+  "interrupted_launches": "Initial launch stopped for import correction before verdict; final full-scope session interrupted after 73 reads and resumed in same session to finalize without further navigation."
+}

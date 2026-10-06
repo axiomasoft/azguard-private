@@ -21,7 +21,7 @@ final readonly class ScopeEligibility
 {
     public function __construct(private Container $container) {}
 
-    public function common(AccessRequest $request, EvaluationFrame $frame): bool
+    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
     {
         if ($frame->scope()->context->isGlobal()) {
             return true;
@@ -30,11 +30,11 @@ final readonly class ScopeEligibility
         $definition = $this->definition($frame);
         $runtime = $this->runtime($request->subject(), $frame, common: true);
 
-        return $this->native($definition, $definition, $frame, $runtime)
-            && $this->external($frame, $runtime);
+        return $this->native($definition, $definition, $frame, $runtime, $batch)
+            && $this->external($frame, $runtime, $batch);
     }
 
-    public function contribution(AccessRequest $request, EvaluationFrame $frame): bool
+    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
     {
         if ($frame->scope()->context->isGlobal()) {
             return true;
@@ -51,7 +51,7 @@ final readonly class ScopeEligibility
             }
             $frame = $frame->withAssignmentScope($resolved);
 
-            if (! $this->common($request, $frame)) {
+            if (! $this->common($request, $frame, $batch)) {
                 return false;
             }
         }
@@ -78,13 +78,13 @@ final readonly class ScopeEligibility
                     throw new RuntimeException('A model-required scope binding has no resolved record.');
                 }
 
-                if (! $this->native($definition, $binding, $frame, $runtime)) {
+                if (! $this->native($definition, $binding, $frame, $runtime, $batch)) {
                     return false;
                 }
             }
         }
 
-        return $this->external($frame, $runtime);
+        return $this->external($frame, $runtime, $batch);
     }
 
     private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
@@ -93,7 +93,7 @@ final readonly class ScopeEligibility
             ?? throw new RuntimeException('Selected scope definition is missing.');
     }
 
-    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
+    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
     {
         $filters = $configuration instanceof ConfigurableAssignmentScopeDefinition ? $configuration->settings()->filters : [];
 
@@ -107,10 +107,11 @@ final readonly class ScopeEligibility
 
         $resolved = $frame->assignmentScope ?? throw new RuntimeException('Scope eligibility requires structural resolution.');
 
-        return EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container);
+        return $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
+            : $batch->native($definition, $configuration, $filters, $runtime, $frame);
     }
 
-    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
+    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
     {
         $declared = $frame->panel()->scopes()->adapters()[$frame->scope()->context->type() ?? ''] ?? null;
 
@@ -124,10 +125,11 @@ final readonly class ScopeEligibility
             throw new RuntimeException('Scope adapter resolver did not return AssignmentScopeAccessAdapter.');
         }
 
-        return $adapter->allows($frame->scope()->context, $runtime);
+        return $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
+            : $batch->external($adapter, $frame, $runtime);
     }
 
-    private function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime
+    public function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime
     {
         return new AssignmentScopeRuntime(
             panel: $frame->panel(), scope: $frame->scope(), subject: $subject, user: $frame->subjectModel(),

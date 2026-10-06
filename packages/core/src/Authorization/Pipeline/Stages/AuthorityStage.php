@@ -188,7 +188,7 @@ final readonly class AuthorityStage
                 $branch = $frame->forContribution($item, $role);
 
                 try {
-                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch)) {
+                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs)) {
                         $trace->record('contribution', 'scope_ineligible', $source::class);
 
                         continue;

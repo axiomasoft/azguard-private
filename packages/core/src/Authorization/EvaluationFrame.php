@@ -43,11 +43,18 @@ final readonly class EvaluationFrame implements EvaluationContext
         public array $sourceStates = [],
         public ?ResolvedAssignmentScope $assignmentScope = null,
         public ?AuthorityTransaction $authorityTransaction = null,
+        public ?BatchInputs $batchInputs = null,
+        public bool $dynamicRead = false,
     ) {}
+
+    public function withDynamicRead(): self
+    {
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, true);
+    }
 
     public function withAuthorityTransaction(?AuthorityTransaction $transaction): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $transaction);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $transaction, $this->batchInputs, $this->dynamicRead);
     }
 
     public function panel(): Panel
@@ -100,12 +107,12 @@ final readonly class EvaluationFrame implements EvaluationContext
 
     public function withScope(AccessScope $scope): self
     {
-        return new self($this->selectedPanel, $scope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $scope->equals($this->selectedScope) ? $this->assignmentScope : null, $this->authorityTransaction);
+        return new self($this->selectedPanel, $scope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $scope->equals($this->selectedScope) ? $this->assignmentScope : null, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     public function withAssignmentScope(ResolvedAssignmentScope $resolved): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $resolved, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $resolved, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     public function resource(): ?object
@@ -156,28 +163,28 @@ final readonly class EvaluationFrame implements EvaluationContext
 
     public function forContribution(Grant|RoleContribution $grant, ?BaseRole $role = null): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     public function withState(CodeStateToken|StateToken $state): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     public function withReadAttempt(ReadAttempt $attempt): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $attempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $attempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     /** @param array<string, StateToken> $states */
     public function withSourceStates(array $states, ?StateToken $database = null): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $database ?? $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $states, $this->assignmentScope, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $database ?? $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $states, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 
     /** @param list<Grant> $grants */
     public function withAuthority(array $grants, bool $superAdmin): self
     {
-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
+        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
     }
 }

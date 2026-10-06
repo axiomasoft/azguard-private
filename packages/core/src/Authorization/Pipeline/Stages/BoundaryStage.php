@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization\Pipeline\Stages;
 
+use AzGuard\Authorization\BatchInputs;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\ScopeEligibility;
@@ -29,7 +30,7 @@ final readonly class BoundaryStage
     public function __construct(private Container $container, private CurrentContext $current) {}
 
     /** @return array{EvaluationFrame, ?Decision} */
-    public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
+    public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $trace, bool $structural = true): array
     {
         $panel = $frame->panel();
         $ambient = $this->current->get($panel);
@@ -84,6 +85,14 @@ final readonly class BoundaryStage
             return [$frame, $denial];
         }
 
+        return $structural ? $this->structural($request, $frame, $trace) : [$frame, null];
+    }
+
+    /** @return array{EvaluationFrame, ?Decision} */
+    public function structural(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?BatchInputs $inputs = null): array
+    {
+        $panel = $frame->panel();
+
         if (! $frame->scope()->context->isGlobal()) {
             $definition = $panel->scopeDefinition($frame->scope()->context->type() ?? '');
 
@@ -92,7 +101,7 @@ final readonly class BoundaryStage
             }
 
             try {
-                $resolved = $definition->resolve($frame->scope()->context);
+                $resolved = $inputs === null ? $definition->resolve($frame->scope()->context) : $inputs->scope($frame);
 
                 if ($resolved === null) {
                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeNotAccepted)];
@@ -114,7 +123,7 @@ final readonly class BoundaryStage
                 }
                 $frame = $frame->withAssignmentScope($resolved);
 
-                if (! (new ScopeEligibility($this->container))->common($request, $frame)) {
+                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs)) {
                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
                 }
             } catch (Throwable $error) {

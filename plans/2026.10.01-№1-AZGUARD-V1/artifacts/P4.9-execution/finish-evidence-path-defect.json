@@ -1,0 +1,9 @@
+{
+  "observed": "finish --evidence rejects existing paths inside this project",
+  "attempts": [
+    "artifacts/P4.9-execution/V1.json",
+    "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.9-execution/V1.json"
+  ],
+  "error": "EVIDENCE_INVALID: file must exist inside the repository or the plan directory",
+  "resolution": "Explicit --check V1=0 through V10=0 registered; raw proof files remain available; no failed check reclassified."
+}

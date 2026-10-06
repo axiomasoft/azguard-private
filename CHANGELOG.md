@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Ядро 1.0: `Authorizer::decideMany()` сохраняет скалярные решения и порядок запросов, читает назначения пачками до 100 контекстов под единым fence группы и загружает host-модели/eligibility пакетно. Один `now`, отдельные вызовы политик/условий/ограничений, typed state map; CRM 1k/10k и конкурентный revoke квалифицированы. `resolve()` использует общий PanelResolver, конфликт панелей отклоняется.
+
 - Квалификация кэша ядра 1.0: независимые процессы проверяют revoke/fence и lock-first протокол на PostgreSQL/MySQL/MariaDB, настоящий Redis — expiry/build/restore, PostgreSQL streaming replica — окно Default и отказ Primary. Воспроизводимый benchmark записывает cold/warm p95/p99 и бюджеты SQL. Fingerprint DB authority теперь включает deployment build id, чтобы новый build не использовал прежние raw cache entries.
 
 - CRM-приёмка ядра 1.0: реальный стенд с двумя панелями, tenant/project, PHP-ролями, DB/relation-назначениями и литеральными ожиданиями проверяет границы доступа, policy/grant modes, typed filters и host freshness; реестр R01–R68 фиксирует проверенные срезы и будущие поверхности.

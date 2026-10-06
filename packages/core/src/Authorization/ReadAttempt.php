@@ -16,6 +16,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
+use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Roles\GrantedAutomatically;
@@ -48,11 +49,89 @@ final class ReadAttempt
     /** @var array<string, true> */
     private array $materialized = [];
 
-    /** @var list<array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
+    /** @var array<int|string, array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
     private array $pending = [];
 
     /** @param list<Attached> $sources */
     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null) {}
+
+    /** @var list<AccessScope>|null */
+    private ?array $batchScopes = null;
+
+    /** @var array<string, list<Grant|RoleContribution>> */
+    private array $batchAssignments = [];
+
+    /** @var array<string, list<Grant|RoleContribution>> */
+    private array $batchSlices = [];
+
+    /** @param list<AccessScope> $scopes */
+    public function batch(array $scopes): void
+    {
+        $unique = [];
+        foreach ($scopes as $scope) {
+            $unique[IdentityCodec::compose([$scope])] = $scope;
+        }
+        $this->batchScopes = array_values($unique);
+    }
+
+    /** @return list<Grant|RoleContribution> */
+    public function databaseContributions(AccessRequest $request, EvaluationFrame $frame): array
+    {
+        $items = [];
+        foreach ($this->sources as ['source' => $source]) {
+            if ($source instanceof DatabaseSource) {
+                $this->begin($source);
+                $items = [...$items, ...$this->databaseItems($source, $request, $frame)];
+            }
+        }
+
+        return $items;
+    }
+
+    /** @return list<Grant|RoleContribution> */
+    private function databaseItems(DatabaseSource $source, AccessRequest $request, EvaluationFrame $frame): array
+    {
+        if ($this->batchScopes === null) {
+            $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
+
+            return [...$snapshot['grants'], ...$snapshot['roles']];
+        }
+        $key = PermissionSetCache::key($this->states[$source->id()], $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
+            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $this->sessions[$source->id()]->authorityIdentity(), $frame->panel()->settings()->cacheGeneration());
+
+        if (isset($this->batchSlices[$key])) {
+            return $this->batchSlices[$key];
+        }
+        $items = $this->transaction === null ? $this->cache?->get($key, $frame->panel(), $source->volatility(), true, $frame->now()) : null;
+
+        if ($items !== null) {
+            return $this->batchSlices[$key] = $items;
+        }
+        $this->beforeMaterializing($source);
+
+        if (! array_key_exists($source->id(), $this->batchAssignments)) {
+            $items = [];
+            foreach (array_chunk($this->batchScopes ?? [], 100) as $chunk) {
+                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $chunk, $frame);
+                foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
+                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
+                        || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
+                        || ! in_array(IdentityCodec::compose([$item->scope]), array_map(static fn ($scope): string => IdentityCodec::compose([$scope]), $chunk), true)) {
+                        throw new InvalidSourceContributionException('Batch contribution differs from the consumed scope chunk.');
+                    }
+                    $items[] = $item;
+                }
+            }
+            $this->batchAssignments[$source->id()] = $items;
+        }
+        $items = array_values(array_filter($this->batchAssignments[$source->id()], static fn (Grant|RoleContribution $item): bool => $frame->acceptsContributionScope($item->scope)));
+
+        if ($this->transaction === null) {
+            $this->pending[$key] = ['key' => $key, 'source' => $source, 'items' => $items];
+        }
+
+        return $this->batchSlices[$key] = $items;
+    }
 
     public function catalog(): PanelCatalog
     {
@@ -115,8 +194,7 @@ final class ReadAttempt
             }
 
             if ($source instanceof DatabaseSource) {
-                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
-                $items = [...$snapshot['grants'], ...$snapshot['roles']];
+                $items = $this->databaseItems($source, $request, $frame);
             } else {
                 $items = [];
 
@@ -150,7 +228,14 @@ final class ReadAttempt
                 $pending[] = ['key' => $key, 'source' => $source, 'items' => $items];
             }
         }
-        $this->pending = $pending;
+
+        if ($this->batchScopes === null) {
+            $this->pending = $pending;
+        } else {
+            foreach ($pending as $entry) {
+                $this->pending[$entry['key']] = $entry;
+            }
+        }
 
         return $contributions;
     }
@@ -195,6 +280,11 @@ final class ReadAttempt
         $this->pending = [];
 
         return $this->consumedFrame($frame);
+    }
+
+    public function discardedFrame(EvaluationFrame $frame): EvaluationFrame
+    {
+        return $frame->withState($this->initial->state())->withSourceStates([]);
     }
 
     public function consumedFrame(EvaluationFrame $frame): EvaluationFrame

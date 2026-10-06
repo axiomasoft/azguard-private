@@ -67,7 +67,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R55 | — | future | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; **future:** P6.2/P6.10 actual Octane/queue lifecycle; P8.7 concurrent external consumer |
 | R56 | — | future | —; **future:** P6.8 generated stubs; P8.7 actual cached consumer boot |
 | R57 | [BuildInputsTest.php](BuildInputsTest.php), [BuildStateTest.php](BuildStateTest.php), [RedisStoreTest.php](../../Feature/Authorization/Cache/RedisStoreTest.php) | partial | P4.15/P4.20/P4.21 build/filter capture/cache/incarnation; **future:** P6.6 actual restore; P8.7 stale worker consumer |
-| R58 | — | future | P4.9 10k/100 multi-role batch/scalar; P4.23 list/total/EXPLAIN |
+| R58 | ScaleBatchTest | partial | P4.9: 10k clients/100 scopes, multi-role batch/scalar full IDs; structural/state/assignment/parameter budgets passed. P4.23 list/total/EXPLAIN remains future |
 | R59 | — | future | P4.21 root lock/revoke/host transaction slice; **future:** P5.2/P5.3 actual action deletes/new deploy mutation; P8.7 host transfer concurrency |
 | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |
 | R61 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
@@ -77,7 +77,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R65 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; **future:** P5.3 dynamic create opt-in rejection/mode immutability |
 | R66 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.2/P4.15/P4.20 removed keys/build/read mode authority; **future:** P5.3 explicit migration/cleanup; P8.7 stale workers; **future:** P4.20 deployment/cache |
 | R67 | [BuildInputsTest.php](BuildInputsTest.php), [ConsumerSpiTest.php](ConsumerSpiTest.php), [RuntimeInputsTest.php](RuntimeInputsTest.php) | partial | P4.3/P4.19/P4.15 local typed DI/definition/model-null/Decides rename-remove; **future:** P8.7 installed consumer/factory whole qualification |
-| R68 | — | future | P4.9 mixed batch CodeStateToken/StateToken original order/now |
+| R68 | BatchTest | partial | P4.9 core: mixed PolicyOnly/DB Grants/relation-only, two panels, typed states/original order/one now passed. Public wrappers/integration consumer remain future P5/P6/P8 |
 
 V109/V111/V113 Access inputs: RuntimeInputsTest и R14 DB/relation; Assignment/Revocation/Inspection write qualification остаётся P5.2/P5.3. V110: NativeFiltersTest. V112: FreshInputsTest. R50: ConsumerSpiTest + ExternalScopeTest, только публичные SPI; installed consumer остаётся P8.7, exact unsupported — P4.23.
 
