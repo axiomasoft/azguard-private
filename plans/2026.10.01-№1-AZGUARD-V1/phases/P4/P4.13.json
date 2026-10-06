@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.13",
   "title": "Срез-review P4.1–P4.7: независимая read-only проверка границы решения",
-  "status": "blocked",
+  "status": "done",
   "summary": "Независимо проверить, что пайплайн, источники, контексты и суперадмин (P4.1–P4.7) вместе с CRM-фикстурой P4.15 реализуют 09 §2–§6 и D14 без дефектов безопасности, до того как кэш P4.8 закрепит ошибки в ключах и наборах, а Gate и видимость начнут на них строить.",
   "why": "RAG:— D3 (P4 получает срез-review после пайплайна и источников; найденное исправляется в owning items фазы до закрытия), D14 п.1 (срез после P4.7 и P4.15); 09 §2, §3, §4, §5, §6, §15, §16; 18 §4; целевые инварианты 3, 4, 5 плана; опыт `@plan/knowledge/findings-P2-review.json` и `@plan/knowledge/findings-P3-review.json`.",
   "scope": {
@@ -188,60 +188,59 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-06T12:20:57Z",
-    "finished_at": "2026-10-06T12:45:19Z",
+    "started_at": "2026-10-06T13:12:06Z",
+    "finished_at": "2026-10-06T13:13:03Z",
     "executor": {
       "provider": "codex",
       "model": "gpt-6.1-sol",
       "effort": "high",
       "session": "01a11127-ea10-7b82-99d5-02c5be7a415d"
     },
-    "notes": "Read-only review completed. Independent codeGREEN, no blocker/major; validationRED V4, one minor lint owned by closed P4.15. User-scoped checks and merged/reused execution mapping documented; no unchanged package checks claimed. See knowledge/findings-P4-slice-review.json and artifacts/P4.13-execution/qualification-summary.json.",
-    "escalation": "P4.15 owning repair: add trailing comma in tests/Acceptance/Crm/ContextRolesTest.php:28 and run affected Pint; choose owning repeat/repair mechanism or explicitly accept V4 deviation. P4.13 excludes product edits and cannot be accepted GREEN with V4=1.",
+    "notes": "Independent native Grok4.7/high codeGREEN, complete scope and mandatory inputs. Sole minor P4.15 comma repaired by explicit owner instruction in same session. Affected Pint exit0; prior V4 RED retained. V1/V2 merged core2529/372805, Arch72/314, eachSQL14/130, PHPStan/API/freshType99.8% and mutations reused because no behavioral change. V8 reflects unchanged read-only original review; authorized subsequent one-comma diff proven separately. No unchanged package reruns or third Grok. Current acceptanceGREEN. Resolution artifacts/P4.13-execution/lint-repair-resolution.json; knowledge/findings-P4-slice-review.json.",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V4",
-        "exit": 1,
-        "at": "2026-10-06T12:45:19Z"
+        "exit": 0,
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-06T12:45:19Z"
+        "at": "2026-10-06T13:13:03Z"
       }
     ]
   },
-  "updated_at": "2026-10-06T12:45:19Z",
+  "updated_at": "2026-10-06T13:13:03Z",
   "sections": [
     {
       "id": "Intent",

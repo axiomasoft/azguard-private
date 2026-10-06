@@ -25,7 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 it('R09 common active filter vetoes direct role policy before Continue and scoped admin', function (string $authority): void {
     World::assign(match ($authority) {
-        'direct' => 'clients.view', 'admin' => 'tenant-admin', default => 'analyst'
+        'direct' => 'clients.view', 'admin' => 'tenant-admin', default => 'analyst',
     }, 1, 3, kind: $authority === 'direct' ? 'permission' : 'role');
     $panel = World::compile(fn (PanelBuilder $p) => $p->before(fn () => BeforeResult::Continue));
     $action = $authority === 'policy' ? Action::ViewOwnProfile : Action::View;

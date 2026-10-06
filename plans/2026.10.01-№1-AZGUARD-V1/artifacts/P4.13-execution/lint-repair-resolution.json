@@ -1,0 +1,35 @@
+{
+  "owning_item": "P4.15",
+  "review_item": "P4.13",
+  "finding": "P413-V4-PINT",
+  "owner_instruction": "исправляй в этой сессии, это очевидно",
+  "change": "One trailing comma in R09 match default arm; no behavior change",
+  "argv": [
+    "vendor/bin/pint",
+    "--test",
+    "tests/Acceptance/Crm/ContextRolesTest.php"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 0.181,
+  "changed_product_files": [
+    "tests/Acceptance/Crm/ContextRolesTest.php"
+  ],
+  "before_sha256": "dfd4adba769de06d97009fb6e9bc7bc5d3dfa2af6f1fcddd0678876f752dba89",
+  "after_sha256": "310c8b377b25c4efa1c5622154722eb24a4097974680492059fe71323db427a4",
+  "unchanged_files": 672,
+  "reused_checks": [
+    "V1",
+    "V2",
+    "V3",
+    "V5",
+    "V6",
+    "V7",
+    "arch",
+    "engines",
+    "CRM mutations"
+  ],
+  "rationale": "Original complete scoped V4 failed only this file; sole one-comma edit. All other qualified product files unchanged. No repeated full suites or third Grok round; prior native codeGREEN remains historical, current V4 GREEN verified by executor.",
+  "original_native_code_verdict": "GREEN",
+  "original_native_validation_verdict": "RED",
+  "current_validation_verdict": "GREEN"
+}

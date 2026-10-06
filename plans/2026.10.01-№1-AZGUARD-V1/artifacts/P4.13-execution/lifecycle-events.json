@@ -92,5 +92,101 @@
       "effort": "high",
       "session": "01a11127-ea10-7b82-99d5-02c5be7a415d"
     }
+  },
+  {
+    "v": 1,
+    "ts": "2026-10-06T13:12:06Z",
+    "type": "note",
+    "item": "P4.13",
+    "phase": "P4",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "summary": "reopen P4.13: Владелец: «исправляй в этой сессии, это очевидно». Разрешено устранить minor P4.15, проверить только affected Pint и завершить P4.13 без повторного Grok или неизменённых пакетов.",
+    "data": {
+      "reopened_from": "blocked"
+    }
+  },
+  {
+    "v": 1,
+    "ts": "2026-10-06T13:12:06Z",
+    "type": "start",
+    "item": "P4.13",
+    "phase": "P4",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a11127-ea10-7b82-99d5-02c5be7a415d"
+    },
+    "summary": "start P4.13 (batch BP4-13)",
+    "data": {
+      "requested": [
+        "P4.13"
+      ],
+      "route": "ok"
+    }
+  },
+  {
+    "v": 1,
+    "ts": "2026-10-06T13:13:03Z",
+    "type": "note",
+    "item": "P4.15",
+    "phase": "P4",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a110fa-2b31-7f91-aff9-4e6e08dabd8c"
+    },
+    "summary": "Владелец «исправляй в этой сессии, это очевидно» разрешил owning correction minor P413-V4-PINT: одна trailing comma ContextRolesTest.php:28. Affected Pint exit0, runtime неизменён; исторические квалификации P4.15 сохранены, suite/reviewer не повторялись. Receipt artifacts/P4.13-execution/lint-repair-resolution.json."
+  },
+  {
+    "v": 1,
+    "ts": "2026-10-06T13:13:03Z",
+    "type": "note",
+    "item": "P4.13",
+    "phase": "P4",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a11127-ea10-7b82-99d5-02c5be7a415d"
+    },
+    "summary": "Minor P4.15 устранён по явному сообщению владельца; affected V4 Pint exit0. Единственное изменение продукта — одна comma, прочие hashes прежние. Старые native codeGREEN/validationRED неизменны в history; текущая acceptanceGREEN по executor receipt. Без третьего Grok и повторных неизменённых пакетов."
+  },
+  {
+    "v": 1,
+    "ts": "2026-10-06T13:13:03Z",
+    "type": "finish",
+    "item": "P4.13",
+    "phase": "P4",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "summary": "P4.13 done",
+    "data": {
+      "status": "done",
+      "checks": {
+        "V1": 0,
+        "V2": 0,
+        "V3": 0,
+        "V4": 0,
+        "V5": 0,
+        "V6": 0,
+        "V7": 0,
+        "V8": 0
+      }
+    },
+    "executed_by": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a11127-ea10-7b82-99d5-02c5be7a415d"
+    }
   }
 ]

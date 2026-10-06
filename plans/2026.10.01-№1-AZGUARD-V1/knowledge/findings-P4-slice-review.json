@@ -1,12 +1,12 @@
 {
   "$schema": "urn:swissknifeman:task:plan:document:v1",
   "id": "findings-P4-slice-review",
-  "title": "P4.13 — срез-review авторизации: код GREEN, приёмка RED",
+  "title": "P4.13 — срез-review авторизации: GREEN, minor устранён",
   "sections": [
     {
       "id": "verdict",
-      "title": "P4.13 — независимое ревью среза; код GREEN, приёмка RED",
-      "text": "Native Grok4.7/high, session d260b1f5-e57d-4939-acdd-29015c5233f6. Code GREEN: нет blocker/major. Acceptance RED: V4 Pint exit1. Read-only review delivered; P4.13 blocked until owning P4.15 lint repair or explicit accepted deviation. No product changes. Fresh native final whole-scope pass plus a bounded same-session input-completeness supplement; both exit0/end_turn, no context parameter."
+      "title": "P4.13 — ревью GREEN; minor исправлен, приёмка GREEN",
+      "text": "Исходное независимое Grok4.7/high ревью: код GREEN, приёмка RED из-за minor P413-V4-PINT (P4.15). По сообщению владельца «исправляй в этой сессии, это очевидно» исполнитель добавил одну trailing comma в ContextRolesTest.php:28. Affected Pint exit0; единственный изменённый продуктовый файл подтверждён hash inventory и точным diff. Остальные квалификации переиспользованы, третье Grok-ревью не запускалось. Находка устранена; текущая приёмка GREEN, P4.13 завершается done. Исходные native verdict/RED receipts и findings сохранены как история, не переписаны в якобы новый reviewer GREEN."
     },
     {
       "id": "findings",
@@ -27,6 +27,11 @@
       "id": "checks",
       "title": "Проверки и границы",
       "text": "Core2529/372805, Arch72/314; each PostgreSQL16.14/MySQL8.4.10/MariaDB10.11.19 scoped engines14/130; mutationsR11/R13/R14 controlsGREEN/mutantsRED; PHPStan core0errors; API0; fresh core type99.8%,205reported files,exit0; product hashes unchanged. PintRED only missing comma ContextRolesTest.php:28. Owner-scoped V1/V4/V5/V7 exclude unchanged Filament/ecosystem; V2 merged into V1, no duplicate suite; V3 existing healthy SQL containers, no restart/unrelated P3 engine reruns. Optional PHPStan turbo warning disclosed, not a failed analysis. Initial cached type pass and masked child-exit wrapper preserved; explicit fresh receipt captured. Review initial required-input omission corrected by same-session supplement; inaccurate second lint location withdrawn, history preserved. Source artifacts: artifacts/P4.13-execution/qualification-summary.json, review-verdict.json, review-{response,supplement-response,native-route-final,attestation}.json, product-{before,after-review}.json; exact argv/exits/raw logs in V*.json/log."
+    },
+    {
+      "id": "lint-repair",
+      "title": "Исправление P4.15 и закрытие P4.13 по указанию владельца",
+      "text": "{\n  \"owning_item\": \"P4.15\",\n  \"review_item\": \"P4.13\",\n  \"finding\": \"P413-V4-PINT\",\n  \"owner_instruction\": \"исправляй в этой сессии, это очевидно\",\n  \"change\": \"One trailing comma in R09 match default arm; no behavior change\",\n  \"argv\": [\n    \"vendor/bin/pint\",\n    \"--test\",\n    \"tests/Acceptance/Crm/ContextRolesTest.php\"\n  ],\n  \"exit_code\": 0,\n  \"duration_seconds\": 0.181,\n  \"changed_product_files\": [\n    \"tests/Acceptance/Crm/ContextRolesTest.php\"\n  ],\n  \"before_sha256\": \"dfd4adba769de06d97009fb6e9bc7bc5d3dfa2af6f1fcddd0678876f752dba89\",\n  \"after_sha256\": \"310c8b377b25c4efa1c5622154722eb24a4097974680492059fe71323db427a4\",\n  \"unchanged_files\": 672,\n  \"reused_checks\": [\n    \"V1\",\n    \"V2\",\n    \"V3\",\n    \"V5\",\n    \"V6\",\n    \"V7\",\n    \"arch\",\n    \"engines\",\n    \"CRM mutations\"\n  ],\n  \"rationale\": \"Original complete scoped V4 failed only this file; sole one-comma edit. All other qualified product files unchanged. No repeated full suites or third Grok round; prior native codeGREEN remains historical, current V4 GREEN verified by executor.\",\n  \"original_native_code_verdict\": \"GREEN\",\n  \"original_native_validation_verdict\": \"RED\",\n  \"current_validation_verdict\": \"GREEN\"\n}"
     }
   ],
   "applies_to": [

@@ -384,5 +384,11 @@
     ],
     "stop_reason": "end_turn",
     "product_unchanged": true
+  },
+  "resolution": {
+    "artifact": "lint-repair-resolution.json",
+    "current_validation_verdict": "GREEN",
+    "current_item_status": "done",
+    "original_review_verdict_unchanged": true
   }
 }
