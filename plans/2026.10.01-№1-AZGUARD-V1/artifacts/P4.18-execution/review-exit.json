@@ -1,0 +1,27 @@
+{
+  "exit": 0,
+  "session": "4b3e124d-2e73-408b-93f2-6c4086896e75",
+  "command": [
+    "grok",
+    "--cwd",
+    "/tmp/azguard-p418-review-4b3e124d-2e73-408b-93f2-6c4086896e75",
+    "--model",
+    "grok-4.7",
+    "--reasoning-effort",
+    "high",
+    "--session-id",
+    "4b3e124d-2e73-408b-93f2-6c4086896e75",
+    "--permission-mode",
+    "bypassPermissions",
+    "--sandbox",
+    "off",
+    "--tools",
+    "read_file,grep,list_dir",
+    "--no-subagents",
+    "--disable-web-search",
+    "--output-format",
+    "json",
+    "--prompt-file",
+    "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.18-execution/review-prompt.txt"
+  ]
+}

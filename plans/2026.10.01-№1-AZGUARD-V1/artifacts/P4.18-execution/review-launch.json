@@ -1,0 +1,15 @@
+{
+  "session": "4b3e124d-2e73-408b-93f2-6c4086896e75",
+  "provider": "grok",
+  "model": "grok-4.7",
+  "effort": "high",
+  "cwd": "/tmp/azguard-p418-review-4b3e124d-2e73-408b-93f2-6c4086896e75",
+  "tools": [
+    "read_file",
+    "grep",
+    "list_dir"
+  ],
+  "context_parameter": null,
+  "prompt": "/home/vostrikov/projects/packages/azguard/plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.18-execution/review-prompt.txt",
+  "candidate": "c9de52d1ab116f59deda98447468beb17eeeeb084ff2a732cc50b93b0e54798e"
+}
