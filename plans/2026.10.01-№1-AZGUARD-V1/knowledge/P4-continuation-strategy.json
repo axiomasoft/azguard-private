@@ -1,0 +1,46 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "P4-continuation-strategy",
+  "title": "Стратегия продолжения P4 перед decideMany",
+  "sections": [
+    {
+      "id": "Owner",
+      "title": "Граница текущего запуска",
+      "text": "Владелец 2026-10-06: «делать здесь такой большой объем однозначно не стоит ... Я полагаюсь на тебя, выстрои сам стратегию выполнения». Текущий запуск заканчивается ремонтом графа P4 и стратегией; реализация предшественников не начинается. Принятый порядок D15/D16, контракты, statuses/results и memberships B4a/B4e сохранены. На будущее каждый пункт — отдельный bounded запуск; контекст root переиспользуется только в уже авторизованном scope."
+    },
+    {
+      "id": "First",
+      "title": "Первый следующий шаг",
+      "text": "Завершить P4.6: код уже реализован, но независимое ревью осталось blocked из-за требуемого grok-4.7/high/500k. Сначала bounded диагностика доступного native маршрута и доказательство реальной capacity, без подмены маршрута и без обновления всех пакетов. Проверить текущую зависимую часть кандидата относительно сохранённого review-input; старые GREEN не переносить без доказательства неизменности. После обязательного ревью исправить только подтверждённые findings и повторить affected checks; затем штатно закрыть P4.6. Невозможность доказать обязательную capacity остаётся blocker."
+    },
+    {
+      "id": "Sequence",
+      "title": "Порядок отдельных запусков до P4.9",
+      "text": "После GREEN P4.6: P4.19 eligibility → P4.16 генеративный oracle → P4.18 scoped integration → P4.15 CRM fixture → P4.13 независимый срез-review → P4.20 транзакции кэша → P4.21 гонки/lag/бюджеты → P4.9 batch. Уже закрытые P4.7/P4.8 не переисполнять. Перед возвратом к P4.9 перевести его из blocked в todo через plan.py reopen с этим решением владельца как основанием после GREEN зависимостей; новый start должен пройти восстановленный guard."
+    },
+    {
+      "id": "Economy",
+      "title": "Проверки и ревью",
+      "text": "По прямому указанию владельца проверять только owning package и изменённую dependency closure; не квалифицировать неизменённые Swissknifeman/Vaulter/Filament и не запускать fleet health. Внутри пункта сначала affected checks, затем обязательная qualification затронутой части; каждый успешный check не повторять без новых изменений или concern. Обязательные real-engine/consistency/SQL-budget проверки остаются у owning items. Broad suites — на закрытии фазы согласно текущему execution-mode, а не по кругу в каждом пункте. Любое уточнение точных Validation commands фиксировать через plan.py до исполнения; пропуск не считать GREEN. Независимое Grok-ревью — последним по всему итоговому объёму каждого авторизованного запуска; один owning correction и максимум один повторный проход."
+    },
+    {
+      "id": "Graph",
+      "title": "Восстановленный машинный граф",
+      "text": "У каждого P4 item depends_on теперь полный префикс принятого D15 execution order; это предотвращает обход незавершённого producer через уже закрытый out-of-order item. phase.items и порядок phase.batches согласованы с D15; состав B4a/B4e сохранён. Schema/cycle check и render --check GREEN; refused start P4.9/P4.10/P4.11/P4.20 не меняет источники. Фактический next: waiting: blocked P4.6; деталей нового продуктового результата нет. Evidence artifacts/P4.9-preflight/graph-checks.json, graph-before.json, graph-after.json, next-after-graph.json."
+    },
+    {
+      "id": "Final-review",
+      "title": "Финальная проверка стратегии",
+      "text": "Native independent read-only Grok4.7/high, session bb2fb441-d02f-4c09-94d5-01b918b134c6: GREEN, findings[]. Scope: полный финальный plan-only graph/strategy packet, без продукта/acceptance. Snapshot/reviewer route/verdict: artifacts/P4.9-preflight/final-review-*.json; local proof statuses/results/contracts preserved и refusal без source writes: graph-checks.json. Canonical check/render --check GREEN. Следующий semantic шаг waiting: blocked P4.6. P4.9 не реализован; большой predecessor scope в этом запуске не исполнялся."
+    },
+    {
+      "id": "Reopen",
+      "title": "P4.9 снова готов к отдельному запуску",
+      "text": "2026-10-06 владелец разрешил reopen P4.9 после проверки evidence. P4.6 уже done: совместное ревью Grok 4.7/high закрыто без параметра context, требование 500k отменено владельцем. Остальные depends_on завершены: done, P4.8 — done_with_deviations. plan.py reopen перевёл P4.9 из blocked в todo и снял устаревшие result.pending и result.escalation. Журнал, depends_on и чужие изменения сохранены. Текущий next: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.9. Реализация decideMany в этот запуск не входит."
+    }
+  ],
+  "applies_to": [
+    "P4",
+    "P4.9"
+  ]
+}
