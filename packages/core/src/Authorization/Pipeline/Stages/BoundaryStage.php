@@ -6,6 +6,7 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
@@ -110,6 +111,11 @@ final readonly class BoundaryStage
                         || (string) $key !== $frame->scope()->context->id()) {
                         return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeMismatch)];
                     }
+                }
+                $frame = $frame->withAssignmentScope($resolved);
+
+                if (! (new ScopeEligibility($this->container))->common($request, $frame)) {
+                    return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
                 }
             } catch (Throwable $error) {
                 $trace->error('boundary', DecisionReason::AssignmentScopeFilterError->value, $definition::class, $error);

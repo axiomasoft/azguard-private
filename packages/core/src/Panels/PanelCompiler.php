@@ -9,9 +9,9 @@ use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Exceptions\DefaultPanelConflictException;
@@ -26,6 +26,7 @@ use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
@@ -151,13 +152,17 @@ final class PanelCompiler
         $id = $recipe->panelId();
         $label = $this->resolved($recipe, PanelRecipe::LABEL)['value'] ?? null;
         $tenants = $this->resolved($recipe, PanelRecipe::TENANTS)['value'] ?? TenantPolicy::none();
-        $scopes = $this->resolved($recipe, PanelRecipe::SCOPES)['value'] ?? AssignmentScopePolicy::none();
+        $scopes = $this->scopePolicy($recipe);
 
-        if (! $tenants instanceof TenantPolicy || ! $scopes instanceof AssignmentScopePolicy) {
+        if (! $tenants instanceof TenantPolicy) {
             throw new DefinitionException('Panel '.$id.' requires tenant and assignment scope policy objects.');
         }
         $this->membership($tenants->membership(), $container);
         $this->membership($scopes->membership(), $container);
+        foreach ($scopes->adapters() as $adapter) {
+            ScopeConfiguration::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
+            ScopeConfiguration::componentMetadata($adapter);
+        }
 
         return new Panel(
             id: $id,
@@ -183,11 +188,77 @@ final class PanelCompiler
         );
     }
 
+    private function scopePolicy(PanelRecipe $recipe): AssignmentScopePolicy
+    {
+        $records = $this->scopeRecords($recipe);
+
+        if ($records === []) {
+            return AssignmentScopePolicy::none();
+        }
+
+        $policy = end($records)['value'];
+
+        if (! $policy instanceof AssignmentScopePolicy) {
+            throw new DefinitionException('Panel '.$recipe->panelId().' requires an assignment scope policy object.');
+        }
+
+        $adapters = [];
+        $pluginPolicies = [];
+        $hasProvider = false;
+        foreach ($records as $record) {
+            $declared = $record['value'];
+
+            if (! $declared instanceof AssignmentScopePolicy) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' requires an assignment scope policy object.');
+            }
+            $hasProvider = $hasProvider || $record['origin']['kind'] === PanelRecipe::PROVIDER;
+
+            if ($record['origin']['kind'] === PanelRecipe::PLUGIN) {
+                $pluginPolicies[] = $declared;
+            }
+            foreach ($declared->adapters() as $type => $adapter) {
+                if (isset($adapters[$type]) && $adapters[$type] != $adapter) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' declares conflicting access adapters for assignment scope '.$type.'.');
+                }
+                $adapters[$type] = $adapter;
+            }
+        }
+
+        if (! $hasProvider && $pluginPolicies !== []) {
+            foreach ($pluginPolicies as $pluginPolicy) {
+                if ($pluginPolicy->mode() !== $pluginPolicies[0]->mode() || $pluginPolicy->membership() != $pluginPolicies[0]->membership()) {
+                    throw new PluginConflictException('Plugins of panel '.$recipe->panelId().' set conflicting assignment scope modes or membership adapters; set the policy in the panel provider.');
+                }
+            }
+        }
+        foreach ($adapters as $type => $adapter) {
+            $policy = $policy->accessAdapter($type, $adapter);
+        }
+
+        return $policy;
+    }
+
+    /** @return list<Record> scope layers from lowest to highest scalar precedence */
+    private function scopeRecords(PanelRecipe $recipe): array
+    {
+        $records = $recipe->layered(PanelRecipe::SCOPES);
+
+        return [...array_filter($records, static fn (array $record): bool => $record['origin']['kind'] === PanelRecipe::CONFIGURE),
+            ...array_filter($records, static fn (array $record): bool => $record['origin']['kind'] === PanelRecipe::PLUGIN),
+            ...array_filter($records, static fn (array $record): bool => $record['origin']['kind'] === PanelRecipe::PROVIDER)];
+    }
+
     /** @return array<string, AssignmentScopeDefinition> */
     private function scopes(PanelRecipe $recipe, TenantPolicy $tenants, AssignmentScopePolicy $policy, ?Container $container): array
     {
         $compiled = [];
-        foreach ($policy->definitions() as $declared) {
+        $definitions = [];
+        foreach ($this->scopeRecords($recipe) as $record) {
+            if ($record['value'] instanceof AssignmentScopePolicy) {
+                array_push($definitions, ...$record['value']->definitions());
+            }
+        }
+        foreach ($definitions as $declared) {
             if (is_string($declared) && is_subclass_of($declared, Model::class)) {
                 if ($tenants->mode() === 'required') {
                     throw new DefinitionException('Tenant panel '.$recipe->panelId().' requires a scope descriptor with an authoritative tenant owner.');
@@ -216,19 +287,23 @@ final class PanelCompiler
                 throw new DefinitionException('Panel '.$recipe->panelId().' scope '.$definition->type().' declares an invalid Eloquent model.');
             }
 
-            if ($definition instanceof ConfigurableAssignmentScopeDefinition && $definition->settings()->filters !== []) {
-                throw new DefinitionException('Configured assignment scope filters are not supported.');
-            }
+            ScopeConfiguration::filters($definition, $container);
             $existing = $compiled[$definition->type()] ?? null;
 
-            if ($existing !== null && ($existing::class !== $definition::class || $existing->model() !== $model || $existing != $definition)) {
+            if ($existing !== null && ! ScopeConfiguration::sameStructure($existing, $definition)) {
                 throw new DefinitionException('Panel '.$recipe->panelId().' declares conflicting assignment scope definitions for '.$definition->type().'.');
             }
-            $compiled[$definition->type()] = $definition;
+            $compiled[$definition->type()] = $existing === null ? $definition : ScopeConfiguration::merge($existing, $definition);
         }
 
         if ($policy->mode() === 'required' && $compiled === []) {
             throw new DefinitionException('Panel '.$recipe->panelId().' requires an assignment scope but registers no definitions.');
+        }
+
+        foreach ($policy->adapters() as $type => $adapter) {
+            if (! isset($compiled[$type])) {
+                throw new DefinitionException('Panel '.$recipe->panelId().' registers an access adapter for unknown assignment scope '.$type.'.');
+            }
         }
 
         return $compiled;

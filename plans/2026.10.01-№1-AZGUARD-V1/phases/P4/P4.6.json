@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.6",
   "title": "Tenant, AssignmentScope и ресурс в проверке",
-  "status": "blocked",
+  "status": "done",
   "summary": "Structural tenant/context/resource boundary 09 §3, политики панели, owner/membership/resolvers/stack cleanup. Query eligibility — P4.19; генеративные P4/P13 — P4.16.",
   "why": "RAG:— 09 §3 (тенант, контекст, ресурс; таблица выдач; один целый witness), §15 (context eligibility), §2 шаг 1/4; 06 §7 (SPI областей, `TenantPolicy::required`, `requireMembership`, `ModelAssignmentScopeDefinition`/`ModelTenantDefinition`); 18 §2–§5 (фильтры, runtime, формула, фазы); 16 §3–§6 (ProjectScope, CRM-конструктор); D15, D16, D59, D60, D75–D77, D81, D84 досье; V12–V16, V47, V86, V88, V89, V118; probes P06, P06b; D8 п.2/п.7, D14 п.3 плана.",
   "scope": {
@@ -13,7 +13,14 @@
       "Common/role filters и native/external adapters — P4.19; P4/P13 properties — P4.16; CRM P4.15; admin P4.7; predicates P4.22/P4.12; Assignment/Revocation P5.2/P5.3; lifecycle wrappers P6.2/P6.10."
     ]
   },
-  "depends_on": [],
+  "depends_on": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.17",
+    "P4.5"
+  ],
   "decisions": [
     "D16",
     "D14",
@@ -213,7 +220,7 @@
     "reviewer": {
       "class": "frontier",
       "model": "grok-4.7",
-      "note": "Owner message 2026-10-06 requests independent read-only reviewer, actual runtime/route before review, literal --context-window=500k. Required route pending; no substitution."
+      "note": "Owner current message: «делай на grok, 500k параметр не нужен, я же про него не писал!». Joint fresh read-only grok-4.7/high review P4.6+P4.19 at end; no 500k/literal context flag required."
     }
   },
   "authority": {
@@ -224,65 +231,64 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-06T06:58:22Z",
-    "finished_at": "2026-10-06T07:24:29Z",
+    "started_at": "2026-10-06T10:16:44Z",
+    "finished_at": "2026-10-06T10:16:44Z",
     "executor": {
       "provider": "codex",
       "model": "gpt-6.1-sol",
       "effort": "high",
-      "session": "01a11000-524b-7351-86f4-bfb93fff915e"
+      "session": "01a1109a-2f0c-7fb3-9e0d-f48da17ea935"
     },
-    "notes": "Реализация и полная квалификация завершены на e4a4f999…; composer test2358/2358, complete type coverage199files/99.7%. Review input complete, freshness/readiness pass. Required native Grok review pending; общий GREEN не заявлен. Deviations and raw failures preserved: explicit Arch1GiB; complete serial V8 replaces incomplete fork result; early exploratory proof gaps disclosed.",
-    "escalation": "Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять.",
+    "notes": "Joint reviewGREEN Grok4.7/high70files. Original acceptedV1-V9 are retained from prior2358suite/complete199file99.7% qualification; not rerun as unchanged baseline. Current integrated dependency closure P4.19 V1/V2/V3 plus static/style/API/typeGREEN. Current review-only registrar session01a1109a; prior implementation/check provenance in P4.6-prior-qualification.json. Owner500k requirementwithdrawn, review at end authorized.",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-06T07:24:29Z"
+        "at": "2026-10-06T10:16:44Z"
       }
     ]
   },
-  "updated_at": "2026-10-06T07:24:29Z",
+  "updated_at": "2026-10-06T10:16:44Z",
   "sections": [
     {
       "id": "Intent",

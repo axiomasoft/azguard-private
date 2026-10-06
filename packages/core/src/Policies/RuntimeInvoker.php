@@ -31,7 +31,9 @@ final readonly class RuntimeInvoker
             $before = array_key_exists('ability', $inputs) && array_key_exists('user', $inputs);
             $resourcePosition = $before ? 2 : 1;
 
-            if (array_key_exists('user', $inputs) && ($slot === null || in_array($slot, ['user', 'resource'], true))) {
+            $policyInputs = array_key_exists('resource', $inputs) || $before;
+
+            if ($policyInputs && array_key_exists('user', $inputs) && ($slot === null || in_array($slot, ['user', 'resource'], true))) {
                 if ($position === 0) {
                     $slot = 'user';
                 } elseif ($before && $position === 1) {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use Closure;
+use Fiber;
+use WeakMap;
 
 /**
  * The panel of the current request or job; one instance per request lifecycle.
@@ -13,14 +15,32 @@ final class CurrentPanel
 {
     private ?Panel $panel = null;
 
+    /** @var WeakMap<object, Panel> */
+    private WeakMap $fibers;
+
+    public function __construct()
+    {
+        $this->fibers = new WeakMap;
+    }
+
     public function get(): ?Panel
     {
-        return $this->panel;
+        $fiber = Fiber::getCurrent();
+
+        return $fiber === null ? $this->panel : ($this->fibers[$fiber] ?? null);
     }
 
     public function set(?Panel $panel): void
     {
-        $this->panel = $panel;
+        $fiber = Fiber::getCurrent();
+
+        if ($fiber === null) {
+            $this->panel = $panel;
+        } elseif ($panel === null) {
+            unset($this->fibers[$fiber]);
+        } else {
+            $this->fibers[$fiber] = $panel;
+        }
     }
 
     /**
@@ -33,13 +53,13 @@ final class CurrentPanel
      */
     public function run(Panel $panel, Closure $callback): mixed
     {
-        $previous = $this->panel;
-        $this->panel = $panel;
+        $previous = $this->get();
+        $this->set($panel);
 
         try {
             return $callback($panel);
         } finally {
-            $this->panel = $previous;
+            $this->set($previous);
         }
     }
 }

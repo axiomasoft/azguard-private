@@ -8512,6 +8512,35 @@
             "properties": [],
             "methods": [
                 {
+                    "name": "accessAdapter",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "adapter",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "adapters",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "definitions",
                     "static": false,
                     "abstract": false,
@@ -8954,6 +8983,13 @@
             "constants": [],
             "properties": [],
             "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
                 {
                     "name": "get",
                     "static": false,

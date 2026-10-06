@@ -8,6 +8,7 @@ use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Policies\PolicyBinding;
+use AzGuard\Scopes\ScopeConfiguration;
 use Closure;
 use UnitEnum;
 
@@ -101,8 +102,10 @@ final class PanelFingerprint
                     'type' => $definition->type(),
                     'class' => $definition::class,
                     'model' => $definition->model(),
+                    'filters' => ScopeConfiguration::filterMetadata($definition),
                 ], $panel->scopeDefinitions()),
                 'membership' => self::name($panel->scopes()->membership()),
+                'adapters' => array_map(ScopeConfiguration::componentMetadata(...), $panel->scopes()->adapters()),
             ],
             'resource_scopes' => array_map(
                 static fn (mixed $scope): array => is_array($scope)

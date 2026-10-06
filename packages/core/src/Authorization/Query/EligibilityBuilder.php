@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Authorization\Query;
+
+use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
+use AzGuard\Policies\RuntimeInvoker;
+use AzGuard\Scopes\AssignmentScopeRuntime;
+use Closure;
+use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
+
+/** Isolates every predicate from structural identity and from every other predicate. */
+final class EligibilityBuilder
+{
+    /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
+    public static function matches(QueryableAssignmentScopeDefinition $definition, ResolvedAssignmentScope $resolved, array $filters, AssignmentScopeRuntime $runtime, Container $container): bool
+    {
+        $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
+        $query = clone $structural;
+        $query->getQuery()->wheres = [];
+        $query->getQuery()->setBindings([], 'where');
+        $query->getQuery()->addNestedWhereQuery($structural->getQuery());
+        $query->whereKey($resolved->ref->id());
+
+        // Owner is defined by tenantOf(), not by a configurable column name or a filter.
+        $record = (clone $query)->first();
+
+        if ($record === null || ! $definition->tenantOf($record)->equals($resolved->tenant)
+            || ! $resolved->tenant->equals($runtime->scope->tenant)) {
+            return false;
+        }
+
+        foreach ($filters as $filter) {
+            $group = clone $structural;
+            $group->getQuery()->wheres = [];
+            $group->getQuery()->setBindings([], 'where');
+            $guard = new QueryGuard;
+            $predicate = new PredicateBuilder($group, $guard);
+            $shape = self::shape($predicate);
+            $filter = is_string($filter) ? $container->make($filter) : $filter;
+
+            if ($filter instanceof AssignmentScopeFilter) {
+                $filter->apply($predicate, $runtime);
+            } elseif ($filter instanceof Closure) {
+                $result = (new RuntimeInvoker($container))->invoke($filter, [
+                    'query' => $predicate, 'runtime' => $runtime, 'user' => $runtime->user,
+                    'role' => $runtime->role, 'grant' => $runtime->grant, 'actor' => $runtime->actor,
+                    'actorModel' => $runtime->actorModel, 'panel' => $runtime->panel,
+                    'scope' => $runtime->scope, 'now' => $runtime->now, 'phase' => $runtime->phase,
+                ]);
+
+                if ($result !== null && $result !== $predicate) {
+                    throw new RuntimeException('An eligibility filter returned a replacement query or terminal result.');
+                }
+            } else {
+                throw new RuntimeException('Invalid assignment-scope filter.');
+            }
+
+            $guard->validate();
+            self::validateShape($predicate, $shape);
+            $query->getQuery()->addNestedWhereQuery($predicate->getQuery());
+        }
+
+        return $query->exists();
+    }
+
+    /** @param Builder<Model> $builder
+     * @return array<string,mixed>
+     */
+    public static function shape(Builder $builder): array
+    {
+        $shape = get_object_vars($builder->getQuery());
+        unset($shape['wheres'], $shape['bindings']);
+        $bindings = $builder->getQuery()->getRawBindings();
+        unset($bindings['where']);
+        $shape['bindings'] = $bindings;
+        $shape['model'] = $builder->getModel();
+        $shape['eagerLoads'] = $builder->getEagerLoads();
+        $shape['removedScopes'] = $builder->removedScopes();
+
+        if ($builder instanceof PredicateBuilder) {
+            $shape['eloquent'] = $builder->configuration();
+        }
+
+        return $shape;
+    }
+
+    /** @param Builder<Model> $builder
+     * @param  array<string,mixed>  $before
+     */
+    public static function validateShape(Builder $builder, array $before): void
+    {
+        if (self::shape($builder) !== $before) {
+            throw new RuntimeException('Assignment-scope filters cannot alter query structure, model or execution settings.');
+        }
+    }
+}

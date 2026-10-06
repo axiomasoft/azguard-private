@@ -1,0 +1,8 @@
+{
+  "id": "V8",
+  "cmd": "composer api:manifest",
+  "exit": 0,
+  "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325",
+  "operation": "generation",
+  "stable": true
+}

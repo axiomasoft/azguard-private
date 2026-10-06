@@ -7,6 +7,7 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\ReadAttemptChanged;
+use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\GrantCondition;
@@ -185,6 +186,18 @@ final readonly class AuthorityStage
                     throw new RuntimeException('Role resolver did not return BaseRole.');
                 }
                 $branch = $frame->forContribution($item, $role);
+
+                try {
+                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch)) {
+                        $trace->record('contribution', 'scope_ineligible', $source::class);
+
+                        continue;
+                    }
+                } catch (Throwable $error) {
+                    $trace->error('eligibility', DecisionReason::AssignmentScopeFilterError->value, $source::class, $error);
+
+                    return [$frame, false, Decision::deny(DecisionReason::AssignmentScopeFilterError, $frame->state(), $frame->scope(), $source::class)];
+                }
                 $passes = true;
                 foreach ($frame->panel()->grantConditions() as $declared) {
                     $condition = is_string($declared) ? $this->container->make($declared) : $declared;

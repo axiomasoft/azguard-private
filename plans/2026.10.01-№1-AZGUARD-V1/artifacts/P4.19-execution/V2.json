@@ -1,0 +1,8 @@
+{
+  "id": "V2",
+  "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Feature/Panels tests/Feature/Plugins tests/Feature/Policies tests/Feature/Catalog tests/Unit/Panels tests/Unit/Scopes tests/Unit/Catalog tests/Unit/Roles tests/Feature/Sources tests/Unit/Sources --exclude-group=engines",
+  "exit": 0,
+  "duration_s": 4.408,
+  "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325",
+  "stable": true
+}

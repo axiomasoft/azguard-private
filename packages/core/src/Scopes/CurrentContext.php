@@ -6,6 +6,8 @@ namespace AzGuard\Scopes;
 
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Panels\Panel;
+use Fiber;
+use WeakMap;
 
 /**
  * Request/job-local scope state, isolated by panel.
@@ -17,19 +19,38 @@ final class CurrentContext
     /** @var array<string, AccessScope> */
     private array $scopes = [];
 
+    /** @var WeakMap<object, array<string, AccessScope>> */
+    private WeakMap $fibers;
+
+    public function __construct()
+    {
+        $this->fibers = new WeakMap;
+    }
+
     public function get(Panel $panel): ?AccessScope
     {
-        return $this->scopes[$panel->id()] ?? null;
+        $fiber = Fiber::getCurrent();
+
+        return ($fiber === null ? $this->scopes : ($this->fibers[$fiber] ?? []))[$panel->id()] ?? null;
     }
 
     public function set(Panel $panel, ?AccessScope $scope): void
     {
-        if ($scope === null) {
-            unset($this->scopes[$panel->id()]);
+        $fiber = Fiber::getCurrent();
+        $scopes = $fiber === null ? $this->scopes : ($this->fibers[$fiber] ?? []);
 
-            return;
+        if ($scope === null) {
+            unset($scopes[$panel->id()]);
+        } else {
+            $scopes[$panel->id()] = $scope;
         }
 
-        $this->scopes[$panel->id()] = $scope;
+        if ($fiber === null) {
+            $this->scopes = $scopes;
+        } elseif ($scopes === []) {
+            unset($this->fibers[$fiber]);
+        } else {
+            $this->fibers[$fiber] = $scopes;
+        }
     }
 }

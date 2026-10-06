@@ -1,0 +1,8 @@
+{
+  "id": "V5",
+  "cmd": "vendor/bin/phpstan analyse packages/core/src --memory-limit=1G --no-progress --error-format=json",
+  "exit": 0,
+  "duration_s": 1.471,
+  "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49",
+  "stable": true
+}

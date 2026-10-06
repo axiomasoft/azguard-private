@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Catalog;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicateRoleException;
@@ -18,6 +17,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\PanelSources;
 use Illuminate\Contracts\Container\Container;
 use UnitEnum;
@@ -29,7 +29,7 @@ use UnitEnum;
  * A role key is the one the role declares; a plugin does not change it. Methods a role overrides are checked like
  * attributes.
  *
- * @phpstan-type CompiledScope array{type: string, class: class-string<AssignmentScopeDefinition>}
+ * @phpstan-type CompiledScope array{type: string, class: class-string<AssignmentScopeDefinition>, filter_configuration?: list<string>}
  * @phpstan-type CompiledRole array{class: class-string<BaseRole>, key: string, former_keys: list<string>, permissions: list<string>, scopes: list<CompiledScope>, scope_required: bool, super_admin: bool, grantable: bool, source: string, origin: string}
  */
 final readonly class RoleCompiler
@@ -212,20 +212,24 @@ final readonly class RoleCompiler
                 );
             }
 
-            if ($scope instanceof ConfigurableAssignmentScopeDefinition && $scope->settings()->filters !== []) {
-                throw new DefinitionException('Role '.$role::class.' configures unsupported assignment scope filters.');
-            }
+            ScopeConfiguration::filters($scope, $this->container);
             $registered = $panel->scopeDefinition($scope->type());
 
             if ($registered === null || $registered::class !== $scope::class || $registered->model() !== $scope->model()) {
                 throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
             }
 
-            if ($registered != $scope) {
+            if (! ScopeConfiguration::sameStructure($registered, $scope)) {
                 throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" changes the registered structural assignment scope '.$scope->type().'.');
             }
 
-            $scopes[] = ['type' => $scope->type(), 'class' => $scope::class];
+            $compiled = ['type' => $scope->type(), 'class' => $scope::class];
+            $filters = ScopeConfiguration::filterMetadata($scope);
+
+            if ($filters !== []) {
+                $compiled['filter_configuration'] = $filters;
+            }
+            $scopes[] = $compiled;
         }
 
         if ($scopes === [] && $role->scopeRequired()) {

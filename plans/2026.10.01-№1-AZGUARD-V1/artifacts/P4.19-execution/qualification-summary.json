@@ -1,0 +1,124 @@
+{
+  "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49",
+  "checks": {
+    "V1": {
+      "exit": 0,
+      "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325"
+    },
+    "V2": {
+      "exit": 0,
+      "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325"
+    },
+    "V3": {
+      "exit": 0,
+      "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325"
+    },
+    "V4": {
+      "exit": 0,
+      "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49"
+    },
+    "V5": {
+      "exit": 0,
+      "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49"
+    },
+    "V6": {
+      "exit": 0,
+      "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49"
+    },
+    "V7": {
+      "exit": 0,
+      "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49"
+    },
+    "V8": {
+      "exit": 0,
+      "candidate": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325"
+    },
+    "V9": {
+      "exit": 0,
+      "candidate": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49"
+    }
+  },
+  "tests": {
+    "V1": 282,
+    "V2": 924,
+    "V3": 72
+  },
+  "type_coverage": {
+    "percentage": 99.76,
+    "rows": 205,
+    "source_files": 208,
+    "unreported_traits": [
+      "BelongsToStorage",
+      "GrantIdentity",
+      "GuardsDirectWrites"
+    ]
+  },
+  "environment_defects": [
+    "Optional PHPStan turbo extension cannot load with this PHP runtime; full analysis exits0/errors0",
+    "Pest type detector recognizes --configuration=, not separated form; first broad run not scoped and retained as exploratory. Corrected serial core-only accepted."
+  ],
+  "review": {
+    "verdict": "GREEN",
+    "scope": [
+      "P4.6",
+      "P4.19"
+    ],
+    "reviewed_files": 70,
+    "actual_session": "eb0c2835-55bf-4573-88c0-cb48fd50295f",
+    "actual_model": "grok-4.7",
+    "actual_effort": "high",
+    "independent": true,
+    "native_cli_version": "1.0.46",
+    "context500k": "withdrawn by explicit owner instruction",
+    "tools_called": [
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "grep",
+      "grep",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "read_file",
+      "grep",
+      "grep",
+      "read_file",
+      "read_file",
+      "read_file",
+      "grep",
+      "read_file",
+      "grep",
+      "grep",
+      "read_file",
+      "list_dir",
+      "grep",
+      "grep",
+      "read_file",
+      "grep",
+      "grep",
+      "grep",
+      "grep"
+    ],
+    "readonly_observed": true,
+    "completed_rounds": 2,
+    "round1": "RED false-positive nullable property coalescing",
+    "round2": "GREEN: PHP8.4 warning-to-exception reproduction and current18 ResourceScopeTests disproved; finding withdrawn; no product correction",
+    "initial_transport": "maxturns12 exit1, resumed SAME session to obtain round1 verdict; not counted completed until verdict",
+    "product_unchanged": true
+  },
+  "limitations": [
+    "Scalar/native/external implemented; exact compiler/list/count/export are later items",
+    "No target-engine concurrency proof here",
+    "Existing owner JSON plan migration uncommitted; preserved"
+  ]
+}

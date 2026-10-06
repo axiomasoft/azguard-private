@@ -26,13 +26,13 @@ it('requires a tenant membership adapter at panel compilation', function (): voi
         ->toThrow(DefinitionException::class);
 });
 
-it('rejects unsupported configured common filters at compilation', function (): void {
+it('accepts configured common filters at compilation', function (): void {
     $definition = ConfiguredProjectScope::make()->filter(new ActiveProjects);
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]))
-        ->toThrow(DefinitionException::class, 'filter');
+        ->not->toThrow(DefinitionException::class);
 });
 
-it('rejects unsupported configured role filters at compilation', function (): void {
+it('accepts configured role filters at compilation', function (): void {
     $role = new class extends BaseRole
     {
         public function key(): string
@@ -51,7 +51,7 @@ it('rejects unsupported configured role filters at compilation', function (): vo
         }
     };
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(ConfiguredProjectScope::class))->roles([$role::class])]))
-        ->toThrow(DefinitionException::class, 'filter');
+        ->not->toThrow(DefinitionException::class);
 });
 
 it('rejects a role binding that changes registered scope identity', function (): void {

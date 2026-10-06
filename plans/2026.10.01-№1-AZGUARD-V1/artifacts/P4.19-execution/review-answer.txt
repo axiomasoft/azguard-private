@@ -1,0 +1,23 @@
+## Verdict: RED
+
+The current P4.6 boundary resolver does not implement the 09 §3 precedence or `Deny(TenantRequired)`. A check with no explicit tenant dereferences null scope objects and either escapes the pipeline or comes back as `AssignmentScopeFilterError`. That blocks tenant resolvers, the ambient scope, and the resource-owner fallback.
+
+Reviewed scope: **70 listed files**. The boundary, authority, eligibility, query-guard, scope-policy, compiler, fingerprint, and invoker implementations were read in full, along with the resource and native-builder tests that lock those rules. Not every fixture was re-read line by line. Pest was not re-run. The supplied PHPStan result is 0 errors. V1’s green run is on candidate `17af19e…`, not on the current candidate `533a6f4…`.
+
+### Finding 1 — blocker
+
+`packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php:38` and `:52-54`
+
+`resolve()` builds the scope with `$request->tenant() ?? $ambient->tenant` before the `try`, and later reads `$resource->tenant` and `$resource->context` while `$resource` is still null. Context on line 39 uses `$ambient?->context`. Tenant does not.
+
+Trigger: an `AccessRequest` with no `inTenant` / `inScope` tenant, which is the normal path for “no tenant selected”, for ambient `CurrentContext`, and for “resource scope supplies the owner”. `ResourceScopeTest` builds that request with `AccessRequest::for(...)` and expects `DecisionReason::TenantRequired`. `$ambient` and `$resource` are both null there. The same null `$resource` read happens when ambient scope is set and the request has no resource.
+
+Consequence: under Laravel’s warning-to-exception handler, line 38 throws `ErrorException` outside the `catch`, so the caller never gets a `Decision`. If that warning is not promoted, lines 52–54 still throw inside the `catch` and the stage returns `Deny(AssignmentScopeFilterError)`. Tenant resolvers are not called, ambient scope is not applied, a resource owner is not consulted, and a required panel does not return `Deny(TenantRequired)`. There is no fallback to global rights either. The failure is mislabeled as a scope-filter error.
+
+Use `$ambient?->tenant` and read `$resource->tenant` / `$resource->context` only after `resourceScope()` has returned an `AccessScope`. Keep missing-tenant and resolver results on the `TenantRequired` / mismatch paths, not in the filter-error `catch`.
+
+### Checked, no separate defect established
+
+Owner, ref, and tenant stay AND-ed outside the filter group in `EligibilityBuilder`. Common eligibility runs in the boundary stage, with `role` and `grant` cleared, before authority, policy, and superadmin. Role filters run only on that contribution’s frame. `scopeRequired()` rejects a tenant-wide contribution even when the request context is C. An empty `scopes()` accepts only a tenant-wide contribution, and compile rejects `scopeRequired()` with an empty list. `WithinContext::run` restores the previous fiber-local scope in `finally`, including a resolver exception. Fingerprints store filter class configuration and reject live models, queries, requests, and containers. Root `from`, joins, `select`, unions, `order`, `limit`, and terminal `get` / `exists` / `update` / `delete` are rejected, and a caught terminal attempt stays rejected. The optional turbo warning was disclosed and is not a defect. No P4.7 / P4.8 integration break was established beyond this boundary bug.
+
+Uncertainty: `BaseAssignmentScope` is not in the listed tree, so generic `resolve()` was not re-read there. `ResourceScopeTest` expects structural `resolve()` without a `projects` or `stores` query for a null model. Nested `whereHas` shape checks are weaker than the root builder. That does not by itself bypass the outer owner and key predicates, and `whereExists` subqueries are an allowed shape.
