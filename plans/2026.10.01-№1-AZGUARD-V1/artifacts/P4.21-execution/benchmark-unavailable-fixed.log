@@ -1,0 +1,4 @@
+Illuminate\Database\QueryException: SQLSTATE[08006] [7] connection to server at "127.0.0.1", port 48475 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections? (Connection: testbench, Host: 127.0.0.1, Port: 48475, Database: azguard_test, SQL: drop table if exists "azg_permission_grants")
+Cleanup failed: Illuminate\Database\QueryException: SQLSTATE[08006] [7] connection to server at "127.0.0.1", port 48475 failed: Connection refused
+	Is the server running on that host and accepting TCP/IP connections? (Connection: testbench, Host: 127.0.0.1, Port: 48475, Database: azguard_test, SQL: drop table if exists "azg_permission_grants")

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
@@ -325,7 +326,9 @@ it('allows default panels of different models', function (): void {
         ->and($registry->defaultFor(Seller::class)?->id())->toBe('cabinet');
 });
 
-it('keeps a fingerprint for every compiled panel', function (): void {
+it('keeps a fingerprint for every compiled panel in the same deployment build', function (): void {
+    config(['azguard.catalog.build_id' => 'same-deployment']);
+    app()->forgetInstance(AzGuardConfig::class);
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)->permissions([OrderPermission::class]));
 
     $first = panelRegistry();

@@ -60,13 +60,13 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R48 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
 | R49 | [DiagnosticsTest.php](DiagnosticsTest.php) | partial | P4.10/P4.15 trace/cache secret and local runtime inputs; **future:** P5.5 schema; P7.4 export; P8.7 plugin consumer; **future:** P4.10 trace/full diagnostics, P5.5/P7.4/P8.7 |
 | R50 | [ConsumerSpiTest.php](ConsumerSpiTest.php), [ExternalScopeTest.php](ExternalScopeTest.php) | partial | P4.15 local public SPI resolve/owner/native/external; P4.23 query slice; **future:** P5.5 directory; P8.7 installed external consumer qualification |
-| R51 | — | future | P4.20/P4.21 expiry/revocation/barriers/replica |
-| R52 | — | future | P4.20/P4.21 expiry/revocation/barriers/replica |
+| R51 | [ConsistencyTest.php](ConsistencyTest.php) | GREEN cache slice | P4.21 ordinary/scoped-admin expiry=now in warm memo |
+| R52 | [ConsistencyTest.php](ConsistencyTest.php), [RevocationRaceTest.php](../../Engines/RevocationRaceTest.php), [ReplicaLagTest.php](../../Engines/ReplicaLagTest.php) | GREEN cache slice | P4.21 local/independent root revoke, request window, Primary/check and real paused-replay Default window |
 | R53 | — | future | —; **future:** P6.10 async export actual queue after revoke; P7.2 export consumer |
 | R54 | — | future | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; **future:** P6.2/P6.10 actual Octane/queue lifecycle; P8.7 concurrent external consumer |
 | R55 | — | future | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; **future:** P6.2/P6.10 actual Octane/queue lifecycle; P8.7 concurrent external consumer |
 | R56 | — | future | —; **future:** P6.8 generated stubs; P8.7 actual cached consumer boot |
-| R57 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15/P4.20/P4.21 build/filter capture/cache/incarnation; **future:** P6.6 actual restore; P8.7 stale worker consumer; **future:** P4.20/P4.21 cache/incarnation |
+| R57 | [BuildInputsTest.php](BuildInputsTest.php), [BuildStateTest.php](BuildStateTest.php), [RedisStoreTest.php](../../Feature/Authorization/Cache/RedisStoreTest.php) | partial | P4.15/P4.20/P4.21 build/filter capture/cache/incarnation; **future:** P6.6 actual restore; P8.7 stale worker consumer |
 | R58 | — | future | P4.9 10k/100 multi-role batch/scalar; P4.23 list/total/EXPLAIN |
 | R59 | — | future | P4.21 root lock/revoke/host transaction slice; **future:** P5.2/P5.3 actual action deletes/new deploy mutation; P8.7 host transfer concurrency |
 | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |

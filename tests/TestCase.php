@@ -39,6 +39,13 @@ class TestCase extends Orchestra
      */
     protected function databaseConnectionConfig(): array
     {
+        if (getenv('AUTHORITY_REPLICA_TEST')) {
+            return ['driver' => 'pgsql', 'host' => '127.0.0.1',
+                'port' => getenv('AUTHORITY_PRIMARY_PORT') ?: 25433,
+                'database' => 'azguard_authority_test', 'username' => 'authority_test',
+                'password' => 'authority_test', 'charset' => 'utf8', 'prefix' => ''];
+        }
+
         return match (env('DB_CONNECTION', 'sqlite')) {
             'pgsql' => [
                 'driver' => 'pgsql',

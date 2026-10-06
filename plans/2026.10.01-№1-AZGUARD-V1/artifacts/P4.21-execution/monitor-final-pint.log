@@ -1,0 +1,1 @@
+{"tool":"pint","result":"fixed","files":[{"path":"tests\/Engines\/Support\/authority-worker.php","fixers":["braces_position","single_line_empty_body","blank_line_before_statement"]}]}

@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<phpunit bootstrap="/home/vostrikov/projects/packages/azguard/vendor/autoload.php"><testsuites><testsuite name="Core"><directory>/home/vostrikov/projects/packages/azguard/tests/Unit/Authorization</directory></testsuite></testsuites><source><include><directory>/home/vostrikov/projects/packages/azguard/packages/core/src</directory></include></source><php><env name="APP_ENV" value="testing"/><env name="DB_CONNECTION" value="sqlite"/></php></phpunit>

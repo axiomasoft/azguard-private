@@ -16,6 +16,7 @@ use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\RegistryFrozenException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Sources\Folder\PanelDiscovery;
 use AzGuard\Sources\PanelSources;
@@ -206,7 +207,7 @@ final class PanelRegistry implements PanelRegistryContract
                     $source->validateCatalog($catalogs[$id]);
                 }
             }
-            $fingerprints[$id] = PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id]);
+            $fingerprints[$id] = IdentityCodec::digest([$buildId, PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id])]);
             $this->discoveries[$id] = $discovery->cache();
             $enums = $this->attachEnums($enums, $id, $catalogs[$id]);
         }

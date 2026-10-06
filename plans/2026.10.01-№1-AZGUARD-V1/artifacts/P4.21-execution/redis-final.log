@@ -1,0 +1,3 @@
+> php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis
+{"tool":"pest","result":"failed","tests":2,"passed":1,"assertions":23,"duration_ms":95,"failed":1,"failures":[{"test":"P\\Tests\\Feature\\Authorization\\Cache\\RedisStoreTest::__pest_evaluable_it_real_Redis_serializes_raw_sets_across_requests__obeys_D44__and_invalidates_independent_generations_and_revocations","file":"/home/vostrikov/projects/packages/azguard/tests/Feature/Authorization/Cache/RedisStoreTest.php","line":59,"message":"Expecting 'c529ef96dbea9c88052d1dfdba969\u2026da45df' not to be 'c529ef96dbea9c88052d1dfdba969\u2026da45df'."}]}
+Script php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis handling the test:redis event returned with error code 1

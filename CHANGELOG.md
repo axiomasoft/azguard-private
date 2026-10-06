@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Квалификация кэша ядра 1.0: независимые процессы проверяют revoke/fence и lock-first протокол на PostgreSQL/MySQL/MariaDB, настоящий Redis — expiry/build/restore, PostgreSQL streaming replica — окно Default и отказ Primary. Воспроизводимый benchmark записывает cold/warm p95/p99 и бюджеты SQL. Fingerprint DB authority теперь включает deployment build id, чтобы новый build не использовал прежние raw cache entries.
+
 - CRM-приёмка ядра 1.0: реальный стенд с двумя панелями, tenant/project, PHP-ролями, DB/relation-назначениями и литеральными ожиданиями проверяет границы доступа, policy/grant modes, typed filters и host freshness; реестр R01–R68 фиксирует проверенные срезы и будущие поверхности.
 
 - Квалификация scoped sources ядра 1.0: итоговые решения Database/Folder/Relation, изоляция tenant/context, поля выдачи и dynamic fence проверены на SQLite, PostgreSQL, MySQL и MariaDB; регрессия P08 покрывает одинаковые права DB-роли глобально и в точной области назначения.

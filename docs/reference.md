@@ -101,3 +101,11 @@ as a runtime dependency. Moving branches were observed on the review date, not p
 - [Laravel Eloquent](https://laravel.com/docs/13.x/eloquent): fresh Builder/record lookup as the basis of ProjectScope.query/resolve.
 - [PHP attributes](https://www.php.net/manual/en/language.attributes.syntax.php): method-target attributes;
   the mandatory Decides marker is the package's own decision. Result: [D84](../audits/2026-09-29-audit/opus/02-decisions.md#d84).
+
+
+### 2026-10-06 — P4.21 real authority replica qualification
+
+- [PostgreSQL 16 pg_basebackup](https://www.postgresql.org/docs/16/app-pgbasebackup.html): `-R` standby bootstrap and streaming WAL capture.
+- [PostgreSQL 16 administration functions](https://www.postgresql.org/docs/16/functions-admin.html): replay pause/resume, observed pause state and catch-up by WAL LSN.
+
+The profile-isolated test fixture uses these documented mechanisms; no upstream code or dependency was vendored.

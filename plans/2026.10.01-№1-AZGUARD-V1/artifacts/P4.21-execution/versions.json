@@ -1,0 +1,18 @@
+{
+    "pgsql": {
+        "database": "azguard_test",
+        "version": "PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+        "port": 25432
+    },
+    "mysql": {
+        "database": "azguard_test",
+        "version": "8.4.10",
+        "port": 23306
+    },
+    "mariadb": {
+        "database": "azguard_test",
+        "version": "10.11.19-MariaDB-ubu2204",
+        "port": 23307
+    },
+    "redis": "7.4.9"
+}

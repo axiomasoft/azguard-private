@@ -65,7 +65,49 @@ services:
       timeout: 5s
       retries: 10
 
+  authority-primary:
+    profiles: [authority-replica]
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:${AUTHORITY_PRIMARY_PORT:-25433}:5432"
+    environment:
+      POSTGRES_DB: azguard_authority_test
+      POSTGRES_USER: authority_test
+      POSTGRES_PASSWORD: authority_test
+    command: [postgres, -c, wal_level=replica, -c, max_wal_senders=4, -c, wal_keep_size=128MB]
+    volumes:
+      - authority_primary_test:/var/lib/postgresql/data
+      - ./tests/Engines/Support/replica-primary.sh:/docker-entrypoint-initdb.d/replication.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U authority_test -d azguard_authority_test"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+
+  authority-replica:
+    profiles: [authority-replica]
+    image: postgres:16-alpine
+    depends_on:
+      authority-primary:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${AUTHORITY_REPLICA_PORT:-25434}:5432"
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      PGPASSWORD: authority_test
+    entrypoint: [sh, /replica-standby.sh]
+    volumes:
+      - authority_replica_test:/var/lib/postgresql/data
+      - ./tests/Engines/Support/replica-standby.sh:/replica-standby.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U authority_test -d azguard_authority_test -tAc 'select pg_is_in_recovery()' | grep -qx t"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+
 volumes:
+  authority_primary_test:
+  authority_replica_test:
   pgsql_data:
   mysql_data:
   redis_data:
