@@ -85,21 +85,28 @@ final class PanelResolver
     /**
      * The panel that owns a Gate ability, or null when the ability is not a permission of the package.
      *
-     * A single word belongs to Laravel policies. A full name of a registered panel and a name with a registered
+     * A single word with a model belongs here only when the compiled ability index contains that pair. A full name of a registered panel and a name with a registered
      * prefix belong to that panel even when the action is unknown. Any other dotted name belongs to the panel the
      * rule would pick without explicit signals only when the catalog of that panel has the name; otherwise the
-     * ability is not ours. The answer reads hash indexes and makes no query.
+     * ability is not ours. A dynamic catalog returns a tentative candidate: the adapter confirms membership using the same prepared evaluation. The answer reads hash indexes and makes no query.
      *
      * @throws DefinitionException when the panels are not compiled yet
      */
-    public function owner(string $ability, Model|SubjectRef|null $subject = null): ?Panel
+    public function owner(string $ability, Model|SubjectRef|null $subject = null, ?string $resourceModel = null): ?Panel
     {
         if (str_contains($ability, ':')) {
             return $this->registry->find(explode(':', $ability, 2)[0]);
         }
 
         if (! str_contains($ability, '.')) {
-            return null;
+            $candidate = $this->candidate($subject);
+
+            if ($candidate === null || $resourceModel === null) {
+                return null;
+            }
+            $catalog = $this->registry->catalog($candidate->id());
+
+            return $catalog->permissionForAbility($resourceModel, $ability) !== null || $catalog->abilityIsAmbiguous($resourceModel, $ability) ? $candidate : null;
         }
 
         $prefixed = $this->registry->forPrefix(explode('.', $ability, 2)[0]);
@@ -110,7 +117,7 @@ final class PanelResolver
 
         $candidate = $this->candidate($subject);
 
-        return $candidate !== null && $this->registry->catalog($candidate->id())->has($ability) ? $candidate : null;
+        return $candidate !== null && ($this->registry->catalog($candidate->id())->has($ability) || $this->registry->catalog($candidate->id())->isDynamic()) ? $candidate : null;
     }
 
     /**

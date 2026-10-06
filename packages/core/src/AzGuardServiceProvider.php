@@ -14,6 +14,7 @@ use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
+use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -23,6 +24,8 @@ use AzGuard\Scopes\WithinContext;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Storage\StorageTouched;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
@@ -79,6 +82,9 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
 
         $this->registerConfiguredPanels();
+        $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
+            return $this->app->make(GateBridge::class)($user, $ability, $arguments);
+        });
 
         if ($this->app->runningInConsole()) {
             $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class]);

@@ -12,7 +12,7 @@ function regressionProbeOwners(): array
         'P01b' => 'PLAN2.P4.7',
         'P01c' => 'PLAN2.P2.2',
         'P02' => 'PLAN2.P4.2',
-        'P03' => 'PLAN2.P4.3',
+        'P03' => 'PLAN2.P4.11',
         'P04a' => 'PLAN2.P4.12',
         'P04b' => 'PLAN2.P4.12',
         'P04c' => 'PLAN2.P4.12',

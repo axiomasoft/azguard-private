@@ -6087,6 +6087,95 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Laravel\\Gate\\GateBridge",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "authorizer",
+                            "type": "AzGuard\\Authorization\\Authorizer",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resolver",
+                            "type": "AzGuard\\Panels\\PanelResolver",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "registry",
+                            "type": "AzGuard\\Panels\\PanelRegistry",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "__invoke",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "user",
+                            "type": "?object",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "ability",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "arguments",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "?Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "toGateResult",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "decision",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Panels\\GateMode",
             "kind": "enum",
             "final": true,

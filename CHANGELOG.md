@@ -7,6 +7,7 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 - **core:** `Authorizer::explain()` and readonly `Kernel\Decision\Explanation` capture one evaluation, contribution origins/qualification, skipped stages and scalar scope/state; nested secrets and matching message values are redacted. `azguard:explain` prints JSON or a step table without publishing cold diagnostic cache reads (P4.10).
+- **core:** Authoritative `Laravel\Gate\GateBridge` uses the common resolver/pipeline for registered full/prefix names, local static/dynamic names and indexed model abilities; owned denial is final, ambiguous pairs deny, foreign abilities fall through. `toGateResult()` preserves policy Response details. P03/P09, Blade and 200 seeded P9 parity cover current surfaces; earlier host Gate::before callbacks remain an integration constraint (P4.11).
 
 - Ядро 1.0: `Authorizer::decideMany()` сохраняет скалярные решения и порядок запросов, читает назначения пачками до 100 контекстов под единым fence группы и загружает host-модели/eligibility пакетно. Один `now`, отдельные вызовы политик/условий/ограничений, typed state map; CRM 1k/10k и конкурентный revoke квалифицированы. `resolve()` использует общий PanelResolver, конфликт панелей отклоняется.
 
