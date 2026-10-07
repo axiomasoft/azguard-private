@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-dependency-qualification-continuation-p
 
 ## Applies to
 
-
+- P4.5
 
 ## Provenance
 

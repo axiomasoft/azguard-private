@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P3-direct-writes-grok-delta.json). This
 
 ## Applies to
 
-
+- P3
 
 ## Provenance
 

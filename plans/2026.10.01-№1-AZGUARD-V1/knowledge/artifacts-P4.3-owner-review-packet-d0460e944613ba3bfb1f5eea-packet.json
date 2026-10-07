@@ -39,7 +39,9 @@
       "text": "Diff/new files exceed packet budget; read the complete manifest paths in the repository. No code is truncated."
     }
   ],
-  "applies_to": [],
+  "applies_to": [
+    "P4.3"
+  ],
   "provenance": {
     "path": "artifacts/P4.3/owner-review/packet-d0460e944613ba3bfb1f5eea/packet.md",
     "sha256": "c08267e005b441773231b1bdcfc0f4633a524e6c9f3fd7f1c1ab8d926954a92b"

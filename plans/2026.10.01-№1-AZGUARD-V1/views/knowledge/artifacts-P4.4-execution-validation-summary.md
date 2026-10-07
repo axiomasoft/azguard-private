@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P4.4-execution-validation-summary.json)
 
 ## Applies to
 
-
+- P4.4
 
 ## Provenance
 

@@ -44,7 +44,9 @@
       "text": "Diff/new files exceed packet budget; read every required_product_path in the repository. Full metadata is in the adjacent review-route.json. No code is truncated."
     }
   ],
-  "applies_to": [],
+  "applies_to": [
+    "P4.5"
+  ],
   "provenance": {
     "path": "artifacts/P4.5/owner-review/packet-c264a63dd965c2be4e579633/packet.md",
     "sha256": "57b367008299f1e5c572160a047c9eb1d90f01e50686e10972a7cc63d2432a9e"

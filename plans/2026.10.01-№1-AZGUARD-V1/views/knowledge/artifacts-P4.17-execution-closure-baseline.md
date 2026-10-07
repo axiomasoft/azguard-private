@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P4.17-execution-closure-baseline.json).
 
 ## Applies to
 
-
+- P4.17
 
 ## Provenance
 

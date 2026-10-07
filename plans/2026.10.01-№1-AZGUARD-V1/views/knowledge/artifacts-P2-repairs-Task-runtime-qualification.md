@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P2-repairs-Task-runtime-qualification.j
 
 ## Applies to
 
-
+- P2
 
 ## Provenance
 

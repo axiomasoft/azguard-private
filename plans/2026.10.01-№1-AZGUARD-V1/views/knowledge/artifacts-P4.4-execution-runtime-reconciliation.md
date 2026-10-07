@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P4.4-execution-runtime-reconciliation.j
 
 ## Applies to
 
-
+- P4.4
 
 ## Provenance
 

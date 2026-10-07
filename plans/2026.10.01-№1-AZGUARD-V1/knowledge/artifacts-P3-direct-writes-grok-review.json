@@ -34,7 +34,9 @@
       "text": "The green logs under `artifacts/P3-models` and `artifacts/P3-direct-writes` were not re-opened or re-run. R1 is a path those datasets do not call. No fix is included."
     }
   ],
-  "applies_to": [],
+  "applies_to": [
+    "P3"
+  ],
   "provenance": {
     "path": "artifacts/P3-direct-writes/grok-review.md",
     "sha256": "4858393dd9d005d1fd91ec01b4b9590609a69fda0edac656e6ae008cfbde6d1d"

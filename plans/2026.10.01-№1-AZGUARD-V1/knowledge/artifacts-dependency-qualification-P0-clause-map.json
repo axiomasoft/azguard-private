@@ -24,7 +24,9 @@
       "text": "- Capture stdout/stderr and actual exit per check. Expected RED inside the\n  corruption control is logged separately from restored GREEN; adapter success\n  requires both observations.\n- Check P03.clean-tree before root writes new unignored evidence into the isolated\n  checkout. Capture logs outside that checkout, or in an already ignored output\n  directory. Do not suppress product-tree mutations to make the status check pass.\n- Each item list can run independently. Runner stop-after-RED must remain honest;\n  a fixture unavailable is not an executed GREEN for subsequent checks.\n- SIGTERM/SIGINT attempt restoration; a hard kill can leave a changed candidate,\n  so root must check exact candidate/context freshness after execution.\n- Current read-only inspection already found old-name hits outside P0.4's allowed\n  historical locations (including .github/CONTRIBUTING.md). That check may produce\n  a real RED; no location waiver is included."
     }
   ],
-  "applies_to": [],
+  "applies_to": [
+    "P0"
+  ],
   "provenance": {
     "path": "artifacts/dependency-qualification/P0/clause-map.md",
     "sha256": "9c206c248cf8448e5e0cf2260e3bd3762737c9100fb911121d791e06771dfbcd"

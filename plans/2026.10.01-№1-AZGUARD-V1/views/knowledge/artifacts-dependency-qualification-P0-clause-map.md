@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-dependency-qualification-P0-clause-map.
 
 ## Applies to
 
-
+- P0
 
 ## Provenance
 

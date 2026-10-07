@@ -79,7 +79,9 @@
       "text": "<?php\n\ndeclare(strict_types=1);\n\nuse AzGuard\\Kernel\\Decision\\DecisionReason;\nuse AzGuard\\Kernel\\Decision\\RoleContribution;\nuse AzGuard\\Kernel\\Identity\\AccessScope;\nuse AzGuard\\Kernel\\Identity\\RoleKey;\nuse AzGuard\\Kernel\\Identity\\TenantRef;\nuse AzGuard\\Roles\\Attributes\\Role;\nuse AzGuard\\Roles\\BaseRole;\nuse AzGuard\\Tests\\Fixtures\\Authorization\\AuthorizationWorld;\nuse AzGuard\\Tests\\Fixtures\\Authorization\\GeneratedSource;\nuse AzGuard\\Tests\\Fixtures\\Guards\\Shop\\ShopWorld;\nuse Illuminate\\Database\\Eloquent\\Relations\\Relation;\n\nafterEach(fn () => Relation::morphMap([], false));\n\nit('P02 preserves grants after a role class rename and denies removed keys without throwing', function (): void {\n    ShopWorld::seed();\n    $before = new #[Role('reader')] class extends BaseRole\n    {\n        public function permissions(): array\n        {\n            return ['orders.view'];\n        }\n    };\n    $after = new #[Role('reader')] class extends BaseRole\n    {\n        public function permissions(): array\n        {\n            return ['orders.view'];\n        }\n    };\n    expect($before::class)->not->toBe($after::class);\n    $source = new GeneratedSource(roles: [RoleContribution::of(RoleKey::of('admin', 'reader'), AccessScope::in(TenantRef::global()), 'generated')]);\n    foreach ([$before::class, $after::class] as $class) {\n        [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn ($panel) => $panel->roles([$class]));\n        expect($engine->decide($panel, $request)->allowed())->toBeTrue();\n    }\n    [$engine, $panel, $request] = AuthorizationWorld::compile($source);\n    expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted);\n});"
     }
   ],
-  "applies_to": [],
+  "applies_to": [
+    "P4.2"
+  ],
   "provenance": {
     "path": "artifacts/P4.2/owner-review/packet-5200f6f9142b9244fcd730a3/packet.md",
     "sha256": "d87c62136e4a0138ec3a14de34890e4c6cfac8385c300b8cad28611a6f0dd185"

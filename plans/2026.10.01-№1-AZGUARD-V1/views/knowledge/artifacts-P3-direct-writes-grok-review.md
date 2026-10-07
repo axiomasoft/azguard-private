@@ -5,7 +5,7 @@ Source: [JSON](../../knowledge/artifacts-P3-direct-writes-grok-review.json). Thi
 
 ## Applies to
 
-
+- P3
 
 ## Provenance
 
