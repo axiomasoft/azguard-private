@@ -1,0 +1,24 @@
+{
+  "id": "repeat-fence",
+  "argv": [
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Engines/BatchFenceRaceTest.php",
+    "--fail-on-skipped",
+    "--compact"
+  ],
+  "env": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "pgsql",
+    "DB_DATABASE": ":memory:",
+    "PGSQL_PORT": "25432",
+    "MYSQL_PORT": "23306",
+    "MARIADB_PORT": "23307",
+    "REDIS_PORT": "26379"
+  },
+  "exit_code": 0,
+  "started_at": "2026-10-07T04:09:42.013837+00:00",
+  "duration_seconds": 0.77
+}

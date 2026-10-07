@@ -1,0 +1,6 @@
+{
+  "id": "V4-product",
+  "exit_code": 0,
+  "command": "vendor/bin/pint --test packages tests bin",
+  "reason": "Review actual product scope; original global Pint includes historical raw evidence outside product scope and remains RED"
+}

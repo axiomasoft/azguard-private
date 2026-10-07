@@ -1,0 +1,28 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "P4.14-20261007-V7",
+  "check_id": "V7",
+  "subject": "PLAN2.P4.14",
+  "procedure": {
+    "cmd": "php -d memory_limit=1G -d variables_order=EGPCS vendor/bin/pest --type-coverage --min=98 --no-cache '--type-coverage-json=/home/vostrikov/projects/packages/azguard/plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/type-coverage.json'",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "283f05115b93f527ffc1e3b0228b31285e27f9d2"
+  },
+  "exit": 0,
+  "log": {
+    "path": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/V7.log",
+    "sha256": "db095d985b8c5ce61d86cad86923c56df9bf93aa9c07b663e97f160281f9f603"
+  },
+  "started_at": "2026-10-07T04:09:42.868310+00:00",
+  "finished_at": "2026-10-07T04:09:53.650084+00:00",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
+    }
+  }
+}

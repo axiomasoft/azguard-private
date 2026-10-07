@@ -1,0 +1,14 @@
+{
+  "kind": "design-phase",
+  "exact": "design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5",
+  "phase": "P5",
+  "batch": null,
+  "items": [],
+  "route": null,
+  "launch": {
+    "claude": "/task:plan-design 2026.10.01-№1-AZGUARD-V1 P5",
+    "codex": "$ task:plan-design 2026.10.01-№1-AZGUARD-V1 P5"
+  },
+  "command": "task:plan-design 2026.10.01-№1-AZGUARD-V1 P5",
+  "reason": ""
+}

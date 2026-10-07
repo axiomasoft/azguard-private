@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "php",
+    "-d",
+    "memory_limit=1G",
+    "/tmp/azguard-p414-probes-08l9mnn_/vendor/pestphp/pest/bin/pest",
+    "--configuration=/tmp/azguard-p414-probes-08l9mnn_/phpunit.xml",
+    "tests/Feature/Visibility/VisibleToTest.php",
+    "--compact"
+  ],
+  "cwd": "/tmp/azguard-p414-probes-08l9mnn_",
+  "exit_code": 1,
+  "expected": "nonzero; outer OR bypass must be caught"
+}

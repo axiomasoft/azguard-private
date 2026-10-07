@@ -1,0 +1,954 @@
+{
+  "provider": "grok",
+  "session": "9480b878-675b-427d-8e42-48ff40b6c769",
+  "selected_model": "grok-4.7",
+  "observed_current_model_id": "grok-4.7",
+  "observed_assistant_models": [
+    "grok-4.7-build"
+  ],
+  "observed_reasoning_effort": "high",
+  "session_kind": "headless",
+  "context_parameter": null,
+  "tool_calls": {
+    "list_dir": 2,
+    "read_file": 73,
+    "grep": 52
+  },
+  "observed_read_paths": [
+    {
+      "tool": "list_dir",
+      "input": {
+        "target_directory": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769"
+      }
+    },
+    {
+      "tool": "list_dir",
+      "input": {
+        "target_directory": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/P4.14.json",
+        "limit": 400
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/diff/stat.txt"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/qualification-summary.json"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"id\":|\"title\":|\"section\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/D14.json",
+        "head_limit": 80
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "^# |^## |^### ",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/brief-P4-acceptance-matrix.md.json",
+        "head_limit": 50
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"severity\"|\"id\"|\"status\"|\"verdict\"|\"title\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/findings-P4-slice-review.json",
+        "head_limit": 100
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"severity\"|\"owning\"|\"status\"|\"id\"|\"verdict\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/findings-P4-execution.json",
+        "head_limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Unit/Authorization/TraceTest.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Trace.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/D14.json",
+        "offset": 1,
+        "limit": 200
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/brief-P4-acceptance-matrix.md.json",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/brief-P4-dossier-decisions.md.json",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/D15.json",
+        "limit": 100
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/D16.json",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V1.json",
+        "limit": 150
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/AccessPipeline.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Authorizer.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Cache/PermissionSetCache.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/findings-P4-slice-review.json",
+        "offset": 1,
+        "limit": 80
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"text\":",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/findings-P4-slice-review.json"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function (decide|qualify|readSources|cache|policy)",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function ",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/ReadAttempt.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function ",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Visibility.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function ",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/BatchEvaluation.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function (state|grants|withinAuthority|fence|read)",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Sources/Database/DatabaseSource.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function ",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Laravel/Gate/GateBridge.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Laravel/Gate/GateBridge.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Sources/Database/DatabaseSource.php",
+        "offset": 200,
+        "limit": 320
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/ReadAttempt.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Visibility.php",
+        "offset": 1,
+        "limit": 400
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "grantable|GrantedAutomatically|NotGrantable|contextsCovering",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Sources/Folder",
+        "glob": "*.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function owner|abilityIsAmbiguous|isDynamic",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src",
+        "glob": "*.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "not_grantable|automatic|NotGrantable|grantable",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests",
+        "glob": "*Visibility*"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "FAIL|failed|TraceTest|Expected|outcome",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V1.log",
+        "head_limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Panels/PanelResolver.php",
+        "offset": 70,
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Sources/Folder/FolderSource.php",
+        "offset": 200,
+        "limit": 160
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Feature/Gate/GateOwnershipTest.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "grantable|NotGrantable|automatic",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Feature/Visibility",
+        "glob": "*.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "Gate::before|before hook|раньше|окончател",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+        "head_limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Feature/Gate/EarlyGateBeforeTest.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "before|null|authoritative|foreign",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/contracts/P4.11.json",
+        "head_limit": 30
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/AuthorityTransaction.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/StorageReadSession.php",
+        "limit": 200
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/BatchEvaluation.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Query/QueryGuard.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Query/PredicateCompiler.php",
+        "limit": 220
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Query/VisibilityScope.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/ScopeEligibility.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function withinAuthorityTransaction|function mutate|function own|authorityTransaction|lockForUpdate",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/Storage.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/Storage.php",
+        "offset": 70,
+        "limit": 320
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "secret|password|redact|message",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Kernel/Decision/Explanation.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "secret|password|redact|getMessage",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Feature/Authorization/ExplainTest.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "secret|password|decisionFields|Allow",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Feature/Authorization/Cache/RedisStoreTest.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "PermissionSetCache|GateBridge|Authorizer",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/AzGuardServiceProvider.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"@api\"|@api",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/api-manifest.json",
+        "head_limit": 5
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/bin/api-manifest.php",
+        "limit": 120
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/RegressionSpecsTest.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Acceptance/Crm/README.md"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P10b.md"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P10.md"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P08.md",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P03.md",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P04a.md",
+        "limit": 30
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "covered:",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "R24|R39|R41|R54|R59|R60|R68",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Acceptance/Crm",
+        "glob": "*.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "^### R24|^## R24|R24 —|R39 —|R41 —|R54 —|R59 —|R68 —",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/P10bTest.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/historical-qualification/latency.json",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/replica-window.json",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function (sourceScopes|acceptsContributionScope|withAuthority|qualifiedSuperAdmin)",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/EvaluationFrame.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Kernel/Identity/IdentityCodec.php",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "@api|@spi",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src",
+        "glob": "*.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function digest|function compose|VERSION",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Kernel/Identity/IdentityCodec.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/EvaluationFrame.php",
+        "offset": 60,
+        "limit": 150
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"name\": \"AzGuard\\\\\\\\Authorization\\\\\\\\|\"name\": \"AzGuard\\\\\\\\Laravel\\\\\\\\Gate\\\\\\\\GateBridge\"|\"name\": \"AzGuard\\\\\\\\Sources\\\\\\\\Database\\\\\\\\DatabaseSource\"|\"name\": \"AzGuard\\\\\\\\Kernel\\\\\\\\Decision\\\\\\\\AccessPredicate\"|\"name\": \"AzGuard\\\\\\\\Kernel\\\\\\\\Decision\\\\\\\\Explanation\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/api-manifest.json"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Kernel/Identity/IdentityCodec.php",
+        "offset": 140,
+        "limit": 40
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"name\": \"AzGuard\\\\\\\\(Authorization\\\\\\\\(Authorizer|ReadAttempt|BatchEvaluation|Cache)|Sources\\\\\\\\Relation\\\\\\\\RelationSource|Sources\\\\\\\\Gate\\\\\\\\GateSource|Scopes\\\\\\\\(TenantPolicy|AssignmentScopePolicy|ContextAware|ModelAssignmentScopeDefinition|ModelTenantDefinition)|Contracts\\\\\\\\Sources\\\\\\\\(FencesReads|AssignmentScopeSelection|FiltersQueries)|Exceptions\\\\\\\\(VisibilityNotSupportedException|RecursionDetectedException))\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/api-manifest.json"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V4.log",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V5.log",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/scratch-control.json",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/engine-pgsql.json",
+        "limit": 30
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Contracts/Authorization/EvaluationContext.php",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Policies/PolicyDecider.php",
+        "limit": 120
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php",
+        "limit": 100
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function policyBindings|function roles\\(",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Catalog/PanelCatalog.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "former|grantable|super_admin|PolicyOnly",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Catalog/RoleCompiler.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "R24|deployment|typed AND|common defaults",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests",
+        "glob": "*.php",
+        "head_limit": 30
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "Tests:|OK \\(",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation",
+        "glob": "engine-*.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "skipped|replica",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests",
+        "glob": "*Replica*"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Panels/PanelBuilder.php",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/scratch-mutant.json",
+        "limit": 30
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V3.json",
+        "limit": 20
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/engine-pgsql.log",
+        "offset": 1,
+        "limit": 30
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "tests|assertions|PASS|FAIL|skipped",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/engine-pgsql.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "tests|assertions|PASS|FAIL",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V3.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"total\"|99.32|passed",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/type-coverage.json",
+        "head_limit": 20
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/scratch-mutant.log",
+        "limit": 40
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "function accessAdapter|function tenants|function restrictions|function before\\(",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Panels/PanelBuilder.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "expected 2|Expected: 2|actual 3|toBe\\(2\\)|Failed asserting that 3",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/scratch-mutant.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "tests.: 35|2497",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation",
+        "glob": "engine-*.log"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/repeat-fence.log",
+        "limit": 5
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/replica.log",
+        "limit": 15
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "exit_code|result",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V4-product.json"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "exit_code|result|error",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V5-expanded.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "accessAdapter",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Scopes/AssignmentScopePolicy.php"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"tests\":",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/engine-mariadb.log"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "\"result\"",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V6.json"
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "turbo",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V5-expanded.log"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/historical-qualification/latency.json",
+        "offset": 70,
+        "limit": 80
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P01a.md",
+        "limit": 12
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Regression/specs/P06.md",
+        "limit": 12
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Kernel/Decision/Grant.php",
+        "limit": 120
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/GrantFields.php",
+        "limit": 80
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "decisionValues|decisionFields",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/GrantFields.php"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/tests/Acceptance/Crm/ContextRolesTest.php",
+        "offset": 20,
+        "limit": 20
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/src/Storage/GrantFields.php",
+        "offset": 110,
+        "limit": 20
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V6.json",
+        "limit": 15
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V5-expanded.json",
+        "limit": 15
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "AzGuard\\\\\\\\Authorization\\\\\\\\(Authorizer|ReadAttempt|BatchEvaluation|Cache\\\\\\\\PermissionSetCache|Pipeline\\\\\\\\Trace)",
+        "path": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/packages/core/api-manifest.json"
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/validation/V8.json",
+        "limit": 20
+      }
+    },
+    {
+      "tool": "grep",
+      "input": {
+        "pattern": "P414-V1-TRACE|P414-P10B-OWNER|code_verdict|sampled legacy|06-extension-points",
+        "path": "/tmp/azguard-p414-grok-9480b878-675b-427d-8e42-48ff40b6c769/sessions/%2Ftmp%2Fazguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/9480b878-675b-427d-8e42-48ff40b6c769/compaction",
+        "glob": "*.md",
+        "head_limit": 40
+      }
+    },
+    {
+      "tool": "read_file",
+      "input": {
+        "target_file": "/tmp/azguard-p414-grok-9480b878-675b-427d-8e42-48ff40b6c769/sessions/%2Ftmp%2Fazguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/9480b878-675b-427d-8e42-48ff40b6c769/compaction/segment_000.md",
+        "offset": 10080,
+        "limit": 30
+      }
+    }
+  ],
+  "independence": "Fresh native session/private history; executor history not inherited; plugins/memory disabled, no subagents; read-only snapshot plus native read-only selector. Ambient context7 initialized, but all127 actual tool calls were read_file/grep/list_dir; two completion calls read own compacted native history.",
+  "original_completed_invocations": 1,
+  "mandatory_input_completion_invocations": 1,
+  "product_corrections": 0,
+  "sources_full_supplied_in_completion": [
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "sha256": "c7212b153c9a9e59ea05909eacd3a72eef65ef1530f9474d424849d12de6e193"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "sha256": "9d1b5c2a3e5dd5c9b214e6c03082305c663108d251f4a78ffa05b8bb4dca27c5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/20-process-map.md",
+      "sha256": "06cc0a62042bab7cc4b138360030d0950825a4ea0483d95f2fd96a611146c17f"
+    }
+  ],
+  "native_compaction": true,
+  "summary_source": "/tmp/azguard-p414-grok-9480b878-675b-427d-8e42-48ff40b6c769/sessions/%2Ftmp%2Fazguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/9480b878-675b-427d-8e42-48ff40b6c769/summary.json",
+  "final_verdict": "RED",
+  "code_verdict": "GREEN",
+  "phase_verdict": "RED",
+  "tool_call_count": 127,
+  "all_tool_calls_read_only": true,
+  "tool_evidence_source": "/tmp/azguard-p414-grok-9480b878-675b-427d-8e42-48ff40b6c769/sessions/%2Ftmp%2Fazguard-p414-review-9480b878-675b-427d-8e42-48ff40b6c769/9480b878-675b-427d-8e42-48ff40b6c769/updates.jsonl",
+  "tool_evidence_sha256": "033172b2d450213fef5edb00cc51549f77848023f81803f9db3a65bc87f74124",
+  "mcp_observation": {
+    "configured": [
+      "context7"
+    ],
+    "native_init_connections": 2,
+    "actual_mcp_tool_calls": 0,
+    "selector_denial": "--deny MCPTool(*)",
+    "limitation": "Fresh GROK_HOME did not prevent ambient context7 initialization; initial no-MCP configuration claim corrected, original launch and actual call evidence retained"
+  }
+}

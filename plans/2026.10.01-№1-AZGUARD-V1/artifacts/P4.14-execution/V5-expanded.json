@@ -1,0 +1,6 @@
+{
+  "id": "V5-expanded",
+  "exit_code": 0,
+  "command": "vendor/bin/phpstan analyse packages/core/src packages/filament/src tests/Fixtures/Visibility/VisibilityProject.php --memory-limit=1G --no-progress",
+  "reason": "P4 ContextAware trait actual caller is a test fixture outside default configured src paths; expanded caller analysis, original V5 RED preserved"
+}
