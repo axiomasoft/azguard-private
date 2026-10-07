@@ -239,7 +239,7 @@ final readonly class AuthorityStage
 
                 continue;
             }
-            $admin = $this->superAdmin($roleDefinition);
+            $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
             $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
 
             if ($item instanceof RoleContribution && $roleDefinition !== null) {

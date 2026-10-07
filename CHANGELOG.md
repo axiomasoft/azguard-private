@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **core:** Прямой `Grant` с ключом роли `#[SuperAdmin]` засчитывается только своим паттерном и не освобождается от ограничений `exemptsSuperAdmin()`: раньше он давал Allow(SuperAdmin) на любое право панели в `decide()` и в точных списках (аудит P4, A02).
+
 - **core:** Точная видимость (`visibleTo()`, `PredicateCompiler`) заключает WHERE хоста с raw-условием (`whereRaw` с `OR`) и WHERE дескриптора области в одну вложенную группу перед добавлением группы авторизации: раньше `x OR y` обходил авторизацию, список показывал и считал запрещённые строки, а гость (`subject: null`) видел строки. Не добавляйте верхнеуровневый `orWhere` после `visibleTo()` (аудит P4, A06).
 
 - **core:** `Authorizer` зарегистрирован как scoped: после сброса scoped-экземпляров (следующий запрос Octane, следующее задание очереди) `decide`, `explain`, `decideMany`, Gate и `azguard:explain` читают текущие `CurrentContext`/`CurrentPanel`, а не контекст первого жизненного цикла — исправлено разрешение в чужом tenant/панели (аудит P4, A01).

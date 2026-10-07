@@ -171,7 +171,7 @@ final readonly class Visibility
                 if ($roleDefinition !== null && ($ref->isGlobal() ? $roleDefinition['scope_required'] : ! in_array($ref->type(), array_column($roleDefinition['scopes'], 'type'), true))) {
                     continue;
                 }
-                $admin = $roleDefinition['super_admin'] ?? false;
+                $admin = $item instanceof RoleContribution && ($roleDefinition['super_admin'] ?? false);
                 $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local())
                     : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::covers($pattern, $request->permission()->local())) !== [];
                 // Conditions and role eligibility qualify each live contribution before permission matching.
