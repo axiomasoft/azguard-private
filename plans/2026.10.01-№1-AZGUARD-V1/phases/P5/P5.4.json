@@ -1,0 +1,93 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P5.4",
+  "title": "События после commit и плагин audit",
+  "status": "todo",
+  "summary": "—",
+  "why": "—",
+  "scope": {
+    "include": [],
+    "exclude": []
+  },
+  "depends_on": [],
+  "decisions": [],
+  "skills": [],
+  "reads": [],
+  "task_files": [],
+  "rules": [],
+  "guidance": "—",
+  "validation": [],
+  "deliverables": [],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "updated_at": "1970-01-01T00:00:00Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "—"
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "—"
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "—"
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "—"
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "—"
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "—"
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "—"
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "—"
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "—"
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "—"
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": ""
+    }
+  ]
+}

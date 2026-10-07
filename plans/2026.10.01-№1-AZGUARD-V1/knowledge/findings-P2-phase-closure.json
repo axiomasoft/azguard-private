@@ -1,0 +1,39 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "findings-P2-phase-closure",
+  "title": "Формальное закрытие P2 — 2026-10-03",
+  "sections": [
+    {
+      "id": "P2-2026-10-03",
+      "title": "Формальное закрытие P2 — 2026-10-03",
+      "text": "P2 закрыта **GREEN** штатным Task phase_close_gate после проверки owning repair evidence. Исторический RED review и P2.10 closed-deviations сохранены. P2.10/P2.8/P2.5 не перезапускались. P3 не исполнялся и не детализировался. Push не выполнялся."
+    },
+    {
+      "id": "Owning-mechanism-repair",
+      "title": "Owning mechanism repair",
+      "text": "Source: `/home/vostrikov/projects/packages/swissknifeman/packages/task`, commits `d981ad06` + `379d39a9`, поверх чужого `b11aa7b3` (он появился во время работы; исходный HEAD был `f6d957c6`). Cache не редактировался. Root/package guides и canonical plan-protocol прочитаны. Release-visible запись — root CHANGELOG [Unreleased]. Canon/runtime/registry синхронизированы генераторами; general patch version 0.15.5 избегает новой immutable release tuple ошибки.\n\nЧистый baseline воспроизвёл точную блокировку: `PHASE_ACCEPTANCE_NON_GREEN` → повтор P2.10 (`artifacts/P2-phase-closure/gate-before.json`). Ремонт общий, без plan-specific ID: `phase-findings-resolution/v1` исчерпывающе сверяет RED-report inventory и owning items, canonical terminal event digests, последующие GREEN repairs с настоящими consumed repeat-admissions, полный Validation список, committed log hashes и парные zero exit witnesses. Неизменённость всех declared phase product bytes проверена относительно финального validated repair commit. Historical report bytes проверены по первому commit, содержащему review terminal event. Обычные deviations, unresolved/foreign/duplicate findings, stale/missing evidence и неавторизованные repeats продолжают запрещать GREEN.\n\nR4 закрыт как contract-sync: accepted/unsuperseded D10 покрывает owning P2.4, commit 7c17044 действительно меняет указанный в review P4.md; текущие bytes совпадают с ним, commit содержит неизменённый RED report и решение. Этот путь не объявляет прежний P2.4 новым исполнением.\n\n`closure/P2-findings.json`: R1 → P2.8 / commit 7c17044; R2/R3 → P2.5 / commit b1b1ea5; R4 → D10 / P4 sync 7c17044. Финальный validation anchor — b1b1ea5. `plan-phase-close.py` вызывает исправленный regular gate, append-only пишет GREEN phase event с candidate fingerprint + resolution SHA-256 и регенерирует/checks status и closure. Никакого owner override/verdict substitution. Historical known deviations в generated closure явно отделены от текущего resolved acceptance."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation и ограничения",
+      "text": "- Task qualification `bash packages/task/scripts/validate.sh`: exit 0; 1306 tests, **один skip** (`native Codex discovery requires the installed CLI`), остальные checks pass. Skip не объявлен GREEN. `task-qualification-final.log`.\n- 12 новых isolated regression tests: pass, **0 skips**, включая реальное phase-close и idempotent repeat/check projections. `task-regressions-final.log`. Дополнительная проверка этих регрессий после final small reader safety repair также pass.\n- Task conflicts, publication version, provider-generator --check: pass. Skiller registry --check: pass. docs-sync --check всех package aggregate copies: pass. `git diff --check`: pass. Results отдельно сохранены.\n- Первый qualification выявил три ошибки minimal legacy/unit fixture paths в проверке отсутствующего receipt; исправлено fail-closed fallback, qualification повторена. Первые регрессии также выявили reader recursion и Unicode git filename quoting; исправлены canonical item-field reader и NUL-delimited paths. Эти отказы не считались GREEN.\n- Дополнительные Skiller full tests/validate: **FAILED**, 730 tests, один release facade failure. До version fix был также новый general tuple diagnostic; patch version исправил его. Final targeted dry-run остаётся **FAILED** только на точно тех же tuple diagnostics, что чистый baseline b11aa7b3: core/harness/maind/package.harness/package.maind/package.skiller/task. Baseline воспроизведён в отдельном source-local worktree и удалён после проверки. Логи FAILED сохранены, общее Skiller qualification не объявлено GREEN. Это существующий release baseline defect, release/deploy не выполнялся.\n- Product gates переиспользованы: последний full набор 1326 tests / 239557 assertions, 5 original probes / 6 assertions, все восемь owning carriers GREEN, никакого product diff после repair anchor. PHPStan startup warning и ранние исправленные rerun failures остаются в owning evidence, не скрыты.\n- Полный azguard plan-lint сохраняет 12 исторических P0/P1 Completion Notes write-site ошибок. Только delta gate относительно b1b1ea5 должен быть exit 0 / 0 new; полный lint не GREEN."
+    },
+    {
+      "id": "Closure",
+      "title": "Closure и сохранность",
+      "text": "Штатное admission/result — `artifacts/P2-phase-closure/close-result.json` и final `close-reconciliation.json`; subsequent --check, delivery receipt, structural checks и baseline hashes рядом. Status P2: GREEN; item P2.10: closed-deviations. Journal prefix до закрытия (58 events) неизменён, добавлены первоначальный phase close event без run_id и штатная native start/terminal reconciliation пара (lines 59–61). Исходный event сохранён append-only; финальный GREEN terminal имеет реальный ID текущей Codex-сессии и штатно вычисленный run_id. Protected review/specs/P3 hashes сохранены. Чужие .gitignore/.swissknife.json/.grok/ не изменялись этой работой.\n\nАвторизованный scope завершён; handoff after P2 прекращает работу перед P3. Предыдущее требование отдельного согласования closure отменено прямым текущим запросом владельца и больше не переносится в Next."
+    },
+    {
+      "id": "Delivery-recovery",
+      "title": "Delivery recovery",
+      "text": "Первый delivery check честно отказал `TERMINAL_RUN_ID_MISSING`: новый launcher не передал native session/run identity. Event line 59 не переписывался. Owning Task launcher исправлен (379d39a9): новое закрытие требует actual provider session ID, `journal.derive_run_id()` и durable start + idempotent terminal. Reconciliation lines 60–61 использует настоящий CODEX_THREAD_ID текущей root-сессии; это phase-close, а не repeat какого-либо закрытого item. GREEN product admission и resolution digest повторно проверены. Terminal delivery receipt теперь создан и verify OK. Дополнительная regression проверяет полный delivery receipt и idempotent recovery. Промежуточный тест ошибочно читал ключ receipt `terminal` вместо `journal`; он исправлен, финальные 12 regressions и affected 1306 tests прошли с тем же одним existing skip. Первые failed logs сохранены.\n\nПроверка product anchor оптимизирована одним `git ls-tree` чтением с сопоставлением Git blob digest: это та же проверка точных bytes, без subprocess для каждого файла. Final generator checks GREEN, docs-sync свеж. Общие failed Skiller release baseline и 12 plan-lint errors не изменились и не объявлены GREEN."
+    }
+  ],
+  "applies_to": [
+    "P2"
+  ],
+  "provenance": {
+    "path": "findings/P2-phase-closure.md",
+    "sha256": "309d3d3069b39ef034b5728b60f1cc59c7df2cfc3a4bc2de9fc8767d524d4461"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "findings-P4.3-review",
+  "title": "GREEN",
+  "sections": [
+    {
+      "id": "P4.3-GREEN",
+      "title": "P4.3 — GREEN",
+      "text": "Независимый reviewer: Grok 4.7/high/500000, fresh native session\n`01a107b0-e279-7b51-9ec5-be4c6715b757`. Verdict GREEN, findings=[];\nend_turn и complete usage подтверждены native ACP evidence.\nCandidate `dfe4f16bbcfea7fcb6783a6ba983fba2d5552357e94f590cc0651d4bb1b7bea9`.\nАрхив: `../artifacts/P4.3/owner-review/attempt-0001/`.\n\nКарта обязательств/остаточных owners: раздел P4.3 в `P4-execution.md`.\nПолная приёмка: `../artifacts/B4a-execution/P4.3-acceptance.json`;\nточные девять команд и exit-коды: `P4.3-checks.json` рядом.\nTargeted 176/503, predecessor 94/257, arch 72/314;\nfull 2188 tests/243415 assertions; PHPStan 0 errors, type coverage 99.9%,\nPint/API/diff exit 0. Tests SQLite :memory:; engine/Redis здесь не заявлены GREEN.\n\nTerminal journal: P4.3 closed-green, run\n`a0a036b0663b255d229db5ffa22b98f1937388193c5825b1c4893b210722b16b`.\nB4a P4.2/P4.3 scope-complete, continue-root; P4.4 не начат.\nwrite-site: pre_mutation: allow · pre_final: allow"
+    }
+  ],
+  "applies_to": [
+    "P4.3"
+  ],
+  "provenance": {
+    "path": "findings/P4.3-review.md",
+    "sha256": "9c1205f467708df37a72b01760b7a1c2da6336ad501143bc69697ff2a5b7fc82"
+  }
+}

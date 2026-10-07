@@ -1,0 +1,213 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.2",
+  "title": "Грамматика имён и шаблонов",
+  "status": "done",
+  "summary": "Дать одну чистую грамматику прав, шаблонов выдачи, id панели и ключа роли с сопоставлением шаблонов, на которую опираются все значения Kernel; голые `*`/`**` невозможны как ключ и как шаблон.",
+  "why": "RAG:— D18 (сегмент, ≥ 2 сегментов, ≤ 255, `panel:local`, `*` один сегмент, `**` глубже, голые запрещены, сменяемого matcher нет); D06 и `02` D-раздел ролей (id панели и ключ роли `^[a-z0-9][a-z0-9-]{0,63}$`); D37 (база исключений); probe P14 (`tests/Regression/specs/P14.md`), V02/V03.",
+  "scope": {
+    "include": [
+      "`AzGuard\\Kernel\\Grammar\\PermissionGrammar` (final, static, без состояния): проверки и предикаты для сегмента, локального ключа, полного ключа `panel:local` с разбором, шаблона, id панели, ключа роли; константы ограничений. `AzGuard\\Kernel\\Grammar\\PatternMatcher` (final, static): `covers(string $pattern, string $local): bool` по сегментам. `AzGuard\\Exceptions\\AzGuardException` (abstract, `code(): string`), ветки D37 как abstract-классы `ConfigurationException`, `DefinitionException`, `ChangeException`, `AuthorizationEngineException`, `StorageException`, `PluginException`; `InvalidIdentityException` (не abstract, код `invalid_identity`, D6) и её наследники `InvalidPanelIdException` (`invalid_panel_id`), `InvalidPermissionKeyException` (`invalid_permission_key`), `InvalidRoleKeyException` (`invalid_role_key`), `InvalidAssignmentScopeException` (`invalid_context`). Табличные тесты грамматики и сопоставления; Kernel-регрессия P14."
+    ],
+    "exclude": [
+      "value objects (`PermissionKey`, `PermissionPattern`, `RoleKey` — P1.1); грамматика type alias/id ссылок (P1.1, D07); проверка `permissions()` роли против каталога (P2.5/P2.8); сквозной сценарий `grantPermission('*')`/`isSuperAdmin()` (V17/V22 в P4.7/P5.2); остальные исключения 05 §10 (вводят owning items)."
+    ]
+  },
+  "depends_on": [],
+  "decisions": [
+    "D6"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P1/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D6.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Kernel/Grammar/PermissionGrammar.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Kernel/Grammar/PatternMatcher.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Exceptions/*.php",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    }
+  ],
+  "rules": [
+    "Сегмент `^[a-z0-9][a-z0-9_-]*$`; локальный ключ — ≥ 2 сегментов через `.`, длина ≤ 255 байт, без `*`; полный ключ — ровно одно `:`, слева id панели, справа локальный ключ. Шаблон — локальный ключ, у которого **только последний** сегмент может быть `*` или `**`; ≥ 2 сегментов с учётом подстановки (значит, префикс ≥ 1 сегмента); голые `*`, `**`, `*` или `**` не в конце, `***`, пустые сегменты — ошибка. Сопоставление: точный шаблон — равенство строк; `p.*` покрывает ровно один сегмент после `p.`; `p.**` покрывает ≥ 1 сегментов после `p.`; `p.**` не покрывает `p`. Регистр не нормализуется: верхний регистр, пробелы, управляющие байты, не-ASCII — ошибка. Id панели и ключ роли — `^[a-z0-9][a-z0-9-]{0,63}$`. Нарушение ключа/шаблона → `InvalidPermissionKeyException`, панели → `InvalidPanelIdException`, роли → `InvalidRoleKeyException`; сообщение называет значение (через `json_encode`) и правило. Matcher не строит regex из входа: сравнение по массивам сегментов. Kernel не импортирует `Illuminate\\`/`Carbon\\`, не вызывает `app()/config()/now()`. Исключения — pure PHP (без Laravel), `code()` возвращает snake_case код из 05 §10. P14: тест `tests/Regression/P14Test.php` с именем, которое войдёт в spec, доказывает отказ голых `*`/`**` грамматикой; spec получает `**Status:** covered: tests/Regression/P14Test.php::<имя теста>` и строку под полями «Kernel-уровень закрыт P1.2 (грамматика); отказ значений `PermissionKey`/`PermissionPattern` — V02 в unit-тестах P1.1; сквозной сценарий ниже — acceptance V17/V22 пунктов P4.7/P5.2». Без внутренних кодов задач в docblock `src`. Запись `[Unreleased]` в `CHANGELOG.md`."
+  ],
+  "guidance": "Публичная форма (сигнатуры уточняются кодом, имена фиксированы): `PermissionGrammar::isSegment/isLocalKey/isPattern/isPanelId/isRoleKey(string): bool`, `assertLocalKey/assertPattern/assertPanelId/assertRoleKey(string): void`, `splitFull(string $full): array{0: string, 1: string}` (с проверкой обеих частей), константы `MAX_LOCAL_LENGTH = 255`, `WILDCARD_ONE = '*'`, `WILDCARD_DEEP = '**'`. Тесты — Pest datasets: таблица `[input, valid, exceptionClass]` ≥ 30 строк (граница 255/256, `a.b`, `a`, `A.b`, `a .b`, `a..b`, `.a.b`, `a.b.`, `a-b.c_d`, `_a.b`, `orders.*`, `orders.**`, `*`, `**`, `*.a`, `a.*.b`, `a.**.b`, `a.***`, `admin:orders.view`, `admin:orders`, `a:b:c.d`, `Admin:a.b`, панель длиной 64/65); V03-таблица matcher ≥ 15 строк.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Unit/Kernel/Grammar tests/Unit/Exceptions tests/Regression/P14Test.php tests/Regression/RegressionSpecsTest.php",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/pest --type-coverage --min=98",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "procedure": "shell",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "грамматика, matcher и база исключений в `packages/core/src`; табличные тесты; P14 `covered:`; запись в `@plan/knowledge/findings-P1-execution.json` (таблица грамматики с принятыми граничными решениями, итог гейтов)."
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-01T20:10:06Z",
+    "finished_at": "2026-10-05T10:10:52Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "claude"
+    },
+    "notes": "PermissionGrammar, PatternMatcher, база исключений D37; P14 covered; гейты GREEN\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-01T20:14:16Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-05T10:10:52Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Дать одну чистую грамматику прав, шаблонов выдачи, id панели и ключа роли с сопоставлением шаблонов, на которую опираются все значения Kernel; голые `*`/`**` невозможны как ключ и как шаблон."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— D18 (сегмент, ≥ 2 сегментов, ≤ 255, `panel:local`, `*` один сегмент, `**` глубже, голые запрещены, сменяемого matcher нет); D06 и `02` D-раздел ролей (id панели и ключ роли `^[a-z0-9][a-z0-9-]{0,63}$`); D37 (база исключений); probe P14 (`tests/Regression/specs/P14.md`), V02/V03."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`AzGuard\\Kernel\\Grammar\\PermissionGrammar` (final, static, без состояния): проверки и предикаты для сегмента, локального ключа, полного ключа `panel:local` с разбором, шаблона, id панели, ключа роли; константы ограничений. `AzGuard\\Kernel\\Grammar\\PatternMatcher` (final, static): `covers(string $pattern, string $local): bool` по сегментам. `AzGuard\\Exceptions\\AzGuardException` (abstract, `code(): string`), ветки D37 как abstract-классы `ConfigurationException`, `DefinitionException`, `ChangeException`, `AuthorizationEngineException`, `StorageException`, `PluginException`; `InvalidIdentityException` (не abstract, код `invalid_identity`, D6) и её наследники `InvalidPanelIdException` (`invalid_panel_id`), `InvalidPermissionKeyException` (`invalid_permission_key`), `InvalidRoleKeyException` (`invalid_role_key`), `InvalidAssignmentScopeException` (`invalid_context`). Табличные тесты грамматики и сопоставления; Kernel-регрессия P14."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "value objects (`PermissionKey`, `PermissionPattern`, `RoleKey` — P1.1); грамматика type alias/id ссылок (P1.1, D07); проверка `permissions()` роли против каталога (P2.5/P2.8); сквозной сценарий `grantPermission('*')`/`isSuperAdmin()` (V17/V22 в P4.7/P5.2); остальные исключения 05 §10 (вводят owning items)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/plan.json` · `@plan/phases/P1/phase.json` · `@plan/decisions/D6.json` · `tests/Regression/specs/P14.md` · `tests/Regression/README.md` · `tests/Arch/BaselineArchTest.php`."
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`packages/core/src/Kernel/Grammar/PermissionGrammar.php` · `packages/core/src/Kernel/Grammar/PatternMatcher.php` · `packages/core/src/Exceptions/*.php` (перечисленные выше) · `tests/Unit/Kernel/Grammar/PermissionGrammarTest.php` · `tests/Unit/Kernel/Grammar/PatternMatcherTest.php` · `tests/Unit/Exceptions/ExceptionHierarchyTest.php` · `tests/Regression/P14Test.php` · `tests/Regression/specs/P14.md` · `CHANGELOG.md`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/02-decisions.md` (только решения d18, d19, d37) 2) `audits/2026-09-29-audit/opus/05-php-api.md` §10 3) `audits/2026-09-29-audit/opus/14-verification.md` (строки V02, V03) 4) `tests/Regression/specs/P14.md` 5) `tests/Regression/README.md` 6) `tests/Regression/RegressionSpecsTest.php` (формат covered) 7) `@plan/decisions/D6.json`."
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Сегмент `^[a-z0-9][a-z0-9_-]*$`; локальный ключ — ≥ 2 сегментов через `.`, длина ≤ 255 байт, без `*`; полный ключ — ровно одно `:`, слева id панели, справа локальный ключ. Шаблон — локальный ключ, у которого **только последний** сегмент может быть `*` или `**`; ≥ 2 сегментов с учётом подстановки (значит, префикс ≥ 1 сегмента); голые `*`, `**`, `*` или `**` не в конце, `***`, пустые сегменты — ошибка. Сопоставление: точный шаблон — равенство строк; `p.*` покрывает ровно один сегмент после `p.`; `p.**` покрывает ≥ 1 сегментов после `p.`; `p.**` не покрывает `p`. Регистр не нормализуется: верхний регистр, пробелы, управляющие байты, не-ASCII — ошибка. Id панели и ключ роли — `^[a-z0-9][a-z0-9-]{0,63}$`. Нарушение ключа/шаблона → `InvalidPermissionKeyException`, панели → `InvalidPanelIdException`, роли → `InvalidRoleKeyException`; сообщение называет значение (через `json_encode`) и правило. Matcher не строит regex из входа: сравнение по массивам сегментов. Kernel не импортирует `Illuminate\\`/`Carbon\\`, не вызывает `app()/config()/now()`. Исключения — pure PHP (без Laravel), `code()` возвращает snake_case код из 05 §10. P14: тест `tests/Regression/P14Test.php` с именем, которое войдёт в spec, доказывает отказ голых `*`/`**` грамматикой; spec получает `**Status:** covered: tests/Regression/P14Test.php::<имя теста>` и строку под полями «Kernel-уровень закрыт P1.2 (грамматика); отказ значений `PermissionKey`/`PermissionPattern` — V02 в unit-тестах P1.1; сквозной сценарий ниже — acceptance V17/V22 пунктов P4.7/P5.2». Без внутренних кодов задач в docblock `src`. Запись `[Unreleased]` в `CHANGELOG.md`."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Публичная форма (сигнатуры уточняются кодом, имена фиксированы): `PermissionGrammar::isSegment/isLocalKey/isPattern/isPanelId/isRoleKey(string): bool`, `assertLocalKey/assertPattern/assertPanelId/assertRoleKey(string): void`, `splitFull(string $full): array{0: string, 1: string}` (с проверкой обеих частей), константы `MAX_LOCAL_LENGTH = 255`, `WILDCARD_ONE = '*'`, `WILDCARD_DEEP = '**'`. Тесты — Pest datasets: таблица `[input, valid, exceptionClass]` ≥ 30 строк (граница 255/256, `a.b`, `a`, `A.b`, `a .b`, `a..b`, `.a.b`, `a.b.`, `a-b.c_d`, `_a.b`, `orders.*`, `orders.**`, `*`, `**`, `*.a`, `a.*.b`, `a.**.b`, `a.***`, `admin:orders.view`, `admin:orders`, `a:b:c.d`, `Admin:a.b`, панель длиной 64/65); V03-таблица matcher ≥ 15 строк."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Unit/Kernel/Grammar tests/Unit/Exceptions tests/Regression/P14Test.php tests/Regression/RegressionSpecsTest.php` — GREEN; 2) `composer test`; 3) `vendor/bin/pint --test`; 4) `vendor/bin/phpstan analyse --memory-limit=1G`; 5) `vendor/bin/pest --type-coverage --min=98`; 6) `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "грамматика, matcher и база исключений в `packages/core/src`; табличные тесты; P14 `covered:`; запись в `@plan/knowledge/findings-P1-execution.json` (таблица грамматики с принятыми граничными решениями, итог гейтов)."
+    }
+  ]
+}

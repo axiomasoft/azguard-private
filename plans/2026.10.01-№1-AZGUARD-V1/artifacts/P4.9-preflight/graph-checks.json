@@ -1,0 +1,37 @@
+{
+  "statuses_results_contracts_preserved": true,
+  "all_dependencies_match_D15_prefix": true,
+  "batch_memberships_preserved": true,
+  "expected_API_updated_at_changes": true,
+  "exploratory_check": "First ad-hoc comparison incorrectly included API-owned updated_at; corrected comparison excludes only dependencies and expected authoring timestamp. Initial assertion was not acceptance.",
+  "refusal_checks": [
+    {
+      "item": "P4.9",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "ITEM_NOT_STARTABLE: P4.9 is blocked; use reopen to redo it\n",
+      "sources_unchanged": true
+    },
+    {
+      "item": "P4.10",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "DEPENDENCY_NOT_READY: P4.10 waits for blocked P4.6 — Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять.\n",
+      "sources_unchanged": true
+    },
+    {
+      "item": "P4.11",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "DEPENDENCY_NOT_READY: P4.11 waits for blocked P4.6 — Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять.\n",
+      "sources_unchanged": true
+    },
+    {
+      "item": "P4.20",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "DEPENDENCY_NOT_READY: P4.20 waits for blocked P4.6 — Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять.\n",
+      "sources_unchanged": true
+    }
+  ]
+}

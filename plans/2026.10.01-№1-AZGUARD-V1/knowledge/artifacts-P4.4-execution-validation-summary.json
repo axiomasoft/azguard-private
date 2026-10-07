@@ -1,0 +1,17 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "artifacts-P4.4-execution-validation-summary",
+  "title": "P4.4 validation evidence supplied to independent reviewer",
+  "sections": [
+    {
+      "id": "P4.4-validation-evidence-supplied-to-independent-reviewer",
+      "title": "P4.4 validation evidence supplied to independent reviewer",
+      "text": "Stable candidate: `0dce16cad7b1aab7506c60f2082f4f01c7313938b2ba2099d3dce9702783a5da`.\nAll 12 declared checks completed with exit 0; before/after bytes are identical.\nEvery run has a separate numbered JSON inventory and log; checks.json maps each\nnormative carrier to its actual command and proof. Contract pre_final allows the\nrecorded aggregate E21 receipt; concrete inventories additionally bind braced/glob\nFiles declarations and every dependency in the tested product tree.\n\n- Database + RegressionSpecs: 102 tests, 704 assertions.\n- Engines: PostgreSQL 11/193; MySQL 11/193; MariaDB 11/249; no skipped tests.\n- Arch: 72 tests, 314 assertions.\n- Full composer test: 2212 tests, 243535 assertions.\n- API manifest check, Pint, PHPStan (0 errors), diff check: exit 0.\n- Type coverage: 99.7%, threshold 98%.\n\nRuntime: PHP 8.4.1; isolated SQLite :memory: and server azguard_test databases.\nExplicit host test ports 25432/23306/23307, healthy Docker services. Type coverage\nuses __PEST_PLUGIN_ENV=1/no-cache to keep the process/runtime witness reproducible.\nPHPStan optional turbo-ext emits a dynamic-loading warning; normal analysis\ncompleted with zero errors. No warning is represented as a loaded accelerator.\nComposer lock and exact relevant vendor files are bound in the review manifest.\n\nReview scope: all current P4.4 changed/new/deleted product files, required norms\nand dependency closure. Dynamic overlay P4.17, scoped/P08 integration P4.18,\nwrite/apply P5.2/P5.3, authority transaction protocol P4.20 and real race P4.21 are\nexplicit remaining owning obligations, not current GREEN claims."
+    }
+  ],
+  "applies_to": [],
+  "provenance": {
+    "path": "artifacts/P4.4-execution/validation-summary.md",
+    "sha256": "c06cb1e8fc2f34f572ee01c065a9c8ecb82cbeec34b014877a59d0b3197d6705"
+  }
+}

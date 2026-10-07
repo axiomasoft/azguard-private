@@ -1,0 +1,20 @@
+{
+  "kind": "run-items",
+  "exact": "run-items: task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11",
+  "phase": "P4",
+  "batch": "B4e",
+  "items": [
+    "P4.10",
+    "P4.11"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "launch": {
+    "claude": "/task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11",
+    "codex": "$ task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11"
+  },
+  "command": "task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.10 P4.11",
+  "reason": ""
+}

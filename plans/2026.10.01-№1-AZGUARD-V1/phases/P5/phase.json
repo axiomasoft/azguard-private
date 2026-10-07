@@ -1,0 +1,56 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P5",
+  "title": "Модель и изменения",
+  "design": "skeleton",
+  "goal": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же.",
+  "context": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же.",
+  "depends_on": [
+    "P4"
+  ],
+  "items": [
+    "P5.1",
+    "P5.2",
+    "P5.3",
+    "P5.4",
+    "P5.5"
+  ],
+  "batches": [
+    {
+      "id": "B5",
+      "items": [
+        "P5.1",
+        "P5.2",
+        "P5.3",
+        "P5.4",
+        "P5.5"
+      ],
+      "mode": "recommended"
+    }
+  ],
+  "orchestration": {
+    "strategy": "sequential"
+  },
+  "sections": [
+    {
+      "id": "P5",
+      "title": "P5 — Модель и изменения",
+      "text": ""
+    },
+    {
+      "id": "Phase-Context",
+      "title": "Phase Context",
+      "text": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же."
+    },
+    {
+      "id": "Item-index",
+      "title": "Item index",
+      "text": "| ID | Title | Spec |\n|:--|:--|:--|\n| P5.1 | Трейт HasAzGuard, SubjectAccess, SubjectPanels | [P5.1.md](P5.1.md) |\n| P5.2 | Пайплайн изменений: Change, pipes, писатель, события после commit | [P5.2.md](P5.2.md) |\n| P5.3 | RoleCatalog, scoped GrantManager, PermissionManager | [P5.3.md](P5.3.md) |\n| P5.4 | События после commit и плагин audit | [P5.4.md](P5.4.md) |\n| P5.5 | PanelSchema | [P5.5.md](P5.5.md) |"
+    },
+    {
+      "id": "Phase-Handoff",
+      "title": "Phase Handoff",
+      "text": "Фаза не детализирована."
+    }
+  ]
+}

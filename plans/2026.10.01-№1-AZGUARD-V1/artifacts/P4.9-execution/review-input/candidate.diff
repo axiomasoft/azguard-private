@@ -1,0 +1,2759 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 13a2e83..c2a0665 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
+ 
+ ## [Unreleased]
+ 
++- Ядро 1.0: `Authorizer::decideMany()` сохраняет скалярные решения и порядок запросов, читает назначения пачками до 100 контекстов под единым fence группы и загружает host-модели/eligibility пакетно. Один `now`, отдельные вызовы политик/условий/ограничений, typed state map; CRM 1k/10k и конкурентный revoke квалифицированы. `resolve()` использует общий PanelResolver, конфликт панелей отклоняется.
++
+ - Квалификация кэша ядра 1.0: независимые процессы проверяют revoke/fence и lock-first протокол на PostgreSQL/MySQL/MariaDB, настоящий Redis — expiry/build/restore, PostgreSQL streaming replica — окно Default и отказ Primary. Воспроизводимый benchmark записывает cold/warm p95/p99 и бюджеты SQL. Fingerprint DB authority теперь включает deployment build id, чтобы новый build не использовал прежние raw cache entries.
+ 
+ - CRM-приёмка ядра 1.0: реальный стенд с двумя панелями, tenant/project, PHP-ролями, DB/relation-назначениями и литеральными ожиданиями проверяет границы доступа, policy/grant modes, typed filters и host freshness; реестр R01–R68 фиксирует проверенные срезы и будущие поверхности.
+diff --git a/packages/core/src/Authorization/Authorizer.php b/packages/core/src/Authorization/Authorizer.php
+index f668157..b541530 100644
+--- a/packages/core/src/Authorization/Authorizer.php
++++ b/packages/core/src/Authorization/Authorizer.php
+@@ -8,29 +8,35 @@
+ use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
+ use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
+ use AzGuard\Authorization\Pipeline\Trace;
++use AzGuard\Exceptions\ConflictingPanelException;
+ use AzGuard\Exceptions\InvalidConfigurationException;
+ use AzGuard\Exceptions\RecursionDetectedException;
+ use AzGuard\Kernel\Decision\AccessRequest;
+ use AzGuard\Kernel\Decision\Decision;
++use AzGuard\Kernel\Decision\DecisionSet;
+ use AzGuard\Kernel\Identity\AccessScope;
+ use AzGuard\Kernel\Identity\ActorRef;
+ use AzGuard\Kernel\Identity\AssignmentScopeRef;
+ use AzGuard\Kernel\Identity\IdentityCodec;
++use AzGuard\Kernel\Identity\PermissionKey;
+ use AzGuard\Kernel\Identity\SubjectRef;
+ use AzGuard\Kernel\Identity\TenantRef;
+ use AzGuard\Panels\Panel;
++use AzGuard\Panels\PanelResolver;
+ use AzGuard\Sources\Database\DatabaseSource;
+ use Closure;
+ use Fiber;
++use Illuminate\Database\Eloquent\Model;
+ use Illuminate\Support\Carbon;
+ use Throwable;
++use UnitEnum;
+ 
+ final class Authorizer
+ {
+     /** @var array<string,true> */
+     private array $active = [];
+ 
+-    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority) {}
++    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch) {}
+ 
+     /** @internal Joint host work on the panel's authority connection.
+      * @template T
+@@ -89,9 +95,53 @@ public function isSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope $sco
+         }
+     }
+ 
++    /** @return array{Panel, PermissionKey} */
++    public function resolve(Model|SubjectRef $subject, UnitEnum|string $permission, ?string $panel = null): array
++    {
++        $resolved = $this->resolver->resolve($subject, $permission, $panel);
++
++        return [$resolved['panel'], $resolved['key'] ?? throw InvalidConfigurationException::failing('permission', 'A permission key is required.')];
++    }
++
++    /** @param list<AccessRequest> $requests */
++    public function decideMany(array $requests, ?ActorRef $actor = null): DecisionSet
++    {
++        $selected = [];
++        foreach ($requests as $request) {
++            [$panel] = $this->resolve($request->subject(), $request->permission()->full());
++            $key = $this->operationKey($panel, $request);
++
++            if (isset($this->active[$key])) {
++                throw new RecursionDetectedException('Recursive authorization of the same panel, subject, permission and scope.');
++            }
++            $selected[] = [$panel, $request];
++        }
++
++        return $this->batch->evaluate($selected, $actor, Carbon::now('UTC')->toDateTimeImmutable(),
++            enter: function (Panel $panel, AccessRequest $request): void {
++                $key = $this->operationKey($panel, $request);
++
++                if (isset($this->active[$key])) {
++                    throw new RecursionDetectedException('Recursive authorization of the same panel, subject, permission and scope.');
++                }
++                $this->active[$key] = true;
++            },
++            leave: function (Panel $panel, AccessRequest $request): void {
++                unset($this->active[$this->operationKey($panel, $request)]);
++            });
++    }
++
++    private function operationKey(Panel $panel, AccessRequest $request): string
++    {
++        return IdentityCodec::compose([$panel->id(), $request->subject()->type(), $request->subject()->id(), $request->permission()->full(), ($request->tenant() ?? TenantRef::global())->key(), ($request->context() ?? AssignmentScopeRef::global())->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
++    }
++
+     public function decide(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Decision
+     {
+-        $key = IdentityCodec::compose([$panel->id(), $request->subject()->type(), $request->subject()->id(), $request->permission()->full(), ($request->tenant() ?? TenantRef::global())->key(), ($request->context() ?? AssignmentScopeRef::global())->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
++        if ($panel->id() !== $request->permission()->panel()) {
++            throw new ConflictingPanelException('The selected panel differs from the request permission panel.');
++        }
++        $key = $this->operationKey($panel, $request);
+ 
+         if (isset($this->active[$key])) {
+             throw new RecursionDetectedException('Recursive authorization of the same panel, subject, permission and scope.');
+diff --git a/packages/core/src/Authorization/EvaluationFrame.php b/packages/core/src/Authorization/EvaluationFrame.php
+index 961e79c..14d5c22 100644
+--- a/packages/core/src/Authorization/EvaluationFrame.php
++++ b/packages/core/src/Authorization/EvaluationFrame.php
+@@ -43,11 +43,18 @@ public function __construct(
+         public array $sourceStates = [],
+         public ?ResolvedAssignmentScope $assignmentScope = null,
+         public ?AuthorityTransaction $authorityTransaction = null,
++        public ?BatchInputs $batchInputs = null,
++        public bool $dynamicRead = false,
+     ) {}
+ 
++    public function withDynamicRead(): self
++    {
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, true);
++    }
++
+     public function withAuthorityTransaction(?AuthorityTransaction $transaction): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $transaction);
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $transaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     public function panel(): Panel
+@@ -100,12 +107,12 @@ public function acceptsContributionScope(AccessScope $scope): bool
+ 
+     public function withScope(AccessScope $scope): self
+     {
+-        return new self($this->selectedPanel, $scope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $scope->equals($this->selectedScope) ? $this->assignmentScope : null, $this->authorityTransaction);
++        return new self($this->selectedPanel, $scope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $scope->equals($this->selectedScope) ? $this->assignmentScope : null, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     public function withAssignmentScope(ResolvedAssignmentScope $resolved): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $resolved, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $resolved, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     public function resource(): ?object
+@@ -156,28 +163,28 @@ public function matchingGrants(): array
+ 
+     public function forContribution(Grant|RoleContribution $grant, ?BaseRole $role = null): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $role, $grant, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     public function withState(CodeStateToken|StateToken $state): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $state, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     public function withReadAttempt(ReadAttempt $attempt): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $attempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $attempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     /** @param array<string, StateToken> $states */
+     public function withSourceStates(array $states, ?StateToken $database = null): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $database ?? $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $states, $this->assignmentScope, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $database ?? $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, $this->selectedRole, $this->contribution, $this->matching, $this->qualifiedSuperAdmin, $this->readAttempt, $states, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ 
+     /** @param list<Grant> $grants */
+     public function withAuthority(array $grants, bool $superAdmin): self
+     {
+-        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction);
++        return new self($this->selectedPanel, $this->selectedScope, $this->token, $this->decisionNow, $this->selectedActor, $this->subject, $this->actorSubject, $this->selectedResource, null, null, $grants, $superAdmin, $this->readAttempt, $this->sourceStates, $this->assignmentScope, $this->authorityTransaction, $this->batchInputs, $this->dynamicRead);
+     }
+ }
+diff --git a/packages/core/src/Authorization/Pipeline/AccessPipeline.php b/packages/core/src/Authorization/Pipeline/AccessPipeline.php
+index 69fe5c1..e7a4422 100644
+--- a/packages/core/src/Authorization/Pipeline/AccessPipeline.php
++++ b/packages/core/src/Authorization/Pipeline/AccessPipeline.php
+@@ -13,16 +13,44 @@
+ use AzGuard\Authorization\ReadAttemptChanged;
+ use AzGuard\Catalog\PanelCatalog;
+ use AzGuard\Catalog\PermissionDefinition;
++use AzGuard\Contracts\Authorization\Restriction;
+ use AzGuard\Kernel\Decision\AccessRequest;
+ use AzGuard\Kernel\Decision\Decision;
+ use AzGuard\Kernel\Decision\DecisionReason;
++use Closure;
+ use Throwable;
+ 
+ final readonly class AccessPipeline
+ {
+     public function __construct(private BoundaryStage $boundary, private BeforeStage $before, private AuthorityStage $authority, private RestrictionStage $restrictions, private AfterStage $after) {}
+ 
+-    public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace, ?Decision $denial = null): Decision
++    /** @param array{?Decision, list<Restriction>, ?Decision}|null $started
++     * @param  Closure(EvaluationFrame): void|null  $capture
++     */
++    public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, PermissionDefinition $definition, Trace $trace, ?Decision $denial = null, bool $deferred = false, ?Closure $capture = null, ?array $started = null): Decision
++    {
++        [$decision, $restrictions, $restrictionDenial] = $started ?? $this->start($request, $frame, $trace, $denial);
++
++        if ($decision === null) {
++            [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
++            $trace->record('authority', $decision->reason->value);
++        }
++
++        if ($decision->allowed()) {
++            $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
++        }
++
++        if ($deferred) {
++            $capture?->__invoke($frame);
++
++            return $decision;
++        }
++
++        return $this->complete($request, $frame, $decision, $trace);
++    }
++
++    /** @return array{?Decision, list<Restriction>, ?Decision} */
++    public function start(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?Decision $denial): array
+     {
+         $trace->record('prepare', 'prepared');
+         $restrictions = [];
+@@ -40,16 +68,12 @@ public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCa
+         $trace->record('boundary', $decision?->reason->value ?? 'pass');
+         $decision ??= $this->before->decide($request, $frame, $trace);
+ 
+-        if ($decision === null) {
+-            [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
+-            $trace->record('authority', $decision->reason->value);
+-        }
+-
+-        if ($decision->allowed()) {
+-            $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
+-        }
++        return [$decision, $restrictions, $restrictionDenial];
++    }
+ 
+-        if ($frame->readAttempt !== null) {
++    public function complete(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace, bool $confirm = true): Decision
++    {
++        if ($confirm && $frame->readAttempt !== null) {
+             try {
+                 $frame = $frame->readAttempt->confirm($frame);
+                 $decision = $decision->allowed()
+@@ -63,6 +87,9 @@ public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCa
+                 $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
+             }
+         }
++        $decision = $decision->allowed()
++            ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
++            : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
+         $this->after->observe($request, $frame, $decision, $trace);
+ 
+         return $decision;
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php b/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
+index dd445b9..0066eb5 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
+@@ -188,7 +188,7 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+                 $branch = $frame->forContribution($item, $role);
+ 
+                 try {
+-                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch)) {
++                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs)) {
+                         $trace->record('contribution', 'scope_ineligible', $source::class);
+ 
+                         continue;
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php b/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
+index 955c2da..7392251 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
+@@ -4,6 +4,7 @@
+ 
+ namespace AzGuard\Authorization\Pipeline\Stages;
+ 
++use AzGuard\Authorization\BatchInputs;
+ use AzGuard\Authorization\EvaluationFrame;
+ use AzGuard\Authorization\Pipeline\Trace;
+ use AzGuard\Authorization\ScopeEligibility;
+@@ -29,7 +30,7 @@
+     public function __construct(private Container $container, private CurrentContext $current) {}
+ 
+     /** @return array{EvaluationFrame, ?Decision} */
+-    public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
++    public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $trace, bool $structural = true): array
+     {
+         $panel = $frame->panel();
+         $ambient = $this->current->get($panel);
+@@ -84,6 +85,14 @@ public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $t
+             return [$frame, $denial];
+         }
+ 
++        return $structural ? $this->structural($request, $frame, $trace) : [$frame, null];
++    }
++
++    /** @return array{EvaluationFrame, ?Decision} */
++    public function structural(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?BatchInputs $inputs = null): array
++    {
++        $panel = $frame->panel();
++
+         if (! $frame->scope()->context->isGlobal()) {
+             $definition = $panel->scopeDefinition($frame->scope()->context->type() ?? '');
+ 
+@@ -92,7 +101,7 @@ public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $t
+             }
+ 
+             try {
+-                $resolved = $definition->resolve($frame->scope()->context);
++                $resolved = $inputs === null ? $definition->resolve($frame->scope()->context) : $inputs->scope($frame);
+ 
+                 if ($resolved === null) {
+                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeNotAccepted)];
+@@ -114,7 +123,7 @@ public function resolve(AccessRequest $request, EvaluationFrame $frame, Trace $t
+                 }
+                 $frame = $frame->withAssignmentScope($resolved);
+ 
+-                if (! (new ScopeEligibility($this->container))->common($request, $frame)) {
++                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs)) {
+                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
+                 }
+             } catch (Throwable $error) {
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php b/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
+index e315fec..5186f17 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
+@@ -4,6 +4,7 @@
+ 
+ namespace AzGuard\Authorization\Pipeline\Stages;
+ 
++use AzGuard\Authorization\BatchInputs;
+ use AzGuard\Authorization\Cache\PermissionSetCache;
+ use AzGuard\Authorization\EvaluationFrame;
+ use AzGuard\Authorization\ModelSubjectResolver;
+@@ -49,7 +50,7 @@ public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope
+ 
+         if ($denial === null) {
+             try {
+-                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class)));
++                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, null, $subject));
+             } catch (Throwable $error) {
+                 $trace->error('prepare', 'source_error', 'sources', $error);
+                 $denial = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'sources');
+@@ -61,6 +62,14 @@ public function prepareSuperAdmin(Panel $panel, SubjectRef $subject, AccessScope
+ 
+     /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
+     private function prepareRequest(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null, bool $qualificationOnly = false): array
++    {
++        [$catalog, $definition, $frame, $denial] = $this->inputs($panel, $request, $actor, $trace, $now, qualificationOnly: $qualificationOnly);
++
++        return $this->complete($request, $catalog, $definition, $frame, $denial, $trace);
++    }
++
++    /** @return array{PanelCatalog,?PermissionDefinition,EvaluationFrame,?Decision} */
++    public function inputs(Panel $panel, AccessRequest $request, ?ActorRef $actor, Trace $trace, ?DateTimeImmutable $now = null, ?BatchInputs $batch = null, bool $qualificationOnly = false): array
+     {
+         if (! $panel->accepts($request->subject())) {
+             throw new SubjectNotAcceptedException('Panel '.$panel->id().' does not accept subject '.$request->subject()->type().'.');
+@@ -77,8 +86,9 @@ private function prepareRequest(Panel $panel, AccessRequest $request, ?ActorRef
+         $error = null;
+ 
+         try {
+-            $subject = $this->resolver->resolve($panel, $request->subject());
+-            $actorModel = $actor->id === null ? null : ($actor->type === $request->subject()->type() && $actor->id === $request->subject()->id() ? $subject : $this->resolver->resolve($panel, SubjectRef::of($actor->type, $actor->id)));
++            $subject = $batch === null ? $this->resolver->resolve($panel, $request->subject()) : $batch->subject($panel, $request->subject());
++            $actorModel = $actor->id === null ? null : ($actor->type === $request->subject()->type() && $actor->id === $request->subject()->id() ? $subject
++                : ($batch === null ? $this->resolver->resolve($panel, SubjectRef::of($actor->type, $actor->id)) : $batch->subject($panel, SubjectRef::of($actor->type, $actor->id))));
+         } catch (Throwable $caught) {
+             $error = $caught;
+             $trace->error('prepare', 'source_error', ModelSubjectResolver::class, $caught);
+@@ -86,51 +96,62 @@ private function prepareRequest(Panel $panel, AccessRequest $request, ?ActorRef
+         $frame = new EvaluationFrame(
+             selectedPanel: $panel, selectedScope: AccessScope::in($request->tenant() ?? TenantRef::global(), $request->context()),
+             token: CodeStateToken::of($panel->id(), $this->registry->buildId(), $this->registry->fingerprint($panel->id())),
+-            decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(),
++            decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(), batchInputs: $batch,
+         );
+ 
+-        [$frame, $boundaryDenial] = $this->boundary->resolve(request: $request, frame: $frame, trace: $trace);
++        [$frame, $boundaryDenial] = $this->boundary->resolve(request: $request, frame: $frame, trace: $trace, structural: false);
++
++        return [$catalog, $definition, $frame, $boundaryDenial ?? ($error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class))];
++    }
+ 
+-        if ($boundaryDenial !== null) {
+-            return [$catalog, $definition ?? new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame, $boundaryDenial];
++    /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
++    public function complete(AccessRequest $request, PanelCatalog $catalog, ?PermissionDefinition $definition, EvaluationFrame $frame, ?Decision $denial, Trace $trace, ?BatchInputs $batch = null): array
++    {
++        if ($denial !== null && $denial->component !== ModelSubjectResolver::class) {
++            return [$catalog, $definition ?? new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame, $denial];
+         }
++        [$frame, $boundaryDenial] = $this->boundary->structural($request, $frame, $trace, $batch);
++
++        if ($boundaryDenial !== null || $denial !== null) {
++            return [$catalog, $definition ?? new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame, $boundaryDenial ?? $denial];
++        }
++        $panel = $frame->panel();
++        $error = null;
+ 
+         if ($definition === null && $catalog->isDynamic()) {
+-            if ($error === null) {
+-                $attempt = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class));
+-                $frame = $frame->withReadAttempt($attempt);
++            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject());
++            $frame = $frame->withReadAttempt($attempt);
+ 
++            try {
++                $catalog = $attempt->catalog();
++                $frame = $frame->withDynamicRead();
++
++                if (! $catalog->has($request->permission())) {
++                    $attempt->confirm($frame);
++                }
++            } catch (ReadAttemptChanged $caught) {
++                throw $caught;
++            } catch (Throwable $caught) {
+                 try {
+-                    $catalog = $attempt->catalog();
+-
+-                    if (! $catalog->has($request->permission())) {
+-                        $attempt->confirm($frame);
+-                    }
+-                } catch (ReadAttemptChanged $caught) {
+-                    throw $caught;
+-                } catch (Throwable $caught) {
+-                    try {
+-                        $attempt->confirm($frame);
+-                    } catch (ReadAttemptChanged $changed) {
+-                        throw $changed;
+-                    } catch (Throwable $stateError) {
+-                        $caught = $stateError;
+-                    }
+-                    $reason = DecisionReason::SourceError;
+-                    $trace->error('prepare', $reason->value, 'dynamic_sources', $caught);
+-
+-                    return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
+-                        Decision::deny($reason, $frame->state(), $frame->scope(), 'dynamic_sources')];
++                    $attempt->confirm($frame);
++                } catch (ReadAttemptChanged $changed) {
++                    throw $changed;
++                } catch (Throwable $stateError) {
++                    $caught = $stateError;
+                 }
+-                $definition = $catalog->get($request->permission());
+-            } else {
+-                $definition = new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants);
++                $reason = DecisionReason::SourceError;
++                $trace->error('prepare', $reason->value, 'dynamic_sources', $caught);
++
++                return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
++                    Decision::deny($reason, $frame->state(), $frame->scope(), 'dynamic_sources')];
+             }
++            $definition = $catalog->get($request->permission());
++
+         }
+ 
+-        if ($error === null && $definition?->authority === PermissionAuthority::Grants && $frame->readAttempt === null) {
++        if ($definition?->authority === PermissionAuthority::Grants && $frame->readAttempt === null) {
+             try {
+-                $frame = $frame->withReadAttempt(new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, $this->container->make(PermissionSetCache::class)));
++                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, $batch, $request->subject()));
+             } catch (Throwable $caught) {
+                 $error = $caught;
+                 $trace->error('prepare', 'source_error', 'sources', $caught);
+@@ -139,4 +160,12 @@ private function prepareRequest(Panel $panel, AccessRequest $request, ?ActorRef
+ 
+         return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
+     }
++
++    private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject): ReadAttempt
++    {
++        $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container)->all();
++        $cache = $this->container->make(PermissionSetCache::class);
++
++        return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);
++    }
+ }
+diff --git a/packages/core/src/Authorization/Query/EligibilityBuilder.php b/packages/core/src/Authorization/Query/EligibilityBuilder.php
+index d084e57..0ac4c96 100644
+--- a/packages/core/src/Authorization/Query/EligibilityBuilder.php
++++ b/packages/core/src/Authorization/Query/EligibilityBuilder.php
+@@ -14,6 +14,7 @@
+ use Illuminate\Database\Eloquent\Builder;
+ use Illuminate\Database\Eloquent\Model;
+ use RuntimeException;
++use Throwable;
+ 
+ /** Isolates every predicate from structural identity and from every other predicate. */
+ final class EligibilityBuilder
+@@ -36,6 +37,53 @@ public static function matches(QueryableAssignmentScopeDefinition $definition, R
+             return false;
+         }
+ 
++        self::apply($definition, $query, $filters, $runtime, $container);
++
++        return $query->exists();
++    }
++
++    /** @param array<string, array{ResolvedAssignmentScope, AssignmentScopeRuntime}> $witnesses
++     * @param  list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure>  $filters
++     * @return array<string, bool|Throwable>
++     */
++    public static function matchesMany(QueryableAssignmentScopeDefinition $definition, array $witnesses, array $filters, Container $container): array
++    {
++        $results = array_fill_keys(array_keys($witnesses), false);
++        $query = null;
++        $keys = array_keys($witnesses);
++        foreach (array_values($witnesses) as $i => [$resolved, $runtime]) {
++            if (! $resolved->tenant->equals($runtime->scope->tenant)) {
++                continue;
++            }
++
++            try {
++                $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
++                $branch = clone $structural;
++                $branch->getQuery()->wheres = [];
++                $branch->getQuery()->setBindings([], 'where');
++                $branch->getQuery()->addNestedWhereQuery($structural->getQuery());
++                $branch->whereKey($resolved->ref->id());
++                self::apply($definition, $branch, $filters, $runtime, $container);
++                // A witness tag prevents one passing role/field predicate from granting a sibling witness.
++                $branch->selectRaw('? as azguard_batch_witness', [$i]);
++                $query = $query === null ? $branch->toBase() : $query->unionAll($branch->toBase());
++            } catch (Throwable $error) {
++                $results[$keys[$i]] = $error;
++            }
++        }
++        foreach ($query?->get() ?? [] as $row) {
++            $results[$keys[(int) $row->azguard_batch_witness]] = true;
++        }
++
++        return $results;
++    }
++
++    /** @param Builder<Model> $query
++     * @param  list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure>  $filters
++     */
++    private static function apply(QueryableAssignmentScopeDefinition $definition, Builder $query, array $filters, AssignmentScopeRuntime $runtime, Container $container): void
++    {
++        $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
+         foreach ($filters as $filter) {
+             $group = clone $structural;
+             $group->getQuery()->wheres = [];
+@@ -67,7 +115,6 @@ public static function matches(QueryableAssignmentScopeDefinition $definition, R
+             $query->getQuery()->addNestedWhereQuery($predicate->getQuery());
+         }
+ 
+-        return $query->exists();
+     }
+ 
+     /** @param Builder<Model> $builder
+diff --git a/packages/core/src/Authorization/ReadAttempt.php b/packages/core/src/Authorization/ReadAttempt.php
+index 8c8a81a..cf5425b 100644
+--- a/packages/core/src/Authorization/ReadAttempt.php
++++ b/packages/core/src/Authorization/ReadAttempt.php
+@@ -16,6 +16,7 @@
+ use AzGuard\Kernel\Decision\Grant;
+ use AzGuard\Kernel\Decision\RoleContribution;
+ use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Kernel\Identity\AccessScope;
+ use AzGuard\Kernel\Identity\IdentityCodec;
+ use AzGuard\Panels\StateRefresh;
+ use AzGuard\Roles\GrantedAutomatically;
+@@ -48,12 +49,90 @@ final class ReadAttempt
+     /** @var array<string, true> */
+     private array $materialized = [];
+ 
+-    /** @var list<array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
++    /** @var array<int|string, array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
+     private array $pending = [];
+ 
+     /** @param list<Attached> $sources */
+     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null) {}
+ 
++    /** @var list<AccessScope>|null */
++    private ?array $batchScopes = null;
++
++    /** @var array<string, list<Grant|RoleContribution>> */
++    private array $batchAssignments = [];
++
++    /** @var array<string, list<Grant|RoleContribution>> */
++    private array $batchSlices = [];
++
++    /** @param list<AccessScope> $scopes */
++    public function batch(array $scopes): void
++    {
++        $unique = [];
++        foreach ($scopes as $scope) {
++            $unique[IdentityCodec::compose([$scope])] = $scope;
++        }
++        $this->batchScopes = array_values($unique);
++    }
++
++    /** @return list<Grant|RoleContribution> */
++    public function databaseContributions(AccessRequest $request, EvaluationFrame $frame): array
++    {
++        $items = [];
++        foreach ($this->sources as ['source' => $source]) {
++            if ($source instanceof DatabaseSource) {
++                $this->begin($source);
++                $items = [...$items, ...$this->databaseItems($source, $request, $frame)];
++            }
++        }
++
++        return $items;
++    }
++
++    /** @return list<Grant|RoleContribution> */
++    private function databaseItems(DatabaseSource $source, AccessRequest $request, EvaluationFrame $frame): array
++    {
++        if ($this->batchScopes === null) {
++            $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
++
++            return [...$snapshot['grants'], ...$snapshot['roles']];
++        }
++        $key = PermissionSetCache::key($this->states[$source->id()], $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
++            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $this->sessions[$source->id()]->authorityIdentity(), $frame->panel()->settings()->cacheGeneration());
++
++        if (isset($this->batchSlices[$key])) {
++            return $this->batchSlices[$key];
++        }
++        $items = $this->transaction === null ? $this->cache?->get($key, $frame->panel(), $source->volatility(), true, $frame->now()) : null;
++
++        if ($items !== null) {
++            return $this->batchSlices[$key] = $items;
++        }
++        $this->beforeMaterializing($source);
++
++        if (! array_key_exists($source->id(), $this->batchAssignments)) {
++            $items = [];
++            foreach (array_chunk($this->batchScopes ?? [], 100) as $chunk) {
++                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $chunk, $frame);
++                foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
++                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
++                        || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
++                        || ! in_array(IdentityCodec::compose([$item->scope]), array_map(static fn ($scope): string => IdentityCodec::compose([$scope]), $chunk), true)) {
++                        throw new InvalidSourceContributionException('Batch contribution differs from the consumed scope chunk.');
++                    }
++                    $items[] = $item;
++                }
++            }
++            $this->batchAssignments[$source->id()] = $items;
++        }
++        $items = array_values(array_filter($this->batchAssignments[$source->id()], static fn (Grant|RoleContribution $item): bool => $frame->acceptsContributionScope($item->scope)));
++
++        if ($this->transaction === null) {
++            $this->pending[$key] = ['key' => $key, 'source' => $source, 'items' => $items];
++        }
++
++        return $this->batchSlices[$key] = $items;
++    }
++
+     public function catalog(): PanelCatalog
+     {
+         if ($this->overlay !== null) {
+@@ -115,8 +194,7 @@ public function contributions(AccessRequest $request, EvaluationFrame $frame): a
+             }
+ 
+             if ($source instanceof DatabaseSource) {
+-                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
+-                $items = [...$snapshot['grants'], ...$snapshot['roles']];
++                $items = $this->databaseItems($source, $request, $frame);
+             } else {
+                 $items = [];
+ 
+@@ -150,7 +228,14 @@ public function contributions(AccessRequest $request, EvaluationFrame $frame): a
+                 $pending[] = ['key' => $key, 'source' => $source, 'items' => $items];
+             }
+         }
+-        $this->pending = $pending;
++
++        if ($this->batchScopes === null) {
++            $this->pending = $pending;
++        } else {
++            foreach ($pending as $entry) {
++                $this->pending[$entry['key']] = $entry;
++            }
++        }
+ 
+         return $contributions;
+     }
+@@ -197,6 +282,11 @@ public function confirm(EvaluationFrame $frame): EvaluationFrame
+         return $this->consumedFrame($frame);
+     }
+ 
++    public function discardedFrame(EvaluationFrame $frame): EvaluationFrame
++    {
++        return $frame->withState($this->initial->state())->withSourceStates([]);
++    }
++
+     public function consumedFrame(EvaluationFrame $frame): EvaluationFrame
+     {
+         $database = null;
+diff --git a/packages/core/src/Authorization/ScopeEligibility.php b/packages/core/src/Authorization/ScopeEligibility.php
+index 118f35a..9694a5b 100644
+--- a/packages/core/src/Authorization/ScopeEligibility.php
++++ b/packages/core/src/Authorization/ScopeEligibility.php
+@@ -21,7 +21,7 @@
+ {
+     public function __construct(private Container $container) {}
+ 
+-    public function common(AccessRequest $request, EvaluationFrame $frame): bool
++    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
+     {
+         if ($frame->scope()->context->isGlobal()) {
+             return true;
+@@ -30,11 +30,11 @@ public function common(AccessRequest $request, EvaluationFrame $frame): bool
+         $definition = $this->definition($frame);
+         $runtime = $this->runtime($request->subject(), $frame, common: true);
+ 
+-        return $this->native($definition, $definition, $frame, $runtime)
+-            && $this->external($frame, $runtime);
++        return $this->native($definition, $definition, $frame, $runtime, $batch)
++            && $this->external($frame, $runtime, $batch);
+     }
+ 
+-    public function contribution(AccessRequest $request, EvaluationFrame $frame): bool
++    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
+     {
+         if ($frame->scope()->context->isGlobal()) {
+             return true;
+@@ -51,7 +51,7 @@ public function contribution(AccessRequest $request, EvaluationFrame $frame): bo
+             }
+             $frame = $frame->withAssignmentScope($resolved);
+ 
+-            if (! $this->common($request, $frame)) {
++            if (! $this->common($request, $frame, $batch)) {
+                 return false;
+             }
+         }
+@@ -78,13 +78,13 @@ public function contribution(AccessRequest $request, EvaluationFrame $frame): bo
+                     throw new RuntimeException('A model-required scope binding has no resolved record.');
+                 }
+ 
+-                if (! $this->native($definition, $binding, $frame, $runtime)) {
++                if (! $this->native($definition, $binding, $frame, $runtime, $batch)) {
+                     return false;
+                 }
+             }
+         }
+ 
+-        return $this->external($frame, $runtime);
++        return $this->external($frame, $runtime, $batch);
+     }
+ 
+     private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
+@@ -93,7 +93,7 @@ private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
+             ?? throw new RuntimeException('Selected scope definition is missing.');
+     }
+ 
+-    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
++    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
+     {
+         $filters = $configuration instanceof ConfigurableAssignmentScopeDefinition ? $configuration->settings()->filters : [];
+ 
+@@ -107,10 +107,11 @@ private function native(AssignmentScopeDefinition $definition, AssignmentScopeDe
+ 
+         $resolved = $frame->assignmentScope ?? throw new RuntimeException('Scope eligibility requires structural resolution.');
+ 
+-        return EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container);
++        return $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
++            : $batch->native($definition, $configuration, $filters, $runtime, $frame);
+     }
+ 
+-    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
++    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
+     {
+         $declared = $frame->panel()->scopes()->adapters()[$frame->scope()->context->type() ?? ''] ?? null;
+ 
+@@ -124,10 +125,11 @@ private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtim
+             throw new RuntimeException('Scope adapter resolver did not return AssignmentScopeAccessAdapter.');
+         }
+ 
+-        return $adapter->allows($frame->scope()->context, $runtime);
++        return $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
++            : $batch->external($adapter, $frame, $runtime);
+     }
+ 
+-    private function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime
++    public function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime
+     {
+         return new AssignmentScopeRuntime(
+             panel: $frame->panel(), scope: $frame->scope(), subject: $subject, user: $frame->subjectModel(),
+diff --git a/tests/Acceptance/Crm/README.md b/tests/Acceptance/Crm/README.md
+index 870af9b..f1a2220 100644
+--- a/tests/Acceptance/Crm/README.md
++++ b/tests/Acceptance/Crm/README.md
+@@ -67,7 +67,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
+ | R55 | — | future | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; **future:** P6.2/P6.10 actual Octane/queue lifecycle; P8.7 concurrent external consumer |
+ | R56 | — | future | —; **future:** P6.8 generated stubs; P8.7 actual cached consumer boot |
+ | R57 | [BuildInputsTest.php](BuildInputsTest.php), [BuildStateTest.php](BuildStateTest.php), [RedisStoreTest.php](../../Feature/Authorization/Cache/RedisStoreTest.php) | partial | P4.15/P4.20/P4.21 build/filter capture/cache/incarnation; **future:** P6.6 actual restore; P8.7 stale worker consumer |
+-| R58 | — | future | P4.9 10k/100 multi-role batch/scalar; P4.23 list/total/EXPLAIN |
++| R58 | ScaleBatchTest | partial | P4.9: 10k clients/100 scopes, multi-role batch/scalar full IDs; structural/state/assignment/parameter budgets passed. P4.23 list/total/EXPLAIN remains future |
+ | R59 | — | future | P4.21 root lock/revoke/host transaction slice; **future:** P5.2/P5.3 actual action deletes/new deploy mutation; P8.7 host transfer concurrency |
+ | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |
+ | R61 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
+@@ -77,7 +77,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
+ | R65 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; **future:** P5.3 dynamic create opt-in rejection/mode immutability |
+ | R66 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.2/P4.15/P4.20 removed keys/build/read mode authority; **future:** P5.3 explicit migration/cleanup; P8.7 stale workers; **future:** P4.20 deployment/cache |
+ | R67 | [BuildInputsTest.php](BuildInputsTest.php), [ConsumerSpiTest.php](ConsumerSpiTest.php), [RuntimeInputsTest.php](RuntimeInputsTest.php) | partial | P4.3/P4.19/P4.15 local typed DI/definition/model-null/Decides rename-remove; **future:** P8.7 installed consumer/factory whole qualification |
+-| R68 | — | future | P4.9 mixed batch CodeStateToken/StateToken original order/now |
++| R68 | BatchTest | partial | P4.9 core: mixed PolicyOnly/DB Grants/relation-only, two panels, typed states/original order/one now passed. Public wrappers/integration consumer remain future P5/P6/P8 |
+ 
+ V109/V111/V113 Access inputs: RuntimeInputsTest и R14 DB/relation; Assignment/Revocation/Inspection write qualification остаётся P5.2/P5.3. V110: NativeFiltersTest. V112: FreshInputsTest. R50: ConsumerSpiTest + ExternalScopeTest, только публичные SPI; installed consumer остаётся P8.7, exact unsupported — P4.23.
+ 
+diff --git a/packages/core/src/Authorization/BatchEvaluation.php b/packages/core/src/Authorization/BatchEvaluation.php
+new file mode 100644
+index 0000000..2802d13
+--- /dev/null
++++ b/packages/core/src/Authorization/BatchEvaluation.php
+@@ -0,0 +1,314 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Authorization;
++
++use AzGuard\Authorization\Pipeline\AccessPipeline;
++use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
++use AzGuard\Authorization\Pipeline\Trace;
++use AzGuard\Catalog\PanelCatalog;
++use AzGuard\Catalog\PermissionDefinition;
++use AzGuard\Exceptions\ConsistencyException;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\Decision;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\DecisionSet;
++use AzGuard\Kernel\Decision\PermissionAuthority;
++use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Kernel\Identity\ActorRef;
++use AzGuard\Kernel\Identity\IdentityCodec;
++use AzGuard\Panels\Panel;
++use Closure;
++use DateTimeImmutable;
++use Illuminate\Contracts\Container\Container;
++use RuntimeException;
++use Throwable;
++
++/** @internal Integrates the scalar stages against one grouped raw authority attempt.
++ * @phpstan-type Prepared array{request: AccessRequest, catalog: PanelCatalog, definition: PermissionDefinition, frame: EvaluationFrame, denial: ?Decision, trace: Trace}
++ */
++final readonly class BatchEvaluation
++{
++    public function __construct(private PrepareStage $prepare, private AccessPipeline $pipeline, private Container $container) {}
++
++    /** @param list<array{Panel, AccessRequest}> $requests
++     * @param  Closure(Panel, AccessRequest): void  $enter
++     * @param  Closure(Panel, AccessRequest): void  $leave
++     */
++    public function evaluate(array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): DecisionSet
++    {
++        if ($requests === []) {
++            return DecisionSet::of();
++        }
++        // Different subjects may consume the same storage/panel revision. Preserve DecisionSet's frozen contract.
++        for ($setAttempt = 0; ; $setAttempt++) {
++            try {
++                $prepared = $this->prepare($requests, $actor, $now, $enter, $leave, terminal: $setAttempt === 2);
++            } catch (ReadAttemptChanged) {
++                continue;
++            }
++            $groups = [];
++            foreach ($prepared as $i => $entry) {
++                $attempt = $entry['frame']->readAttempt;
++                $groups[$attempt === null ? 'code'.$i : (string) spl_object_id($attempt)][$i] = $entry;
++            }
++            $decisions = [];
++            $finished = [];
++            foreach ($groups as $group) {
++                [$results, $entries] = $this->group($group, $actor, $now, $enter, $leave);
++                $decisions += $results;
++                $finished += $entries;
++            }
++            ksort($decisions);
++
++            try {
++                $set = DecisionSet::of(...array_values($decisions));
++            } catch (ConsistencyException $error) {
++                if ($setAttempt < 2) {
++                    continue;
++                }
++
++                $states = [];
++                $conflicts = [];
++                foreach ($decisions as $decision) {
++                    $state = $decision->state;
++
++                    if ($state instanceof StateToken) {
++                        $key = IdentityCodec::compose([$state->storageId, $state->panel]);
++
++                        if (isset($states[$key]) && ! $states[$key]->equals($state)) {
++                            $conflicts[$key] = true;
++                        }
++                        $states[$key] = $state;
++                    }
++                }
++                foreach ($decisions as $i => $decision) {
++                    $state = $decision->state;
++
++                    if ($state instanceof StateToken && isset($conflicts[IdentityCodec::compose([$state->storageId, $state->panel])])) {
++                        $frame = $finished[$i]['frame'];
++                        $frame = $frame->readAttempt?->discardedFrame($frame) ?? $frame;
++                        $finished[$i] = array_replace($finished[$i], ['frame' => $frame]);
++                        $decisions[$i] = Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
++                    }
++                }
++                $set = DecisionSet::of(...array_values($decisions));
++            }
++            ksort($finished);
++            foreach ($finished as $i => $entry) {
++                $enter($entry['frame']->panel(), $entry['request']);
++
++                try {
++                    $this->pipeline->complete($entry['request'], $entry['frame'], $decisions[$i], $entry['trace'], confirm: false);
++                } finally {
++                    $leave($entry['frame']->panel(), $entry['request']);
++                }
++            }
++
++            return $set;
++        }
++    }
++
++    /** @param list<array{Panel, AccessRequest}> $requests
++     * @param  Closure(Panel, AccessRequest): void  $enter
++     * @param  Closure(Panel, AccessRequest): void  $leave
++     * @return array<int, Prepared>
++     */
++    private function prepare(array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave, bool $terminal = false): array
++    {
++        $batch = new BatchInputs($this->container);
++        $batch->loadSubjects($requests, $actor);
++        $raw = [];
++        $witnesses = [];
++        foreach ($requests as $i => [$panel, $request]) {
++            $trace = new Trace($request->isTraced());
++            $enter($panel, $request);
++
++            try {
++                $raw[$i] = [...$this->prepare->inputs($panel, $request, $actor, $trace, $now, $batch), $trace];
++            } finally {
++                $leave($panel, $request);
++            }
++            $witnesses[] = [$request, $raw[$i][2]];
++        }
++        $batch->loadScopes($witnesses);
++        $entries = [];
++        foreach ($raw as $i => [$catalog, $definition, $frame, $denial, $trace]) {
++            $request = $requests[$i][1];
++            $enter($frame->panel(), $request);
++
++            try {
++                [$catalog, $definition, $frame, $denial] = $this->prepare->complete($request, $catalog, $definition, $frame, $denial, $trace, $batch);
++            } catch (ReadAttemptChanged $changed) {
++                if (! $terminal) {
++                    throw $changed;
++                }
++                $definition ??= new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants);
++                $denial = Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
++            } finally {
++                $leave($frame->panel(), $request);
++            }
++            $entries[$i] = ['request' => $request, 'catalog' => $catalog, 'definition' => $definition, 'frame' => $frame, 'denial' => $denial, 'trace' => $trace];
++        }
++        $scopes = [];
++        $attempts = [];
++        foreach ($entries as $entry) {
++            $attempt = $entry['frame']->readAttempt;
++
++            if ($attempt !== null) {
++                $id = spl_object_id($attempt);
++                $attempts[$id] = $attempt;
++                foreach ($entry['frame']->sourceScopes() as $scope) {
++                    $scopes[$id][IdentityCodec::compose([$scope])] = $scope;
++                }
++            }
++        }
++        foreach ($attempts as $id => $attempt) {
++            $attempt->batch(array_values($scopes[$id]));
++        }
++
++        return $entries;
++    }
++
++    /** @param non-empty-array<int, Prepared> $entries
++     * @param  Closure(Panel, AccessRequest): void  $enter
++     * @param  Closure(Panel, AccessRequest): void  $leave
++     * @return array{array<int, Decision>, array<int, Prepared>}
++     */
++    private function group(array $entries, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): array
++    {
++        $keys = array_keys($entries);
++        $requests = array_map(static fn (array $entry): array => [$entry['frame']->panel(), $entry['request']], array_values($entries));
++        for ($retry = 0; ; $retry++) {
++            $first = $entries[array_key_first($entries)];
++            $attempt = $first['frame']->readAttempt;
++            $decisions = [];
++
++            try {
++                if ($retry > 0) {
++                    $entries = array_combine($keys, array_values($this->prepare($requests, $actor, $now, $enter, $leave, terminal: $retry === 2)));
++                    $first = $entries[array_key_first($entries) ?? throw new RuntimeException('Batch retry produced no requests.')];
++                    $attempt = $first['frame']->readAttempt;
++                }
++                $started = [];
++                $consuming = [];
++                $scopes = [];
++                foreach ($entries as $i => $entry) {
++                    $enter($entry['frame']->panel(), $entry['request']);
++
++                    try {
++                        $started[$i] = $this->pipeline->start($entry['request'], $entry['frame'], $entry['trace'], $entry['denial']);
++                    } finally {
++                        $leave($entry['frame']->panel(), $entry['request']);
++                    }
++
++                    if ($started[$i][0] === null) {
++                        $consuming[$i] = $entry;
++                        foreach ($entry['frame']->sourceScopes() as $scope) {
++                            $scopes[IdentityCodec::compose([$scope])] = $scope;
++                        }
++                    }
++                }
++                $attempt?->batch(array_values($scopes));
++                $this->roleWitnesses($consuming);
++                foreach ($entries as $i => $entry) {
++                    $enter($entry['frame']->panel(), $entry['request']);
++
++                    try {
++                        $decisions[$i] = $this->pipeline->evaluate($entry['request'], $entry['frame'], $entry['catalog'], $entry['definition'], $entry['trace'], $entry['denial'], deferred: true, capture: function (EvaluationFrame $frame) use (&$entries, $i, $entry): void {
++                            $entries[$i] = array_replace($entry, ['frame' => $frame]);
++                        }, started: $started[$i]);
++                    } finally {
++                        $leave($entry['frame']->panel(), $entry['request']);
++                    }
++                }
++
++                if ($attempt !== null) {
++                    $attempt->confirm($first['frame']);
++                    foreach ($entries as $i => $entry) {
++                        $frame = $entry['frame']->sourceStates === [] && ! $entry['frame']->dynamicRead ? $entry['frame'] : $attempt->consumedFrame($entry['frame']);
++                        $entries[$i]['frame'] = $frame;
++                        $decision = $decisions[$i];
++                        $decisions[$i] = $decision->allowed()
++                            ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
++                            : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
++                    }
++                }
++
++                return [$decisions, $entries];
++            } catch (ReadAttemptChanged) {
++                if ($retry === 2) {
++                    foreach ($entries as $i => $entry) {
++                        $frame = $attempt?->discardedFrame($entry['frame']) ?? $entry['frame'];
++                        $entries[$i]['frame'] = $frame;
++                        $decisions[$i] = ($started[$i][0] ?? null) !== null && ! $frame->dynamicRead ? $started[$i][0]
++                            : Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
++                    }
++
++                    return [$decisions, $entries];
++                }
++
++            } catch (Throwable $error) {
++                foreach ($entries as $i => $entry) {
++                    $entry['trace']->error('state', 'source_error', 'dynamic_sources', $error);
++                    $decisions[$i] = ($started[$i][0] ?? null) !== null && ! $entry['frame']->dynamicRead ? $started[$i][0]
++                        : Decision::deny(DecisionReason::SourceError, $entry['frame']->state(), $entry['frame']->scope(), 'dynamic_sources');
++                }
++
++                return [$decisions, $entries];
++            }
++        }
++    }
++
++    /** @param array<int, Prepared> $entries */
++    private function roleWitnesses(array $entries): void
++    {
++        $seen = [];
++        $scopes = [];
++        foreach ($entries as $entry) {
++            $frame = $entry['frame'];
++
++            if ($frame->readAttempt === null || $frame->scope()->context->isGlobal()) {
++                continue;
++            }
++
++            $scopeKey = IdentityCodec::compose([$entry['request']->subject(), $frame->panel()->id(), $frame->scope()]);
++
++            if (isset($scopes[$scopeKey])) {
++                continue;
++            }
++            $scopes[$scopeKey] = true;
++
++            try {
++                $contributions = $frame->readAttempt->databaseContributions($entry['request'], $frame);
++            } catch (ReadAttemptChanged $error) {
++                throw $error;
++            } catch (Throwable) {
++                // The scalar authority stage owns the source failure and its component/reason.
++                continue;
++            }
++            foreach ($contributions as $item) {
++                $role = $item->role === null ? null : ($entry['catalog']->roles()[$item->role->key()] ?? null);
++
++                try {
++                    $instance = $role === null ? null : $this->container->make($role['class']);
++                } catch (Throwable) {
++                    continue;
++                }
++                $branch = $frame->forContribution($item, $instance);
++                $runtime = (new ScopeEligibility($this->container))->runtime($entry['request']->subject(), $branch);
++                $definition = $frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '');
++
++                if ($definition !== null) {
++                    $key = $frame->batchInputs?->eligibilityKey($definition, $runtime) ?? '';
++
++                    if (! isset($seen[$key])) {
++                        $seen[$key] = true;
++                        $frame->batchInputs?->addWitness($entry['request'], $branch);
++                    }
++                }
++            }
++        }
++    }
++}
+diff --git a/packages/core/src/Authorization/BatchInputs.php b/packages/core/src/Authorization/BatchInputs.php
+new file mode 100644
+index 0000000..e4f0591
+--- /dev/null
++++ b/packages/core/src/Authorization/BatchInputs.php
+@@ -0,0 +1,283 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Authorization;
++
++use AzGuard\Authorization\Cache\PermissionSetCache;
++use AzGuard\Authorization\Query\EligibilityBuilder;
++use AzGuard\Catalog\PanelCatalog;
++use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
++use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
++use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
++use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
++use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\Grant;
++use AzGuard\Kernel\Identity\ActorRef;
++use AzGuard\Kernel\Identity\IdentityCodec;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Panels\Panel;
++use AzGuard\Scopes\AssignmentScopeRuntime;
++use Closure;
++use Illuminate\Contracts\Container\Container;
++use Illuminate\Database\Eloquent\Model;
++use RuntimeException;
++use Throwable;
++
++/** @internal Fresh host inputs and eligibility witnesses of one batch attempt; never request memo.
++ * @phpstan-import-type Attached from \AzGuard\Sources\PanelSources
++ */
++final class BatchInputs
++{
++    /** @var array<string, Model|null|Throwable> */
++    private array $subjects = [];
++
++    /** @var array<string, ResolvedAssignmentScope|null|Throwable> */
++    private array $scopes = [];
++
++    /** @var array<string, ReadAttempt> */
++    private array $attempts = [];
++
++    /** @var list<array{AccessRequest, EvaluationFrame}> */
++    private array $witnesses = [];
++
++    /** @var array<string, bool|Throwable> */
++    private array $eligibility = [];
++
++    public function __construct(private readonly Container $container) {}
++
++    /** @param list<array{Panel, AccessRequest}> $requests */
++    public function loadSubjects(array $requests, ?ActorRef $actor): void
++    {
++        $groups = [];
++        foreach ($requests as [$panel, $request]) {
++            $refs = [$request->subject()];
++
++            if ($actor?->id !== null) {
++                $refs[] = SubjectRef::of($actor->type, $actor->id);
++            }
++            foreach ($refs as $ref) {
++                $key = self::subjectKey($panel, $ref);
++                $this->subjects[$key] = null;
++                foreach ($panel->subjectModels() as $class) {
++                    if ((new $class)->getMorphClass() === $ref->type()) {
++                        $groups[$class][$key] = $ref;
++
++                        break;
++                    }
++                }
++            }
++        }
++        foreach ($groups as $class => $refs) {
++            foreach (array_chunk($refs, 100, true) as $chunk) {
++                try {
++                    $models = (new $class)->newQuery()->whereKey(array_map(static fn (SubjectRef $ref): string => $ref->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) $model->getKey());
++                    foreach ($chunk as $key => $ref) {
++                        $this->subjects[$key] = $models->get($ref->id());
++                    }
++                } catch (Throwable $error) {
++                    foreach ($chunk as $key => $ref) {
++                        $this->subjects[$key] = $error;
++                    }
++                }
++            }
++        }
++    }
++
++    public function subject(Panel $panel, SubjectRef $ref): ?Model
++    {
++        $subject = $this->subjects[self::subjectKey($panel, $ref)] ?? null;
++
++        if ($subject instanceof Throwable) {
++            throw $subject;
++        }
++
++        return $subject;
++    }
++
++    /** @param list<array{AccessRequest, EvaluationFrame}> $witnesses */
++    public function loadScopes(array $witnesses): void
++    {
++        $this->witnesses = $witnesses;
++        $groups = [];
++        foreach ($witnesses as [$request, $frame]) {
++            if ($frame->scope()->context->isGlobal()) {
++                continue;
++            }
++            $definition = $frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '');
++
++            if ($definition !== null) {
++                $groups[spl_object_id($definition)]['definition'] = $definition;
++                $groups[spl_object_id($definition)]['frames'][self::scopeKey($frame)] = $frame;
++            }
++        }
++        foreach ($groups as ['definition' => $definition, 'frames' => $frames]) {
++            if (! $definition instanceof QueryableAssignmentScopeDefinition) {
++                foreach ($frames as $key => $frame) {
++                    try {
++                        $this->scopes[$key] = $definition->resolve($frame->scope()->context);
++                    } catch (Throwable $error) {
++                        $this->scopes[$key] = $error;
++                    }
++                }
++
++                continue;
++            }
++            foreach (array_chunk($frames, 100, true) as $chunk) {
++                try {
++                    $records = $definition->query()->whereKey(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) $model->getKey());
++                    foreach ($chunk as $key => $frame) {
++                        try {
++                            $record = $records->get($frame->scope()->context->id());
++                            $this->scopes[$key] = $record === null ? null : new ResolvedAssignmentScope($frame->scope()->context, $definition->tenantOf($record), $record);
++                        } catch (Throwable $error) {
++                            $this->scopes[$key] = $error;
++                        }
++                    }
++                } catch (Throwable $error) {
++                    foreach ($chunk as $key => $frame) {
++                        $this->scopes[$key] = $error;
++                    }
++                }
++            }
++        }
++    }
++
++    public function scope(EvaluationFrame $frame): ?ResolvedAssignmentScope
++    {
++        $resolved = $this->scopes[self::scopeKey($frame)] ?? null;
++
++        if ($resolved instanceof Throwable) {
++            throw $resolved;
++        }
++
++        return $resolved;
++    }
++
++    /** @param list<Attached> $sources */
++    public function attempt(PanelCatalog $catalog, array $sources, EvaluationFrame $frame, PermissionSetCache $cache, SubjectRef $subject): ReadAttempt
++    {
++        $key = IdentityCodec::compose([$frame->panel()->id(), $subject, $frame->scope()->tenant]);
++
++        return $this->attempts[$key] ??= new ReadAttempt($catalog, $sources, $frame, $cache);
++    }
++
++    /** Actual role/contribution witnesses, populated after the grouped raw read. */
++    public function addWitness(AccessRequest $request, EvaluationFrame $frame): void
++    {
++        $this->witnesses[] = [$request, $frame];
++    }
++
++    /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
++    public function native(QueryableAssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, array $filters, AssignmentScopeRuntime $runtime, EvaluationFrame $frame): bool
++    {
++        $key = $this->eligibilityKey($configuration, $runtime);
++
++        if (! array_key_exists($key, $this->eligibility)) {
++            $witnesses = [];
++            foreach ($this->witnesses as [$request, $candidate]) {
++                if ($candidate->panel() !== $frame->panel() || $candidate->scope()->context->type() !== $frame->scope()->context->type()
++                    || $candidate->role()?->key() !== $frame->role()?->key() || ($candidate->grant() === null) !== ($frame->grant() === null)) {
++                    continue;
++                }
++
++                try {
++                    $resolved = $this->scope($candidate);
++                } catch (Throwable) {
++                    continue;
++                }
++
++                if ($resolved === null || ! $resolved->tenant->equals($candidate->scope()->tenant)) {
++                    continue;
++                }
++                $candidateRuntime = (new ScopeEligibility($this->container))->runtime($request->subject(), $candidate, common: $runtime->role === null && $runtime->grant === null);
++                $candidateKey = $this->eligibilityKey($configuration, $candidateRuntime);
++
++                if (! array_key_exists($candidateKey, $this->eligibility)) {
++                    $witnesses[$candidateKey] = [$resolved, $candidateRuntime];
++                }
++            }
++            $resolved = $frame->assignmentScope ?? $this->scope($frame) ?? throw new RuntimeException('Batch scope witness is missing.');
++            $witnesses[$key] = [$resolved, $runtime];
++            foreach (array_chunk($witnesses, 100, true) as $chunk) {
++                try {
++                    $this->eligibility += EligibilityBuilder::matchesMany($definition, $chunk, $filters, $this->container);
++                } catch (Throwable $error) {
++                    foreach ($chunk as $candidateKey => $witness) {
++                        $this->eligibility[$candidateKey] = $error;
++                    }
++                }
++            }
++        }
++        $result = $this->eligibility[$key];
++
++        if ($result instanceof Throwable) {
++            throw $result;
++        }
++
++        return $result;
++    }
++
++    public function external(AssignmentScopeAccessAdapter $adapter, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
++    {
++        $key = IdentityCodec::compose(['external', $adapter::class, $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
++            $runtime->role?->key(), $runtime->grant === null ? null : json_encode($runtime->grant, JSON_THROW_ON_ERROR), $runtime->grant === null ? null : json_encode($runtime->grant->fields(), JSON_THROW_ON_ERROR)]);
++
++        if (! array_key_exists($key, $this->eligibility)) {
++            try {
++                $ref = $frame->scope()->context;
++                $results = $adapter->allowsMany([$ref], $runtime);
++                $this->eligibility[$key] = ($results[$ref->key()] ?? false) === true;
++            } catch (Throwable $error) {
++                $this->eligibility[$key] = $error;
++            }
++        }
++        $result = $this->eligibility[$key];
++
++        if ($result instanceof Throwable) {
++            throw $result;
++        }
++
++        return $result;
++    }
++
++    public function eligibilityKey(AssignmentScopeDefinition $configuration, AssignmentScopeRuntime $runtime): string
++    {
++        $grant = $runtime->grant;
++
++        return IdentityCodec::compose([$this->configurationKey($configuration), $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
++            $runtime->role?->key(), $grant?->role, $grant === null ? null : json_encode($grant->fields(), JSON_THROW_ON_ERROR), $grant?->source, $grant?->origin,
++            $grant instanceof Grant ? $grant->pattern : null, $grant?->expiresAt?->format('c')]);
++    }
++
++    /** @var array<int, AssignmentScopeDefinition> */
++    private array $closureConfigurations = [];
++
++    private function configurationKey(AssignmentScopeDefinition $configuration): string
++    {
++        try {
++            return hash('sha256', serialize($configuration));
++        } catch (Throwable) {
++            // Runtime closures have no structural equality; keep their actual instance separate.
++            $id = array_search($configuration, $this->closureConfigurations, true);
++
++            if ($id === false) {
++                $id = count($this->closureConfigurations);
++                $this->closureConfigurations[$id] = $configuration;
++            }
++
++            return 'closure:'.$id;
++        }
++    }
++
++    private static function subjectKey(Panel $panel, SubjectRef $ref): string
++    {
++        return IdentityCodec::compose([$panel->id(), $ref]);
++    }
++
++    private static function scopeKey(EvaluationFrame $frame): string
++    {
++        return IdentityCodec::compose([$frame->panel()->id(), $frame->scope()->context]);
++    }
++}
+diff --git a/tests/Acceptance/Crm/BatchTest.php b/tests/Acceptance/Crm/BatchTest.php
+new file mode 100644
+index 0000000..424f387
+--- /dev/null
++++ b/tests/Acceptance/Crm/BatchTest.php
+@@ -0,0 +1,83 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Authorization\Authorizer;
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Kernel\Decision\BeforeResult;
++use AzGuard\Kernel\Decision\CodeStateToken;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Kernel\Identity\IdentityCodec;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Panels\PanelRegistry;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Sources\Relation\RelationSource;
++use AzGuard\Storage\StorageRegistry;
++use AzGuard\Tests\Fixtures\Authorization\BatchCrmWorld;
++use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
++use AzGuard\Tests\Fixtures\Crm\Models\Client;
++use AzGuard\Tests\Fixtures\Crm\Models\Project;
++use Illuminate\Support\Carbon;
++use Illuminate\Support\Facades\DB;
++
++it('R68 preserves mixed policy DB and relation order state identities and one captured now', function (): void {
++    Project::query()->findOrFail(1)->members()->attach(1, ['role' => 'seller']);
++    World::assign('seller', 1, 1, panel: 'backoffice');
++    $times = [];
++    $configure = function (PanelBuilder $panel) use (&$times): void {
++        $panel->before(function (EvaluationContext $context) use (&$times): BeforeResult {
++            $times[] = $context->now()->format('c');
++            Carbon::setTestNow(Carbon::now('UTC')->addDay());
++
++            return BeforeResult::Continue;
++        });
++    };
++    World::compile($configure, [RelationSource::make(ProjectScope::make(), 'members', 'pivot.role')], $configure);
++    $one = Client::query()->findOrFail(1);
++    $six = Client::query()->findOrFail(6);
++    $requests = [
++        BatchCrmWorld::request($six, Action::ViewOwnProfile),
++        BatchCrmWorld::request($one, panel: 'backoffice'),
++        BatchCrmWorld::request($one),
++        BatchCrmWorld::request($one, Action::ViewOwnProfile, 'backoffice'),
++        BatchCrmWorld::request(Client::query()->findOrFail(3)),
++    ];
++    $captured = Carbon::now('UTC')->format('c');
++    $set = app(Authorizer::class)->decideMany($requests);
++    expect(array_map(fn ($d) => $d->allowed(), iterator_to_array($set)))->toBe([false, true, true, true, false])
++        ->and(array_map(fn ($d) => $d->reason, iterator_to_array($set)))->toBe([
++            DecisionReason::Policy, DecisionReason::Granted, DecisionReason::Granted, DecisionReason::Policy, DecisionReason::NotGranted,
++        ])->and($times)->toBe(array_fill(0, 5, $captured));
++    $registry = app(PanelRegistry::class);
++    $states = $set->states();
++    $crmCode = IdentityCodec::compose(['code', 'crm', $registry->buildId()]);
++    $backCode = IdentityCodec::compose(['code', 'backoffice', $registry->buildId()]);
++    $backDb = IdentityCodec::compose(['storage', World::storage()->id(), 'backoffice']);
++    expect(array_keys($states))->toBe([$crmCode, $backDb, $backCode])
++        ->and($states[$crmCode])->toBeInstanceOf(CodeStateToken::class)->and($states[$backCode])->toBeInstanceOf(CodeStateToken::class)
++        ->and($states[$backDb])->toBeInstanceOf(StateToken::class);
++});
++
++it('R68 keeps policy requests independent when a neighbouring Grants connection fails', function (): void {
++    config(['database.connections.batch_broken' => ['driver' => 'sqlite', 'database' => ':memory:']]);
++    $reads = 0;
++    DB::connection('batch_broken')->beforeExecuting(function () use (&$reads): void {
++        $reads++;
++
++        throw new RuntimeException('batch assignment connection unavailable');
++    });
++    $storage = app(StorageRegistry::class)->own('batch_broken', 'broken_');
++    World::compile(sources: [DatabaseSource::make()->storage($storage)]);
++    $one = Client::query()->findOrFail(1);
++    $set = app(Authorizer::class)->decideMany([
++        BatchCrmWorld::request($one, Action::ViewOwnProfile),
++        BatchCrmWorld::request($one),
++        BatchCrmWorld::request($one, Action::ViewOwnProfile),
++    ]);
++    expect($set->get(0)->allowed())->toBeTrue()->and($set->get(1)->reason)->toBe(DecisionReason::SourceError)
++        ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(0)->state)->toBeInstanceOf(CodeStateToken::class)
++        ->and($reads)->toBeGreaterThan(0);
++});
+diff --git a/tests/Acceptance/Crm/ScaleBatchTest.php b/tests/Acceptance/Crm/ScaleBatchTest.php
+new file mode 100644
+index 0000000..3756f1f
+--- /dev/null
++++ b/tests/Acceptance/Crm/ScaleBatchTest.php
+@@ -0,0 +1,63 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Authorization\Authorizer;
++use AzGuard\Tests\Fixtures\Authorization\BatchCrmWorld;
++use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
++use AzGuard\Tests\Fixtures\Crm\Models\Client;
++use Illuminate\Database\Events\QueryExecuted;
++use Illuminate\Support\Facades\DB;
++
++it('accounts every CRM resource with scalar parity and bounds structural SQL by scopes', function (int $resources, int $contexts): void {
++    $expectedIds = BatchCrmWorld::scale($resources, $contexts);
++    $panel = World::compile();
++    $clients = Client::query()->where('id', '>=', 1000)->orderBy('id')->get();
++    $requests = $clients->map(fn (Client $client) => BatchCrmWorld::request($client))->all();
++    $budget = ['state' => 0, 'assignments' => 0, 'projects' => 0, 'users' => 0, 'clients' => 0, 'membership' => 0, 'parameters' => 0];
++    $measuring = true;
++    DB::listen(function (QueryExecuted $query) use (&$budget, &$measuring): void {
++        if (! $measuring || ! str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
++            return;
++        }
++        $budget['parameters'] = max($budget['parameters'], count($query->bindings));
++
++        foreach (['azg_panel_state' => 'state', 'azg_permission_grants' => 'assignments', 'azg_role_grants' => 'assignments', 'projects' => 'projects', 'users' => 'users', 'clients' => 'clients', 'organization_user' => 'membership'] as $table => $key) {
++            if (preg_match('/\bfrom\s+["`]'.preg_quote($table, '/').'["`]/i', $query->sql)) {
++                $budget[$key]++;
++            }
++        }
++    });
++    $engine = app(Authorizer::class);
++    $set = $engine->decideMany($requests);
++    $measuring = false;
++    expect($set)->toHaveCount($resources)->and($clients->modelKeys())->toBe(range(1000, 999 + $resources));
++    $batchIds = [];
++
++    foreach ($set as $i => $decision) {
++        if ($decision->allowed()) {
++            $batchIds[] = $clients[$i]->getKey();
++        }
++    }
++    expect($batchIds)->toBe($expectedIds)
++        ->and($budget['state'])->toBe(2)->and($budget['assignments'])->toBeLessThanOrEqual(2 * (int) ceil($contexts / 100))
++        ->and($budget['clients'])->toBe(0)->and($budget['users'])->toBeLessThanOrEqual(2)
++        // Owner/common/native witnesses are bounded by unique scopes and the two role shapes.
++        ->and($budget['projects'])->toBeLessThanOrEqual(4 * (int) ceil($contexts / 100))
++        ->and($budget['parameters'])->toBeLessThanOrEqual(1000)
++        // Membership is a live host predicate; its per-request SQL is accounted separately from structural SQL.
++        ->and($budget['membership'])->toBeLessThanOrEqual($resources);
++    $scalarIds = [];
++
++    foreach ($requests as $i => $request) {
++        $scalar = $engine->decide($panel, $request);
++        $batch = $set->get($i);
++        $this->assertEquals([$scalar->effect, $scalar->reason, $scalar->scope, $scalar->component], [$batch->effect, $batch->reason, $batch->scope, $batch->component], 'resource id='.$clients[$i]->getKey());
++        $this->assertTrue($scalar->state->equals($batch->state), 'resource state id='.$clients[$i]->getKey());
++
++        if ($scalar->allowed()) {
++            $scalarIds[] = $clients[$i]->getKey();
++        }
++    }
++    expect($scalarIds)->toBe($expectedIds)->toBe($batchIds);
++})->with(['V45 1000 resources' => [1000, 10], 'R58 10000 resources 100 contexts multirole' => [10000, 100]]);
+diff --git a/tests/Engines/BatchFenceRaceTest.php b/tests/Engines/BatchFenceRaceTest.php
+new file mode 100644
+index 0000000..c0f2340
+--- /dev/null
++++ b/tests/Engines/BatchFenceRaceTest.php
+@@ -0,0 +1,116 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Kernel\Decision\Decision;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Identity\AccessScope;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Storage\StorageMutation;
++use AzGuard\Tests\Engines\Support\AuthorityProcess;
++use AzGuard\Tests\Engines\Support\BatchEngineWorld;
++use AzGuard\Tests\Engines\Support\CacheEngineWorld;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++
++beforeEach(fn () => CacheEngineWorld::seed());
++afterEach(fn () => CacheEngineWorld::clean());
++
++it('P4.9 reads a deduplicated context union in bounded chunks inside one fence', function (): void {
++    DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
++        $mutation->table('permission_grants')->delete();
++        foreach ([1, 101] as $id) {
++            $scope = AccessScope::in(TenantRef::global(), AssignmentScopeRef::of('store', $id));
++            $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', $scope));
++        }
++        $mutation->touch('admin');
++    });
++    $engine = BatchEngineWorld::compile();
++    $requests = BatchEngineWorld::requests();
++    $requests = [...$requests, $requests[0], $requests[100]];
++    $reads = [];
++    BatchEngineWorld::listen($reads);
++
++    $set = $engine->decideMany($requests);
++
++    expect($set)->toHaveCount(103)
++        ->and(count($set->states()))->toBe(1)
++        ->and(array_column($reads['admin'], 'table'))->toHaveCount(6)
++        ->and($reads['admin'][0]['table'])->toBe('panel_state')
++        ->and($reads['admin'][5]['table'])->toBe('panel_state');
++    foreach (['permission_grants', 'role_grants'] as $table) {
++        $chunks = array_values(array_filter($reads['admin'], static fn (array $read): bool => $read['table'] === $table));
++        $contexts = array_merge(...array_column($chunks, 'contexts'));
++        expect($chunks)->toHaveCount(2)
++            ->and(count($contexts))->toBe(102)
++            ->and(count(array_unique($contexts)))->toBe(102);
++        foreach ($chunks as $chunk) {
++            expect(count($chunk['contexts']))->toBeLessThanOrEqual(100);
++        }
++    }
++    foreach ($set as $index => $decision) {
++        expect($decision->allowed())->toBe(in_array($index, [0, 100, 101, 102], true))
++            ->and($decision->scope->context->key())->toBe($requests[$index]->context()->key())
++            ->and($decision->state->equals($set->get(0)->state))->toBeTrue();
++    }
++})->group('engines');
++
++it('P4.9 discards every chunk after an acknowledged parallel revoke and exposes only the final group', function (bool $continuous): void {
++    DatabaseWorld::storage()->mutate('cabinet', static function (StorageMutation $mutation): void {
++        $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', overrides: ['panel' => 'cabinet']));
++        $mutation->touch('cabinet');
++    });
++    $seen = [];
++    $reads = [];
++    $engine = BatchEngineWorld::compile(after: function (Decision $decision) use (&$seen, &$reads): void {
++        $seen[] = [$decision->state->panel, $decision->reason, count($reads[$decision->state->panel])];
++    }, cabinet: true);
++    $requests = BatchEngineWorld::requests();
++    // Interleaving an independent panel also checks the returned request order.
++    array_splice($requests, 50, 0, [BatchEngineWorld::cabinetRequest()]);
++    $worker = new AuthorityProcess;
++    $barriers = 0;
++
++    try {
++        BatchEngineWorld::listen($reads, function (string $panel, string $table, int $number) use ($worker, $continuous, &$barriers): void {
++            if ($panel !== 'admin' || $table !== 'permission_grants' || $number % 2 !== 1
++                || (! $continuous && $barriers !== 0)) {
++                return;
++            }
++            // QueryExecuted fires after chunk one's rows have arrived, before chunk two.
++            $ack = $worker->command(['mode' => $barriers % 2 === 0 ? 'revoke' : 'grant']);
++            expect($ack['committed'])->toBeTrue();
++            $barriers++;
++        });
++
++        $set = $engine->decideMany($requests);
++
++        $attempts = $continuous ? 3 : 2;
++        $reason = $continuous ? DecisionReason::ConsistencyError : DecisionReason::NotGranted;
++        expect($barriers)->toBe($continuous ? 3 : 1)
++            ->and($set)->toHaveCount(102)
++            ->and(count($set->states()))->toBe(2)
++            ->and($reads['admin'])->toHaveCount(6 * $attempts)
++            ->and($reads['cabinet'])->toHaveCount(4)
++            ->and($seen)->toHaveCount(102);
++        foreach ($set as $index => $decision) {
++            expect($decision->allowed())->toBe($index === 50)
++                ->and($decision->state->panel)->toBe($requests[$index]->permission()->panel());
++
++            if ($index !== 50) {
++                expect($decision->reason)->toBe($reason)
++                    ->and($decision->state->equals($set->get(0)->state))->toBeTrue();
++            }
++        }
++        foreach ($seen as [$panel, $observedReason, $completedReads]) {
++            if ($panel === 'admin') {
++                expect($observedReason)->toBe($reason)
++                    ->and($completedReads)->toBe(6 * $attempts);
++            } else {
++                expect($completedReads)->toBe(4);
++            }
++        }
++    } finally {
++        $worker->close();
++    }
++})->with(['revoke between chunks' => [false], 'all three group attempts change' => [true]])->group('engines');
+diff --git a/tests/Engines/Support/BatchEngineWorld.php b/tests/Engines/Support/BatchEngineWorld.php
+new file mode 100644
+index 0000000..693928c
+--- /dev/null
++++ b/tests/Engines/Support/BatchEngineWorld.php
+@@ -0,0 +1,93 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Engines\Support;
++
++use AzGuard\Authorization\Authorizer;
++use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Panels\PanelRegistry;
++use AzGuard\Policies\PolicyBinding;
++use AzGuard\Scopes\AssignmentScopePolicy;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Tests\Fixtures\Panels\AdminPanel;
++use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
++use AzGuard\Tests\Fixtures\Panels\PanelWorld;
++use AzGuard\Tests\Fixtures\Panels\User;
++use AzGuard\Tests\Fixtures\Scopes\StoreScope;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabasePolicy;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++use Closure;
++use Illuminate\Database\Events\QueryExecuted;
++
++final class BatchEngineWorld
++{
++    public static function compile(?Closure $after = null, bool $cabinet = false): Authorizer
++    {
++        $description = static fn (PanelBuilder $panel): PanelBuilder => $panel
++            ->for(User::class)->resourcePrefix(false)
++            ->permissions([DatabasePermission::class, DatabaseSource::make()])
++            ->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])
++            ->scopes(AssignmentScopePolicy::inherit(new StoreScope(
++                resolveUsing: static fn (AssignmentScopeRef $ref): ResolvedAssignmentScope => new ResolvedAssignmentScope($ref, TenantRef::global()),
++            )))->after($after ?? []);
++        $panels = [AdminPanel::class => $description];
++
++        if ($cabinet) {
++            $panels[CabinetPanel::class] = $description;
++        }
++        [, , $registry] = PanelWorld::compile($panels);
++        app()->instance(PanelRegistry::class, $registry);
++        app()->forgetInstance(Authorizer::class);
++
++        return app(Authorizer::class);
++    }
++
++    /** @return list<AccessRequest> */
++    public static function requests(int $contexts = 101): array
++    {
++        return array_map(
++            static fn (int $id): AccessRequest => DatabaseWorld::request()->on(AssignmentScopeRef::of('store', $id)),
++            range(1, $contexts),
++        );
++    }
++
++    public static function cabinetRequest(): AccessRequest
++    {
++        return AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('cabinet', DatabasePermission::View->value));
++    }
++
++    /**
++     * @param  array<string, list<array{table: string, contexts: list<string>}>>  $reads
++     * @param  Closure(string, string, int): void|null  $barrier
++     */
++    public static function listen(array &$reads, ?Closure $barrier = null): void
++    {
++        DatabaseWorld::storage()->connection()->listen(static function (QueryExecuted $query) use (&$reads, $barrier): void {
++            if (! str_starts_with(strtolower(ltrim($query->sql)), 'select')) {
++                return;
++            }
++            foreach (['panel_state', 'permission_grants', 'role_grants'] as $table) {
++                if (! preg_match('/azg_'.$table.'["`]/', $query->sql)) {
++                    continue;
++                }
++                $panel = $query->bindings[0];
++                // The first three bindings identify panel/subject; each scope then
++                // contributes a tenant/context pair. A global tenant is not a context.
++                $contexts = $table === 'panel_state' ? [] : array_column(array_chunk(array_slice($query->bindings, 3), 2), 1);
++                $reads[$panel][] = ['table' => $table, 'contexts' => $contexts];
++                $number = count(array_filter($reads[$panel], static fn (array $read): bool => $read['table'] === $table));
++                $barrier?->__invoke($panel, $table, $number);
++
++                break;
++            }
++        });
++    }
++}
+diff --git a/tests/Feature/Authorization/Batch/DecideManyBeforeDenyTest.php b/tests/Feature/Authorization/Batch/DecideManyBeforeDenyTest.php
+new file mode 100644
+index 0000000..37e224b
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyBeforeDenyTest.php
+@@ -0,0 +1,61 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Kernel\Decision\BeforeResult;
++use AzGuard\Kernel\Decision\CodeStateToken;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Storage\Schema\StorageSchema;
++use AzGuard\Storage\StorageRegistry;
++use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++use Illuminate\Support\Facades\DB;
++
++uses()->group('batch');
++
++it('keeps a static before denial outside neighbouring DB authority and scalar state unchanged', function (bool $broken): void {
++    app(StorageSchema::class)->create('default');
++    DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
++    $source = DatabaseSource::make();
++    $failedReads = 0;
++
++    if ($broken) {
++        config(['database.connections.before_deny_broken' => ['driver' => 'sqlite', 'database' => ':memory:']]);
++        DB::connection('before_deny_broken')->beforeExecuting(function () use (&$failedReads): void {
++            $failedReads++;
++
++            throw new RuntimeException('The DB is unavailable for the neighbouring grants check.');
++        });
++        $source = $source->storage(app(StorageRegistry::class)->own('before_deny_broken', 'broken_'));
++    }
++    [$engine, $panel] = CacheWorld::database($source, configure: fn (PanelBuilder $panel) => $panel->before(
++        fn (EvaluationContext $context): BeforeResult => $context->resource()?->deny === true ? BeforeResult::Deny : BeforeResult::Continue,
++    ));
++    $request = DatabaseWorld::request();
++    $denied = $request->on(null, (object) ['deny' => true]);
++    $scalar = $engine->decide($panel, $denied);
++    expect($scalar->reason)->toBe(DecisionReason::Hook)->and($scalar->state)->toBeInstanceOf(CodeStateToken::class);
++    $budget = CacheWorld::emptyBudget();
++    CacheWorld::listen($budget);
++    $allDenied = $engine->decideMany([$denied, $denied]);
++    expect($budget['grants'])->toBe(0)->and($budget['state'])->toBe(0)->and($failedReads)->toBe(0);
++
++    foreach ($allDenied as $decision) {
++        $this->assertEquals($scalar, $decision);
++    }
++    $set = $engine->decideMany([$denied, $request, $denied]);
++    $this->assertEquals($scalar, $set->get(0));
++    $this->assertEquals($scalar, $set->get(2));
++    expect($set->get(1)->reason)->toBe($broken ? DecisionReason::SourceError : DecisionReason::Granted)
++        ->and($set->get(1)->allowed())->toBe(! $broken);
++
++    if ($broken) {
++        expect($failedReads)->toBeGreaterThan(0);
++    } else {
++        expect($set->get(1)->state)->toBeInstanceOf(StateToken::class)->and($budget['grants'])->toBe(2)->and($budget['state'])->toBe(2);
++    }
++})->with(['healthy authority' => false, 'failing authority' => true]);
+diff --git a/tests/Feature/Authorization/Batch/DecideManyBudgetTest.php b/tests/Feature/Authorization/Batch/DecideManyBudgetTest.php
+new file mode 100644
+index 0000000..111182e
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyBudgetTest.php
+@@ -0,0 +1,64 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
++use AzGuard\Kernel\Identity\AccessScope;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Panels\StateRefresh;
++use AzGuard\Policies\PolicyBinding;
++use AzGuard\Scopes\AssignmentScopePolicy;
++use AzGuard\Scopes\TenantPolicy;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Storage\Schema\StorageSchema;
++use AzGuard\Tests\Fixtures\Authorization\BatchPolicy;
++use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
++use AzGuard\Tests\Fixtures\Scopes\Membership;
++use AzGuard\Tests\Fixtures\Scopes\Organization;
++use AzGuard\Tests\Fixtures\Scopes\StoreScope;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++
++uses()->group('batch');
++
++it('fences all 250 contexts and reuses raw sets with the configured refresh mode', function (StateRefresh $refresh, int $warmReads): void {
++    app(StorageSchema::class)->create('default');
++    $tenant = TenantRef::of('org', 'A');
++    $definition = new StoreScope(fn (AssignmentScopeRef $ref): ResolvedAssignmentScope => new ResolvedAssignmentScope($ref, $tenant));
++    $requests = $rows = [];
++
++    for ($id = 1; $id <= 250; $id++) {
++        $scope = AccessScope::in($tenant, AssignmentScopeRef::of('store', $id));
++        $requests[] = DatabaseWorld::request()->inScope($scope);
++        $rows[] = DatabaseWorld::row('permission', $scope);
++    }
++    DatabaseWorld::insert('permission', $rows);
++    BatchPolicy::$calls = 0;
++    [$engine] = CacheWorld::database(DatabaseSource::make(), $refresh, function (PanelBuilder $panel) use ($definition): void {
++        $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
++            ->scopes(AssignmentScopePolicy::inherit($definition))->policies([PolicyBinding::for('documents.view', BatchPolicy::class)]);
++    });
++    $budget = CacheWorld::emptyBudget();
++    CacheWorld::listen($budget);
++    $set = $engine->decideMany($requests);
++    expect($set)->toHaveCount(250)->and(BatchPolicy::$calls)->toBe(250)
++        ->and($budget['state'])->toBe(2)->and($budget['grants'])->toBeLessThanOrEqual(6)
++        ->and($budget['grants'])->toBeGreaterThan(0)->and($budget['sequence'][0])->toBe('panel_state')
++        ->and($budget['sequence'][array_key_last($budget['sequence'])])->toBe('panel_state');
++
++    foreach ($set as $i => $decision) {
++        expect($decision->allowed())->toBeTrue()->and($decision->scope->context->id())->toBe((string) ($i + 1));
++    }
++    $budget = CacheWorld::emptyBudget();
++    $warm = $engine->decideMany($requests);
++    expect($budget['state'])->toBe($warmReads)->and($budget['grants'])->toBe(0)->and(BatchPolicy::$calls)->toBe(500);
++
++    foreach ($warm as $i => $decision) {
++        expect($decision->allowed())->toBeTrue()->and($decision->state->equals($set->get($i)->state))->toBeTrue();
++    }
++    app()->forgetScopedInstances();
++    $budget = CacheWorld::emptyBudget();
++    expect($engine->decideMany($requests))->toHaveCount(250);
++    expect($budget['state'])->toBe(1)->and($budget['grants'])->toBe(0)->and(BatchPolicy::$calls)->toBe(750);
++})->with(['Check refresh' => [StateRefresh::Check, 1], 'Request refresh' => [StateRefresh::Request, 0]]);
+diff --git a/tests/Feature/Authorization/Batch/DecideManyDynamicTest.php b/tests/Feature/Authorization/Batch/DecideManyDynamicTest.php
+new file mode 100644
+index 0000000..6e07217
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyDynamicTest.php
+@@ -0,0 +1,88 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Exceptions\UnknownPermissionException;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\CodeStateToken;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\StateToken;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Storage\Schema\StorageSchema;
++use AzGuard\Storage\StorageMutation;
++use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++use Illuminate\Database\Events\QueryExecuted;
++
++beforeEach(function (): void {
++    app(StorageSchema::class)->create('default');
++    DatabaseWorld::define(label: 'Old');
++    DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'reports.export'])]);
++});
++
++uses()->group('batch');
++
++it('retries stale request state before reading the dynamic catalog and consumes fresh metadata', function (): void {
++    $observed = [];
++    [$engine, $panel] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions(), configure: function (PanelBuilder $panel) use (&$observed): void {
++        $panel->after(function (EvaluationContext $context) use (&$observed): void {
++            if ($context->readAttempt !== null) {
++                $observed[] = $context;
++            }
++        });
++    });
++    $dynamic = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
++    $old = $engine->decide($panel, $dynamic);
++    expect($old->allowed())->toBeTrue()->and($old->reason)->toBe(DecisionReason::Granted);
++    $observed = [];
++    $storage = DatabaseWorld::storage();
++    // Simulate an independent committed writer: its revision update sends no local request-memo callback.
++    $storage->connection()->transaction(function () use ($storage): void {
++        $storage->table('permissions')->update(['label' => 'Fresh']);
++        $storage->table('permission_grants')->delete();
++        $storage->table('panel_state')->where('panel', 'admin')->increment('version');
++    });
++    $catalogReads = 0;
++    $storage->connection()->listen(function (QueryExecuted $query) use (&$catalogReads): void {
++        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_permissions"')) {
++            $catalogReads++;
++        }
++    });
++    $set = $engine->decideMany([$dynamic, DatabaseWorld::request(DatabasePermission::Policy), $dynamic]);
++    expect($set->get(0)->reason)->toBe(DecisionReason::NotGranted)->and($set->get(2)->reason)->toBe(DecisionReason::NotGranted)
++        ->and($set->get(1)->allowed())->toBeTrue()->and($set->get(1)->state)->toBeInstanceOf(CodeStateToken::class)
++        ->and($set->get(0)->state)->toBeInstanceOf(StateToken::class)->and($set->get(0)->state->version)->toBeGreaterThan($old->state->version)
++        ->and($catalogReads)->toBe(1)->and($observed)->toHaveCount(2);
++
++    foreach ($observed as $context) {
++        expect($context->readAttempt->catalog()->get('reports.export')->label)->toBe('Fresh')
++            ->and($context->matchingGrants())->toBe([]);
++    }
++});
++
++it('fails three changing dynamic grant attempts while an unrelated policy survives', function (): void {
++    [$engine] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions());
++    $attempts = 0;
++    DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $query) use (&$attempts): void {
++        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_role_grants"')) {
++            $attempts++;
++            DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
++        }
++    });
++    $dynamic = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
++    $set = $engine->decideMany([$dynamic, DatabaseWorld::request(DatabasePermission::Policy), $dynamic]);
++    expect($attempts)->toBe(3)->and($set->get(0)->reason)->toBe(DecisionReason::ConsistencyError)
++        ->and($set->get(2)->reason)->toBe(DecisionReason::ConsistencyError)->and($set->get(1)->allowed())->toBeTrue()
++        ->and($set->get(0)->state)->toBeInstanceOf(CodeStateToken::class)->and($set->get(1)->state)->toBeInstanceOf(CodeStateToken::class);
++});
++
++it('throws for an originally missing dynamic permission instead of inventing a definition', function (): void {
++    [$engine] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions());
++    $missing = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.missing'));
++    expect(fn () => $engine->decideMany([DatabaseWorld::request(DatabasePermission::Policy), $missing]))->toThrow(UnknownPermissionException::class);
++});
+diff --git a/tests/Feature/Authorization/Batch/DecideManyGroupingTest.php b/tests/Feature/Authorization/Batch/DecideManyGroupingTest.php
+new file mode 100644
+index 0000000..db40adf
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyGroupingTest.php
+@@ -0,0 +1,121 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\Grant;
++use AzGuard\Kernel\Decision\RoleContribution;
++use AzGuard\Kernel\Identity\AccessScope;
++use AzGuard\Kernel\Identity\ActorRef;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\PermissionPattern;
++use AzGuard\Kernel\Identity\RoleKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Scopes\AssignmentScopePolicy;
++use AzGuard\Scopes\TenantPolicy;
++use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
++use AzGuard\Tests\Fixtures\Authorization\BatchExternalAdapter;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
++use AzGuard\Tests\Fixtures\Panels\User;
++use AzGuard\Tests\Fixtures\Scopes\Membership;
++use AzGuard\Tests\Fixtures\Scopes\Organization;
++use AzGuard\Tests\Fixtures\Scopes\ReaderRole;
++use AzGuard\Tests\Fixtures\Scopes\StoreScope;
++
++uses()->group('batch');
++
++it('keeps failures isolated by subject and panel and preserves original order', function (): void {
++    User::query()->insert(['id' => 2]);
++    $s = new ScenarioGenerator(2);
++    $bad = new GeneratedSource(read: function (SubjectRef $subject, array $scopes, EvaluationContext $context) use ($s): iterable {
++        if ($subject->id() === '2') {
++            throw new RuntimeException('one subject source is unavailable');
++        }
++
++        yield $s->grant();
++    });
++    $other = new GeneratedSource(name: 'other', direct: [$s->grant(panel: 'beta', source: 'other')]);
++    [$engine] = $s->world([$bad], otherSource: $other);
++    $requests = [
++        AccessRequest::for(SubjectRef::of('user', 2), PermissionKey::of('alpha', 'orders.view')),
++        AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('beta', 'orders.view')),
++        AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('alpha', 'orders.view')),
++        AccessRequest::for(SubjectRef::of('user', 2), PermissionKey::of('alpha', 'orders.policy')),
++    ];
++    $set = $engine->decideMany($requests, ActorRef::of('user', 1));
++    expect(array_map(fn ($d) => $d->reason, iterator_to_array($set)))->toBe([
++        DecisionReason::SourceError, DecisionReason::Granted, DecisionReason::Granted, DecisionReason::Policy,
++    ])->and($set->states())->toHaveCount(2);
++});
++
++it('resolves external refs once and uses allowsMany with each original grant witness', function (): void {
++    $tenant = TenantRef::of('org', 'A');
++    $definition = new StoreScope(fn (AssignmentScopeRef $ref): ResolvedAssignmentScope => new ResolvedAssignmentScope($ref, $tenant));
++    app()->instance(StoreScope::class, $definition);
++    $adapter = new BatchExternalAdapter;
++    $one = AccessScope::in($tenant, AssignmentScopeRef::of('store', 1));
++    $two = AccessScope::in($tenant, AssignmentScopeRef::of('store', 2));
++    $source = new class(roles: [RoleContribution::of(RoleKey::of('admin', 'reader'), $one, 'generated', fields: ['eligible' => false]), RoleContribution::of(RoleKey::of('admin', 'reader'), $one, 'generated', fields: ['eligible' => true]), RoleContribution::of(RoleKey::of('admin', 'reader'), $two, 'generated', fields: ['eligible' => false])]) extends GeneratedSource
++    {
++        public function roleGrants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
++        {
++            $keys = array_map(fn (AccessScope $scope): string => $scope->context->key(), $scopes);
++
++            foreach ($this->roles as $role) {
++                if (in_array($role->scope->context->key(), $keys, true)) {
++                    yield $role;
++                }
++            }
++        }
++    };
++    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
++        ->roles([ReaderRole::class])->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
++        ->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter)));
++    $requests = [$request->inScope($one), $request->inScope($two), $request->inScope($one), $request->inScope($two)];
++    $scalar = array_map(fn (AccessRequest $r) => $engine->decide($panel, $r), $requests);
++    $definition->resolves = 0;
++    $adapter->batchOnly = true;
++    $set = $engine->decideMany($requests);
++    expect(array_map(fn ($d) => $d->allowed(), iterator_to_array($set)))->toBe([true, false, true, false])
++        ->and($definition->resolves)->toBe(2)->and($adapter->observed)->not->toBeEmpty();
++
++    foreach ($scalar as $i => $decision) {
++        expect($set->get($i)->reason)->toBe($decision->reason);
++    }
++    $fields = array_map(fn ($runtime) => $runtime->grant?->fields()['eligible'] ?? null, $adapter->observed);
++    expect($fields)->toContain(false, true);
++
++    foreach ($adapter->observed as $runtime) {
++        expect($runtime->subject->id())->toBe('1')->and($runtime->actor->id)->toBe('1');
++
++        if ($runtime->grant !== null) {
++            expect($runtime->role)->toBeInstanceOf(ReaderRole::class);
++        }
++    }
++});
++
++it('keeps tenant partitions of the same subject independent after a source failure', function (): void {
++    $source = new GeneratedSource(read: function (SubjectRef $subject, array $scopes, EvaluationContext $context): iterable {
++        if ($context->scope()->tenant->id() === 'A') {
++            throw new RuntimeException('tenant A source is unavailable');
++        }
++
++        yield Grant::of(PermissionPattern::of('admin', 'orders.view'), 'generated', $context->scope());
++    });
++    [$engine, , $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
++        ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership)));
++    $set = $engine->decideMany([
++        $request->inTenant(TenantRef::of('org', 'A')),
++        $request->inTenant(TenantRef::of('org', 'B')),
++        $request->inTenant(TenantRef::of('org', 'A')),
++    ]);
++    expect($set->get(0)->reason)->toBe(DecisionReason::SourceError)->and($set->get(1)->allowed())->toBeTrue()
++        ->and($set->get(1)->scope->tenant->id())->toBe('B')->and($set->get(2)->reason)->toBe(DecisionReason::SourceError);
++});
+diff --git a/tests/Feature/Authorization/Batch/DecideManyNativeTest.php b/tests/Feature/Authorization/Batch/DecideManyNativeTest.php
+new file mode 100644
+index 0000000..8a31751
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyNativeTest.php
+@@ -0,0 +1,54 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\RoleContribution;
++use AzGuard\Kernel\Identity\AccessScope;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Kernel\Identity\RoleKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Scopes\AssignmentScopePolicy;
++use AzGuard\Scopes\TenantPolicy;
++use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
++use AzGuard\Tests\Fixtures\Authorization\BatchNativeFilter;
++use AzGuard\Tests\Fixtures\Authorization\BatchNativeRole;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Crm\Models\Organization;
++use AzGuard\Tests\Fixtures\Panels\User;
++use AzGuard\Tests\Fixtures\Scopes\ConfiguredProjectScope;
++use AzGuard\Tests\Fixtures\Scopes\Membership;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++uses()->group('batch');
++
++it('keeps native contribution fields and a failing sibling subject witness independent', function (): void {
++    Schema::create('projects', function (Blueprint $table): void {
++        $table->id();
++        $table->unsignedBigInteger('organization_id');
++        $table->boolean('is_active');
++    });
++    app('db')->table('projects')->insert(['id' => 1, 'organization_id' => 1, 'is_active' => true]);
++    User::query()->insert(['id' => 2]);
++    $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('crm.project', 1));
++    $no = RoleContribution::of(RoleKey::of('admin', 'batch-native'), $scope, 'generated', fields: ['eligible' => false]);
++    $yes = RoleContribution::of(RoleKey::of('admin', 'batch-native'), $scope, 'generated', fields: ['eligible' => true]);
++    $source = new GeneratedSource(roles: [$no]);
++    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
++        ->roles([BatchNativeRole::class])->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(['1', '2'])))
++        ->scopes(AssignmentScopePolicy::inherit(ConfiguredProjectScope::make()->filter(new BatchNativeFilter))));
++    $request = $request->inScope($scope);
++    expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted);
++    $source->roles[] = $yes;
++    expect($engine->decide($panel, $request)->allowed())->toBeTrue();
++    $bad = AccessRequest::for(SubjectRef::of('user', 2), $request->permission())->inScope($scope);
++    expect($engine->decide($panel, $bad)->reason)->toBe(DecisionReason::AssignmentScopeFilterError);
++    BatchNativeFilter::$fields = [];
++    $set = $engine->decideMany([$bad, $request, $request]);
++    expect($set->get(0)->reason)->toBe(DecisionReason::AssignmentScopeFilterError)->and($set->get(1)->allowed())->toBeTrue()
++        ->and($set->get(2)->allowed())->toBeTrue()->and(BatchNativeFilter::$fields)->toContain(false, true);
++});
+diff --git a/tests/Feature/Authorization/Batch/DecideManyParityTest.php b/tests/Feature/Authorization/Batch/DecideManyParityTest.php
+new file mode 100644
+index 0000000..22ce3ac
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyParityTest.php
+@@ -0,0 +1,128 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Contracts\Authorization\GrantCondition;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\BeforeResult;
++use AzGuard\Kernel\Decision\Decision;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\Grant;
++use AzGuard\Kernel\Decision\RoleContribution;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
++use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
++use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
++use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
++use Illuminate\Support\Carbon;
++
++uses()->group('batch');
++
++it('matches scalar decisions for 200 seeded ordered batches at frozen time', function (): void {
++    foreach (ScenarioGenerator::scenarios() as $seed => $s) {
++        Carbon::setTestNow($s->now);
++        $mode = [null, 'inherit', 'isolated', 'required'][$seed % 4];
++        $scope = $mode === null ? $s->scope(global: true) : $s->scope(true);
++        $source = new GeneratedSource(
++            direct: $s->flag() ? [$s->grant($scope, expires: $s->expiry(($seed % 3) - 1), fields: ['weekdays' => [(int) $s->now->format('N')]])] : [],
++            roles: $s->flag() ? [$s->role($scope, key: 'reader', expires: $s->expiry(($seed % 5) - 2))] : [],
++        );
++        $restriction = new RecordingRestriction(deny: $s->flag());
++        [$engine, $panel, $request, , $registry] = $s->world([$source], function (PanelBuilder $panel) use ($restriction): void {
++            $panel->restrictions([$restriction])->grantConditions([WeekdaysCondition::class]);
++        }, mode: $mode);
++        $other = $s->panel === 'alpha' ? 'beta' : 'alpha';
++        $requests = [
++            $request->inScope($scope)->traced(),
++            AccessRequest::for($s->subject, PermissionKey::of($s->panel, 'orders.policy'))->inScope($scope),
++            AccessRequest::for($s->subject, PermissionKey::of($other, 'orders.view'))->inScope($scope)->traced(),
++            AccessRequest::for($s->subject, PermissionKey::of($s->panel, 'orders.edit'))->inScope($scope),
++            $request->inScope($scope)->traced(),
++        ];
++        RuntimePolicy::$result = $seed % 3 === 0 ? null : $seed % 3 === 1;
++        $scalar = array_map(fn (AccessRequest $r): Decision => $engine->decide($registry->get($r->permission()->panel()), $r), $requests);
++        $batch = $engine->decideMany($requests);
++        expect($batch)->toHaveCount(count($requests));
++
++        foreach ($scalar as $i => $expected) {
++            $this->assertEquals($expected, $batch->get($i), "batch parity seed=$seed index=$i");
++        }
++    }
++})->group('properties');
++
++it('runs hooks policy and restrictions for every resource instance and captures one now', function (): void {
++    $s = new ScenarioGenerator(2);
++    $before = $after = 0;
++    $times = [];
++    $restriction = new RecordingRestriction;
++    [$engine, , $request] = $s->world([new GeneratedSource], function (PanelBuilder $panel) use (&$before, &$after, $restriction): void {
++        $panel->before(function () use (&$before): BeforeResult {
++            $before++;
++            Carbon::setTestNow(Carbon::now('UTC')->addDay());
++
++            return BeforeResult::Continue;
++        })->after(function () use (&$after): void {
++            $after++;
++        })->restrictions([$restriction]);
++    });
++    RuntimePolicy::$callback = function ($subject, $resource, $context) use (&$times): bool {
++        $times[] = $context->now()->format('c');
++
++        return $resource->allow;
++    };
++    $requests = [];
++
++    foreach ([true, false, true] as $allow) {
++        // Same identity and permission, different prospective resource state.
++        $resource = (object) ['id' => 17, 'allow' => $allow];
++        $requests[] = AccessRequest::for($request->subject(), PermissionKey::of($s->panel, 'orders.policy'))->on(null, $resource);
++    }
++    $captured = Carbon::now('UTC')->format('c');
++    $batch = $engine->decideMany($requests);
++    expect(array_map(fn (Decision $d): bool => $d->allowed(), iterator_to_array($batch)))->toBe([true, false, true])
++        ->and($before)->toBe(3)->and($after)->toBe(3)->and(RuntimePolicy::$calls)->toBe(3)
++        ->and($restriction->checks)->toBe(2)->and($times)->toBe([$captured, $captured, $captured]);
++});
++
++it('qualifies the grant condition separately for each prospective resource state', function (): void {
++    $condition = new class implements GrantCondition
++    {
++        public int $calls = 0;
++
++        public function allows(Grant|RoleContribution $grant, AccessRequest $request, EvaluationContext $context): bool
++        {
++            $this->calls++;
++
++            return $request->resource()->allow;
++        }
++    };
++    [$engine, , $request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]),
++        fn (PanelBuilder $panel) => $panel->grantConditions([$condition]));
++    $set = $engine->decideMany(array_map(fn (bool $allow) => $request->on(null, (object) ['id' => 19, 'allow' => $allow]), [true, false, true]));
++    expect(array_map(fn (Decision $d): bool => $d->allowed(), iterator_to_array($set)))->toBe([true, false, true])
++        ->and($condition->calls)->toBe(3);
++});
++
++it('maps a per-resource condition exception without suppressing adjacent successful checks', function (): void {
++    $condition = new class implements GrantCondition
++    {
++        public function allows(Grant|RoleContribution $grant, AccessRequest $request, EvaluationContext $context): bool
++        {
++            if ($request->resource()->fail) {
++                throw new RuntimeException('this resource condition failed');
++            }
++
++            return true;
++        }
++    };
++    [$engine, , $request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]),
++        fn (PanelBuilder $panel) => $panel->grantConditions([$condition]));
++    $set = $engine->decideMany(array_map(fn (bool $fail) => $request->on(null, (object) ['id' => 19, 'fail' => $fail]), [false, true, false]));
++    expect(array_map(fn (Decision $d): DecisionReason => $d->reason, iterator_to_array($set)))->toBe([
++        DecisionReason::Granted, DecisionReason::ConditionError, DecisionReason::Granted,
++    ]);
++});
+diff --git a/tests/Feature/Authorization/Batch/DecideManyRegressionTest.php b/tests/Feature/Authorization/Batch/DecideManyRegressionTest.php
+new file mode 100644
+index 0000000..4812eb9
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyRegressionTest.php
+@@ -0,0 +1,117 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Contracts\Sources\Volatility;
++use AzGuard\Exceptions\RecursionDetectedException;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Decision\BeforeResult;
++use AzGuard\Kernel\Decision\CodeStateToken;
++use AzGuard\Kernel\Decision\Decision;
++use AzGuard\Kernel\Decision\DecisionReason;
++use AzGuard\Kernel\Decision\RoleContribution;
++use AzGuard\Kernel\Identity\AccessScope;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\RoleKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Kernel\Identity\TenantRef;
++use AzGuard\Panels\PanelBuilder;
++use AzGuard\Panels\StateRefresh;
++use AzGuard\Sources\Database\DatabaseSource;
++use AzGuard\Storage\Schema\StorageSchema;
++use AzGuard\Storage\StorageMutation;
++use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
++use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
++use AzGuard\Tests\Fixtures\Authorization\Cache\FencedCacheSource;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
++use AzGuard\Tests\Fixtures\Panels\User;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
++use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
++use Illuminate\Support\Carbon;
++use Illuminate\Support\Facades\Log;
++
++uses()->group('batch');
++
++it('rejects warmed direct and administrative authority exactly at batch expiry', function (bool $admin): void {
++    $expires = Carbon::now('UTC')->addSecond()->toDateTimeImmutable();
++    $source = new FencedCacheSource;
++    $source->reuse = Volatility::Stable;
++    $source->direct = $admin ? [] : [AuthorizationWorld::grant(expires: $expires)];
++    $source->roles = $admin ? [RoleContribution::of(RoleKey::of('admin', 'root'), AccessScope::in(TenantRef::global()), 'generated', expiresAt: $expires)] : [];
++    [$engine, , $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel->cache('array'));
++    $requests = [$request, $request->on(null, (object) ['id' => 2])];
++
++    foreach ($engine->decideMany($requests) as $decision) {
++        expect($decision->allowed())->toBeTrue();
++    }
++    Carbon::setTestNow($expires);
++
++    foreach ($engine->decideMany($requests) as $decision) {
++        expect($decision->reason)->toBe(DecisionReason::NotGranted);
++    }
++    expect($source->revision)->toBe(1);
++})->with(['direct grant' => false, 'administrative role' => true]);
++
++it('rejects cross scalar batch recursion and releases the guard in finally', function (string $direction): void {
++    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource);
++    $request = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
++    RuntimePolicy::$callback = $direction === 'batch to scalar'
++        ? fn () => $engine->decide($panel, $request)->allowed()
++        : fn () => $engine->decideMany([$request])->get(0)->allowed();
++    Log::spy();
++    $failed = $direction === 'batch to scalar' ? $engine->decideMany([$request])->get(0) : $engine->decide($panel, $request);
++    expect($failed->reason)->toBe(DecisionReason::PolicyError);
++    Log::shouldHaveReceived('warning')->with('AzGuard evaluation failed.', Mockery::on(fn (array $data): bool => $data['exception'] === RecursionDetectedException::class));
++    RuntimePolicy::$callback = null;
++    expect($engine->decide($panel, $request)->allowed())->toBeTrue()->and($engine->decideMany([$request])->get(0)->allowed())->toBeTrue();
++})->with(['batch to scalar', 'scalar to batch']);
++
++it('permits a policy to check another permission scheduled later in the same batch', function (): void {
++    [$engine, $panel, $view] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
++    $policy = AccessRequest::for($view->subject(), PermissionKey::of('admin', 'orders.policy'));
++    RuntimePolicy::$callback = fn () => $engine->decide($panel, $view)->allowed();
++    $scalar = [$engine->decide($panel, $policy), $engine->decide($panel, $view)];
++    Log::spy();
++    $batch = $engine->decideMany([$policy, $view]);
++    expect($batch->get(0)->allowed())->toBeTrue()->and($batch->get(0)->reason)->toBe(DecisionReason::Policy)
++        ->and($batch->get(1)->allowed())->toBeTrue()->and($batch->get(1)->reason)->toBe(DecisionReason::Granted);
++
++    foreach ($scalar as $i => $decision) {
++        $this->assertEquals($decision, $batch->get($i));
++    }
++    Log::shouldNotHaveReceived('warning');
++});
++
++it('fails conflicting stable subject groups after three batch attempts and observes only final results', function (): void {
++    app(StorageSchema::class)->create('default');
++    User::query()->insert(['id' => 2]);
++    DatabaseWorld::insert('permission', [DatabaseWorld::row('permission'), DatabaseWorld::row('permission', overrides: ['subject_id' => '2'])]);
++    $touches = 0;
++    $observed = [];
++    [$engine] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Check, function (PanelBuilder $panel) use (&$touches, &$observed): void {
++        $panel->before(function (EvaluationContext $context) use (&$touches): BeforeResult {
++            if ($context->subjectModel()?->getKey() === 2) {
++                $touches++;
++                DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
++            }
++
++            return BeforeResult::Continue;
++        })->after(function (Decision $decision) use (&$observed): void {
++            $observed[] = $decision;
++        });
++    });
++    $one = DatabaseWorld::request();
++    $two = AccessRequest::for(SubjectRef::of('user', 2), $one->permission());
++    $set = $engine->decideMany([$one, $two, DatabaseWorld::request(DatabasePermission::Policy)]);
++    expect($touches)->toBe(3)->and($set)->toHaveCount(3)->and($observed)->toHaveCount(3)
++        ->and($set->get(0)->reason)->toBe(DecisionReason::ConsistencyError)->and($set->get(1)->reason)->toBe(DecisionReason::ConsistencyError)
++        ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(2)->reason)->toBe(DecisionReason::Policy);
++
++    foreach ($set as $i => $decision) {
++        expect($decision->state)->toBeInstanceOf(CodeStateToken::class);
++        $this->assertEquals($decision, $observed[$i]);
++    }
++    expect($set->states())->toHaveCount(1);
++});
+diff --git a/tests/Feature/Authorization/Batch/DecideManyResolverTest.php b/tests/Feature/Authorization/Batch/DecideManyResolverTest.php
+new file mode 100644
+index 0000000..8f865d1
+--- /dev/null
++++ b/tests/Feature/Authorization/Batch/DecideManyResolverTest.php
+@@ -0,0 +1,51 @@
++<?php
++
++declare(strict_types=1);
++
++use AzGuard\Authorization\Authorizer;
++use AzGuard\Exceptions\ConflictingPanelException;
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Panels\PanelRegistry;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
++use AzGuard\Tests\Fixtures\Panels\OrderPermission;
++use AzGuard\Tests\Fixtures\Panels\PanelWorld;
++use AzGuard\Tests\Fixtures\Panels\User;
++
++uses()->group('batch');
++
++it('uses PanelResolver for enum full name prefix and explicit panel', function (): void {
++    [$resolver, , $registry] = PanelWorld::adminAndCabinet();
++    app()->instance(PanelRegistry::class, $registry);
++    app()->forgetInstance(Authorizer::class);
++    $engine = app(Authorizer::class);
++    $subject = User::query()->findOrFail(1);
++
++    foreach ([$subject, SubjectRef::of('user', 1)] as $target) {
++        foreach ([[OrderPermission::View, null], ['admin:orders.view', null], ['admin.orders.view', null], ['orders.view', 'admin']] as [$permission, $explicit]) {
++            $expected = $resolver->resolve($target, $permission, $explicit);
++            [$panel, $key] = $engine->resolve($target, $permission, $explicit);
++            expect($panel)->toBe($expected['panel'])->and($key->equals($expected['key']))->toBeTrue();
++        }
++    }
++
++    foreach ([OrderPermission::View, 'admin:orders.view', 'admin.orders.view'] as $conflict) {
++        expect(fn () => $engine->resolve($subject, $conflict, 'cabinet'))->toThrow(ConflictingPanelException::class);
++    }
++});
++
++it('rejects a scalar panel argument conflicting with the request before hooks or sources', function (): void {
++    $s = new ScenarioGenerator(2);
++    $source = new GeneratedSource;
++    [$engine, $panel, $request] = $s->world([$source]);
++    $foreign = AccessRequest::for($request->subject(), PermissionKey::of('beta', 'orders.view'));
++    expect(fn () => $engine->decide($panel, $foreign))->toThrow(ConflictingPanelException::class)
++        ->and($source->grantReads)->toBe(0)->and($source->roleReads)->toBe(0);
++});
++
++it('returns an empty ordered set without states for an empty batch', function (): void {
++    $set = app(Authorizer::class)->decideMany([]);
++    expect($set)->toHaveCount(0)->and($set->states())->toBe([])->and(iterator_to_array($set))->toBe([]);
++});
+diff --git a/tests/Fixtures/Authorization/BatchCrmWorld.php b/tests/Fixtures/Authorization/BatchCrmWorld.php
+new file mode 100644
+index 0000000..10aabe2
+--- /dev/null
++++ b/tests/Fixtures/Authorization/BatchCrmWorld.php
+@@ -0,0 +1,70 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Fixtures\Authorization;
++
++use AzGuard\Kernel\Decision\AccessRequest;
++use AzGuard\Kernel\Identity\PermissionKey;
++use AzGuard\Kernel\Identity\SubjectRef;
++use AzGuard\Tests\Fixtures\Crm\CrmWorld;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;
++use AzGuard\Tests\Fixtures\Crm\Models\Client;
++use AzGuard\Tests\Fixtures\Crm\Models\Project;
++
++final class BatchCrmWorld
++{
++    public static function request(Client $client, ClientPermission $action = ClientPermission::View, string $panel = 'crm', int $user = 1): AccessRequest
++    {
++        return AccessRequest::for(SubjectRef::of('crm.user', $user), PermissionKey::of($panel, $action->value))
++            ->inTenant(CrmWorld::scope((int) $client->getAttribute('organization_id'))->tenant)->on(null, $client);
++    }
++
++    /** @return list<int> Literal fixture rules, independent of the authorization engine. */
++    public static function scale(int $resources, int $contexts): array
++    {
++        CrmWorld::clear();
++        $projects = [];
++
++        for ($offset = 0; $offset < $contexts; $offset++) {
++            $id = 100 + $offset;
++            $projects[] = ['id' => $id, 'organization_id' => 1, 'city_id' => $offset % 2 + 1, 'region' => 'R1', 'is_active' => $offset % 5 !== 0];
++        }
++        Project::query()->insert($projects);
++        // Both roles cover every context: seller checks city, analyst adds the other city's projects.
++        CrmWorld::storage()->mutate('crm', static function ($mutation) use ($projects): void {
++            $rows = [];
++
++            foreach ($projects as $project) {
++                $scope = CrmWorld::scope(1, $project['id']);
++
++                foreach (['seller', 'analyst'] as $role) {
++                    $rows[] = [
++                        'panel' => 'crm', 'tenant_key' => $scope->tenant->key(), 'tenant_type' => $scope->tenant->type(), 'tenant_id' => $scope->tenant->id(),
++                        'context_key' => $scope->context->key(), 'context_type' => $scope->context->type(), 'context_id' => $scope->context->id(),
++                        'subject_type' => 'crm.user', 'subject_id' => '1', 'role' => $role, 'origin' => 'manual',
++                    ];
++                }
++            }
++            $mutation->table('role_grants')->insert($rows);
++            $mutation->touch('crm');
++        });
++        $clients = $allowed = [];
++
++        for ($offset = 0; $offset < $resources; $offset++) {
++            $context = $offset % $contexts;
++            $id = 1000 + $offset;
++            $clients[] = ['id' => $id, 'organization_id' => 1, 'project_id' => 100 + $context, 'do_not_call' => false, 'owner_user_id' => 1];
++
++            if ($context % 5 !== 0) {
++                $allowed[] = $id;
++            }
++        }
++
++        foreach (array_chunk($clients, 500) as $chunk) {
++            Client::query()->insert($chunk);
++        }
++
++        return $allowed;
++    }
++}
+diff --git a/tests/Fixtures/Authorization/BatchExternalAdapter.php b/tests/Fixtures/Authorization/BatchExternalAdapter.php
+new file mode 100644
+index 0000000..8e0fe62
+--- /dev/null
++++ b/tests/Fixtures/Authorization/BatchExternalAdapter.php
+@@ -0,0 +1,50 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Fixtures\Authorization;
++
++use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
++use AzGuard\Kernel\Identity\AssignmentScopeRef;
++use AzGuard\Scopes\AssignmentScopeRuntime;
++use Illuminate\Database\Eloquent\Builder;
++use RuntimeException;
++
++final class BatchExternalAdapter implements AssignmentScopeAccessAdapter
++{
++    public bool $batchOnly = false;
++
++    /** @var list<AssignmentScopeRuntime> */
++    public array $observed = [];
++
++    public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
++    {
++        if ($this->batchOnly) {
++            throw new RuntimeException('Batch external eligibility must use allowsMany.');
++        }
++
++        return $this->eligible($runtime);
++    }
++
++    public function allowsMany(array $refs, AssignmentScopeRuntime $runtime): array
++    {
++        $this->observed[] = $runtime;
++        $result = [];
++
++        foreach ($refs as $ref) {
++            $result[$ref->key()] = $this->eligible($runtime);
++        }
++
++        return $result;
++    }
++
++    public function constrain(Builder $contextQuery, AssignmentScopeRuntime $runtime): Builder
++    {
++        throw new RuntimeException('External definitions have no native query.');
++    }
++
++    private function eligible(AssignmentScopeRuntime $runtime): bool
++    {
++        return $runtime->grant === null || ($runtime->grant->fields()['eligible'] ?? false);
++    }
++}
+diff --git a/tests/Fixtures/Authorization/BatchNativeFilter.php b/tests/Fixtures/Authorization/BatchNativeFilter.php
+new file mode 100644
+index 0000000..7e4c8c4
+--- /dev/null
++++ b/tests/Fixtures/Authorization/BatchNativeFilter.php
+@@ -0,0 +1,29 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Fixtures\Authorization;
++
++use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
++use AzGuard\Scopes\AssignmentScopeRuntime;
++use Illuminate\Database\Eloquent\Builder;
++use RuntimeException;
++
++final class BatchNativeFilter implements AssignmentScopeFilter
++{
++    public static array $fields = [];
++
++    public function apply(Builder $query, AssignmentScopeRuntime $runtime): void
++    {
++        if ($runtime->subject->id() === '2') {
++            throw new RuntimeException('Only the second subject native predicate is unavailable.');
++        }
++        $eligible = $runtime->grant?->fields()['eligible'] ?? true;
++        self::$fields[] = $eligible;
++        $query->where('is_active', true);
++
++        if (! $eligible) {
++            $query->where('id', 0);
++        }
++    }
++}
+diff --git a/tests/Fixtures/Authorization/BatchNativeRole.php b/tests/Fixtures/Authorization/BatchNativeRole.php
+new file mode 100644
+index 0000000..e892469
+--- /dev/null
++++ b/tests/Fixtures/Authorization/BatchNativeRole.php
+@@ -0,0 +1,23 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Fixtures\Authorization;
++
++use AzGuard\Roles\Attributes\Role;
++use AzGuard\Roles\BaseRole;
++use AzGuard\Tests\Fixtures\Scopes\ConfiguredProjectScope;
++
++#[Role('batch-native')]
++final class BatchNativeRole extends BaseRole
++{
++    public function permissions(): array
++    {
++        return ['orders.view'];
++    }
++
++    public function scopes(): array
++    {
++        return [ConfiguredProjectScope::make()->filter(new BatchNativeFilter)];
++    }
++}
+diff --git a/tests/Fixtures/Authorization/BatchPolicy.php b/tests/Fixtures/Authorization/BatchPolicy.php
+new file mode 100644
+index 0000000..c779fb0
+--- /dev/null
++++ b/tests/Fixtures/Authorization/BatchPolicy.php
+@@ -0,0 +1,22 @@
++<?php
++
++declare(strict_types=1);
++
++namespace AzGuard\Tests\Fixtures\Authorization;
++
++use AzGuard\Contracts\Authorization\EvaluationContext;
++use AzGuard\Policies\Decides;
++use AzGuard\Tests\Fixtures\Panels\User;
++
++final class BatchPolicy
++{
++    public static int $calls = 0;
++
++    #[Decides('documents.view')]
++    public function view(?User $user, ?object $resource, EvaluationContext $context): bool
++    {
++        self::$calls++;
++
++        return true;
++    }
++}

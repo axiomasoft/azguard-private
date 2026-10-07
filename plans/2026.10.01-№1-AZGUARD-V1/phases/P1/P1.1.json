@@ -1,0 +1,212 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.1",
+  "title": "Kernel\\Identity: ключи, ссылки, IdentityCodec",
+  "status": "done",
+  "summary": "Сделать идентичность права, роли, субъекта, тенанта, области и инициатора одной и однозначной: readonly значения с проверкой при создании и `IdentityCodec`, который строит составные ключи JSON-массивом и digest без склейки строк; дефект P07 становится невозможным.",
+  "why": "RAG:— D07 (alias `^[a-z0-9][a-z0-9_.-]{0,127}$`, id ≤ 64 ASCII без whitespace/control, `7 ≡ '7'`, `'007'` — другая identity, `type:id`/`global`, вид ref в сериализации, версия кодека в cache/state); D08 (system actor `azguard.system`, id null, reason); D59 (global context внутри tenant ≠ global tenant); probe P07 (C01), V01/V02/V04/V86; D6 п.1–2 (TenantRef/AccessScope здесь, `prefixed()` — P2.2, host keys — P3).",
+  "scope": {
+    "include": [
+      "`AzGuard\\Kernel\\Identity\\`: `PermissionKey` (`of`, `parse`, `panel`, `local`, `full`, `equals`, `Stringable`/`JsonSerializable` → `full()`), `PermissionPattern` (`of`, `panel`, `local`, `full`, `covers(PermissionKey)`, `isExact`, `equals`), `RoleKey` (`of`, `parse`, `panel`, `key`, `full`, `equals`), `SubjectRef` (`of`, `type`, `id`, `key`, `equals`), `TenantRef` и `AssignmentScopeRef` (`of`, `global`, `isGlobal`, `key`, `type`, `id`, `equals`), `AccessScope` (`in(TenantRef, ?AssignmentScopeRef = null)`, public readonly `tenant`/`context`, `equals`), `AnyAssignmentScope` (`all()`), `ActorRef` (`SYSTEM_TYPE`, `of(type, id, ?reason)`, `system(?reason)`, public readonly `type`/`id`/`reason`), `IdentityCodec` (версия, канон id, проверка alias и строки источника/origin, tagged-кодирование/декодирование ссылок, составной ключ и digest). Property/табличные тесты V01, V02 (часть значений), V04 (уровень кодека), V86 (Kernel-часть); регрессия P07; V02-отказы значений (`*`/`**`) в unit-тестах."
+    ],
+    "exclude": [
+      "`PermissionKey::prefixed()` (P2.2); канонизация HK bigint/uuid/ulid и DDL (P3.2/P3.3); ключи кэша `PermissionSetCache` (P4.8 замыкает V04); резолв моделей в ссылки (Laravel-слой, P4/P5); `Grant`/`RoleContribution` (P1.3)."
+    ]
+  },
+  "depends_on": [
+    "P1.2"
+  ],
+  "decisions": [
+    "D6"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P1/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D6.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/evidence/probes/OpusAuditContextProbesTest.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Kernel/Identity/{PermissionKey,PermissionPattern,RoleKey,SubjectRef,TenantRef,AssignmentScopeRef,AccessScope,AnyAssignmentScope,ActorRef,IdentityCodec}.php",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    }
+  ],
+  "rules": [
+    "Все классы `final readonly`, приватный конструктор, создание только фабриками с проверкой. Type alias — `^[a-z0-9][a-z0-9_.-]{0,127}$` (двоеточие запрещено); у `AssignmentScopeRef` нарушение → `InvalidAssignmentScopeException`, у `SubjectRef`/`TenantRef`/`ActorRef` → `InvalidIdentityException` (D6 п.4). Id: `int` → десятичная строка; `string` — непустая, ≤ 64 байт, только печатный ASCII `0x21–0x7E` (без whitespace/control/не-ASCII), без канонизации (`'007'` ≠ `'7'`). `global()` — отдельная форма: `type()`/`id()` = null, `key()` = `global`; `of('global', …)` допустим и не равен `global()` (различие в tagged-кодировании). `key()` = `type:id`, однозначен, так как type без `:`. `PermissionKey::of` проверяет панель и локальный ключ; `parse` — полный; `PermissionPattern::of` — шаблон, `covers` = совпадение панели и `PatternMatcher`. `AccessScope::in` нормализует `null` в `AssignmentScopeRef::global()`. `ActorRef::system` — type `azguard.system`, id null; `of` запрещает type `azguard.system` (только через `system`). `IdentityCodec`: константа `VERSION = 1`; `DEFAULT_ORIGIN = 'manual'`; `assertTypeAlias`, `assertSourceLabel` (`^[a-z0-9][a-z0-9_.:-]{0,127}$` для source/origin, D6); `encode(object $ref): list<string|null>` — tagged-массив с видом (`permission`, `pattern`, `role`, `subject`, `tenant`, `context`, `scope`, `actor`); `decode(list) → ref` обратна; `compose(list<mixed>): string` — `json_encode` с `JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE`, первым элементом версия кодека; `digest(list<mixed>): string` = `sha256(compose(...))`. Никакой конкатенации без границ. Kernel без Laravel. P07: `tests/Regression/P07Test.php` повторяет сценарий spec (`of('workspace:a', 7)` → исключение; `of('w', 7) ≡ of('w', '7')`; ключи `('workspace','a:7')` и `('workspace','a')` различны; digest составных ключей различен) и обновляет `Status: covered:`. V02 в `tests/Unit/Kernel/Identity/PermissionKeyTest.php`: `PermissionKey::of('admin','*')`, `PermissionPattern::of('admin','**')` → `InvalidPermissionKeyException` (P14Test принадлежит P1.2 и не меняется)."
+  ],
+  "guidance": "Property-тесты — `mt_srand(20261001)` и генератор, включающий в id символы `:`, `\"`, `\\`, `[`, `]`, `,`, `{`; V01/V02 round-trip — 10 000 итераций; V04 — 100 000 различных кортежей `(panel, subject, list<context>)`: множество digest того же размера, равные кортежи → равный digest; время теста фиксируется в evidence. V86 Kernel-часть: `AccessScope::in(T('org',1), C('project',7))` ≠ `AccessScope::in(T('org',2), C('project',7))`; `AccessScope::in(T('org',1))` ≠ `AccessScope::in(TenantRef::global())`; `SubjectRef::of('x',7)`, `TenantRef::of('x',7)`, `AssignmentScopeRef::of('x',7)` дают разные `encode`/`compose`.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Unit/Kernel/Identity tests/Regression/P07Test.php tests/Regression/RegressionSpecsTest.php",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/pest --type-coverage --min=98",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "procedure": "shell",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "значения `Kernel\\Identity` и кодек; property-тесты; P07 `covered:`; раздел P1.1 в `@plan/knowledge/findings-P1-execution.json` (принятые формы tagged-кодирования, время property-тестов, доказательство RED)."
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-01T20:15:03Z",
+    "finished_at": "2026-10-05T10:10:52Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "claude"
+    },
+    "notes": "Kernel\\Identity и IdentityCodec; V01/V02/V04 property, P07 covered, RED-доказательство; гейты GREEN\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-01T20:20:53Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-05T10:10:52Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Сделать идентичность права, роли, субъекта, тенанта, области и инициатора одной и однозначной: readonly значения с проверкой при создании и `IdentityCodec`, который строит составные ключи JSON-массивом и digest без склейки строк; дефект P07 становится невозможным."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— D07 (alias `^[a-z0-9][a-z0-9_.-]{0,127}$`, id ≤ 64 ASCII без whitespace/control, `7 ≡ '7'`, `'007'` — другая identity, `type:id`/`global`, вид ref в сериализации, версия кодека в cache/state); D08 (system actor `azguard.system`, id null, reason); D59 (global context внутри tenant ≠ global tenant); probe P07 (C01), V01/V02/V04/V86; D6 п.1–2 (TenantRef/AccessScope здесь, `prefixed()` — P2.2, host keys — P3)."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`AzGuard\\Kernel\\Identity\\`: `PermissionKey` (`of`, `parse`, `panel`, `local`, `full`, `equals`, `Stringable`/`JsonSerializable` → `full()`), `PermissionPattern` (`of`, `panel`, `local`, `full`, `covers(PermissionKey)`, `isExact`, `equals`), `RoleKey` (`of`, `parse`, `panel`, `key`, `full`, `equals`), `SubjectRef` (`of`, `type`, `id`, `key`, `equals`), `TenantRef` и `AssignmentScopeRef` (`of`, `global`, `isGlobal`, `key`, `type`, `id`, `equals`), `AccessScope` (`in(TenantRef, ?AssignmentScopeRef = null)`, public readonly `tenant`/`context`, `equals`), `AnyAssignmentScope` (`all()`), `ActorRef` (`SYSTEM_TYPE`, `of(type, id, ?reason)`, `system(?reason)`, public readonly `type`/`id`/`reason`), `IdentityCodec` (версия, канон id, проверка alias и строки источника/origin, tagged-кодирование/декодирование ссылок, составной ключ и digest). Property/табличные тесты V01, V02 (часть значений), V04 (уровень кодека), V86 (Kernel-часть); регрессия P07; V02-отказы значений (`*`/`**`) в unit-тестах."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "`PermissionKey::prefixed()` (P2.2); канонизация HK bigint/uuid/ulid и DDL (P3.2/P3.3); ключи кэша `PermissionSetCache` (P4.8 замыкает V04); резолв моделей в ссылки (Laravel-слой, P4/P5); `Grant`/`RoleContribution` (P1.3)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/plan.json` · `@plan/phases/P1/phase.json` · `@plan/decisions/D6.json` · `tests/Regression/specs/P07.md`. Код P1.2 (`Kernel\\Grammar`, `Exceptions`) читается из рабочего дерева после закрытия P1.2."
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`packages/core/src/Kernel/Identity/{PermissionKey,PermissionPattern,RoleKey,SubjectRef,TenantRef,AssignmentScopeRef,AccessScope,AnyAssignmentScope,ActorRef,IdentityCodec}.php` · `tests/Unit/Kernel/Identity/*Test.php` · `tests/Regression/P07Test.php` · `tests/Regression/specs/P07.md` · `CHANGELOG.md`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/02-decisions.md` (только решения d07, d08, d59) 2) `audits/2026-09-29-audit/opus/05-php-api.md` §5 (только Identity-значения) 3) `audits/2026-09-29-audit/opus/14-verification.md` (строки V01, V02, V04, V86) 4) `tests/Regression/specs/P07.md` 5) `audits/2026-09-29-audit/opus/evidence/probes/OpusAuditContextProbesTest.php` (тест P07) 6) `@plan/decisions/D6.json`."
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Все классы `final readonly`, приватный конструктор, создание только фабриками с проверкой. Type alias — `^[a-z0-9][a-z0-9_.-]{0,127}$` (двоеточие запрещено); у `AssignmentScopeRef` нарушение → `InvalidAssignmentScopeException`, у `SubjectRef`/`TenantRef`/`ActorRef` → `InvalidIdentityException` (D6 п.4). Id: `int` → десятичная строка; `string` — непустая, ≤ 64 байт, только печатный ASCII `0x21–0x7E` (без whitespace/control/не-ASCII), без канонизации (`'007'` ≠ `'7'`). `global()` — отдельная форма: `type()`/`id()` = null, `key()` = `global`; `of('global', …)` допустим и не равен `global()` (различие в tagged-кодировании). `key()` = `type:id`, однозначен, так как type без `:`. `PermissionKey::of` проверяет панель и локальный ключ; `parse` — полный; `PermissionPattern::of` — шаблон, `covers` = совпадение панели и `PatternMatcher`. `AccessScope::in` нормализует `null` в `AssignmentScopeRef::global()`. `ActorRef::system` — type `azguard.system`, id null; `of` запрещает type `azguard.system` (только через `system`). `IdentityCodec`: константа `VERSION = 1`; `DEFAULT_ORIGIN = 'manual'`; `assertTypeAlias`, `assertSourceLabel` (`^[a-z0-9][a-z0-9_.:-]{0,127}$` для source/origin, D6); `encode(object $ref): list<string|null>` — tagged-массив с видом (`permission`, `pattern`, `role`, `subject`, `tenant`, `context`, `scope`, `actor`); `decode(list) → ref` обратна; `compose(list<mixed>): string` — `json_encode` с `JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE`, первым элементом версия кодека; `digest(list<mixed>): string` = `sha256(compose(...))`. Никакой конкатенации без границ. Kernel без Laravel. P07: `tests/Regression/P07Test.php` повторяет сценарий spec (`of('workspace:a', 7)` → исключение; `of('w', 7) ≡ of('w', '7')`; ключи `('workspace','a:7')` и `('workspace','a')` различны; digest составных ключей различен) и обновляет `Status: covered:`. V02 в `tests/Unit/Kernel/Identity/PermissionKeyTest.php`: `PermissionKey::of('admin','*')`, `PermissionPattern::of('admin','**')` → `InvalidPermissionKeyException` (P14Test принадлежит P1.2 и не меняется)."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Property-тесты — `mt_srand(20261001)` и генератор, включающий в id символы `:`, `\"`, `\\`, `[`, `]`, `,`, `{`; V01/V02 round-trip — 10 000 итераций; V04 — 100 000 различных кортежей `(panel, subject, list<context>)`: множество digest того же размера, равные кортежи → равный digest; время теста фиксируется в evidence. V86 Kernel-часть: `AccessScope::in(T('org',1), C('project',7))` ≠ `AccessScope::in(T('org',2), C('project',7))`; `AccessScope::in(T('org',1))` ≠ `AccessScope::in(TenantRef::global())`; `SubjectRef::of('x',7)`, `TenantRef::of('x',7)`, `AssignmentScopeRef::of('x',7)` дают разные `encode`/`compose`."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Unit/Kernel/Identity tests/Regression/P07Test.php tests/Regression/RegressionSpecsTest.php` — GREEN; 2) временная поломка однозначности (в `compose` заменить JSON на `implode(':')`) даёт RED в V04/P07, после отката GREEN (в evidence); 3) `composer test`; 4) `vendor/bin/pint --test`; 5) `vendor/bin/phpstan analyse --memory-limit=1G`; 6) `vendor/bin/pest --type-coverage --min=98`; 7) `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "значения `Kernel\\Identity` и кодек; property-тесты; P07 `covered:`; раздел P1.1 в `@plan/knowledge/findings-P1-execution.json` (принятые формы tagged-кодирования, время property-тестов, доказательство RED)."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "item": "P4.9",
+  "status": "dependency_wait",
+  "executor": {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "session": "01a1107c-b915-7bd2-ad27-d1e3deb07887",
+    "cwd": "/home/vostrikov/projects/packages/azguard",
+    "approval": "never",
+    "sandbox": "danger-full-access"
+  },
+  "head": "7201c3a9328bd476c4da15696de9ab1b2542113b",
+  "baseline_dependencies": [],
+  "repaired_dependencies": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.17",
+    "P4.5",
+    "P4.6",
+    "P4.19",
+    "P4.7",
+    "P4.16",
+    "P4.18",
+    "P4.15",
+    "P4.13",
+    "P4.8",
+    "P4.20",
+    "P4.21"
+  ],
+  "unfinished_predecessors": [
+    {
+      "id": "P4.6",
+      "status": "blocked",
+      "summary": "Structural tenant/context/resource boundary 09 §3, политики панели, owner/membership/resolvers/stack cleanup. Query eligibility — P4.19; генеративные P4/P13 — P4.16."
+    },
+    {
+      "id": "P4.19",
+      "status": "todo",
+      "summary": "Отдельно реализовать common/role eligibility и operation runtime без предположения query() у generic Definition."
+    },
+    {
+      "id": "P4.16",
+      "status": "todo",
+      "summary": "Завершить V15 P1–P8/P10–P13/P15, отделив property harness от реализации dispatcher/boundary."
+    },
+    {
+      "id": "P4.18",
+      "status": "todo",
+      "summary": "После готовности boundary/eligibility проверить реальные scoped source решения вместо невыполнимых ранних Allow."
+    },
+    {
+      "id": "P4.15",
+      "status": "todo",
+      "summary": "Поднять in-repo CRM-фикстуру (D5): host-приложение с панелями `crm` и `backoffice`, организациями A/B, проектами P1–P5, клиентами C1–C6, людьми Анна/Борис/Дарья/outsider, PHP-ролями с typed filters, политикой клиентов и DB-назначениями — и закрыть на поверхности `Authorizer` те кейсы R01–R68, которые выполнимы возможностями P4.1–P4.7, с заранее заданными ожидаемыми результатами и положительными контролями."
+    },
+    {
+      "id": "P4.13",
+      "status": "todo",
+      "summary": "Независимо проверить, что пайплайн, источники, контексты и суперадмин (P4.1–P4.7) вместе с CRM-фикстурой P4.15 реализуют 09 §2–§6 и D14 без дефектов безопасности, до того как кэш P4.8 закрепит ошибки в ключах и наборах, а Gate и видимость начнут на них строить."
+    },
+    {
+      "id": "P4.20",
+      "status": "todo",
+      "summary": "Замкнуть own tentative mutation и поддержанный joint root transaction без stale host snapshot."
+    },
+    {
+      "id": "P4.21",
+      "status": "todo",
+      "summary": "Доказать consistency/revocation на реальных engines и измерить D44/V43 вне реализации cache в одной сессии."
+    }
+  ],
+  "missing_product_inputs": {
+    "packages/core/src/Authorization/ScopeEligibility.php": false,
+    "tests/Acceptance/Crm": false,
+    "tests/Fixtures/Crm": false
+  },
+  "existing_boundary": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php uses per-request definition->resolve; P4.19 grouped eligibility is not implemented.",
+  "validation": {
+    "plan_check": {
+      "ok": true,
+      "errors": 0,
+      "warnings": 0,
+      "issues": []
+    },
+    "product_tests": "not_run: no product changes, required producers unavailable"
+  },
+  "review_scope": "admission diagnosis and P4.9 prerequisite guard only; no product implementation or GREEN product verdict"
+}

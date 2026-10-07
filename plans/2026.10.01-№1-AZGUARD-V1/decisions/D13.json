@@ -1,0 +1,47 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D13",
+  "title": "Точное сравнение ID на MySQL/MariaDB",
+  "date": "2026-10-04",
+  "status": "accepted",
+  "decision": "Уточняет D12 п.6: MySQL/MariaDB ID(n) и строковые host keys создаются VARBINARY(n) вместо VARCHAR ascii_bin.\nULID — VARBINARY(26), UUID при строковом хранении — VARBINARY(36). PG ID(n) — VARCHAR(n) COLLATE C, SQLite — BINARY.\nКодек проверяет канон ASCII; DDL и unique сравнивают байты, включая хвостовые пробелы, точно.\nОстальная схема, размеры колонок, индексы и CHECK остаются как в D12 и 08 §2.",
+  "rationale": "MySQL ascii_bin имеет PAD SPACE: `a` и `a ` равны. VARBINARY обеспечивает заявленный побайтовый контракт и бюджет индекса.",
+  "applies_to": [
+    "P3.2",
+    "P3.3",
+    "P4.4",
+    "P8.4"
+  ],
+  "supersedes": [],
+  "actor": {
+    "provider": "legacy",
+    "model": "owner / Codex gpt-6.1-sol."
+  },
+  "sections": [
+    {
+      "id": "Preamble",
+      "title": "Preamble",
+      "text": "---\nid: D13\ndate: 2026-10-04\nstatus: accepted\nitem: P3.2\nitems: [P3.2, P3.3, P4.4, P8.4]\nsupersedes: []\nsuperseded_by: null\n---"
+    },
+    {
+      "id": "D13-ID-MySQL-MariaDB",
+      "title": "D13 — Точное сравнение ID на MySQL/MariaDB",
+      "text": "**Actor:** owner / Codex gpt-6.1-sol.\n**Evidence:** @plan/brief.json; @plan/knowledge/findings-P3-execution.json, MySQL 8.4.10 probe."
+    },
+    {
+      "id": "Solution",
+      "title": "Solution",
+      "text": "Уточняет D12 п.6: MySQL/MariaDB ID(n) и строковые host keys создаются VARBINARY(n) вместо VARCHAR ascii_bin.\nULID — VARBINARY(26), UUID при строковом хранении — VARBINARY(36). PG ID(n) — VARCHAR(n) COLLATE C, SQLite — BINARY.\nКодек проверяет канон ASCII; DDL и unique сравнивают байты, включая хвостовые пробелы, точно.\nОстальная схема, размеры колонок, индексы и CHECK остаются как в D12 и 08 §2."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "MySQL ascii_bin имеет PAD SPACE: `a` и `a ` равны. VARBINARY обеспечивает заявленный побайтовый контракт и бюджет индекса."
+    },
+    {
+      "id": "Consequences",
+      "title": "Consequences",
+      "text": "DDL-снимки отражают binary types на MySQL/MariaDB. PDO возвращает строки; идентичность и канон не меняются."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+diff --git a/tests/Benchmarks/AuthorizationLatency.php b/tests/Benchmarks/AuthorizationLatency.php
+index b6fbca1..94c5808 100644
+--- a/tests/Benchmarks/AuthorizationLatency.php
++++ b/tests/Benchmarks/AuthorizationLatency.php
+@@ -16,8 +16,6 @@
+ use Illuminate\Database\Events\QueryExecuted;
+ 
+ putenv('APP_ENV=testing');
+-$test = new class('latency') extends TestCase {};
+-$app = $test->createApplication();
+ $samples = (int) (getenv('AZGUARD_BENCH_SAMPLES') ?: 200);
+ $warmup = 20;
+ 
+@@ -27,6 +25,8 @@
+ $rows = [];
+ 
+ try {
++    $test = new class('latency') extends TestCase {};
++    $app = $test->createApplication();
+     CacheEngineWorld::seed();
+     DatabaseWorld::storage()->connection()->table('users')->where('id', 1)->update(['department' => 'sales']);
+     $connection = DatabaseWorld::storage()->connection();
+@@ -115,7 +115,14 @@
+     fwrite(STDERR, $error::class.': '.$error->getMessage()."\n");
+     $failed = true;
+ } finally {
+-    CacheEngineWorld::clean();
++    if (isset($app)) {
++        try {
++            CacheEngineWorld::clean();
++        } catch (Throwable $cleanupError) {
++            fwrite(STDERR, 'Cleanup failed: '.$cleanupError::class.': '.$cleanupError->getMessage()."\n");
++            $failed = true;
++        }
++    }
+ }
+ 
+ if (isset($failed)) {
+diff --git a/tests/Engines/Support/replica-README.md b/tests/Engines/Support/replica-README.md
+index c75607c..e7b003c 100644
+--- a/tests/Engines/Support/replica-README.md
++++ b/tests/Engines/Support/replica-README.md
+@@ -34,7 +34,7 @@ The JSON `controlled_window_ms` is an observed test pause, not a replication SLA
+ 
+ The host-lock test polls a real server lock wait. PostgreSQL observes `pg_stat_activity` through
+ a separate normal test connection. MySQL/MariaDB use a separate loopback root **read-only query**
+-to `performance_schema.data_lock_waits` (MySQL) or `innodb_lock_waits` (MariaDB),
++to `performance_schema.data_lock_waits` (MySQL) or `SHOW ENGINE INNODB STATUS` (MariaDB),
+ restricted to the exact worker connection on the configured `_test` database;
+ `MYSQL_ROOT_PASSWORD`/`MARIADB_ROOT_PASSWORD` override the local test defaults. No privilege is
+ granted to the application account. The independent writer remains the normal application user.

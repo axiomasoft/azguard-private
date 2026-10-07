@@ -1,0 +1,7 @@
+{
+  "session_id": "bb2fb441-d02f-4c09-94d5-01b918b134c6",
+  "observed_model": "grok-4.7",
+  "observed_effort": "high",
+  "native_metadata_path": "/home/vostrikov/.grok/sessions/%2Ftmp%2Fazguard-p4-final-review/bb2fb441-d02f-4c09-94d5-01b918b134c6/summary.json",
+  "scope": "entire final P4 graph/continuation strategy; no product acceptance"
+}

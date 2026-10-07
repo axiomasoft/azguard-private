@@ -1,0 +1,61 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D6",
+  "title": "Состав P1 по реальному замыканию зависимостей; перенос значений, которым нужны Panel/Change/EvaluationContext",
+  "date": "2026-10-01",
+  "status": "accepted",
+  "decision": "1. **В P1 остаётся только то, что собирается без `Panel`, `Change`, `EvaluationContext` и Laravel-runtime.**\n   Перенос с сохранением трассировки на исходный номер досье:\n   - `AssignmentScopeRuntime`, `LookupContext`, `AssignmentScopeFilter`, `ConfigurableAssignmentScopeDefinition`,\n     `AssignmentScopeSettings`, `BaseAssignmentScope`, `AssignmentScopeAccessAdapter`, directories\n     (`TenantDirectory`, `AssignmentScopeDirectory`, `SubjectDirectory`) и `TenantOption`/`AssignmentScopeOption`/\n     `SubjectOption` → **F2** (кадры держат `Panel $panel`; фильтр и конфигурируемое определение требуют кадр).\n     Детализация P2 размещает их в P2.1 или новом пункте P2 до P2.8 (FolderSource регистрирует `Scopes/`).\n   - `PluginContext` → **P2.4** (там же в досье `concrete named typed factory/PluginContext`).\n   - `ChangeContext` → **P5.2** (`ChangeType`, `Change` и токен состояния операции).\n   - `GrantCondition` → **P4.1** (сигнатура требует `EvaluationContext`; там же «per-grant conditions»).\n     `FiltersAccessQueries`/`AccessPredicate` создаёт **P4.22**, интегрирует **P4.12** (уточнение D15 после разделения P4; forward owner, не переисполнение P1).\n   - `GrantFilter`/`GrantPage`/`GrantRecord` → **P5.3** (форма записи зависит от хранилища P3 и fingerprint).\n   - `Explanation` → **P4.10** (трасса определяется пайплайном P4.1).\n   - `Decision::toGateResult()` → **P4.11** (Kernel не импортирует Laravel `Response`; адаптер — GateBridge).\n   - `PermissionKey::prefixed()` → **P2.2** (presentation prefix принадлежит панели, `resourcePrefix()` D84).\n   - Канонизация host keys bigint/uuid/ulid (D08) → **P3.2/P3.3**; P1.1 даёт общий канон `string` из D07.\n2. **Внутри P1 перенос между пунктами:** `TenantRef` и `AccessScope` — в **P1.1** (кодек различает вид ref\n   в сериализации, D07; без них нельзя проверить V86); `RoleContribution` — в **P1.3** рядом с `Grant`\n   (общая форма `fields()`, срок, origin). P1.6 сохраняет: authority semantics на `PermissionAuthority`,\n   `BaseRole` с атрибутами и `SuperAdminRole`/`GrantedAutomatically`, структурные SPI областей и tenant/subject\n   резолверов, `ResolvedAssignmentScope`, `AssignmentScopePhase`.\n3. **Порядок исполнения P1:** P1.2 → P1.1 → P1.3 → P1.4 (batch B1), затем P1.6 (solo), затем `Review P1` = **P1.7**\n   (номер P1.5 в досье отсутствует; review получает следующий номер после максимального, чтобы не занимать дыру\n   досье).\n4. **Заполнение пробелов досье без новых имён:**\n   - Ошибки ссылок без отдельного класса в таблице 05 §10 (`SubjectRef`, `TenantRef`, `ActorRef`, origin/source)\n     бросают сам `InvalidIdentityException` (не abstract, код `invalid_identity`); `AssignmentScopeRef` —\n     `InvalidAssignmentScopeException`. Отсутствующий или неверный ключ `BaseRole` — `InvalidRoleKeyException`.\n   - `origin` и id источника (`Grant::$source`, `RoleContribution::$source`) — строки грамматики\n     `^[a-z0-9][a-z0-9_.:-]{0,127}$` (08: `origin ID(128)`, пример источника `relation:project`); origin по\n     умолчанию `manual`. Отдельного класса `Origin` нет: имени нет в `03`.\n   - Классы вне перечня D12 становятся публичными только явным тегом docblock `@api`/`@spi`; манифест пишет\n     способ (`location` | `tag`). Иначе атрибуты ролей и `AssignmentScopePhase` были бы internal.",
+  "rationale": "Досье — нормативный источник смысла и имён, но перечень P1.6 смешивает чистые значения и кадры операций,\nкоторым нужен `Panel` (P2.1), `Change` (P5.2) и `EvaluationContext` (P4.1). Писать их в P1 означает либо\nпридумать временные типы (нарушение «имена только из 03»), либо нарушить D3 (фаза исполняется целиком до\nследующей). Перенос в пункт, где появляется зависимость, сохраняет сигнатуры досье без заглушек.",
+  "applies_to": [
+    "P1",
+    "P1.1",
+    "P1.2",
+    "P1.3",
+    "P1.4",
+    "P1.6",
+    "P1.7",
+    "P2.1",
+    "P2.2",
+    "P2.4",
+    "P3.2",
+    "P3.3",
+    "P4.1",
+    "P4.8",
+    "P4.10",
+    "P4.11",
+    "P5.2",
+    "P5.3"
+  ],
+  "supersedes": [],
+  "actor": {
+    "provider": "legacy",
+    "model": "plan-designer / Claude Opus 5.5 (frontier)"
+  },
+  "sections": [
+    {
+      "id": "Preamble",
+      "title": "Preamble",
+      "text": "---\nid: D6\ndate: 2026-10-01\nstatus: accepted\nitem: P1\nitems: [P1, P1.1, P1.2, P1.3, P1.4, P1.6, P1.7, P2.1, P2.2, P2.4, P3.2, P3.3, P4.1, P4.8, P4.10, P4.11, P5.2, P5.3]\nsupersedes: []\nsuperseded_by: null\n---"
+    },
+    {
+      "id": "D6-P1-Panel-Change-EvaluationContext",
+      "title": "D6 — Состав P1 по реальному замыканию зависимостей; перенос значений, которым нужны Panel/Change/EvaluationContext",
+      "text": "**Actor:** plan-designer / Claude Opus 5.5 (frontier)\n**Evidence:** RAG:— `13-workstreams.md` F1 и «Зависимости»; `05-php-api.md` §5, §6, §10, §12; `06-extension-points.md` §7; `18-contexts-and-runtime-inputs.md` §10; `04-packages-and-layout.md` §2, §3, §7; `02-decisions.md` D06, D07, D12, D18, D37, D83; код HEAD `9bb02fc` (`packages/core/src` содержит только `AzGuardServiceProvider.php`)."
+    },
+    {
+      "id": "Solution",
+      "title": "Solution",
+      "text": "1. **В P1 остаётся только то, что собирается без `Panel`, `Change`, `EvaluationContext` и Laravel-runtime.**\n   Перенос с сохранением трассировки на исходный номер досье:\n   - `AssignmentScopeRuntime`, `LookupContext`, `AssignmentScopeFilter`, `ConfigurableAssignmentScopeDefinition`,\n     `AssignmentScopeSettings`, `BaseAssignmentScope`, `AssignmentScopeAccessAdapter`, directories\n     (`TenantDirectory`, `AssignmentScopeDirectory`, `SubjectDirectory`) и `TenantOption`/`AssignmentScopeOption`/\n     `SubjectOption` → **F2** (кадры держат `Panel $panel`; фильтр и конфигурируемое определение требуют кадр).\n     Детализация P2 размещает их в P2.1 или новом пункте P2 до P2.8 (FolderSource регистрирует `Scopes/`).\n   - `PluginContext` → **P2.4** (там же в досье `concrete named typed factory/PluginContext`).\n   - `ChangeContext` → **P5.2** (`ChangeType`, `Change` и токен состояния операции).\n   - `GrantCondition` → **P4.1** (сигнатура требует `EvaluationContext`; там же «per-grant conditions»).\n     `FiltersAccessQueries`/`AccessPredicate` создаёт **P4.22**, интегрирует **P4.12** (уточнение D15 после разделения P4; forward owner, не переисполнение P1).\n   - `GrantFilter`/`GrantPage`/`GrantRecord` → **P5.3** (форма записи зависит от хранилища P3 и fingerprint).\n   - `Explanation` → **P4.10** (трасса определяется пайплайном P4.1).\n   - `Decision::toGateResult()` → **P4.11** (Kernel не импортирует Laravel `Response`; адаптер — GateBridge).\n   - `PermissionKey::prefixed()` → **P2.2** (presentation prefix принадлежит панели, `resourcePrefix()` D84).\n   - Канонизация host keys bigint/uuid/ulid (D08) → **P3.2/P3.3**; P1.1 даёт общий канон `string` из D07.\n2. **Внутри P1 перенос между пунктами:** `TenantRef` и `AccessScope` — в **P1.1** (кодек различает вид ref\n   в сериализации, D07; без них нельзя проверить V86); `RoleContribution` — в **P1.3** рядом с `Grant`\n   (общая форма `fields()`, срок, origin). P1.6 сохраняет: authority semantics на `PermissionAuthority`,\n   `BaseRole` с атрибутами и `SuperAdminRole`/`GrantedAutomatically`, структурные SPI областей и tenant/subject\n   резолверов, `ResolvedAssignmentScope`, `AssignmentScopePhase`.\n3. **Порядок исполнения P1:** P1.2 → P1.1 → P1.3 → P1.4 (batch B1), затем P1.6 (solo), затем `Review P1` = **P1.7**\n   (номер P1.5 в досье отсутствует; review получает следующий номер после максимального, чтобы не занимать дыру\n   досье).\n4. **Заполнение пробелов досье без новых имён:**\n   - Ошибки ссылок без отдельного класса в таблице 05 §10 (`SubjectRef`, `TenantRef`, `ActorRef`, origin/source)\n     бросают сам `InvalidIdentityException` (не abstract, код `invalid_identity`); `AssignmentScopeRef` —\n     `InvalidAssignmentScopeException`. Отсутствующий или неверный ключ `BaseRole` — `InvalidRoleKeyException`.\n   - `origin` и id источника (`Grant::$source`, `RoleContribution::$source`) — строки грамматики\n     `^[a-z0-9][a-z0-9_.:-]{0,127}$` (08: `origin ID(128)`, пример источника `relation:project`); origin по\n     умолчанию `manual`. Отдельного класса `Origin` нет: имени нет в `03`.\n   - Классы вне перечня D12 становятся публичными только явным тегом docblock `@api`/`@spi`; манифест пишет\n     способ (`location` | `tag`). Иначе атрибуты ролей и `AssignmentScopePhase` были бы internal."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "Досье — нормативный источник смысла и имён, но перечень P1.6 смешивает чистые значения и кадры операций,\nкоторым нужен `Panel` (P2.1), `Change` (P5.2) и `EvaluationContext` (P4.1). Писать их в P1 означает либо\nпридумать временные типы (нарушение «имена только из 03»), либо нарушить D3 (фаза исполняется целиком до\nследующей). Перенос в пункт, где появляется зависимость, сохраняет сигнатуры досье без заглушек."
+    },
+    {
+      "id": "Consequences",
+      "title": "Consequences",
+      "text": "Детализация P2/P4/P5 обязана принять перечисленные значения в owning items (строка в Phase Context скелетов\nP2/P4/P5 ссылается на D6). V86 закрывается по частям: Kernel-часть — P1.1, выбор панели — P2.2, граница — P4.6.\nV89 в P1.6 — только связь кодовых ролей с определением области; typed filters — F2. P14 закрывается на уровне\nграмматики (P1.2), отказ значений — V02 в P1.1; сквозной сценарий `grantPermission('*')` остаётся acceptance V17/V22\nпунктов P4.7/P5.2."
+    }
+  ]
+}

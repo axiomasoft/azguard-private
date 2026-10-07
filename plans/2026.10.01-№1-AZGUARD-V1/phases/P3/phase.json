@@ -1,0 +1,106 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P3",
+  "title": "Хранилище",
+  "design": "detailed",
+  "goal": "Дизайн на HEAD `9417a3e`: P2 закрыт GREEN. В `packages/core/src` есть Kernel P1 (`IdentityCodec` с каноном `string`,\n`StateToken`, ссылки субъекта/тенанта/области), панели, каталог, источники и `FolderSource` P2; `AzGuardConfig` читает\n`panels`, `defaults`, `catalog`, `sources`, `discovery`; `Storage\\` пуст, `StorageException` abstract. Arch-набор уже\nограничивает `DB`/`Schema`/`Connection` зонами `Storage`, `Sources\\Database`. `TestCase` знает `sqlite`/`pgsql`/`mysql`;\n`docker-compose.yml` — postgres:16, mysql:8, redis:7.\nP3 строит хранилище: именованные хранилища и канон host keys, единственную точку записи `Storage::mutate()` с блокировкой\nсостояния панели первой, повторами и версией на панель; схему 08 §2 и миграции на PG/MySQL/MariaDB/SQLite; базовые и свои\nмодели выдач, свои поля и `meta`; запрет прямых записей моделей во всех окружениях.\nСостав, порядок, публичность и пробелы досье — [D12](../../decisions/D12-p3-storage-closure.md); среды СУБД — D4 с\nуточнением D12 п.7. Принимает по [D6](../../decisions/D6-p1-dependency-closure.md): канонизацию host keys bigint/uuid/ulid\nповерх `IdentityCodec` (P3.1 канон, P3.2 колонки). Принимает по [D8](../../decisions/D8-p2-dependency-closure.md):\n`PanelBuilder::fields(FieldTarget, …)` с `FieldTarget` (P3.3; плюс `Panel::fields()` по D12 п.5), секции конфига\n`storages`, `ids` (P3.1), `defaults.models` (P3.3) в `AzGuardConfig`.\nRAG:— `13-workstreams.md` F3 и «Уточнения пятого прохода»; `08-data-model-and-migration.md` §1–§3, §5, §6;\n`06-extension-points.md` §6; `05-php-api.md` §6, §8, §9, §10; `07-configuration.md` §1, §2, §5; `04-packages-and-layout.md`\n§2, §4, §5; выдержки D08, D13, D22, D24, D34, D35, D46, D63 — [@plan/brief.json](../../brief/P3-dossier-decisions.md).\n\n> **Phase Contract (contract-first).** Потребляет: Kernel P1 (`IdentityCodec`, ссылки, `PermissionGrammar`), `Panel`/`PanelBuilder`/`PanelRecipe`/`PanelCompiler` и `AzGuardConfig` P2, иерархию исключений D37. · Производит: внутренние `Storage\\{Storage,StorageRegistry,PanelState,StorageMutation,GrantFields,WriteGuardedBuilder}`, `Storage\\Schema\\HostKeyColumns`, `Storage\\Concerns\\{BelongsToStorage,GuardsDirectWrites}`; публичные `Storage\\Schema\\StorageSchema` (`@api`), `Storage\\Models\\{RoleGrant,PermissionGrant,Permission}`, `Schema\\{Field,FieldTarget}`, `PanelBuilder::fields()`, `Panel::fields()`; исключения `UnsupportedDirectWriteException`, `StorageMismatchException`, `InvalidChangeFieldsException`; миграция ядра и команда `azguard:storage:migration`; секции конфига `storages`, `ids`, `defaults.models`; arch-правила записи; группа тестов `engines` и сервис MariaDB. · Границы: без `DatabaseSource` и его builder-методов (`storage()`, `models()`, `decisionFields()`, `dynamicPermissions()`, `rolesOnly()`) — P4.4; без чтения выдач в решение, кэша и протокола `T_before/T_after` — P4.1/P4.8; без `Change`, `ChangePipeline`, `GrantManager`, событий — P5; без `FieldSchema`/`PanelSchema` — P5.5; без doctor и reset/restore — P6.4/P6.6; без новых runtime-зависимостей.\n\n> **Phase Assurance | v1.**\n> Impact: public-contract\n> Integration Seams: storage-mutate · storage-ddl · grant-models\n> Live or Irreversible: no\n> Audit Intent: auto\n> Rationale: единственный путь записи, блокировки и DDL на четырёх СУБД — жёсткий риск для P4/P5; публичные модели и Field замораживаются в манифесте; изменения обратимы, live — только локальные docker test-базы",
+  "context": "Дизайн на HEAD `9417a3e`: P2 закрыт GREEN. В `packages/core/src` есть Kernel P1 (`IdentityCodec` с каноном `string`,\n`StateToken`, ссылки субъекта/тенанта/области), панели, каталог, источники и `FolderSource` P2; `AzGuardConfig` читает\n`panels`, `defaults`, `catalog`, `sources`, `discovery`; `Storage\\` пуст, `StorageException` abstract. Arch-набор уже\nограничивает `DB`/`Schema`/`Connection` зонами `Storage`, `Sources\\Database`. `TestCase` знает `sqlite`/`pgsql`/`mysql`;\n`docker-compose.yml` — postgres:16, mysql:8, redis:7.\nP3 строит хранилище: именованные хранилища и канон host keys, единственную точку записи `Storage::mutate()` с блокировкой\nсостояния панели первой, повторами и версией на панель; схему 08 §2 и миграции на PG/MySQL/MariaDB/SQLite; базовые и свои\nмодели выдач, свои поля и `meta`; запрет прямых записей моделей во всех окружениях.\nСостав, порядок, публичность и пробелы досье — [D12](../../decisions/D12-p3-storage-closure.md); среды СУБД — D4 с\nуточнением D12 п.7. Принимает по [D6](../../decisions/D6-p1-dependency-closure.md): канонизацию host keys bigint/uuid/ulid\nповерх `IdentityCodec` (P3.1 канон, P3.2 колонки). Принимает по [D8](../../decisions/D8-p2-dependency-closure.md):\n`PanelBuilder::fields(FieldTarget, …)` с `FieldTarget` (P3.3; плюс `Panel::fields()` по D12 п.5), секции конфига\n`storages`, `ids` (P3.1), `defaults.models` (P3.3) в `AzGuardConfig`.\nRAG:— `13-workstreams.md` F3 и «Уточнения пятого прохода»; `08-data-model-and-migration.md` §1–§3, §5, §6;\n`06-extension-points.md` §6; `05-php-api.md` §6, §8, §9, §10; `07-configuration.md` §1, §2, §5; `04-packages-and-layout.md`\n§2, §4, §5; выдержки D08, D13, D22, D24, D34, D35, D46, D63 — [@plan/brief.json](../../brief/P3-dossier-decisions.md).\n\n> **Phase Contract (contract-first).** Потребляет: Kernel P1 (`IdentityCodec`, ссылки, `PermissionGrammar`), `Panel`/`PanelBuilder`/`PanelRecipe`/`PanelCompiler` и `AzGuardConfig` P2, иерархию исключений D37. · Производит: внутренние `Storage\\{Storage,StorageRegistry,PanelState,StorageMutation,GrantFields,WriteGuardedBuilder}`, `Storage\\Schema\\HostKeyColumns`, `Storage\\Concerns\\{BelongsToStorage,GuardsDirectWrites}`; публичные `Storage\\Schema\\StorageSchema` (`@api`), `Storage\\Models\\{RoleGrant,PermissionGrant,Permission}`, `Schema\\{Field,FieldTarget}`, `PanelBuilder::fields()`, `Panel::fields()`; исключения `UnsupportedDirectWriteException`, `StorageMismatchException`, `InvalidChangeFieldsException`; миграция ядра и команда `azguard:storage:migration`; секции конфига `storages`, `ids`, `defaults.models`; arch-правила записи; группа тестов `engines` и сервис MariaDB. · Границы: без `DatabaseSource` и его builder-методов (`storage()`, `models()`, `decisionFields()`, `dynamicPermissions()`, `rolesOnly()`) — P4.4; без чтения выдач в решение, кэша и протокола `T_before/T_after` — P4.1/P4.8; без `Change`, `ChangePipeline`, `GrantManager`, событий — P5; без `FieldSchema`/`PanelSchema` — P5.5; без doctor и reset/restore — P6.4/P6.6; без новых runtime-зависимостей.\n\n> **Phase Assurance | v1.**\n> Impact: public-contract\n> Integration Seams: storage-mutate · storage-ddl · grant-models\n> Live or Irreversible: no\n> Audit Intent: auto\n> Rationale: единственный путь записи, блокировки и DDL на четырёх СУБД — жёсткий риск для P4/P5; публичные модели и Field замораживаются в манифесте; изменения обратимы, live — только локальные docker test-базы",
+  "depends_on": [],
+  "items": [
+    "P3.1",
+    "P3.2",
+    "P3.3",
+    "P3.4",
+    "P3.5"
+  ],
+  "batches": [
+    {
+      "id": "B3a",
+      "items": [
+        "P3.1",
+        "P3.2"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3b",
+      "items": [
+        "P3.3",
+        "P3.4"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP3-5",
+      "items": [
+        "P3.5"
+      ],
+      "mode": "recommended"
+    }
+  ],
+  "closed": {
+    "at": "2026-10-04T06:36:10Z",
+    "result": "done",
+    "summary": "<!-- plan-projection\nprojection: phase-closure\nprojection_version: v1\nsource_scope: phase P3 + item states + decisions\nthrough: P3: 🟢 Done\ninputs_sha256: d73fa0500b8c74f296713f693087afc6fa5b71326b9b9dd8e9bedc9a3efad33d\ngenerated_by: task plan-views closure\n-->\n\n# Closing phase P3\n\n> Do not manipulate by hand: this is a generated view.\n\n## Phase Contract\n\n**Phase Contract (contract-first).** Потребляет: Kernel P1 (`IdentityCodec`, ссылки, `PermissionGrammar`), `Panel`/`PanelBuilder`/`PanelRecipe`/`PanelCompiler` и `AzGuardConfig` P2, иерархию исключений D37. · Производит: внутренние `Storage\\{Storage,StorageRegistry,PanelState,StorageMutation,GrantFields,WriteGuardedBuilder}`, `Storage\\Schema\\HostKeyColumns`, `Storage\\Concerns\\{BelongsToStorage,GuardsDirectWrites}`; публичные `Storage\\Schema\\StorageSchema` (`@api`), `Storage\\Models\\{RoleGrant,PermissionGrant,Permission}`, `Schema\\{Field,FieldTarget}`, `PanelBuilder::fields()`, `Panel::fields()`; исключения `UnsupportedDirectWriteException`, `StorageMismatchException`, `InvalidChangeFieldsException`; миграция ядра и команда `azguard:storage:migration`; секции конфига `storages`, `ids`, `defaults.models`; arch-правила записи; группа тестов `engines` и сервис MariaDB. · Границы: без `DatabaseSource` и его builder-методов (`storage()`, `models()`, `decisionFields()`, `dynamicPermissions()`, `rolesOnly()`) — P4.4; без чтения выдач в решение, кэша и протокола `T_before/T_after` — P4.1/P4.8; без `Change`, `ChangePipeline`, `GrantManager`, событий — P5; без `FieldSchema`/`PanelSchema` — P5.5; без doctor и reset/restore — P6.4/P6.6; без новых runtime-зависимостей.\n\n## Produced\n\n- P3.1 — Storage::mutate, блокировки, повторы, версия панели, host_keys: хранилища из конфига, канон host keys, `Storage::mutate()`/`state()`, `panel_state`, группа `engines`; раздел P3.1 в `@plan/knowledge/findings-P3-execution.json` (шаги 08 §5 → код; V44/V52/V97/V99/V101-часть → тест; число попыток в V44; версии СУБД из прогона).\n- P3.2 — Миграции с префиксом хранилища на PG/MySQL/MariaDB/SQLite: схема 08 §2 на четырёх СУБД, `storage_state` и сверка, миграция ядра, `azguard:storage:migration`, MariaDB в среде тестов, DDL-снимки; раздел P3.2 в `@plan/knowledge/findings-P3-execution.json` (таблица «строка 08 §2 → колонка/индекс/ограничение на каждой СУБД»; V105-часть → тест; версии СУБД, `innodb_page_size`, collation).\n- P3.3 — Базовые и свои модели, azguardFields, meta, decisionFields: базовые модели, свои модели с проверкой хранилища, `Field`/`FieldTarget`, поля панели и плагинов, `GrantFields`, `defaults.models`; обновлённый манифест; раздел P3.3 в `@plan/knowledge/findings-P3-execution.json` (V51/V54-часть → тест; остаток V51/V54 → P5.2/P4.1 по D12 п.8).\n- P3.4 — Защита от прямых записей: запрет прямых записей моделей и массовых записей, arch-правила записи; раздел P3.4 в `@plan/knowledge/findings-P3-execution.json` (таблица «путь записи → блокировка → тест»; граница raw SQL/`toBase()`; доказательства RED arch-правил).\n- P3.5 — Review P3: независимая read-only проверка фазы: `@plan/knowledge/findings-P3-review.json` с verdict `GREEN`/`RED`, таблицей находок и итогом гейтов (включая версии СУБД).\n\n## Known Deviations\n\n- —\n\n## Solutions\n\n- [D6](../../decisions/D6-p1-dependency-closure.md)\n- [D8](../../decisions/D8-p2-dependency-closure.md)\n- [D12](../../decisions/D12-p3-storage-closure.md)\n- [D13](../../decisions/D13-p3-binary-identifiers.md)\n"
+  },
+  "orchestration": {
+    "strategy": "sequential"
+  },
+  "sections": [
+    {
+      "id": "P3",
+      "title": "P3 — Хранилище",
+      "text": ""
+    },
+    {
+      "id": "Phase-Context",
+      "title": "Phase Context",
+      "text": "Дизайн на HEAD `9417a3e`: P2 закрыт GREEN. В `packages/core/src` есть Kernel P1 (`IdentityCodec` с каноном `string`,\n`StateToken`, ссылки субъекта/тенанта/области), панели, каталог, источники и `FolderSource` P2; `AzGuardConfig` читает\n`panels`, `defaults`, `catalog`, `sources`, `discovery`; `Storage\\` пуст, `StorageException` abstract. Arch-набор уже\nограничивает `DB`/`Schema`/`Connection` зонами `Storage`, `Sources\\Database`. `TestCase` знает `sqlite`/`pgsql`/`mysql`;\n`docker-compose.yml` — postgres:16, mysql:8, redis:7.\nP3 строит хранилище: именованные хранилища и канон host keys, единственную точку записи `Storage::mutate()` с блокировкой\nсостояния панели первой, повторами и версией на панель; схему 08 §2 и миграции на PG/MySQL/MariaDB/SQLite; базовые и свои\nмодели выдач, свои поля и `meta`; запрет прямых записей моделей во всех окружениях.\nСостав, порядок, публичность и пробелы досье — [D12](../../decisions/D12-p3-storage-closure.md); среды СУБД — D4 с\nуточнением D12 п.7. Принимает по [D6](../../decisions/D6-p1-dependency-closure.md): канонизацию host keys bigint/uuid/ulid\nповерх `IdentityCodec` (P3.1 канон, P3.2 колонки). Принимает по [D8](../../decisions/D8-p2-dependency-closure.md):\n`PanelBuilder::fields(FieldTarget, …)` с `FieldTarget` (P3.3; плюс `Panel::fields()` по D12 п.5), секции конфига\n`storages`, `ids` (P3.1), `defaults.models` (P3.3) в `AzGuardConfig`.\nRAG:— `13-workstreams.md` F3 и «Уточнения пятого прохода»; `08-data-model-and-migration.md` §1–§3, §5, §6;\n`06-extension-points.md` §6; `05-php-api.md` §6, §8, §9, §10; `07-configuration.md` §1, §2, §5; `04-packages-and-layout.md`\n§2, §4, §5; выдержки D08, D13, D22, D24, D34, D35, D46, D63 — [@plan/brief.json](../../brief/P3-dossier-decisions.md).\n\n> **Phase Contract (contract-first).** Потребляет: Kernel P1 (`IdentityCodec`, ссылки, `PermissionGrammar`), `Panel`/`PanelBuilder`/`PanelRecipe`/`PanelCompiler` и `AzGuardConfig` P2, иерархию исключений D37. · Производит: внутренние `Storage\\{Storage,StorageRegistry,PanelState,StorageMutation,GrantFields,WriteGuardedBuilder}`, `Storage\\Schema\\HostKeyColumns`, `Storage\\Concerns\\{BelongsToStorage,GuardsDirectWrites}`; публичные `Storage\\Schema\\StorageSchema` (`@api`), `Storage\\Models\\{RoleGrant,PermissionGrant,Permission}`, `Schema\\{Field,FieldTarget}`, `PanelBuilder::fields()`, `Panel::fields()`; исключения `UnsupportedDirectWriteException`, `StorageMismatchException`, `InvalidChangeFieldsException`; миграция ядра и команда `azguard:storage:migration`; секции конфига `storages`, `ids`, `defaults.models`; arch-правила записи; группа тестов `engines` и сервис MariaDB. · Границы: без `DatabaseSource` и его builder-методов (`storage()`, `models()`, `decisionFields()`, `dynamicPermissions()`, `rolesOnly()`) — P4.4; без чтения выдач в решение, кэша и протокола `T_before/T_after` — P4.1/P4.8; без `Change`, `ChangePipeline`, `GrantManager`, событий — P5; без `FieldSchema`/`PanelSchema` — P5.5; без doctor и reset/restore — P6.4/P6.6; без новых runtime-зависимостей.\n\n> **Phase Assurance | v1.**\n> Impact: public-contract\n> Integration Seams: storage-mutate · storage-ddl · grant-models\n> Live or Irreversible: no\n> Audit Intent: auto\n> Rationale: единственный путь записи, блокировки и DDL на четырёх СУБД — жёсткий риск для P4/P5; публичные модели и Field замораживаются в манифесте; изменения обратимы, live — только локальные docker test-базы"
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "Хранилища из конфига, реестр с уникальностью пары подключения и префикса, канон host keys, `panel_state`, `mutate` с\nблокировками в порядке ключей, повторами, версией на панель, вложенностью и after-commit, чтение состояния с primary,\nгруппа `engines` (P3.1); схема 08 §2 целиком, `storage_state` и сверка схемы, миграция ядра и генератор миграции своего\nхранилища, DDL-снимки и инварианты на 4 СУБД, MariaDB (P3.2); базовые модели и привязка к хранилищу, свои модели с\nпроверкой таблицы и подключения, `Field`/`FieldTarget`, поля плагинов, проверка и раскладка полей, выборка\ndecision-полей, `defaults.models` (P3.3); запрет прямых записей моделей и arch-правила записи (P3.4); Review P3 (P3.5)."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "`DatabaseSource` и всё, что панель получает через него (P4.4); операции grant/revoke/sync, `Change`, pipes, события,\nжурнал аудита (P5.2–P5.4); чтение выдач и проверка (P4.1–P4.6); кэш, `StateToken`-забор и смена incarnation при\nreset/restore (P4.8, P6.6); `FieldSchema` и схема панели (P5.5); doctor-сверка (P6.4); публикации и остальной конфиг\n(P6.3); Filament-формы полей (P7.5); матрица минимальных версий СУБД и CI (P8.4)."
+    },
+    {
+      "id": "Dependencies-and-order",
+      "title": "Dependencies and order",
+      "text": "`P3.1 → P3.2` (B3a, frontier/high) → `P3.3 → P3.4` (B3b, frontier/high) → `P3.5` (solo, read-only, свежая сессия).\nP3.2 стоит на `Storage`/`HostKeyColumns` P3.1; P3.3 — на схеме P3.2 (колонки и `meta`); P3.4 — на моделях P3.3.\nВнешние: P3.1–P3.3 — до P4.4 (`DatabaseSource`), P4.8 (`Storage::state()`), P5.2 (`mutate`, `GrantFields`)."
+    },
+    {
+      "id": "Acceptance",
+      "title": "Acceptance",
+      "text": "V44, V52 и часть V97, V99, V101 по D12 п.8 — P3.1; V105 (DDL, полный ключ, пары NULL, канон id, нет таблиц определений)\nи «два хранилища в одной БД не мешают друг другу» — P3.2; V51 и V54 на уровне хранилища и полей — P3.3; strict\ncontract D22/D63 («прямые записи базовых моделей запрещены во всех environments, включая mass writes»), часть V97/V105 —\nP3.4. Группа `engines` GREEN на PG 16 и MySQL 8 (P3.1–P3.2) и MariaDB 10.11 (P3.2–P3.4). Arch-правила P3 доказанно\nкраснеют. `api-manifest.json` ядра актуален. Гейты D4 зелёные. Verdict `@plan/knowledge/findings-P3-review.json` GREEN или все находки\nисправлены до закрытия фазы (D3)."
+    },
+    {
+      "id": "Item-index",
+      "title": "Item index",
+      "text": "| ID | Title | Spec |\n|:--|:--|:--|\n| P3.1 | Storage::mutate, блокировки, повторы, версия панели, host_keys | [P3.1.md](P3.1.md) |\n| P3.2 | Миграции с префиксом хранилища на PG/MySQL/MariaDB/SQLite | [P3.2.md](P3.2.md) |\n| P3.3 | Базовые и свои модели, azguardFields, meta, decisionFields | [P3.3.md](P3.3.md) |\n| P3.4 | Защита от прямых записей | [P3.4.md](P3.4.md) |\n| P3.5 | Review P3: независимая read-only проверка фазы | [P3.5.md](P3.5.md) |"
+    },
+    {
+      "id": "Planned-Items",
+      "title": "Planned Items",
+      "text": "- **P3.1 — хранилища и mutate** (первым: единственная точка записи)\n- **P3.2 — схема и миграции**\n- **P3.3 — модели и поля**\n- **P3.4 — запрет прямых записей**\n- **P3.5 — Review P3**"
+    },
+    {
+      "id": "Validation-strategy",
+      "title": "Validation strategy",
+      "text": "Каждый item: targeted `vendor/bin/pest <paths>`; `composer test`; `vendor/bin/pint --test`;\n`vendor/bin/phpstan analyse --memory-limit=1G`; `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`;\n`php bin/api-manifest.php --check` после `composer api:manifest`; `git diff --check`. Arch-правило пункта доказывается RED\nна временной копии в scratch. СУБД (D4, D12 п.7): `docker compose up -d --wait postgres mysql` (с P3.2 ещё `mariadb`), затем\n`DB_CONNECTION=<engine> php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped`; недоступная СУБД —\n`unavailable`, пункт не закрывается 🟢. SQLite-конкурентность проверяется на файловой базе в scratch, не `:memory:`."
+    },
+    {
+      "id": "DoR",
+      "title": "DoR",
+      "text": "- [x] D12 фиксирует состав, порядок, публичность, пробелы и расхождения досье; owner-вопросов для старта нет.\n- [x] Все пункты имеют Files, Required Reads, Validation и Deliverables.\n- [x] Принятое по D6 п.1 и D8 п.2/п.6 разнесено по P3.1–P3.3.\n- [x] Отложенное в P4–P8 перечислено в D12 п.8 и Consequences."
+    },
+    {
+      "id": "Phase-Handoff",
+      "title": "Phase Handoff",
+      "text": "Исполнение не начато."
+    }
+  ]
+}

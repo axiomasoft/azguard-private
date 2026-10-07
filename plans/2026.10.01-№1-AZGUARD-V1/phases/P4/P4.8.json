@@ -13,7 +13,21 @@
       "Supported transaction marker/own mutation/incarnation/touch/P10b/P16 — P4.20; races/Redis/replica/perf — P4.21; batching P4.9; facade P6.1; reset/restore operation P6.6."
     ]
   },
-  "depends_on": [],
+  "depends_on": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.17",
+    "P4.5",
+    "P4.6",
+    "P4.19",
+    "P4.7",
+    "P4.16",
+    "P4.18",
+    "P4.15",
+    "P4.13"
+  ],
   "decisions": [
     "D16",
     "D14",
@@ -272,7 +286,7 @@
       }
     ]
   },
-  "updated_at": "2026-10-06T09:01:44Z",
+  "updated_at": "2026-10-06T09:23:02Z",
   "sections": [
     {
       "id": "Intent",

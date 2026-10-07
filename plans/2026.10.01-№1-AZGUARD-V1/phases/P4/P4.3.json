@@ -1,0 +1,419 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P4.3",
+  "title": "Mode-aware policies, Decides, PolicyFor, GateSource::map",
+  "status": "done",
+  "summary": "Довести политики до таблицы 09 §5: точная привязка через `#[Decides]`/`PolicyBinding`/`#[PolicyFor]`, нативный DI субъекта и ресурса (включая class-аргумент без экземпляра), нативный `before` политики, сохранение `Response` (status/message/code) в `Decision`; `GateSource::map()` как политика из существующей ability Laravel без рекурсии; статичный O(1) индекс «модель + слово ability → право панели» для Gate.",
+  "why": "RAG:— 09 §1 (одно слово + model, class argument, owned vs foreign), §5 (таблица authority, GateSource, native before), §16 (binding/Decides обязательны); 05 §7 (атрибуты ресурсов и политик); 19 §2 (`ClientPolicy`, Response, recursion), §9; D26, D53, D65, D83, D84 досье; 20 F04; V67, V68, V80, V93, V102; R21, R22, R61–R64; D14 плана п.3 (вызов политики: ядро P4.1, расширение здесь; поля отказа `Decision`).",
+  "scope": {
+    "include": [
+      "P4.3 создаёт PanelCatalog::policyBindings(): array<string,PolicyBinding> canonical php/gate map; прежняя bindings(): array<string,class-string> сохранена PHP-only projection (D15 §3).  `PolicyDecider`: аргументы метода — модель субъекта, затем ресурс из запроса либо, если ресурса нет, class-string `resourceModel` определения права (`viewAny`/`create`); обязательный параметр без значения — отказ без вызова (`Deny(PolicyError)`, причина в логе); нативный `before($user, $ability)` политики вызывается первым, его не-`null` результат — результат политики, интерпретируемый по режиму; `Response` нормализуется через `allowed()`, `message()`, `status()`, `code()`. `Kernel\\Decision\\Decision` получает nullable `message`, `status`, `code` (скаляры; заполняются из `Response` политики при Deny(Policy) и Allow(Policy)). `@api` `Sources\\Gate\\GateSource implements ProvidesPolicies, DescribesSchema` с `make()`, `map(BackedEnum|string $permission, string $ability, ?string $resourceModel = null)`; при сборке: право существует в каталоге, ability определена Gate::has для define либо getPolicyFor+callable method при явном resourceModel (D15 §3), имя ability не является полным/локальным именем права AzGuard (иначе рекурсия) — нарушение → `DefinitionException`. Индекс ability в `PanelCatalog`: для enum с `#[Resource(model:)]` — `[класс модели][последний сегмент локального имени]` → локальный ключ (`view_any` ↔ `viewAny` через `Str::snake`); две записи на одну пару — помечена неоднозначной. PolicyBinding::gate(permission, ability, resourceModel), discriminator kind php/gate и nullable поля, compile/cache/runtime обе ветки D15 §3; существующий for() сохранён."
+    ],
+    "exclude": [
+      "`GateBridge` и `GateBridge::toGateResult()` (P4.11); регрессия P03 (P4.11 по D14 п.7); назначения из БД (P4.4); запрет записи PolicyOnly-назначения (P5.2/P5.3); policy-предикаты видимости (P4.12)."
+    ]
+  },
+  "depends_on": [
+    "P4.1",
+    "P4.2"
+  ],
+  "decisions": [
+    "D16",
+    "D14",
+    "D15"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/decisions/D16.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P4/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D14.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D15.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "@plan/brief.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/brief.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/09-authorization-semantics.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/19-oop-and-permission-authority.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Authorization/EvaluationContext.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/RoleCompiler.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Panels/PanelBuilder.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Policies/PolicyBinding.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/CatalogCache.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Gate.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "vendor/laravel/framework/src/Illuminate/Auth/Access/Response.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Policies/PolicyDecider.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Kernel/Decision/Decision.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Sources/Gate/GateSource.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Policies/{PolicyBinding,RuntimeInvoker}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Catalog/CatalogCache.php",
+      "change": "any"
+    }
+  ],
+  "rules": [
+    "Required policy binding и duplicate checks работают по canonical typed map, не nullable policy string. Gate kind обходит ReflectionClass/Decides PHP branch; snapshot содержит discriminator/all fields, schema revision updated; tests live/cache и PHP legacy bindings compatibility обязательны.  Режим определяется только `PermissionDefinition::$authority`, не наличием политики или источника. PolicyOnly: привязка обязательна (компиляция P2.5); `true`/allow → `Allow(Policy)`; `false`/`null`/deny → `Deny(Policy)`; назначения не читаются, `matchingGrants()` пуст. RequiresGrant: привязка необязательна; её отсутствие — pass; `true`/`null` — pass только при квалифицированном вкладе; `false`/deny → `Deny(Policy)` даже при superadmin. `ConsultsGrants`/policy OR grants нет. Метод выбирается только атрибутом `#[Decides(case)]` (`PanelCatalog::bindingMethod`), имя метода свободно; вызов через RuntimeInvoker по именам отражённых параметров (D15 §2), service DI отдельно; числовой массив user/resource запрещён. Политика, бросившая исключение, или вернувшая не bool/null/`Response`, — `Deny(PolicyError)`. `GateSource` вызывает определение ability напрямую (замыкание `Gate::abilities()` или метод политики, найденный `Gate::getPolicyFor`), **не** `Gate::check/inspect`: глобальные `Gate::before` (включая будущий `GateBridge`) не вызываются повторно. `GateSource` — `ProvidesPolicies`: его результат интерпретируется по режиму права как любая политика; одно право — одна политика (`DuplicatePolicyBindingException` при второй привязке). Индекс ability строится при компиляции каталога и попадает в снимок `catalog:cache`; ключи — FQCN модели и слово ability; поиск O(1). Поля отказа `Decision` не влияют на `allowed()`; `Decision::admits` не меняется. Native gate binding не требует Decides/fake policy class; discriminator сохранён в catalog:cache. Передача user/resource строго D15 §2; user-only метод не получает лишний class-string; missing required Model instance → PolicyError."
+  ],
+  "guidance": "V80 — таблица 09 §5 построчно: `Refund` (RequiresGrant) — назначение AND `WorkingHoursPolicy` veto; `ViewOwn` (PolicyOnly) — владелец заказа без единой выдачи, spy-источник не вызван; удаление `#[Decides]` у объявленного метода — `DefinitionException` при сборке; переименование метода с сохранением атрибута — та же привязка. V93 — `Response::deny('Closed', 'orders.closed')->withStatus(404)` → `Decision` с `status=404`, `message`, `code`; RequiresGrant `true` без выдачи → `NotGranted`; token cap — `TokenAbilitiesRestriction` AND с разрешением политики. V67 — DI: метод `update(User $user, Order $order, Clock $clock)` получает сервис из контейнера; `viewAny(User $user)` и `create(User $user)` получают только субъекта; class-string передаётся лишь при наличии совместимого параметра ресурса; обязательный `Order $order` без ресурса — отказ без вызова. Нативный `before` политики, вернувший `true` в RequiresGrant без выдачи — `NotGranted`. `GateSource`: ability `beta-access` через `Gate::define`, отображение на `BetaPermission::Access`; дополнительный `Gate::before(fn () => true)` не меняет результат GateSource; map на имя права AzGuard — `DefinitionException`. R21/R22/R61/R62/R64 на этой фикстуре — как модульные двойники; CRM-варианты — P4.15. V50: token cap без пользовательского grant → NotGranted; cap AND grant/policy, service principal — отдельный trust mapping/subject. Native gate model-policy binding/live-cache parity, missing definition и global before bypass. R67 rename/remove Decides — compile cases.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Feature/Policies tests/Feature/Sources/Gate tests/Feature/Catalog/AbilityIndexTest.php tests/Unit/Kernel/Decision",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "vendor/bin/pest tests/Feature/Authorization tests/Feature/Catalog",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "vendor/bin/pest tests/Arch",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer api:manifest",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V11",
+      "procedure": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: php -d memory_limit=1G vendor/bin/pest tests/Feature/Policies tests/Feature/Sources/Gate tests/Feature/Catalog/AbilityIndexTest.php tests/Unit/Kernel/Decision",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V12",
+      "procedure": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization tests/Feature/Catalog",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V13",
+      "procedure": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V14",
+      "procedure": "php bin/api-manifest.php --check",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V15",
+      "procedure": "APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: composer test",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V16",
+      "procedure": "vendor/bin/pint --test",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V17",
+      "procedure": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V18",
+      "procedure": "__PEST_PLUGIN_ENV=1 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V19",
+      "procedure": "git diff --check",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "политики по таблице 09 §5 с DI, class-аргументом, native before и `Response`; поля отказа `Decision`; `GateSource`; индекс ability; раздел P4.3 в `@plan/knowledge/findings-P4-execution.json` (строка 09 §5 → тест; V67/V68/V80/V93/V102 → тест; поведение `Gate` из vendor с версией Laravel). Полная scoped source integration — P4.18, затем CRM P4.15 до P4.13; локальный source GREEN не подменяет её."
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-04T15:47:09Z",
+    "finished_at": "2026-10-04T16:31:00Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "codex"
+    },
+    "notes": "GREEN: @plan/knowledge/findings-P4-execution.json; declared Validation and independent Grok 4.7/high/500k review.\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V11",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V12",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V13",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V14",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V15",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V16",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V17",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V18",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      },
+      {
+        "id": "V19",
+        "exit": 0,
+        "at": "2026-10-04T16:31:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-06T09:23:02Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Довести политики до таблицы 09 §5: точная привязка через `#[Decides]`/`PolicyBinding`/`#[PolicyFor]`, нативный DI субъекта и ресурса (включая class-аргумент без экземпляра), нативный `before` политики, сохранение `Response` (status/message/code) в `Decision`; `GateSource::map()` как политика из существующей ability Laravel без рекурсии; статичный O(1) индекс «модель + слово ability → право панели» для Gate."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— 09 §1 (одно слово + model, class argument, owned vs foreign), §5 (таблица authority, GateSource, native before), §16 (binding/Decides обязательны); 05 §7 (атрибуты ресурсов и политик); 19 §2 (`ClientPolicy`, Response, recursion), §9; D26, D53, D65, D83, D84 досье; 20 F04; V67, V68, V80, V93, V102; R21, R22, R61–R64; D14 плана п.3 (вызов политики: ядро P4.1, расширение здесь; поля отказа `Decision`)."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "P4.3 создаёт PanelCatalog::policyBindings(): array<string,PolicyBinding> canonical php/gate map; прежняя bindings(): array<string,class-string> сохранена PHP-only projection (D15 §3).  `PolicyDecider`: аргументы метода — модель субъекта, затем ресурс из запроса либо, если ресурса нет, class-string `resourceModel` определения права (`viewAny`/`create`); обязательный параметр без значения — отказ без вызова (`Deny(PolicyError)`, причина в логе); нативный `before($user, $ability)` политики вызывается первым, его не-`null` результат — результат политики, интерпретируемый по режиму; `Response` нормализуется через `allowed()`, `message()`, `status()`, `code()`. `Kernel\\Decision\\Decision` получает nullable `message`, `status`, `code` (скаляры; заполняются из `Response` политики при Deny(Policy) и Allow(Policy)). `@api` `Sources\\Gate\\GateSource implements ProvidesPolicies, DescribesSchema` с `make()`, `map(BackedEnum|string $permission, string $ability, ?string $resourceModel = null)`; при сборке: право существует в каталоге, ability определена Gate::has для define либо getPolicyFor+callable method при явном resourceModel (D15 §3), имя ability не является полным/локальным именем права AzGuard (иначе рекурсия) — нарушение → `DefinitionException`. Индекс ability в `PanelCatalog`: для enum с `#[Resource(model:)]` — `[класс модели][последний сегмент локального имени]` → локальный ключ (`view_any` ↔ `viewAny` через `Str::snake`); две записи на одну пару — помечена неоднозначной. PolicyBinding::gate(permission, ability, resourceModel), discriminator kind php/gate и nullable поля, compile/cache/runtime обе ветки D15 §3; существующий for() сохранён."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "`GateBridge` и `GateBridge::toGateResult()` (P4.11); регрессия P03 (P4.11 по D14 п.7); назначения из БД (P4.4); запрет записи PolicyOnly-назначения (P5.2/P5.3); policy-предикаты видимости (P4.12)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/decisions/D16.json` · `@plan/plan.json` · `@plan/phases/P4/phase.json` · `@plan/decisions/D14.json` · `@plan/decisions/D15.json` · `@plan/brief.json` · `@plan/brief.json`"
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`tests/Feature/Catalog/PolicyBindingsCompatibilityTest.php` ·  `packages/core/src/Policies/PolicyDecider.php` · `packages/core/src/Kernel/Decision/Decision.php` · `packages/core/src/Sources/Gate/GateSource.php` · `packages/core/src/Catalog/PanelCatalog.php` (индекс ability, снимок `catalog:cache`) · `packages/core/api-manifest.json` · `tests/Feature/Policies/{PolicyModesTest,PolicyArgumentsTest,PolicyResponseTest,DecidesBindingTest}.php` · `tests/Feature/Sources/Gate/GateSourceTest.php` · `tests/Feature/Catalog/AbilityIndexTest.php` · `tests/Unit/Kernel/Decision/DecisionDenialTest.php` · `tests/Fixtures/Guards/Orders/**` (`OrderPermission` с `Refund` RequiresGrant и `ViewOwn` PolicyOnly, `OrderPolicy`, `WorkingHoursPolicy`) · `tests/Fixtures/Authorization/TokenAbilitiesRestriction.php` · `CHANGELOG.md`. · `packages/core/src/Policies/{PolicyBinding,RuntimeInvoker}.php` · `packages/core/src/Catalog/CatalogCache.php` (binding snapshot serializers) · `tests/Feature/Policies/TokenAuthorityTest.php`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/09-authorization-semantics.md` 2) `audits/2026-09-29-audit/opus/05-php-api.md` 3) `audits/2026-09-29-audit/opus/19-oop-and-permission-authority.md` 4) `audits/2026-09-29-audit/opus/14-verification.md` 5) `packages/core/src/Contracts/Authorization/EvaluationContext.php` 6) `packages/core/src/Catalog/PanelCatalog.php` 7) `packages/core/src/Catalog/RoleCompiler.php` 8) `packages/core/src/Panels/PanelBuilder.php` 9) `packages/core/src/Policies/PolicyBinding.php` 10) `packages/core/src/Catalog/CatalogCache.php` 11) `vendor/laravel/framework/src/Illuminate/Auth/Access/Gate.php` 12) `vendor/laravel/framework/src/Illuminate/Auth/Access/Response.php` 13) `@plan/decisions/D15.json` 14) `@plan/brief.json`"
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Required policy binding и duplicate checks работают по canonical typed map, не nullable policy string. Gate kind обходит ReflectionClass/Decides PHP branch; snapshot содержит discriminator/all fields, schema revision updated; tests live/cache и PHP legacy bindings compatibility обязательны.  Режим определяется только `PermissionDefinition::$authority`, не наличием политики или источника. PolicyOnly: привязка обязательна (компиляция P2.5); `true`/allow → `Allow(Policy)`; `false`/`null`/deny → `Deny(Policy)`; назначения не читаются, `matchingGrants()` пуст. RequiresGrant: привязка необязательна; её отсутствие — pass; `true`/`null` — pass только при квалифицированном вкладе; `false`/deny → `Deny(Policy)` даже при superadmin. `ConsultsGrants`/policy OR grants нет. Метод выбирается только атрибутом `#[Decides(case)]` (`PanelCatalog::bindingMethod`), имя метода свободно; вызов через RuntimeInvoker по именам отражённых параметров (D15 §2), service DI отдельно; числовой массив user/resource запрещён. Политика, бросившая исключение, или вернувшая не bool/null/`Response`, — `Deny(PolicyError)`. `GateSource` вызывает определение ability напрямую (замыкание `Gate::abilities()` или метод политики, найденный `Gate::getPolicyFor`), **не** `Gate::check/inspect`: глобальные `Gate::before` (включая будущий `GateBridge`) не вызываются повторно. `GateSource` — `ProvidesPolicies`: его результат интерпретируется по режиму права как любая политика; одно право — одна политика (`DuplicatePolicyBindingException` при второй привязке). Индекс ability строится при компиляции каталога и попадает в снимок `catalog:cache`; ключи — FQCN модели и слово ability; поиск O(1). Поля отказа `Decision` не влияют на `allowed()`; `Decision::admits` не меняется. Native gate binding не требует Decides/fake policy class; discriminator сохранён в catalog:cache. Передача user/resource строго D15 §2; user-only метод не получает лишний class-string; missing required Model instance → PolicyError."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "V80 — таблица 09 §5 построчно: `Refund` (RequiresGrant) — назначение AND `WorkingHoursPolicy` veto; `ViewOwn` (PolicyOnly) — владелец заказа без единой выдачи, spy-источник не вызван; удаление `#[Decides]` у объявленного метода — `DefinitionException` при сборке; переименование метода с сохранением атрибута — та же привязка. V93 — `Response::deny('Closed', 'orders.closed')->withStatus(404)` → `Decision` с `status=404`, `message`, `code`; RequiresGrant `true` без выдачи → `NotGranted`; token cap — `TokenAbilitiesRestriction` AND с разрешением политики. V67 — DI: метод `update(User $user, Order $order, Clock $clock)` получает сервис из контейнера; `viewAny(User $user)` и `create(User $user)` получают только субъекта; class-string передаётся лишь при наличии совместимого параметра ресурса; обязательный `Order $order` без ресурса — отказ без вызова. Нативный `before` политики, вернувший `true` в RequiresGrant без выдачи — `NotGranted`. `GateSource`: ability `beta-access` через `Gate::define`, отображение на `BetaPermission::Access`; дополнительный `Gate::before(fn () => true)` не меняет результат GateSource; map на имя права AzGuard — `DefinitionException`. R21/R22/R61/R62/R64 на этой фикстуре — как модульные двойники; CRM-варианты — P4.15. V50: token cap без пользовательского grant → NotGranted; cap AND grant/policy, service principal — отдельный trust mapping/subject. Native gate model-policy binding/live-cache parity, missing definition и global before bypass. R67 rename/remove Decides — compile cases."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Feature/Policies tests/Feature/Sources/Gate tests/Feature/Catalog/AbilityIndexTest.php tests/Unit/Kernel/Decision` — GREEN; 2) `vendor/bin/pest tests/Feature/Authorization tests/Feature/Catalog` — GREEN (свойства и `catalog:cache` не сломаны); 3) `vendor/bin/pest tests/Arch` — GREEN; 4) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 5) `composer test`; 6) `vendor/bin/pint --test`; 7) `vendor/bin/phpstan analyse --memory-limit=1G`; 8) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 9) `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "политики по таблице 09 §5 с DI, class-аргументом, native before и `Response`; поля отказа `Decision`; `GateSource`; индекс ability; раздел P4.3 в `@plan/knowledge/findings-P4-execution.json` (строка 09 §5 → тест; V67/V68/V80/V93/V102 → тест; поведение `Gate` из vendor с версией Laravel). Полная scoped source integration — P4.18, затем CRM P4.15 до P4.13; локальный source GREEN не подменяет её."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "decisions-_archive",
+  "title": "Solutions archive",
+  "sections": [
+    {
+      "id": "Preamble",
+      "title": "Preamble",
+      "text": "<!-- plan-projection\nprojection: decision-archive\nprojection_version: v1\nsource_scope: decisions/\nthrough: 2026-10-05/D17\ninputs_sha256: 8221f77fc9debfd3ab8dfa800e85e384e1711de3d6003368dce5d856aace3b0c\ngenerated_by: task plan-views decisions\n-->"
+    },
+    {
+      "id": "Solutions-archive",
+      "title": "Solutions archive",
+      "text": "> Do not manipulate by hand: this is a generated view.\n\n| ID | Date | Status | Items | Solution |\n|:--|:--|:--|:--|:--|\n| — | — | — | — | No entries |"
+    }
+  ],
+  "applies_to": [],
+  "provenance": {
+    "path": "decisions/_archive.md",
+    "sha256": "aa89d0d79a8ec7d0935769d0e5a26661016e1fbaa65093a3f0e03d395a3f4dc2"
+  }
+}

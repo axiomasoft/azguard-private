@@ -1,0 +1,89 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P0",
+  "title": "Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации",
+  "design": "detailed",
+  "goal": "Дизайн на HEAD `f6d33cc49fb7f66e5e835ef9b355765c55efd04a`. Зависимости исполнения: —.\nP0 превращает репозиторий 0.3 в стартовую площадку 1.0: код 0.3 заморожен в `legacy/0.3/` (D2),\nпустые пакеты `axiomasoft/azguard` (`packages/core`) и `axiomasoft/azguard-filament`\n(`packages/filament`) проходят все гейты D4, probes 0.3 стали спецификациями регрессий с owning\nitems, consumer-фикстура из собранных архивов работает в CI без блокировки, ADR экосистемы записан.\nRAG:— composer/phpunit/phpstan/rector/workflows/bin текущего HEAD; `13-workstreams.md` F0; `12` §4; `10` §8.1; `evidence/README.md`.\n\n> **Phase Contract (contract-first).** Потребляет: досье и HEAD 0.3. · Производит: зелёный пустой каркас 1.0, единые гейты, `tests/Regression/specs/*`, consumer-fixture script/job, ADR. · Границы: никакого кода 1.0 сверх service provider-каркаса; без push/тегов/рассылки ADR; Vaulter не трогается.",
+  "context": "Дизайн на HEAD `f6d33cc49fb7f66e5e835ef9b355765c55efd04a`. Зависимости исполнения: —.\nP0 превращает репозиторий 0.3 в стартовую площадку 1.0: код 0.3 заморожен в `legacy/0.3/` (D2),\nпустые пакеты `axiomasoft/azguard` (`packages/core`) и `axiomasoft/azguard-filament`\n(`packages/filament`) проходят все гейты D4, probes 0.3 стали спецификациями регрессий с owning\nitems, consumer-фикстура из собранных архивов работает в CI без блокировки, ADR экосистемы записан.\nRAG:— composer/phpunit/phpstan/rector/workflows/bin текущего HEAD; `13-workstreams.md` F0; `12` §4; `10` §8.1; `evidence/README.md`.\n\n> **Phase Contract (contract-first).** Потребляет: досье и HEAD 0.3. · Производит: зелёный пустой каркас 1.0, единые гейты, `tests/Regression/specs/*`, consumer-fixture script/job, ADR. · Границы: никакого кода 1.0 сверх service provider-каркаса; без push/тегов/рассылки ADR; Vaulter не трогается.",
+  "depends_on": [],
+  "items": [
+    "P0.1",
+    "P0.2",
+    "P0.3",
+    "P0.4",
+    "P0.5"
+  ],
+  "batches": [
+    {
+      "id": "B0",
+      "items": [
+        "P0.1",
+        "P0.2",
+        "P0.3",
+        "P0.4",
+        "P0.5"
+      ],
+      "mode": "recommended"
+    }
+  ],
+  "closed": {
+    "at": "2026-10-05T11:01:41Z",
+    "result": "done",
+    "summary": "<!-- plan-projection\nprojection: phase-closure\nprojection_version: v1\nsource_scope: phase P0 + item states + decisions\nthrough: P0: 🟢 Done\ninputs_sha256: 545ae41f6e6366a2e89166f649aa2208307f477208c9ba789b2503b35b2950f4\ngenerated_by: task plan-views closure\n-->\n\n# Closing phase P0\n\n> Do not manipulate by hand: this is a generated view.\n\n## Phase Contract\n\n**Phase Contract (contract-first).** Потребляет: досье и HEAD 0.3. · Производит: зелёный пустой каркас 1.0, единые гейты, `tests/Regression/specs/*`, consumer-fixture script/job, ADR. · Границы: никакого кода 1.0 сверх service provider-каркаса; без push/тегов/рассылки ADR; Vaulter не трогается.\n\n## Produced\n\n- P0.1 — ADR «Ecosystem conventions» в docs/adr: ADR EN/RU; строка в `@plan/knowledge/findings-P0-execution.json` с результатом parity-gate.\n- P0.2 — Probes 0.3 → спецификации регрессионных тестов с owning items: 19 spec-файлов + README + meta-тест; таблица probe → owning item в `@plan/knowledge/findings-P0-execution.json`.\n- P0.3 — Каркас consumer-фикстуры из собранных архивов в CI: скрипт, README фикстур, non-blocking CI job, лог локального прогона в `@plan/knowledge/findings-P0-execution.json`.\n- P0.4 — Composer-имена axiomasoft/*, homepage, удаление context-пакета из сборки: обновлённые метаданные двух пакетов и корня; split/release/preflight на `axiomasoft`; README-блоки EN/RU; запись в `CHANGELOG.md`; evidence-абзац в `@plan/knowledge/findings-P0-execution.json`.\n- P0.5 — Legacy freeze и каркас пакетов 1.0 с зелёными гейтами: `legacy/0.3/` с README; каркас двух пакетов 1.0; новая `tests/` с зелёными suites; tool-конфиги и CI на новых путях; запись в `CHANGELOG.md`; execution evidence в `@plan/knowledge/findings-P0-execution.json`.\n\n## Known Deviations\n\n- —\n\n## Solutions\n\n- [D2](../../decisions/D2-build-strategy-and-legacy.md)\n- [D4](../../decisions/D4-validation-and-engines.md)\n"
+  },
+  "orchestration": {
+    "strategy": "sequential"
+  },
+  "sections": [
+    {
+      "id": "P0-legacy-freeze-1.0",
+      "title": "P0 — Подготовка: legacy freeze, каркас 1.0, регрессионные спецификации",
+      "text": ""
+    },
+    {
+      "id": "Phase-Context",
+      "title": "Phase Context",
+      "text": "Дизайн на HEAD `f6d33cc49fb7f66e5e835ef9b355765c55efd04a`. Зависимости исполнения: —.\nP0 превращает репозиторий 0.3 в стартовую площадку 1.0: код 0.3 заморожен в `legacy/0.3/` (D2),\nпустые пакеты `axiomasoft/azguard` (`packages/core`) и `axiomasoft/azguard-filament`\n(`packages/filament`) проходят все гейты D4, probes 0.3 стали спецификациями регрессий с owning\nitems, consumer-фикстура из собранных архивов работает в CI без блокировки, ADR экосистемы записан.\nRAG:— composer/phpunit/phpstan/rector/workflows/bin текущего HEAD; `13-workstreams.md` F0; `12` §4; `10` §8.1; `evidence/README.md`.\n\n> **Phase Contract (contract-first).** Потребляет: досье и HEAD 0.3. · Производит: зелёный пустой каркас 1.0, единые гейты, `tests/Regression/specs/*`, consumer-fixture script/job, ADR. · Границы: никакого кода 1.0 сверх service provider-каркаса; без push/тегов/рассылки ADR; Vaulter не трогается."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`git mv` кода 0.3 (`packages/core|context|filament`, `tests/`, корневые отчёты 0.3) в `legacy/0.3/`;\nновые `composer.json`, service provider-каркасы и Testbench/Pest-инфраструктура; tool-конфиги и CI\nпереведены на новые пути; метаданные распространения `axiomasoft/*`; спецификации регрессий по 19\nprobes; скрипт и non-blocking CI job consumer-фикстуры; ADR EN/RU."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "Любые классы Kernel/Panels/Sources (P1+); новые snapshot-гейты API/DDL (owning items); удаление\n`legacy/` (P6.9); переписывание пользовательской документации (P8.2); push, теги, Packagist, split\nв удалённые репозитории; рассылка ADR владельцам других пакетов (owner-решение)."
+    },
+    {
+      "id": "Acceptance",
+      "title": "Acceptance",
+      "text": "`composer validate --strict` зелёный для корня и обоих пакетов; `composer test`, `pint --test`,\n`phpstan analyse`, `rector --dry-run`, type coverage — зелёные на каркасе; автозагрузка не видит\n`legacy/`. Каждый из 19 probes имеет спецификацию с существующим owning item плана и V-сценариями,\nэто проверяет тест. `bin/consumer-fixture.sh` локально ставит собранные архивы в чистый Laravel и\nзагружает провайдеры; CI job есть и не блокирует. ADR EN/RU проходит docs-parity."
+    },
+    {
+      "id": "Item-index",
+      "title": "Item index",
+      "text": "| ID | Title | Spec |\n|:--|:--|:--|\n| P0.5 | Legacy freeze и каркас пакетов 1.0 с зелёными гейтами | [P0.5.md](P0.5.md) |\n| P0.4 | Composer-имена axiomasoft/*, homepage, удаление context-пакета из сборки | [P0.4.md](P0.4.md) |\n| P0.2 | Probes 0.3 → спецификации регрессионных тестов с owning items | [P0.2.md](P0.2.md) |\n| P0.3 | Каркас consumer-фикстуры из собранных архивов в CI | [P0.3.md](P0.3.md) |\n| P0.1 | ADR «Ecosystem conventions» в docs/adr | [P0.1.md](P0.1.md) |\n\nПорядок исполнения — порядок таблицы: P0.4 и P0.3 потребляют каркас P0.5; P0.2 и P0.1 независимы."
+    },
+    {
+      "id": "Planned-Items",
+      "title": "Planned Items",
+      "text": "- **P0.5 — legacy freeze и каркас** (первым: остальные пункты пишут поверх него)\n- **P0.4 — метаданные распространения**\n- **P0.2 — спецификации регрессий**\n- **P0.3 — consumer-фикстура**\n- **P0.1 — ADR**\nReview-пункт для P0 не вводится: изменения инфраструктурные и обратимые, проверяются гейтами (D3)."
+    },
+    {
+      "id": "Validation-strategy",
+      "title": "Validation strategy",
+      "text": "Гейты D4 на каркасе; `composer validate --strict` для трёх composer.json; meta-тест спецификаций\nрегрессий; локальный прогон consumer-фикстуры (сеть к Packagist доступна, наблюдено 2026-10-01);\n`bash bin/docs-parity-gate.sh`; `git diff --check`."
+    },
+    {
+      "id": "DoR",
+      "title": "DoR",
+      "text": "- [x] D2 фиксирует legacy-стратегию, D4 — гейты; owner-вопросов для старта нет.\n- [x] Все пункты имеют Files, Required Reads, Validation и Deliverables.\n- [x] Внешние действия (push/теги/рассылка) исключены."
+    },
+    {
+      "id": "Phase-Handoff",
+      "title": "Phase Handoff",
+      "text": "Исполнение не начато."
+    }
+  ]
+}

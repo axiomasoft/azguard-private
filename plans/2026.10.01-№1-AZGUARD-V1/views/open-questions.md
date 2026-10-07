@@ -2,3 +2,7 @@
 # Open questions — PLAN2 Plan №1 — AzGuard 1.0: перестройка по целевой архитектуре
 
 No open questions.
+
+## Blocked items
+
+- P4.14 — Review P4: независимая read-only проверка фазы: Owning P4.10 TraceTest correction and P4.20 P10b register correction; reconcile exact Pint/PHPStan validation scopes, then affected acceptance. P4.14 request is read-only; implementation corrections require the owning-item execution boundary.

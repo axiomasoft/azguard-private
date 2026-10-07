@@ -1,0 +1,266 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.4",
+  "title": "Плагины: typed factories, PluginContext, изоляция, конфликты",
+  "status": "done",
+  "summary": "Дать плагин как готовый набор дополнений панели с собственными именованными типизированными параметрами: SPI жизненного цикла, общая база без параметров и без префикса ключей, `PluginContext` только с build-метаданными, отдельный экземпляр на панель, зависимости и участие порядка плагинов в отпечатке панели.",
+  "why": "RAG:— D47, D78 и 19 §4 (у `BasePlugin` нет `make()`/`options()`/`withOptions()`; конкретный `make(...)` с named typed parameters; build-конфигурация не удерживает request/user/role/Builder); 06 §3 (SPI `Plugin`, `DependsOnPlugins`; жизненный цикл провайдеры → `register()` в порядке подключения → источники и проверки → заморозка → `boot()`; один плагин на нескольких панелях видит каждую свою; порядок плагинов входит в отпечаток); 18 §7, §10 (`PluginContext`: `panelId`, `pluginId`, `buildId`, `dependencies`; factories fresh, shared mutable object изолируется); 07 §6 (plugin `register` добавляет definitions, `boot` не меняет registry); V47 (сквозная часть), V48, V85, V115, V118; D6 (`PluginContext` → P2.4); D8 п.1, п.4, п.5, п.7; D10 (у плагина нет префикса ключей: нет `PrefixesKeys`, `BasePlugin::prefixed()`/`prefix()` и `PluginContext::namespace()`).",
+  "scope": {
+    "include": [
+      "`Contracts\\Plugins\\{Plugin,DependsOnPlugins}` (`@spi`). `Plugins\\BasePlugin` (abstract, `@spi`: реализует `Plugin`, `boot()` по умолчанию пустой). `Plugins\\PluginContext` (final readonly, `@api`: `panelId`, `pluginId`, `buildId`, `dependencies`). `PanelBuilder::plugins(array)`, `withoutPlugins(array)`; `Panel::pluginIds()`. В `PanelCompiler`: экземпляр плагина на панель, `register()` в порядке подключения с происхождением `plugin:<id>`, проверка зависимостей и дубликатов, запечатывание builder, `boot()` после заморозки. `PluginDependencyMissingException`; повтор id плагина — `PluginConflictException` (класс из P2.3). `AzGuardConfig::buildId()` и ключ `catalog.build_id` (D8 п.5). Плагины и их порядок — в `PanelFingerprint`. Arch-правила зоны `Plugins` становятся невакуумными."
+    ],
+    "exclude": [
+      "встроенный плагин `azguard/audit` (P5.4). Логика порядка настроек и конфликта двух плагинов по scalar-настройке (P2.3 — уже есть; здесь только сквозной сценарий V47 с настоящими плагинами). Коллизии имён вкладов плагинов в каталоге (P2.5): плагин имён не меняет (D10). `PluginContractTests` (P6.7). Проверки doctor плагинов (P6.4). Filament-плагин (P7.1)."
+    ]
+  },
+  "depends_on": [
+    "P2.1",
+    "P2.3"
+  ],
+  "decisions": [
+    "D8",
+    "D10"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P2/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D8.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "@plan/decisions/D10.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/19-oop-and-permission-authority.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "@plan/brief.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Contracts/Plugins/{Plugin,DependsOnPlugins}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Plugins/{BasePlugin,PluginContext}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Panels/{PanelBuilder,Panel,PanelCompiler,PanelRecipe,PanelFingerprint}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Exceptions/PluginDependencyMissingException.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Configuration/AzGuardConfig.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/config/azguard.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    }
+  ],
+  "rules": [
+    "`plugins(array)`: элемент — объект `Plugin` или class-string `Plugin` (создаётся контейнером), иное → `DefinitionException`; списки аддитивны, порядок подключения сохраняется. Id плагина — грамматика D8 п.5, иначе `DefinitionException`; два плагина с одним id на панели → `PluginConflictException`. `withoutPlugins(ids)` убирает плагин, подключённый `configurePanels()`; id, которого нет, не ошибка. Экземпляр на панель: компилятор берёт `clone` переданного объекта перед `register()`; объект, полученный из контейнера, тоже клонируется — состояние, записанное в `register()` одной панели, не видно другой. `DependsOnPlugins::requires()`: каждого id нет среди подключённых после `withoutPlugins` → `PluginDependencyMissingException` с id плагина и зависимости. Порядок сборки панели: записи провайдера и `configure` → плагины из рецепта по порядку: `register(PanelBuilder, PluginContext)`; плагин, подключённый внутри `register()` другого плагина, регистрируется после текущего; повторный обход до исчерпания. Во время `register()` текущее происхождение builder — `plugin:<id>`. Префикса у плагина нет (D10): поле `prefix` из происхождения `PanelRecipe::plugin()` и из проверок P2.1 удаляется, плагин приносит ключи как объявлены. После фазы `register` builder запечатан: любой setter, в том числе из сохранённой ссылки в `boot()`, → `RegistryFrozenException`; `boot(Panel, PluginContext)` вызывается после заморозки реестра в порядке подключения. `PluginContext`: `panelId()`, `pluginId()`, `buildId()` (из `AzGuardConfig::buildId()`), `dependencies()` (из `requires()`, иначе `[]`); нет геттера опций, контейнера и панели-объекта. У `BasePlugin` нет `prefixed`, `prefix`, `make`, `options`, `withOptions`, публичного конструктора с массивом; id плагина отдаёт `Plugin::id()`, fluent-сеттера id база не объявляет. `AzGuardConfig::buildId()`: `catalog.build_id`, если непустая строка; иначе sha256 по отсортированным парам «класс зарегистрированного провайдера панели → sha256 содержимого его файла» — значение известно до `register()` плагинов (от отпечатков панелей не зависит) и стабильно между запросами одного кода. `PanelFingerprint` получает id плагинов в порядке подключения. `Plugins\\` не использует `AzGuard\\Internal` и `AzGuard\\Storage`."
+  ],
+  "guidance": "Фикстуры: `AuditTrailPlugin::make(int $retentionDays = 90)` с `retention(int): static` (clone) по 06 §3; `CrmAccessPlugin::make(CrmModels $models, string $clientScope)` с DTO `CrmModels`, проверяющим `is_a(..., Model::class, true)` и `Authenticatable` (19 §4), использующий только доступные методы builder (`for`, `resourceScopes`); плагин с `requires()`; плагин, меняющий builder в `boot()`. V48 — отсутствующая зависимость → `plugin_dependency_missing`; изменение в `boot()` → `RegistryFrozenException`; перестановка двух плагинов меняет отпечаток панели; один объект плагина на двух панелях получает два разных `PluginContext::panelId()`. V85 — `make()` через `app()->makeWith(...)` работает с привязкой контейнера; `retention(30)` на одной панели и `retention(90)` на другой не делят состояние; плагин в `register()` добавляет фикстурный `Source`, класс ограничения и pipe — записи рецепта несут происхождение `plugin:<id>`. V47 (сквозной) — два фикстурных плагина с разным `cache(ttl:)` → `plugin_conflict` с id обоих; при заданном провайдером ttl — без ошибки; `settings()->origin(...)` возвращает `plugin:<id>`. V115/V118 — reflection: у `BasePlugin` нет `make`/`options`/`withOptions`/`prefixed`/`prefix`, интерфейса `PrefixesKeys` нет, у `PluginContext` нет `namespace`; `CrmModels` с не-`Model` или не-`Authenticatable` субъектом → исключение до сборки панели; сигнатура `make` фикстур — именованные типизированные параметры. Доказать RED правил `Plugins ↛ Internal` и `Plugins ↛ Storage` на временной копии.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Unit/Plugins tests/Feature/Plugins tests/Unit/Panels tests/Feature/Panels",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "vendor/bin/pest tests/Arch",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer api:manifest",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "procedure": "shell",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "SPI плагинов, `BasePlugin`, `PluginContext`, жизненный цикл и изоляция в компиляторе, build id; обновлённый манифест; раздел P2.4 в `@plan/knowledge/findings-P2-execution.json` (V48/V85/V115/V118 → тест; порядок фаз сборки панели; доказательства RED)."
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-02T08:41:05Z",
+    "finished_at": "2026-10-02T11:38:24Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "claude"
+    },
+    "notes": "SPI Plugin/DependsOnPlugins, BasePlugin без фабрики и префикса (D10), PluginContext, plugins()/withoutPlugins(), копия плагина на панель, register→seal→boot, зависимости, build id; V47 сквозной, V48, V85, V115, V118; RED arch доказан; 8 гейтов GREEN\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V10",
+        "exit": 0,
+        "at": "2026-10-02T11:38:24Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-02T11:38:24Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Дать плагин как готовый набор дополнений панели с собственными именованными типизированными параметрами: SPI жизненного цикла, общая база без параметров и без префикса ключей, `PluginContext` только с build-метаданными, отдельный экземпляр на панель, зависимости и участие порядка плагинов в отпечатке панели."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— D47, D78 и 19 §4 (у `BasePlugin` нет `make()`/`options()`/`withOptions()`; конкретный `make(...)` с named typed parameters; build-конфигурация не удерживает request/user/role/Builder); 06 §3 (SPI `Plugin`, `DependsOnPlugins`; жизненный цикл провайдеры → `register()` в порядке подключения → источники и проверки → заморозка → `boot()`; один плагин на нескольких панелях видит каждую свою; порядок плагинов входит в отпечаток); 18 §7, §10 (`PluginContext`: `panelId`, `pluginId`, `buildId`, `dependencies`; factories fresh, shared mutable object изолируется); 07 §6 (plugin `register` добавляет definitions, `boot` не меняет registry); V47 (сквозная часть), V48, V85, V115, V118; D6 (`PluginContext` → P2.4); D8 п.1, п.4, п.5, п.7; D10 (у плагина нет префикса ключей: нет `PrefixesKeys`, `BasePlugin::prefixed()`/`prefix()` и `PluginContext::namespace()`)."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`Contracts\\Plugins\\{Plugin,DependsOnPlugins}` (`@spi`). `Plugins\\BasePlugin` (abstract, `@spi`: реализует `Plugin`, `boot()` по умолчанию пустой). `Plugins\\PluginContext` (final readonly, `@api`: `panelId`, `pluginId`, `buildId`, `dependencies`). `PanelBuilder::plugins(array)`, `withoutPlugins(array)`; `Panel::pluginIds()`. В `PanelCompiler`: экземпляр плагина на панель, `register()` в порядке подключения с происхождением `plugin:<id>`, проверка зависимостей и дубликатов, запечатывание builder, `boot()` после заморозки. `PluginDependencyMissingException`; повтор id плагина — `PluginConflictException` (класс из P2.3). `AzGuardConfig::buildId()` и ключ `catalog.build_id` (D8 п.5). Плагины и их порядок — в `PanelFingerprint`. Arch-правила зоны `Plugins` становятся невакуумными."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "встроенный плагин `azguard/audit` (P5.4). Логика порядка настроек и конфликта двух плагинов по scalar-настройке (P2.3 — уже есть; здесь только сквозной сценарий V47 с настоящими плагинами). Коллизии имён вкладов плагинов в каталоге (P2.5): плагин имён не меняет (D10). `PluginContractTests` (P6.7). Проверки doctor плагинов (P6.4). Filament-плагин (P7.1)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/plan.json` · `@plan/phases/P2/phase.json` · `@plan/decisions/D8.json` · `@plan/decisions/D10.json`. Код P2.1–P2.3 (классы `PanelBuilder`, `PanelRecipe`, `PanelCompiler`, `PanelFingerprint`, `PanelSettings` зоны Panels и `AzGuardConfig` — прочитать целиком до правок) — из рабочего дерева после закрытия P2.3."
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`packages/core/src/Contracts/Plugins/{Plugin,DependsOnPlugins}.php` · `packages/core/src/Plugins/{BasePlugin,PluginContext}.php` · `packages/core/src/Panels/{PanelBuilder,Panel,PanelCompiler,PanelRecipe,PanelFingerprint}.php` · `packages/core/src/Exceptions/PluginDependencyMissingException.php` · `packages/core/src/Configuration/AzGuardConfig.php` · `packages/core/config/azguard.php` · `packages/core/api-manifest.json` · `tests/Unit/Plugins/{BasePluginTest,PluginContextTest}.php` · `tests/Feature/Plugins/{PluginLifecycleTest,PluginIsolationTest,PluginSettingsConflictTest}.php` · `tests/Unit/Panels/PanelBuilderTest.php` · `tests/Fixtures/Plugins/*` · `tests/Arch/ZonesArchTest.php` · `CHANGELOG.md`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/06-extension-points.md` §3 2) `audits/2026-09-29-audit/opus/19-oop-and-permission-authority.md` §4 3) `audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md` §7, §8, §10 4) `@plan/brief.json` §47, §78 5) `audits/2026-09-29-audit/opus/14-verification.md` (строки V48, V85, V115, V118) 6) `@plan/decisions/D8.json`."
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "`plugins(array)`: элемент — объект `Plugin` или class-string `Plugin` (создаётся контейнером), иное → `DefinitionException`; списки аддитивны, порядок подключения сохраняется. Id плагина — грамматика D8 п.5, иначе `DefinitionException`; два плагина с одним id на панели → `PluginConflictException`. `withoutPlugins(ids)` убирает плагин, подключённый `configurePanels()`; id, которого нет, не ошибка. Экземпляр на панель: компилятор берёт `clone` переданного объекта перед `register()`; объект, полученный из контейнера, тоже клонируется — состояние, записанное в `register()` одной панели, не видно другой. `DependsOnPlugins::requires()`: каждого id нет среди подключённых после `withoutPlugins` → `PluginDependencyMissingException` с id плагина и зависимости. Порядок сборки панели: записи провайдера и `configure` → плагины из рецепта по порядку: `register(PanelBuilder, PluginContext)`; плагин, подключённый внутри `register()` другого плагина, регистрируется после текущего; повторный обход до исчерпания. Во время `register()` текущее происхождение builder — `plugin:<id>`. Префикса у плагина нет (D10): поле `prefix` из происхождения `PanelRecipe::plugin()` и из проверок P2.1 удаляется, плагин приносит ключи как объявлены. После фазы `register` builder запечатан: любой setter, в том числе из сохранённой ссылки в `boot()`, → `RegistryFrozenException`; `boot(Panel, PluginContext)` вызывается после заморозки реестра в порядке подключения. `PluginContext`: `panelId()`, `pluginId()`, `buildId()` (из `AzGuardConfig::buildId()`), `dependencies()` (из `requires()`, иначе `[]`); нет геттера опций, контейнера и панели-объекта. У `BasePlugin` нет `prefixed`, `prefix`, `make`, `options`, `withOptions`, публичного конструктора с массивом; id плагина отдаёт `Plugin::id()`, fluent-сеттера id база не объявляет. `AzGuardConfig::buildId()`: `catalog.build_id`, если непустая строка; иначе sha256 по отсортированным парам «класс зарегистрированного провайдера панели → sha256 содержимого его файла» — значение известно до `register()` плагинов (от отпечатков панелей не зависит) и стабильно между запросами одного кода. `PanelFingerprint` получает id плагинов в порядке подключения. `Plugins\\` не использует `AzGuard\\Internal` и `AzGuard\\Storage`."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Фикстуры: `AuditTrailPlugin::make(int $retentionDays = 90)` с `retention(int): static` (clone) по 06 §3; `CrmAccessPlugin::make(CrmModels $models, string $clientScope)` с DTO `CrmModels`, проверяющим `is_a(..., Model::class, true)` и `Authenticatable` (19 §4), использующий только доступные методы builder (`for`, `resourceScopes`); плагин с `requires()`; плагин, меняющий builder в `boot()`. V48 — отсутствующая зависимость → `plugin_dependency_missing`; изменение в `boot()` → `RegistryFrozenException`; перестановка двух плагинов меняет отпечаток панели; один объект плагина на двух панелях получает два разных `PluginContext::panelId()`. V85 — `make()` через `app()->makeWith(...)` работает с привязкой контейнера; `retention(30)` на одной панели и `retention(90)` на другой не делят состояние; плагин в `register()` добавляет фикстурный `Source`, класс ограничения и pipe — записи рецепта несут происхождение `plugin:<id>`. V47 (сквозной) — два фикстурных плагина с разным `cache(ttl:)` → `plugin_conflict` с id обоих; при заданном провайдером ttl — без ошибки; `settings()->origin(...)` возвращает `plugin:<id>`. V115/V118 — reflection: у `BasePlugin` нет `make`/`options`/`withOptions`/`prefixed`/`prefix`, интерфейса `PrefixesKeys` нет, у `PluginContext` нет `namespace`; `CrmModels` с не-`Model` или не-`Authenticatable` субъектом → исключение до сборки панели; сигнатура `make` фикстур — именованные типизированные параметры. Доказать RED правил `Plugins ↛ Internal` и `Plugins ↛ Storage` на временной копии."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Unit/Plugins tests/Feature/Plugins tests/Unit/Panels tests/Feature/Panels` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "SPI плагинов, `BasePlugin`, `PluginContext`, жизненный цикл и изоляция в компиляторе, build id; обновлённый манифест; раздел P2.4 в `@plan/knowledge/findings-P2-execution.json` (V48/V85/V115/V118 → тест; порядок фаз сборки панели; доказательства RED)."
+    }
+  ]
+}

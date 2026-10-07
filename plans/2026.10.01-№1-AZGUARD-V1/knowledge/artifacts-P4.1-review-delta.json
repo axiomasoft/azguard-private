@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "artifacts-P4.1-review-delta",
+  "title": "Вердикт: GREEN",
+  "sections": [
+    {
+      "id": "GREEN",
+      "title": "Вердикт: GREEN",
+      "text": "Оба подтверждённых дефекта в этой дельте закрыты. Нового Major или Minor по изменённым путям нет. Nullable-сервис во втором нативном слоте контракт D15 не нарушает."
+    },
+    {
+      "id": "Major-1",
+      "title": "Major 1 закрыт",
+      "text": "`RuntimeInvoker.php:32-38`. Если во входах есть `user`, позиция 0 всегда берёт субъект, позиция 1 берёт `resource`, когда имя параметра уже совпало с `user` или `resource` либо тип принимает этот вход. Имена `request` и `context` в список подмены не входят.\n\nТри прежних столкновения теперь дают `[1, 2]`:\n\n- `fn (User $agent, User $user)`: имя `$user` больше не закрепляет субъект за вторым аргументом.\n- `fn (User $resource, User $other)`: позиция 0 забирает субъект, а не ресурс.\n- `fn (User $resource, User $user)`: обратные документированные имена не меняют позиции.\n\nПрежние пути целы. `fn (User $who, User $target)` по-прежнему `[1, 2]`. Необязательный `null`-ресурс у не-nullable `User` по-прежнему бросает исключение и не создаёт модель. Один аргумент `User` не получает лишний ресурс. Variadic во второй позиции сохраняет тот же экземпляр. Хук без ключа `user` по-прежнему связывается по типу и отвергает неоднозначный `object`.\n\n`fn (User $user, AccessRequest $request, EvaluationContext $context)` оставляет `request` и `context` по именам: внешнее условие срабатывает только для пустого слота или слотов `user`/`resource`."
+    },
+    {
+      "id": "Minor-2",
+      "title": "Minor 2 закрыт",
+      "text": "`AccessPipeline.php:30-36` вызывает `resolve()` и `validateKeys()` до границы, before и authority. `RestrictionStage.php:51-52` по-прежнему бросает `DefinitionException` при повторе ключа. Поэтому `not_granted`, before Deny и неглобальный tenant получают исключение конфигурации, а не тихий Deny.\n\nРазделение ошибок сохранено.\n\n- Повтор ключа, который посчитал сам движок, выходит наружу как `DefinitionException`. After при этом не запускается, как и для прочих прямых ошибок API.\n- `key()` или фабрика, которые сами бросают `DefinitionException` либо `RuntimeException`, ловятся в `validateKeys()` (`RestrictionStage.php:43-48`) и в `resolve()` (`AccessPipeline.php:30-35`) и становятся `RestrictionError`. After видит этот отказ. Это как раз тесты `key` и `factory`.\n- `appliesTo()` и `check()` вызываются только из `decide()`, а он выполняется лишь при уже разрешённом кандидате (`AccessPipeline.php:47-48`). Отказ по ключу подменяет Allow и до этих методов не доходит."
+    },
+    {
+      "id": "Nullable-stdClass",
+      "title": "Nullable stdClass во втором слоте",
+      "text": "Это не дефект и не регрессия дельты.\n\nD15 закрепляет позиции: первый параметр — user, второй — resource. Совместимый со значением resource тип, включая nullable и значение `null`, получает именно resource. Явный `null` reserved-входа нельзя заменить сервисом из контейнера. Сервис — это уже следующий параметр.\n\n`fn (?User $who, ?stdClass $service)` при `resource=null` поэтому получает `null`: `?stdClass` принимает `null`, и второй слот занят resource. Не-nullable `stdClass` во втором слоте `null` не принимает и моделью не является, поэтому остаётся на DI. Новый тест с `?stdClass` третьим аргументом как раз показывает место сервиса. Требовать контейнерный сервис во втором nullable-слоте значило бы подменить присутствующий reserved-вход.\n\nОставшихся дефектов в этой дельте нет."
+    }
+  ],
+  "applies_to": [],
+  "provenance": {
+    "path": "artifacts/P4.1-review/delta.md",
+    "sha256": "c350140f909eb3f4b27b11bf3c3e9462f0ef9ef9597a7a1070316b0d95976f18"
+  }
+}

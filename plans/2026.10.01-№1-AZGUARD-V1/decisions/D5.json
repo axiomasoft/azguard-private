@@ -1,0 +1,49 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D5",
+  "title": "CRM-приёмка растёт вместе с owning items; P8.7 — итоговая квалификация",
+  "date": "2026-10-01",
+  "status": "accepted",
+  "decision": "Начиная с P4, in-repo CRM-фикстура (панель `crm`, ProjectScope, CallerRole/AnalystRole, tenant A/B)\nживёт в `tests/Fixtures/Crm` и `tests/Acceptance/Crm`; каждый owning item добавляет реальные кейсы\nR01–R68, которые стали выполнимы его возможностью, с заранее заданными ожидаемыми ids. P8.7 строит\nнезависимый consumer из собранных архивов, прогоняет все обязательные кейсы на объявленной матрице\nи публикует evidence matrix с ограничениями.",
+  "rationale": "Досье требует поднимать fixture рано, чтобы дефекты исправлялись в owning items, а не маскировались\nожидаемым deny в конце. Отдельная ранняя фаза невозможна: кейсам нужен API P2–P4.",
+  "applies_to": [
+    "P4",
+    "P5",
+    "P6",
+    "P7",
+    "P8.4",
+    "P8.7"
+  ],
+  "supersedes": [],
+  "actor": {
+    "provider": "legacy",
+    "model": "plan-designer / Claude Opus 5.5 (frontier)"
+  },
+  "sections": [
+    {
+      "id": "Preamble",
+      "title": "Preamble",
+      "text": "---\nid: D5\ndate: 2026-10-01\nstatus: accepted\nitem: P8.7\nitems: [P4, P5, P6, P7, P8.4, P8.7]\nsupersedes: []\nsuperseded_by: null\n---"
+    },
+    {
+      "id": "D5-CRM--owning-items-P8.7",
+      "title": "D5 — CRM-приёмка растёт вместе с owning items; P8.7 — итоговая квалификация",
+      "text": "**Actor:** plan-designer / Claude Opus 5.5 (frontier)\n**Evidence:** RAG:— `13-workstreams.md` «P8.7 поднимает fixture рано»; `17-crm-acceptance-tests.md` §4 п.1–5."
+    },
+    {
+      "id": "Solution",
+      "title": "Solution",
+      "text": "Начиная с P4, in-repo CRM-фикстура (панель `crm`, ProjectScope, CallerRole/AnalystRole, tenant A/B)\nживёт в `tests/Fixtures/Crm` и `tests/Acceptance/Crm`; каждый owning item добавляет реальные кейсы\nR01–R68, которые стали выполнимы его возможностью, с заранее заданными ожидаемыми ids. P8.7 строит\nнезависимый consumer из собранных архивов, прогоняет все обязательные кейсы на объявленной матрице\nи публикует evidence matrix с ограничениями."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "Досье требует поднимать fixture рано, чтобы дефекты исправлялись в owning items, а не маскировались\nожидаемым deny в конце. Отдельная ранняя фаза невозможна: кейсам нужен API P2–P4."
+    },
+    {
+      "id": "Consequences",
+      "title": "Consequences",
+      "text": "Детализация P4 создаёт фикстуру; P5–P7 расширяют её. Skipped/UI-not-wired кейс ≠ passed."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "kind": "waiting",
+  "exact": "waiting: blocked P4.6 — Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять.",
+  "phase": "P4",
+  "batch": "BP4-19",
+  "items": [],
+  "route": null,
+  "launch": null,
+  "command": null,
+  "reason": "blocked P4.6 — Нужен native Grok CLI/launcher, принимающий обязательный --context-window=500k и доказывающий fresh read-only grok-4.7/high/500000 session. Installed1.0.46 rejects exact flag exit2. После восстановления маршрута выполнить независимое ревью подготовленного кандидата и штатно завершить P4.6; модель/провайдер/контекст не подменять."
+}

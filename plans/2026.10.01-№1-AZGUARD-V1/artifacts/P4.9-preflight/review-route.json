@@ -1,0 +1,8 @@
+{
+  "session_id": "0ee299aa-c562-4aa9-af05-812a4de11182",
+  "observed_model": "grok-4.7",
+  "observed_effort": "high",
+  "native_session_summary_path": "/home/vostrikov/.grok/sessions/%2Ftmp%2Fazguard-p49-preflight-review/0ee299aa-c562-4aa9-af05-812a4de11182/summary.json",
+  "independent": true,
+  "scope": "preflight correction only"
+}

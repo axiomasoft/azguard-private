@@ -1,0 +1,7 @@
+[
+  {
+    "id": "Dependencies-and-order",
+    "title": "Dependencies and order",
+    "text": "`P4.1` → `P4.2` → `P4.3` → `P4.4` → `P4.17` → `P4.5` → `P4.6` → `P4.19` → `P4.7` → `P4.16` → `P4.18` → `P4.15` → `P4.13` → `P4.8` → `P4.20` → `P4.21` → `P4.9` → `P4.10` → `P4.11` → `P4.22` → `P4.12` → `P4.23` → `P4.14`. Порядок execution sheet, не числовой порядок. По [D16](../../decisions/D16-p4-execution-grouping.md) B4a = P4.2 → P4.3, B4e = P4.10 → P4.11; остальные пункты имеют отдельный solo-допуск.\n\nP4.1 до sources; boundary/eligibility перед scoped Allow; P4.15 и P4.13 до cache; P4.22 после sources/boundary, до P4.12; P4.23 до P4.14. Каждый общий контракт имеет единственного владельца по D15. Внешние P5–P8 потребляют готовую фазу P4; surfaces/residual owners — acceptance matrix."
+  }
+]

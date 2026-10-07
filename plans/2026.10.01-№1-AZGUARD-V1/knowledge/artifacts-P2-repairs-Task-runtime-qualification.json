@@ -1,0 +1,17 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "artifacts-P2-repairs-Task-runtime-qualification",
+  "title": "Task runtime repair — qualification",
+  "sections": [
+    {
+      "id": "Task-runtime-repair-qualification",
+      "title": "Task runtime repair — qualification",
+      "text": "Owning source: `/home/vostrikov/projects/packages/swissknifeman/packages/task`.\nПрименяется source-owned `scripts/plan-work.py`, а не старая установленная cache-копия.\n\n- `scripts/validate.sh`: exit 0, `validate: OK`.\n- Полный unittest: 1294 tests, OK, 1 existing skip. Лог `/tmp/azguard-task-qualification.log`.\n- 18 repeat tests включают отказ чужого/отозванного/устаревшего grant, route undershoot,\n  одноразовый grant, фазу с будущим skeleton без design audit, неизменность strict required audit,\n  durable witness исторического scoped repeat и историческое чтение после следующего sibling run.\n- `render-provider-commands.py --root . --check`: no-op, exit 0.\n- `scripts/docs-sync.sh --check`: fresh, exit 0.\n- `plan-lint.py --conflicts`: 0 discrepancies, 0 warnings.\n- `git diff --check`: exit 0.\n\nScope fingerprint включает plan/roadmap и выбранную фазу с её specs/design artifacts.\nЗакрытый schema `repeat-admission/v1` не менялся. Required audit сохраняет finish/GREEN;\nhistorical scoped read аутентифицирует consumed start, gate witness, owner marker и неизменные specs.\nПоздний owning repeat sibling не переписывает предшествующую terminal history."
+    }
+  ],
+  "applies_to": [],
+  "provenance": {
+    "path": "artifacts/P2-repairs/Task-runtime-qualification.md",
+    "sha256": "782ba7cf8d18f49791b37fcc69f8036573241c92b5a9234ababc53024f8c0986"
+  }
+}

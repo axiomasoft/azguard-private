@@ -1,0 +1,205 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P0.2",
+  "title": "Probes 0.3 → спецификации регрессионных тестов с owning items",
+  "status": "done",
+  "summary": "Превратить 19 исполняемых probes 0.3 в спецификации регрессий нового API с обратным ожиданием и owning item плана, чтобы ни один дефект не потерялся при перестройке; соответствие держит meta-тест.",
+  "why": "RAG:— `evidence/README.md` «Карта probes → находки» (P01a–P14, 19 tests) и колонка Probe в `14-verification.md`; правило 13 §0 п.2: пункт без регрессионного теста своего probe не закрыт.",
+  "scope": {
+    "include": [
+      "`tests/Regression/README.md` (назначение, формат, правило закрытия); по одному файлу `tests/Regression/specs/<probe-id>.md` для P01a, P01b, P01c, P02, P03, P04a, P04b, P04c, P05, P06, P06b, P07, P08, P09, P10, P10b, P11, P13, P14 с полями: `Probe`, `Finding` (N##/C##), `Owning item` (`PLAN2.Pn.m`), `Scenarios` (V-ids), `Defect in 0.3` (что доказывал probe, со ссылкой на тест-метод в `audits/.../evidence/probes/*.php`), `Required behavior` (сценарий на целевом API досье с конкретными вызовами и ожиданием), `Status` (`pending` | `covered: <path>::<test>`). Meta-тест `tests/Regression/RegressionSpecsTest.php`: все 19 файлов есть; поля заполнены; owning item совпадает с ожидаемым для этого probe (таблица в тесте, повторяет Implementation Rules) и имеет форму `PLAN2.Pn.m`; V-ids имеют форму `V\\d{2,3}` и встречаются в `audits/2026-09-29-audit/opus/14-verification.md`; для `covered:` путь и имя теста существуют."
+    ],
+    "exclude": [
+      "сами регрессионные тесты на новом API (их пишут owning items P1–P5); изменения probes в `audits/`."
+    ]
+  },
+  "depends_on": [
+    "P0.5"
+  ],
+  "decisions": [],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P0/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/evidence/README.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/13-workstreams.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/evidence/probes/OpusAuditProbesTest.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/evidence/probes/OpusAuditContextProbesTest.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/01-review.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [],
+  "rules": [
+    "Owning item по колонке Probe досье: P07→P1.1; P14→P1.2 (+ P4.7, P5.2 в Scenarios); P01c, P05, P09→P2.2; P02→P4.2; P03→P4.3 (+P4.11); P08→P4.4; P06, P06b→P4.6; P01a, P01b→P4.7; P10, P10b→P4.8; P04a–P04c→P4.12; P13→P5.2; P11→P5.4. Если колонка досье и 13 расходятся — выбрать пункт, который вводит проверяемую возможность, и указать причину в spec. Required behavior пишется вызовами целевого API (`hasPermission(..., on:)`, `guard('admin')`, `grantRole`, `AzGuard::panel()`), не 0.3 API. Meta-тест читает файлы относительным путём от корня репозитория и не зависит от Laravel-контейнера."
+  ],
+  "guidance": "Spec — Markdown с полями `**Probe:** …` на отдельных строках (парсится regex `^\\*\\*(Field):\\*\\*\\s*(.+)$`). Meta-тест: Pest dataset из списка 19 id; без внешних библиотек.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Regression",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/phpstan analyse",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "procedure": "shell",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "19 spec-файлов + README + meta-тест; таблица probe → owning item в `@plan/knowledge/findings-P0-execution.json`."
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-01T19:25:25Z",
+    "finished_at": "2026-10-05T10:10:52Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "claude"
+    },
+    "notes": "19 spec-файлов регрессий, README и meta-тест; GREEN\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-01T19:29:00Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-05T10:10:52Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Превратить 19 исполняемых probes 0.3 в спецификации регрессий нового API с обратным ожиданием и owning item плана, чтобы ни один дефект не потерялся при перестройке; соответствие держит meta-тест."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— `evidence/README.md` «Карта probes → находки» (P01a–P14, 19 tests) и колонка Probe в `14-verification.md`; правило 13 §0 п.2: пункт без регрессионного теста своего probe не закрыт."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`tests/Regression/README.md` (назначение, формат, правило закрытия); по одному файлу `tests/Regression/specs/<probe-id>.md` для P01a, P01b, P01c, P02, P03, P04a, P04b, P04c, P05, P06, P06b, P07, P08, P09, P10, P10b, P11, P13, P14 с полями: `Probe`, `Finding` (N##/C##), `Owning item` (`PLAN2.Pn.m`), `Scenarios` (V-ids), `Defect in 0.3` (что доказывал probe, со ссылкой на тест-метод в `audits/.../evidence/probes/*.php`), `Required behavior` (сценарий на целевом API досье с конкретными вызовами и ожиданием), `Status` (`pending` | `covered: <path>::<test>`). Meta-тест `tests/Regression/RegressionSpecsTest.php`: все 19 файлов есть; поля заполнены; owning item совпадает с ожидаемым для этого probe (таблица в тесте, повторяет Implementation Rules) и имеет форму `PLAN2.Pn.m`; V-ids имеют форму `V\\d{2,3}` и встречаются в `audits/2026-09-29-audit/opus/14-verification.md`; для `covered:` путь и имя теста существуют."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "сами регрессионные тесты на новом API (их пишут owning items P1–P5); изменения probes в `audits/`."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/plan.json` · `@plan/phases/P0/phase.json` · `tests/Pest.php` (каркас P0.5) · `audits/2026-09-29-audit/opus/evidence/README.md` · `audits/2026-09-29-audit/opus/14-verification.md` · `audits/2026-09-29-audit/opus/13-workstreams.md`."
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`tests/Regression/README.md` · `tests/Regression/specs/*.md` · `tests/Regression/RegressionSpecsTest.php`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/evidence/README.md` 2) `audits/2026-09-29-audit/opus/evidence/probes/OpusAuditProbesTest.php` 3) `audits/2026-09-29-audit/opus/evidence/probes/OpusAuditContextProbesTest.php` 4) `audits/2026-09-29-audit/opus/14-verification.md` 5) `audits/2026-09-29-audit/opus/13-workstreams.md` 6) `audits/2026-09-29-audit/opus/01-review.md` §4 (только находки, на которые ссылаются probes) 7) `audits/2026-09-29-audit/opus/05-php-api.md` §0–§1 (форма целевых вызовов)."
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Owning item по колонке Probe досье: P07→P1.1; P14→P1.2 (+ P4.7, P5.2 в Scenarios); P01c, P05, P09→P2.2; P02→P4.2; P03→P4.3 (+P4.11); P08→P4.4; P06, P06b→P4.6; P01a, P01b→P4.7; P10, P10b→P4.8; P04a–P04c→P4.12; P13→P5.2; P11→P5.4. Если колонка досье и 13 расходятся — выбрать пункт, который вводит проверяемую возможность, и указать причину в spec. Required behavior пишется вызовами целевого API (`hasPermission(..., on:)`, `guard('admin')`, `grantRole`, `AzGuard::panel()`), не 0.3 API. Meta-тест читает файлы относительным путём от корня репозитория и не зависит от Laravel-контейнера."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Spec — Markdown с полями `**Probe:** …` на отдельных строках (парсится regex `^\\*\\*(Field):\\*\\*\\s*(.+)$`). Meta-тест: Pest dataset из списка 19 id; без внешних библиотек."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Regression` — GREEN; 2) временная порча одного spec (owning item `PLAN2.P9.9`) даёт RED, после отката GREEN (описать в evidence); 3) `composer test`, `vendor/bin/pint --test`, `vendor/bin/phpstan analyse` (тесты вне paths, но код теста форматирован), `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "19 spec-файлов + README + meta-тест; таблица probe → owning item в `@plan/knowledge/findings-P0-execution.json`."
+    }
+  ]
+}

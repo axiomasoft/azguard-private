@@ -13,7 +13,16 @@
       "Публичный `isSuperAdmin(on:)` трейта/`SubjectAccess` (P5.1); UI-бейджи (P7.3); выдача роли (P5.2/P5.3); CRM-кейс R17 (P4.15)."
     ]
   },
-  "depends_on": [],
+  "depends_on": [
+    "P4.1",
+    "P4.2",
+    "P4.3",
+    "P4.4",
+    "P4.17",
+    "P4.5",
+    "P4.6",
+    "P4.19"
+  ],
   "decisions": [
     "D16",
     "D14",
@@ -278,7 +287,7 @@
       "@plan/artifacts/P4.7-execution/final-003/V10.json"
     ]
   },
-  "updated_at": "2026-10-06T07:44:15Z",
+  "updated_at": "2026-10-06T09:23:02Z",
   "sections": [
     {
       "id": "Intent",

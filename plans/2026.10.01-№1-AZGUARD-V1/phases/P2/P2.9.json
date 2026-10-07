@@ -1,0 +1,254 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.9",
+  "title": "Кадры областей и directories: AssignmentScopeRuntime, LookupContext, BaseAssignmentScope",
+  "status": "done",
+  "summary": "Принять от P1 по D6 значения, которым нужен `Panel`: неизменяемые кадры операции для фильтров областей и поиска, конфигурируемое определение области с удобной базой `BaseAssignmentScope` и directories с typed Option-значениями — чтобы P4.6 применял фильтры и проверял назначения на готовых контрактах, а не изобретал их.",
+  "why": "RAG:— D6 п.1 (перенос `AssignmentScopeRuntime`, `LookupContext`, `AssignmentScopeFilter`, `ConfigurableAssignmentScopeDefinition`, `AssignmentScopeSettings`, `BaseAssignmentScope`, `AssignmentScopeAccessAdapter`, directories и Option-значений в F2; порядок относительно P2.8 уточнён D8 п.1); 06 §7 (сигнатуры SPI; `BaseAssignmentScope.resolve(ref)` проверяет type, одна структурная загрузка `query()->whereKey()->first()`, tenant из той же записи); 05 §12 (`BaseAssignmentScope`: abstract `query()`/`tenantOf()`, `filter`/`label`/`directory` возвращают clone, универсальной `make()` нет); 18 §2, §3, §10 (поля кадров; class-string фильтра — FQCN, не alias профиля; объект хранит только immutable config); D75 (fluent settings immutable); D8 п.1, п.4 (namespace Option-значений и `TenantDirectory`).",
+  "scope": {
+    "include": [
+      "`AzGuard\\Scopes\\AssignmentScopeRuntime` (final readonly: `panel`, `scope`, `subject`, `user`, `role`, `grant`, `actor`, `actorModel`, `now`, `phase`). `AzGuard\\Directories\\LookupContext` (final readonly: `panel`, `scope`, `actor`, `actorModel`, `subject`, `user`, `role`, `proposed`, `phase`, `now`), `Directories\\{TenantOption,AssignmentScopeOption,SubjectOption}` (final readonly: ссылка, подпись, необязательное описание). `Contracts\\Scopes\\{ConfigurableAssignmentScopeDefinition,AssignmentScopeFilter,AssignmentScopeAccessAdapter,TenantDirectory,AssignmentScopeDirectory}` и `Contracts\\Subjects\\SubjectDirectory` (`@spi`, сигнатуры 06 §7 дословно). `Scopes\\AssignmentScopeSettings` (final readonly: фильтры, подпись, класс directory) и `Scopes\\BaseAssignmentScope` (abstract, `@spi`). Arch-правило зоны `Directories`. Перегенерация манифеста."
+    ],
+    "exclude": [
+      "применение фильтров к запросу, разрешение class-string фильтра контейнером на операции, `Container::call` с reserved inputs для Closure, проверка nullable/type контрактов замыкания, сверка returned ref/tenant ядром, `AssignmentScopePolicy`, `ModelAssignmentScopeDefinition`, `ModelTenantDefinition`, membership — всё P4.6. `ChangeContext` (P5.2). `AssignmentScopeBindingSchema`/`AssignmentScopeTypeSchema` (P5.5). Реализации directories по умолчанию (P5.3/P7.4)."
+    ]
+  },
+  "depends_on": [
+    "P1.6",
+    "P2.1"
+  ],
+  "decisions": [
+    "D8",
+    "D6"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "@plan/plan.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/phases/P2/phase.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": false
+    },
+    {
+      "path": "@plan/decisions/D8.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "@plan/decisions/D6.json",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Scopes/QueryableAssignmentScopeDefinition.php",
+      "why": "Source input; exact context is preserved in item sections.",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Scopes/{AssignmentScopeRuntime,AssignmentScopeSettings,BaseAssignmentScope}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Directories/{LookupContext,TenantOption,AssignmentScopeOption,SubjectOption}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Contracts/Scopes/{ConfigurableAssignmentScopeDefinition,AssignmentScopeFilter,AssignmentScopeAccessAdapter,TenantDirectory,AssignmentScopeDirectory}.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/src/Contracts/Subjects/SubjectDirectory.php",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "any"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "any"
+    }
+  ],
+  "rules": [
+    "Кадры — `final readonly` с конструктором именованных аргументов, без логики и без обращения к `Auth`/контейнеру; `role` — настоящий `BaseRole` или null (common/direct/policy-only), `user` nullable (неразрешимый ref), `proposed` — `array<string, mixed>`. `BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition`: `type()`, `query()`, `tenantOf()` — abstract; `model()` — `$this->query()->getModel()::class`; `resolve(ref)`: global ref или `ref->type() !== type()` → `InvalidAssignmentScopeException` (чужой ref не игнорируется); иначе ровно один запрос `query()->whereKey($ref->id())->first()`; null при отсутствии записи; `new ResolvedAssignmentScope($ref, $this->tenantOf($record), $record)` — `query()` не вызывается второй раз для owner. `filter()`: объект `AssignmentScopeFilter`, Closure или class-string, для которого `is_a(..., AssignmentScopeFilter::class, true)`; иная строка → `DefinitionException`; `directory(class)` — class-string `AssignmentScopeDirectory`, иначе `DefinitionException`; `filter`/`label`/`directory` возвращают clone, исходный объект не меняется, фильтры копятся в порядке добавления. Универсального `make()` у базы нет — фабрику объявляет конкретный класс. `settings()` возвращает `AssignmentScopeSettings`; объект настроек не хранит `Model`, `Request`, `Builder`. Идентичность области — alias `type()`, FQCN не используется. `Directories` зависит от Kernel, Contracts, Panels, Roles и Eloquent `Model`; не от Storage, Changes, Authorization."
+  ],
+  "guidance": "Фикстура `ConfiguredProjectScope extends BaseAssignmentScope` с `static make()` рядом с существующим `ProjectScope` (его и тест V89 части P1 не менять). Feature-тест на SQLite `:memory:` с таблицей `projects`, созданной в тесте: `DB::enableQueryLog()` → `resolve()` даёт один SELECT; tenant взят из загруженной записи; отсутствующий id → null; ref типа `crm.client` → `InvalidAssignmentScopeException`. Unit: `filter(new ActiveProjects)` и `filter(ActiveProjects::class)` дают разные объекты настроек, исходный неизменён; `filter('seller-city')` и `filter(stdClass::class)` → `DefinitionException`. В `ZonesArchTest` добавить `AzGuard\\Directories` в `AZGUARD_OUTER_ZONES` и правило `Directories ↛ Storage, Changes, Authorization`; доказать RED на временной копии.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "vendor/bin/pest tests/Unit/Scopes tests/Unit/Directories tests/Feature/Scopes tests/Unit/Contracts",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "vendor/bin/pest tests/Arch",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer api:manifest",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "expect": "Source acceptance condition preserved in Validation section.",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "procedure": "shell",
+      "expect": "Source evidence status: green",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "кадры, SPI фильтров и directories, `BaseAssignmentScope`; обновлённый манифест; раздел P2.9 в `@plan/knowledge/findings-P2-execution.json` (перечень D6 → класс → тест; что оставлено P4.6)."
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-03T17:10:51Z",
+    "finished_at": "2026-10-03T17:25:15Z",
+    "executor": {
+      "provider": "legacy",
+      "model": "grok-4.7/high",
+      "effort": "high"
+    },
+    "notes": "Кадры областей, SPI directories и BaseAssignmentScope; resolve() — один SELECT; 8 гейтов GREEN\nwrite-site: pre_mutation: allow · pre_final: allow",
+    "deviations": [],
+    "pending": [],
+    "checks": [
+      {
+        "id": "V10",
+        "exit": 0,
+        "at": "2026-10-03T17:25:15Z",
+        "summary": "Authentic terminal evidence recorded green in the source journal."
+      }
+    ]
+  },
+  "updated_at": "2026-10-03T17:25:15Z",
+  "sections": [
+    {
+      "id": "Intent",
+      "title": "Intent",
+      "text": "Принять от P1 по D6 значения, которым нужен `Panel`: неизменяемые кадры операции для фильтров областей и поиска, конфигурируемое определение области с удобной базой `BaseAssignmentScope` и directories с typed Option-значениями — чтобы P4.6 применял фильтры и проверял назначения на готовых контрактах, а не изобретал их."
+    },
+    {
+      "id": "Why",
+      "title": "Why",
+      "text": "RAG:— D6 п.1 (перенос `AssignmentScopeRuntime`, `LookupContext`, `AssignmentScopeFilter`, `ConfigurableAssignmentScopeDefinition`, `AssignmentScopeSettings`, `BaseAssignmentScope`, `AssignmentScopeAccessAdapter`, directories и Option-значений в F2; порядок относительно P2.8 уточнён D8 п.1); 06 §7 (сигнатуры SPI; `BaseAssignmentScope.resolve(ref)` проверяет type, одна структурная загрузка `query()->whereKey()->first()`, tenant из той же записи); 05 §12 (`BaseAssignmentScope`: abstract `query()`/`tenantOf()`, `filter`/`label`/`directory` возвращают clone, универсальной `make()` нет); 18 §2, §3, §10 (поля кадров; class-string фильтра — FQCN, не alias профиля; объект хранит только immutable config); D75 (fluent settings immutable); D8 п.1, п.4 (namespace Option-значений и `TenantDirectory`)."
+    },
+    {
+      "id": "Scope-Included",
+      "title": "Scope Included",
+      "text": "`AzGuard\\Scopes\\AssignmentScopeRuntime` (final readonly: `panel`, `scope`, `subject`, `user`, `role`, `grant`, `actor`, `actorModel`, `now`, `phase`). `AzGuard\\Directories\\LookupContext` (final readonly: `panel`, `scope`, `actor`, `actorModel`, `subject`, `user`, `role`, `proposed`, `phase`, `now`), `Directories\\{TenantOption,AssignmentScopeOption,SubjectOption}` (final readonly: ссылка, подпись, необязательное описание). `Contracts\\Scopes\\{ConfigurableAssignmentScopeDefinition,AssignmentScopeFilter,AssignmentScopeAccessAdapter,TenantDirectory,AssignmentScopeDirectory}` и `Contracts\\Subjects\\SubjectDirectory` (`@spi`, сигнатуры 06 §7 дословно). `Scopes\\AssignmentScopeSettings` (final readonly: фильтры, подпись, класс directory) и `Scopes\\BaseAssignmentScope` (abstract, `@spi`). Arch-правило зоны `Directories`. Перегенерация манифеста."
+    },
+    {
+      "id": "Scope-Excluded",
+      "title": "Scope Excluded",
+      "text": "применение фильтров к запросу, разрешение class-string фильтра контейнером на операции, `Container::call` с reserved inputs для Closure, проверка nullable/type контрактов замыкания, сверка returned ref/tenant ядром, `AssignmentScopePolicy`, `ModelAssignmentScopeDefinition`, `ModelTenantDefinition`, membership — всё P4.6. `ChangeContext` (P5.2). `AssignmentScopeBindingSchema`/`AssignmentScopeTypeSchema` (P5.5). Реализации directories по умолчанию (P5.3/P7.4)."
+    },
+    {
+      "id": "Inputs",
+      "title": "Inputs",
+      "text": "`@plan/plan.json` · `@plan/phases/P2/phase.json` · `@plan/decisions/D8.json` · `@plan/decisions/D6.json`. Код P1.6 (SPI `AzGuard\\Contracts\\Scopes`, `AssignmentScopePhase`, фикстуры областей в тестах) и `Panels\\Panel` из P2.1 — из рабочего дерева."
+    },
+    {
+      "id": "Files",
+      "title": "Files",
+      "text": "`packages/core/src/Scopes/{AssignmentScopeRuntime,AssignmentScopeSettings,BaseAssignmentScope}.php` · `packages/core/src/Directories/{LookupContext,TenantOption,AssignmentScopeOption,SubjectOption}.php` · `packages/core/src/Contracts/Scopes/{ConfigurableAssignmentScopeDefinition,AssignmentScopeFilter,AssignmentScopeAccessAdapter,TenantDirectory,AssignmentScopeDirectory}.php` · `packages/core/src/Contracts/Subjects/SubjectDirectory.php` · `packages/core/api-manifest.json` · `tests/Unit/Scopes/{AssignmentScopeRuntimeTest,BaseAssignmentScopeTest}.php` · `tests/Feature/Scopes/BaseAssignmentScopeResolveTest.php` · `tests/Unit/Directories/LookupContextTest.php` · `tests/Fixtures/Scopes/*` · `tests/Arch/ZonesArchTest.php` · `CHANGELOG.md`."
+    },
+    {
+      "id": "Required-Reads",
+      "title": "Required Reads",
+      "text": "1) `audits/2026-09-29-audit/opus/06-extension-points.md` §7 (до «Условия выдач») 2) `audits/2026-09-29-audit/opus/05-php-api.md` §12 (до `GrantDetails`) 3) `audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md` §2, §3, §10 4) `@plan/decisions/D6.json` 5) `@plan/decisions/D8.json` 6) `packages/core/src/Contracts/Scopes/QueryableAssignmentScopeDefinition.php` 7) `tests/Fixtures/Scopes/ProjectScope.php`."
+    },
+    {
+      "id": "Implementation-Rules",
+      "title": "Implementation Rules",
+      "text": "Кадры — `final readonly` с конструктором именованных аргументов, без логики и без обращения к `Auth`/контейнеру; `role` — настоящий `BaseRole` или null (common/direct/policy-only), `user` nullable (неразрешимый ref), `proposed` — `array<string, mixed>`. `BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition`: `type()`, `query()`, `tenantOf()` — abstract; `model()` — `$this->query()->getModel()::class`; `resolve(ref)`: global ref или `ref->type() !== type()` → `InvalidAssignmentScopeException` (чужой ref не игнорируется); иначе ровно один запрос `query()->whereKey($ref->id())->first()`; null при отсутствии записи; `new ResolvedAssignmentScope($ref, $this->tenantOf($record), $record)` — `query()` не вызывается второй раз для owner. `filter()`: объект `AssignmentScopeFilter`, Closure или class-string, для которого `is_a(..., AssignmentScopeFilter::class, true)`; иная строка → `DefinitionException`; `directory(class)` — class-string `AssignmentScopeDirectory`, иначе `DefinitionException`; `filter`/`label`/`directory` возвращают clone, исходный объект не меняется, фильтры копятся в порядке добавления. Универсального `make()` у базы нет — фабрику объявляет конкретный класс. `settings()` возвращает `AssignmentScopeSettings`; объект настроек не хранит `Model`, `Request`, `Builder`. Идентичность области — alias `type()`, FQCN не используется. `Directories` зависит от Kernel, Contracts, Panels, Roles и Eloquent `Model`; не от Storage, Changes, Authorization."
+    },
+    {
+      "id": "Code-Guidance",
+      "title": "Code Guidance",
+      "text": "Фикстура `ConfiguredProjectScope extends BaseAssignmentScope` с `static make()` рядом с существующим `ProjectScope` (его и тест V89 части P1 не менять). Feature-тест на SQLite `:memory:` с таблицей `projects`, созданной в тесте: `DB::enableQueryLog()` → `resolve()` даёт один SELECT; tenant взят из загруженной записи; отсутствующий id → null; ref типа `crm.client` → `InvalidAssignmentScopeException`. Unit: `filter(new ActiveProjects)` и `filter(ActiveProjects::class)` дают разные объекты настроек, исходный неизменён; `filter('seller-city')` и `filter(stdClass::class)` → `DefinitionException`. В `ZonesArchTest` добавить `AzGuard\\Directories` в `AZGUARD_OUTER_ZONES` и правило `Directories ↛ Storage, Changes, Authorization`; доказать RED на временной копии."
+    },
+    {
+      "id": "Validation",
+      "title": "Validation",
+      "text": "1) `vendor/bin/pest tests/Unit/Scopes tests/Unit/Directories tests/Feature/Scopes tests/Unit/Contracts` — GREEN; 2) `vendor/bin/pest tests/Arch` — GREEN; 3) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 4) `composer test`; 5) `vendor/bin/pint --test`; 6) `vendor/bin/phpstan analyse --memory-limit=1G`; 7) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 8) `git diff --check`."
+    },
+    {
+      "id": "Deliverables",
+      "title": "Deliverables",
+      "text": "кадры, SPI фильтров и directories, `BaseAssignmentScope`; обновлённый манифест; раздел P2.9 в `@plan/knowledge/findings-P2-execution.json` (перечень D6 → класс → тест; что оставлено P4.6)."
+    }
+  ]
+}

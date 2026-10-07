@@ -1,0 +1,24 @@
+{
+  "verdict": "GREEN",
+  "findings": [
+    {
+      "severity": "minor",
+      "file": "after-item.json",
+      "reason": "depends_on восстановлен, но пункт остаётся status=in_progress с result.started_at=2026-10-06T09:13:48Z. evidence.json при этом фиксирует status=dependency_wait. Удержание есть в диагнозе и в списке зависимостей; в записи пункта допуск start не снят.",
+      "correction": "Оставить depends_on равным префиксу D15 до P4.9. Если ожидание должно быть состоянием пункта, перевести P4.9 из in_progress в todo/blocked и явно записать dependency_wait в result. Чужие пункты не реализовывать."
+    }
+  ],
+  "reviewed_files": [
+    "evidence.json",
+    "before-item.json",
+    "after-item.json",
+    "D15.json",
+    "phase-order.json"
+  ],
+  "limits": [
+    "Проверены только эти пять JSON. Исходники, git, статусы других пунктов и посторонняя грязная миграция в снимок не входят.",
+    "P4.9 не реализован. validation.product_tests=not_run. plan_check ok не является продуктовой приёмкой и приёмка не пройдена.",
+    "Статусы P4.1, P4.2, P4.3, P4.4, P4.17, P4.5, P4.7 и P4.8 в снимке не даны. Для удержания достаточно восьми незавершённых предшественников: P4.6 blocked, P4.19, P4.16, P4.18, P4.15, P4.13, P4.20, P4.21 — todo.",
+    "Страж поддержан: before-item depends_on пуст; after-item и evidence.repaired_dependencies совпадают с порядком D15 и phase-order от P4.1 до P4.21 включительно, без P4.9 и без последующих пунктов. Отсутствуют ScopeEligibility.php, tests/Acceptance/Crm и tests/Fixtures/Crm. Держать P4.9 в ожидании, не реализуя другие пункты, правильно."
+  ]
+}
