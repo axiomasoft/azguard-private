@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.3",
   "title": "RoleCatalog, scoped GrantManager, PermissionManager",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Дать публичные менеджеры, привязанные к неизменяемой паре (панель, tenant) и origin: `RoleCatalog` (read-only PHP-роли как `RoleSchema`), `GrantManager` (typed `page/find/update/revokeMany` назначений с `expectedFingerprint`), `PermissionManager` (dynamic actions через пайплайн), явную FormerKeys-миграцию с dry-run и cleanup orphan-назначений; все записи — через `ChangePipeline`.",
   "why": "Редакторы и операции администрирования (D14/D52, 05 §2) должны читать и менять только назначения своего partition. Жёсткие риски: IDOR чужого tenant/origin id (R37), перезапись устаревшей формой (C13), API изменения definitions ролей (запрещено D13/D80, R25), runtime-alias FormerKeys вместо явной миграции (D14 п.4, 19 §6, R66), неудаляемые orphan-строки после удаления класса (V113, R28). RAG:— 05 §2/§12, 19 §5–§6, 20 F11–F17, 18 §5; V10, V71, V82, V89, V91–V92, V113; D6, D14 п.4, D18.",
   "scope": {
@@ -278,5 +278,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-07T08:28:22Z"
+  "result": {
+    "started_at": "2026-10-07T16:58:50Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "aac9fa01-ee12-41cb-83af-a6ac6eea1b68"
+    }
+  },
+  "updated_at": "2026-10-07T16:58:50Z"
 }
