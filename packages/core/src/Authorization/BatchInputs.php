@@ -13,6 +13,7 @@ use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -222,7 +223,7 @@ final class BatchInputs
     public function external(AssignmentScopeAccessAdapter $adapter, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
     {
         $key = IdentityCodec::compose(['external', $adapter::class, $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
-            $runtime->role?->key(), $runtime->grant === null ? null : json_encode($runtime->grant, JSON_THROW_ON_ERROR), $runtime->grant === null ? null : json_encode($runtime->grant->fields(), JSON_THROW_ON_ERROR)]);
+            $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
 
         if (! array_key_exists($key, $this->eligibility)) {
             try {
@@ -244,11 +245,25 @@ final class BatchInputs
 
     public function eligibilityKey(AssignmentScopeDefinition $configuration, AssignmentScopeRuntime $runtime): string
     {
-        $grant = $runtime->grant;
-
         return IdentityCodec::compose([$this->configurationKey($configuration), $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
-            $runtime->role?->key(), $grant?->role, $grant === null ? null : json_encode($grant->fields(), JSON_THROW_ON_ERROR), $grant?->source, $grant?->origin,
-            $grant instanceof Grant ? $grant->pattern : null, $grant?->expiresAt?->format('c')]);
+            $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
+    }
+
+    /**
+     * Every component of a contribution that an eligibility verdict may depend on; value objects enter as identities,
+     * never through json_encode, which drops their private state.
+     *
+     * @return list<mixed>
+     */
+    private static function contributionParts(Grant|RoleContribution|null $contribution): array
+    {
+        if ($contribution === null) {
+            return [null];
+        }
+
+        return [$contribution::class, $contribution->role, $contribution->scope, $contribution->source, $contribution->origin,
+            $contribution instanceof Grant ? $contribution->pattern : null, $contribution->expiresAt?->format('U.u'),
+            json_encode($contribution->fields(), JSON_THROW_ON_ERROR)];
     }
 
     /** @var array<int, AssignmentScopeDefinition> */

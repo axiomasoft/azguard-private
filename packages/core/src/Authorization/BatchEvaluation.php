@@ -10,6 +10,9 @@ use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -250,6 +253,12 @@ final readonly class BatchEvaluation
                 }
 
             } catch (Throwable $error) {
+                // A configuration or input error is the caller's, exactly as in decide(); only source failures degrade.
+                if ($error instanceof DefinitionException || $error instanceof UnknownPermissionException
+                    || ($error instanceof InvalidConfigurationException && $error->code() !== 'invalid_configuration.authority_transaction')) {
+                    throw $error;
+                }
+
                 foreach ($entries as $i => $entry) {
                     $entry['trace']->error('state', 'source_error', 'dynamic_sources', $error);
                     $decisions[$i] = ($started[$i][0] ?? null) !== null && ! $entry['frame']->dynamicRead ? $started[$i][0]
