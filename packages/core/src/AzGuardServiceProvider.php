@@ -7,6 +7,7 @@ namespace AzGuard;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\CatalogCache;
+use AzGuard\Changes\ActingActor;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -64,6 +65,7 @@ final class AzGuardServiceProvider extends ServiceProvider
             }
         });
 
+        $this->app->scoped(ActingActor::class);
         $this->app->scoped(CurrentPanel::class);
         $this->app->scoped(CurrentContext::class);
         $this->app->scoped(WithinContext::class);

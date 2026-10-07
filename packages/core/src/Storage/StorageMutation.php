@@ -29,6 +29,12 @@ final class StorageMutation
         return $this->states[$panel] ?? throw new UnknownPanelException('Panel '.$panel.' is outside this mutation.');
     }
 
+    /** Whether this active mutation locked the panel. */
+    public function holds(string $panel): bool
+    {
+        return $this->active && isset($this->states[$panel]);
+    }
+
     public function table(string $base): Builder
     {
         $this->assertActive();

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Database;
 
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -19,7 +21,9 @@ use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -267,6 +271,48 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
         $this->bindPanel($panel->id());
 
         return $this->resolvedStorage()->withinAuthorityTransaction($panel->id(), $callback);
+    }
+
+    /**
+     * Applies one change the change pipeline validated, inside the active mutation of the bound panel.
+     *
+     * @throws UnsupportedDirectWriteException outside the pipeline or the mutation, or for a foreign panel
+     * @throws PanelNotWritableException when a roles-only writer receives a permission change
+     */
+    public function apply(Change $change): ChangeResult
+    {
+        $panel = $this->panelId ?? throw new DefinitionException('Attach DatabaseSource to a panel before applying changes.');
+
+        if (! $change->isFinal() || $change->panel !== $panel) {
+            throw new UnsupportedDirectWriteException('DatabaseSource applies only changes the change pipeline validated for panel '.$panel.'.');
+        }
+
+        if ($this->onlyRoles && ! $change->isRole()) {
+            throw new PanelNotWritableException('Panel '.$panel.' stores role grants only.');
+        }
+        $storage = $this->resolvedStorage();
+        $reads = $this->lockedReads(app(PanelRegistry::class)->get($panel));
+
+        return (new GrantWriter($storage, $storage->mutation($panel), $reads))->apply($change);
+    }
+
+    /**
+     * @internal Reads of the change pipeline under the panel lock of the active mutation.
+     *
+     * @throws UnsupportedDirectWriteException outside the active mutation of the panel
+     */
+    public function lockedReads(Panel $panel): LockedReads
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+
+        return new LockedReads($storage, $storage->mutation($panel->id()), $panel, app(PanelRegistry::class), $this->selectedModels, $this->dynamic);
+    }
+
+    /** @internal Whether a transaction is already open on the writer connection; its commit is then not ours. */
+    public function inTransaction(): bool
+    {
+        return $this->resolvedStorage()->connection()->transactionLevel() > 0;
     }
 
     /** @template T

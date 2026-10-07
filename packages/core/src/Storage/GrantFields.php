@@ -42,7 +42,7 @@ final readonly class GrantFields
         $fields = [];
         // The model class has been checked against its grant kind by Storage::model().
         foreach ([$instance::azguardFields(), $panelFields] as $position => $declared) {
-            foreach (self::declared($declared) as $field) {
+            foreach (self::untrusted($declared) as $field) {
                 if (! $field instanceof Field) {
                     throw new DefinitionException('Grant fields must be Field objects on '.$model.'.');
                 }
@@ -55,7 +55,7 @@ final readonly class GrantFields
                 $fields[$name] = $field->withContribution($origin);
             }
         }
-        foreach (self::declared($decisionFields) as $name) {
+        foreach (self::untrusted($decisionFields) as $name) {
             if (! is_string($name) || ! isset($fields[$name])) {
                 throw new DefinitionException('Decision field must name a declared grant field: '.(is_scalar($name) ? (string) $name : get_debug_type($name)).'.');
             }
@@ -109,6 +109,51 @@ final readonly class GrantFields
         return $row;
     }
 
+    /**
+     * Every declared field in name order, as `toRow()` would store it; an absent field is null.
+     *
+     * @param  array{columns: array<string, mixed>, meta: array<string, mixed>}  $row
+     * @return array<string, mixed>
+     */
+    public function canonical(array $row): array
+    {
+        $values = [];
+        foreach ($this->fields as $name => $field) {
+            $value = $field->isInMeta() ? ($row['meta'][$name] ?? null) : ($row['columns'][$name] ?? null);
+            $values[$name] = $value === null ? null : ($field->isMultiple() && is_array($value)
+                ? array_map(fn (mixed $item): mixed => $this->storedValue($field, $item), $value)
+                : $this->storedValue($field, $value));
+        }
+        ksort($values, SORT_STRING);
+
+        return $values;
+    }
+
+    /**
+     * The stored values of every declared field of a grant row, in the canonical form of {@see canonical()}.
+     *
+     * @return array<string, mixed>
+     */
+    public function stored(Model $model): array
+    {
+        $meta = $model->getAttribute('meta');
+        $meta = $meta instanceof Traversable ? iterator_to_array($meta) : (is_array($meta) ? $meta : []);
+        $columns = [];
+        foreach ($this->fields as $name => $field) {
+            if (! $field->isInMeta()) {
+                $columns[$name] = $model->getAttributes()[$name] ?? null;
+            }
+        }
+
+        return $this->canonical(['columns' => $columns, 'meta' => $meta]);
+    }
+
+    /** @return list<Field> */
+    public function declared(): array
+    {
+        return array_values($this->fields);
+    }
+
     /** @return array<string, mixed> */
     public function decisionValues(Model $model): array
     {
@@ -151,9 +196,22 @@ final readonly class GrantFields
     /** @param array<mixed> $values
      * @return array<mixed>
      */
-    private static function declared(array $values): array
+    private static function untrusted(array $values): array
     {
         return $values;
+    }
+
+    /** Database drivers may return numbers and flags as strings; dates compare as UTC ISO-8601. */
+    private function storedValue(Field $field, mixed $value): mixed
+    {
+        return match (true) {
+            $value instanceof BackedEnum => $value->value,
+            $field->type() === 'date' && (is_string($value) || $value instanceof DateTimeInterface) => $this->rowValue($field, $value),
+            $field->type() === 'int' && is_numeric($value) => (int) $value,
+            $field->type() === 'bool' && (is_bool($value) || is_int($value) || in_array($value, ['0', '1'], true)) => (bool) $value,
+            $field->type() === 'model' && is_string($value) && preg_match('/\A(0|[1-9][0-9]{0,17})\z/', $value) === 1 => (int) $value,
+            default => $value,
+        };
     }
 
     private function rowValue(Field $field, mixed $value): mixed

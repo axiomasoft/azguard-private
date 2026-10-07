@@ -1,6 +1,6 @@
 # CRM scalar and exact visibility acceptance
 
-Стенд Testbench/Pest использует настоящий Authorizer, providers, Eloquent, Storage и SQLite `:memory:`. Время: 2026-10-06 12:00 UTC. Панели crm/backoffice; A/B; P1–P5; C1–C6; Анна, Борис, Дарья и outsider. Назначения создаются через Storage::mutate. Клиент имеет составной FK project+tenant. Ожидания — литеральные ids/reasons, положительные контроли; фильтры проверяются также намеренными поломками на scratch-копии.
+Стенд Testbench/Pest использует настоящий Authorizer, providers, Eloquent, Storage и SQLite `:memory:`. Время: 2026-10-06 12:00 UTC. Панели crm/backoffice; A/B; P1–P5; C1–C6; Анна, Борис, Дарья и outsider. Назначения стенда создаются через Storage::mutate; записи P5.2 — через ChangePipeline. Клиент имеет составной FK project+tenant. Ожидания — литеральные ids/reasons, положительные контроли; фильтры проверяются также намеренными поломками на scratch-копии.
 
 Запуск: `DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Acceptance/Crm`. Acceptance подключён к tests/Pest.php и phpunit.xml, поэтому обнаруживается composer test.
 
@@ -16,9 +16,9 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R04 | — | future | —; **future:** P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
 | R05 | — | future | —; **future:** P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
 | R06 | [TenancyTest.php](TenancyTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
-| R07 | [TenancyTest.php](TenancyTest.php) | partial | P4.15: host FK; **future:** P5.2/P5.3 server writes/delegation |
+| R07 | [TenancyTest.php](TenancyTest.php), [AssignmentsTest.php](AssignmentsTest.php) | partial | P4.15: host FK; P5.2: ChangePipeline отвергает project/client-поле tenant B в tenant A и mixed sync без частичной записи; **future:** P5.3 managers/delegation surfaces |
 | R08 | — | future | —; **future:** P5.2/P5.3 assignment/delegation/revocation pipeline |
-| R09 | [ContextRolesTest.php](ContextRolesTest.php) | partial | P4.15 Access inactive common filter; **future:** Assignment phase revalidation P5.2/P5.3 |
+| R09 | [ContextRolesTest.php](ContextRolesTest.php), [AssignmentsTest.php](AssignmentsTest.php) | GREEN scalar/write | P4.15 Access inactive common filter; P5.2 Assignment в inactive P3 отклонён для роли и прямого права при существующих вкладах |
 | R10 | [ContextRolesTest.php](ContextRolesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R11 | [ContextRolesTest.php](ContextRolesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R12 | [ContextRolesTest.php](ContextRolesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
@@ -35,11 +35,11 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R23 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
 | R24 | — | future | P4.19/P4.23 typed AND/deployment scalar-list; **future:** P5.5 schema/editor metadata; P7.4 stale form; P8.7 consumer |
 | R25 | — | future | —; **future:** P7.3/P7.4 definition mutation absence; assignment P5.3 |
-| R26 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
-| R27 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
-| R28 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
-| R29 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
-| R30 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
+| R26 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: фильтр Assignment видит целевую Анну (город 1), delegation pipe — admin-актора; **future:** P8.7 consumer |
+| R27 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: delegation pipe приложения отклоняет superadmin/wildcard/cross-project/недоверенную роль/нет актора, разрешённая выдача проходит, actor reason в строке; **future:** P5.4 журнал audit причины и отказа |
+| R28 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: revoke expired/inactive/удалённого контекста по stored scope без live eligibility; **future:** P5.3 authorised admin read API (GrantManager) |
+| R29 | [AssignmentsTest.php](AssignmentsTest.php), [ChangeRaceTest.php](../../Engines/ChangeRaceTest.php) | partial | P5.2: package build fence (stale registry → StaleSelectionException) и cooperating host fence fixture (active build marker/owner revision под lock, барьерные engine-гонки); **future:** P5.3 cleanup removed role/context/PolicyOnly; P8.7 consumer deploy/host transfer |
+| R30 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: повторная финальная валидация после changing pipe, rollback вложенной работы без строк/version/StorageTouched, no-op без bump; **future:** P5.4 события/журнал |
 | R31 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: independent literal A/B view IDs and scalar/list/count parity |
 | R32 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: update literal IDs, mixed seller/analyst, policy true/false/null |
 | R33 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: host search/order, forbidden first rows, full honest total and pages |
@@ -56,7 +56,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R44 | [SourcesTest.php](SourcesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R45 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
 | R46 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
-| R47 | [RuntimeInputsTest.php](RuntimeInputsTest.php) | partial | P4.19/P4.15 actual inputs/DI Access; **future:** P5.2/P5.3 proposed Assignment/Revocation; P8.7 consumer |
+| R47 | [RuntimeInputsTest.php](RuntimeInputsTest.php), [AssignmentsTest.php](AssignmentsTest.php) | partial | P4.19/P4.15 Access DI; P5.2 Assignment: target user/BaseRole/validated proposed/actor/scope/phase через DI-фильтр; **future:** P5.3 Revocation/Inspection; P8.7 consumer |
 | R48 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
 | R49 | [DiagnosticsTest.php](DiagnosticsTest.php) | partial | P4.10/P4.15 trace/cache secret and local runtime inputs; **future:** P5.5 schema; P7.4 export; P8.7 plugin consumer; **future:** P4.10 trace/full diagnostics, P5.5/P7.4/P8.7 |
 | R50 | [ConsumerSpiTest.php](ConsumerSpiTest.php), [ExternalScopeTest.php](ExternalScopeTest.php) | partial | P4.15 local public SPI resolve/owner/native/external; P4.23 local query freshness/owner and exact slice GREEN; **future:** P5.5 directory; P8.7 installed external consumer qualification |
@@ -72,14 +72,14 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |
 | R61 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R62 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
-| R63 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.1/P4.3/P4.15 PolicyOnly ignore assignment/wildcard read slice; **future:** P5.2/P5.3 exact writes rejected; P6.2/P7.4 HTTP/UI/CLI write boundaries |
+| R63 | [AuthorityModesTest.php](AuthorityModesTest.php), [AssignmentsTest.php](AssignmentsTest.php) | partial | P4.1/P4.3/P4.15 read slice; P5.2 exact PolicyOnly write → PermissionNotGrantableException без записи/version, wildcard не авторизует; **future:** P5.3 managers; P6.2/P7.4 HTTP/UI/CLI write boundaries |
 | R64 | [VisibilityTest.php](VisibilityTest.php), [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar/exact | P4.23: action mode parity, PolicyOnly without grant tables, Grants outage fails closed |
 | R65 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; **future:** P5.3 dynamic create opt-in rejection/mode immutability |
 | R66 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.2/P4.15/P4.20 removed keys/build/read mode authority; **future:** P5.3 explicit migration/cleanup; P8.7 stale workers; **future:** P4.20 deployment/cache |
 | R67 | [BuildInputsTest.php](BuildInputsTest.php), [ConsumerSpiTest.php](ConsumerSpiTest.php), [RuntimeInputsTest.php](RuntimeInputsTest.php) | partial | P4.3/P4.19/P4.15 local typed DI/definition/model-null/Decides rename-remove; **future:** P8.7 installed consumer/factory whole qualification |
 | R68 | BatchTest | partial | P4.9 core: mixed PolicyOnly/DB Grants/relation-only, two panels, typed states/original order/one now passed. Public wrappers/integration consumer remain future P5/P6/P8 |
 
-V109/V111/V113 Access inputs: RuntimeInputsTest и R14 DB/relation; Assignment/Revocation/Inspection write qualification остаётся P5.2/P5.3. V110: NativeFiltersTest. V112: FreshInputsTest. R50: ConsumerSpiTest + ExternalScopeTest, только публичные SPI; installed consumer остаётся P8.7, exact unsupported — P4.23.
+V109/V111/V113 Access inputs: RuntimeInputsTest и R14 DB/relation; Assignment write qualification (common+role filters, target/BaseRole/nullable actor/validated proposed) — P5.2 AssignmentsTest и tests/Feature/Changes; Revocation/Inspection остаётся P5.3. V110: NativeFiltersTest. V112: FreshInputsTest. R50: ConsumerSpiTest + ExternalScopeTest, только публичные SPI; installed consumer остаётся P8.7, exact unsupported — P4.23.
 
 Итоговые checks и поломки R11/R13/R14: `plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.15-execution/`. Нормативное распределение взято из brief/P4-acceptance-matrix (канонический brief.json); будущие кейсы расширяют стенд в owning items.
 

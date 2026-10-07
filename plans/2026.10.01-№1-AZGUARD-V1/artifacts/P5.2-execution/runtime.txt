@@ -1,0 +1,88 @@
+serversideup/php@sha256:d1b89c08bc7f112f5f9e16d8c6eb70a56617a169de471cf1d968826bfa461626
+whoami: cannot find name for user ID 1000
+
+--------------------------------------------------------------------
+ ____                             ____  _     _        _   _
+/ ___|  ___ _ ____   _____ _ __  / ___|(_) __| | ___  | | | |_ __
+\___ \ / _ \  __\ \ / / _ \  __| \___ \| |/ _` |/ _ \ | | | |  _ \
+ ___) |  __/ |   \ V /  __/ |     ___) | | (_| |  __/ | |_| | |_) |
+|____/ \___|_|    \_/ \___|_|    |____/|_|\__,_|\___|  \___/| .__/
+                                                            |_|
+
+Brought to you by serversideup.net
+--------------------------------------------------------------------
+
+📚 Documentation: https://serversideup.net/php/docs
+💬 Get Help: https://serversideup.net/php/community
+🙌 Sponsor: https://serversideup.net/sponsor
+
+-------------------------------------
+ℹ️ Container Information
+-------------------------------------
+📦 Versions
+• Image:         v4.5.1-33486634677
+• PHP:           8.3.33
+• OS:            Debian GNU/Linux 13 (trixie)
+
+👤 Container User
+• User:          
+• UID:           1000
+• GID:           1000
+
+⚡ Performance
+• OPcache:       ❌ Disabled
+• Memory Limit:  256M
+• Upload Limit:  100M
+
+🔄 Runtime
+• Docker CMD:     bash -lc php -v; php -m
+
+👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production).
+PHP 8.3.33 (cli) (built: Aug 25 2026 00:37:44) (NTS)
+Copyright (c) The PHP Group
+Zend Engine v4.3.33, Copyright (c) Zend Technologies
+    with Zend OPcache v8.3.33, Copyright (c), by Zend Technologies
+[PHP Modules]
+Core
+ctype
+curl
+date
+dom
+fileinfo
+filter
+hash
+iconv
+json
+libxml
+mbstring
+mysqlnd
+openssl
+pcntl
+pcre
+PDO
+pdo_mysql
+pdo_pgsql
+pdo_sqlite
+Phar
+posix
+random
+readline
+redis
+Reflection
+session
+SimpleXML
+sodium
+SPL
+sqlite3
+standard
+tokenizer
+xml
+xmlreader
+xmlwriter
+Zend OPcache
+zip
+zlib
+
+[Zend Modules]
+Zend OPcache
+

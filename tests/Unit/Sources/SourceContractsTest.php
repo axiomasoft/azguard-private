@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Attributes\AsSource;
+use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -13,14 +15,16 @@ use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\WriterConflictException;
 
-it('keeps StoresGrants to the transaction until apply arrives', function (): void {
+it('declares StoresGrants as apply and transaction of one writer', function (): void {
     $methods = array_map(
         static fn (ReflectionMethod $method): string => $method->getName(),
         (new ReflectionClass(StoresGrants::class))->getMethods(),
     );
+    $apply = new ReflectionMethod(StoresGrants::class, 'apply');
 
-    expect($methods)->toEqualCanonicalizing(['id', 'transaction'])
-        ->and($methods)->not->toContain('apply')
+    expect($methods)->toEqualCanonicalizing(['id', 'apply', 'transaction'])
+        ->and((string) $apply->getParameters()[0]->getType())->toBe(Change::class)
+        ->and((string) $apply->getReturnType())->toBe(ChangeResult::class)
         ->and((new ReflectionClass(StoresGrants::class))->getDocComment())->toContain('@spi');
 });
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Authorization\Cache\PermissionSetCache;
-use AzGuard\Authorization\Query\EligibilityBuilder;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -19,6 +18,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\Query\EligibilityBuilder;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;

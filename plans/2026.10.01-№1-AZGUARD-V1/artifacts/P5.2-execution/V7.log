@@ -1,0 +1,62 @@
+whoami: cannot find name for user ID 1000
+
+--------------------------------------------------------------------
+ ____                             ____  _     _        _   _
+/ ___|  ___ _ ____   _____ _ __  / ___|(_) __| | ___  | | | |_ __
+\___ \ / _ \  __\ \ / / _ \  __| \___ \| |/ _` |/ _ \ | | | |  _ \
+ ___) |  __/ |   \ V /  __/ |     ___) | | (_| |  __/ | |_| | |_) |
+|____/ \___|_|    \_/ \___|_|    |____/|_|\__,_|\___|  \___/| .__/
+                                                            |_|
+
+Brought to you by serversideup.net
+--------------------------------------------------------------------
+
+📚 Documentation: https://serversideup.net/php/docs
+💬 Get Help: https://serversideup.net/php/community
+🙌 Sponsor: https://serversideup.net/sponsor
+
+-------------------------------------
+ℹ️ Container Information
+-------------------------------------
+📦 Versions
+• Image:         v4.5.1-33486634677
+• PHP:           8.3.33
+• OS:            Debian GNU/Linux 13 (trixie)
+
+👤 Container User
+• User:          
+• UID:           1000
+• GID:           1000
+
+⚡ Performance
+• OPcache:       ❌ Disabled
+• Memory Limit:  256M
+• Upload Limit:  100M
+
+🔄 Runtime
+• Docker CMD:     bash -lc DB_CONNECTION=mariadb MARIADB_PORT=23307 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped
+
+👉 [NOTICE]: Improve PHP performance by setting PHP_OPCACHE_ENABLE=1 (recommended for production).
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Engines\ChangeRaceTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit V101 C8 keeps tenant B out of a concurrent sync of tenant A[39m[90m      [39m [90m2.12s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 rolls back a change nested in a host transaction on the eng[39m[90m…[39m [90m1.52s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 C12 orders revokeIds ∥ update of one id by the panel lock w[39m[90m…[39m [90m1.97s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 C12 orders revokeIds ∥ update of one id by the panel lock w[39m[90m…[39m [90m2.00s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 serializes grant ∥ grant of one identity: one Applied, one[39m[90m… [39m [90m2.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 retries the root after a real deadlock with fresh pipes and[39m[90m…[39m [90m1.84s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit R29 refuses a change prepared on the old build after a coordinat[39m[90m…[39m [90m2.42s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit R29 makes a deployment wait for an in-flight fenced change, whic[39m[90m…[39m [90m2.00s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit V101 C13 lets one update ∥ update with the same fingerprint win[39m[90m… [39m [90m2.00s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit R29 refuses a change when the host owner revision moved after pr[39m[90m…[39m [90m1.99s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Engines\MutateConcurrencyTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit serializes fifty independent processes without losing a bump[39m[90m     [39m [90m1.27s[39m  
+
+  [30;42;1m PASS [39;49;22m[39m Tests\Engines\MutateDeadlockTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit retries a real deadlock as its victim and bumps each panel once[39m[90m  [39m [90m1.11s[39m  
+
+  [90mTests:[39m    [32;1m12 passed[39;22m[90m (48 assertions)[39m
+  [90mDuration:[39m [39m22.40s[39m
+  [90mRandom Order Seed:[39m [39m1791363907[39m
+

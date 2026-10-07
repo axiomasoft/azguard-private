@@ -7,6 +7,7 @@ namespace AzGuard\Storage;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Reads;
@@ -107,6 +108,23 @@ final class Storage
         }
 
         return $this->mutate($panel, static fn (): mixed => $work());
+    }
+
+    /**
+     * @internal The active mutation that holds the panel lock; a write outside one is refused.
+     *
+     * @throws UnsupportedDirectWriteException
+     */
+    public function mutation(string $panel): StorageMutation
+    {
+        PermissionGrammar::assertPanelId($panel);
+        $current = $this->current;
+
+        if ($current === null || ! $current->holds($panel)) {
+            throw new UnsupportedDirectWriteException('Panel '.$panel.' is written only inside its active storage mutation.');
+        }
+
+        return $current;
     }
 
     public function connectionName(): string

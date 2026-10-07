@@ -73,12 +73,23 @@ arch('exceptions depend only on the kernel')
     ->expect('AzGuard\Exceptions')
     ->not->toUse(['Illuminate', ...AZGUARD_OUTER_ZONES]);
 
+/*
+ * Change inputs and results are immutable values the writer contract and the database writer exchange with the
+ * pipeline; only these value classes are exempt, never ChangePipeline, managers or another class of the zone.
+ */
+const AZGUARD_CHANGE_VALUES = [
+    'AzGuard\Changes\Change', 'AzGuard\Changes\ChangeType', 'AzGuard\Changes\ChangeContext', 'AzGuard\Changes\ChangeResult',
+    'AzGuard\Changes\ChangeStatus', 'AzGuard\Changes\ChangeEffect', 'AzGuard\Changes\EffectKind', 'AzGuard\Changes\GrantRecord',
+    'AzGuard\Changes\GrantDetails',
+];
+
 arch('contracts do not import implementations')
     ->expect('AzGuard\Contracts')
     ->not->toUse([
         'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Storage', 'AzGuard\Sources', 'AzGuard\Laravel',
         'AzGuard\Internal', 'AzGuard\Testing', 'AzGuard\Diagnostics', 'AzGuard\Configuration',
-    ]);
+    ])
+    ->ignoring(AZGUARD_CHANGE_VALUES);
 
 forbidDependencies('authorization and schema never change access', ['AzGuard\Authorization', 'AzGuard\Schema'], ['AzGuard\Changes']);
 
@@ -154,7 +165,58 @@ forbidDependencies(
 
 arch('sources do not use changes or authorization')
     ->expect('AzGuard\Sources')
-    ->not->toUse(['AzGuard\Changes', 'AzGuard\Authorization']);
+    ->not->toUse(['AzGuard\Changes', 'AzGuard\Authorization'])
+    ->ignoring(AZGUARD_CHANGE_VALUES);
+
+/**
+ * Pest `ignoring()` matches by name prefix, so `Changes\Change` alone would also hide `Changes\ChangePipeline`. The
+ * exemption is therefore exact: every other class of the changes zone imported or referenced is an offender.
+ *
+ * @param  list<string>  $files
+ * @return list<string>
+ */
+function azguardForbiddenChangeReferences(array $files): array
+{
+    $values = array_map(static fn (string $value): string => strtolower($value), AZGUARD_CHANGE_VALUES);
+    $offenders = [];
+    foreach ($files as $file) {
+        $code = (string) file_get_contents($file);
+        $names = [...array_values(SourceScan::imports($code))];
+        preg_match_all('/\\\\?AzGuard\\\\Changes\\\\[A-Za-z0-9_\\\\]+/', $code, $qualified);
+        foreach ([...$names, ...array_map(static fn (string $name): string => ltrim($name, '\\'), $qualified[0])] as $name) {
+            if (str_starts_with($name, 'AzGuard\\Changes\\') && ! in_array(strtolower($name), $values, true)) {
+                $offenders[] = basename($file).': '.$name;
+            }
+        }
+    }
+
+    return array_values(array_unique($offenders));
+}
+
+it('keeps sources and contracts to exactly the exempt change values', function (): void {
+    expect(azguardForbiddenChangeReferences([...SourceScan::files('packages/core/src/Sources'), ...SourceScan::files('packages/core/src/Contracts')]))
+        ->toBe([]);
+});
+
+it('still rejects the change pipeline or another class of changes in sources and contracts', function (string $namespace, string $class, string $reference): void {
+    $directory = sys_get_temp_dir().'/azguard-change-values-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $file = $directory.'/Probe.php';
+    file_put_contents($file, "<?php\nnamespace {$namespace};\nuse AzGuard\\Changes\\Change;\nuse AzGuard\\Changes\\ChangeResult;\n{$reference}\nfinal class Probe {}\n");
+
+    try {
+        expect(azguardForbiddenChangeReferences([$file]))->toBe(['Probe.php: '.$class]);
+        file_put_contents($file, "<?php\nnamespace {$namespace};\nuse AzGuard\\Changes\\Change;\nuse AzGuard\\Changes\\ChangeResult;\nfinal class Probe {}\n");
+        expect(azguardForbiddenChangeReferences([$file]))->toBe([]);
+    } finally {
+        unlink($file);
+        rmdir($directory);
+    }
+})->with([
+    'pipeline in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
+    'pipeline in contracts' => ['AzGuard\\Contracts\\Sources', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
+    'qualified actor in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ActingActor', 'function probe(\\AzGuard\\Changes\\ActingActor $a): void {}'],
+]);
 
 arch('storage does not use authorization or changes')
     ->expect('AzGuard\Storage')

@@ -18,7 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  * Immutable inputs of one assignment-scope operation. The frame does not read Auth or the container.
  *
  * `user` is the target subject when it resolved, not the implicit authenticated user. `role` is null for a
- * common, direct or policy-only check.
+ * common, direct or policy-only check. `actor` is null when a change has no actor; it never falls back to the
+ * target or to Auth. `proposed` holds only schema-validated assignment values (`until`, `fields`) of an
+ * Assignment phase and is empty for Access, Revocation and Inspection.
  *
  * @api
  */
@@ -31,9 +33,11 @@ final readonly class AssignmentScopeRuntime
         public ?Model $user,
         public ?BaseRole $role,
         public Grant|RoleContribution|null $grant,
-        public ActorRef $actor,
+        public ?ActorRef $actor,
         public ?Model $actorModel,
         public DateTimeImmutable $now,
         public AssignmentScopePhase $phase,
+        /** @var array<string, mixed> */
+        public array $proposed = [],
     ) {}
 }

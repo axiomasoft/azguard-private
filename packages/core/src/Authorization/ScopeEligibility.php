@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Authorization\Pipeline\Trace;
-use AzGuard\Authorization\Query\EligibilityBuilder;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\Query\EligibilityBuilder;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
 
@@ -60,25 +62,7 @@ final readonly class ScopeEligibility
         $role = $frame->role();
 
         if ($role !== null) {
-            foreach ($role->scopes() as $declared) {
-                $binding = is_string($declared) ? $this->container->make($declared) : $declared;
-
-                if (! $binding instanceof AssignmentScopeDefinition) {
-                    throw new RuntimeException('A runtime role binding must be an assignment scope definition.');
-                }
-
-                if ($binding->type() !== $frame->scope()->context->type()) {
-                    continue;
-                }
-
-                if ($binding::class !== $definition::class || $binding->model() !== $definition->model()) {
-                    throw new RuntimeException('A runtime role binding changed the registered scope identity.');
-                }
-
-                if ($binding->model() !== null && $frame->assignmentScope?->record === null) {
-                    throw new RuntimeException('A model-required scope binding has no resolved record.');
-                }
-
+            foreach ($this->bindings($role, $definition, $frame->assignmentScope) as $binding) {
                 if (! $this->native($definition, $binding, $frame, $runtime, $batch, $trace)) {
                     return false;
                 }
@@ -86,6 +70,102 @@ final readonly class ScopeEligibility
         }
 
         return $this->external($frame, $runtime, $batch, $trace);
+    }
+
+    /**
+     * Assignment eligibility of one resolved context for the target: common filters and the access adapter with
+     * `role` null, then the filters of the role binding and the adapter with the code role. Only validated proposed
+     * values and the nullable actor of the runtime reach the filters; a global context passes.
+     */
+    public function assignment(AssignmentScopeRuntime $runtime, ?ResolvedAssignmentScope $resolved): bool
+    {
+        $ref = $runtime->scope->context;
+
+        if ($ref->isGlobal()) {
+            return true;
+        }
+
+        if ($resolved === null || ! $resolved->ref->equals($ref) || ! $resolved->tenant->equals($runtime->scope->tenant)) {
+            return false;
+        }
+        $definition = $runtime->panel->scopeDefinition($ref->type() ?? '') ?? throw new RuntimeException('Selected scope definition is missing.');
+        $common = new AssignmentScopeRuntime(panel: $runtime->panel, scope: $runtime->scope, subject: $runtime->subject, user: $runtime->user,
+            role: null, grant: null, actor: $runtime->actor, actorModel: $runtime->actorModel, now: $runtime->now, phase: $runtime->phase,
+            proposed: $runtime->proposed);
+
+        if (! $this->filtersAllow($definition, $definition, $resolved, $common) || ! $this->adapterAllows($common)) {
+            return false;
+        }
+
+        if ($runtime->role === null) {
+            return true;
+        }
+        foreach ($this->bindings($runtime->role, $definition, $resolved) as $binding) {
+            if (! $this->filtersAllow($definition, $binding, $resolved, $runtime)) {
+                return false;
+            }
+        }
+
+        return $this->adapterAllows($runtime);
+    }
+
+    /** @return list<AssignmentScopeDefinition> role bindings of the selected type, checked against the registered definition */
+    private function bindings(BaseRole $role, AssignmentScopeDefinition $definition, ?ResolvedAssignmentScope $resolved): array
+    {
+        $bindings = [];
+        foreach ($role->scopes() as $declared) {
+            $binding = is_string($declared) ? $this->container->make($declared) : $declared;
+
+            if (! $binding instanceof AssignmentScopeDefinition) {
+                throw new RuntimeException('A runtime role binding must be an assignment scope definition.');
+            }
+
+            if ($binding->type() !== $definition->type()) {
+                continue;
+            }
+
+            if ($binding::class !== $definition::class || $binding->model() !== $definition->model()) {
+                throw new RuntimeException('A runtime role binding changed the registered scope identity.');
+            }
+
+            if ($binding->model() !== null && $resolved?->record === null) {
+                throw new RuntimeException('A model-required scope binding has no resolved record.');
+            }
+            $bindings[] = $binding;
+        }
+
+        return $bindings;
+    }
+
+    private function filtersAllow(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, ResolvedAssignmentScope $resolved, AssignmentScopeRuntime $runtime): bool
+    {
+        $filters = $configuration instanceof ConfigurableAssignmentScopeDefinition ? $configuration->settings()->filters : [];
+
+        if ($filters === []) {
+            return true;
+        }
+
+        if (! $definition instanceof QueryableAssignmentScopeDefinition) {
+            throw new RuntimeException('Native scope filters require a queryable definition.');
+        }
+
+        return EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container);
+    }
+
+    private function adapterAllows(AssignmentScopeRuntime $runtime): bool
+    {
+        $declared = $runtime->panel->scopes()->adapters()[$runtime->scope->context->type() ?? ''] ?? null;
+
+        if ($declared === null) {
+            return true;
+        }
+        $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
+
+        if (! $adapter instanceof AssignmentScopeAccessAdapter) {
+            throw new RuntimeException('Scope adapter resolver did not return AssignmentScopeAccessAdapter.');
+        }
+
+        return $adapter->allows($runtime->scope->context, $runtime);
     }
 
     private function definition(EvaluationFrame $frame): AssignmentScopeDefinition

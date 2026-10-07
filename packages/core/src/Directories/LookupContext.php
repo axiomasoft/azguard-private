@@ -16,7 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Immutable inputs of a directory search. `proposed` holds assignment fields, not role configuration.
  *
- * The target subject may be absent while the caller is still choosing who to assign.
+ * The target subject may be absent while the caller is still choosing who to assign. The actor is null when the
+ * operation has no actor; it is never replaced by the target or by Auth.
  *
  * @api
  */
@@ -28,7 +29,7 @@ final readonly class LookupContext
     public function __construct(
         public Panel $panel,
         public AccessScope $scope,
-        public ActorRef $actor,
+        public ?ActorRef $actor,
         public ?Model $actorModel,
         public ?SubjectRef $subject,
         public ?Model $user,

@@ -164,12 +164,14 @@ final class PanelCompiler
             ScopeConfiguration::componentMetadata($adapter);
         }
 
+        $subjects = $this->subjects($recipe);
+
         return new Panel(
             id: $id,
             label: is_string($label) ? $label : $id,
             default: ($this->resolved($recipe, PanelRecipe::DEFAULT)['value'] ?? false) === true,
             settings: $this->settings($recipe),
-            subjectModels: array_values(array_unique(array_column($recipe->subjects(), 'model'))),
+            subjectModels: array_map(static fn (SubjectDescriptor $subject): string => $subject->model, $subjects),
             pluginIds: $recipe->pluginIds(),
             resolved: $sources,
             writable: $sources !== null && $sources->writable(),
@@ -185,7 +187,78 @@ final class PanelCompiler
             tenantResolvers: $this->components($recipe, PanelRecipe::TENANT_RESOLVERS, TenantResolver::class),
             scopeResolvers: $this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class),
             resourceScopes: $this->resourceScopes($recipe),
+            changingPipes: $this->pipes($recipe),
+            subjectDescriptors: $subjects,
         );
+    }
+
+    /**
+     * One descriptor per model; a guard or directory declared twice with different values is a conflict.
+     *
+     * @return list<SubjectDescriptor>
+     *
+     * @throws DefinitionException
+     */
+    private function subjects(PanelRecipe $recipe): array
+    {
+        $byModel = [];
+        foreach ($recipe->subjects() as $subject) {
+            $known = $byModel[$subject['model']] ?? null;
+
+            if ($known === null) {
+                $byModel[$subject['model']] = new SubjectDescriptor($subject['model'], $subject['guard'], $subject['directory']);
+
+                continue;
+            }
+            foreach (['guard', 'directory'] as $setting) {
+                if ($subject[$setting] !== null && $known->{$setting} !== null && $subject[$setting] !== $known->{$setting}) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' declares subject '.$subject['model'].' with two '.$setting.'s: '
+                        .$known->{$setting}.' and '.$subject[$setting].'.');
+                }
+            }
+            $byModel[$subject['model']] = new SubjectDescriptor($subject['model'], $known->guard ?? $subject['guard'], $known->directory ?? $subject['directory']);
+        }
+
+        return array_values($byModel);
+    }
+
+    /**
+     * Pipes of `changing`: a closure, an object with a public `handle(Change, Closure)` or the class of such an object.
+     *
+     * @return list<Closure|object|class-string>
+     *
+     * @throws DefinitionException
+     */
+    private function pipes(PanelRecipe $recipe): array
+    {
+        $pipes = [];
+        foreach ($recipe->layered(PanelRecipe::CHANGING) as $record) {
+            foreach (is_array($record['value']) ? $record['value'] : [] as $pipe) {
+                if (! $pipe instanceof Closure && ! self::isPipe($pipe)) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' expects a Closure, an object with public handle(Change, Closure) or its class in changing from '
+                        .json_encode($record['origin']).', got '.self::describe($pipe).'.');
+                }
+                /** @var Closure|object|class-string $pipe */
+                $pipes[] = $pipe;
+            }
+        }
+
+        return $pipes;
+    }
+
+    private static function isPipe(mixed $pipe): bool
+    {
+        if (! is_object($pipe) && (! is_string($pipe) || ! class_exists($pipe))) {
+            return false;
+        }
+
+        if (! method_exists($pipe, 'handle')) {
+            return false;
+        }
+        $handle = new ReflectionMethod($pipe, 'handle');
+
+        return $handle->isPublic() && ! $handle->isStatic() && $handle->getNumberOfParameters() >= 2
+            && $handle->getNumberOfRequiredParameters() <= 2;
     }
 
     private function scopePolicy(PanelRecipe $recipe): AssignmentScopePolicy

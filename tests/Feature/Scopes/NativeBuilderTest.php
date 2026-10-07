@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\Query\EligibilityBuilder;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -11,6 +10,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;

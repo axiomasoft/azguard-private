@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Authorization\Query;
+namespace AzGuard\Scopes\Query;
 
 use Closure;
 use Illuminate\Database\Eloquent\Builder;

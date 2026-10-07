@@ -242,7 +242,7 @@ final readonly class AuthorityStage
             $admin = $this->superAdmin($roleDefinition);
             $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
 
-            if ($item instanceof RoleContribution) {
+            if ($item instanceof RoleContribution && $roleDefinition !== null) {
                 foreach ($roleDefinition['permissions'] as $pattern) {
                     $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
                 }
@@ -257,7 +257,7 @@ final readonly class AuthorityStage
                 }
                 $trace->record('contribution', 'qualified', $source::class);
 
-                if ($admin && $roleDefinition['permissions'] === []) {
+                if ($admin && $roleDefinition !== null && $roleDefinition['permissions'] === []) {
                     $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
                 }
             } else {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Authorization\Query;
+namespace AzGuard\Scopes\Query;
 
 use RuntimeException;
 

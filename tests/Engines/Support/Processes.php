@@ -15,9 +15,9 @@ final class Processes
     private array $pipes = [];
 
     /** @param array<string, mixed> $options */
-    public function start(array $options): int
+    public function start(array $options, string $worker = 'mutate-worker.php'): int
     {
-        $process = proc_open([PHP_BINARY, __DIR__.'/mutate-worker.php', json_encode($options, JSON_THROW_ON_ERROR)],
+        $process = proc_open([PHP_BINARY, __DIR__.'/'.$worker, json_encode($options, JSON_THROW_ON_ERROR)],
             [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
 
         if (! is_resource($process)) {
@@ -30,7 +30,7 @@ final class Processes
         return count($this->processes) - 1;
     }
 
-    /** @return array{attempts: int} */
+    /** @return array<string, mixed> */
     public function finish(int $index): array
     {
         $stdout = stream_get_contents($this->pipes[$index][1]);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Authorization\Query;
+namespace AzGuard\Scopes\Query;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
@@ -16,7 +16,12 @@ use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 use Throwable;
 
-/** Isolates every predicate from structural identity and from every other predicate. */
+/**
+ * The one guarded predicate engine of assignment-scope filters, shared by Access, Assignment and directories.
+ * Isolates every predicate from structural identity and from every other predicate.
+ *
+ * @internal
+ */
 final class EligibilityBuilder
 {
     /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
@@ -101,6 +106,7 @@ final class EligibilityBuilder
                     'role' => $runtime->role, 'grant' => $runtime->grant, 'actor' => $runtime->actor,
                     'actorModel' => $runtime->actorModel, 'panel' => $runtime->panel,
                     'scope' => $runtime->scope, 'now' => $runtime->now, 'phase' => $runtime->phase,
+                    'proposed' => $runtime->proposed,
                 ]);
 
                 if ($result !== null && $result !== $predicate) {

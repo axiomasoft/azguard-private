@@ -63,7 +63,68 @@ final readonly class Panel
         private array $scopeResolvers = [],
         /** @var array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
         private array $resourceScopes = [],
+        /** @var list<Closure|object|class-string> */
+        private array $changingPipes = [],
+        /** @var list<SubjectDescriptor> */
+        private array $subjectDescriptors = [],
     ) {}
+
+    /**
+     * Pipes every change of grants passes through, in the order provider, plugins, `configure`.
+     *
+     * @return list<Closure|object|class-string>
+     */
+    public function changing(): array
+    {
+        return $this->changingPipes;
+    }
+
+    /**
+     * Compiled subjects of the panel with their auth guard and directory.
+     *
+     * @return list<SubjectDescriptor>
+     */
+    public function subjects(): array
+    {
+        return $this->subjectDescriptors;
+    }
+
+    /**
+     * The descriptor of a model class, a model or a subject reference, or null when the panel does not accept it.
+     */
+    public function subject(Model|SubjectRef|string $subject): ?SubjectDescriptor
+    {
+        foreach ($this->subjectDescriptors as $descriptor) {
+            $matches = match (true) {
+                $subject instanceof Model => $subject instanceof $descriptor->model,
+                $subject instanceof SubjectRef => $subject->type() === (new $descriptor->model)->getMorphClass(),
+                default => is_a($subject, $descriptor->model, true),
+            };
+
+            if ($matches) {
+                return $descriptor;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Distinct auth guards of the subjects, in declaration order.
+     *
+     * @return list<string>
+     */
+    public function guards(): array
+    {
+        $guards = [];
+        foreach ($this->subjectDescriptors as $descriptor) {
+            if ($descriptor->guard !== null && ! in_array($descriptor->guard, $guards, true)) {
+                $guards[] = $descriptor->guard;
+            }
+        }
+
+        return $guards;
+    }
 
     public function tenants(): TenantPolicy
     {
