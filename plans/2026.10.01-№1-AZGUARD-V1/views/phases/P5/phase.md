@@ -177,6 +177,16 @@ D18 → указанные разделы досье → код.
 ]
 ```
 
+## Closed
+
+```json
+{
+  "at": "2026-10-07T19:26:26Z",
+  "result": "done_with_deviations",
+  "summary": "8 item(s): 1 done, 7 done_with_deviations"
+}
+```
+
 ## Orchestration
 
 ```json
