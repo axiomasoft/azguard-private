@@ -166,6 +166,13 @@
       "change": "modify"
     }
   ],
+  "artifacts": [
+    {
+      "id": "P5.5-review",
+      "path": "@plan/artifacts/P5.5-review/review.json",
+      "role": "output"
+    }
+  ],
   "rules": [
     "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; unavailable engine блокирует пункт.",
     "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта; код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет.",
@@ -298,5 +305,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-07T15:04:36Z"
+  "updated_at": "2026-10-07T15:46:47Z"
 }
