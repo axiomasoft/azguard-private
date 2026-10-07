@@ -46,10 +46,10 @@ Execution sheet: run the batches in order. Route is the maximum class/effort of 
 | 39 | P5 | BP5-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.7` | implementation/high | done |
 | 40 | P5 | BP5-4 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.4` | implementation/high | done |
 | 41 | P5 | BP5-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.8` | implementation/high | done |
-| 42 | P5 | BP5-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.5` | frontier/high | ready |
-| 43 | P5 | BP5-3 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.3` | frontier/high | waiting: BP5-5 |
-| 44 | P5 | BP5-1 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.1` | frontier/high | waiting: BP5-5 |
-| 45 | P5 | BP5-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.6` | frontier/high | waiting: BP5-5 |
+| 42 | P5 | BP5-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.5` | frontier/high | done |
+| 43 | P5 | BP5-3 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.3` | frontier/high | ready |
+| 44 | P5 | BP5-1 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.1` | frontier/high | waiting: BP5-3 |
+| 45 | P5 | BP5-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.6` | frontier/high | waiting: BP5-3 |
 | 46 | P6 | B6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.1 P6.2 P6.3 P6.4 P6.5 P6.6 P6.7 P6.8 P6.9 P6.10` | implementation/medium | design-required |
 | 47 | P7 | B7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.1 P7.2 P7.3 P7.4 P7.5 P7.6 P7.7` | frontier/high | design-required |
 | 48 | P8 | B8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.1 P8.2 P8.3 P8.4` | frontier/high | design-required |
