@@ -1,0 +1,134 @@
+[
+ {
+  "name": "M01-authority-global-role-tenant",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+  "old": "if (! $item->scope->tenant->equals($frame->scope()->tenant)\n                && ($roleDefinition === null || ! in_array($roleDefinition['class'], $frame->panel()->tenants()->globalRoles(), true))) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M02-authority-expiry",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+  "old": "if (! $item->activeAt($frame->now())) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M03-authority-role-scope",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+  "old": "if ($roleDefinition !== null && ! $this->roleScopeAccepted($roleDefinition, $item)) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M04-authority-not-grantable",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+  "old": "(! $roleDefinition['grantable'] && ! $automatic)",
+  "new": "false"
+ },
+ {
+  "name": "M05-restriction-exempt-any",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php",
+  "old": "if ($frame->qualifiedSuperAdmin && $restriction->exemptsSuperAdmin()) {",
+  "new": "if ($restriction->exemptsSuperAdmin()) {"
+ },
+ {
+  "name": "M06-fence-always-stable",
+  "file": "packages/core/src/Authorization/ReadAttempt.php",
+  "old": "$stable = $this->states[$source->id()]->equals($after) && $stable;",
+  "new": "$stable = true;"
+ },
+ {
+  "name": "M07-cache-no-expiry-filter",
+  "file": "packages/core/src/Authorization/Cache/PermissionSetCache.php",
+  "old": "return array_values(array_filter($entry['items'], static fn (Grant|RoleContribution $item): bool => $item->activeAt($now)));",
+  "new": "return $entry['items'];"
+ },
+ {
+  "name": "M08-boundary-owner-tenant",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+  "old": "if (($ownerCandidate !== null && ! $ownerCandidate->equals($resource->tenant))\n                || ! $frame->scope()->tenant->equals($resource->tenant)) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M09-visibility-veto",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "$compiler->constrain($authority, P::not($policy->outcome('deny')));",
+  "new": "$compiler->constrain($authority, P::pass());"
+ },
+ {
+  "name": "M10-visibility-branch-restrictions",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "$this->restrictions($branch, $request, $qualified, $compiler);",
+  "new": ""
+ },
+ {
+  "name": "M11-visibility-global-role",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "if (! $item->scope->tenant->equals($frame->scope()->tenant)\n                    && ($roleDefinition === null || ! in_array($roleDefinition['class'], $panel->tenants()->globalRoles(), true))) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M12-visibility-role-scope",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "if ($roleDefinition !== null && ($ref->isGlobal() ? $roleDefinition['scope_required'] : ! in_array($ref->type(), array_column($roleDefinition['scopes'], 'type'), true))) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M13-visibility-tenant-membership",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "$group->whereRaw('1 = 0');",
+  "new": ""
+ },
+ {
+  "name": "M14-policy-veto-grants",
+  "file": "packages/core/src/Policies/PolicyDecider.php",
+  "old": "if ($result === false || ($result === null && $authority === PermissionAuthority::Policy)) {",
+  "new": "if ($authority === PermissionAuthority::Policy && ($result === false || $result === null)) {"
+ },
+ {
+  "name": "M15-role-filters-skipped",
+  "file": "packages/core/src/Authorization/ScopeEligibility.php",
+  "old": "if (! $this->native($definition, $binding, $frame, $runtime, $batch, $trace)) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M16-isolated-as-inherit",
+  "file": "packages/core/src/Authorization/EvaluationFrame.php",
+  "old": "$scopes = $this->selectedScope->context->isGlobal() || $this->selectedPanel->scopes()->mode() === 'isolated'",
+  "new": "$scopes = $this->selectedScope->context->isGlobal()"
+ },
+ {
+  "name": "M17-batch-key-no-role",
+  "file": "packages/core/src/Authorization/BatchInputs.php",
+  "old": "$runtime->role?->key(), $grant?->role, $grant === null ? null : json_encode($grant->fields(), JSON_THROW_ON_ERROR), $grant?->source",
+  "new": "null, null, null, $grant?->source"
+ },
+ {
+  "name": "M18-db-pairs-drop-context",
+  "file": "packages/core/src/Sources/Database/DatabaseSource.php",
+  "old": "->where('context_key', $scope->context->key()));",
+  "new": ");"
+ },
+ {
+  "name": "M19-context-membership-off",
+  "file": "packages/core/src/Scopes/MembershipRestriction.php",
+  "old": "if ($scope !== null && ! $context->scope()->context->isGlobal()) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M20-common-filters-off",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+  "old": "if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs, $trace)) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M21-before-deny-ignored",
+  "file": "packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php",
+  "old": "if ($result === BeforeResult::Deny) {",
+  "new": "if (false) {"
+ },
+ {
+  "name": "M22-visibility-before-ignored",
+  "file": "packages/core/src/Authorization/Visibility.php",
+  "old": "$compiler->constrain($group, $predicate->outcome('pass'));",
+  "new": ""
+ }
+]
