@@ -64,14 +64,29 @@ it('treats wildcards of the term as text and never as a pattern', function (): v
     $lookup = Lookups::make($panel, target: null);
     $directory = DirectoryResolver::for($panel, app())->subjects('dir.person');
     $ids = fn (string $term): array => array_map(fn ($o) => $o->subject->id(), $directory->search($term, $lookup, 10));
-    $sqlite = World::storage()->connection()->getDriverName() === 'sqlite';
-
-    // SQLite cannot escape LIKE wildcards; it drops them, so the term only ever narrows less than it says.
-    expect($ids('50%'))->toBe($sqlite ? ['2', '3'] : ['2'])
-        ->and($ids('1%2'))->toBe($sqlite ? ['12'] : [])
-        ->and($ids('%'))->toBe($sqlite ? [] : ['2'])
-        ->and($ids('_'))->toBe($sqlite ? [] : ['12'])
+    expect($ids('50%'))->toBe(['2'])
+        ->and($ids('1%2'))->toBe([])
+        ->and($ids('%'))->toBe(['2'])
+        ->and($ids('_'))->toBe(['12'])
         ->and($ids('"; drop table people; --'))->toBe([]);
+});
+
+it('finds literal underscores and escape characters without matching the spelling with them removed', function (): void {
+    Person::query()->insert([
+        ['id' => 20, 'name' => 'foo_bar', 'email' => 'literal@example.test'],
+        ['id' => 21, 'name' => 'foobar', 'email' => 'plain@example.test'],
+        ['id' => 22, 'name' => 'path\\name', 'email' => 'slash@example.test'],
+        ['id' => 23, 'name' => 'pathname', 'email' => 'noslash@example.test'],
+        ['id' => 24, 'name' => 'wow!50%_', 'email' => 'escape@example.test'],
+    ]);
+    $panel = people();
+    $lookup = Lookups::make($panel, target: null);
+    $directory = DirectoryResolver::for($panel, app())->subjects('dir.person');
+    $ids = fn (string $term): array => array_map(fn ($o) => $o->subject->id(), $directory->search($term, $lookup, 10));
+
+    expect($ids('foo_bar'))->toBe(['20'])
+        ->and($ids('path\\name'))->toBe(['22'])
+        ->and($ids('wow!50%_'))->toBe(['24']);
 });
 
 it('limits and orders results by key and selects the model by morph type', function (): void {

@@ -1,0 +1,4 @@
+> vendor/bin/pest --type-coverage --min=98
+
+Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 32768 bytes) in phar:///home/vostrikov/projects/packages/azguard/vendor/phpstan/phpstan/phpstan.phar/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/Bool_.php on line 1
+Script vendor/bin/pest --type-coverage --min=98 handling the test:types event returned with error code 1

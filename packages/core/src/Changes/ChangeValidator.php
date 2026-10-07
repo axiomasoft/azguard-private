@@ -65,8 +65,6 @@ final class ChangeValidator
     /** @var array<string, ?Model> */
     private array $targets = [];
 
-    private ?PanelCatalog $catalog = null;
-
     public function __construct(
         private readonly Container $container,
         private readonly Panel $panel,
@@ -85,10 +83,10 @@ final class ChangeValidator
         return $this->now;
     }
 
-    /** The static catalog with the tenant's dynamic permissions read under the lock, once per attempt. */
+    /** The static catalog with the tenant's current dynamic permissions; a nested change may have changed them. */
     public function catalog(): PanelCatalog
     {
-        return $this->catalog ??= $this->reads->catalog($this->tenant);
+        return $this->reads->catalog($this->tenant);
     }
 
     /** Expiry and fields checked on the raw values of the change; the context never carries an unchecked proposal. */
@@ -223,6 +221,10 @@ final class ChangeValidator
 
         if ($change->type === ChangeType::DeletePermission) {
             $this->stored($tenant, $name);
+
+            if ($this->reads->grantsNamed($tenant, $name) !== []) {
+                throw new StaleSelectionException('Exact grants of permission "'.$name.'" changed after its deletion cascade was planned.');
+            }
 
             return;
         }

@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "p5-fixes-P5.7-V6",
+  "check_id": "V6",
+  "subject": "PLAN2.P5.7",
+  "procedure": {
+    "cmd": "DB_CONNECTION=mariadb MARIADB_PORT=23307 php -d memory_limit=1G vendor/bin/pest tests/Engines/DynamicActionRaceTest.php --ci --fail-on-skipped",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "0d6a637cd0ed7dc6d3c7051ce46db0dcadb4893c"
+  },
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:34Z",
+  "finished_at": "2026-10-07T21:29:42Z",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "log": {
+    "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/mariadb-02.log",
+    "sha256": "3c691b7638234949837f590a88f23023bf178ad393c4248462a6f8d327d88e9b"
+  }
+}

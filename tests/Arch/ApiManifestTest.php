@@ -48,3 +48,16 @@ it('lets the filament package use only core classes from the manifest', function
 
     expect(array_keys(array_diff_key($used, array_flip($public))))->toBe([]);
 });
+
+it('excludes internal classes from publication by their namespace', function (): void {
+    $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/packages/core/api-manifest.json'), true, flags: JSON_THROW_ON_ERROR);
+    $internal = [];
+
+    foreach ($manifest['classes'] as $entry) {
+        if (preg_match('/^\s*\*\s*@internal\b/m', (string) (new ReflectionClass($entry['name']))->getDocComment()) === 1) {
+            $internal[] = $entry['name'];
+        }
+    }
+
+    expect($internal)->toBe([]);
+});

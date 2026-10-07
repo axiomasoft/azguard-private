@@ -291,6 +291,10 @@ final class Storage
             $this->authorityTransaction?->assertActive();
             foreach ($mutation->touched() as $panel) {
                 $this->pendingTouches[$panel] = true;
+
+                if ($parent?->holds($panel)) {
+                    $parent->touch($panel);
+                }
             }
 
             if ($parent === null) {

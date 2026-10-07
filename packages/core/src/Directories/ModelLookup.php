@@ -7,6 +7,7 @@ namespace AzGuard\Directories;
 use AzGuard\Exceptions\DefinitionException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Expression;
 use ReflectionMethod;
 
 /**
@@ -48,7 +49,7 @@ final class ModelLookup
 
         $model = $query->getModel();
         $driver = $model->getConnection()->getDriverName();
-        $pattern = '%'.self::escaped($term, $driver).'%';
+        $pattern = '%'.self::escaped($term).'%';
         $operator = $driver === 'pgsql' ? 'ilike' : 'like';
         $columns = self::searchColumns($model);
 
@@ -60,8 +61,9 @@ final class ModelLookup
                 $matchers++;
             }
 
-            foreach ($pattern === '%%' ? [] : $columns as $column) {
-                $group->orWhere($model->qualifyColumn($column), $operator, $pattern);
+            foreach ($columns as $column) {
+                $group->orWhere($model->qualifyColumn($column), $operator, new Expression("? escape '!'"));
+                $group->getQuery()->addBinding($pattern, 'where');
                 $matchers++;
             }
 
@@ -94,15 +96,10 @@ final class ModelLookup
         return array_values($columns);
     }
 
-    /**
-     * LIKE wildcards of the term match themselves. SQLite has no default escape character, so there they are
-     * dropped from the term instead; a term of nothing but wildcards then matches no column, never every row.
-     */
-    private static function escaped(string $term, string $driver): string
+    /** The explicitly declared LIKE escape character and wildcards of the bound term all match themselves. */
+    private static function escaped(string $term): string
     {
-        return $driver === 'sqlite'
-            ? str_replace(['%', '_', '\\'], '', $term)
-            : str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term);
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term);
     }
 
     /** An integer key never equals free text; comparing them would fail on a strict engine. */

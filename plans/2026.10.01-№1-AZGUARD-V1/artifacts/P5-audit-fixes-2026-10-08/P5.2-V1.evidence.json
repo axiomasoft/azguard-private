@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "p5-fixes-P5.2-V1",
+  "check_id": "V1",
+  "subject": "PLAN2.P5.2",
+  "procedure": {
+    "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit/Changes tests/Feature/Changes tests/Acceptance/Crm/AssignmentsTest.php tests/Feature/Storage tests/Feature/Sources/Database tests/Unit/Exceptions tests/Feature/Scopes tests/Feature/Authorization tests/Feature/Panels --compact --fail-on-skipped",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "0d6a637cd0ed7dc6d3c7051ce46db0dcadb4893c"
+  },
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:22Z",
+  "finished_at": "2026-10-07T21:29:50Z",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "log": {
+    "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/sqlite-01.log",
+    "sha256": "8dacd252cfabbe892d22fff5b367a84541d7f8f048482ce1a1a3bf69655f3936"
+  }
+}

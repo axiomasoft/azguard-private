@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "p5-fixes-P5.2-V2",
+  "check_id": "V2",
+  "subject": "PLAN2.P5.2",
+  "procedure": {
+    "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Regression --compact --fail-on-skipped",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "0d6a637cd0ed7dc6d3c7051ce46db0dcadb4893c"
+  },
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:50Z",
+  "finished_at": "2026-10-07T21:29:51Z",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "log": {
+    "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/sqlite-02.log",
+    "sha256": "dbf720780ac26d3f6e5b3c4a94d9d855046084b2d2c69c25bb73eaa1be4a2ce9"
+  }
+}

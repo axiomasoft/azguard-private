@@ -1,0 +1,30 @@
+{
+  "label": "sqlite-04",
+  "command": "composer test",
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:57Z",
+  "finished_at": "2026-10-07T21:31:02Z",
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/sqlite-04.log",
+  "checks": [
+    [
+      "P5.2",
+      "V8"
+    ],
+    [
+      "P5.7",
+      "V7"
+    ],
+    [
+      "P5.8",
+      "V3"
+    ],
+    [
+      "P5.5",
+      "V3"
+    ],
+    [
+      "P5.6",
+      "V5"
+    ]
+  ]
+}

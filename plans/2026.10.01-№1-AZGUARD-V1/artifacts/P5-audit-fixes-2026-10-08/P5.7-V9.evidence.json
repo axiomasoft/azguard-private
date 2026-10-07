@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "p5-fixes-P5.7-V9",
+  "check_id": "V9",
+  "subject": "PLAN2.P5.7",
+  "procedure": {
+    "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "0d6a637cd0ed7dc6d3c7051ce46db0dcadb4893c"
+  },
+  "exit": 0,
+  "started_at": "2026-10-07T21:37:12Z",
+  "finished_at": "2026-10-07T21:37:12Z",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "log": {
+    "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/qualified-static-02.log",
+    "sha256": "6f530fc159a3905acf47f25edace3714ac60c7ea4b47f6b7689ea59e3deb7367"
+  }
+}

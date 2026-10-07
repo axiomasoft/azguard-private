@@ -1,0 +1,22 @@
+{
+  "label": "compose-01",
+  "command": "sg docker -c 'PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307 docker compose up -d --wait postgres mysql mariadb'",
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:05Z",
+  "finished_at": "2026-10-07T21:29:06Z",
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/compose-01.log",
+  "checks": [
+    [
+      "P5.2",
+      "V4"
+    ],
+    [
+      "P5.7",
+      "V3"
+    ],
+    [
+      "P5.6",
+      "V1"
+    ]
+  ]
+}

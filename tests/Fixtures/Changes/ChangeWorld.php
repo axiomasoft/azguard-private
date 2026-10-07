@@ -16,6 +16,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\SupportRole;
@@ -26,6 +27,17 @@ use DateTimeImmutable;
 /** Writes through the real change pipeline over the CRM stand: panel crm, tenants A=1/B=2, projects P1–P5. */
 final class ChangeWorld
 {
+    /** Removes only the stand's tables from the isolated test connection, before or after an engine run. */
+    public static function clean(): void
+    {
+        $schema = CrmWorld::storage()->connection()->getSchemaBuilder();
+
+        foreach (['crm_weight', 'crm_active_build', 'crm_project_revisions', 'clients', 'project_members', 'projects', 'organization_user', 'users', 'cities', 'organizations'] as $table) {
+            $schema->dropIfExists($table);
+        }
+        app(StorageSchema::class)->drop('default');
+    }
+
     /**
      * @param  list<mixed>  $pipes
      * @param  list<mixed>|null  $sources

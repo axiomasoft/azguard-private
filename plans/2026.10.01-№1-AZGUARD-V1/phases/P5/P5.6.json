@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.6",
   "title": "Review P5: независимая read-only проверка фазы",
-  "status": "done_with_deviations",
+  "status": "in_progress",
   "summary": "Независимо проверить, что фаза P5 целиком — пайплайн изменений, dynamic actions, события и audit, директории, схема, менеджеры, трейт — соответствует досье, D18 и модели P5 по смыслу, именам и границам, а инварианты записи C1–C13 не нарушены, до того как P6 построит фасад и HTTP-поверхность.",
   "why": "Правило плана: каждая фаза реализации заканчивается read-only `Review Pn` (D3, M1 «качественно»). Риски, которые ловит review: обход ChangePipeline, запись вне lock, события в транзакции, IDOR менеджеров, утечки в схеме, выбор панели вне resolver. RAG:— D3, D18, модель P5, 05/06/08/18/20 разделы P5.",
   "scope": {
@@ -250,84 +250,13 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-07T18:59:39Z",
-    "finished_at": "2026-10-07T19:26:26Z",
+    "started_at": "2026-10-07T21:40:26Z",
     "executor": {
-      "provider": "grok",
-      "model": "grok-4.7",
-      "effort": "high"
-    },
-    "registered_by": {
-      "provider": "anthropic",
-      "model": "claude-opus-5-5",
-      "effort": "high"
-    },
-    "notes": "Review P5 grok/grok-4.7/high (сессия 01a117c3, ro-run Landlock): GREEN, 1 minor F1 owning P5.5 — SchemaBuilder @internal публикуется в api-manifest по location AzGuard\\Schema\\ (воспроизведено; рекомендация). Гейты на 30bb804: engines PG/MySQL/MariaDB 24/24, composer test 3736+1 skip (replica), arch+regression 189, PHPStan 0, manifest/Pint/diff-check 0, types 99.5%. Вердикт knowledge/findings-P5-review, артефакты artifacts/P5.6-execution, artifacts/P5.6-review.",
-    "deviations": [
-      "V1 выполнен как sg docker -c '<команда V1>': shell сессии без группы docker, первая попытка exit 1 (permission denied на docker.sock, контейнеры уже healthy), лог V1.first-attempt.log"
-    ],
-    "checks": [
-      {
-        "id": "V1",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V2",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V3",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V4",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V5",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V6",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V7",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V8",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V9",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V10",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V11",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      },
-      {
-        "id": "V12",
-        "exit": 0,
-        "at": "2026-10-07T19:26:26Z"
-      }
-    ]
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
   },
-  "updated_at": "2026-10-07T19:26:26Z"
+  "updated_at": "2026-10-07T21:40:26Z"
 }

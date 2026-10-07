@@ -1,0 +1,32 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "p5-fixes-P5.7-V5",
+  "check_id": "V5",
+  "subject": "PLAN2.P5.7",
+  "procedure": {
+    "cmd": "DB_CONNECTION=mysql MYSQL_PORT=23306 php -d memory_limit=1G vendor/bin/pest tests/Engines/DynamicActionRaceTest.php --ci --fail-on-skipped",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "0d6a637cd0ed7dc6d3c7051ce46db0dcadb4893c"
+  },
+  "exit": 0,
+  "started_at": "2026-10-07T21:29:41Z",
+  "finished_at": "2026-10-07T21:29:52Z",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "xhigh",
+      "session": "01a1180c-f067-7c51-ac23-f5312c5b2076"
+    }
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39"
+  },
+  "log": {
+    "path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/mysql-02.log",
+    "sha256": "57678aa5bf6af0e2f2af0ab4f783e32c66aaf385eea7761f1ac1b8d317e4cb35"
+  }
+}

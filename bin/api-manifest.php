@@ -10,7 +10,7 @@ declare(strict_types=1);
  *
  * Public by location (core): Kernel, Exceptions, Schema, Events, Testing, Storage\Models, Facades\AzGuard,
  * Concerns\HasAzGuard, Roles\BaseRole, Panels\{PanelBuilder,Panel,PanelProvider}. Contracts need an @api/@spi tag.
- * Any other class is public only with an explicit @api/@spi docblock tag.
+ * Any other class is public only with an explicit @api/@spi docblock tag. An @internal class is never published.
  */
 
 $root = dirname(__DIR__);
@@ -81,6 +81,11 @@ function apiManifest(string $root, string $package): array
 function apiDescribe(ReflectionClass $class): ?array
 {
     $name = $class->getName();
+
+    if (preg_match('/^\s*\*\s*@internal\b/m', (string) $class->getDocComment()) === 1) {
+        return null;
+    }
+
     preg_match('/^\s*\*\s*@(api|spi)\b/m', (string) $class->getDocComment(), $tag);
     $byLocation = in_array($name, API_LOCATION_CLASSES, true)
         || array_filter(API_LOCATION_PREFIXES, static fn (string $p): bool => str_starts_with($name, $p)) !== [];

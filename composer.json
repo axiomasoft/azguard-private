@@ -70,7 +70,7 @@
         "refactor": "vendor/bin/rector process",
         "refactor:check": "vendor/bin/rector process --dry-run",
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
-        "test:types": "vendor/bin/pest --type-coverage --min=98",
+        "test:types": "php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98",
         "check:coverage": "bash bin/coverage-gate.sh",
         "mutate": "bash bin/mutation-gate.sh",
         "mutate:core": "bash bin/mutation-gate.sh core",

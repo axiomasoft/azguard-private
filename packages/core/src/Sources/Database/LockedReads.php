@@ -69,8 +69,9 @@ final class LockedReads
     public function token(int $effects = 0): StateToken
     {
         $state = $this->state();
+        $effective = $effects > 0 || in_array($this->panel->id(), $this->mutation->touched(), true);
 
-        return StateToken::of($this->storage->id(), $this->panel->id(), $state->incarnation, $state->version + ($effects > 0 ? 1 : 0),
+        return StateToken::of($this->storage->id(), $this->panel->id(), $state->incarnation, $state->version + ($effective ? 1 : 0),
             $this->panel->settings()->cacheGeneration(), $this->registry->fingerprint($this->panel->id()));
     }
 

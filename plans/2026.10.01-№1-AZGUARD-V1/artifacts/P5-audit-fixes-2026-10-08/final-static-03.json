@@ -1,0 +1,30 @@
+{
+  "label": "final-static-03",
+  "command": "composer test:types",
+  "exit": 1,
+  "started_at": "2026-10-07T21:34:39Z",
+  "finished_at": "2026-10-07T21:34:41Z",
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P5-audit-fixes-2026-10-08/final-static-03.log",
+  "checks": [
+    [
+      "P5.2",
+      "V11"
+    ],
+    [
+      "P5.7",
+      "V10"
+    ],
+    [
+      "P5.8",
+      "V6"
+    ],
+    [
+      "P5.5",
+      "V6"
+    ],
+    [
+      "P5.6",
+      "V11"
+    ]
+  ]
+}
