@@ -9,6 +9,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEffect;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\EffectKind;
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -38,6 +39,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\GrantFields;
 use AzGuard\Storage\Models\Permission;
@@ -196,7 +198,38 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
     {
         $this->bindPanel($panel->id());
 
-        return new SourceDescription($this->id(), self::class, [ProvidesGrants::class, ProvidesRoleGrants::class, ProvidesPermissions::class, StoresGrants::class, FencesReads::class, FiltersQueries::class, DescribesSchema::class], $this->dynamic);
+        return new SourceDescription(
+            $this->id(),
+            self::class,
+            [ProvidesGrants::class, ProvidesRoleGrants::class, ProvidesPermissions::class, StoresGrants::class, FencesReads::class, FiltersQueries::class, DescribesSchema::class],
+            $this->dynamic,
+            label: 'Database',
+            fields: [
+                FieldTarget::RoleGrant->value => $this->modelFields('role_grant'),
+                FieldTarget::PermissionGrant->value => $this->onlyRoles ? [] : $this->modelFields('permission_grant'),
+            ],
+        );
+    }
+
+    /**
+     * Fields the grant model of a kind declares, marked with the model as `GrantFields` marks them; no database read.
+     *
+     * @return list<Field>
+     */
+    private function modelFields(string $kind): array
+    {
+        $class = $this->selectedModels[$kind] ?? app(AzGuardConfig::class)->defaultModels()[$kind];
+
+        if (! is_a($class, RoleGrant::class, true) && ! is_a($class, PermissionGrant::class, true)) {
+            throw new StorageMismatchException('Storage model '.$class.' must be a grant model.');
+        }
+        $fields = [];
+
+        foreach ($class::azguardFields() as $field) {
+            $fields[] = $field->withContribution('model:'.$class);
+        }
+
+        return $fields;
     }
 
     /** @return iterable<PermissionDefinition> */

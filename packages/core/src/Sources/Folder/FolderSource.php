@@ -343,7 +343,7 @@ final class FolderSource implements DescribesSchema, FiltersQueries, ProvidesGra
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
     {
-        return new SourceDescription($this->id(), self::class, PanelSources::capabilities($this), false);
+        return new SourceDescription($this->id(), self::class, PanelSources::capabilities($this), false, label: 'Folder');
     }
 
     /**

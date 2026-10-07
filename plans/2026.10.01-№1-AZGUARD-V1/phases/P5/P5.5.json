@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.5",
   "title": "PanelSchema",
-  "status": "todo",
+  "status": "done",
   "summary": "Дать неизменяемое описание панели для интерфейсов: `Schema\\PanelSchema` для пары (панель, tenant) с правами (authority, owner-источники, `decidedBy`, dynamic overlay tenant, contextTypes), PHP-ролями (read-only, grantable/automatic, scopeRequired, bindings), полями выдач, типами tenants/контекстов/субъектов с директориями и `writable`; `toArray()`/`jsonSerialize()` — только скаляры, без моделей, closures и секретов.",
   "why": "Схема — единственный вход редакторов Filament и своих UI (D54, D30); P5.3 возвращает её `RoleSchema`/`PermissionSchema`. Жёсткие риски: утечка секретов/параметров источников и live-моделей в JSON (V104, R49), смешение dynamic overlay разных tenants, редактируемость PHP-ролей или PolicyOnly-прав в схеме (V72, R38). RAG:— 05 §8, D54, D30, 06 §1.1/§6, 11 §5–§6, 19 §5, 18 §8; V72, V104, R24, R38, R49; D8 (SourceDescription), D12 (FieldSchema из Field), D18.",
   "scope": {
@@ -245,5 +245,58 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-07T08:24:26Z"
+  "result": {
+    "started_at": "2026-10-07T14:45:21Z",
+    "finished_at": "2026-10-07T15:04:36Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "dead0f54-b3a1-42c9-86d0-ce58f8a4bc30"
+    },
+    "notes": "Schema values + internal SchemaBuilder (tenant overlay, decidedBy, sources, read-only roles, writer/plugin fields, D20 directories), SourceDescription label/fields; Unit/Feature/Acceptance schema tests, CRM JSON snapshot; V3 3219 passed / 1 pre-existing replica skip; SchemaBuilder appears in api-manifest by location (logged).",
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-07T15:04:36Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-07T15:04:36Z"
 }

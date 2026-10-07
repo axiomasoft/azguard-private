@@ -4047,7 +4047,19 @@
                     "static": false
                 },
                 {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "id",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
                     "type": "string",
                     "readonly": true,
                     "static": false
@@ -4086,6 +4098,22 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
                         }
                     ],
                     "return": null
@@ -13875,6 +13903,203 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Schema\\AssignmentScopeBindingSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "contextType",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "directory",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "exactSupport",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "filters",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "contextType",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "filters",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directory",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "exactSupport",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\AssignmentScopeTypeSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "directory",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "model",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "type",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "model",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directory",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Schema\\Field",
             "kind": "class",
             "final": true,
@@ -14123,6 +14348,152 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Schema\\FieldSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "contributedBy",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "inMeta",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "options",
+                    "type": "?array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "rules",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "type",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "rules",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "options",
+                            "type": "?array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "inMeta",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contributedBy",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "field",
+                            "type": "AzGuard\\Schema\\Field",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Schema\\FieldTarget",
             "kind": "enum",
             "final": true,
@@ -14195,6 +14566,819 @@
                         }
                     ],
                     "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\PanelSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "writable",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "writable",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenants",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subjects",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "fields",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "target",
+                            "type": "AzGuard\\Schema\\FieldTarget",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "groups",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "permissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "scopes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "subjects",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "tenants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\PermissionSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "authority",
+                    "type": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "contextTypes",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "decidedBy",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "dynamic",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "key",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "owner",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "resourceGroup",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "sources",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resourceGroup",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "authority",
+                            "type": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "dynamic",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "owner",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "decidedBy",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "sources",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextTypes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "grantable",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\RoleSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "automatic",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "class",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "contextBindings",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "contextTypes",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "editable",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "grantable",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "key",
+                    "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permissions",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "scopeRequired",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "superAdmin",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "grantable",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "automatic",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopeRequired",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextTypes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextBindings",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "superAdmin",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\SchemaBuilder",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "registry",
+                            "type": "AzGuard\\Panels\\PanelRegistry",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "container",
+                            "type": "Illuminate\\Contracts\\Container\\Container",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "for",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Schema\\PanelSchema"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\SubjectTypeSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "directory",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "guard",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "model",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "type",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directory",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Schema\\TenantTypeSchema",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [
+                "JsonSerializable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "directory",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "model",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "type",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directory",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "jsonSerialize",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
                 }
             ],
             "stability": "api",

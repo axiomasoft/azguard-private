@@ -50,6 +50,6 @@ final class GateSource implements DescribesSchema, ProvidesPolicies
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
     {
-        return new SourceDescription(id: $this->id(), class: self::class, capabilities: PanelSources::capabilities($this), dynamic: false);
+        return new SourceDescription(id: $this->id(), class: self::class, capabilities: PanelSources::capabilities($this), dynamic: false, label: 'Gate');
     }
 }

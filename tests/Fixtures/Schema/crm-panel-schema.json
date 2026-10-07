@@ -1,0 +1,279 @@
+{
+    "panel": "crm",
+    "label": "crm",
+    "writable": true,
+    "tenant": {
+        "key": "crm.organization:1",
+        "type": "crm.organization",
+        "id": "1"
+    },
+    "permissions": [
+        {
+            "key": "crm:clients.update",
+            "local": "clients.update",
+            "name": "crm.clients.update",
+            "label": "clients.update",
+            "group": "Клиенты",
+            "description": null,
+            "authority": "grants",
+            "grantable": true,
+            "dynamic": false,
+            "owner": "folder",
+            "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Policies\\Clients\\ClientPolicy@update",
+            "sources": [
+                "database"
+            ],
+            "context_types": [
+                "crm.project"
+            ]
+        },
+        {
+            "key": "crm:clients.view",
+            "local": "clients.view",
+            "name": "crm.clients.view",
+            "label": "clients.view",
+            "group": "Клиенты",
+            "description": null,
+            "authority": "grants",
+            "grantable": true,
+            "dynamic": false,
+            "owner": "folder",
+            "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Policies\\Clients\\ClientPolicy@view",
+            "sources": [
+                "database"
+            ],
+            "context_types": [
+                "crm.project"
+            ]
+        },
+        {
+            "key": "crm:clients.view_any",
+            "local": "clients.view_any",
+            "name": "crm.clients.view_any",
+            "label": "clients.view_any",
+            "group": "Клиенты",
+            "description": null,
+            "authority": "grants",
+            "grantable": true,
+            "dynamic": false,
+            "owner": "folder",
+            "decided_by": null,
+            "sources": [
+                "database"
+            ],
+            "context_types": [
+                "crm.project"
+            ]
+        },
+        {
+            "key": "crm:clients.view_own_profile",
+            "local": "clients.view_own_profile",
+            "name": "crm.clients.view_own_profile",
+            "label": "clients.view_own_profile",
+            "group": "Клиенты",
+            "description": null,
+            "authority": "policy",
+            "grantable": false,
+            "dynamic": false,
+            "owner": "folder",
+            "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Policies\\Clients\\ClientPolicy@own",
+            "sources": [],
+            "context_types": []
+        }
+    ],
+    "groups": {
+        "Клиенты": [
+            "crm:clients.update",
+            "crm:clients.view",
+            "crm:clients.view_any",
+            "crm:clients.view_own_profile"
+        ]
+    },
+    "roles": [
+        {
+            "key": "analyst",
+            "label": "analyst",
+            "class": "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Roles\\AnalystRole",
+            "editable": false,
+            "grantable": true,
+            "automatic": false,
+            "scope_required": true,
+            "context_types": [
+                "crm.project"
+            ],
+            "context_bindings": [
+                {
+                    "context_type": "crm.project",
+                    "filters": [
+                        "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Filters\\AnalystProjects"
+                    ],
+                    "label": "crm.project",
+                    "directory": null,
+                    "exact_support": true
+                }
+            ],
+            "super_admin": false,
+            "permissions": [
+                "clients.view",
+                "clients.view_any"
+            ]
+        },
+        {
+            "key": "caller",
+            "label": "caller",
+            "class": "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Roles\\CallerRole",
+            "editable": false,
+            "grantable": true,
+            "automatic": false,
+            "scope_required": true,
+            "context_types": [
+                "crm.project"
+            ],
+            "context_bindings": [
+                {
+                    "context_type": "crm.project",
+                    "filters": [
+                        "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Filters\\SellerProjects"
+                    ],
+                    "label": "crm.project",
+                    "directory": null,
+                    "exact_support": true
+                }
+            ],
+            "super_admin": false,
+            "permissions": [
+                "clients.view",
+                "clients.update"
+            ]
+        },
+        {
+            "key": "seller",
+            "label": "seller",
+            "class": "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Roles\\SellerRole",
+            "editable": false,
+            "grantable": true,
+            "automatic": false,
+            "scope_required": true,
+            "context_types": [
+                "crm.project"
+            ],
+            "context_bindings": [
+                {
+                    "context_type": "crm.project",
+                    "filters": [
+                        "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Filters\\SellerProjects"
+                    ],
+                    "label": "crm.project",
+                    "directory": null,
+                    "exact_support": true
+                }
+            ],
+            "super_admin": false,
+            "permissions": [
+                "clients.view",
+                "clients.update",
+                "clients.view_any"
+            ]
+        },
+        {
+            "key": "tenant-admin",
+            "label": "tenant-admin",
+            "class": "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Roles\\TenantAdminRole",
+            "editable": false,
+            "grantable": true,
+            "automatic": false,
+            "scope_required": true,
+            "context_types": [
+                "crm.project"
+            ],
+            "context_bindings": [
+                {
+                    "context_type": "crm.project",
+                    "filters": [
+                        "AzGuard\\Tests\\Fixtures\\Crm\\Guards\\Crm\\Filters\\SellerProjects"
+                    ],
+                    "label": "crm.project",
+                    "directory": null,
+                    "exact_support": true
+                }
+            ],
+            "super_admin": true,
+            "permissions": []
+        }
+    ],
+    "fields": {
+        "role_grant": [
+            {
+                "name": "eligible",
+                "label": "eligible",
+                "type": "bool",
+                "rules": [
+                    "nullable"
+                ],
+                "options": null,
+                "in_meta": true,
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant"
+            },
+            {
+                "name": "region",
+                "label": "region",
+                "type": "string",
+                "rules": [
+                    "nullable"
+                ],
+                "options": null,
+                "in_meta": true,
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmRoleGrant"
+            }
+        ],
+        "permission_grant": [
+            {
+                "name": "eligible",
+                "label": "eligible",
+                "type": "bool",
+                "rules": [
+                    "nullable"
+                ],
+                "options": null,
+                "in_meta": true,
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant"
+            },
+            {
+                "name": "region",
+                "label": "region",
+                "type": "string",
+                "rules": [
+                    "nullable"
+                ],
+                "options": null,
+                "in_meta": true,
+                "contributed_by": "model:AzGuard\\Tests\\Fixtures\\Crm\\CrmPermissionGrant"
+            }
+        ]
+    },
+    "tenants": [
+        {
+            "type": "crm.organization",
+            "label": "Organization",
+            "model": "AzGuard\\Tests\\Fixtures\\Crm\\Models\\Organization",
+            "directory": "AzGuard\\Directories\\ModelTenantDirectory"
+        }
+    ],
+    "scopes": [
+        {
+            "type": "crm.project",
+            "label": "crm.project",
+            "model": "AzGuard\\Tests\\Fixtures\\Crm\\Models\\Project",
+            "directory": "AzGuard\\Directories\\QueryScopeDirectory"
+        }
+    ],
+    "subjects": [
+        {
+            "model": "AzGuard\\Tests\\Fixtures\\Crm\\Models\\User",
+            "type": "crm.user",
+            "label": "User",
+            "guard": "web",
+            "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+        }
+    ]
+}

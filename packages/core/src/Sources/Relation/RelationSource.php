@@ -124,7 +124,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
     {
-        return new SourceDescription($this->id(), self::class, [ProvidesRoleGrants::class, FiltersQueries::class, DescribesSchema::class], false);
+        return new SourceDescription($this->id(), self::class, [ProvidesRoleGrants::class, FiltersQueries::class, DescribesSchema::class], false, label: 'Relation');
     }
 
     /** @param list<AccessScope> $scopes
