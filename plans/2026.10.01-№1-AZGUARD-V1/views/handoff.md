@@ -23,6 +23,7 @@
 - 2026-10-07T08:53:34Z deviation P5.2 — V10 PHPStan уровень 8 уже на HEAD 572b9cd (php8.3 и php8.4, чистый worktree) даёт 2 ошибки offsetAccess.notFound в Authorization/Pipeline/Stages/AuthorityStage.php:246/260. Исправлено явными null-guard без изменения поведения (RoleContribution без definition уже пропущен выше, superAdmin(null)=false); файл вне task_files — коммит с --path.
 - 2026-10-07T09:02:55Z deviation P5.2 — V8 первый прогон: 9 падений PluginIsolation/PluginLifecycle — фикстура tests/Fixtures/Plugins/RecordChange была пустым классом-заглушкой pipe до P5.2; компиляция changing теперь требует public handle(Change, Closure) (DefinitionException по scope). Фикстура получила pass-through handle(); файл вне task_files — коммит с --path; V8 перезапущен.
 - 2026-10-07T12:12:17Z difficulty P8 — Документация описывает несуществующий singleton AuthorizationContextManager → P8: переписать раздел Concepts и рецепт multi-tenant на scoped CurrentContext/WithinContext
+- 2026-10-07T12:19:59Z difficulty P8.2 — Страницы про контекст целиком описывают API 0.3, а не только строку про singleton → P8.2: переписать на CurrentContext/WithinContext/AccessScope и панельные scopes (docs/advanced/entity-scopes.md, panels.md как опора)
 
 ## Open questions
 
