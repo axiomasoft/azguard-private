@@ -10,7 +10,14 @@ it('only stores step diagnostics when the request asks for a trace', function ()
     $trace = new Trace(true);
     $silent->record('before', 'Continue', 'closure');
     $trace->record('before', 'Continue', 'closure');
-    expect($silent->steps())->toBe([])->and($trace->steps())->toBe([['stage' => 'before', 'result' => 'Continue', 'component' => 'closure', 'exception' => null]]);
+    expect($silent->steps())->toBe([])->and($trace->steps())->toBe([[
+        'stage' => 'before',
+        'component' => 'closure',
+        'outcome' => 'pass',
+        'detail' => [],
+        'result' => 'Continue',
+        'exception' => null,
+    ]]);
 });
 it('logs failure reason and exception class without serializing host values or exception secrets', function (): void {
     Log::spy();

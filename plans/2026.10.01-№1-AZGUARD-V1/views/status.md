@@ -210,7 +210,7 @@ generated_by: task plan-views closure
 - [D13](../../decisions/D13-p3-binary-identifiers.md)
 
 
-## P4 — Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость · 🔴 Blocked
+## P4 — Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость · 🟡 In progress
 
 | Item | Title | Status | Route | Updated |
 |:--|:--|:--|:--|:--|
@@ -228,17 +228,15 @@ generated_by: task plan-views closure
 | P4.15 | CRM-фикстура и R-кейсы границы решения P4.1–P4.7 | 🟢 Done | implementation/high | 2026-10-06T12:06:54Z |
 | P4.13 | Срез-review P4.1–P4.7: независимая read-only проверка границы решения | 🟢 Done | frontier/high | 2026-10-06T13:13:03Z |
 | P4.8 | Кэш наборов прав, StateToken, version fence, expiry | 🟠 Done with deviations | frontier/high | 2026-10-06T09:23:02Z |
-| P4.20 | Cache transactions, incarnation и touch | 🟢 Done | frontier/high | 2026-10-06T13:50:50Z |
+| P4.20 | Cache transactions, incarnation и touch | 🟢 Done | frontier/high | 2026-10-07T06:12:31Z |
 | P4.21 | Квалификация кэша: гонки, Redis, replica lag, latency | 🟢 Done | frontier/high | 2026-10-06T14:35:59Z |
 | P4.9 | decideMany | 🟢 Done | frontier/high | 2026-10-06T17:14:33Z |
-| P4.10 | explain и azguard:explain | 🟢 Done | implementation/medium | 2026-10-06T18:18:02Z |
+| P4.10 | explain и azguard:explain | 🟢 Done | implementation/medium | 2026-10-07T06:12:31Z |
 | P4.11 | GateBridge | 🟢 Done | frontier/high | 2026-10-06T18:19:45Z |
 | P4.22 | Exact predicate SPI, partitions и SQL compiler | 🟢 Done | frontier/high | 2026-10-06T19:02:41Z |
 | P4.12 | Visibility и exact query adapters | 🟠 Done with deviations | frontier/high | 2026-10-06T19:44:34Z |
 | P4.23 | Exact visibility: CRM, parity и EXPLAIN | 🟠 Done with deviations | frontier/high | 2026-10-06T21:21:47Z |
-| P4.14 | Review P4: независимая read-only проверка фазы | 🔴 Blocked | frontier/high | 2026-10-07T04:31:06Z |
-
-Closed 2026-10-07T04:31:06Z (🔴 Blocked): 23 item(s): 19 done, 3 done_with_deviations, 1 blocked
+| P4.14 | Review P4: независимая read-only проверка фазы | ⬜ Not started | frontier/high | 2026-10-07T06:02:56Z |
 
 ## P5 — Модель и изменения · ⬜ Skeleton
 

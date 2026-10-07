@@ -311,16 +311,6 @@ docker test-базы и Redis
 ]
 ```
 
-## Closed
-
-```json
-{
-  "at": "2026-10-07T04:31:06Z",
-  "result": "blocked",
-  "summary": "23 item(s): 19 done, 3 done_with_deviations, 1 blocked"
-}
-```
-
 ## Orchestration
 
 ```json

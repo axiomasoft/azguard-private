@@ -1,0 +1,30 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+  "evidence_id": "P4.14-tail-V4",
+  "check_id": "V4",
+  "subject": "PLAN2.P4.14",
+  "procedure": {
+    "cmd": "vendor/bin/pint --test",
+    "cwd": "/home/vostrikov/projects/packages/azguard"
+  },
+  "candidate": {
+    "head": "bf36aaab71d90d0813a54a2494c37beed0e2aab3",
+    "dirty_digest": "3a4b93ec9306cc450d17b94509852ca185d791b34436dbb7bc42477c756ae79a"
+  },
+  "exit": 0,
+  "log": {
+    "path": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4-tail-fixes/pint.log",
+    "sha256": "cd1a94fc2cf6a965b86e1a4809d6c7fb9148b1ee374e1010ed2ac96ff4876ec2"
+  },
+  "started_at": "2026-10-07T06:03:38.550013+00:00",
+  "finished_at": "2026-10-07T06:03:57.935894+00:00",
+  "producer": {
+    "kind": "executor",
+    "actor": {
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "session": "01a114f3-ad36-7b43-b341-743b4c48ff27"
+    }
+  }
+}

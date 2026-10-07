@@ -1,0 +1,5 @@
+{
+  "status": "INCOMPLETE",
+  "observed": "PAO reports passed2845, skipped1, tests2846, assertions404255; full.json empty and process no longer available, no observed captured process exit. Do not register acceptance from this attempt.",
+  "recovery": "full-002 repeats the full suite; original files preserved."
+}

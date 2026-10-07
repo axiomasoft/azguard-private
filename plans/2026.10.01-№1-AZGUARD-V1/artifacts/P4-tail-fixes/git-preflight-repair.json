@@ -1,0 +1,6 @@
+{
+  "symptom": "plan.py commit GIT_BUSY, native git status shows no rebase/merge",
+  "stale_ref": "30b200e30558c6c27a1ff7db6c9ad9f412619d18",
+  "backup": ".git/azguard-p4-tail-REBASE_HEAD.stale",
+  "impact": "Local reversible stale marker backup; no branch/history/source edit."
+}

@@ -1,0 +1,46 @@
+{
+  "source": "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/product-before.json",
+  "source_sha256": "ffbacca98148975b113aa26841c8857e6d890729b7da19fa6cb6a67bd0cc5d26",
+  "files_compared": 761,
+  "changed": {
+    "phpstan.neon": {
+      "original": "11c954d8fdfea5fd2113864162478cc8d4827917602a9f5eb7a298210f85d461",
+      "current": "f04ba6006b2bc5a59c2f47aa69f07201a6b6d2e42d16a9617c616649784a88c6"
+    },
+    "pint.json": {
+      "original": "5ba6a8bd912399ac2742e470f5457460080ceee53612b017129f1bb045dd9108",
+      "current": "d19cc14919b7102ec4f5c79a71d438638de0199bb0a79d424e7b08662bf064e2"
+    },
+    "tests/Regression/RegressionSpecsTest.php": {
+      "original": "d1a769cf2576d6eb62a6d59f33167521616b31c8e8d07ff8594e325d2849a81c",
+      "current": "8bb433c4de653d07367afb3a022ce7075ee36e8aabc80ab4d04dd8d012fd37a1"
+    },
+    "tests/Regression/specs/P10b.md": {
+      "original": "33dc232e7b5df377735956edac522d9f9710bcd7f9a0384f97da001b4327589c",
+      "current": "e1e279f31e90b517727a4c7a1dcef28820369bbd16ce1da614966ba8c7b2d20e"
+    },
+    "tests/Unit/Authorization/TraceTest.php": {
+      "original": "f5f0a683b7f0df7586caacf8a176df138a8601fc76dd705c8a19037a2f763b79",
+      "current": "8a115fe059d681cfce3c3f777346631c5c75c23d80524c725ad4f6b8c844c27d"
+    }
+  },
+  "runtime_unchanged": true,
+  "qualification_logs": {
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/engine-pgsql.log": "2a8d641a19aed53f8813016c9dd97b0cf8dba404ce87fb4d7e8986f9667f655e",
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/engine-mysql.log": "ea3251fd704805720d08d57e74ea9ac4b7fdc3a26a70a72d5d0a2f60006de8ef",
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/engine-mariadb.log": "a8485add9a77cd12c427a039e84b8d033e21fd4b1c0a74b6c915e67e89d99151",
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/V3.log": "10576894d95b9a7d80118738dd6d210cff5a18f2e7326dab4d2f14d490b18c04",
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/replica.log": "081aca55cfb84f8ada9b8cf04c0006b3073d66a3a769b282e3a9150bb99e8d7b",
+    "plans/2026.10.01-\u21161-AZGUARD-V1/artifacts/P4.14-execution/repeat-fence.log": "9fa78058cffd02407a7483d347d0e4913ebd19c7bcbfe0300d974043eb77f9fe"
+  },
+  "qualification_summary_sha256": "27f06f8e6b3e5dddf17911ac7bf8266a738016ab00262add23c9952077e4d9d9",
+  "replica_window": {
+    "commit_lsn": "0/31F9480",
+    "replay_lsn": "0/31F9480",
+    "controlled_window_ms": 10.493406,
+    "default_paused": "allow",
+    "primary_paused": "deny",
+    "default_caught_up": "deny"
+  },
+  "note": "Reuse authorized by owner; no engine/Redis/replica rerun. Ordinary-suite skip is not counted as a pass."
+}

@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- Исправлена приёмка P4: тест Trace учитывает `outcome`/`detail` и проверяет отключённую трассу; owner P10b синхронизирован с P4.20. Стандартный Pint исключает raw evidence в `plans`, PHPStan анализирует `ContextAware` вместе с fixture-потребителем `VisibilityProject` при прежнем уровне 8.
+
 - **core:** Exact visibility reuses schema observations within one compilation and checks fixed tenant membership once per operation. CRM literal lists/count/pages, 100 seeded scalar/query parity cases, 10k-client SQL budgets and real PostgreSQL/MySQL EXPLAIN on 100k clients verify the complete visibility contract.
 
 - **core:** `Visibility::visibleTo()` and `Authorizer::visibleTo()` compose exact owner, context, before, policy, restriction and complete assignment witness predicates before count/pagination. Explicit `ContextAware` relation mappings preserve resource/context identity; unsupported components and unstable sources fail closed with safe diagnostics. Fenced materialized selections support separate assignment connections with a 1000-ref budget. `bounded()` checks the complete bounded host universe with one clock and honest permitted totals.

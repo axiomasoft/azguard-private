@@ -5,6 +5,7 @@ parameters:
   paths:
     - packages/core/src
     - packages/filament/src
+    - tests/Fixtures/Visibility/VisibilityProject.php
 
   excludePaths:
     - legacy

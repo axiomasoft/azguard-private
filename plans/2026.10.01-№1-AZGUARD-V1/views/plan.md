@@ -79,7 +79,7 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | P1 | Ядро понятий Kernel и arch-правила зон | detailed | 7/7 | 🟢 Done |
 | P2 | Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource | detailed | 10/10 | 🟠 Done with deviations |
 | P3 | Хранилище | detailed | 5/5 | 🟢 Done |
-| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | detailed | 22/23 | 🔴 Blocked |
+| P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | detailed | 22/23 | 🟡 In progress |
 | P5 | Модель и изменения | skeleton | 0/5 | ⬜ Skeleton |
 | P6 | Laravel-поверхность и удаление legacy | skeleton | 0/10 | ⬜ Skeleton |
 | P7 | Filament по схеме панели | skeleton | 0/7 | ⬜ Skeleton |
