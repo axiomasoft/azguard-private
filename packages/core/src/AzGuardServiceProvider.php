@@ -57,7 +57,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         ));
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
 
-        $this->app->singleton(Authorizer::class);
+        // Its stage graph reads the scoped CurrentContext and CurrentPanel, so it lives exactly as long as they do.
+        $this->app->scoped(Authorizer::class);
         $this->app->scoped(PermissionSetCache::class);
         $this->app->make('events')->listen(StorageTouched::class, function (StorageTouched $event): void {
             foreach ($event->panels as $panel) {
