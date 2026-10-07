@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Expression;
 use ReflectionMethod;
 use ReflectionNamedType;
 
@@ -44,6 +45,7 @@ final class PredicateCompiler
                 throw new DefinitionException('Group host OR conditions before applying exact predicates.');
             }
         }
+        $this->isolateHostConditions($effective);
         // Build on a detached group: unsupported siblings and invalid identifiers
         // leave the host query untouched, including its bindings and structure.
         $group = $effective->getModel()->newModelQuery();
@@ -55,6 +57,41 @@ final class PredicateCompiler
         $query->withoutGlobalScopes();
 
         return $query;
+    }
+
+    /**
+     * Moves host conditions whose SQL can carry its own OR into one nested group, so AND-appended authority
+     * never binds to only the last alternative of a raw predicate.
+     *
+     * @param  Builder<*>  $query
+     */
+    private function isolateHostConditions(Builder $query): void
+    {
+        $base = $query->getQuery();
+
+        if (array_filter($base->wheres, $this->mayCarryOr(...)) === []) {
+            return;
+        }
+        $host = clone $base;
+        $base->wheres = [];
+        $base->setBindings([], 'where');
+        $base->addNestedWhereQuery($host);
+    }
+
+    /** @param array<string, mixed> $where */
+    private function mayCarryOr(array $where): bool
+    {
+        if (strtolower((string) $where['type']) === 'raw') {
+            return true;
+        }
+
+        foreach (['column', 'first', 'second', 'value'] as $part) {
+            if (($where[$part] ?? null) instanceof Expression) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

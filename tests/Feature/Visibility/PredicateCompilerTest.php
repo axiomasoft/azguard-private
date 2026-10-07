@@ -178,6 +178,19 @@ it('rejects ungrouped host OR without weakening it', function (): void {
         ->and($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
 });
 
+it('keeps a host raw OR inside its own group with its bindings in order', function (): void {
+    $query = PredicateResource::query()->whereRaw('city = ? or city = ?', ['Paris', 'Rome']);
+    $constrained = (new PredicateCompiler)->constrain($query, P::eq('state', 'allow'));
+    expect($constrained->toSql())->toContain('where (city = ? or city = ?) and (')
+        ->and($constrained->getBindings())->toBe(['Paris', 'Rome', 'allow'])
+        ->and($constrained->orderBy('id')->pluck('id')->all())->toBe([1, 4]);
+});
+
+it('constrains a guest-style deny over a host raw OR without leaking rows', function (): void {
+    $query = PredicateResource::query()->whereRaw("city = 'Rome' or city = 'Paris'");
+    expect((new PredicateCompiler)->constrain($query, P::deny())->pluck('id')->all())->toBe([]);
+});
+
 it('rejects host UNION arms before appending a predicate', function (bool $all): void {
     $query = PredicateResource::query()->where('tenant_id', 1);
     $query->union(PredicateResource::query()->where('tenant_id', 2), $all);

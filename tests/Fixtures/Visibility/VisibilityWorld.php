@@ -96,7 +96,7 @@ class VisibilityProjectScope extends BaseAssignmentScope implements FiltersAcces
 
     public function query(): Builder
     {
-        return VisibilityProject::query();
+        return VisibilityWorld::$projectQuery === null ? VisibilityProject::query() : (VisibilityWorld::$projectQuery)();
     }
 
     public function tenantOf(Model $record): TenantRef
@@ -258,9 +258,13 @@ final class VisibilityWorld
 {
     public static bool $tenanted = false;
 
+    /** @var (Closure(): Builder<VisibilityProject>)|null */
+    public static ?Closure $projectQuery = null;
+
     public static function seed(): void
     {
         self::$tenanted = false;
+        self::$projectQuery = null;
         VisibilityCondition::$times = [];
         VisibilityRestriction::$exempt = false;
         VisibilityRestriction::$applies = true;
@@ -297,6 +301,7 @@ final class VisibilityWorld
         Carbon::setTestNow();
         Relation::morphMap([], false);
         self::$tenanted = false;
+        self::$projectQuery = null;
     }
 
     /** @return array{Visibility, Panel, Authorizer} */
