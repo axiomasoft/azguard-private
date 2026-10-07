@@ -9,6 +9,7 @@ use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\UnknownRoleException;
+use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -40,10 +41,13 @@ use UnitEnum;
  * its own planned `Change`, each change runs through the `changing` pipes with guarded continuations, the final change
  * is validated under the lock and the writer applies it. Any failure rolls back every sibling. A retry of the root
  * transaction plans again from fresh reads, clock, frames and pipes.
+ *
+ * Events of the effects are built inside the mutation from the writer's results and handed to the root commit: a
+ * rollback, a retry or an operation without effects delivers nothing, and a listener's failure changes nothing.
  */
 final readonly class ChangePipeline
 {
-    public function __construct(private Container $container, private ActingActor $actors) {}
+    public function __construct(private Container $container, private ActingActor $actors, private ChangeJournal $journal, private ChangeEventPublisher $events) {}
 
     /**
      * Grants a role or a permission to the subject in one assignment scope and origin.
@@ -202,6 +206,48 @@ final readonly class ChangePipeline
     }
 
     /**
+     * Raises the state version of the panel by one without changing a grant: every cached decision of the panel is
+     * renewed. It runs through the `changing` pipes and the journal like any other change and publishes
+     * `PanelStateTouched` after the commit. Returns the state the touch produced.
+     */
+    public function touch(Panel $panel, string $reason, ?ActorRef $actor = null): StateToken
+    {
+        return $this->run($panel, TenantRef::global(), static fn (LockedReads $reads, ?ActorRef $actor): array => [
+            Change::touchPanel($panel->id(), $reason, $actor),
+        ], $actor)->state;
+    }
+
+    /**
+     * Removes the stored grants whose expiry is not after `$now`, in every origin, one tenant after the other and `$batch`
+     * grants at a time, each batch its own mutation and each grant its own change through the pipes. Every removal
+     * publishes `GrantExpired` instead of a revocation event. A tenant narrows the run to one tenant. Returns the
+     * number of grants removed.
+     */
+    public function pruneExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now, int $batch = 500, ?ActorRef $actor = null): int
+    {
+        if ($batch < 1) {
+            throw InvalidConfigurationException::failing('changing', 'A prune batch holds at least one grant.');
+        }
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource) {
+            throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer.');
+        }
+        $actor ??= ActorRef::system('prune');
+        $removed = 0;
+        foreach ($writer->tenantsWithExpired($panel, $tenant, $now) as $each) {
+            do {
+                $result = $this->run($panel, $each, static fn (LockedReads $reads, ?ActorRef $actor): array => array_map(
+                    static fn (GrantRecord $record): Change => Change::expire($record, $actor), $reads->expired($each, $now, $batch)), $actor);
+                $count = count($result->effects);
+                $removed += $count;
+            } while ($count >= $batch);
+        }
+
+        return $removed;
+    }
+
+    /**
      * A role of the panel by key, `panel:key` or the class of a registered code role. Only a convenience before the
      * lock; the final check repeats under it.
      *
@@ -276,18 +322,30 @@ final readonly class ChangePipeline
             $this->assertBuild($panel, ...$build);
             $now = CarbonImmutable::now('UTC')->startOfSecond()->toDateTimeImmutable();
             $validator = new ChangeValidator($this->container, $panel, $tenant, $reads, $now, $reads->token(), $actor, $actorModel, $writer->isRolesOnly(), $writer->isDynamic());
-            $frame = new ChangeFrame($validator->context(...), $correlation);
-            $results = [];
+            $frame = new ChangeFrame($validator->context(...), $correlation, $now);
+            $append = static function (array $row) use ($writer, $panel): void {
+                if (($row['panel'] ?? null) !== $panel->id()) {
+                    throw new UnsupportedDirectWriteException('The journal of panel '.$panel->id().' takes only rows of that panel.');
+                }
+                $writer->appendJournal($panel, $row);
+            };
+            $results = $events = [];
             $effects = 0;
             foreach ($plan($reads, $actor) as $change) {
                 if ($change->panel !== $panel->id() || ! $change->scope->tenant->equals($tenant)) {
                     throw InvalidConfigurationException::failing('changing', 'A planned change leaves the panel or tenant of its operation.');
                 }
                 $planned = $change->bind($frame);
-                $result = OnceTerminal::run($this->container, $planned, $panel->changing(),
-                    static fn (mixed $final): ChangeResult => $writer->apply($validator->finalize($planned, $final)));
+                $result = $this->journal->within($append, fn (): ChangeResult => OnceTerminal::run($this->container, $planned, $panel->changing(),
+                    static fn (mixed $final): ChangeResult => $writer->apply($validator->finalize($planned, $final))));
+                array_push($events, ...$this->events->events($planned, $result));
+                $frame->record($result);
                 $effects += count($result->effects);
                 $results[] = $result;
+            }
+
+            if ($events !== []) {
+                $writer->afterCommit($panel, fn () => $this->events->dispatch($events));
             }
 
             return [$results, $reads->token($effects)];

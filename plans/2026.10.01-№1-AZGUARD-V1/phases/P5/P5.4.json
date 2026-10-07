@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.4",
   "title": "События после commit и плагин audit",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Ввести каталог событий 08 §6 (`AccessEvent`, `EventType`, 12 событий) и публикацию после корневого commit по `ChangeEffect` из `ChangePipeline`; плагин `azguard/audit` пишет журнал в `{prefix}audit_log` той же транзакции; операции prune (→ `GrantExpired`) и touch (→ `PanelStateTouched`), `AccessDecided` при трассировке; регрессия P11 закрыта.",
   "why": "События — интеграционный контракт изменений (D28, 10 §6), журнал — долговечный след. Жёсткие риски: событие при откате или внутри транзакции (дефект N11/P11), событие на no-op, дубль при retry, потеря остальных событий из-за исключения слушателя, payload с Eloquent-моделями, журнал вне транзакции. RAG:— 08 §6, 06 §3/§5, 10 §6, 12 §1/§5, 20 F22; D28, D49; V34, V35; модель P5 «Доставка».",
   "scope": {
@@ -296,5 +296,86 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-07T08:28:22Z"
+  "result": {
+    "started_at": "2026-10-07T13:09:12Z",
+    "finished_at": "2026-10-07T13:33:05Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "58d93a2c-1b33-4e8f-9bfc-fa383d82abeb"
+    },
+    "notes": "Каталог из 12 событий Events\\*, публикация после корневого commit по ChangeEffect (ChangeEventPublisher), AuditPlugin/ChangeJournal/audit_log, ChangePipeline::touch и pruneExpired, AccessDecided при traceDecisions, регрессия P11 закрыта; V1–V13 зелёные (V8: 3160 тестов, 1 skipped вне группы engines).",
+    "deviations": [
+      "ChangeEventPublisher в Changes\\ вместо Events\\ (Events публична по расположению); расширения Sources/Database (afterCommit, appendJournal, tenantsWithExpired, LockedReads::expired); файлы вне task_files: ChangeValuesTest, tests/Fixtures/Storage/*, AzGuardServiceProvider; V5–V7 на php8.4, docker через sg docker"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V10",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V11",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V12",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      },
+      {
+        "id": "V13",
+        "exit": 0,
+        "at": "2026-10-07T13:33:05Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-07T13:33:05Z"
 }

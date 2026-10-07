@@ -755,6 +755,233 @@
             ],
             "foreign_keys": []
         },
+        "audit_log": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('azg_audit_log_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "event_id",
+                    "type_name": "varchar",
+                    "type": "character varying(26)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "type",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "correlation_id",
+                    "type_name": "varchar",
+                    "type": "character varying(26)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "payload",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "occurred_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_al_corr",
+                    "columns": [
+                        "correlation_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_event",
+                    "columns": [
+                        "event_id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_time",
+                    "columns": [
+                        "panel",
+                        "occurred_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_audit_log_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_al_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        },
         "panel_state": {
             "columns": [
                 {

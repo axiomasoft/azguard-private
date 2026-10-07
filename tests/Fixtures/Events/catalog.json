@@ -1,0 +1,465 @@
+{
+    "types": [
+        "permission.created",
+        "permission.updated",
+        "permission.deleted",
+        "role.granted",
+        "role.revoked",
+        "role.grant_updated",
+        "permission.granted",
+        "permission.revoked",
+        "permission.grant_updated",
+        "grant.expired",
+        "panel.touched",
+        "access.decided"
+    ],
+    "events": {
+        "permission.created": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.created",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "permission": "crm:campaigns.launch",
+            "label": "Launch",
+            "group": "Marketing",
+            "description": null,
+            "fields": []
+        },
+        "permission.updated": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.updated",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "permission": "crm:campaigns.launch",
+            "label": "Launch",
+            "group": "Marketing",
+            "description": null,
+            "fields": []
+        },
+        "permission.deleted": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.deleted",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "permission": "crm:campaigns.launch",
+            "label": "Launch",
+            "group": "Marketing",
+            "description": null,
+            "fields": [],
+            "removed_grants": [
+                "permission:4",
+                "permission:9"
+            ]
+        },
+        "role.granted": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "role.granted",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "role": "crm:analyst",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "role.revoked": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "role.revoked",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "role": "crm:analyst",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "role.grant_updated": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "role.grant_updated",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "role": "crm:analyst",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "permission.granted": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.granted",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "permission": "crm:clients.*",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "permission.revoked": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.revoked",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "permission": "crm:clients.*",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "permission.grant_updated": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "permission.grant_updated",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "permission": "crm:clients.*",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "manual",
+            "expires_at": "2027-01-01T00:00:00Z",
+            "fields": {
+                "region": "R1"
+            }
+        },
+        "grant.expired": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "grant.expired",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "kind": "role",
+            "role": "crm:analyst",
+            "permission": null,
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "origin": "import",
+            "expired_at": "2027-01-01T00:00:00Z"
+        },
+        "panel.touched": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "panel.touched",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "state",
+                "storage": "default",
+                "panel": "crm",
+                "incarnation": "01j0000000000000000000000c",
+                "version": 7,
+                "generation": 1,
+                "fingerprint": "fingerprint"
+            },
+            "previous_version": 6,
+            "reason": "host import finished"
+        },
+        "access.decided": {
+            "event_id": "01j0000000000000000000000a",
+            "type": "access.decided",
+            "occurred_at": "2026-10-06T12:00:00Z",
+            "panel": "crm",
+            "tenant": {
+                "key": "crm.organization:1",
+                "type": "crm.organization",
+                "id": "1"
+            },
+            "actor": {
+                "type": "crm.user",
+                "id": "3",
+                "reason": "ticket"
+            },
+            "correlation_id": "01j0000000000000000000000b",
+            "state": {
+                "kind": "code",
+                "panel": "crm",
+                "build_id": "build-1",
+                "fingerprint": "fingerprint"
+            },
+            "subject": {
+                "type": "crm.user",
+                "id": "2"
+            },
+            "permission": "crm:clients.view",
+            "context": {
+                "key": "crm.project:1",
+                "type": "crm.project",
+                "id": "1"
+            },
+            "effect": "allow",
+            "reason": "granted",
+            "component": "database"
+        }
+    }
+}

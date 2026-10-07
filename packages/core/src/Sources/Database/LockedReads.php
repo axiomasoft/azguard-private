@@ -177,6 +177,31 @@ final class LockedReads
         return $this->grants($kind, $scope->tenant, $subject, $key, $scope->context, $origin)[0] ?? null;
     }
 
+    /**
+     * The stored grants of the tenant, in every origin, whose expiry is not after `$now`, role grants before permission
+     * grants, oldest first, at most `$limit` of them.
+     *
+     * @return list<GrantRecord>
+     */
+    public function expired(TenantRef $tenant, DateTimeImmutable $now, int $limit): array
+    {
+        $records = [];
+        foreach (['role', 'permission'] as $kind) {
+            if ($limit - count($records) < 1) {
+                break;
+            }
+            $rows = $this->mutation->table($kind.'_grants')->where('panel', $this->panel->id())->where('tenant_key', $tenant->key())
+                ->whereNotNull('expires_at')->where('expires_at', '<=', $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'))
+                ->orderBy('id')->limit($limit - count($records))->get();
+
+            foreach ($rows as $row) {
+                $records[] = $this->record($kind, $row);
+            }
+        }
+
+        return $records;
+    }
+
     /** A stored grant by id inside the panel, tenant and origin; a foreign id is not found. */
     public function find(string $id, TenantRef $tenant, string $origin): ?GrantRecord
     {

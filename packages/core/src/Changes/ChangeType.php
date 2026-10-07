@@ -21,6 +21,7 @@ enum ChangeType: string
     case CreatePermission = 'create_permission';
     case UpdatePermission = 'update_permission';
     case DeletePermission = 'delete_permission';
+    case TouchPanel = 'touch_panel';
 
     /** A new or repeated grant of a role or a permission. */
     public function isGrant(): bool
@@ -39,6 +40,12 @@ enum ChangeType: string
         return $this === self::CreatePermission || $this === self::UpdatePermission || $this === self::DeletePermission;
     }
 
+    /** A deliberate raise of the panel state version: it names no subject, key or grant and changes no stored row. */
+    public function isTouch(): bool
+    {
+        return $this === self::TouchPanel;
+    }
+
     /** Whether the change proposes new expiry and fields that pass Assignment validation. */
     public function proposes(): bool
     {
@@ -53,6 +60,10 @@ enum ChangeType: string
 
     public function phase(): AssignmentScopePhase
     {
-        return $this->isRevocation() || $this === self::DeletePermission ? AssignmentScopePhase::Revocation : AssignmentScopePhase::Assignment;
+        return match (true) {
+            $this === self::TouchPanel => AssignmentScopePhase::Inspection,
+            $this->isRevocation(), $this === self::DeletePermission => AssignmentScopePhase::Revocation,
+            default => AssignmentScopePhase::Assignment,
+        };
     }
 }

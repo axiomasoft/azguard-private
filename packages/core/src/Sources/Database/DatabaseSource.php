@@ -6,7 +6,9 @@ namespace AzGuard\Sources\Database;
 
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeEffect;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Changes\EffectKind;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -46,7 +48,10 @@ use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageReadSession;
 use AzGuard\Storage\StorageRegistry;
 use Closure;
+use DateTimeImmutable;
+use DateTimeZone;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Str;
 use ReflectionClass;
 
 /**
@@ -288,6 +293,10 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
             throw new UnsupportedDirectWriteException('DatabaseSource applies only changes the change pipeline validated for panel '.$panel.'.');
         }
 
+        if ($change->type->isTouch()) {
+            return $this->touch($change, $panel);
+        }
+
         if ($change->isAction() && ! $this->dynamic) {
             throw new PanelNotWritableException('Panel '.$panel.' does not declare dynamic permissions.');
         }
@@ -301,6 +310,102 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
         return $change->isAction()
             ? (new ActionWriter($storage->mutation($panel), $reads))->apply($change)
             : (new GrantWriter($storage, $storage->mutation($panel), $reads))->apply($change);
+    }
+
+    /**
+     * Raises the state version of the panel inside its active mutation: the only effect is an `Updated` one without a
+     * record, which carries the version before the touch and the reason.
+     */
+    private function touch(Change $change, string $panel): ChangeResult
+    {
+        $reads = $this->lockedReads(app(PanelRegistry::class)->get($panel));
+        $previous = $reads->state()->version;
+        $this->resolvedStorage()->mutation($panel)->touch($panel);
+        $effect = new ChangeEffect(EffectKind::Updated, $change->type, null, null, strtolower((string) Str::ulid()), previousVersion: $previous, reason: $change->reason);
+
+        return ChangeResult::written(null, [$effect], $reads->token(1),
+            $change->correlationId() ?? throw new UnsupportedDirectWriteException('A change is applied by the change pipeline.'));
+    }
+
+    /**
+     * @internal Runs `$callback` after the root commit that makes the active mutation of the panel durable; a rollback
+     * of that commit, a retry or a failed mutation drops it.
+     *
+     * @param  Closure(): void  $callback
+     *
+     * @throws UnsupportedDirectWriteException outside the active mutation of the panel
+     */
+    public function afterCommit(Panel $panel, Closure $callback): void
+    {
+        $this->bindPanel($panel->id());
+        $this->resolvedStorage()->mutation($panel->id())->afterCommit($callback);
+    }
+
+    /**
+     * @internal Runs `$callback` after the commit of the transaction the package itself holds open on the storage of
+     * the panel and returns true; returns false, running nothing, when no such transaction is active.
+     *
+     * @param  Closure(): void  $callback
+     */
+    public function afterAuthorityCommit(Closure $callback): bool
+    {
+        $storage = $this->resolvedStorage();
+
+        if ($storage->authorityTransaction() === null) {
+            return false;
+        }
+        $storage->connection()->afterCommit($callback);
+
+        return true;
+    }
+
+    /**
+     * @internal Appends one row to the journal table in the active mutation of the panel, so a rollback removes it.
+     *
+     * @param  array<string, mixed>  $row  the columns of the journal, `payload` as an array
+     *
+     * @throws UnsupportedDirectWriteException outside the active mutation of the panel
+     */
+    public function appendJournal(Panel $panel, array $row): void
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $mutation = $storage->mutation($panel->id());
+        $keys = $storage->hostKeys();
+
+        foreach (['subject_id', 'actor_id'] as $column) {
+            if (is_int($row[$column] ?? null) || is_string($row[$column] ?? null)) {
+                $row[$column] = HostKeyColumns::canonical($keys, $row[$column]);
+            }
+        }
+        $row['payload'] = json_encode($row['payload'] ?? [], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $mutation->table('audit_log')->insert($row);
+    }
+
+    /**
+     * @internal Tenants of the panel that still hold a grant whose expiry has passed; `$tenant` narrows to one.
+     *
+     * @return list<TenantRef>
+     */
+    public function tenantsWithExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): array
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $found = [];
+        foreach (['role_grants', 'permission_grants'] as $table) {
+            $query = $storage->table($table)->where('panel', $panel->id())->whereNotNull('expires_at')
+                ->where('expires_at', '<=', $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
+
+            if ($tenant !== null) {
+                $query->where('tenant_key', $tenant->key());
+            }
+            foreach ($query->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
+                $found[(string) $row->tenant_key] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+            }
+        }
+        ksort($found, SORT_STRING);
+
+        return array_values($found);
     }
 
     /**

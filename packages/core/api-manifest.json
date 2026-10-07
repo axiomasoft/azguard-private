@@ -345,7 +345,8 @@
             "parent": null,
             "interfaces": [],
             "constants": [
-                "ACTION_ORIGIN"
+                "ACTION_ORIGIN",
+                "TOUCH_ORIGIN"
             ],
             "properties": [
                 {
@@ -363,6 +364,12 @@
                 {
                     "name": "expectedFingerprint",
                     "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expired",
+                    "type": "bool",
                     "readonly": true,
                     "static": false
                 },
@@ -399,6 +406,12 @@
                 {
                     "name": "permission",
                     "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "?string",
                     "readonly": true,
                     "static": false
                 },
@@ -588,6 +601,28 @@
                     "return": "self"
                 },
                 {
+                    "name": "expire",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "stored",
+                            "type": "AzGuard\\Changes\\GrantRecord",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
                     "name": "finalized",
                     "static": false,
                     "abstract": false,
@@ -682,6 +717,20 @@
                     "return": "bool"
                 },
                 {
+                    "name": "occurredAt",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "DateTimeImmutable"
+                },
+                {
+                    "name": "removedGrantIds",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "revoke",
                     "static": true,
                     "abstract": false,
@@ -753,6 +802,35 @@
                         }
                     ],
                     "return": "bool"
+                },
+                {
+                    "name": "touchPanel",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reason",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
                 },
                 {
                     "name": "update",
@@ -1076,8 +1154,26 @@
                     "static": false
                 },
                 {
+                    "name": "expired",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "kind",
                     "type": "AzGuard\\Changes\\EffectKind",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "previousVersion",
+                    "type": "?int",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "?string",
                     "readonly": true,
                     "static": false
                 },
@@ -1128,9 +1224,109 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "expired",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        },
+                        {
+                            "name": "previousVersion",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "reason",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Changes\\ChangeJournal",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [
+                "COLUMNS"
+            ],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "append",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "row",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "row",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "event",
+                            "type": "AzGuard\\Events\\AccessEvent",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "within",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "appender",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "work",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "mixed"
                 }
             ],
             "stability": "api",
@@ -1401,6 +1597,10 @@
                 {
                     "name": "DeletePermission",
                     "value": "delete_permission"
+                },
+                {
+                    "name": "TouchPanel",
+                    "value": "touch_panel"
                 }
             ],
             "constants": [],
@@ -1457,6 +1657,13 @@
                 },
                 {
                     "name": "isRevocation",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "isTouch",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
@@ -4480,6 +4687,2148 @@
             ],
             "stability": "api",
             "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Events\\AccessDecided",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "component",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "effect",
+                    "type": "AzGuard\\Kernel\\Decision\\Effect",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "effect",
+                            "type": "AzGuard\\Kernel\\Decision\\Effect",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reason",
+                            "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "component",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\AccessEvent",
+            "kind": "class",
+            "final": false,
+            "abstract": true,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "actor",
+                    "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "correlationId",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "eventId",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "occurredAt",
+                    "type": "DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "state",
+                    "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": true,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\EventType",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "PermissionCreated",
+                    "value": "permission.created"
+                },
+                {
+                    "name": "PermissionUpdated",
+                    "value": "permission.updated"
+                },
+                {
+                    "name": "PermissionDeleted",
+                    "value": "permission.deleted"
+                },
+                {
+                    "name": "RoleGranted",
+                    "value": "role.granted"
+                },
+                {
+                    "name": "RoleRevoked",
+                    "value": "role.revoked"
+                },
+                {
+                    "name": "RoleGrantUpdated",
+                    "value": "role.grant_updated"
+                },
+                {
+                    "name": "PermissionGranted",
+                    "value": "permission.granted"
+                },
+                {
+                    "name": "PermissionRevoked",
+                    "value": "permission.revoked"
+                },
+                {
+                    "name": "PermissionGrantUpdated",
+                    "value": "permission.grant_updated"
+                },
+                {
+                    "name": "GrantExpired",
+                    "value": "grant.expired"
+                },
+                {
+                    "name": "PanelTouched",
+                    "value": "panel.touched"
+                },
+                {
+                    "name": "AccessDecided",
+                    "value": "access.decided"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\GrantExpired",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiredAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "kind",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "kind",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiredAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PanelStateTouched",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "previousVersion",
+                    "type": "int",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "previousVersion",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reason",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionCreated",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionDeleted",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "removedGrantIds",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "removedGrantIds",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionGrantUpdated",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionGranted",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionRevoked",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\PermissionUpdated",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\RoleGrantUpdated",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\RoleGranted",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Events\\RoleRevoked",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": "AzGuard\\Events\\AccessEvent",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "expiresAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "origin",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "eventId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "occurredAt",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "correlationId",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expiresAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "subject",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "type",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Events\\EventType"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
         },
         {
             "name": "AzGuard\\Exceptions\\AmbiguousPanelException",
@@ -10562,6 +12911,90 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Plugins\\Audit\\AuditPlugin",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Plugins\\BasePlugin",
+            "interfaces": [
+                "AzGuard\\Contracts\\Plugins\\Plugin"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "make",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "retentionDays",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "90"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "register",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\PanelBuilder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Plugins\\PluginContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "retention",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "days",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "retentionDays",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "int"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Plugins\\BasePlugin",
             "kind": "class",
             "final": false,
@@ -12523,6 +14956,65 @@
             "properties": [],
             "methods": [
                 {
+                    "name": "afterAuthorityCommit",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "afterCommit",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "callback",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "appendJournal",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "row",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
                     "name": "apply",
                     "static": false,
                     "abstract": false,
@@ -13022,6 +15514,35 @@
                         }
                     ],
                     "return": "static"
+                },
+                {
+                    "name": "tenantsWithExpired",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "transaction",

@@ -7,6 +7,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\GrantDetails;
+use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
@@ -16,6 +17,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Scopes\AssignmentScopePhase;
@@ -33,10 +35,14 @@ use AzGuard\Tests\Fixtures\Crm\InjectedSellerFilter;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\Project;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
+use AzGuard\Tests\Fixtures\Events\EventWorld;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 
-afterEach(fn () => DelegationPipe::reset());
+afterEach(function (): void {
+    DelegationPipe::reset();
+    EventWorld::reset();
+});
 
 /** @return list<mixed> rows of both grant tables and the panel version */
 function crmWrites(): array
@@ -203,4 +209,55 @@ it('R29 refuses a change prepared against an old build or owner revision through
     } finally {
         HostFencePipe::uninstall();
     }
+});
+
+it('R27 keeps the actor identity and reason in the journal and the event of a delegated grant, and writes nothing for a refused escalation', function (): void {
+    DelegationPipe::$delegations = ['crm.user:2' => ['roles' => ['seller'], 'contexts' => ['crm.project:5']]];
+    $panel = W::panel([DelegationPipe::class], static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
+    $manager = ActorRef::of('crm.user', 2, 'ticket CRM-27');
+    EventWorld::listen();
+
+    expect(fn () => W::grant($panel, 'tenant-admin', 2, 5, actor: $manager))->toThrow(ChangeCancelledException::class)
+        ->and(EventWorld::events())->toBe([])->and(EventWorld::auditRows())->toBe([]);
+
+    $result = W::grant($panel, 'seller', 1, 5, actor: $manager);
+    $rows = EventWorld::auditRows();
+
+    expect($rows)->toHaveCount(1)->and($rows[0]['event_id'])->toBe($result->effects[0]->eventId)->and($rows[0]['type'])->toBe('role.granted')
+        ->and($rows[0]['actor_type'])->toBe('crm.user')->and($rows[0]['actor_id'])->toBe('2')->and($rows[0]['actor_reason'])->toBe('ticket CRM-27')
+        ->and($rows[0]['subject_id'])->toBe('1')->and($rows[0]['correlation_id'])->toBe($result->correlationId)
+        ->and(EventWorld::events()[0]->actor?->reason)->toBe('ticket CRM-27')->and(EventWorld::events()[0]->eventId)->toBe($rows[0]['event_id']);
+});
+
+it('R30 publishes no event and writes no journal row for rolled back nested work or a silent repeat, and one for the real change', function (): void {
+    $panel = W::panel(configure: static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([AuditPlugin::make()]));
+    $record = W::grant($panel, 'seller', 1, 5)->record;
+    EventWorld::listen();
+    $connection = World::storage()->connection();
+
+    $connection->beginTransaction();
+    W::pipeline()->update($panel, W::tenant(), 'manual', $record->id ?? '', new GrantDetails(new DateTimeImmutable('2027-01-01T00:00:00Z'), ['region' => 'R1']));
+    $connection->rollBack();
+    $noop = W::grant($panel, 'seller', 1, 5);
+
+    expect($noop->status)->toBe(ChangeStatus::Unchanged)->and(EventWorld::events())->toBe([])->and(count(EventWorld::auditRows()))->toBe(1);
+
+    $update = W::pipeline()->update($panel, W::tenant(), 'manual', $record->id ?? '', new GrantDetails(new DateTimeImmutable('2027-01-01T00:00:00Z'), ['region' => 'R1']));
+
+    expect(EventWorld::types())->toBe(['role.grant_updated'])->and(EventWorld::events()[0]->eventId)->toBe($update->effects[0]->eventId)
+        ->and(array_column(EventWorld::auditRows(), 'type'))->toBe(['role.granted', 'role.grant_updated']);
+});
+
+it('R42 publishes the revocation of one origin only: the grant of another origin stays and stays silent', function (): void {
+    $panel = W::panel();
+    W::grant($panel, 'seller', 1, 5);
+    W::grant($panel, 'seller', 1, 5, origin: 'import');
+    EventWorld::listen();
+    $result = W::revoke($panel, 'seller', 1, 5);
+    $event = EventWorld::events()[0] ?? null;
+
+    expect($result->effects)->toHaveCount(1)->and(EventWorld::types())->toBe(['role.revoked'])
+        ->and($event)->toBeInstanceOf(RoleRevoked::class)->and($event->origin)->toBe('manual')
+        ->and(array_values(array_filter(W::keys(), fn (string $key): bool => str_contains($key, '|seller|1|crm.project:5|'))))
+        ->toBe(['crm.organization:1|seller|1|crm.project:5|import']);
 });

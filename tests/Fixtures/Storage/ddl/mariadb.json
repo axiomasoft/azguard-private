@@ -791,6 +791,237 @@
             ],
             "foreign_keys": []
         },
+        "audit_log": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "bigint",
+                    "type": "bigint(20) unsigned",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "event_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varbinary",
+                    "type": "varbinary(200)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": "utf8mb4_unicode_ci",
+                    "nullable": true,
+                    "default": "NULL",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "correlation_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(26)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "payload",
+                    "type_name": "longtext",
+                    "type": "longtext",
+                    "collation": "utf8mb4_bin",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "occurred_at",
+                    "type_name": "datetime",
+                    "type": "datetime",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_al_corr",
+                    "columns": [
+                        "correlation_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_event",
+                    "columns": [
+                        "event_id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_al_time",
+                    "columns": [
+                        "panel",
+                        "occurred_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "primary",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_al_tenant_pair",
+                    "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                },
+                {
+                    "name": "payload",
+                    "definition": "json_valid(`payload`)"
+                }
+            ],
+            "foreign_keys": []
+        },
         "panel_state": {
             "columns": [
                 {

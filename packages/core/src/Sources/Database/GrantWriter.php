@@ -25,7 +25,8 @@ use Illuminate\Support\Str;
  * @internal Writes one validated change inside the active mutation of the panel: insert, update, delete or nothing.
  *
  * A repeat whose expiry (UTC, seconds) and canonical fields equal the stored grant is `Unchanged`: no write, no touch,
- * no effect. The actor is stored but never compared. Writes go through the query builder of the mutation only.
+ * no effect. A revocation planned as an expiry marks its effect `expired`. The actor is stored but never compared.
+ * Writes go through the query builder of the mutation only.
  */
 final readonly class GrantWriter
 {
@@ -45,6 +46,7 @@ final readonly class GrantWriter
                 $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin)),
             ChangeType::UpdateGrant => $this->update($change, $context, $kind),
             ChangeType::CreatePermission, ChangeType::UpdatePermission, ChangeType::DeletePermission => throw new UnsupportedDirectWriteException('A dynamic permission change is not written as a grant.'),
+            ChangeType::TouchPanel => throw new UnsupportedDirectWriteException('A touch of the panel state is not written as a grant.'),
         };
 
         if ($effect !== null) {
@@ -95,7 +97,7 @@ final readonly class GrantWriter
         }
         $this->mutation->table($kind.'_grants')->where('panel', $change->panel)->where('id', self::number($existing->id))->delete();
 
-        return [$existing, new ChangeEffect(EffectKind::Deleted, $change->type, $existing, null, self::eventId())];
+        return [$existing, new ChangeEffect(EffectKind::Deleted, $change->type, $existing, null, self::eventId(), $change->expired)];
     }
 
     /**

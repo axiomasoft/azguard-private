@@ -54,7 +54,8 @@ use Throwable;
  *
  * Order: identity → origin → structural and partition checks (subject, role, permission, tenant) → expiry and
  * fields normalized → assignment eligibility over the validated proposal → fingerprint of an update. A revocation
- * checks only identity, origin and its stored partition: an orphan, expired or inactive grant stays removable. A
+ * checks only identity, origin and its stored partition: an orphan, expired or inactive grant stays removable, and a
+ * touch of the panel state is panel-wide and checks nothing but its identity. A
  * change of a dynamic permission checks the opt-in, the tenant, the details and the name against the catalog read
  * under the lock; it needs neither a subject nor an eligibility check.
  */
@@ -125,7 +126,7 @@ final class ChangeValidator
             throw new TenantMismatchException('A change leaves the tenant of its operation.');
         }
 
-        if ($final->type->isRevocation()) {
+        if ($final->type->isRevocation() || $final->type->isTouch()) {
             return $final->finalized();
         }
 

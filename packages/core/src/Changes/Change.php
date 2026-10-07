@@ -33,6 +33,9 @@ final readonly class Change
     /** The origin recorded on a change of a dynamic permission, which has no grant origin. */
     public const string ACTION_ORIGIN = 'dynamic';
 
+    /** The origin recorded on a touch of the panel state, which has no grant origin. */
+    public const string TOUCH_ORIGIN = 'panel';
+
     /** @param array<string, mixed> $fields */
     private function __construct(
         public ChangeType $type,
@@ -49,10 +52,26 @@ final readonly class Change
         public ?string $expectedFingerprint,
         public ?string $name = null,
         public ?PermissionDetails $details = null,
+        public ?string $reason = null,
+        public bool $expired = false,
         private ?ChangeFrame $frame = null,
         private bool $final = false,
     ) {
         PermissionGrammar::assertPanelId($panel);
+
+        if ($type->isTouch()) {
+            self::assertTouch($scope, $subject, $role, $permission, $until, $fields, $grantId, $expectedFingerprint, $name, $details, $reason);
+
+            return;
+        }
+
+        if ($reason !== null) {
+            throw new InvalidIdentityException('Only a touch of the panel state carries a reason.');
+        }
+
+        if ($expired && ! $type->isRevocation()) {
+            throw new InvalidIdentityException('Only a revocation can be an expiry.');
+        }
 
         if ($type->isAction()) {
             self::assertAction($type, $panel, $scope, $subject, $role, $permission, $until, $fields, $grantId, $expectedFingerprint, $name, $details);
@@ -137,6 +156,23 @@ final readonly class Change
             [], null, null, $name);
     }
 
+    /** @internal planned by the change pipeline: a stored grant whose expiry has passed is removed */
+    public static function expire(GrantRecord $stored, ?ActorRef $actor): self
+    {
+        $key = $stored->role ?? $stored->permission ?? throw new InvalidIdentityException('A stored grant has no key.');
+
+        return $key instanceof RoleKey
+            ? new self(ChangeType::RevokeRole, $stored->panel, $stored->scope, $stored->subject, $key, null, $stored->origin, $actor, null, [], $stored->id, null, expired: true)
+            : new self(ChangeType::RevokePermission, $stored->panel, $stored->scope, $stored->subject, null, $key, $stored->origin, $actor, null, [], $stored->id, null, expired: true);
+    }
+
+    /** @internal planned by the change pipeline: the state version of the whole panel is raised for `$reason` */
+    public static function touchPanel(string $panel, string $reason, ?ActorRef $actor): self
+    {
+        return new self(ChangeType::TouchPanel, $panel, AccessScope::in(TenantRef::global()), null, null, null, self::TOUCH_ORIGIN, $actor,
+            null, [], null, null, reason: $reason);
+    }
+
     /** The same change with another expiry; identity does not change. */
     public function withUntil(?DateTimeImmutable $until): self
     {
@@ -198,14 +234,14 @@ final readonly class Change
     public function bind(ChangeFrame $frame): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $frame);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired, $frame);
     }
 
     /** @internal the change after final validation; only such a change is applied by the writer */
     public function finalized(): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->frame, true);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired, $this->frame, true);
     }
 
     /** @internal */
@@ -226,6 +262,22 @@ final readonly class Change
         return $this->frame?->correlationId;
     }
 
+    /**
+     * @internal the grants removed by the changes of this operation that already ran, in order
+     *
+     * @return list<string>
+     */
+    public function removedGrantIds(): array
+    {
+        return $this->frame?->removed() ?? [];
+    }
+
+    /** @internal the clock of the operation under the panel lock */
+    public function occurredAt(): DateTimeImmutable
+    {
+        return ($this->frame ?? throw InvalidConfigurationException::failing('changing', 'A change has a clock only inside the change pipeline.'))->now;
+    }
+
     /** @internal everything except `until` and `fields`, including the attempt frame */
     public function sameIdentity(self $other): bool
     {
@@ -234,6 +286,7 @@ final readonly class Change
             && self::same($this->permission, $other->permission) && $this->origin === $other->origin
             && $this->actor == $other->actor && $this->grantId === $other->grantId
             && $this->expectedFingerprint === $other->expectedFingerprint && $this->name === $other->name
+            && $this->reason === $other->reason && $this->expired === $other->expired
             && $this->details?->label === $other->details?->label && $this->details?->group === $other->details?->group
             && $this->details?->description === $other->details?->description && $this->frame === $other->frame;
     }
@@ -261,7 +314,7 @@ final readonly class Change
             : new PermissionDetails($this->details->label, $this->details->group, $this->details->description, $fields);
 
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->name, $details, $this->frame);
+            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->name, $details, $this->reason, $this->expired, $this->frame);
     }
 
     /**
@@ -288,6 +341,29 @@ final readonly class Change
 
         if ($type === ChangeType::DeletePermission ? $details !== null || $fields !== [] : $details === null || $details->fields !== $fields) {
             throw new InvalidIdentityException('Change type '.$type->value.' does not match its details.');
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     *
+     * @throws InvalidIdentityException
+     */
+    private static function assertTouch(AccessScope $scope, ?SubjectRef $subject, ?RoleKey $role, ?PermissionPattern $permission,
+        ?DateTimeImmutable $until, array $fields, ?string $grantId, ?string $expectedFingerprint, ?string $name, ?PermissionDetails $details,
+        ?string $reason): void
+    {
+        if ($subject !== null || $role !== null || $permission !== null || $until !== null || $fields !== [] || $grantId !== null
+            || $expectedFingerprint !== null || $name !== null || $details !== null) {
+            throw new InvalidIdentityException('A touch of the panel state names neither a subject, a key, a grant nor a permission.');
+        }
+
+        if (! $scope->tenant->isGlobal() || ! $scope->context->isGlobal()) {
+            throw new InvalidIdentityException('A touch of the panel state is panel-wide: its scope is global.');
+        }
+
+        if ($reason === null || trim($reason) === '' || strlen($reason) > 255) {
+            throw new InvalidIdentityException('A touch of the panel state carries a reason of 1 to 255 bytes.');
         }
     }
 

@@ -36,10 +36,10 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R24 | — | future | P4.19/P4.23 typed AND/deployment scalar-list; **future:** P5.5 schema/editor metadata; P7.4 stale form; P8.7 consumer |
 | R25 | — | future | —; **future:** P7.3/P7.4 definition mutation absence; assignment P5.3 |
 | R26 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: фильтр Assignment видит целевую Анну (город 1), delegation pipe — admin-актора; **future:** P8.7 consumer |
-| R27 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: delegation pipe приложения отклоняет superadmin/wildcard/cross-project/недоверенную роль/нет актора, разрешённая выдача проходит, actor reason в строке; **future:** P5.4 журнал audit причины и отказа |
+| R27 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: delegation pipe приложения отклоняет superadmin/wildcard/cross-project/недоверенную роль/нет актора, разрешённая выдача проходит, actor reason в строке; P5.4: `azguard/audit` пишет строку журнала и событие `RoleGranted` с identity и reason актора разрешённой выдачи, отклонённая эскалация не оставляет ни строк, ни событий (пункт закрыт для pipeline; R27 целиком — после P5.1/P5.3) |
 | R28 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: revoke expired/inactive/удалённого контекста по stored scope без live eligibility; **future:** P5.3 authorised admin read API (GrantManager) |
 | R29 | [AssignmentsTest.php](AssignmentsTest.php), [ChangeRaceTest.php](../../Engines/ChangeRaceTest.php) | partial | P5.2: package build fence (stale registry → StaleSelectionException) и cooperating host fence fixture (active build marker/owner revision под lock, барьерные engine-гонки); **future:** P5.3 cleanup removed role/context/PolicyOnly; P8.7 consumer deploy/host transfer |
-| R30 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: повторная финальная валидация после changing pipe, rollback вложенной работы без строк/version/StorageTouched, no-op без bump; **future:** P5.4 события/журнал |
+| R30 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: повторная финальная валидация после changing pipe, rollback вложенной работы без строк/version/StorageTouched, no-op без bump; P5.4: откат вложенной работы и no-op без события и строки журнала, реальное изменение — одно событие и одна строка |
 | R31 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: independent literal A/B view IDs and scalar/list/count parity |
 | R32 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: update literal IDs, mixed seller/analyst, policy true/false/null |
 | R33 | [VisibilityTest.php](VisibilityTest.php) | GREEN exact | P4.23: host search/order, forbidden first rows, full honest total and pages |
@@ -51,7 +51,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R39 | — | future | P4.11 Gate/@can slice; **future:** P6.2 HTTP/admission; P7.1/P7.2 Filament; P8.7 early foreign Gate consumer |
 | R40 | — | future | —; **future:** P7.2/P8.7 full Client/Call protected write workflow; P5.2 mutation policy |
 | R41 | — | future | P4.18 real mixed sources/canonical code role slice; **future:** P8.7 plugin/ldap CRM consumer; canonical catalog already P2 |
-| R42 | [SourcesTest.php](SourcesTest.php) — independent DB/relation read witnesses | partial | P4.18/P4.15 relation+manual contributions read; **future:** P5.3 revoke remaining source; P6.10 external import origin |
+| R42 | [SourcesTest.php](SourcesTest.php) — independent DB/relation read witnesses; [AssignmentsTest.php](AssignmentsTest.php) — события | partial | P4.18/P4.15 relation+manual contributions read; P5.4: revoke одной origin публикует ровно одно `RoleRevoked`, выдача другой origin остаётся и молчит (событийный срез, не полный R42); **future:** P5.3 revoke remaining source; P6.10 external import origin |
 | R43 | — | future | —; **future:** P6.10 complete external sync/webhook/timeout protocol; P8.7 consumer |
 | R44 | [SourcesTest.php](SourcesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R45 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |

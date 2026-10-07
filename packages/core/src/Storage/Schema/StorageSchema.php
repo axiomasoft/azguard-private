@@ -60,6 +60,26 @@ final readonly class StorageSchema
             $this->scopeConstraints($storage, $base, $short, 'tenant');
             $this->scopeConstraints($storage, $base, $short, 'context');
         }
+        $schema->create($prefix.'audit_log', function (Blueprint $table) use ($storage, $prefix, $driver): void {
+            $table->bigIncrements('id');
+            HostKeyColumns::identifier($table, 'event_id', 26, $driver);
+            HostKeyColumns::identifier($table, 'type', 64, $driver);
+            HostKeyColumns::identifier($table, 'panel', 64, $driver);
+            $this->scopeColumns($table, $storage, 'tenant');
+            HostKeyColumns::identifier($table, 'subject_type', 128, $driver)->nullable();
+            HostKeyColumns::hostKey($table, 'subject_id', $storage->hostKeys(), $driver)->nullable();
+            HostKeyColumns::identifier($table, 'actor_type', 128, $driver)->nullable();
+            HostKeyColumns::hostKey($table, 'actor_id', $storage->hostKeys(), $driver)->nullable();
+            $table->text('actor_reason')->nullable();
+            HostKeyColumns::identifier($table, 'correlation_id', 26, $driver);
+            $table->json('payload');
+            $table->dateTime('occurred_at');
+            $table->unique('event_id', $prefix.'al_event');
+            $table->index(['panel', 'occurred_at'], $prefix.'al_time');
+            $table->index(['panel', 'tenant_key', 'subject_type', 'subject_id'], $prefix.'al_subject');
+            $table->index('correlation_id', $prefix.'al_corr');
+        });
+        $this->scopeConstraints($storage, 'audit_log', 'al', 'tenant');
         $schema->create($prefix.'panel_state', function (Blueprint $table) use ($prefix, $driver): void {
             HostKeyColumns::identifier($table, 'panel', 64, $driver);
             $table->primary('panel', $prefix.'ps_pk');
@@ -79,7 +99,7 @@ final readonly class StorageSchema
     public function drop(string $storage): void
     {
         $storage = $this->storages->get($storage);
-        foreach (['permission_grants', 'role_grants', 'permissions', 'panel_state', 'storage_state'] as $base) {
+        foreach (['audit_log', 'permission_grants', 'role_grants', 'permissions', 'panel_state', 'storage_state'] as $base) {
             $storage->connection()->getSchemaBuilder()->dropIfExists($storage->prefix().$base);
         }
     }

@@ -43,7 +43,7 @@ final class DdlSnapshot
 
         try {
             $snapshot = [];
-            foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'storage_state'] as $base) {
+            foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'storage_state'] as $base) {
                 $snapshot['string'][$base] = self::table($storage, $base);
             }
             foreach (['uuid', 'bigint', 'ulid'] as $hostKeys) {

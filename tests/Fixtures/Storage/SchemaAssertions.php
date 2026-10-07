@@ -19,7 +19,7 @@ final class SchemaAssertions
     public static function verify(Storage $storage): void
     {
         $schema = $storage->connection()->getSchemaBuilder();
-        foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'storage_state'] as $table) {
+        foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'storage_state'] as $table) {
             expect($schema->hasTable($storage->prefix().$table))->toBeTrue();
         }
         foreach (['roles', 'role_permissions', 'role_contexts'] as $table) {
@@ -52,5 +52,14 @@ final class SchemaAssertions
         expect(fn () => $permissions->insert(array_replace($permission, ['name' => 'bad', 'tenant_type' => 'org'])))->toThrow(QueryException::class);
         expect(fn () => (clone $permissions)->where('name', 'posts.view')->update(['tenant_id' => '1']))->toThrow(QueryException::class);
         expect(fn () => $storage->table('storage_state')->insert(['id' => 2, 'schema' => '{}']))->toThrow(QueryException::class);
+        $log = $storage->table('audit_log');
+        $entry = ['event_id' => '01j00000000000000000000001', 'type' => 'role.granted', 'panel' => 'admin', 'tenant_key' => 'global',
+            'correlation_id' => '01j00000000000000000000002', 'payload' => '{}', 'occurred_at' => '2026-10-07 12:00:00'];
+        $log->insert($entry);
+        $log->insert(array_replace($entry, ['event_id' => '01j00000000000000000000003', 'tenant_key' => 'org:1', 'tenant_type' => 'org', 'tenant_id' => '1']));
+        expect(fn () => $log->insert($entry))->toThrow(QueryException::class)
+            ->and(fn () => $log->insert(array_replace($entry, ['event_id' => '01j00000000000000000000004', 'tenant_type' => 'org'])))->toThrow(QueryException::class)
+            ->and(fn () => $log->insert(array_replace($entry, ['event_id' => '01j00000000000000000000005', 'payload' => null])))->toThrow(QueryException::class)
+            ->and($log->count())->toBe(2);
     }
 }

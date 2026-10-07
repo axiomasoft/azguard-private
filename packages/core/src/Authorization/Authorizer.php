@@ -8,6 +8,7 @@ use AzGuard\Authorization\Pipeline\AccessPipeline;
 use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Events\AccessDecided;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RecursionDetectedException;
@@ -28,9 +29,11 @@ use AzGuard\Sources\Database\DatabaseSource;
 use Closure;
 use DateTimeImmutable;
 use Fiber;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Throwable;
 use UnitEnum;
 
@@ -120,7 +123,8 @@ final class Authorizer
             $selected[] = [$panel, $request];
         }
 
-        return $this->batch->evaluate($selected, $actor, Carbon::now('UTC')->toDateTimeImmutable(),
+        $now = Carbon::now('UTC')->toDateTimeImmutable();
+        $set = $this->batch->evaluate($selected, $actor, $now,
             enter: function (Panel $panel, AccessRequest $request): void {
                 $key = $this->operationKey($panel, $request);
 
@@ -132,6 +136,11 @@ final class Authorizer
             leave: function (Panel $panel, AccessRequest $request): void {
                 unset($this->active[$this->operationKey($panel, $request)]);
             });
+        foreach ($selected as $i => [$panel, $request]) {
+            $this->trace($panel, $request, $set->get($i), $actor, $now);
+        }
+
+        return $set;
     }
 
     private function operationKey(Panel $panel, AccessRequest $request): string
@@ -189,12 +198,14 @@ final class Authorizer
 
                     $decision = $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
                     $trace->finish();
+                    $this->trace($panel, $request, $decision, $actor, $now);
 
                     return [$decision, $trace, $now];
                 } catch (ReadAttemptChanged $changed) {
                     if ($attempt === 2) {
                         $decision = $this->pipeline->inconsistent($request, $changed->frame, $trace);
                         $trace->finish();
+                        $this->trace($panel, $request, $decision, $actor, $now);
 
                         return [$decision, $trace, $now];
                     }
@@ -202,6 +213,35 @@ final class Authorizer
             }
         } finally {
             unset($this->active[$key]);
+        }
+    }
+
+    /**
+     * Publishes the decision when the panel traces decisions; otherwise nothing is built or dispatched. A decision
+     * made inside a transaction the package holds open waits for its commit; a failing listener is reported and the
+     * decision stands.
+     */
+    private function trace(Panel $panel, AccessRequest $request, Decision $decision, ?ActorRef $actor, DateTimeImmutable $now): void
+    {
+        if (! $panel->settings()->traceDecisions()) {
+            return;
+        }
+        $event = new AccessDecided(
+            eventId: strtolower((string) Str::ulid()), occurredAt: $now, panel: $panel->id(), tenant: $decision->scope->tenant, actor: $actor,
+            correlationId: strtolower((string) Str::ulid()), state: $decision->state, subject: $request->subject(), permission: $request->permission(),
+            context: $decision->scope->context, effect: $decision->effect, reason: $decision->reason, component: $decision->component,
+        );
+        $deliver = static function () use ($event): void {
+            try {
+                app(Dispatcher::class)->dispatch($event);
+            } catch (Throwable $error) {
+                report($error);
+            }
+        };
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource || ! $writer->afterAuthorityCommit($deliver)) {
+            $deliver();
         }
     }
 }

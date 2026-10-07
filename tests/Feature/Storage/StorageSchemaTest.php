@@ -30,7 +30,7 @@ it('keeps generated names within 63 bytes with the maximum prefix', function ():
     $schema->create('long');
 
     try {
-        foreach (['permissions', 'role_grants', 'permission_grants', 'panel_state', 'storage_state'] as $base) {
+        foreach (['permissions', 'role_grants', 'permission_grants', 'audit_log', 'panel_state', 'storage_state'] as $base) {
             foreach ($storage->connection()->getSchemaBuilder()->getIndexes($storage->prefix().$base) as $index) {
                 expect(strlen($index['name']))->toBeLessThanOrEqual(63);
             }

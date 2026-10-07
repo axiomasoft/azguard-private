@@ -42,7 +42,7 @@ function unitToken(int $version = 3): StateToken
 
 it('keeps the change types and their phases', function (): void {
     expect(array_map(fn (ChangeType $type): string => $type->value, ChangeType::cases()))
-        ->toBe(['grant_role', 'revoke_role', 'grant_permission', 'revoke_permission', 'update_grant', 'create_permission', 'update_permission', 'delete_permission'])
+        ->toBe(['grant_role', 'revoke_role', 'grant_permission', 'revoke_permission', 'update_grant', 'create_permission', 'update_permission', 'delete_permission', 'touch_panel'])
         ->and(array_map(fn (ChangeType $type): array => [$type->isGrant(), $type->isRevocation(), $type->proposes(), $type->phase(), $type->isAction(), $type->proposesFields()], ChangeType::cases()))->toBe([
             [true, false, true, AssignmentScopePhase::Assignment, false, true],
             [false, true, false, AssignmentScopePhase::Revocation, false, false],
@@ -52,6 +52,7 @@ it('keeps the change types and their phases', function (): void {
             [false, false, false, AssignmentScopePhase::Assignment, true, true],
             [false, false, false, AssignmentScopePhase::Assignment, true, true],
             [false, false, false, AssignmentScopePhase::Revocation, true, false],
+            [false, false, false, AssignmentScopePhase::Inspection, false, false],
         ])
         ->and(ChangeStatus::cases())->toHaveCount(2)
         ->and(array_map(fn (EffectKind $kind): string => $kind->value, EffectKind::cases()))->toBe(['created', 'updated', 'deleted']);
