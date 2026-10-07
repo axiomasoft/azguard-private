@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **core:** Право в режиме Grants без квалифицированного вклада даёт `Deny(NotGranted)` до вызова host-политики во всех путях (`decide`, `decideMany`, `explain`; шаг `policy` трассы = `skipped`): раньше политика исполнялась для субъекта без права, а её `false`, `Response::deny()` или исключение подменяли причину на `Policy`/`PolicyError`. Veto и `PolicyError` остаются для субъекта с квалифицированным вкладом; режим Policy не изменён (аудит P4, A04, D21).
+
 - **core:** Ошибка построения источника на пути динамического каталога (`decide()` для права, которого нет в статическом каталоге) даёт `Deny(SourceError)`, а не исключение из `decide()` (аудит P4, A08).
 
 - **core:** `decideMany()` кэширует внешнюю eligibility и нативный вердикт по полной идентичности вклада (класс, роль, область, источник, происхождение, паттерн, срок, поля) вместо `json_encode` value-объектов: раньше вердикт одного вклада переиспользовался для другого, и пакетный результат расходился со скалярным (в том числе ложный Allow). Ошибки конфигурации (`DefinitionException`, `UnknownPermissionException`, `InvalidConfigurationException` кроме `authority_transaction`) пробрасываются из `decideMany()` как из `decide()`, а не превращаются в `source_error` (аудит P4, A03, A07).

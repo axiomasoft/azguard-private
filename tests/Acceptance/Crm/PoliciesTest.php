@@ -31,7 +31,7 @@ it('R22 policy modes distinguish null true false and Response with and without g
     $policyAllows = in_array($kind, ['true', 'allow'], true);
     $veto = in_array($kind, ['false', 'deny'], true);
     World::assertDecision(World::decide($panel, action: Action::ViewOwnProfile), $policyAllows, DecisionReason::Policy);
-    World::assertDecision(World::decide($panel), false, $veto ? DecisionReason::Policy : DecisionReason::NotGranted);
+    World::assertDecision(World::decide($panel), false, DecisionReason::NotGranted);
     World::assign('clients.view', 1, 1, kind: 'permission');
     $decision = World::decide($panel);
     World::assertDecision($decision, ! $veto, $veto ? DecisionReason::Policy : DecisionReason::Granted);

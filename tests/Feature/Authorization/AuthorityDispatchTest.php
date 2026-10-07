@@ -31,7 +31,7 @@ it('PolicyOnly reads neither grants nor roles and uses code state', function ():
 });
 it('RequiresGrant cannot be authorized by policy true without a grant', function (): void {
     [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource, fn (PanelBuilder $panel) => $panel->policies([PolicyBinding::for('orders.view', RuntimePolicy::class)]));
-    expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted)->and(RuntimePolicy::$calls)->toBe(1);
+    expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted)->and(RuntimePolicy::$calls)->toBe(0);
 });
 it('source errors after a granting source deny in both source orders', function (bool $reverse): void {
     $good = new GeneratedSource(direct: [AuthorizationWorld::grant()]);

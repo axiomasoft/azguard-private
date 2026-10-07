@@ -77,7 +77,7 @@ Clock фиксирован, экспирация проверяется без s
 | # | Действие | Обязательный результат |
 |---|---|---|
 | R21 | Caller Update C1/C2, ClientPolicy do_not_call=false/true | C1 update да, C2 нет; view обеих может оставаться доступен |
-| R22 | PolicyOnly/RequiresGrant: policy null/true/false/Response и отсутствие assignment | Policy true разрешает только PolicyOnly; RequiresGrant без assignment deny, null pass только при grant |
+| R22 | PolicyOnly/RequiresGrant: policy null/true/false/Response и отсутствие assignment | Policy true разрешает только PolicyOnly; RequiresGrant без assignment deny NotGranted без вызова policy, null pass только при grant |
 | R23 | Create opt-in dynamic action, direct grant Boris на project; те же code роли A/B | Action/assignments tenant-scoped; роль не создаётся; без флага dynamic create rejected |
 | R24 | PHP роль возвращает context с несколькими typed filters; активировать новый build | Filters внутри binding AND; same scalar/list/editor metadata; stale build/form rejected |
 | R25 | Raw UI request пытается создать/редактировать role definition/filter class/operator/PHP | Definition mutation endpoints отсутствуют/отклоняют; данные/versions неизменны; valid assignment проходит |

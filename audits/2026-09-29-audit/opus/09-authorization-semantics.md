@@ -48,7 +48,8 @@ Laravel Context переносит в queue лишь panel hint; tenant/context 
     Source error -> Deny(SourceError). Scope/expiry/conditions/context filters внутри одной contribution AND.
     Actual BaseRole/user/grant относятся к этой ветке. Role contributions expand только Grants actions.
     Qualified direct/fixed/relation/role grants OR scoped superadmin -> authority candidate.
-    Если authority отсутствует, Deny(NotGranted). Attached policy true/null -> pass, false -> veto.
+    Если authority отсутствует, Deny(NotGranted) и attached policy не вызывается. При квалифицированной authority
+    attached policy true/null -> pass, false -> veto.
     Policy не заменяет grant и не обходится hook/superadmin. Relevant source failure не прячется allow.
 4. Candidate проходит owner/common/context/token boundaries и mandatory Restrictions.
    Scope membership exemptions только explicit; immutable owner boundary не освобождает никого.
@@ -178,9 +179,9 @@ Owning items P6.2/P7.2, future tests V73/R39.
 |---|---|---|---|
 | Policy | не читается | true / allow Response | candidate Allow(Policy) |
 | Policy | не читается | false / null / deny Response | Deny(Policy) |
-| Grants | false | true / null / missing optional policy | Deny(NotGranted) |
 | Grants | true | true / null / missing optional policy | candidate Allow(Granted) |
-| Grants | любое | false / deny Response | Deny(Policy) |
+| Grants | false | любое (policy не вызывается) | Deny(NotGranted) |
+| Grants | true | false / deny Response | Deny(Policy) |
 
 Mode задаётся #[PolicyOnly]/#[RequiresGrant] на enum/case, не наличием policy method или DatabaseSource.
 Exact PolicyOnly action нельзя назначить или поместить в BaseRole.permissions; patterns расширяются только в

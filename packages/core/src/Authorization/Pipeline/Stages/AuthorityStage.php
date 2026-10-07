@@ -54,6 +54,12 @@ final readonly class AuthorityStage
             if ($denial !== null) {
                 return [$frame, $denial];
             }
+
+            if (! $qualified) {
+                $trace->record('policy', 'skipped');
+
+                return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
+            }
         } else {
             $trace->record('sources', 'skipped');
             $trace->record('superadmin', 'skipped');
@@ -62,13 +68,11 @@ final readonly class AuthorityStage
         try {
             $membership = new MembershipRestriction($this->container);
 
-            if ($qualified || $definition->authority === PermissionAuthority::Policy) {
-                $denied = $membership->check(request: $request, context: $frame)->denied();
-                $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
+            $denied = $membership->check(request: $request, context: $frame)->denied();
+            $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
 
-                if ($denied) {
-                    return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
-                }
+            if ($denied) {
+                return [$frame, Decision::deny(reason: DecisionReason::Restricted, state: $frame->state(), scope: $frame->scope(), component: 'membership')];
             }
         } catch (Throwable $error) {
             $trace->error('membership', 'restriction_error', 'membership', $error);
@@ -95,9 +99,6 @@ final readonly class AuthorityStage
             return [$frame, Decision::deny(DecisionReason::PolicyError, $frame->state(), $frame->scope(), $component)];
         }
 
-        if ($definition->authority === PermissionAuthority::Grants && ! $qualified) {
-            return [$frame, Decision::deny(DecisionReason::NotGranted, $frame->state(), $frame->scope())];
-        }
         $reason = $definition->authority === PermissionAuthority::Policy ? DecisionReason::Policy : ($frame->qualifiedSuperAdmin ? DecisionReason::SuperAdmin : DecisionReason::Granted);
 
         return [$frame, Decision::allow($reason, $frame->state(), $frame->scope(), grants: $request->isTraced() ? $frame->matchingGrants() : [])];

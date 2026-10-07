@@ -26,7 +26,7 @@ it('interprets each policy outcome against grants authority', function (mixed $r
 })->with([
     'grant and true' => [true, true, DecisionReason::Granted], 'grant and abstain' => [null, true, DecisionReason::Granted],
     'grant and veto' => [false, true, DecisionReason::Policy], 'true without grant' => [true, false, DecisionReason::NotGranted],
-    'abstain without grant' => [null, false, DecisionReason::NotGranted], 'veto without grant' => [false, false, DecisionReason::Policy],
+    'abstain without grant' => [null, false, DecisionReason::NotGranted], 'veto without grant' => [false, false, DecisionReason::NotGranted],
 ]);
 it('uses a policy-only owner without reading any assignment source', function (): void {
     $source = new OrderGrantSource;
