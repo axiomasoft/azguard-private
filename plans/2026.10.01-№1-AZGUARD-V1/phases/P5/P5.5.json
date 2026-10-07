@@ -3,21 +3,232 @@
   "id": "P5.5",
   "title": "PanelSchema",
   "status": "todo",
-  "summary": "—",
-  "why": "—",
+  "summary": "Дать неизменяемое описание панели для интерфейсов: `Schema\\PanelSchema` для пары (панель, tenant) с правами (authority, owner-источники, `decidedBy`, dynamic overlay tenant, contextTypes), PHP-ролями (read-only, grantable/automatic, scopeRequired, bindings), полями выдач, типами tenants/контекстов/субъектов с директориями и `writable`; `toArray()`/`jsonSerialize()` — только скаляры, без моделей, closures и секретов.",
+  "why": "Схема — единственный вход редакторов Filament и своих UI (D54, D30); P5.3 возвращает её `RoleSchema`/`PermissionSchema`. Жёсткие риски: утечка секретов/параметров источников и live-моделей в JSON (V104, R49), смешение dynamic overlay разных tenants, редактируемость PHP-ролей или PolicyOnly-прав в схеме (V72, R38). RAG:— 05 §8, D54, D30, 06 §1.1/§6, 11 §5–§6, 19 §5, 18 §8; V72, V104, R24, R38, R49; D8 (SourceDescription), D12 (FieldSchema из Field), D18.",
   "scope": {
-    "include": [],
-    "exclude": []
+    "include": [
+      "`Schema\\PanelSchema` (05 §8: `panel`, `label`, `writable`, `tenant`, `permissions()`, `groups()`, `roles()`, `fields(FieldTarget)`, `tenants()`, `scopes()`, `subjects()`, `toArray()`, `JsonSerializable`), `PermissionSchema`, `RoleSchema` (05 §8 поля; `editable=false` всегда), `FieldSchema` (из `Schema\\Field`: name, label, type, rules — только скаляры/строки классов, options для enum, inMeta, contributedBy), `AssignmentScopeBindingSchema` (contextType, filter class metadata, display, exactSupport), `AssignmentScopeTypeSchema` (type, label, model, directory class), `TenantTypeSchema`, `SubjectTypeSchema` (model, label, auth guard, directory class).",
+      "Внутренний `Schema\\SchemaBuilder::for(Panel $panel, TenantRef $tenant): PanelSchema`: права — статичный каталог + dynamic overlay выбранного tenant одним fenced чтением источника с `SourceDescription::$dynamic` (`ProvidesPermissions::permissions($panel, $tenant)`); `decidedBy` — `policy:Class@method` / `gate:ability` из привязок каталога; `sources` — id источников, способных дать Grants-право (`ProvidesGrants`/`ProvidesRoleGrants`, `folder` для `GrantedToAll`), для Policy — `[]`; `contextTypes` — типы определений панели для Grants, `[]` для Policy; роли — из скомпилированного каталога (`RoleCompiler`); поля — `Panel::fields()` + поля моделей writer из `SourceDescription::$fields`; директории — настроенные или классы по умолчанию P5.8.",
+      "`SourceDescription` получает `label` и `fields` (`array<string, list<Field>>` по `FieldTarget`) — D8; `DatabaseSource::describe()` отдаёт поля своих моделей; параметры источников в описание не входят.",
+      "Тесты `tests/Unit/Schema/**`, `tests/Feature/Schema/**`: V72 (authority/owner/policy/sources/dynamic; PHP role class/readonly/grantable/automatic/contexts; field schema/plugin metadata; нет Model/Closure/объектов в `toArray()` — рекурсивная проверка типов), V104 schema-часть (overlay A ≠ B, секретный typed-параметр плагина фикстуры не сериализуется), панель без writer → `writable=false`; JSON-снимок CRM-панели `tests/Fixtures/Schema/crm-panel-schema.json` (детерминированный порядок); CRM `tests/Acceptance/Crm/SchemaTest.php` (R24 metadata, R38 badge-данные, R49 schema) + README."
+    ],
+    "exclude": [
+      "Публичный `PanelAccess::schema()` — P6.1; Filament-редакторы — P7; `RoleCatalog`/`PermissionManager` — P5.3 (используют эти значения); Schema не импортирует `Storage`/`Changes`/`StoresGrants` (arch)."
+    ]
   },
-  "depends_on": [],
-  "decisions": [],
+  "depends_on": [
+    "P5.7",
+    "P5.8"
+  ],
+  "decisions": [
+    "D18",
+    "D8",
+    "D12"
+  ],
   "skills": [],
-  "reads": [],
-  "task_files": [],
-  "rules": [],
-  "guidance": "—",
-  "validation": [],
-  "deliverables": [],
+  "reads": [
+    {
+      "ref": "D18",
+      "why": "Имена схемы, порядок, SourceDescription",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "PanelSchema и значения",
+      "required": true,
+      "section": "§8"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "PanelSchema и значения",
+      "required": true,
+      "section": "§12"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "D54 (`<a id=\"d54\">`), D30 (`<a id=\"d30\">`)",
+      "required": true,
+      "section": "D54"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "D54 (`<a id=\"d54\">`), D30 (`<a id=\"d30\">`)",
+      "required": true,
+      "section": "D30"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/11-filament.md",
+      "why": "как UI использует схему и поля",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/11-filament.md",
+      "why": "как UI использует схему и поля",
+      "required": true,
+      "section": "§6"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "что можно сериализовать в каталог",
+      "required": true,
+      "section": "§8"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V72, V104",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R24, R38, R49",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "why": "static/dynamic, bindings, bindingMethod, policyBindings, roles, snapshot",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/RoleCompiler.php",
+      "why": "CompiledRole и CompiledScope",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PermissionDefinition.php",
+      "why": "поля определения",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Sources/SourceDescription.php",
+      "why": "расширяемое описание",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+      "why": "describe(), permissions()",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Schema/Field.php",
+      "why": "источник FieldSchema",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Panels/Panel.php",
+      "why": "fields(), sources(), scopeDefinitions(), tenants(), subjectModels()",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/AssignmentScopeSettings.php",
+      "why": "label/directory/filters настроек области",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Schema/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Contracts/Sources/SourceDescription.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Sources/**",
+      "change": "modify",
+      "note": "describe(): label/fields"
+    },
+    {
+      "path": "tests/Unit/Schema/**",
+      "change": "any"
+    },
+    {
+      "path": "tests/Feature/Schema/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Schema/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Acceptance/Crm/{SchemaTest.php,README.md}",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; unavailable engine блокирует пункт.",
+    "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта; код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет.",
+    "Имена — из досье `03`/D18; внутренние коды задач (`P5.2`, `V97`, `R26`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "Схема — снимок: значения `final readonly`, `toArray()` возвращает только null/bool/int/float/string/массивы; объект, Closure, Model или Container в выводе — дефект (V72).",
+    "Dynamic overlay берётся только для явно переданного tenant; схема без tenant на tenant-панели не агрегирует tenants (05 §2).",
+    "PHP-роли всегда read-only (`editable=false`); PolicyOnly-право не помечается как назначаемое (sources=[]).",
+    "Параметры источников/плагинов (в т.ч. секреты) в схему не входят (06 §1.1: «Parameters of the source are not part of the description»)."
+  ],
+  "guidance": "Снимок JSON: `json_encode($schema, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)`, сортировка прав по full name, ролей по key, полей по name; тест сравнивает с файлом и падает с диффом; обновление снимка — осознанное (`UPDATE_SNAPSHOTS=1` только локально, не в проверке).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit/Schema tests/Feature/Schema tests/Acceptance/Crm/SchemaTest.php tests/Feature/Sources --compact --fail-on-skipped",
+      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; правила зон и записи соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без группы engines",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифест перегенерирован `composer api:manifest` и совпадает с Phase Contract/D18",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Значения схемы, SchemaBuilder, расширенный SourceDescription, снимок, CRM SchemaTest/README, CHANGELOG; раздел «P5.5» в `@plan/knowledge/findings-P5-execution.json`."
+  ],
   "route": {
     "class": "frontier",
     "effort": "high"
@@ -32,62 +243,5 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "1970-01-01T00:00:00Z",
-  "sections": [
-    {
-      "id": "Intent",
-      "title": "Intent",
-      "text": "—"
-    },
-    {
-      "id": "Why",
-      "title": "Why",
-      "text": "—"
-    },
-    {
-      "id": "Scope-Included",
-      "title": "Scope Included",
-      "text": "—"
-    },
-    {
-      "id": "Scope-Excluded",
-      "title": "Scope Excluded",
-      "text": "—"
-    },
-    {
-      "id": "Inputs",
-      "title": "Inputs",
-      "text": "—"
-    },
-    {
-      "id": "Files",
-      "title": "Files",
-      "text": "—"
-    },
-    {
-      "id": "Required-Reads",
-      "title": "Required Reads",
-      "text": "—"
-    },
-    {
-      "id": "Implementation-Rules",
-      "title": "Implementation Rules",
-      "text": "—"
-    },
-    {
-      "id": "Code-Guidance",
-      "title": "Code Guidance",
-      "text": "—"
-    },
-    {
-      "id": "Validation",
-      "title": "Validation",
-      "text": "—"
-    },
-    {
-      "id": "Deliverables",
-      "title": "Deliverables",
-      "text": ""
-    }
-  ]
+  "updated_at": "2026-10-07T05:57:05Z"
 }

@@ -1,0 +1,230 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P5.8",
+  "title": "Каталоги поиска по умолчанию и LookupContext фазы Assignment",
+  "status": "todo",
+  "summary": "Дать реализации `SubjectDirectory`, `AssignmentScopeDirectory` и `TenantDirectory` по умолчанию: поиск контекстов применяет common и role-binding фильтры с `LookupContext` (target user, BaseRole, proposed until/fields, actor, phase Assignment) и выбранный tenant до LIMIT; `describe()` — одна структурная загрузка; Inspection-описание не зависит от runtime-eligibility.",
+  "why": "Редакторы назначений (P7.4) и внешние consumers ищут субъектов и контексты; без серверной реализации фильтр autocomplete подменялся бы фильтром текущего админа (R26/R36) или обрезал выдачу после LIMIT. Жёсткие риски: утечка контекстов чужого tenant, LIMIT до eligibility, фильтр по actor вместо target. RAG:— 18 §3/§5/§10, 06 §7, 05 §12, 20 F19; V114, R36, R50; D11 (SubjectDirectory через модели панели); D18.",
+  "scope": {
+    "include": [
+      "`Directories\\ModelSubjectDirectory` (`SubjectDirectory` по моделям `for(model:)` панели): `search()` — по ключу модели и, если модель объявляет `azguardSearchColumns(): list<string>` (статический метод трейта/модели), LIKE по этим колонкам; `describe()` — label из `azguardLabel()` либо ключ. Панель с `for(..., directory: Class)` использует свой класс.",
+      "`Directories\\QueryScopeDirectory` (`AssignmentScopeDirectory` для `QueryableAssignmentScopeDefinition`): свежий `query()` → ограничение выбранным tenant (`ModelAssignmentScopeDefinition` — по owner/tenant колонке; иначе chunk с `tenantOf` до набора `limit` записей) → common filters панели → filters binding роли из `LookupContext::$role` с `AssignmentScopeRuntime(phase: Assignment|Inspection, user: target, role, actor, now)` → LIMIT; `describe()` — `definition->resolve(ref)`; для `phase=Inspection` фильтры eligibility не применяются (админ видит stored context).",
+      "`Directories\\ModelTenantDirectory` (`TenantDirectory` по `ModelTenantDefinition`).",
+      "Выбор директории: настроенная (`BaseAssignmentScope::directory()`, `for(..., directory:)`) → иначе класс по умолчанию; одна внутренняя точка `Directories\\DirectoryResolver::for(Panel, …)`.",
+      "Тесты `tests/Feature/Directories/**` и CRM `tests/Acceptance/Crm/DirectoriesTest.php`: R36 (target seller/analyst в разных городах и tenants; админ другого города; LIMIT после eligibility), V114 (proposed fields и actor видны фильтру; Inspection показывает inactive context), R50 directory-часть (свой directory внешнего consumer через публичный SPI); README."
+    ],
+    "exclude": [
+      "UI autocomplete и формы — P7.4; поиск субъектов через Scout/полнотекст — не вводится; Directories не импортирует `Authorization`, `Storage`, `Changes` (arch)."
+    ]
+  },
+  "depends_on": [
+    "P5.2"
+  ],
+  "decisions": [
+    "D18"
+  ],
+  "reads": [
+    {
+      "ref": "D18",
+      "why": "Место P5.8 в порядке и связь со схемой P5.5",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "LookupContext, фазы, autocomplete target user",
+      "required": true,
+      "section": "§3"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "LookupContext, фазы, autocomplete target user",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "LookupContext, фазы, autocomplete target user",
+      "required": true,
+      "section": "§10"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "why": "контексты, субъекты, директории",
+      "required": true,
+      "section": "§7"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/20-process-map.md",
+      "why": "F19",
+      "required": true,
+      "section": "§3"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V114",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R36, R50",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Scopes/AssignmentScopeDirectory.php",
+      "why": "контракт",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Subjects/SubjectDirectory.php",
+      "why": "контракт",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Scopes/TenantDirectory.php",
+      "why": "контракт",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Directories/LookupContext.php",
+      "why": "входы поиска",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/BaseAssignmentScope.php",
+      "why": "query/filter/directory/settings",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/ModelAssignmentScopeDefinition.php",
+      "why": "owner/tenant модельного определения",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/AssignmentScopeRuntime.php",
+      "why": "runtime фильтров",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Authorization/ScopeEligibility.php",
+      "why": "как Access применяет фильтры (повторить семантику без импорта Authorization)",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Crm/ProjectDirectory.php",
+      "why": "существующая фикстура директории",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Crm/CityDirectory.php",
+      "why": "фикстура городов",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Directories/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Concerns/**",
+      "change": "any",
+      "note": "только если `azguardSearchColumns/azguardLabel` объявляются в трейте позже P5.1 — тогда как методы модели, не трейта"
+    },
+    {
+      "path": "tests/Feature/Directories/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Acceptance/Crm/{DirectoriesTest.php,README.md}",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; unavailable engine блокирует пункт.",
+    "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта; код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет.",
+    "Имена — из досье `03`/D18; внутренние коды задач (`P5.2`, `V97`, `R26`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "Фильтры eligibility и tenant применяются в запросе ДО LIMIT; пост-фильтрация страницы запрещена (V114).",
+    "Фильтр получает target user/BaseRole из `LookupContext`, а не текущего актора; актор передаётся отдельно (R26/R36).",
+    "Directories не импортирует `Authorization`, `Storage`, `Changes`: семантику фильтров повторить через `Scopes`-контракты (`AssignmentScopeFilter::apply(Builder, AssignmentScopeRuntime)`), без копирования кода Authorization — общий код при необходимости вынести в `Scopes`."
+  ],
+  "guidance": "Если повторение фильтрации требует общего кода с `Authorization\\ScopeEligibility`, вынести чистую функцию применения фильтров к Builder в `Scopes` (обе зоны её используют) и зафиксировать это в findings — одна реализация, без копий (AGENTS root.shared-core).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Directories tests/Acceptance/Crm/DirectoriesTest.php tests/Feature/Scopes --compact --fail-on-skipped",
+      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; правила зон и записи соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без группы engines",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифест перегенерирован `composer api:manifest` и совпадает с Phase Contract/D18",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Директории по умолчанию, резолвер, тесты, CRM DirectoriesTest/README, CHANGELOG; раздел «P5.8» в `@plan/knowledge/findings-P5-execution.json`."
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-07T05:57:11Z"
+}

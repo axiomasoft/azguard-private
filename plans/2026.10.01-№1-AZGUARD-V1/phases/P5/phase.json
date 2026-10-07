@@ -2,28 +2,118 @@
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P5",
   "title": "Модель и изменения",
-  "design": "skeleton",
-  "goal": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же.",
-  "context": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же.",
+  "design": "detailed",
+  "goal": "Дизайн на HEAD `3f7bf5e`: P4 закрыт GREEN (P4.14). В `packages/core/src` есть движок проверки (`Authorizer`:\ndecide/decideMany/explain/isSuperAdmin/visibleTo), источники Folder/Database/Relation/Gate (DatabaseSource — только\nчтения), `Storage::mutate()` с lock-first, retry, версией и after-commit, `GrantFields`, запрет прямых записей,\n`PanelBuilder::changing()` как запись рецепта (в `Panel` не переносится), `StoresGrants` только с `transaction()`.\nПайплайна изменений, значений `Changes`, событий, журнала, менеджеров, схемы, директорий по умолчанию и трейта нет.\n\nP5 строит модель и изменения: единственный путь записи `ChangePipeline` (pipes, финальная валидация под lock,\nписатель `DatabaseSource`), dynamic actions, события после commit и плагин `azguard/audit`, директории поиска,\n`PanelSchema`, `RoleCatalog`/`GrantManager`/`PermissionManager` с FormerKeys-миграцией и трейт `HasAzGuard` с\n`SubjectAccess`/`SubjectPanels`. Состав, порядок, имена и заполненные пробелы — [D18](../../decisions/D18.json);\nобщий контракт записи — `@plan/knowledge/P5-change-model.json`.",
+  "context": "Принимает по [D6](../../decisions/D6.json): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage` (P5.3), `GrantRecord` (P5.2 по D18);\nсквозной P14 (`grantPermission('*')`) — V22 в P5.2 и сценарий трейта в P5.1.\nПринимает по [D8](../../decisions/D8.json): `StoresGrants::apply(Change): ChangeResult` и pipes `changing` (P5.2); строка V64 трейта и\n`SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); `label`/`fields` у `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12.json): `Storage::mutate()` из `ChangePipeline`, `GrantFields` для `fields:`, принадлежность `Field::model`\ntenant, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` (P5.5).\nПринимает по [D14](../../decisions/D14.json) п.4/п.7: FormerKeys — явная миграция (P5.3), отказ записи NotGrantable (P5.2), trait (P5.1).\n\nПорядок исполнения (D18 п.1): **P5.2 → P5.7 → P5.4 → P5.8 → P5.5 → P5.3 → P5.1 → P5.6**, каждый пункт solo.\nМаршрут исполнителя по D16 — `gpt-6.1-sol/high` или назначенный владельцем; review P5.6 — независимая read-only сессия.\n\nСреда (D4): SQLite `:memory:` по умолчанию; engine-гонки и DDL — docker compose `postgres` (16), `mysql` (8),\n`mariadb` (10.11) на портах `PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307`; недоступный engine блокирует\nпункт. Laravel в vendor — 13.34.0; матрица 11/12/13 — P8.4.\n\nЧтение исполнителя: plan → этот Phase Context → item → `@plan/knowledge/P5-change-model.json` (разделы из reads) →\nD18 → указанные разделы досье → код.",
+  "contract": {
+    "consumes": [
+      "Kernel P1 (refs, ключи, PermissionSet, StateToken/CodeStateToken), Panels/Catalog/Scopes P2, Storage P3, Authorizer/источники/кэш/Gate/Visibility P4."
+    ],
+    "produces": [
+      "@api `Changes\\{Change, ChangeType, ChangeContext, ChangeStatus, ChangeResult, ChangeEffect, EffectKind, GrantRecord, GrantDetails, PermissionRecord, PermissionDetails, GrantFilter, GrantPage, ChangeJournal}`.",
+      "@spi `StoresGrants::apply(Change): ChangeResult`; `SourceDescription::{label, fields}`.",
+      "@api `Contracts\\{AzGuardSubject, Roles\\RoleCatalog, Changes\\GrantManager, Changes\\PermissionManager}`, `Concerns\\{HasAzGuard, SubjectAccess, SubjectPanels}`.",
+      "Публичные по расположению `Events\\*` (каталог 08 §6) и `Schema\\*` (PanelSchema и значения 05 §8).",
+      "`Plugins\\Audit\\AuditPlugin` (`azguard/audit`), таблица `{prefix}audit_log`.",
+      "Директории по умолчанию `Directories\\{ModelSubjectDirectory, QueryScopeDirectory, ModelTenantDirectory}`.",
+      "Исключения изменений D18 п.5; внутренние `ChangePipeline`, `ActingActor`, `PanelManagers`, `RoleKeyMigration`, `SchemaBuilder`, `ChangeEventPublisher`."
+    ],
+    "boundaries": [
+      "Запись назначений и dynamic actions — только ChangePipeline → StoresGrants::apply внутри Storage::mutate (D22, C1).",
+      "Authorization и Schema не импортируют Changes; Contracts и Sources\\Database используют только перечисленные value-классы Changes (D18 п.4).",
+      "Панель выбирает только PanelResolver; PHP-роли и их состав не меняются через API (D13/D80).",
+      "PanelAccess/фасад, middleware, команды, doctor, UI — P6/P7 (D18 п.7)."
+    ]
+  },
+  "scope": {
+    "include": [
+      "Пайплайн изменений, финальная валидация, писатель, исключения (P5.2); dynamic actions (P5.7); события, журнал audit, prune/touch, AccessDecided (P5.4); директории по умолчанию (P5.8); PanelSchema (P5.5); RoleCatalog/GrantManager/PermissionManager, FormerKeys-миграция, cleanup (P5.3); трейт, SubjectAccess, SubjectPanels (P5.1); Review P5 (P5.6)."
+    ],
+    "exclude": [
+      "Фасад, PanelAccess, actingAs (P6.1); middleware/атрибуты контроллеров (P6.2); конфиг (P6.3); doctor (P6.4); команды prune/rename-key/audit (P6.6); тестовый kit (P6.7); генераторы (P6.8); Filament (P7); интеграции и выпуски (P8)."
+    ]
+  },
   "depends_on": [
     "P4"
   ],
+  "pitfalls": [
+    "Порядок исполнения не равен номерам: P5.1 и P5.3 вызывают код P5.2/P5.4/P5.5/P5.7 — запускать строго по D18 п.1.",
+    "`PanelBuilder::changing()` уже принимает элементы, но компилятор их отбрасывает: без переноса в `Panel` pipes молча не выполняются.",
+    "Arch-исключения для Changes-значений — узкие списки классов; `ignoring('AzGuard\\Changes')` целиком открыл бы ChangePipeline источникам.",
+    "Событие внутри транзакции или на no-op — дефект P11; `Event::fake()` хоста не должен глушить публичные события (нет внутреннего события-посредника).",
+    "SQLite green не доказывает блокировки и гонки PG/MySQL/MariaDB (D4): engine-проверки обязательны там, где они в Validation."
+  ],
+  "supporting": [
+    "audits/2026-09-29-audit/opus/05-php-api.md",
+    "audits/2026-09-29-audit/opus/06-extension-points.md",
+    "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+    "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+    "audits/2026-09-29-audit/opus/20-process-map.md"
+  ],
   "items": [
-    "P5.1",
     "P5.2",
-    "P5.3",
+    "P5.7",
     "P5.4",
-    "P5.5"
+    "P5.8",
+    "P5.5",
+    "P5.3",
+    "P5.1",
+    "P5.6"
   ],
   "batches": [
     {
-      "id": "B5",
+      "id": "BP5-2",
       "items": [
-        "P5.1",
-        "P5.2",
-        "P5.3",
-        "P5.4",
+        "P5.2"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-7",
+      "items": [
+        "P5.7"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-4",
+      "items": [
+        "P5.4"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-8",
+      "items": [
+        "P5.8"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-5",
+      "items": [
         "P5.5"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-3",
+      "items": [
+        "P5.3"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-1",
+      "items": [
+        "P5.1"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "BP5-6",
+      "items": [
+        "P5.6"
       ],
       "mode": "recommended"
     }
@@ -33,24 +123,29 @@
   },
   "sections": [
     {
-      "id": "P5",
-      "title": "P5 — Модель и изменения",
-      "text": ""
-    },
-    {
       "id": "Phase-Context",
       "title": "Phase Context",
-      "text": "> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5`\n\nТрейт HasAzGuard и SubjectAccess; пайплайн изменений с pipes, транзакцией и событиями после commit; RoleCatalog/GrantManager/PermissionManager; события и audit-плагин; PanelSchema.\nЗависимость фаз: P4. Разделы досье: 13 F5; 05 §1–§2, §8–§9; 06 §5; 08 §6; D09–D11, D14, D22, D28, D49, D54, D57, D77.\nПринимает по [D6](../../decisions/D6-p1-dependency-closure.md): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage`/`GrantRecord` (P5.3); сквозной P14 (`grantPermission('*')`) — V22 в P5.2.\nПринимает по [D8](../../decisions/D8-p2-dependency-closure.md): `StoresGrants::apply(Change): ChangeResult` и проверку pipes списка `changing` (P5.2); строку V64 для трейта и `SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); поля и подписи `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12-p3-storage-closure.md): вызов `Storage::mutate()` из `ChangePipeline` и `GrantFields::validate()/toRow()` для `fields:`, принадлежность `Field::model` тенанту, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` и `Panel::fields()` (P5.5).\nДетализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,\nreview-пункт и batch задаются там же."
+      "text": "Принимает по [D6](../../decisions/D6.json): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage` (P5.3), `GrantRecord` (P5.2 по D18);\nсквозной P14 (`grantPermission('*')`) — V22 в P5.2 и сценарий трейта в P5.1.\nПринимает по [D8](../../decisions/D8.json): `StoresGrants::apply(Change): ChangeResult` и pipes `changing` (P5.2); строка V64 трейта и\n`SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); `label`/`fields` у `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12.json): `Storage::mutate()` из `ChangePipeline`, `GrantFields` для `fields:`, принадлежность `Field::model`\ntenant, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` (P5.5).\nПринимает по [D14](../../decisions/D14.json) п.4/п.7: FormerKeys — явная миграция (P5.3), отказ записи NotGrantable (P5.2), trait (P5.1).\n\nПорядок исполнения (D18 п.1): **P5.2 → P5.7 → P5.4 → P5.8 → P5.5 → P5.3 → P5.1 → P5.6**, каждый пункт solo.\nМаршрут исполнителя по D16 — `gpt-6.1-sol/high` или назначенный владельцем; review P5.6 — независимая read-only сессия.\n\nСреда (D4): SQLite `:memory:` по умолчанию; engine-гонки и DDL — docker compose `postgres` (16), `mysql` (8),\n`mariadb` (10.11) на портах `PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307`; недоступный engine блокирует\nпункт. Laravel в vendor — 13.34.0; матрица 11/12/13 — P8.4.\n\nЧтение исполнителя: plan → этот Phase Context → item → `@plan/knowledge/P5-change-model.json` (разделы из reads) →\nD18 → указанные разделы досье → код."
     },
     {
-      "id": "Item-index",
-      "title": "Item index",
-      "text": "| ID | Title | Spec |\n|:--|:--|:--|\n| P5.1 | Трейт HasAzGuard, SubjectAccess, SubjectPanels | [P5.1.md](P5.1.md) |\n| P5.2 | Пайплайн изменений: Change, pipes, писатель, события после commit | [P5.2.md](P5.2.md) |\n| P5.3 | RoleCatalog, scoped GrantManager, PermissionManager | [P5.3.md](P5.3.md) |\n| P5.4 | События после commit и плагин audit | [P5.4.md](P5.4.md) |\n| P5.5 | PanelSchema | [P5.5.md](P5.5.md) |"
+      "id": "Order",
+      "title": "Порядок исполнения и batches",
+      "text": "| Шаг | Пункт | Batch | Почему здесь |\n|---|---|---|---|\n| 1 | P5.2 | BP5-2 | единственный путь записи — основа всех остальных |\n| 2 | P5.7 | BP5-7 | dynamic actions на том же writer |\n| 3 | P5.4 | BP5-4 | события/журнал по effects P5.2/P5.7 |\n| 4 | P5.8 | BP5-8 | директории на Assignment-eligibility P5.2 |\n| 5 | P5.5 | BP5-5 | схема называет директории P5.8 и dynamic overlay |\n| 6 | P5.3 | BP5-3 | менеджеры возвращают значения схемы и пишут через P5.2/P5.7 |\n| 7 | P5.1 | BP5-1 | публичная поверхность над всем выше |\n| 8 | P5.6 | BP5-6 | read-only Review P5 |\n\nВсе batches solo: тяжёлые реализации не объединяются (D16 п.4). Пункт закрывается со всеми своими Validation/Deliverables до начала следующего."
+    },
+    {
+      "id": "Acceptance",
+      "title": "Приёмка фазы",
+      "text": "Нормативная карта V/R/probe → owning item — раздел «Карта приёмки» `@plan/knowledge/P5-change-model.json`. Фаза закрыта, когда все пункты P5.1–P5.8 done, регрессии P11/P13 `covered:` с тестами, CRM README честно показывает статусы R-кейсов P5, и verdict P5.6 — GREEN."
+    },
+    {
+      "id": "Validation-strategy",
+      "title": "Validation strategy",
+      "text": "Каждый пункт: targeted Pest своих тестов, `tests/Regression` (где задеты регрессии), `tests/Arch`, engine-группа на PG/MySQL/MariaDB для гонок/DDL, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`. Итоги и решения исполнения — разделы пунктов в `@plan/knowledge/findings-P5-execution.json`."
     },
     {
       "id": "Phase-Handoff",
       "title": "Phase Handoff",
-      "text": "Фаза не детализирована."
+      "text": "Фаза детализирована; первый исполняемый пункт — P5.2."
     }
   ]
 }

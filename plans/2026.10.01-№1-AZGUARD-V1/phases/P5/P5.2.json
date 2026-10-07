@@ -1,23 +1,414 @@
 {
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.2",
-  "title": "Пайплайн изменений: Change, pipes, писатель, события после commit",
+  "title": "Пайплайн изменений: Change, pipes, финальная валидация, писатель",
   "status": "todo",
-  "summary": "—",
-  "why": "—",
+  "summary": "Ввести значения `AzGuard\\Changes\\*` и внутренний `ChangePipeline`: каждое изменение назначения (grant/revoke/sync/update ролей и прав) берёт lock `panel_state` первым через `Storage::mutate`, проходит pipes `changing` панели (`Illuminate\\Pipeline`), финальную валидацию F1–F10 под lock и записывается `DatabaseSource::apply()` по контракту `StoresGrants::apply(Change): ChangeResult`. Повтор без изменения — `Unchanged` без bump; составные операции — all-or-nothing; регрессия P13 закрыта.",
+  "why": "Единственный путь записи (D22/D49) — основа всего P5: на нём стоят события P5.4, dynamic actions P5.7, менеджеры P5.3 и трейт P5.1. Жёсткие риски: воскрешение orphan-выдачи после удаления роли/action (C9), запись в чужой tenant/origin (C8), pipe, подменяющий identity (C3/F1), дубли и ложные bump при retry/no-op (C4/C5), exact-выдача PolicyOnly-права (C10), голые `*`/`**` (C11). RAG:— 06 §5, 05 §2/§9/§10/§12, 08 §2–§5, 18 §5/§10, 20 F08/F09/F11–F13; D22, D23, D49, D77; плановые D8, D12, D14 п.4, D18; модель `knowledge/P5-change-model`.",
   "scope": {
-    "include": [],
-    "exclude": []
+    "include": [
+      "Значения `@api` в `packages/core/src/Changes/`: `ChangeType` (string enum: `GrantRole`, `RevokeRole`, `GrantPermission`, `RevokePermission`, `UpdateGrant`; `isGrant()`, `isRevoke()`, `phase(): AssignmentScopePhase`), `Change` (final readonly: `type`, `panel`, `subject`, `role`, `permission`, `scope`, `origin`, `until`, `fields`, `actor`, `grantId`; `context(): ChangeContext`, `withUntil()`, `withFields()`, `cancel(string): never`), `ChangeContext` (поля 18 §10, `actor` — `?ActorRef` по D18 п.6), `ChangeStatus` (`Applied`/`Unchanged`), `ChangeResult` (`status`, `record`, `records`, `effects`, `state`, `committed`, `correlationId`), `ChangeEffect` + `EffectKind` (`Created`/`Updated`/`Deleted`, `before`/`after`, `eventId` ULID, `expired=false`), `GrantRecord` (id, kind, panel, tenant, subject, role|permission, scope, origin, expiresAt, fields, actor, createdAt, updatedAt, `fingerprint`), `GrantDetails` (05 §12).",
+      "Контракт `StoresGrants::apply(Change $change): ChangeResult` (D8) и реализация в `DatabaseSource` (+ внутренний `Sources\\Database\\GrantWriter`): запись только внутри активной mutation панели через новый `@internal Storage::mutation(string $panel): StorageMutation` (вне — `UnsupportedDirectWriteException`); семантика insert/update/no-op/delete и равенства — раздел «Семантика записи» модели P5; `StorageMutation::touch()` только при effect.",
+      "`Panel::changing(): list<Closure|object|class-string>` и перенос записи рецепта `changing` в `PanelCompiler::compile()` в порядке provider → plugins → configure; элемент — Closure, объект с public `handle(Change, Closure)` или class-string такого класса, иначе `DefinitionException` при сборке.",
+      "Внутренний `Changes\\ChangePipeline`: операции `grant(Panel, TenantRef, SubjectRef, RoleKey|PermissionPattern, AssignmentScopeRef, origin, until, fields, ?ActorRef)`, `revoke(…, AssignmentScopeRef|AnyAssignmentScope …)`, `sync(roles|permissions, partition)`, `update(Panel, TenantRef, origin, string $id, GrantDetails, ?string $expectedFingerprint)`; протокол шагов 0–8, retry и nested — раздел «Протокол» модели P5. Pipe обязан вернуть `ChangeResult`.",
+      "Финальная валидация F1–F10 (раздел «Финальная валидация» модели P5), включая Assignment-eligibility через новый `Authorization\\ScopeEligibility::assignment(...)`, который применяет те же common и role-binding фильтры с `AssignmentScopeRuntime(phase: Assignment, user: target, role, actor, now)`; Revocation пропускает F2/F3/F5/F6 (orphan cleanup по stored scope).",
+      "Внутренний `Changes\\ActingActor` (scoped): стек `run(?ActorRef, Closure)` и `current(Panel): ?ActorRef` по порядку D18 п.6; `Panel` получает доступ к auth guard субъектов (`for(model:, guard:)`), если его нет.",
+      "Исключения в `Exceptions/` (родитель `ChangeException`, коды 05 §10): `UnknownRoleException`, `RoleNotGrantableException`, `PermissionNotGrantableException`, `PanelNotWritableException`, `AssignmentScopeNotAcceptedException`, `AssignmentScopeRequiredException`, `TenantRequiredException`, `TenantMismatchException`, `ChangeCancelledException`, `StaleSelectionException`; unit-тесты кодов как у существующих исключений.",
+      "Arch (`tests/Arch/ZonesArchTest.php`): правила «contracts do not import implementations» и «sources do not use changes» получают `ignoring` ровно для value-классов D18 п.4 (`Change`, `ChangeType`, `ChangeContext`, `ChangeResult`, `ChangeStatus`, `ChangeEffect`, `EffectKind`, `GrantRecord`, `GrantDetails`); новый тест доказывает, что импорт `ChangePipeline` из `Sources\\Database` или `Contracts` по-прежнему ловится.",
+      "Регрессия P13 на уровне `ChangePipeline` в `tests/Regression/P13Test.php` (неизвестная роль → `UnknownRoleException`, опечатка права → `UnknownPermissionException`, строк нет) и `Status: covered:` в `tests/Regression/specs/P13.md`; V22 на записи (голые `*`/`**` → `InvalidPermissionKeyException`, суперадмин только ролью).",
+      "Тесты: `tests/Unit/Changes/**`, `tests/Feature/Changes/**` (pipes порядок/отмена/withUntil/withFields/подмена identity, F1–F10 по одной ошибке, no-op vs update, sync/revokeAny/update, nested в host-транзакции, retry с повтором pipes, actor), `tests/Engines/ChangeRaceTest.php` (`->group('engines')`: пары «grant∥grant», «update∥update», «revoke∥update», deadlock retry, nested rollback), CRM `tests/Acceptance/Crm/AssignmentsTest.php` (R07, R09 Assignment, R26, R27 через pipe делегирования приложения, R28, R30 без событий, R47, R63) и статусы в `tests/Acceptance/Crm/README.md`."
+    ],
+    "exclude": [
+      "Dynamic actions create/update/delete — P5.7; события, publisher, журнал audit, prune, touch — P5.4; RoleCatalog/GrantManager/PermissionManager и FormerKeys-миграция — P5.3; трейт/`SubjectAccess`/`SubjectPanels` — P5.1; схема — P5.5; directories — P5.8; публичный `AzGuard::actingAs()` и `PanelAccess` — P6.1; multi-panel bulk и атомарность между подключениями — не вводятся (08 §5)."
+    ]
   },
-  "depends_on": [],
-  "decisions": [],
+  "depends_on": [
+    "P4.14"
+  ],
+  "related": [
+    {
+      "ref": "P5.4",
+      "relation": "informs",
+      "note": "ChangeEffect/eventId и точка публикации после commit"
+    }
+  ],
+  "decisions": [
+    "D18",
+    "D12",
+    "D14",
+    "D8",
+    "D6"
+  ],
   "skills": [],
-  "reads": [],
-  "task_files": [],
-  "rules": [],
-  "guidance": "—",
-  "validation": [],
-  "deliverables": [],
+  "reads": [
+    {
+      "ref": "knowledge/P5-change-model",
+      "why": "Протокол, финальная валидация F1–F11, семантика записи, составные операции, инварианты C1–C13, пары гонок и карта приёмки — контракт пункта",
+      "required": true
+    },
+    {
+      "ref": "D18",
+      "why": "Порядок фазы, имена, arch-исключения, исключения, заполненные пробелы",
+      "required": true
+    },
+    {
+      "ref": "D12",
+      "why": "Storage::mutate из ChangePipeline, GrantFields для fields:, Field::model tenant",
+      "required": false
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/06-extension-points.md",
+      "why": "Change, pipes, рецепты делегирования и срока",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "ChangeResult, исключения, GrantDetails, managers",
+      "required": true,
+      "section": "§2"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "ChangeResult, исключения, GrantDetails, managers",
+      "required": true,
+      "section": "§9"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "ChangeResult, исключения, GrantDetails, managers",
+      "required": true,
+      "section": "§10"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "ChangeResult, исключения, GrantDetails, managers",
+      "required": true,
+      "section": "§12"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+      "why": "Схема строк, целостность I1–I12, порядок блокировок",
+      "required": true,
+      "section": "§2"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+      "why": "Схема строк, целостность I1–I12, порядок блокировок",
+      "required": true,
+      "section": "§3"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+      "why": "Схема строк, целостность I1–I12, порядок блокировок",
+      "required": true,
+      "section": "§4"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/08-data-model-and-migration.md",
+      "why": "Схема строк, целостность I1–I12, порядок блокировок",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "Фазы Access/Assignment/Revocation и ChangeContext",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/18-contexts-and-runtime-inputs.md",
+      "why": "Фазы Access/Assignment/Revocation и ChangeContext",
+      "required": true,
+      "section": "§10"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/20-process-map.md",
+      "why": "F08, F09, F11–F13",
+      "required": true,
+      "section": "§3"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V22, V51, V66–V68, V97, V101, V109–V113",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R07, R09, R26–R28, R30, R47, R63",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Storage/Storage.php",
+      "why": "mutate/perform/afterCommit, где добавить `mutation(panel)`",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Storage/StorageMutation.php",
+      "why": "API активной mutation",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Storage/GrantFields.php",
+      "why": "validate/toRow для fields:",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+      "why": "чтения, bindPanel, transaction — сюда apply",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/Sources/StoresGrants.php",
+      "why": "контракт писателя",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Panels/PanelCompiler.php",
+      "why": "compile(): сюда changing",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Panels/Panel.php",
+      "why": "writer(), fields(), accepts()",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "why": "roles(), withDynamic(), find()",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/RoleCompiler.php",
+      "why": "форма CompiledRole: former_keys, grantable, scopes, scope_required",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Authorization/ScopeEligibility.php",
+      "why": "фильтры Access — основа Assignment-проверки",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+      "why": "как Access квалифицирует роль/former key/scope (qualify)",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/TenantPolicy.php",
+      "why": "globalRoles, membership",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "why": "правила зон и записи, куда добавить исключения",
+      "required": true
+    },
+    {
+      "path": "tests/Regression/specs/P13.md",
+      "why": "spec регрессии",
+      "required": true
+    },
+    {
+      "path": "tests/Engines/RevocationRaceTest.php",
+      "why": "образец engine-гонки с процессами",
+      "required": true
+    },
+    {
+      "path": "tests/Engines/Support/Processes.php",
+      "why": "запуск воркеров и барьеры",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Storage/MutateTest.php",
+      "why": "ожидания mutate/nested/retry",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Crm/CrmWorld.php",
+      "why": "CRM-стенд A/B, роли, проекты",
+      "required": true
+    },
+    {
+      "path": "tests/Acceptance/Crm/README.md",
+      "why": "статусы R-кейсов",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Changes/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Contracts/Sources/StoresGrants.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Sources/Database/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Storage/Storage.php",
+      "change": "modify",
+      "note": "только @internal mutation(panel)"
+    },
+    {
+      "path": "packages/core/src/Panels/{Panel,PanelCompiler}.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Authorization/ScopeEligibility.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Exceptions/*.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Unit/Changes/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Feature/Changes/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Engines/ChangeRaceTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Engines/Support/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Changes/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Acceptance/Crm/{AssignmentsTest.php,README.md}",
+      "change": "any"
+    },
+    {
+      "path": "tests/Regression/{P13Test.php,specs/P13.md}",
+      "change": "any"
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Unit/Exceptions/**",
+      "change": "any"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; unavailable engine блокирует пункт.",
+    "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта; код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет.",
+    "Имена — из досье `03`/D18; внутренние коды задач (`P5.2`, `V97`, `R26`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "Lock первым: ни каталог, ни строки, ни fingerprint не читаются для решения о записи до входа в `Storage::mutate` (C2); ранняя проверка шага 0 — только удобная ошибка.",
+    "Финальная валидация выполняется после ВСЕХ pipes над финальным Change; pipe меняет только `until`/`fields` через `withUntil()/withFields()`; любое расхождение identity (F1) — `InvalidConfigurationException` с check `changing`.",
+    "`Unchanged` не вызывает `touch()`, не создаёт `ChangeEffect`; версия растёт ровно на 1 за корневую effective mutation (C4/C5).",
+    "Составная операция строит Change из строк, перечитанных под lock; один невалидный элемент откатывает всю операцию; partition `(panel, tenant, context, origin)` не расширяется (C8).",
+    "Revocation-фаза не требует, чтобы роль/контекст/субъект ещё существовали или были eligible: отзыв orphan/expired/inactive по stored scope разрешён (18 §5, R28).",
+    "`ChangeContext` пересоздаётся на каждой попытке retry и после `with*`; pipes не кэшируют модели между попытками. Внутренний код не делает HTTP/почты внутри mutation.",
+    "Assignment-eligibility не импортирует `Changes` в `Authorization` (правило зон): `ScopeEligibility::assignment()` принимает только Kernel/Panels/Scopes значения.",
+    "Актор не подменяет target: фильтры видят target user, делегирование — дело pipe приложения (D23)."
+  ],
+  "guidance": "### Набросок\n\n```php\nnamespace AzGuard\\Changes;\n\n/** @internal */\nfinal class ChangePipeline\n{\n    public function __construct(private Container $container, private PanelRegistry $registry, private ActingActor $actors) {}\n\n    /** @param Closure(PlanReads): list<Change> $plan */\n    public function run(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null): ChangeResult\n    {\n        $writer = $panel->writer() ?? throw new PanelNotWritableException(...);\n        $actor ??= $this->actors->current($panel);\n        $nested = /* transactionLevel of the writer connection > 0 */;\n        $correlation = strtolower((string) Str::ulid());\n        $results = $writer->transaction(function () use (...) {\n            $reads = PlanReads::locked(...);          // каталог + строки под lock\n            $out = [];\n            foreach ($plan($reads) as $change) {\n                $result = (new Pipeline($this->container))->send($change)->through($panel->changing())\n                    ->then(fn (Change $final): ChangeResult => $this->finalize($panel, $change, $final, $writer));\n                $out[] = $result instanceof ChangeResult ? $result : throw InvalidConfigurationException::failing('changing', '...');\n            }\n            return $out;\n        });\n        return ChangeResult::combine($results, committed: ! $nested, correlationId: $correlation, state: ...);\n    }\n}\n```\n\n- `finalize()` = F1 (сравнить identity с исходным `$change`) → F2–F10 → `$writer->apply($final)`.\n- Новый `StateToken` для `ChangeResult::$state`: заблокированный `PanelState` + (1 если effect) — тот же\n  `StateToken::of(storageId, panel, incarnation, version, cacheGeneration, fingerprint)`, что читает `DatabaseSource`.\n- `GrantRecord::fingerprint` = sha256 канонической строки `IdentityCodec::compose([buildId, id, role|permission,\n  expires_at UTC, canonical-json(fields), updated_at])` — build fingerprint из `PanelRegistry::fingerprint()`.\n- Роль в Change — `RoleKey` скомпилированной роли; нормализация входа (key, `panel:key`, FQCN зарегистрированного\n  `BaseRole`) — `PanelCatalog::roles()` по `key`/`class`; неизвестное → `UnknownRoleException`.\n- Engine-гонки: `tests/Engines/Support/mutate-worker.php`/`Processes.php` — барьер через файл/сокет как в\n  `RevocationRaceTest`; ожидания — таблица «Пары конкурирующих операций» модели P5.\n- CRM R27: делегирование реализует pipe фикстуры (`tests/Fixtures/Changes/DelegationPipe.php`), ядро политики\n  делегирования не содержит (D23).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit/Changes tests/Feature/Changes tests/Acceptance/Crm/AssignmentsTest.php tests/Feature/Storage tests/Feature/Sources/Database tests/Unit/Exceptions --compact --fail-on-skipped",
+      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Regression --compact --fail-on-skipped",
+      "expect": "exit 0; RegressionSpecsTest и регрессии probes зелёные",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; правила зон и записи соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307 docker compose up -d --wait postgres mysql mariadb",
+      "expect": "exit 0; postgres16, mysql8, mariadb10.11 healthy",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "DB_CONNECTION=pgsql PGSQL_PORT=25432 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на pgsql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "DB_CONNECTION=mysql MYSQL_PORT=23306 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на mysql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "DB_CONNECTION=mariadb MARIADB_PORT=23307 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на mariadb; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без группы engines",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V11",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V12",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифест перегенерирован `composer api:manifest` и совпадает с Phase Contract/D18",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V13",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "`Changes\\*` значения и `ChangePipeline`, `StoresGrants::apply`, `DatabaseSource` writer, `Panel::changing()`, Assignment-eligibility, исключения, arch-исключения D18, P13 `covered:`, CRM AssignmentsTest и README-статусы, CHANGELOG.",
+    "Раздел «P5.2» в `@plan/knowledge/findings-P5-execution.json` (создать документ через `plan.py add-document`, если его нет): V/R/probe → тест → результат; версии СУБД engine-прогонов; решения исполнения и отклонения."
+  ],
   "route": {
     "class": "frontier",
     "effort": "high"
@@ -30,64 +421,8 @@
   },
   "rag": {
     "need": "none",
-    "status": "not_needed"
+    "status": "not_needed",
+    "notes": "Внешних изменяющихся предпосылок нет: Illuminate\\Pipeline и Connection::afterCommit проверены по vendor Laravel 13.34.0; поведение — по коду репозитория."
   },
-  "updated_at": "1970-01-01T00:00:00Z",
-  "sections": [
-    {
-      "id": "Intent",
-      "title": "Intent",
-      "text": "—"
-    },
-    {
-      "id": "Why",
-      "title": "Why",
-      "text": "—"
-    },
-    {
-      "id": "Scope-Included",
-      "title": "Scope Included",
-      "text": "—"
-    },
-    {
-      "id": "Scope-Excluded",
-      "title": "Scope Excluded",
-      "text": "—"
-    },
-    {
-      "id": "Inputs",
-      "title": "Inputs",
-      "text": "—"
-    },
-    {
-      "id": "Files",
-      "title": "Files",
-      "text": "—"
-    },
-    {
-      "id": "Required-Reads",
-      "title": "Required Reads",
-      "text": "—"
-    },
-    {
-      "id": "Implementation-Rules",
-      "title": "Implementation Rules",
-      "text": "—"
-    },
-    {
-      "id": "Code-Guidance",
-      "title": "Code Guidance",
-      "text": "—"
-    },
-    {
-      "id": "Validation",
-      "title": "Validation",
-      "text": "—"
-    },
-    {
-      "id": "Deliverables",
-      "title": "Deliverables",
-      "text": ""
-    }
-  ]
+  "updated_at": "2026-10-07T05:56:59Z"
 }

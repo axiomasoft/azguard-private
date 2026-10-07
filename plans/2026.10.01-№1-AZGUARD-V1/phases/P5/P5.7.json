@@ -1,0 +1,236 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P5.7",
+  "title": "Динамические права: create/update/delete через пайплайн изменений",
+  "status": "todo",
+  "summary": "Добавить `ChangeType::{CreatePermission, UpdatePermission, DeletePermission}`, значения `PermissionDetails`/`PermissionRecord` и запись dynamic actions в `DatabaseSource::apply()`: создание только при `dynamicPermissions()`, без тени статичного имени и префикса панели, всегда Grants mode; удаление снимает action и exact direct grants этого имени в tenant одной mutation; pattern-выдачи и enum-права не затрагиваются.",
+  "why": "Dynamic action — единственная runtime-definition в 1.0 (D52/D80, 20 F10/F14). Жёсткие риски: воскрешение выдачи удалённого action (C9, гонка grant ∥ delete), тень статичного enum-имени, смена authority mode, утечка action в другой tenant (V91/V92, R23, R59, R65). RAG:— 05 §2/§12, 08 §2/§6, 19 §5, 20 F10/F14; V82, V92; D18; модель P5.",
+  "scope": {
+    "include": [
+      "`ChangeType` получает `CreatePermission`, `UpdatePermission`, `DeletePermission` (фаза Assignment/Assignment/Revocation); `Changes\\PermissionDetails` (05 §12) и `Changes\\PermissionRecord` (id, panel, tenant, key, label, group, description, fields, createdAt, updatedAt) — `@api`; `ChangeResult` принимает `PermissionRecord` в `record/records`, `ChangeEffect` — в `before/after`.",
+      "`ChangePipeline::createPermission(Panel, TenantRef, string $name, PermissionDetails)`, `updatePermission(…, string $name, PermissionDetails)`, `deletePermission(…, string $name)`; финальная валидация F11 + F7/F8 (поля action: объявлений нет → любое непустое `fields` — `InvalidChangeFieldsException`).",
+      "`DatabaseSource::apply()` для трёх типов; каталог tenant перечитывается под lock через подключение mutation; удаление: DELETE `permissions` строки + DELETE `permission_grants` с `permission = name` (exact, не pattern) в том же panel/tenant, effect `Deleted` на action и на каждую выдачу; arch-исключения D18 п.4 расширяются на `PermissionRecord`, `PermissionDetails`.",
+      "Ошибки: флаг `dynamicPermissions()` не включён → `PanelNotWritableException`; имя статичного права → `DuplicatePermissionException`; префикс панели → `PrefixConflictException`; update/delete несуществующего или статичного имени → `UnknownPermissionException`; повтор create того же имени → `DuplicatePermissionException`.",
+      "Тесты: `tests/Feature/Changes/DynamicPermissions/**` (create/update/delete, no-op update, A/B изоляция, удаление exact vs pattern, shadow/prefix, flag off, rolesOnly writer не мешает create), `tests/Engines/DynamicActionRaceTest.php` (grant ∥ delete без orphan; delete ∥ create), CRM `tests/Acceptance/Crm/DynamicActionsTest.php` (R23 writer, R59 action-часть, R65) и README."
+    ],
+    "exclude": [
+      "Публичный `PermissionManager` и `PermissionSchema` — P5.3/P5.5; события `Permission*` — P5.4; UI `PermissionResource` — P7.3; изменение authority mode или превращение action в роль/политику — не существует (D80)."
+    ]
+  },
+  "depends_on": [
+    "P5.2"
+  ],
+  "decisions": [
+    "D18",
+    "D14"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/P5-change-model",
+      "why": "Валидация F11, семантика записи CreatePermission/UpdatePermission/DeletePermission, инвариант C9, пара grant ∥ delete",
+      "required": true
+    },
+    {
+      "ref": "D18",
+      "why": "Порядок, имена значений, исключения",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "PermissionManager, PermissionDetails",
+      "required": true,
+      "section": "§2"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/05-php-api.md",
+      "why": "PermissionManager, PermissionDetails",
+      "required": true,
+      "section": "§12"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/20-process-map.md",
+      "why": "F10, F14",
+      "required": true,
+      "section": "§3"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/19-oop-and-permission-authority.md",
+      "why": "владение definition, неизменный mode",
+      "required": true,
+      "section": "§5"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V82, V92",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R23, R59, R65",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+      "why": "readPermissions, dynamic overlay, writer P5.2",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Catalog/PanelCatalog.php",
+      "why": "withDynamic: правила shadow/prefix",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Storage/Schema/StorageSchema.php",
+      "why": "таблица permissions и уникальность",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Sources/Database/DynamicCatalogTest.php",
+      "why": "read-side ожидания P4.17",
+      "required": true
+    },
+    {
+      "path": "tests/Engines/RevocationRaceTest.php",
+      "why": "образец engine-гонки",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Changes/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Sources/Database/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Feature/Changes/DynamicPermissions/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Engines/DynamicActionRaceTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Acceptance/Crm/{DynamicActionsTest.php,README.md}",
+      "change": "any"
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; unavailable engine блокирует пункт.",
+    "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта; код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет.",
+    "Имена — из досье `03`/D18; внутренние коды задач (`P5.2`, `V97`, `R26`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "Dynamic action всегда `PermissionAuthority::Grants`; ни один вход не задаёт mode, policy, роль или контекст action (D80, R65).",
+    "Удаление снимает только exact-выдачи этого имени выбранного tenant; pattern `campaigns.*` остаётся и не начинает покрывать несуществующее имя (20 F14).",
+    "Каталог для F11 читается под тем же lock и тем же подключением, что запись; кэшированный каталог для решения о записи не используется."
+  ],
+  "guidance": "Повторно использовать `PanelCatalog::withDynamic()` как единственный источник правил shadow/prefix: построить overlay с новым именем под lock и поймать его исключения, а не дублировать проверки. Тест гонки: процесс A держит lock после проверки grant (барьер), процесс B ждёт и удаляет action; после обоих — нет строки `permission_grants` для удалённого имени; обратный порядок — grant отклонён `UnknownPermissionException`.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Changes tests/Acceptance/Crm/DynamicActionsTest.php tests/Feature/Sources/Database --compact --fail-on-skipped",
+      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; правила зон и записи соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307 docker compose up -d --wait postgres mysql mariadb",
+      "expect": "exit 0; postgres16, mysql8, mariadb10.11 healthy",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "DB_CONNECTION=pgsql PGSQL_PORT=25432 php -d memory_limit=1G vendor/bin/pest tests/Engines/DynamicActionRaceTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на pgsql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "DB_CONNECTION=mysql MYSQL_PORT=23306 php -d memory_limit=1G vendor/bin/pest tests/Engines/DynamicActionRaceTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на mysql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "DB_CONNECTION=mariadb MARIADB_PORT=23307 php -d memory_limit=1G vendor/bin/pest tests/Engines/DynamicActionRaceTest.php --ci --fail-on-skipped",
+      "expect": "exit 0 на mariadb; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без группы engines",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V11",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифест перегенерирован `composer api:manifest` и совпадает с Phase Contract/D18",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V12",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Типы и запись dynamic actions, тесты, CRM DynamicActionsTest/README, CHANGELOG; раздел «P5.7» в `@plan/knowledge/findings-P5-execution.json`."
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-07T05:57:09Z"
+}

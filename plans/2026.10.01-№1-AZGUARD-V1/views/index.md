@@ -22,7 +22,7 @@ PLAN2 · layout v4 · 🟡 Active. JSON files are the source of truth; the Markd
 - [P2](phases/P2/phase.md) — Панели, выбор панели, плагины, каталог, фабрика источников, FolderSource · 🟠 Done with deviations
 - [P3](phases/P3/phase.md) — Хранилище · 🟢 Done
 - [P4](phases/P4/phase.md) — Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость · 🟠 Done with deviations
-- [P5](phases/P5/phase.md) — Модель и изменения · ⬜ Skeleton
+- [P5](phases/P5/phase.md) — Модель и изменения · ⬜ Not started
 - [P6](phases/P6/phase.md) — Laravel-поверхность и удаление legacy · ⬜ Skeleton
 - [P7](phases/P7/phase.md) — Filament по схеме панели · ⬜ Skeleton
 - [P8](phases/P8/phase.md) — Интеграции, документация, гейты, CRM-приёмка, выпуски · ⬜ Skeleton
