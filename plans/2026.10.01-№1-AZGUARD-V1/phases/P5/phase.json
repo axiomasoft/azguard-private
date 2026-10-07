@@ -41,7 +41,11 @@
     "`PanelBuilder::changing()` уже принимает элементы, но компилятор их отбрасывает: без переноса в `Panel` pipes молча не выполняются.",
     "Arch-исключения для Changes-значений — узкие списки классов; `ignoring('AzGuard\\Changes')` целиком открыл бы ChangePipeline источникам.",
     "Событие внутри транзакции или на no-op — дефект P11; `Event::fake()` хоста не должен глушить публичные события (нет внутреннего события-посредника).",
-    "SQLite green не доказывает блокировки и гонки PG/MySQL/MariaDB (D4): engine-проверки обязательны там, где они в Validation."
+    "SQLite green не доказывает блокировки и гонки PG/MySQL/MariaDB (D4): engine-проверки обязательны там, где они в Validation.",
+    "Exactly-one terminal и ТОТ ЖЕ writer result: double next/forged result могут рассинхронизировать строки/effects; rollback обязателен.",
+    "State snapshot фиксируется до commit из locked state+effect; событие несёт resulting revision owning Storage-root, host root только публикует.",
+    "Cascade/FormerKeys/touch — отдельные typed планы D20, не прямой SQL или неявный ordinary Assignment bypass.",
+    "Assignment proposed валидируется до eligibility; compiled model/guard/directory descriptor не теряется; Inspection не выключает tenant boundary."
   ],
   "supporting": [
     "audits/2026-09-29-audit/opus/05-php-api.md",
@@ -125,7 +129,7 @@
     {
       "id": "Phase-Context",
       "title": "Phase Context",
-      "text": "Принимает по [D6](../../decisions/D6.json): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage` (P5.3), `GrantRecord` (P5.2 по D18);\nсквозной P14 (`grantPermission('*')`) — V22 в P5.2 и сценарий трейта в P5.1.\nПринимает по [D8](../../decisions/D8.json): `StoresGrants::apply(Change): ChangeResult` и pipes `changing` (P5.2); строка V64 трейта и\n`SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); `label`/`fields` у `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12.json): `Storage::mutate()` из `ChangePipeline`, `GrantFields` для `fields:`, принадлежность `Field::model`\ntenant, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` (P5.5).\nПринимает по [D14](../../decisions/D14.json) п.4/п.7: FormerKeys — явная миграция (P5.3), отказ записи NotGrantable (P5.2), trait (P5.1).\n\nПорядок исполнения (D18 п.1): **P5.2 → P5.7 → P5.4 → P5.8 → P5.5 → P5.3 → P5.1 → P5.6**, каждый пункт solo.\nМаршрут исполнителя по D16 — `gpt-6.1-sol/high` или назначенный владельцем; review P5.6 — независимая read-only сессия.\n\nСреда (D4): SQLite `:memory:` по умолчанию; engine-гонки и DDL — docker compose `postgres` (16), `mysql` (8),\n`mariadb` (10.11) на портах `PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307`; недоступный engine блокирует\nпункт. Laravel в vendor — 13.34.0; матрица 11/12/13 — P8.4.\n\nЧтение исполнителя: plan → этот Phase Context → item → `@plan/knowledge/P5-change-model.json` (разделы из reads) →\nD18 → указанные разделы досье → код."
+      "text": "Принимает по [D6](../../decisions/D6.json): `ChangeContext` (P5.2), `GrantFilter`/`GrantPage` (P5.3), `GrantRecord` (P5.2 по D18);\nсквозной P14 (`grantPermission('*')`) — V22 в P5.2 и сценарий трейта в P5.1.\nПринимает по [D8](../../decisions/D8.json): `StoresGrants::apply(Change): ChangeResult` и pipes `changing` (P5.2); строка V64 трейта и\n`SubjectAccess` через `PanelResolver`, селектор `guard()` V108 (P5.1); `label`/`fields` у `SourceDescription` (P5.5).\nПринимает по [D12](../../decisions/D12.json): `Storage::mutate()` из `ChangePipeline`, `GrantFields` для `fields:`, принадлежность `Field::model`\ntenant, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\\Field` (P5.5).\nПринимает по [D14](../../decisions/D14.json) п.4/п.7: FormerKeys — явная миграция (P5.3), отказ записи NotGrantable (P5.2), trait (P5.1).\n\nПорядок исполнения (D18 п.1): **P5.2 → P5.7 → P5.4 → P5.8 → P5.5 → P5.3 → P5.1 → P5.6**, каждый пункт solo.\nМаршрут исполнителя по D16 — `gpt-6.1-sol/high` или назначенный владельцем; review P5.6 — независимая read-only сессия.\n\nСреда (D4): SQLite `:memory:` по умолчанию; engine-гонки и DDL — docker compose `postgres` (16), `mysql` (8),\n`mariadb` (10.11) на портах `PGSQL_PORT=25432 MYSQL_PORT=23306 MARIADB_PORT=23307`; недоступный engine блокирует\nпункт. Laravel в vendor — 13.34.0; матрица 11/12/13 — P8.4.\n\nЧтение исполнителя: plan → этот Phase Context → item → `@plan/knowledge/P5-change-model.json` (разделы из reads) →\nD18 → указанные разделы досье → код.\n\nD20 фиксирует исправления design review; model P5 обновлён, его Protocol/Validation/Composite/Delivery/Build-host-fence обязательны. D18 сохраняется исторически; различающиеся уточнения — D20."
     },
     {
       "id": "Order",
@@ -140,7 +144,7 @@
     {
       "id": "Validation-strategy",
       "title": "Validation strategy",
-      "text": "Каждый пункт: targeted Pest своих тестов, `tests/Regression` (где задеты регрессии), `tests/Arch`, engine-группа на PG/MySQL/MariaDB для гонок/DDL, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`. Итоги и решения исполнения — разделы пунктов в `@plan/knowledge/findings-P5-execution.json`."
+      "text": "Каждый пункт: targeted Pest своих тестов, `tests/Regression` (где задеты регрессии), `tests/Arch`, engine-группа на PG/MySQL/MariaDB для гонок/DDL, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`. Итоги и решения исполнения — разделы пунктов в `@plan/knowledge/findings-P5-execution.json`.\nP5.6 повторяет также Pint/type coverage/diff; schema/next/context check не доказывают runtime реализации. R29/R59 host consumer часть P8.7 сохраняется future."
     },
     {
       "id": "Phase-Handoff",

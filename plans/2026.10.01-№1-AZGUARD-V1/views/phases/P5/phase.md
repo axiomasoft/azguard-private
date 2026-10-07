@@ -90,6 +90,10 @@ D18 → указанные разделы досье → код.
 - Arch-исключения для Changes-значений — узкие списки классов; `ignoring('AzGuard\Changes')` целиком открыл бы ChangePipeline источникам.
 - Событие внутри транзакции или на no-op — дефект P11; `Event::fake()` хоста не должен глушить публичные события (нет внутреннего события-посредника).
 - SQLite green не доказывает блокировки и гонки PG/MySQL/MariaDB (D4): engine-проверки обязательны там, где они в Validation.
+- Exactly-one terminal и ТОТ ЖЕ writer result: double next/forged result могут рассинхронизировать строки/effects; rollback обязателен.
+- State snapshot фиксируется до commit из locked state+effect; событие несёт resulting revision owning Storage-root, host root только публикует.
+- Cascade/FormerKeys/touch — отдельные typed планы D20, не прямой SQL или неявный ordinary Assignment bypass.
+- Assignment proposed валидируется до eligibility; compiled model/guard/directory descriptor не теряется; Inspection не выключает tenant boundary.
 
 ## Supporting
 
@@ -201,6 +205,8 @@ tenant, остаток V51/V97/V101 (P5.2/P5.3); `FieldSchema` из `Schema\Fiel
 Чтение исполнителя: plan → этот Phase Context → item → `@plan/knowledge/P5-change-model.json` (разделы из reads) →
 D18 → указанные разделы досье → код.
 
+D20 фиксирует исправления design review; model P5 обновлён, его Protocol/Validation/Composite/Delivery/Build-host-fence обязательны. D18 сохраняется исторически; различающиеся уточнения — D20.
+
 ## Порядок исполнения и batches
 
 | Шаг | Пункт | Batch | Почему здесь |
@@ -223,6 +229,7 @@ D18 → указанные разделы досье → код.
 ## Validation strategy
 
 Каждый пункт: targeted Pest своих тестов, `tests/Regression` (где задеты регрессии), `tests/Arch`, engine-группа на PG/MySQL/MariaDB для гонок/DDL, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`. Итоги и решения исполнения — разделы пунктов в `@plan/knowledge/findings-P5-execution.json`.
+P5.6 повторяет также Pint/type coverage/diff; schema/next/context check не доказывают runtime реализации. R29/R59 host consumer часть P8.7 сохраняется future.
 
 ## Phase Handoff
 

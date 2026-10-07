@@ -7,16 +7,19 @@
   "why": "Единственный путь записи (D22/D49) — основа всего P5: на нём стоят события P5.4, dynamic actions P5.7, менеджеры P5.3 и трейт P5.1. Жёсткие риски: воскрешение orphan-выдачи после удаления роли/action (C9), запись в чужой tenant/origin (C8), pipe, подменяющий identity (C3/F1), дубли и ложные bump при retry/no-op (C4/C5), exact-выдача PolicyOnly-права (C10), голые `*`/`**` (C11). RAG:— 06 §5, 05 §2/§9/§10/§12, 08 §2–§5, 18 §5/§10, 20 F08/F09/F11–F13; D22, D23, D49, D77; плановые D8, D12, D14 п.4, D18; модель `knowledge/P5-change-model`.",
   "scope": {
     "include": [
-      "Значения `@api` в `packages/core/src/Changes/`: `ChangeType` (string enum: `GrantRole`, `RevokeRole`, `GrantPermission`, `RevokePermission`, `UpdateGrant`; `isGrant()`, `isRevoke()`, `phase(): AssignmentScopePhase`), `Change` (final readonly: `type`, `panel`, `subject`, `role`, `permission`, `scope`, `origin`, `until`, `fields`, `actor`, `grantId`; `context(): ChangeContext`, `withUntil()`, `withFields()`, `cancel(string): never`), `ChangeContext` (поля 18 §10, `actor` — `?ActorRef` по D18 п.6), `ChangeStatus` (`Applied`/`Unchanged`), `ChangeResult` (`status`, `record`, `records`, `effects`, `state`, `committed`, `correlationId`), `ChangeEffect` + `EffectKind` (`Created`/`Updated`/`Deleted`, `before`/`after`, `eventId` ULID, `expired=false`), `GrantRecord` (id, kind, panel, tenant, subject, role|permission, scope, origin, expiresAt, fields, actor, createdAt, updatedAt, `fingerprint`), `GrantDetails` (05 §12).",
+      "Значения @api Changes\\Change/ChangeType/ChangeContext/ChangeResult/ChangeEffect/EffectKind/GrantRecord/GrantDetails по typed матрице D20 и модели P5. Change::$scope: AccessScope, subject:?SubjectRef, role:?RoleKey, permission:?PermissionPattern, origin, actor:?ActorRef, until/fields, grantId:?string, expectedFingerprint:?string; last two immutable selection inputs. Dynamic PermissionDetails/name расширяет P5.7, TouchPanel — P5.4, INTERNAL maintenance — P5.3. ChangeContext fresh checked proposed, withUntil/withFields не меняют identity. GrantRecord содержит fingerprint; results/effects authoritative, не подменяемый pipe return.",
       "Контракт `StoresGrants::apply(Change $change): ChangeResult` (D8) и реализация в `DatabaseSource` (+ внутренний `Sources\\Database\\GrantWriter`): запись только внутри активной mutation панели через новый `@internal Storage::mutation(string $panel): StorageMutation` (вне — `UnsupportedDirectWriteException`); семантика insert/update/no-op/delete и равенства — раздел «Семантика записи» модели P5; `StorageMutation::touch()` только при effect.",
       "`Panel::changing(): list<Closure|object|class-string>` и перенос записи рецепта `changing` в `PanelCompiler::compile()` в порядке provider → plugins → configure; элемент — Closure, объект с public `handle(Change, Closure)` или class-string такого класса, иначе `DefinitionException` при сборке.",
       "Внутренний `Changes\\ChangePipeline`: операции `grant(Panel, TenantRef, SubjectRef, RoleKey|PermissionPattern, AssignmentScopeRef, origin, until, fields, ?ActorRef)`, `revoke(…, AssignmentScopeRef|AnyAssignmentScope …)`, `sync(roles|permissions, partition)`, `update(Panel, TenantRef, origin, string $id, GrantDetails, ?string $expectedFingerprint)`; протокол шагов 0–8, retry и nested — раздел «Протокол» модели P5. Pipe обязан вернуть `ChangeResult`.",
-      "Финальная валидация F1–F10 (раздел «Финальная валидация» модели P5), включая Assignment-eligibility через новый `Authorization\\ScopeEligibility::assignment(...)`, который применяет те же common и role-binding фильтры с `AssignmentScopeRuntime(phase: Assignment, user: target, role, actor, now)`; Revocation пропускает F2/F3/F5/F6 (orphan cleanup по stored scope).",
+      "Финальная валидация F1–F10 по исправленному Validation модели: schema/UTC expiry и tenant Field::model ДО F6, затем common+role Assignment eligibility. Scopes\\AssignmentScopeRuntime получает neutral validated proposed и nullable actor; LookupContext actor nullable. Общий guarded predicate/invoker выделяется в Scopes из Access helper и используется Access/Assignment/Directories без Changes dependency и без второй реализации; существующие Access guards сохраняются.",
       "Внутренний `Changes\\ActingActor` (scoped): стек `run(?ActorRef, Closure)` и `current(Panel): ?ActorRef` по порядку D18 п.6; `Panel` получает доступ к auth guard субъектов (`for(model:, guard:)`), если его нет.",
       "Исключения в `Exceptions/` (родитель `ChangeException`, коды 05 §10): `UnknownRoleException`, `RoleNotGrantableException`, `PermissionNotGrantableException`, `PanelNotWritableException`, `AssignmentScopeNotAcceptedException`, `AssignmentScopeRequiredException`, `TenantRequiredException`, `TenantMismatchException`, `ChangeCancelledException`, `StaleSelectionException`; unit-тесты кодов как у существующих исключений.",
       "Arch (`tests/Arch/ZonesArchTest.php`): правила «contracts do not import implementations» и «sources do not use changes» получают `ignoring` ровно для value-классов D18 п.4 (`Change`, `ChangeType`, `ChangeContext`, `ChangeResult`, `ChangeStatus`, `ChangeEffect`, `EffectKind`, `GrantRecord`, `GrantDetails`); новый тест доказывает, что импорт `ChangePipeline` из `Sources\\Database` или `Contracts` по-прежнему ловится.",
       "Регрессия P13 на уровне `ChangePipeline` в `tests/Regression/P13Test.php` (неизвестная роль → `UnknownRoleException`, опечатка права → `UnknownPermissionException`, строк нет) и `Status: covered:` в `tests/Regression/specs/P13.md`; V22 на записи (голые `*`/`**` → `InvalidPermissionKeyException`, суперадмин только ролью).",
-      "Тесты: `tests/Unit/Changes/**`, `tests/Feature/Changes/**` (pipes порядок/отмена/withUntil/withFields/подмена identity, F1–F10 по одной ошибке, no-op vs update, sync/revokeAny/update, nested в host-транзакции, retry с повтором pipes, actor), `tests/Engines/ChangeRaceTest.php` (`->group('engines')`: пары «grant∥grant», «update∥update», «revoke∥update», deadlock retry, nested rollback), CRM `tests/Acceptance/Crm/AssignmentsTest.php` (R07, R09 Assignment, R26, R27 через pipe делегирования приложения, R28, R30 без событий, R47, R63) и статусы в `tests/Acceptance/Crm/README.md`."
+      "Тесты: `tests/Unit/Changes/**`, `tests/Feature/Changes/**` (pipes порядок/отмена/withUntil/withFields/подмена identity, F1–F10 по одной ошибке, no-op vs update, sync/revokeAny/update, nested в host-транзакции, retry с повтором pipes, actor), `tests/Engines/ChangeRaceTest.php` (`->group('engines')`: пары «grant∥grant», «update∥update», «revoke∥update», deadlock retry, nested rollback), CRM `tests/Acceptance/Crm/AssignmentsTest.php` (R07, R09 Assignment, R26, R27 через pipe делегирования приложения, R28, R30 без событий, R47, R63) и статусы в `tests/Acceptance/Crm/README.md`.",
+      "Сохранить compiled immutable subject descriptors (model, guard, directory) из PanelBuilder::for() в Panel/PanelCompiler; reader для ActingActor, Schema и DirectoryResolver. subjectModels()/accepts() прежней семантики; конфликты descriptor metadata → DefinitionException. Не терять configured directory при array_column(model).",
+      "Exactly-once continuation, writer-owned result и mutation-side reads/StateToken capture из Protocol D20; tests skip-next/double-next/forged result → rollback, two host mutations → v+1/v+2, one active nested Storage-root → один bump, no-op и failed subtree, immutable snapshot после listener mutation. R29 package/build fence + cooperating host fixture и barrier engine cases Build-host-fence; никакой distributed guarantee одним registry hash.",
+      "Tests runtime proposed: invalid field/expiry не вызывает filter; withFields/withUntil и retry дают fresh validated frame; explicit null actor не подменяется Auth, non-null required filter rejects null; Access scalar/batch/exact behavior не регрессирует. Subject descriptors guard/custom directory/default сохраняются compile/cache builds."
     ],
     "exclude": [
       "Dynamic actions create/update/delete — P5.7; события, publisher, журнал audit, prune, touch — P5.4; RoleCatalog/GrantManager/PermissionManager и FormerKeys-миграция — P5.3; трейт/`SubjectAccess`/`SubjectPanels` — P5.1; схема — P5.5; directories — P5.8; публичный `AzGuard::actingAs()` и `PanelAccess` — P6.1; multi-panel bulk и атомарность между подключениями — не вводятся (08 §5)."
@@ -37,7 +40,8 @@
     "D12",
     "D14",
     "D8",
-    "D6"
+    "D6",
+    "D20"
   ],
   "skills": [],
   "reads": [
@@ -250,7 +254,7 @@
     {
       "path": "packages/core/src/Storage/Storage.php",
       "change": "modify",
-      "note": "только @internal mutation(panel)"
+      "note": "@internal mutation(panel) и захват immutable locked snapshot; публичный mutate lifecycle не ослабляется"
     },
     {
       "path": "packages/core/src/Panels/{Panel,PanelCompiler}.php",
@@ -307,6 +311,36 @@
     {
       "path": "CHANGELOG.md",
       "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Scopes/**",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
+    },
+    {
+      "path": "packages/core/src/Directories/LookupContext.php",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
+    },
+    {
+      "path": "packages/core/src/Authorization/Query/**",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
+    },
+    {
+      "path": "tests/Feature/Scopes/**",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
+    },
+    {
+      "path": "tests/Feature/Authorization/**",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
+    },
+    {
+      "path": "tests/Feature/Panels/**",
+      "change": "modify",
+      "note": "neutral runtime/shared predicates/descriptors; preserving Access tests"
     }
   ],
   "rules": [
@@ -316,7 +350,7 @@
     "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
     "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
     "Lock первым: ни каталог, ни строки, ни fingerprint не читаются для решения о записи до входа в `Storage::mutate` (C2); ранняя проверка шага 0 — только удобная ошибка.",
-    "Финальная валидация выполняется после ВСЕХ pipes над финальным Change; pipe меняет только `until`/`fields` через `withUntil()/withFields()`; любое расхождение identity (F1) — `InvalidConfigurationException` с check `changing`.",
+    "Финальная валидация выполняется после ВСЕХ pipes над финальным Change; exactly-once next/terminal и тот же writer result; pipe меняет только `until`/`fields` через `withUntil()/withFields()`; любое расхождение identity (F1) — `InvalidConfigurationException` с check `changing`.",
     "`Unchanged` не вызывает `touch()`, не создаёт `ChangeEffect`; версия растёт ровно на 1 за корневую effective mutation (C4/C5).",
     "Составная операция строит Change из строк, перечитанных под lock; один невалидный элемент откатывает всю операцию; partition `(panel, tenant, context, origin)` не расширяется (C8).",
     "Revocation-фаза не требует, чтобы роль/контекст/субъект ещё существовали или были eligible: отзыв orphan/expired/inactive по stored scope разрешён (18 §5, R28).",
@@ -324,12 +358,12 @@
     "Assignment-eligibility не импортирует `Changes` в `Authorization` (правило зон): `ScopeEligibility::assignment()` принимает только Kernel/Panels/Scopes значения.",
     "Актор не подменяет target: фильтры видят target user, делегирование — дело pipe приложения (D23)."
   ],
-  "guidance": "### Набросок\n\n```php\nnamespace AzGuard\\Changes;\n\n/** @internal */\nfinal class ChangePipeline\n{\n    public function __construct(private Container $container, private PanelRegistry $registry, private ActingActor $actors) {}\n\n    /** @param Closure(PlanReads): list<Change> $plan */\n    public function run(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null): ChangeResult\n    {\n        $writer = $panel->writer() ?? throw new PanelNotWritableException(...);\n        $actor ??= $this->actors->current($panel);\n        $nested = /* transactionLevel of the writer connection > 0 */;\n        $correlation = strtolower((string) Str::ulid());\n        $results = $writer->transaction(function () use (...) {\n            $reads = PlanReads::locked(...);          // каталог + строки под lock\n            $out = [];\n            foreach ($plan($reads) as $change) {\n                $result = (new Pipeline($this->container))->send($change)->through($panel->changing())\n                    ->then(fn (Change $final): ChangeResult => $this->finalize($panel, $change, $final, $writer));\n                $out[] = $result instanceof ChangeResult ? $result : throw InvalidConfigurationException::failing('changing', '...');\n            }\n            return $out;\n        });\n        return ChangeResult::combine($results, committed: ! $nested, correlationId: $correlation, state: ...);\n    }\n}\n```\n\n- `finalize()` = F1 (сравнить identity с исходным `$change`) → F2–F10 → `$writer->apply($final)`.\n- Новый `StateToken` для `ChangeResult::$state`: заблокированный `PanelState` + (1 если effect) — тот же\n  `StateToken::of(storageId, panel, incarnation, version, cacheGeneration, fingerprint)`, что читает `DatabaseSource`.\n- `GrantRecord::fingerprint` = sha256 канонической строки `IdentityCodec::compose([buildId, id, role|permission,\n  expires_at UTC, canonical-json(fields), updated_at])` — build fingerprint из `PanelRegistry::fingerprint()`.\n- Роль в Change — `RoleKey` скомпилированной роли; нормализация входа (key, `panel:key`, FQCN зарегистрированного\n  `BaseRole`) — `PanelCatalog::roles()` по `key`/`class`; неизвестное → `UnknownRoleException`.\n- Engine-гонки: `tests/Engines/Support/mutate-worker.php`/`Processes.php` — барьер через файл/сокет как в\n  `RevocationRaceTest`; ожидания — таблица «Пары конкурирующих операций» модели P5.\n- CRM R27: делегирование реализует pipe фикстуры (`tests/Fixtures/Changes/DelegationPipe.php`), ядро политики\n  делегирования не содержит (D23).",
+  "guidance": "### Набросок\n\n```php\nnamespace AzGuard\\Changes;\n\n/** @internal */\nfinal class ChangePipeline\n{\n    public function __construct(private Container $container, private PanelRegistry $registry, private ActingActor $actors) {}\n\n    /** @param Closure(PlanReads): list<Change> $plan */\n    public function run(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null): ChangeResult\n    {\n        $writer = $panel->writer() ?? throw new PanelNotWritableException(...);\n        $actor ??= $this->actors->current($panel);\n        $nested = /* transactionLevel of the writer connection > 0 */;\n        $correlation = strtolower((string) Str::ulid());\n        $results = $writer->transaction(function () use (...) {\n            $reads = PlanReads::locked(...);          // каталог + строки под lock\n            $out = [];\n            foreach ($plan($reads) as $change) {\n                $terminal = OnceTerminal::planned($change, fn (Change $final): ChangeResult =>\n                    $this->finalize($panel, $change, $final, $writer));\n                $returned = (new Pipeline($this->container))->send($change)->through($panel->changing())\n                    ->then($terminal); // guard each continuation as well\n                $out[] = $terminal->requireExactlyOneResult($returned); // same writer result; else rollback\n            }\n            return $out;\n        });\n        return ChangeResult::combine($results, committed: ! $nested, correlationId: $correlation, state: ...);\n    }\n}\n```\n\n- `finalize()` = F1 (сравнить identity с исходным `$change`) → F2–F10 → `$writer->apply($final)`.\n- Новый `StateToken` для `ChangeResult::$state`: заблокированный `PanelState` + (1 если effect) — тот же\n  `StateToken::of(storageId, panel, incarnation, version, cacheGeneration, fingerprint)`, что читает `DatabaseSource`.\n- `GrantRecord::fingerprint` = sha256 канонической строки `IdentityCodec::compose([buildId, id, role|permission,\n  expires_at UTC, canonical-json(fields), updated_at])` — build fingerprint из `PanelRegistry::fingerprint()`.\n- Роль в Change — `RoleKey` скомпилированной роли; нормализация входа (key, `panel:key`, FQCN зарегистрированного\n  `BaseRole`) — `PanelCatalog::roles()` по `key`/`class`; неизвестное → `UnknownRoleException`.\n- Engine-гонки: `tests/Engines/Support/mutate-worker.php`/`Processes.php` — барьер через файл/сокет как в\n  `RevocationRaceTest`; ожидания — таблица «Пары конкурирующих операций» модели P5.\n- CRM R27: делегирование реализует pipe фикстуры (`tests/Fixtures/Changes/DelegationPipe.php`), ядро политики\n  делегирования не содержит (D23).\n\nD20: `PlanReads::locked` использует только активный mutation-side write PDO с полными partition predicates, а не public DatabaseSource readSession. Финальный token строится из captured locked state + authoritative effect (v+1), не после commit через перечитывание. AssignmentRuntime/LookupContext поля и guarded shared predicate engine — owning P5.2; все строки Type/Payload/F applicability и root snapshot определены в модели, это контракт, не свобода наброска.\n`OnceTerminal` в наброске — внутренняя форма guard (класс или closure); public API не добавляется. Guard каждого continuation отсекает повтор сразу, итог terminal/result сверяется в любом случае.",
   "validation": [
     {
       "id": "V1",
-      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit/Changes tests/Feature/Changes tests/Acceptance/Crm/AssignmentsTest.php tests/Feature/Storage tests/Feature/Sources/Database tests/Unit/Exceptions --compact --fail-on-skipped",
-      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit/Changes tests/Feature/Changes tests/Acceptance/Crm/AssignmentsTest.php tests/Feature/Storage tests/Feature/Sources/Database tests/Unit/Exceptions tests/Feature/Scopes tests/Feature/Authorization tests/Feature/Panels --compact --fail-on-skipped",
+      "expect": "exit 0; все целевые тесты пункта зелёные, без skipped; exactly-once, validated proposed, subject descriptors и Access regression",
       "kind": "acceptance"
     },
     {
@@ -353,19 +387,19 @@
     {
       "id": "V5",
       "cmd": "DB_CONNECTION=pgsql PGSQL_PORT=25432 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
-      "expect": "exit 0 на pgsql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "expect": "exit 0 на pgsql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN; R29 build/host fence barrier, old-build refusal и new-build positive control",
       "kind": "acceptance"
     },
     {
       "id": "V6",
       "cmd": "DB_CONNECTION=mysql MYSQL_PORT=23306 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
-      "expect": "exit 0 на mysql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "expect": "exit 0 на mysql; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN; R29 build/host fence barrier, old-build refusal и new-build positive control",
       "kind": "acceptance"
     },
     {
       "id": "V7",
       "cmd": "DB_CONNECTION=mariadb MARIADB_PORT=23307 php -d memory_limit=1G vendor/bin/pest tests/Engines/ChangeRaceTest.php tests/Engines/MutateConcurrencyTest.php tests/Engines/MutateDeadlockTest.php --ci --fail-on-skipped",
-      "expect": "exit 0 на mariadb; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN",
+      "expect": "exit 0 на mariadb; гонки воспроизведены барьерами, не sleep; unavailable engine = blocker, не GREEN; R29 build/host fence barrier, old-build refusal и new-build positive control",
       "kind": "acceptance"
     },
     {
@@ -424,5 +458,5 @@
     "status": "not_needed",
     "notes": "Внешних изменяющихся предпосылок нет: Illuminate\\Pipeline и Connection::afterCommit проверены по vendor Laravel 13.34.0; поведение — по коду репозитория."
   },
-  "updated_at": "2026-10-07T05:56:59Z"
+  "updated_at": "2026-10-07T08:24:26Z"
 }

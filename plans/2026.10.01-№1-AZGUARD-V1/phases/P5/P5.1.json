@@ -14,7 +14,8 @@
       "`Authorizer` (внутренне): квалифицированные вклады субъекта в scope тем же путём, что `isSuperAdmin` (`prepareSuperAdmin` + `qualify`), → `roles(): list<RoleKey>` и `permissionSet(): PermissionSet` по D18 п.6.",
       "Отображение `on:`: модель — `model()` определения контекста панели → context ref + resource; `ProvidesAssignmentScope`/`ProvidesAccessScope` → как в `GateBridge`; иная модель → resource; `AssignmentScopeRef` → context; `AnyAssignmentScope` только для revoke/списков; записи с ресурсом вместо контекста → `AssignmentScopeNotAcceptedException`.",
       "Регрессии: сквозные сценарии spec на `$user->guard('admin')` в `tests/Regression/P13Test.php`, `P11Test.php`, `P14Test.php` (V22) — владельцы не меняются (D18 п.3).",
-      "Тесты `tests/Feature/Concerns/**`: V70 (рецепты Spatie в панели по умолчанию и через `guard()`), V64 строки трейта и `SubjectAccess`, V87 (две вкладки/A-B wrappers неизменяемы, исключение посередине), V108 (`guard(['secret'])`, named argument `guarded:`, `mergeGuarded`, `fill`; Auth/default guard не меняются; модель с собственным `guard()` + `azguard()->guard()`), V12–V14/V16/V86/V88 публичный wrapper, V38/V39/V103 immutable wrapper; CRM `tests/Acceptance/Crm/SubjectApiTest.php` (R03, R04, R05) + README."
+      "Тесты `tests/Feature/Concerns/**`: V70 (рецепты Spatie в панели по умолчанию и через `guard()`), V64 строки трейта и `SubjectAccess`, V87 (две вкладки/A-B wrappers неизменяемы, исключение посередине), V108 (`guard(['secret'])`, named argument `guarded:`, `mergeGuarded`, `fill`; Auth/default guard не меняются; модель с собственным `guard()` + `azguard()->guard()`), V12–V14/V16/V86/V88 публичный wrapper, V38/V39/V103 immutable wrapper; CRM `tests/Acceptance/Crm/SubjectApiTest.php` (R03, R04, R05) + README.",
+      "D20: fromOrigin partition сужает только assignment manager/write/list reads, не authorization hasPermission/decide/permissionSet/roleNames. Тест revoke manual при relation/external witness продолжает allow; событие/read snapshot не используют tentative nested ChangeResult в общем memo."
     ],
     "exclude": [
       "Фасад `AzGuard::panel()/check()/authorize()/actingAs()`, `PanelAccess` — P6.1; middleware/`#[CheckPermission]` — P6.2; queue Context — P6.10; генераторы — P6.8; документация рецептов — P8.2; матрица Laravel 11/12/13 и внешний consumer для `guard()` — P8.4/P8.7."
@@ -28,7 +29,8 @@
   "decisions": [
     "D18",
     "D8",
-    "D14"
+    "D14",
+    "D20"
   ],
   "skills": [],
   "reads": [
@@ -296,5 +298,5 @@
     "status": "not_needed",
     "notes": "Сигнатура `Model::guard(array $guarded)` проверена по vendor Laravel 13.34.0; матрица 11/12 — P8.4."
   },
-  "updated_at": "2026-10-07T05:56:57Z"
+  "updated_at": "2026-10-07T08:24:26Z"
 }

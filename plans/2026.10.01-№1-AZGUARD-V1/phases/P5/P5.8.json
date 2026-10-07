@@ -7,11 +7,12 @@
   "why": "Редакторы назначений (P7.4) и внешние consumers ищут субъектов и контексты; без серверной реализации фильтр autocomplete подменялся бы фильтром текущего админа (R26/R36) или обрезал выдачу после LIMIT. Жёсткие риски: утечка контекстов чужого tenant, LIMIT до eligibility, фильтр по actor вместо target. RAG:— 18 §3/§5/§10, 06 §7, 05 §12, 20 F19; V114, R36, R50; D11 (SubjectDirectory через модели панели); D18.",
   "scope": {
     "include": [
-      "`Directories\\ModelSubjectDirectory` (`SubjectDirectory` по моделям `for(model:)` панели): `search()` — по ключу модели и, если модель объявляет `azguardSearchColumns(): list<string>` (статический метод трейта/модели), LIKE по этим колонкам; `describe()` — label из `azguardLabel()` либо ключ. Панель с `for(..., directory: Class)` использует свой класс.",
-      "`Directories\\QueryScopeDirectory` (`AssignmentScopeDirectory` для `QueryableAssignmentScopeDefinition`): свежий `query()` → ограничение выбранным tenant (`ModelAssignmentScopeDefinition` — по owner/tenant колонке; иначе chunk с `tenantOf` до набора `limit` записей) → common filters панели → filters binding роли из `LookupContext::$role` с `AssignmentScopeRuntime(phase: Assignment|Inspection, user: target, role, actor, now)` → LIMIT; `describe()` — `definition->resolve(ref)`; для `phase=Inspection` фильтры eligibility не применяются (админ видит stored context).",
+      "`Directories\\ModelSubjectDirectory` (`SubjectDirectory` по моделям `for(model:)` панели): `search()` — по ключу модели и, если модель объявляет `azguardSearchColumns(): list<string>` (статический метод трейта/модели), LIKE по этим колонкам; `describe()` — label из `azguardLabel()` либо ключ. Панель с `for(..., directory: Class)` использует свой класс. Custom directory читается из immutable compiled subject descriptor P5.2; auth/default guard не меняется. LIKE term как bound value, search columns declared safe model columns, не произвольные request identifiers.",
+      "Directories\\QueryScopeDirectory для QueryableAssignmentScopeDefinition: fresh query, isolated common + role filters через shared Scopes engine P5.2, stable key order/chunk scan; tenantOf(record) проверяется для КАЖДОГО candidate до добавления option. ModelAssignmentScopeDefinition owner — arbitrary Closure, SQL tenant column не предполагается. Чужие rows не расходуют accepted limit; продолжать scan до limit accepted/exhaustion. Predicate-only filters и structural identity неизменны; server cap/chunk size явны, если exhaustion не доказана — не выдавать partial result за полный. Inspection пропускает только eligibility, всегда сохраняет type/ref/owner/tenant. describe(ref,lookup) → resolve + identity/type + owner tenant match; иначе null, label чужой записи не раскрывается.",
       "`Directories\\ModelTenantDirectory` (`TenantDirectory` по `ModelTenantDefinition`).",
-      "Выбор директории: настроенная (`BaseAssignmentScope::directory()`, `for(..., directory:)`) → иначе класс по умолчанию; одна внутренняя точка `Directories\\DirectoryResolver::for(Panel, …)`.",
-      "Тесты `tests/Feature/Directories/**` и CRM `tests/Acceptance/Crm/DirectoriesTest.php`: R36 (target seller/analyst в разных городах и tenants; админ другого города; LIMIT после eligibility), V114 (proposed fields и actor видны фильтру; Inspection показывает inactive context), R50 directory-часть (свой directory внешнего consumer через публичный SPI); README."
+      "Выбор директории: настроенная (`BaseAssignmentScope::directory()`, `for(..., directory:)`) → иначе класс по умолчанию; одна внутренняя точка `Directories\\DirectoryResolver::for(Panel, …)`. SubjectDirectory может работать при lookup.subject=null на стадии выбора субъекта; Assignment context search без selected SubjectRef → [] ДО filters. Inspection authorize выполняет host/admin adapter, не target runtime eligibility; не расширяет tenants.",
+      "Тесты `tests/Feature/Directories/**` и CRM `tests/Acceptance/Crm/DirectoriesTest.php`: R36 (target seller/analyst в разных городах и tenants; админ другого города; LIMIT после eligibility), V114 (proposed fields и actor видны фильтру; Inspection показывает inactive context), R50 directory-часть (свой directory внешнего consumer через публичный SPI); README.",
+      "Тесты foreign tenant describe в Assignment/Inspection → null без label; targetless Assignment scope search → []; arbitrary owner callback (нет SQL tenant column), первые chunks только foreign/filtered rows, valid rows позднее — limit заполнен верными options; common/binding OR не снимает границы; custom subject directory survives compile and selected default."
     ],
     "exclude": [
       "UI autocomplete и формы — P7.4; поиск субъектов через Scout/полнотекст — не вводится; Directories не импортирует `Authorization`, `Storage`, `Changes` (arch)."
@@ -21,7 +22,8 @@
     "P5.2"
   ],
   "decisions": [
-    "D18"
+    "D18",
+    "D20"
   ],
   "reads": [
     {
@@ -145,6 +147,16 @@
     {
       "path": "CHANGELOG.md",
       "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Scopes/**",
+      "change": "modify",
+      "note": "shared predicates reuse/neutral lookup and architecture negative controls"
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "change": "modify",
+      "note": "shared predicates reuse/neutral lookup and architecture negative controls"
     }
   ],
   "rules": [
@@ -153,11 +165,11 @@
     "Имена — из досье `03`/D18; внутренние коды задач (`P5.2`, `V97`, `R26`) в docblock `src` запрещены, в тестах и findings допустимы.",
     "Все записи назначений и dynamic actions — только через `Changes\\ChangePipeline` → `StoresGrants::apply()` внутри `Storage::mutate()`; прямой Eloquent `save()/delete()` и raw SQL запрещены (C1 модели P5).",
     "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
-    "Фильтры eligibility и tenant применяются в запросе ДО LIMIT; пост-фильтрация страницы запрещена (V114).",
+    "Eligibility SQL и authoritative tenantOf candidate check применяются ДО лимита accepted options; не фильтровать уже ограниченную final page. Для callback owner — stable keyset/chunk scan до accepted limit или exhaustion (D20/V114).",
     "Фильтр получает target user/BaseRole из `LookupContext`, а не текущего актора; актор передаётся отдельно (R26/R36).",
     "Directories не импортирует `Authorization`, `Storage`, `Changes`: семантику фильтров повторить через `Scopes`-контракты (`AssignmentScopeFilter::apply(Builder, AssignmentScopeRuntime)`), без копирования кода Authorization — общий код при необходимости вынести в `Scopes`."
   ],
-  "guidance": "Если повторение фильтрации требует общего кода с `Authorization\\ScopeEligibility`, вынести чистую функцию применения фильтров к Builder в `Scopes` (обе зоны её используют) и зафиксировать это в findings — одна реализация, без копий (AGENTS root.shared-core).",
+  "guidance": "Общий predicate engine уже выделен в Scopes owning P5.2; Directories вызывает его без Authorization/Changes/Storage dependencies. Нет копии EligibilityBuilder. Контракт query filters и neutral runtime D20 сохраняет predicate guards. arbitrary owner нельзя выдумать в SQL-колонку: candidate keyset/chunks + tenantOf перед accepted limit. Tenant/ref checks в describe обязательны также в Inspection.",
   "validation": [
     {
       "id": "V1",
@@ -226,5 +238,5 @@
     "status": "not_needed"
   },
   "result": null,
-  "updated_at": "2026-10-07T05:57:11Z"
+  "updated_at": "2026-10-07T08:24:26Z"
 }

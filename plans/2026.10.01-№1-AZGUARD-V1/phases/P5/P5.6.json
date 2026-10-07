@@ -7,8 +7,9 @@
   "why": "Правило плана: каждая фаза реализации заканчивается read-only `Review Pn` (D3, M1 «качественно»). Риски, которые ловит review: обход ChangePipeline, запись вне lock, события в транзакции, IDOR менеджеров, утечки в схеме, выбор панели вне resolver. RAG:— D3, D18, модель P5, 05/06/08/18/20 разделы P5.",
   "scope": {
     "include": [
-      "Чтение diff фазы (`git diff <база P5 = 3f7bf5e>..HEAD -- packages tests bin composer.json`), item-контрактов P5.1–P5.8, D18, `@plan/knowledge/P5-change-model.json`, `@plan/knowledge/findings-P5-execution.json`; повторный прогон гейтов и engine-групп P5 (`ChangeRaceTest`, `DynamicActionRaceTest`, `ManagerRaceTest`, `StorageDdlTest`) на PG/MySQL/MariaDB.",
-      "Проверить: (1) единственный путь записи и arch-исключения D18 п.4 узкие; (2) lock первым, финальная валидация после pipes, F1–F11 и Revocation-исключения; (3) no-op/bump/effects (C4/C5); (4) события только после корневого commit, listener exception, payload без моделей, журнал в транзакции; (5) partition tenant/origin и IDOR менеджеров; (6) FormerKeys только явная миграция; (7) схема без моделей/closures/секретов, overlay по tenant; (8) директории: фильтры и tenant до LIMIT, target vs actor; (9) трейт/SubjectAccess: resolver, неизменяемость, `guard(array)`; (10) регрессии P11/P13 `covered:` и сквозные сценарии; (11) CRM README статусы честные; (12) остаток D18 п.7 назван владельцам P6–P8."
+      "Чтение diff фазы (`git diff <база P5 = 3f7bf5e>..HEAD -- packages tests bin composer.json`), item-контрактов P5.1–P5.8, D18/D20, `@plan/knowledge/P5-change-model.json`, `@plan/knowledge/findings-P5-execution.json`; повторный прогон гейтов и engine-групп P5 (`ChangeRaceTest`, `DynamicActionRaceTest`, `ManagerRaceTest`, `StorageDdlTest`) на PG/MySQL/MariaDB.",
+      "Проверить: (1) единственный путь записи и arch-исключения D18 п.4 узкие; (2) lock первым, финальная валидация после pipes, F1–F11 и Revocation-исключения; (3) no-op/bump/effects (C4/C5); (4) события только после корневого commit, listener exception, payload без моделей, журнал в транзакции; (5) partition tenant/origin и IDOR менеджеров; (6) FormerKeys только явная миграция; (7) схема без моделей/closures/секретов, overlay по tenant; (8) директории: фильтры и tenant до LIMIT, target vs actor; (9) трейт/SubjectAccess: resolver, неизменяемость, `guard(array)`; (10) регрессии P11/P13 `covered:` и сквозные сценарии; (11) CRM README статусы честные; (12) остаток D18 п.7 назван владельцам P6–P8.",
+      "Проверить D20 repairs: exactly-once continuation/result ownership; typed action/maintenance/touch applicability; validated neutral proposed; locked write-side reads; Storage-root vs host-root snapshot; cascade per-row cancel; historical migration; compiled subject descriptors; tenant-safe directory describe/accepted limit; removed permission cleanup; build/host fence/остаток P8.7; R27/R29/R42 и исправленная V-map."
     ],
     "exclude": [
       "Изменение кода, тестов и плана (review read-only; находки исправляют owning items P5.1–P5.8); оценка P6–P8 сверх швов D18; повторная проверка P1–P4."
@@ -26,7 +27,8 @@
   "decisions": [
     "D18",
     "D16",
-    "D3"
+    "D3",
+    "D20"
   ],
   "reads": [
     {
@@ -136,6 +138,11 @@
       "path": "tests/Arch/ZonesArchTest.php",
       "why": "правила зон после P5",
       "required": true
+    },
+    {
+      "ref": "knowledge/findings-P5-execution",
+      "why": "Реальные результаты owning items и check evidence на reviewed candidate; scaffold/pending не GREEN",
+      "required": true
     }
   ],
   "task_files": [
@@ -202,8 +209,26 @@
     },
     {
       "id": "V9",
-      "procedure": "Verdict-документ `findings-P5-review` записан через `plan.py add-document`: verdict GREEN|RED, reviewer route и session, список проверенных пунктов (1)–(12) со ссылками на тесты/строки, находки с severity и owning item.",
+      "procedure": "Verdict-документ `findings-P5-review` записан через `plan.py add-document`: verdict GREEN|RED, reviewer route и session, список проверенных пунктов (1)–(12) со ссылками на тесты/строки, находки с severity и owning item. Проверены также D20 repairs со ссылками на negative controls/тесты/строки. Verdict пишется после всех реальных гейтов V1–V8 и V10–V12 на reviewed candidate; scaffold или pending checks не GREEN.",
       "expect": "документ существует; verdict GREEN для закрытия фазы",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0; reviewed HEAD style",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V11",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >=98 на reviewed HEAD",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V12",
+      "cmd": "git diff --check",
+      "expect": "exit 0; diff reviewed candidate",
       "kind": "acceptance"
     }
   ],
@@ -225,5 +250,5 @@
     "status": "not_needed"
   },
   "result": null,
-  "updated_at": "2026-10-07T05:57:07Z"
+  "updated_at": "2026-10-07T08:28:22Z"
 }

@@ -244,14 +244,14 @@ Closed 2026-10-07T06:26:22Z (🟠 Done with deviations): 23 item(s): 20 done, 3 
 
 | Item | Title | Status | Route | Updated |
 |:--|:--|:--|:--|:--|
-| P5.2 | Пайплайн изменений: Change, pipes, финальная валидация, писатель | ⬜ Not started | frontier/high | 2026-10-07T05:56:59Z |
-| P5.7 | Динамические права: create/update/delete через пайплайн изменений | ⬜ Not started | implementation/high | 2026-10-07T05:57:09Z |
-| P5.4 | События после commit и плагин audit | ⬜ Not started | implementation/high | 2026-10-07T05:57:03Z |
-| P5.8 | Каталоги поиска по умолчанию и LookupContext фазы Assignment | ⬜ Not started | implementation/high | 2026-10-07T05:57:11Z |
-| P5.5 | PanelSchema | ⬜ Not started | frontier/high | 2026-10-07T05:57:05Z |
-| P5.3 | RoleCatalog, scoped GrantManager, PermissionManager | ⬜ Not started | frontier/high | 2026-10-07T05:57:01Z |
-| P5.1 | Трейт HasAzGuard, SubjectAccess, SubjectPanels | ⬜ Not started | frontier/high | 2026-10-07T05:56:57Z |
-| P5.6 | Review P5: независимая read-only проверка фазы | ⬜ Not started | frontier/high | 2026-10-07T05:57:07Z |
+| P5.2 | Пайплайн изменений: Change, pipes, финальная валидация, писатель | ⬜ Not started | frontier/high | 2026-10-07T08:24:26Z |
+| P5.7 | Динамические права: create/update/delete через пайплайн изменений | ⬜ Not started | implementation/high | 2026-10-07T08:24:26Z |
+| P5.4 | События после commit и плагин audit | ⬜ Not started | implementation/high | 2026-10-07T08:28:22Z |
+| P5.8 | Каталоги поиска по умолчанию и LookupContext фазы Assignment | ⬜ Not started | implementation/high | 2026-10-07T08:24:26Z |
+| P5.5 | PanelSchema | ⬜ Not started | frontier/high | 2026-10-07T08:24:26Z |
+| P5.3 | RoleCatalog, scoped GrantManager, PermissionManager | ⬜ Not started | frontier/high | 2026-10-07T08:28:22Z |
+| P5.1 | Трейт HasAzGuard, SubjectAccess, SubjectPanels | ⬜ Not started | frontier/high | 2026-10-07T08:24:26Z |
+| P5.6 | Review P5: независимая read-only проверка фазы | ⬜ Not started | frontier/high | 2026-10-07T08:28:22Z |
 
 ## P6 — Laravel-поверхность и удаление legacy · ⬜ Skeleton
 

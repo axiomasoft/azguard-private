@@ -1,0 +1,15 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "findings-P5-execution",
+  "title": "P5: фактические результаты исполнения owning items",
+  "sections": [
+    {
+      "id": "Pending",
+      "title": "Исполнение ещё не начато",
+      "text": "Scaffold подготовлен design review D20. P5.1–P5.8 todo; нет product/DB check evidence, нет runtime GREEN. Каждый owning item через plan.py set/push добавляет собственную section с фактическими test commands/exit/evidence/candidate, V/R/probe slices и отклонениями. P5.6 проверяет свежие реальные результаты на reviewed HEAD; эту Pending section нельзя принимать за proof."
+    }
+  ],
+  "applies_to": [
+    "P5"
+  ]
+}
