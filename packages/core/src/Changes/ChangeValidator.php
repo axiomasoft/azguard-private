@@ -7,6 +7,7 @@ namespace AzGuard\Changes;
 use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
@@ -15,6 +16,7 @@ use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\AssignmentScopeRequiredException;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PanelNotWritableException;
@@ -52,7 +54,9 @@ use Throwable;
  *
  * Order: identity → origin → structural and partition checks (subject, role, permission, tenant) → expiry and
  * fields normalized → assignment eligibility over the validated proposal → fingerprint of an update. A revocation
- * checks only identity, origin and its stored partition: an orphan, expired or inactive grant stays removable.
+ * checks only identity, origin and its stored partition: an orphan, expired or inactive grant stays removable. A
+ * change of a dynamic permission checks the opt-in, the tenant, the details and the name against the catalog read
+ * under the lock; it needs neither a subject nor an eligibility check.
  */
 final class ChangeValidator
 {
@@ -71,6 +75,7 @@ final class ChangeValidator
         private readonly ?ActorRef $actor,
         private readonly ?Model $actorModel,
         private readonly bool $rolesOnly,
+        private readonly bool $dynamic = false,
     ) {}
 
     public function now(): DateTimeImmutable
@@ -91,6 +96,8 @@ final class ChangeValidator
 
         if ($change->type->proposes()) {
             $proposed = ['until' => $this->until($change->until), 'fields' => $this->fields($change)];
+        } elseif ($change->type->proposesFields()) {
+            $proposed = ['fields' => $this->actionFields($change)];
         }
 
         return new ChangeContext(
@@ -121,6 +128,12 @@ final class ChangeValidator
         if ($final->type->isRevocation()) {
             return $final->finalized();
         }
+
+        if ($final->type->isAction()) {
+            $this->action($final);
+
+            return $final->finalized();
+        }
         $subject = $final->subject ?? throw new SubjectNotAcceptedException('A grant change needs a target subject.');
         $this->subject($subject);
         $definition = $final->role === null ? null : $this->grantableRole($final->role->key());
@@ -141,6 +154,100 @@ final class ChangeValidator
         }
 
         return $final->finalized();
+    }
+
+    /**
+     * A dynamic permission change: the opt-in writer, a tenant that can own it, valid details and a name that is
+     * free (create) or stored as a dynamic permission of this tenant (update, delete). The catalog overlay of a new
+     * name is built by the catalog itself, which refuses a static shadow and the panel prefix.
+     *
+     * @throws AzGuardException
+     */
+    private function action(Change $change): void
+    {
+        if (! $this->dynamic) {
+            throw new PanelNotWritableException('Panel '.$this->panel->id().' does not declare dynamic permissions.');
+        }
+        $tenant = $change->scope->tenant;
+        $this->actionTenancy($tenant);
+        $name = $change->name ?? throw new UnknownPermissionException('A dynamic permission change names the permission.');
+
+        if ($change->type === ChangeType::DeletePermission) {
+            $this->stored($tenant, $name);
+
+            return;
+        }
+        $change->context();
+        $details = $change->details ?? throw new InvalidChangeFieldsException(['details' => ['A dynamic permission change carries its details.']]);
+        $this->actionDetails($details);
+
+        if ($change->type === ChangeType::UpdatePermission) {
+            $this->stored($tenant, $name);
+
+            return;
+        }
+
+        if ($this->catalog()->find($name) !== null) {
+            throw new DuplicatePermissionException('Permission "'.$name.'" of panel '.$this->panel->id().' already exists in this tenant or is a static permission.');
+        }
+        $this->reads->catalog($tenant, new PermissionDefinition(local: $name, authority: PermissionAuthority::Grants,
+            label: $details->label, group: $details->group, description: $details->description));
+    }
+
+    /** Only dynamic permission rows of this tenant are updated or deleted; a static name is not stored and never is. */
+    private function stored(TenantRef $tenant, string $name): PermissionRecord
+    {
+        return $this->reads->action($tenant, $name)
+            ?? throw new UnknownPermissionException('Panel '.$this->panel->id().' has no dynamic permission "'.$name.'" in this tenant.');
+    }
+
+    /** A permission belongs to one tenant: the global tenant only on a panel without tenants. */
+    private function actionTenancy(TenantRef $tenant): void
+    {
+        $policy = $this->panel->tenants();
+
+        if ($policy->mode() === 'none' && ! $tenant->isGlobal()) {
+            throw new TenantMismatchException('Panel '.$this->panel->id().' has no tenants.');
+        }
+
+        if ($policy->mode() === 'required') {
+            if ($tenant->isGlobal()) {
+                throw new TenantRequiredException('Panel '.$this->panel->id().' keeps dynamic permissions only inside a tenant.');
+            }
+
+            if ($tenant->type() !== $policy->definition()?->type()) {
+                throw new TenantMismatchException('Tenant type '.$tenant->type().' is not the tenant of panel '.$this->panel->id().'.');
+            }
+        }
+    }
+
+    /** Label and group fit their columns; the description is free text. */
+    private function actionDetails(PermissionDetails $details): void
+    {
+        $errors = [];
+        foreach (['label' => $details->label, 'group' => $details->group] as $name => $value) {
+            if ($value !== null && mb_strlen($value) > 191) {
+                $errors[$name] = ['The '.$name.' is longer than 191 characters.'];
+            }
+        }
+
+        if ($errors !== []) {
+            throw new InvalidChangeFieldsException($errors);
+        }
+    }
+
+    /**
+     * A dynamic permission declares no field schema: any field is refused.
+     *
+     * @return array<string, mixed>
+     */
+    private function actionFields(Change $change): array
+    {
+        if ($change->fields !== []) {
+            throw new InvalidChangeFieldsException(array_map(static fn (): array => ['A dynamic permission declares no fields.'], $change->fields));
+        }
+
+        return [];
     }
 
     /** The target is accepted by the panel and present; a missing target is never replaced by an empty model. */

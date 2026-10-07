@@ -7,6 +7,7 @@ require dirname(__DIR__, 3).'/vendor/autoload.php';
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
+use AzGuard\Changes\PermissionDetails;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
@@ -38,7 +39,7 @@ $wait = static function (string $file): void {
     }
 };
 $id = $connection->selectOne($connection->getDriverName() === 'pgsql' ? 'select pg_backend_pid() as id' : 'select connection_id() as id')->id;
-$report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'version' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
+$report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'removed' => null, 'version' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
 
 if (isset($options['id_file'])) {
     file_put_contents($options['id_file'], (string) $id);
@@ -89,7 +90,8 @@ try {
 
         return $next($change);
     };
-    $panel = ChangeWorld::panel(($options['fence'] ?? false) ? [$hold, HostFencePipe::class] : [$hold]);
+    $pipes = ($options['fence'] ?? false) ? [$hold, HostFencePipe::class] : [$hold];
+    $panel = ($options['dynamic'] ?? false) ? ChangeWorld::dynamicPanel($pipes) : ChangeWorld::panel($pipes);
     $report['fingerprint'] = app(PanelRegistry::class)->fingerprint('crm');
 
     if ($options['fence'] ?? false) {
@@ -113,9 +115,15 @@ try {
         'revoke-ids' => ChangeWorld::pipeline()->revokeIds($panel, $tenant, 'manual', $options['ids']),
         'sync' => ChangeWorld::pipeline()->sync($panel, $tenant, ChangeWorld::user($options['user']), 'role',
             array_map(ChangeWorld::role(...), $options['roles']), ChangeWorld::project($options['project'] ?? null)),
+        'create-permission' => ChangeWorld::pipeline()->createPermission($panel, $tenant, $options['name'], new PermissionDetails($options['label'] ?? null)),
+        'update-permission' => ChangeWorld::pipeline()->updatePermission($panel, $tenant, $options['name'], new PermissionDetails($options['label'] ?? null)),
+        'delete-permission' => ChangeWorld::pipeline()->deletePermission($panel, $tenant, $options['name']),
+        'grant-permission' => ChangeWorld::pipeline()->grant($panel, $tenant, ChangeWorld::user($options['user']), ChangeWorld::permission($options['name']),
+            ChangeWorld::project($options['project'] ?? null)),
         default => throw new InvalidArgumentException('Unknown operation '.$options['op']),
     };
     $report['status'] = $result->status->value;
+    $report['removed'] = count($result->removedGrantIds());
     $report['effects'] = count($result->effects);
     $report['version'] = $result->state->version;
 } catch (Throwable $error) {

@@ -7,6 +7,7 @@ namespace AzGuard\Sources\Database;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\GrantRecord;
+use AzGuard\Changes\PermissionRecord;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\StateToken;
@@ -76,8 +77,16 @@ final class LockedReads
             $this->panel->settings()->cacheGeneration(), $this->registry->fingerprint($this->panel->id()));
     }
 
-    /** The static catalog with the dynamic permissions of the tenant read now under the lock. */
-    public function catalog(TenantRef $tenant): PanelCatalog
+    public function isDynamic(): bool
+    {
+        return $this->dynamic;
+    }
+
+    /**
+     * The static catalog with the dynamic permissions of the tenant read now under the lock, and `$added` as one more
+     * dynamic permission: the catalog itself refuses a static shadow and the panel prefix.
+     */
+    public function catalog(TenantRef $tenant, ?PermissionDefinition $added = null): PanelCatalog
     {
         $catalog = $this->registry->catalog($this->panel->id());
 
@@ -96,7 +105,44 @@ final class LockedReads
                 label: $permission->getAttribute('label'), group: $permission->getAttribute('group'), description: $permission->getAttribute('description'));
         }
 
-        return $catalog->withDynamic($definitions);
+        return $catalog->withDynamic($added === null ? $definitions : [...$definitions, $added]);
+    }
+
+    /** The stored dynamic permission of this panel and tenant by name; a static name or another tenant is not found. */
+    public function action(TenantRef $tenant, string $name): ?PermissionRecord
+    {
+        if (! $this->dynamic) {
+            return null;
+        }
+        $row = $this->mutation->table('permissions')->where('panel', $this->panel->id())->where('tenant_key', $tenant->key())
+            ->where('name', $name)->first();
+
+        return $row instanceof stdClass ? $this->actionRecord($row) : null;
+    }
+
+    /** @internal the stored dynamic permission by row id, for the writer */
+    public function actionById(int $id): ?PermissionRecord
+    {
+        $row = $this->mutation->table('permissions')->where('panel', $this->panel->id())->where('id', $id)->first();
+
+        return $row instanceof stdClass ? $this->actionRecord($row) : null;
+    }
+
+    /**
+     * Every stored grant of exactly this permission name in the tenant, whatever its subject, context or origin. A
+     * pattern is a different name and another tenant is another partition: neither is read.
+     *
+     * @return list<GrantRecord>
+     */
+    public function grantsNamed(TenantRef $tenant, string $name): array
+    {
+        $records = [];
+        foreach ($this->mutation->table('permission_grants')->where('panel', $this->panel->id())->where('tenant_key', $tenant->key())
+            ->where('permission', $name)->orderBy('id')->get() as $row) {
+            $records[] = $this->record('permission', $row);
+        }
+
+        return $records;
     }
 
     /**
@@ -163,6 +209,23 @@ final class LockedReads
 
         return $this->fields[$kind] ??= GrantFields::for($this->storage, $target, $this->storage->model($target->value, $this->models[$target->value] ?? null)::class,
             $this->panel->fields($target));
+    }
+
+    /** @internal */
+    public function actionRecord(stdClass $row): PermissionRecord
+    {
+        $model = $this->storage->model('permission', $this->models['permission'] ?? null)->newFromBuilder((array) $row);
+
+        if (! $model instanceof Permission || $model->panel() !== $this->panel->id()) {
+            throw new InvalidSourceContributionException('Stored dynamic permission identity differs from its query.');
+        }
+        $fields = is_string($row->meta ?? null) ? json_decode($row->meta, true, flags: JSON_THROW_ON_ERROR) : [];
+
+        return new PermissionRecord(
+            id: 'action:'.$row->id, panel: $model->panel(), tenant: $model->tenantRef(), key: $model->permissionKey(),
+            label: $model->getAttribute('label'), group: $model->getAttribute('group'), description: $model->getAttribute('description'),
+            fields: is_array($fields) ? $fields : [], createdAt: self::utc($row->created_at ?? null), updatedAt: self::utc($row->updated_at ?? null),
+        );
     }
 
     /** @param 'role'|'permission' $kind */

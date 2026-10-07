@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.7",
   "title": "Динамические права: create/update/delete через пайплайн изменений",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Добавить `ChangeType::{CreatePermission, UpdatePermission, DeletePermission}`, значения `PermissionDetails`/`PermissionRecord` и запись dynamic actions в `DatabaseSource::apply()`: создание только при `dynamicPermissions()`, без тени статичного имени и префикса панели, всегда Grants mode; удаление снимает action и exact direct grants этого имени в tenant одной mutation; pattern-выдачи и enum-права не затрагиваются.",
   "why": "Dynamic action — единственная runtime-definition в 1.0 (D52/D80, 20 F10/F14). Жёсткие риски: воскрешение выдачи удалённого action (C9, гонка grant ∥ delete), тень статичного enum-имени, смена authority mode, утечка action в другой tenant (V91/V92, R23, R59, R65). RAG:— 05 §2/§12, 08 §2/§6, 19 §5, 20 F10/F14; V82, V92; D18; модель P5.",
   "scope": {
@@ -233,6 +233,81 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-07T08:24:26Z"
+  "result": {
+    "started_at": "2026-10-07T12:22:25Z",
+    "finished_at": "2026-10-07T12:43:34Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "9af0ff61-c725-4796-b182-63b76ac4aa63"
+    },
+    "notes": "Динамические права через ChangePipeline: Create/Update/DeletePermission, PermissionDetails/PermissionRecord, ActionWriter, каскад per-row RevokePermission; engine-гонки C9 на pgsql/mysql/mariadb; логи в artifacts/P5.7-execution; route ROUTE_MODEL_UNKNOWN, actor из /model",
+    "deviations": [
+      "Тестовые опоры вне task_files (ChangeWorld.php, change-worker.php, ChangeValuesTest.php); первый прогон V7 имел 1 падение устаревшего перечисления ChangeType — исправлено, V7–V12 перезапущены"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V10",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V11",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      },
+      {
+        "id": "V12",
+        "exit": 0,
+        "at": "2026-10-07T12:43:34Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-07T12:43:34Z"
 }

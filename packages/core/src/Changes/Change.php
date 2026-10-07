@@ -14,20 +14,25 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 
 /**
- * One planned change of one stored grant, as `changing` pipes see it.
+ * One planned change of one stored grant or one dynamic permission, as `changing` pipes see it.
  *
- * Identity — type, panel, scope, subject, key, origin, actor, grant id and expected fingerprint — is fixed when the
- * change is planned under the panel lock. A pipe may only replace `until` and `fields` through `withUntil()` and
- * `withFields()`, cancel with `cancel()`, and must return the result it receives from `$next`. The engine validates
- * the final change again after all pipes.
+ * Identity — type, panel, scope, subject, key, origin, actor, grant id, expected fingerprint and, for a dynamic
+ * permission, its name and label, group and description — is fixed when the change is planned under the panel lock.
+ * A pipe may only replace `until` and `fields` through `withUntil()` and `withFields()` (the fields of the details for
+ * a dynamic permission), cancel with `cancel()`, and must return the result it receives from `$next`. The engine
+ * validates the final change again after all pipes.
  *
  * @api
  */
 final readonly class Change
 {
+    /** The origin recorded on a change of a dynamic permission, which has no grant origin. */
+    public const string ACTION_ORIGIN = 'dynamic';
+
     /** @param array<string, mixed> $fields */
     private function __construct(
         public ChangeType $type,
@@ -42,10 +47,22 @@ final readonly class Change
         public array $fields,
         public ?string $grantId,
         public ?string $expectedFingerprint,
+        public ?string $name = null,
+        public ?PermissionDetails $details = null,
         private ?ChangeFrame $frame = null,
         private bool $final = false,
     ) {
         PermissionGrammar::assertPanelId($panel);
+
+        if ($type->isAction()) {
+            self::assertAction($type, $panel, $scope, $subject, $role, $permission, $until, $fields, $grantId, $expectedFingerprint, $name, $details);
+
+            return;
+        }
+
+        if ($name !== null || $details !== null) {
+            throw new InvalidIdentityException('Only a dynamic permission change carries a name and details.');
+        }
 
         if (($role === null) === ($permission === null)) {
             throw new InvalidIdentityException('A change names exactly one role or permission.');
@@ -99,6 +116,27 @@ final readonly class Change
             $stored->origin, $actor, $details->until, $details->fields, $stored->id, $expectedFingerprint);
     }
 
+    /** @internal planned by the change pipeline */
+    public static function createPermission(string $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor): self
+    {
+        return new self(ChangeType::CreatePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
+            $details->fields, null, null, $name, $details);
+    }
+
+    /** @internal planned by the change pipeline from the stored dynamic permission read under the lock */
+    public static function updatePermission(string $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor): self
+    {
+        return new self(ChangeType::UpdatePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
+            $details->fields, null, null, $name, $details);
+    }
+
+    /** @internal planned by the change pipeline after the revocations of the grants of this name */
+    public static function deletePermission(string $panel, TenantRef $tenant, string $name, ?ActorRef $actor): self
+    {
+        return new self(ChangeType::DeletePermission, $panel, AccessScope::in($tenant), null, null, null, self::ACTION_ORIGIN, $actor, null,
+            [], null, null, $name);
+    }
+
     /** The same change with another expiry; identity does not change. */
     public function withUntil(?DateTimeImmutable $until): self
     {
@@ -108,13 +146,16 @@ final readonly class Change
     }
 
     /**
-     * The same change with other fields; identity does not change. Values are validated against the field schema.
+     * The same change with other fields; identity does not change. Values are validated against the field schema. A
+     * dynamic permission declares no field schema, so any field is refused when the change is validated.
      *
      * @param  array<string, mixed>  $fields
      */
     public function withFields(array $fields): self
     {
-        $this->assertProposes('withFields');
+        if (! $this->type->proposesFields()) {
+            throw InvalidConfigurationException::failing('changing', 'withFields() applies to a grant, an update or a dynamic permission to store, not to '.$this->type->value.'.');
+        }
 
         return $this->copy(until: $this->until, fields: $fields);
     }
@@ -147,18 +188,24 @@ final readonly class Change
         return $this->role !== null;
     }
 
+    /** Whether this change creates, updates or deletes a dynamic permission rather than a grant. */
+    public function isAction(): bool
+    {
+        return $this->type->isAction();
+    }
+
     /** @internal */
     public function bind(ChangeFrame $frame): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $frame);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $frame);
     }
 
     /** @internal the change after final validation; only such a change is applied by the writer */
     public function finalized(): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->frame, true);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->frame, true);
     }
 
     /** @internal */
@@ -186,7 +233,9 @@ final readonly class Change
             && self::same($this->subject, $other->subject) && self::same($this->role, $other->role)
             && self::same($this->permission, $other->permission) && $this->origin === $other->origin
             && $this->actor == $other->actor && $this->grantId === $other->grantId
-            && $this->expectedFingerprint === $other->expectedFingerprint && $this->frame === $other->frame;
+            && $this->expectedFingerprint === $other->expectedFingerprint && $this->name === $other->name
+            && $this->details?->label === $other->details?->label && $this->details?->group === $other->details?->group
+            && $this->details?->description === $other->details?->description && $this->frame === $other->frame;
     }
 
     /**
@@ -208,8 +257,38 @@ final readonly class Change
     /** @param array<string, mixed> $fields */
     private function copy(?DateTimeImmutable $until, array $fields): self
     {
+        $details = $this->details === null ? null
+            : new PermissionDetails($this->details->label, $this->details->group, $this->details->description, $fields);
+
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->frame);
+            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->name, $details, $this->frame);
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     *
+     * @throws InvalidIdentityException
+     */
+    private static function assertAction(ChangeType $type, string $panel, AccessScope $scope, ?SubjectRef $subject, ?RoleKey $role,
+        ?PermissionPattern $permission, ?DateTimeImmutable $until, array $fields, ?string $grantId, ?string $expectedFingerprint,
+        ?string $name, ?PermissionDetails $details): void
+    {
+        if ($subject !== null || $role !== null || $permission !== null || $until !== null || $grantId !== null || $expectedFingerprint !== null) {
+            throw new InvalidIdentityException('A dynamic permission change names neither a subject, a role, a grant nor an expiry.');
+        }
+
+        if (! $scope->context->isGlobal()) {
+            throw new InvalidIdentityException('A dynamic permission belongs to a tenant, not to an assignment scope.');
+        }
+
+        if ($name === null) {
+            throw new InvalidIdentityException('A dynamic permission change names the permission.');
+        }
+        PermissionGrammar::assertLocalKey($name);
+
+        if ($type === ChangeType::DeletePermission ? $details !== null || $fields !== [] : $details === null || $details->fields !== $fields) {
+            throw new InvalidIdentityException('Change type '.$type->value.' does not match its details.');
+        }
     }
 
     private function assertProposes(string $method): void

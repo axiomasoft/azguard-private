@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Changes;
 
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Changes\PermissionDetails;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -25,8 +26,11 @@ use DateTimeImmutable;
 /** Writes through the real change pipeline over the CRM stand: panel crm, tenants A=1/B=2, projects P1–P5. */
 final class ChangeWorld
 {
-    /** @param list<mixed> $pipes */
-    public static function panel(array $pipes = [], ?Closure $configure = null): Panel
+    /**
+     * @param  list<mixed>  $pipes
+     * @param  list<mixed>|null  $sources
+     */
+    public static function panel(array $pipes = [], ?Closure $configure = null, ?array $sources = null): Panel
     {
         return CrmWorld::compile(static function (PanelBuilder $panel) use ($pipes, $configure): void {
             $panel->roles([RootRole::class, AuditorRole::class, SupportRole::class]);
@@ -38,7 +42,39 @@ final class ChangeWorld
             if ($configure !== null) {
                 $configure($panel);
             }
-        });
+        }, $sources);
+    }
+
+    /** The panel with the database writer opted in to dynamic permissions, optionally storing role grants only. */
+    public static function dynamicPanel(array $pipes = [], bool $rolesOnly = false): Panel
+    {
+        $source = CrmWorld::database()->dynamicPermissions();
+
+        return self::panel($pipes, null, [$rolesOnly ? $source->rolesOnly() : $source]);
+    }
+
+    /** @param array<string, mixed> $fields */
+    public static function createAction(Panel $panel, string $name, int $tenant = 1, ?string $label = null, ?string $group = null,
+        ?string $description = null, array $fields = [], ?ActorRef $actor = null): ChangeResult
+    {
+        return self::pipeline()->createPermission($panel, self::tenant($tenant), $name, new PermissionDetails($label, $group, $description, $fields), $actor);
+    }
+
+    public static function deleteAction(Panel $panel, string $name, int $tenant = 1): ChangeResult
+    {
+        return self::pipeline()->deletePermission($panel, self::tenant($tenant), $name);
+    }
+
+    /** @return list<array<string, mixed>> */
+    public static function actions(): array
+    {
+        return self::rows('permissions');
+    }
+
+    /** @return list<string> tenant and name of each stored dynamic permission */
+    public static function actionNames(): array
+    {
+        return array_map(static fn (array $row): string => $row['tenant_key'].'|'.$row['name'], self::actions());
     }
 
     public static function pipeline(): ChangePipeline
@@ -93,7 +129,7 @@ final class ChangeWorld
     public static function rows(string $kind = 'role'): array
     {
         return array_map(static fn (object $row): array => (array) $row,
-            CrmWorld::storage()->table($kind.'_grants')->orderBy('id')->get()->all());
+            CrmWorld::storage()->table($kind === 'permissions' ? 'permissions' : $kind.'_grants')->orderBy('id')->get()->all());
     }
 
     /** @return list<string> panel/tenant/key/subject/context/origin of each stored grant */

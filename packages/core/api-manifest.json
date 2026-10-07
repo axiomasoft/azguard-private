@@ -344,11 +344,19 @@
             "readonly": true,
             "parent": null,
             "interfaces": [],
-            "constants": [],
+            "constants": [
+                "ACTION_ORIGIN"
+            ],
             "properties": [
                 {
                     "name": "actor",
                     "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "details",
+                    "type": "?AzGuard\\Changes\\PermissionDetails",
                     "readonly": true,
                     "static": false
                 },
@@ -366,6 +374,12 @@
                 },
                 {
                     "name": "grantId",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "name",
                     "type": "?string",
                     "readonly": true,
                     "static": false
@@ -495,6 +509,85 @@
                     "return": "?string"
                 },
                 {
+                    "name": "createPermission",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "details",
+                            "type": "AzGuard\\Changes\\PermissionDetails",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "deletePermission",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
                     "name": "finalized",
                     "static": false,
                     "abstract": false,
@@ -566,6 +659,13 @@
                         }
                     ],
                     "return": "self"
+                },
+                {
+                    "name": "isAction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
                 },
                 {
                     "name": "isFinal",
@@ -683,6 +783,49 @@
                         {
                             "name": "expectedFingerprint",
                             "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "updatePermission",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "details",
+                            "type": "AzGuard\\Changes\\PermissionDetails",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -916,13 +1059,13 @@
             "properties": [
                 {
                     "name": "after",
-                    "type": "?AzGuard\\Changes\\GrantRecord",
+                    "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                     "readonly": true,
                     "static": false
                 },
                 {
                     "name": "before",
-                    "type": "?AzGuard\\Changes\\GrantRecord",
+                    "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                     "readonly": true,
                     "static": false
                 },
@@ -967,14 +1110,14 @@
                         },
                         {
                             "name": "before",
-                            "type": "?AzGuard\\Changes\\GrantRecord",
+                            "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
                         },
                         {
                             "name": "after",
-                            "type": "?AzGuard\\Changes\\GrantRecord",
+                            "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -1023,7 +1166,7 @@
                 },
                 {
                     "name": "record",
-                    "type": "?AzGuard\\Changes\\GrantRecord",
+                    "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                     "readonly": true,
                     "static": false
                 },
@@ -1091,13 +1234,20 @@
                     "return": "self"
                 },
                 {
+                    "name": "removedGrantIds",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "written",
                     "static": true,
                     "abstract": false,
                     "parameters": [
                         {
                             "name": "record",
-                            "type": "?AzGuard\\Changes\\GrantRecord",
+                            "type": "AzGuard\\Changes\\GrantRecord|AzGuard\\Changes\\PermissionRecord|null",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -1239,6 +1389,18 @@
                 {
                     "name": "UpdateGrant",
                     "value": "update_grant"
+                },
+                {
+                    "name": "CreatePermission",
+                    "value": "create_permission"
+                },
+                {
+                    "name": "UpdatePermission",
+                    "value": "update_permission"
+                },
+                {
+                    "name": "DeletePermission",
+                    "value": "delete_permission"
                 }
             ],
             "constants": [],
@@ -1280,6 +1442,13 @@
                     "return": "static"
                 },
                 {
+                    "name": "isAction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
                     "name": "isGrant",
                     "static": false,
                     "abstract": false,
@@ -1302,6 +1471,13 @@
                 },
                 {
                     "name": "proposes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "proposesFields",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
@@ -1655,6 +1831,240 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "bool"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Changes\\PermissionDetails",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Changes\\PermissionRecord",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "createdAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "description",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "fields",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "group",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "id",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "key",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "label",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "updatedAt",
+                    "type": "?DateTimeImmutable",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "key",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "description",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "createdAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "updatedAt",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
                 }
             ],
             "stability": "api",

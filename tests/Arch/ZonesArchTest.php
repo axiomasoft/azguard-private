@@ -80,7 +80,7 @@ arch('exceptions depend only on the kernel')
 const AZGUARD_CHANGE_VALUES = [
     'AzGuard\Changes\Change', 'AzGuard\Changes\ChangeType', 'AzGuard\Changes\ChangeContext', 'AzGuard\Changes\ChangeResult',
     'AzGuard\Changes\ChangeStatus', 'AzGuard\Changes\ChangeEffect', 'AzGuard\Changes\EffectKind', 'AzGuard\Changes\GrantRecord',
-    'AzGuard\Changes\GrantDetails',
+    'AzGuard\Changes\GrantDetails', 'AzGuard\Changes\PermissionRecord', 'AzGuard\Changes\PermissionDetails',
 ];
 
 arch('contracts do not import implementations')

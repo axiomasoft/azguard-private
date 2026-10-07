@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Changes;
 
 /**
- * What the writer did to one stored grant.
+ * What the writer did to one stored grant or dynamic permission.
  *
  * @api
  */

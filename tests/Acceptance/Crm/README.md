@@ -1,6 +1,6 @@
 # CRM scalar and exact visibility acceptance
 
-Стенд Testbench/Pest использует настоящий Authorizer, providers, Eloquent, Storage и SQLite `:memory:`. Время: 2026-10-06 12:00 UTC. Панели crm/backoffice; A/B; P1–P5; C1–C6; Анна, Борис, Дарья и outsider. Назначения стенда создаются через Storage::mutate; записи P5.2 — через ChangePipeline. Клиент имеет составной FK project+tenant. Ожидания — литеральные ids/reasons, положительные контроли; фильтры проверяются также намеренными поломками на scratch-копии.
+Стенд Testbench/Pest использует настоящий Authorizer, providers, Eloquent, Storage и SQLite `:memory:`. Время: 2026-10-06 12:00 UTC. Панели crm/backoffice; A/B; P1–P5; C1–C6; Анна, Борис, Дарья и outsider. Назначения стенда создаются через Storage::mutate; записи P5.2 и динамических прав P5.7 — через ChangePipeline. Клиент имеет составной FK project+tenant. Ожидания — литеральные ids/reasons, положительные контроли; фильтры проверяются также намеренными поломками на scratch-копии.
 
 Запуск: `DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Acceptance/Crm`. Acceptance подключён к tests/Pest.php и phpunit.xml, поэтому обнаруживается composer test.
 
@@ -32,7 +32,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R20 | [NativeFiltersTest.php](NativeFiltersTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R21 | [PoliciesTest.php](PoliciesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R22 | [PoliciesTest.php](PoliciesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
-| R23 | — | future | —; **future:** P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
+| R23 | [DynamicActionsTest.php](DynamicActionsTest.php) | partial | P5.7: opt-in dynamic action в tenant A, прямая выдача Борису на P2, те же code роли A/B, роль не создаётся, без флага create отклонён, writer rolesOnly управляет правом, но не выдаёт его; **future:** P5.3 PermissionManager/delegation surfaces; P8.7 consumer concurrence |
 | R24 | — | future | P4.19/P4.23 typed AND/deployment scalar-list; **future:** P5.5 schema/editor metadata; P7.4 stale form; P8.7 consumer |
 | R25 | — | future | —; **future:** P7.3/P7.4 definition mutation absence; assignment P5.3 |
 | R26 | [AssignmentsTest.php](AssignmentsTest.php) | partial | P5.2: фильтр Assignment видит целевую Анну (город 1), delegation pipe — admin-актора; **future:** P8.7 consumer |
@@ -68,13 +68,13 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 | R56 | — | future | —; **future:** P6.8 generated stubs; P8.7 actual cached consumer boot |
 | R57 | [BuildInputsTest.php](BuildInputsTest.php), [BuildStateTest.php](BuildStateTest.php), [RedisStoreTest.php](../../Feature/Authorization/Cache/RedisStoreTest.php) | partial | P4.15/P4.20/P4.21 build/filter capture/cache/incarnation; **future:** P6.6 actual restore; P8.7 stale worker consumer |
 | R58 | [ScaleBatchTest.php](ScaleBatchTest.php), [ScaleVisibilityTest.php](ScaleVisibilityTest.php), [VisibilityExplainTest.php](../../Engines/VisibilityExplainTest.php) | GREEN batch/list | P4.9/P4.23: whole scalar/batch/list 10k IDs, 100 scopes/two roles, total/pages and explicit SQL budgets; real PG/MySQL 100k EXPLAIN |
-| R59 | — | future | P4.21 root lock/revoke/host transaction slice; **future:** P5.2/P5.3 actual action deletes/new deploy mutation; P8.7 host transfer concurrency |
+| R59 | [DynamicActionsTest.php](DynamicActionsTest.php), [DynamicActionRaceTest.php](../../Engines/DynamicActionRaceTest.php) | partial | P4.21 root lock/revoke/host transaction slice; P5.7: удаление action снимает exact-выдачи tenant одной mutation per-row, pattern и tenant B сохраняются, барьерные гонки grant ∥ delete / delete ∥ grant / delete ∥ create на PostgreSQL/MySQL/MariaDB без orphan; P5.2 deploy fence; **future:** P5.3 cleanup; P8.7 host transfer concurrency |
 | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |
 | R61 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R62 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R63 | [AuthorityModesTest.php](AuthorityModesTest.php), [AssignmentsTest.php](AssignmentsTest.php) | partial | P4.1/P4.3/P4.15 read slice; P5.2 exact PolicyOnly write → PermissionNotGrantableException без записи/version, wildcard не авторизует; **future:** P5.3 managers; P6.2/P7.4 HTTP/UI/CLI write boundaries |
 | R64 | [VisibilityTest.php](VisibilityTest.php), [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar/exact | P4.23: action mode parity, PolicyOnly without grant tables, Grants outage fails closed |
-| R65 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; **future:** P5.3 dynamic create opt-in rejection/mode immutability |
+| R65 | [AuthorityModesTest.php](AuthorityModesTest.php), [DynamicActionsTest.php](DynamicActionsTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; P5.7: enum-выдача без копии в permissions, dynamic create отклонён до opt-in, действие всегда Grants и ни один вход не задаёт режим; **future:** P5.3 PermissionManager surface |
 | R66 | [AuthorityModesTest.php](AuthorityModesTest.php) | partial | P4.2/P4.15/P4.20 removed keys/build/read mode authority; **future:** P5.3 explicit migration/cleanup; P8.7 stale workers; **future:** P4.20 deployment/cache |
 | R67 | [BuildInputsTest.php](BuildInputsTest.php), [ConsumerSpiTest.php](ConsumerSpiTest.php), [RuntimeInputsTest.php](RuntimeInputsTest.php) | partial | P4.3/P4.19/P4.15 local typed DI/definition/model-null/Decides rename-remove; **future:** P8.7 installed consumer/factory whole qualification |
 | R68 | BatchTest | partial | P4.9 core: mixed PolicyOnly/DB Grants/relation-only, two panels, typed states/original order/one now passed. Public wrappers/integration consumer remain future P5/P6/P8 |

@@ -44,6 +44,7 @@ final readonly class GrantWriter
             ChangeType::RevokeRole, ChangeType::RevokePermission => $this->revoke($change, $kind,
                 $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin)),
             ChangeType::UpdateGrant => $this->update($change, $context, $kind),
+            ChangeType::CreatePermission, ChangeType::UpdatePermission, ChangeType::DeletePermission => throw new UnsupportedDirectWriteException('A dynamic permission change is not written as a grant.'),
         };
 
         if ($effect !== null) {

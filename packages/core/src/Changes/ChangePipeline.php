@@ -157,6 +157,51 @@ final readonly class ChangePipeline
     }
 
     /**
+     * Creates a dynamic permission in one tenant. The panel must opt in with `dynamicPermissions()`; the name must be
+     * free in the tenant, not a static name and not start with the panel prefix. It is always decided by grants.
+     */
+    public function createPermission(Panel $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor = null): ChangeResult
+    {
+        return $this->run($panel, $tenant, static fn (LockedReads $reads, ?ActorRef $actor): array => [
+            Change::createPermission($panel->id(), $tenant, $name, $details, $actor),
+        ], $actor);
+    }
+
+    /**
+     * Replaces label, group and description of a stored dynamic permission of the tenant; a repeat without a
+     * difference is `Unchanged`. A static or missing name is `UnknownPermissionException`.
+     */
+    public function updatePermission(Panel $panel, TenantRef $tenant, string $name, PermissionDetails $details, ?ActorRef $actor = null): ChangeResult
+    {
+        return $this->run($panel, $tenant, static fn (LockedReads $reads, ?ActorRef $actor): array => [
+            Change::updatePermission($panel->id(), $tenant, $name, $details, $actor),
+        ], $actor);
+    }
+
+    /**
+     * Deletes a stored dynamic permission of the tenant in one mutation: every stored grant of exactly this name in
+     * the tenant is revoked first, each as its own change with its stored scope, subject and origin, then the
+     * permission row goes. Patterns such as `campaigns.*` and other tenants are not touched; a refusal or a cancelled
+     * revocation rolls everything back.
+     */
+    public function deletePermission(Panel $panel, TenantRef $tenant, string $name, ?ActorRef $actor = null): ChangeResult
+    {
+        return $this->run($panel, $tenant, static function (LockedReads $reads, ?ActorRef $actor) use ($panel, $tenant, $name): array {
+            $changes = [];
+
+            if ($reads->action($tenant, $name) !== null) {
+                foreach ($reads->grantsNamed($tenant, $name) as $record) {
+                    $changes[] = Change::revoke($panel->id(), $record->scope, $record->subject, $record->permission
+                        ?? throw new StaleSelectionException('A stored grant has no key.'), $record->origin, $actor, $record->id);
+                }
+            }
+            $changes[] = Change::deletePermission($panel->id(), $tenant, $name, $actor);
+
+            return $changes;
+        }, $actor);
+    }
+
+    /**
      * A role of the panel by key, `panel:key` or the class of a registered code role. Only a convenience before the
      * lock; the final check repeats under it.
      *
@@ -230,7 +275,7 @@ final readonly class ChangePipeline
             $reads = $writer->lockedReads($panel);
             $this->assertBuild($panel, ...$build);
             $now = CarbonImmutable::now('UTC')->startOfSecond()->toDateTimeImmutable();
-            $validator = new ChangeValidator($this->container, $panel, $tenant, $reads, $now, $reads->token(), $actor, $actorModel, $writer->isRolesOnly());
+            $validator = new ChangeValidator($this->container, $panel, $tenant, $reads, $now, $reads->token(), $actor, $actorModel, $writer->isRolesOnly(), $writer->isDynamic());
             $frame = new ChangeFrame($validator->context(...), $correlation);
             $results = [];
             $effects = 0;

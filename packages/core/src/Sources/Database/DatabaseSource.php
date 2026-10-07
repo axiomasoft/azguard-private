@@ -277,7 +277,8 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
      * Applies one change the change pipeline validated, inside the active mutation of the bound panel.
      *
      * @throws UnsupportedDirectWriteException outside the pipeline or the mutation, or for a foreign panel
-     * @throws PanelNotWritableException when a roles-only writer receives a permission change
+     * @throws PanelNotWritableException when a roles-only writer receives a permission grant, or a writer without
+     *                                   `dynamicPermissions()` receives a change of a dynamic permission
      */
     public function apply(Change $change): ChangeResult
     {
@@ -287,13 +288,19 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
             throw new UnsupportedDirectWriteException('DatabaseSource applies only changes the change pipeline validated for panel '.$panel.'.');
         }
 
-        if ($this->onlyRoles && ! $change->isRole()) {
+        if ($change->isAction() && ! $this->dynamic) {
+            throw new PanelNotWritableException('Panel '.$panel.' does not declare dynamic permissions.');
+        }
+
+        if ($this->onlyRoles && ! $change->isAction() && ! $change->isRole()) {
             throw new PanelNotWritableException('Panel '.$panel.' stores role grants only.');
         }
         $storage = $this->resolvedStorage();
         $reads = $this->lockedReads(app(PanelRegistry::class)->get($panel));
 
-        return (new GrantWriter($storage, $storage->mutation($panel), $reads))->apply($change);
+        return $change->isAction()
+            ? (new ActionWriter($storage->mutation($panel), $reads))->apply($change)
+            : (new GrantWriter($storage, $storage->mutation($panel), $reads))->apply($change);
     }
 
     /**
