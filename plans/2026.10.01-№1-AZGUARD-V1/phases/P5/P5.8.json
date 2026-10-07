@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.8",
   "title": "Каталоги поиска по умолчанию и LookupContext фазы Assignment",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Дать реализации `SubjectDirectory`, `AssignmentScopeDirectory` и `TenantDirectory` по умолчанию: поиск контекстов применяет common и role-binding фильтры с `LookupContext` (target user, BaseRole, proposed until/fields, actor, phase Assignment) и выбранный tenant до LIMIT; `describe()` — одна структурная загрузка; Inspection-описание не зависит от runtime-eligibility.",
   "why": "Редакторы назначений (P7.4) и внешние consumers ищут субъектов и контексты; без серверной реализации фильтр autocomplete подменялся бы фильтром текущего админа (R26/R36) или обрезал выдачу после LIMIT. Жёсткие риски: утечка контекстов чужого tenant, LIMIT до eligibility, фильтр по actor вместо target. RAG:— 18 §3/§5/§10, 06 §7, 05 §12, 20 F19; V114, R36, R50; D11 (SubjectDirectory через модели панели); D18.",
   "scope": {
@@ -237,6 +237,61 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-07T08:24:26Z"
+  "result": {
+    "started_at": "2026-10-07T14:27:06Z",
+    "finished_at": "2026-10-07T14:42:09Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "e6cab369-7a0c-4e7c-86fa-3b6617e8aab1"
+    },
+    "notes": "Каталоги по умолчанию ModelSubjectDirectory/QueryScopeDirectory/ModelTenantDirectory, DirectoryResolver::for, общий Scopes\\RoleBindings и EligibilityBuilder::structural; Assignment-поиск с common+role фильтрами и target/BaseRole/proposed/actor до LIMIT, owner через tenantOf в key-scan чанками, DirectoryScanLimitException при исчерпанном бюджете. Тесты Feature/Directories (27) + Acceptance DirectoriesTest (8) + arch; V3 3199 tests, 1 skipped pre-existing. Проверено только на SQLite: LIKE/ILIKE на PostgreSQL/MySQL не запускался (docker недоступен) — остаток для P5.6.",
+    "deviations": [
+      "Вне task_files: Authorization/ScopeEligibility.php (делегирование общему Scopes\\RoleBindings) и новый Exceptions/DirectoryScanLimitException.php; Assignment-describe структурный, без eligibility и членства (assumption в журнале)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-07T14:42:09Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-07T14:42:09Z"
 }

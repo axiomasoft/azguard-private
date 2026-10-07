@@ -129,6 +129,51 @@ it('rejects a directory file that imports storage, changes or authorization', fu
         )))->toBe([]);
 });
 
+/**
+ * Directories read eligibility through the one predicate engine and the one role-binding resolver of `Scopes`;
+ * a private copy of either would drift from what Access and Assignment enforce.
+ *
+ * @param  list<string>  $files
+ * @return list<string> offenders as "<file>: <marker>"
+ */
+function azguardPrivateEligibilityCopies(array $files): array
+{
+    $offenders = [];
+
+    foreach ($files as $file) {
+        $code = (string) file_get_contents($file);
+
+        foreach (['addNestedWhereQuery', 'new PredicateBuilder', 'new PredicateQuery', 'new QueryGuard', '->scopes() as $'] as $marker) {
+            if (str_contains($code, $marker)) {
+                $offenders[] = basename($file).': '.$marker;
+            }
+        }
+    }
+
+    return $offenders;
+}
+
+it('keeps one predicate engine and one role-binding resolver for directories and authorization', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-directory-engine-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $copy = $directory.'/QueryScopeDirectory.php';
+    file_put_contents($copy, "<?php\nnamespace AzGuard\\Directories;\nfinal class QueryScopeDirectory { function f(\$q, \$role): void { \$q->addNestedWhereQuery(\$q); foreach (\$role->scopes() as \$s) {} } }\n");
+
+    try {
+        expect(azguardPrivateEligibilityCopies([$copy]))->toBe(['QueryScopeDirectory.php: addNestedWhereQuery', 'QueryScopeDirectory.php: ->scopes() as $']);
+    } finally {
+        unlink($copy);
+        rmdir($directory);
+    }
+
+    expect(azguardPrivateEligibilityCopies(SourceScan::files('packages/core/src/Directories')))->toBe([])
+        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/src/Authorization/ScopeEligibility.php']))->toBe([])
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Directories/QueryScopeDirectory.php'))
+        ->toContain('EligibilityBuilder::structural(', 'EligibilityBuilder::apply(', 'RoleBindings::of(')
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Authorization/ScopeEligibility.php'))
+        ->toContain('RoleBindings::of(', 'EligibilityBuilder::matches(');
+});
+
 it('rejects a policy file that imports storage or changes', function (): void {
     $directory = sys_get_temp_dir().'/azguard-policy-zone-'.bin2hex(random_bytes(4));
     mkdir($directory);

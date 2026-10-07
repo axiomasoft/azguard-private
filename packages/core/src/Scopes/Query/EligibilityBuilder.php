@@ -24,14 +24,26 @@ use Throwable;
  */
 final class EligibilityBuilder
 {
-    /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
-    public static function matches(QueryableAssignmentScopeDefinition $definition, ResolvedAssignmentScope $resolved, array $filters, AssignmentScopeRuntime $runtime, Container $container): bool
+    /**
+     * A fresh structural query with its own conditions grouped, so a later OR cannot reach beyond them.
+     *
+     * @return Builder<Model>
+     */
+    public static function structural(QueryableAssignmentScopeDefinition $definition): Builder
     {
         $structural = $definition->query()->applyScopes()->withoutGlobalScopes();
         $query = clone $structural;
         $query->getQuery()->wheres = [];
         $query->getQuery()->setBindings([], 'where');
         $query->getQuery()->addNestedWhereQuery($structural->getQuery());
+
+        return $query;
+    }
+
+    /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
+    public static function matches(QueryableAssignmentScopeDefinition $definition, ResolvedAssignmentScope $resolved, array $filters, AssignmentScopeRuntime $runtime, Container $container): bool
+    {
+        $query = self::structural($definition);
         $query->whereKey($resolved->ref->id());
 
         // Owner is defined by tenantOf(), not by a configurable column name or a filter.

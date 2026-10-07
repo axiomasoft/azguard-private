@@ -16,6 +16,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\Query\EligibilityBuilder;
+use AzGuard\Scopes\RoleBindings;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
 
@@ -112,26 +113,12 @@ final readonly class ScopeEligibility
     /** @return list<AssignmentScopeDefinition> role bindings of the selected type, checked against the registered definition */
     private function bindings(BaseRole $role, AssignmentScopeDefinition $definition, ?ResolvedAssignmentScope $resolved): array
     {
-        $bindings = [];
-        foreach ($role->scopes() as $declared) {
-            $binding = is_string($declared) ? $this->container->make($declared) : $declared;
+        $bindings = RoleBindings::of($role, $definition, $this->container);
 
-            if (! $binding instanceof AssignmentScopeDefinition) {
-                throw new RuntimeException('A runtime role binding must be an assignment scope definition.');
-            }
-
-            if ($binding->type() !== $definition->type()) {
-                continue;
-            }
-
-            if ($binding::class !== $definition::class || $binding->model() !== $definition->model()) {
-                throw new RuntimeException('A runtime role binding changed the registered scope identity.');
-            }
-
+        foreach ($bindings as $binding) {
             if ($binding->model() !== null && $resolved?->record === null) {
                 throw new RuntimeException('A model-required scope binding has no resolved record.');
             }
-            $bindings[] = $binding;
         }
 
         return $bindings;
