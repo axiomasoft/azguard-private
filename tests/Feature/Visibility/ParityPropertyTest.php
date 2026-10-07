@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
@@ -26,6 +27,19 @@ class ParityVetoPolicy extends VisibilityPolicy
     public function view(?Model $user, ?Model $resource): ?bool
     {
         return parent::view($user, $resource);
+    }
+}
+
+class ParityResourceRestriction extends VisibilityRestriction
+{
+    public function key(): string
+    {
+        return 'parity-resource';
+    }
+
+    public function appliesTo(AccessRequest $request, EvaluationContext $context): bool
+    {
+        return $request->resource() !== null;
     }
 }
 
@@ -109,3 +123,29 @@ it('P14 gives each denial layer a positive control and an independent literal de
     $expected = in_array($layer, ['condition', 'role'], true) ? [2] : [1];
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe($expected);
 })->with(['before', 'common', 'role', 'condition', 'restriction', 'veto']);
+
+it('P14 keeps list equal to scalar for a restriction whose appliesTo depends on the resource', function (): void {
+    $projects = VisibilityProject::query()->orderBy('id')->get();
+    for ($seed = 1; $seed <= 30; $seed++) {
+        $next = $seed;
+        $draw = static function (int $max) use (&$next): int {
+            $next = ($next * 1664525 + 1013904223) & 0xFFFFFFFF;
+
+            return ($next >> 8) % $max;
+        };
+        $direct = [];
+        for ($i = 0; $i < 6; $i++) {
+            $direct[] = W::grant($draw(5) ?: null, [[], ['city' => 'Paris'], ['city' => 'Rome']][$draw(3)]);
+        }
+        [$visibility, $panel, $authorizer] = W::compile(new VisibilitySource(direct: $direct), fn (PanelBuilder $p) => $p->grantConditions([VisibilityCondition::class])->restrictions([ParityResourceRestriction::class]));
+        $ids = [];
+        foreach ($projects as $resource) {
+            if ($authorizer->decide($panel, AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, $resource))->allowed()) {
+                $ids[] = $resource->id;
+            }
+        }
+        $query = $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view');
+        $this->assertSame($ids, (clone $query)->orderBy('id')->pluck('id')->all(), "seed=$seed");
+        $this->assertSame(count($ids), $query->count(), "count seed=$seed");
+    }
+});

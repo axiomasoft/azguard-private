@@ -10,6 +10,12 @@ use AzGuard\Kernel\Decision\RestrictionResult;
 /**
  * A constraint on an authority candidate; it never grants access.
  *
+ * Exact list queries evaluate applicability without a resource. A restriction that
+ * implements FiltersAccessQueries is always compiled through predicate(), so it must
+ * encode its own applicability there (AccessPredicate::pass() when inapplicable) and
+ * appliesTo() is not consulted for lists. For a restriction without that adapter
+ * appliesTo() may skip it only when the answer does not depend on the resource.
+ *
  * @spi
  */
 interface Restriction

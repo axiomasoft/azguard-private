@@ -317,6 +317,9 @@ Query descriptor policy/before содержит раздельные allow/deny/
 конкретную Grant/RoleContribution; SQL NULL обрабатывается явно.
 Все relevant contributors должны иметь exact adapter, либо на request детерминированно дать empty/pass/deny.
 Неизвестный volatile ответ не заменяется false или true ради удобного SQL.
+Restriction с `FiltersAccessQueries` в списке компилируется всегда: `appliesTo()` не вызывается, применимость кодируется
+в `predicate()` (`AccessPredicate::pass()` для неприменимого). Ограничение без адаптера пропускается по `appliesTo()=false`
+только если ответ не зависит от ресурса.
 
 - Predicate применяется **до** count/order/limit/pagination/export/aggregate; существующий WHERE не ослабляется
   внешним OR: `(host filters) AND tenant AND (source1 OR source2) AND restrictions`.

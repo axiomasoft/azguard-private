@@ -250,7 +250,7 @@ class VisibilityRestriction implements FiltersAccessQueries, Restriction
 
     public function predicate(AccessRequest $request, string $resourceType, EvaluationContext $context, Grant|RoleContribution|null $contribution = null): P
     {
-        return P::eq('city', 'Paris');
+        return self::$applies ? P::eq('city', 'Paris') : P::pass();
     }
 }
 

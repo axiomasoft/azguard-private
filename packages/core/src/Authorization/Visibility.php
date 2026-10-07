@@ -322,7 +322,7 @@ final readonly class Visibility
             }
             $keys[$key] = true;
 
-            if (! $restriction->appliesTo($request, $frame) || ($frame->qualifiedSuperAdmin && $restriction->exemptsSuperAdmin())) {
+            if (($frame->qualifiedSuperAdmin && $restriction->exemptsSuperAdmin()) || (! $restriction instanceof FiltersAccessQueries && ! $restriction->appliesTo($request, $frame))) {
                 continue;
             }
             $compiler->constrain($query, $this->predicate($restriction, $request, $frame, $query->getModel()::class));

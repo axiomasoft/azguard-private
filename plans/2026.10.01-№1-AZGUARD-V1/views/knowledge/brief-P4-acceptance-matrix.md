@@ -134,7 +134,7 @@ Source: [JSON](../../knowledge/brief-P4-acceptance-matrix.json). This view is fo
 | R19 | P4.15/P4.19 external scalar model=null; P4.23 exact unsupported | — |
 | R20 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
 | R21 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
-| R22 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
+| R22 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness; Grants без квалифицированного вклада — NotGranted, политика не вызывается (D21) | — |
 | R23 | — | P5.2/P5.3 real assignment/dynamic/revocation/pipe writes; consumer concurrence P8.7 |
 | R24 | P4.19/P4.23 typed AND/deployment scalar-list | P5.5 schema/editor metadata; P7.4 stale form; P8.7 consumer |
 | R25 | — | P7.3/P7.4 definition mutation absence; assignment P5.3 |

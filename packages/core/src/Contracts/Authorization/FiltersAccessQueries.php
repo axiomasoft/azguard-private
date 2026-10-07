@@ -17,6 +17,8 @@ use AzGuard\Kernel\Decision\RoleContribution;
  * concrete contribution; all its qualifiers belong to the same bound branch.
  * Return unsupported() when equivalence cannot be expressed. NULL SQL must be
  * assigned an explicit outcome; a SQL NULL is not implicitly policy abstention.
+ * A Restriction with this adapter is always compiled for lists: Restriction::appliesTo()
+ * is not called there, so predicate() returns AccessPredicate::pass() when it is inapplicable.
  *
  * @spi
  */
