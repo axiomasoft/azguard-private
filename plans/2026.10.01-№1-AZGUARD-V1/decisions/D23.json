@@ -1,0 +1,36 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D23",
+  "title": "Размещение публикатора событий и внутренние методы writer в P5.4",
+  "date": "2026-10-07",
+  "status": "accepted",
+  "context": "Исполнение P5.4. D18 п.4 называет внутренний `Events\\ChangeEventPublisher`, а scope пункта ограничивал Sources/Database только TouchPanel. Зона `Events\\` публична по расположению в `bin/api-manifest.php`: внутренний класс в ней попал бы в API-манифест. ChangePipeline достаёт Storage только через writer (DatabaseSource), поэтому журнал, commit-колбэк и поиск истёкших выдач требуют методов writer.",
+  "decision": "1. Внутренний публикатор — `Changes\\ChangeEventPublisher` (не `@api`, вне манифеста); `Events\\` содержит только значения: `AccessEvent`, `EventType`, 12 событий. Имя и роль из D18 п.4 сохраняются, меняется только пространство имён.\n2. `Sources\\Database` в P5.4 расширяется внутренними методами writer: `DatabaseSource::{afterCommit, afterAuthorityCommit, appendJournal, tenantsWithExpired}` и `LockedReads::expired`, помимо writer-пути TouchPanel. Новых публичных значений они не вводят; прямой записи вне ChangePipeline по-прежнему нет.\n3. Файлы, которые пункт затрагивает неизбежно: `AzGuardServiceProvider` (scoped-привязка `ChangeJournal`), `tests/Fixtures/Storage/{DdlSnapshot,SchemaAssertions,ddl/*.json}` (таблица audit_log в снимках DDL), `tests/Unit/Changes/ChangeValuesTest.php` (новый case enum), `tests/Fixtures/Events/**`.",
+  "rationale": "Не раздувает публичный API ради расположения класса и не вводит обходной доступ к хранилищу из Changes; альтернатива — исключение в генераторе манифеста — меняет гейт совместимости вне пункта.",
+  "consequences": [
+    "P5.6 проверяет, что Events\\ не содержит внутренних классов, а новые методы DatabaseSource не расширяют публичную запись.",
+    "Последующие пункты P5 ссылаются на Changes\\ChangeEventPublisher."
+  ],
+  "applies_to": [
+    "P5",
+    "P5.4",
+    "P5.6"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "bin/api-manifest.php",
+      "note": "API_LOCATION_PREFIXES содержит AzGuard\\Events\\"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangeEventPublisher.php",
+      "note": "внутренний публикатор"
+    }
+  ],
+  "actor": {
+    "provider": "claude",
+    "model": "claude-sonnet-5-5",
+    "effort": "high"
+  }
+}
