@@ -33,6 +33,7 @@
 - 2026-10-07T14:39:44Z difficulty P5.8 — Старт: ROUTE_MODEL_UNKNOWN (route implementation/high, фактическая сессия claude-sonnet-5-5/high по /model и CLAUDE_EFFORT=high). Контекст-пак 334 КБ не читается Read целиком (лимит 256 КБ) — читался по секциям через python. LIKE без raw: Laravel literal-string запрещает orWhereRaw с динамической колонкой, whereLike отсутствует в Laravel 11.0 — использован orWhere(col,'like'|'ilike'); SQLite без escape, wildcard там отбрасываются из термина
 - 2026-10-07T15:01:28Z difficulty P5.5 — bin/api-manifest.php публикует весь namespace Schema по расположению и не исключает @internal: внутренний SchemaBuilder (D18) попал в api-manifest.json. Генератор вне task_files пункта — решение для P5.6/P6.1 (исключение @internal или перенос построителя).
 - 2026-10-07T15:04:54Z deviation P5.5 — commit --path: tests/Acceptance/Crm/{SchemaTest.php,README.md} — в task_files brace-glob, который проверка scope не раскрывает; knowledge/findings-P5-execution.json — deliverable пункта (раздел P5.5). Сгенерированные views — отдельным docs(plan) коммитом, как после P5.8.
+- 2026-10-07T15:46:48Z difficulty P5.5 — Kernel sandbox grok (--sandbox read-only, bwrap) не стартует внутри песочницы исполнителя: 'bwrap: setting up uid map: Permission denied'; отключение песочницы исполнителя запрещено классификатором. Read-only ревьюера обеспечен allowlist инструментов (read_file,list_dir,grep) и denylist shell/edit/MCP/subagent, проверено по init-событию.
 
 ## Open questions
 
