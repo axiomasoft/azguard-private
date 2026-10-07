@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\PanelNotResolvedException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
+use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Tests\Fixtures\Concerns\SelectionSubjects;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\Seller;
@@ -129,3 +132,73 @@ it('pins the outcomes the table must contain', function (string $model, string $
     'an enum of two panels with a named panel' => [User::class, 'enum of two panels', 'cabinet', 'admin', true, 'cabinet'],
     'a named panel that does not take the subject' => [Seller::class, 'full', null, 'cabinet', false, SubjectNotAcceptedException::class],
 ]);
+
+/*
+ * V64 rows of the trait and SubjectAccess: the same table through `HasAzGuard` (with `guard:` as the named panel) and
+ * through a wrapper fixed on a panel (the fixed panel is a named panel; a different `guard:` is a conflict).
+ */
+
+it('picks the panel of the table through the trait', function (string $model, string $form, ?string $named, ?string $current, bool $adminIsDefault): void {
+    [, $currentPanel, $registry] = SelectionSubjects::compile($adminIsDefault);
+    $currentPanel->set($current === null ? null : $registry->get($current));
+
+    try {
+        $outcome = SelectionSubjects::traitPanel(SelectionSubjects::subject($model), selectionPermission($form), $named);
+    } catch (ConflictingPanelException|AmbiguousPanelException|SubjectNotAcceptedException|PanelNotResolvedException $e) {
+        $outcome = $e::class;
+    }
+
+    expect($outcome)->toBe(selectionExpectation($model, $form, $named, $current, $adminIsDefault))
+        ->and($currentPanel->get()?->id())->toBe($current);
+})->with(function (): Generator {
+    foreach (SELECTION_SUBJECTS as $subject => $model) {
+        foreach (array_keys(SELECTION_PERMISSIONS) as $form) {
+            foreach ([null, 'admin', 'cabinet'] as $named) {
+                foreach ([null, 'admin', 'cabinet'] as $current) {
+                    foreach ([false, true] as $adminIsDefault) {
+                        yield sprintf('trait | %s | %s | guard %s | current %s | default %s', $subject, $form, $named ?? '—', $current ?? '—', $adminIsDefault ? 'admin' : '—') => [$model, $form, $named, $current, $adminIsDefault];
+                    }
+                }
+            }
+        }
+    }
+});
+
+it('evaluates in the fixed panel of SubjectAccess or refuses a conflicting signal', function (string $model, string $form, string $fixed, ?string $guard, ?string $current): void {
+    [, $currentPanel, $registry] = SelectionSubjects::compile(true);
+    $currentPanel->set($current === null ? null : $registry->get($current));
+    $subject = SelectionSubjects::subject($model);
+    $expected = selectionExpectation($model, $form, $fixed, $current, true);
+
+    if ($guard !== null && $guard !== $fixed) {
+        $expected = ConflictingPanelException::class;
+    }
+
+    try {
+        $access = new SubjectAccess($registry->get($fixed), $subject);
+
+        if ($guard !== null) {
+            $access->hasPermission(selectionPermission($form), guard: $guard);
+        }
+        $outcome = $access->decide(selectionPermission($form))->state->panel;
+    } catch (UnknownPermissionException $e) {
+        // A local name of the other panel is evaluated in the fixed panel and is unknown there, never moved.
+        $outcome = str_contains($e->getMessage(), 'catalog of panel "'.$fixed.'"') ? $fixed : $e::class;
+    } catch (ConflictingPanelException|AmbiguousPanelException|SubjectNotAcceptedException|PanelNotResolvedException $e) {
+        $outcome = $e::class;
+    }
+
+    expect($outcome)->toBe($expected);
+})->with(function (): Generator {
+    foreach (['both' => User::class] as $subject => $model) {
+        foreach (array_keys(SELECTION_PERMISSIONS) as $form) {
+            foreach (['admin', 'cabinet'] as $fixed) {
+                foreach ([null, 'admin', 'cabinet'] as $guard) {
+                    foreach ([null, 'admin', 'cabinet'] as $current) {
+                        yield sprintf('SubjectAccess | %s | %s | fixed %s | guard %s | current %s', $subject, $form, $fixed, $guard ?? '—', $current ?? '—') => [$model, $form, $fixed, $guard, $current];
+                    }
+                }
+            }
+        }
+    }
+});

@@ -56,12 +56,7 @@ final class GrantRows
      */
     public function record(string $kind, stdClass $row): GrantRecord
     {
-        $target = $kind === 'role' ? 'role_grant' : 'permission_grant';
-        $model = $this->storage->model($target, $this->models[$target] ?? null)->newFromBuilder((array) $row);
-
-        if ((! $model instanceof RoleGrant && ! $model instanceof PermissionGrant) || $model->panel() !== $this->panel->id()) {
-            throw new InvalidSourceContributionException('Stored grant identity differs from its query.');
-        }
+        $model = $this->model($kind, $row);
         $key = $model instanceof RoleGrant ? $model->roleKey() : $model->permissionKey();
         $pattern = $key instanceof RoleKey ? null : PermissionPattern::of($key->panel(), $key->local());
         $fields = $this->fields($kind)->stored($model);
@@ -78,6 +73,23 @@ final class GrantRows
                 $until?->format('Y-m-d H:i:s'), json_encode($fields, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                 $updated?->format('Y-m-d H:i:s')]),
         );
+    }
+
+    /**
+     * The row as the write-guarded grant model of the panel, bound to its storage.
+     *
+     * @param  'role'|'permission'  $kind
+     */
+    public function model(string $kind, stdClass $row): RoleGrant|PermissionGrant
+    {
+        $target = $kind === 'role' ? 'role_grant' : 'permission_grant';
+        $model = $this->storage->model($target, $this->models[$target] ?? null)->newFromBuilder((array) $row);
+
+        if ((! $model instanceof RoleGrant && ! $model instanceof PermissionGrant) || $model->panel() !== $this->panel->id()) {
+            throw new InvalidSourceContributionException('Stored grant identity differs from its query.');
+        }
+
+        return $model;
     }
 
     public static function utc(mixed $value): ?DateTimeImmutable

@@ -33,6 +33,7 @@ use AzGuard\Scopes\MembershipRestriction;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
+use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -110,7 +111,69 @@ final readonly class AuthorityStage
         $matching = [];
         $superAdmin = false;
         $qualified = false;
+        [$frame, $denial, $count] = $this->walk($request, $frame, $catalog, $trace,
+            function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($request, $trace, &$matching, &$superAdmin, &$qualified): void {
+                $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
+                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
 
+                if ($item instanceof RoleContribution && $roleDefinition !== null) {
+                    foreach ($roleDefinition['permissions'] as $pattern) {
+                        $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
+                    }
+                }
+
+                if ($admin || $covers) {
+                    $qualified = true;
+                    $superAdmin = $superAdmin || $admin;
+
+                    if ($item instanceof Grant && $covers) {
+                        $matching[] = $item;
+                    }
+                    $trace->record('contribution', 'qualified', $source::class);
+
+                    if ($admin && $roleDefinition !== null && $roleDefinition['permissions'] === []) {
+                        $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
+                    }
+                } else {
+                    $trace->record('contribution', 'not_matching', $source::class, outcome: 'skipped');
+                }
+            });
+
+        if ($denial !== null) {
+            return [$frame, false, $denial];
+        }
+        $frame = $frame->withAuthority($matching, $superAdmin);
+        $trace->record('sources', 'evaluated', detail: ['count' => $count]);
+        $trace->record('superadmin', $superAdmin ? 'qualified' : 'not_granted');
+
+        return [$frame, $qualified, null];
+    }
+
+    /**
+     * The contributions of the subject that qualify in the selected scope, whatever permission they cover: the same
+     * checks as `qualify()` — activity, tenant, known grantable role, role scope, eligibility and grant conditions.
+     *
+     * @return array{EvaluationFrame, list<array{Grant|RoleContribution, CompiledRole|null}>, ?Decision}
+     */
+    public function qualifiedContributions(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, Trace $trace): array
+    {
+        $qualified = [];
+        [$frame, $denial] = $this->walk($request, $frame, $catalog, $trace,
+            static function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use (&$qualified): void {
+                $qualified[] = [$item, $roleDefinition];
+            });
+
+        return [$frame, $denial === null ? $qualified : [], $denial];
+    }
+
+    /**
+     * Reads the contributions of the subject and hands every one that passes the qualification checks to `$accept`.
+     *
+     * @param  Closure(Source, Grant|RoleContribution, CompiledRole|null): void  $accept
+     * @return array{EvaluationFrame, ?Decision, int}
+     */
+    private function walk(AccessRequest $request, EvaluationFrame $frame, PanelCatalog $catalog, Trace $trace, Closure $accept): array
+    {
         try {
             $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
 
@@ -148,7 +211,7 @@ final readonly class AuthorityStage
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
             $trace->error('sources', $reason->value, $component, $error);
 
-            return [$frame, false, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
+            return [$frame, Decision::deny($reason, $frame->state(), $frame->scope(), $component), 0];
         }
         foreach ($contributions as [$source,$item]) {
             $trace->qualifying($item);
@@ -209,7 +272,7 @@ final readonly class AuthorityStage
                 } catch (Throwable $error) {
                     $trace->error('filter', DecisionReason::AssignmentScopeFilterError->value, $source::class, $error);
 
-                    return [$frame, false, Decision::deny(DecisionReason::AssignmentScopeFilterError, $frame->state(), $frame->scope(), $source::class)];
+                    return [$frame, Decision::deny(DecisionReason::AssignmentScopeFilterError, $frame->state(), $frame->scope(), $source::class), 0];
                 }
                 $passes = true;
                 foreach ($frame->panel()->grantConditions() as $declared) {
@@ -232,7 +295,7 @@ final readonly class AuthorityStage
                 $component = isset($condition) ? $condition::class : $source::class;
                 $trace->error('condition', 'condition_error', $component, $error);
 
-                return [$frame, false, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component)];
+                return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component), 0];
             }
 
             if (! $passes) {
@@ -240,36 +303,10 @@ final readonly class AuthorityStage
 
                 continue;
             }
-            $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
-            $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
-
-            if ($item instanceof RoleContribution && $roleDefinition !== null) {
-                foreach ($roleDefinition['permissions'] as $pattern) {
-                    $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
-                }
-            }
-
-            if ($admin || $covers) {
-                $qualified = true;
-                $superAdmin = $superAdmin || $admin;
-
-                if ($item instanceof Grant && $covers) {
-                    $matching[] = $item;
-                }
-                $trace->record('contribution', 'qualified', $source::class);
-
-                if ($admin && $roleDefinition !== null && $roleDefinition['permissions'] === []) {
-                    $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
-                }
-            } else {
-                $trace->record('contribution', 'not_matching', $source::class, outcome: 'skipped');
-            }
+            $accept($source, $item, $roleDefinition);
         }
-        $frame = $frame->withAuthority($matching, $superAdmin);
-        $trace->record('sources', 'evaluated', detail: ['count' => count($contributions)]);
-        $trace->record('superadmin', $superAdmin ? 'qualified' : 'not_granted');
 
-        return [$frame, $qualified, null];
+        return [$frame, null, count($contributions)];
     }
 
     /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */

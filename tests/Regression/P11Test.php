@@ -5,14 +5,15 @@ declare(strict_types=1);
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Events\RoleGranted;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
+use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
-beforeEach(fn () => CrmWorld::seed());
 afterEach(fn () => CrmWorld::resetRuntime());
 
 it('P11 emits one event after the commit for a change and none for a repeat without a difference', function (): void {
+    CrmWorld::seed();
     $panel = ChangeWorld::panel();
     $levels = [];
     Event::listen(RoleGranted::class, function () use (&$levels): void {
@@ -24,5 +25,22 @@ it('P11 emits one event after the commit for a change and none for a repeat with
 
     expect($first->status)->toBe(ChangeStatus::Applied)
         ->and($again->status)->toBe(ChangeStatus::Unchanged)
+        ->and($levels)->toBe([0]);
+});
+
+it('P11 emits one event after the commit through $user->guard(\'admin\') and none for the repeat', function (): void {
+    SubjectWorld::seed();
+    SubjectWorld::compile();
+    $user = SubjectWorld::member();
+    $levels = [];
+    Event::listen(RoleGranted::class, function () use (&$levels): void {
+        $levels[] = DB::connection(CrmWorld::storage()->connectionName())->transactionLevel();
+    });
+
+    $first = $user->guard('admin')->grantRole('support');
+    $again = $user->guard('admin')->grantRole('support');
+
+    expect($first->status->name)->toBe('Applied')
+        ->and($again->status->name)->toBe('Unchanged')
         ->and($levels)->toBe([0]);
 });

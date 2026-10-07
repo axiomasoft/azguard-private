@@ -8,6 +8,7 @@ use AzGuard\Authorization\Pipeline\AccessPipeline;
 use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -16,13 +17,20 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionSet;
 use AzGuard\Kernel\Decision\Explanation;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Grammar\PatternMatcher;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -37,6 +45,7 @@ use Illuminate\Support\Str;
 use Throwable;
 use UnitEnum;
 
+/** @phpstan-import-type CompiledRole from \AzGuard\Catalog\RoleCompiler */
 final class Authorizer
 {
     /** @var array<string,true> */
@@ -96,6 +105,116 @@ final class Authorizer
                 }
             }
 
+        } finally {
+            unset($this->active[$key]);
+        }
+    }
+
+    /**
+     * The roles the subject holds in the scope: the role contributions that qualify there, the same way as for
+     * `isSuperAdmin()`, each once in the order of the sources. Not a decision: `decide()` stays the answer to a check.
+     *
+     * @return list<RoleKey>
+     */
+    public function roles(Panel $panel, SubjectRef $subject, AccessScope $scope): array
+    {
+        $roles = [];
+        foreach ($this->qualified($panel, $subject, $scope)[0] as [$item]) {
+            if ($item instanceof RoleContribution) {
+                $roles[$item->role->full()] ??= $item->role;
+            }
+        }
+
+        return array_values($roles);
+    }
+
+    /**
+     * The Grants permissions of the catalog of the tenant that the qualified contributions in the scope assign:
+     * roles expanded by their code definitions, direct grants and grants to all; a super-admin role assigns every
+     * Grants permission. PolicyOnly permissions are never in the set. Names are in byte order; the set is valid until
+     * the earliest expiry of a contribution that adds to it. Not a decision: restrictions, policies and membership are applied by `decide()`.
+     */
+    public function permissionSet(Panel $panel, SubjectRef $subject, AccessScope $scope): PermissionSet
+    {
+        [$qualified, $catalog] = $this->qualified($panel, $subject, $scope);
+        $grants = [];
+        foreach ($catalog->all() as $local => $definition) {
+            if ($definition->authority === PermissionAuthority::Grants) {
+                $grants[] = (string) $local;
+            }
+        }
+        $held = [];
+        $until = null;
+        foreach ($qualified as [$item, $role]) {
+            $everything = $item instanceof RoleContribution && $role !== null && $role['super_admin'];
+            $patterns = $item instanceof Grant ? [$item->pattern->local()] : ($role['permissions'] ?? []);
+            $adds = false;
+            foreach ($grants as $local) {
+                $covered = $everything;
+                foreach ($covered ? [] : $patterns as $pattern) {
+                    $covered = $covered || PatternMatcher::covers($pattern, $local);
+                }
+
+                if ($covered) {
+                    $held[$local] = $adds = true;
+                }
+            }
+
+            if ($adds && $item->expiresAt !== null && ($until === null || $item->expiresAt < $until)) {
+                $until = $item->expiresAt;
+            }
+        }
+
+        $held = array_keys($held);
+        sort($held, SORT_STRING);
+
+        return PermissionSet::of(array_map(static fn (string $local): PermissionPattern => PermissionPattern::of($panel->id(), $local), $held), $until);
+    }
+
+    /**
+     * Qualified contributions of the subject in the scope through the super-admin preparation and qualification; a
+     * refusal of the scope, a source error or a changing read leaves none, as `isSuperAdmin()` answers false.
+     *
+     * @return array{list<array{Grant|RoleContribution, CompiledRole|null}>, PanelCatalog}
+     */
+    private function qualified(Panel $panel, SubjectRef $subject, AccessScope $scope): array
+    {
+        $key = IdentityCodec::compose([$panel->id(), $subject->type(), $subject->id(), 'contributions.qualify', $scope->tenant->key(), $scope->context->key(), (string) (Fiber::getCurrent() === null ? 0 : spl_object_id(Fiber::getCurrent()))]);
+
+        if (isset($this->active[$key])) {
+            throw new RecursionDetectedException('Recursive qualification of the same panel, subject and scope.');
+        }
+        $this->active[$key] = true;
+
+        try {
+            $now = Carbon::now('UTC')->toDateTimeImmutable();
+            for ($attempt = 0; ; $attempt++) {
+                $trace = new Trace(false);
+                [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
+
+                if ($denial !== null) {
+                    return [[], $catalog];
+                }
+
+                try {
+                    if ($catalog->isDynamic() && $frame->readAttempt !== null) {
+                        $catalog = $frame->readAttempt->catalog();
+                        $frame = $frame->withDynamicRead();
+                    }
+                    [$frame, $qualified, $denial] = $this->authority->qualifiedContributions($request, $frame, $catalog, $trace);
+                    $frame->readAttempt?->confirm($frame);
+
+                    return [$denial === null ? $qualified : [], $catalog];
+                } catch (ReadAttemptChanged) {
+                    if ($attempt === 2) {
+                        return [[], $catalog];
+                    }
+                } catch (Throwable $error) {
+                    $trace->error('state', 'source_error', 'sources', $error);
+
+                    return [[], $catalog];
+                }
+            }
         } finally {
             unset($this->active[$key]);
         }

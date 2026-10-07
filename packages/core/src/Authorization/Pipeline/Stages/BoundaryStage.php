@@ -19,6 +19,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Panel;
 use AzGuard\Scopes\CurrentContext;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ final readonly class BoundaryStage
 
         try {
             if ($request->resource() !== null) {
-                $resource = $this->resourceScope(resource: $request->resource(), frame: $frame, selected: $hint);
+                $resource = $this->resourceScope(resource: $request->resource(), panel: $panel, selected: $hint);
 
                 if ($resource === null && $panel->tenants()->mode() === 'required') {
                     return [$frame, $this->deny($frame, DecisionReason::ResourceScopeMissing)];
@@ -166,9 +167,13 @@ final readonly class BoundaryStage
         return null;
     }
 
-    private function resourceScope(object $resource, EvaluationFrame $frame, ?AccessScope $selected): ?AccessScope
+    /**
+     * The tenant and assignment scope a resource reports in the panel: its declared resolver, `ProvidesAccessScope`,
+     * or `ProvidesAssignmentScope` in a panel without tenants; null when the panel cannot place the resource.
+     */
+    public function resourceScope(object $resource, Panel $panel, ?AccessScope $selected = null): ?AccessScope
     {
-        foreach ($frame->panel()->resourceScopes() as $class => $declared) {
+        foreach ($panel->resourceScopes() as $class => $declared) {
             if (! $resource instanceof $class) {
                 continue;
             }
@@ -185,7 +190,7 @@ final readonly class BoundaryStage
             return $resource->azguardScope();
         }
 
-        if ($frame->panel()->tenants()->mode() === 'none' && $resource instanceof ProvidesAssignmentScope) {
+        if ($panel->tenants()->mode() === 'none' && $resource instanceof ProvidesAssignmentScope) {
             return AccessScope::in(tenant: TenantRef::global(), context: $resource->azguardAssignmentScope());
         }
 

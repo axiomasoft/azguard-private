@@ -12,9 +12,9 @@ DB assignment refresh — Check. RelationSource использует Request-vol
 |---|---|---|---|
 | R01 | [TenancyTest.php](TenancyTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R02 | [TenancyTest.php](TenancyTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
-| R03 | — | future | —; **future:** P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
-| R04 | — | future | —; **future:** P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
-| R05 | — | future | —; **future:** P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
+| R03 | [SubjectApiTest.php](SubjectApiTest.php) | partial | P5.1: `guard('crm')`/`azguard()->guard('crm')` при web Auth не меняют Auth/default guard/модель; `guard(guarded: [...])`, mergeGuarded, fill — native; consumer-модель со своим `guard()` достигает панели через `azguard()`; **future:** P6.1 facade; P6.2 HTTP/queue boundary; P8.7 установленный consumer |
+| R04 | [SubjectApiTest.php](SubjectApiTest.php) | partial | P5.1: независимые wrappers A/B одного User, вложенный withinScope и исключение посередине — wrappers, hint маршрута и ambient scope не изменились; **future:** P6.1 facade; P6.2 HTTP/queue boundary |
+| R05 | [SubjectApiTest.php](SubjectApiTest.php) | partial | P5.1: `backoffice:`/префикс/enum с `guard: backoffice` внутри явной crm → ConflictingPanelException; общий enum без панели → AmbiguousPanelException; enum+guard неизменен при префиксе id/`sales`/off; hint маршрута не подменяет явную панель; **future:** P6.1 facade; P6.2 middleware |
 | R06 | [TenancyTest.php](TenancyTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
 | R07 | [TenancyTest.php](TenancyTest.php), [AssignmentsTest.php](AssignmentsTest.php) | partial | P4.15: host FK; P5.2: ChangePipeline отвергает project/client-поле tenant B в tenant A и mixed sync без частичной записи; **future:** P5.3 managers/delegation surfaces |
 | R08 | — | future | —; **future:** P5.2/P5.3 assignment/delegation/revocation pipeline |

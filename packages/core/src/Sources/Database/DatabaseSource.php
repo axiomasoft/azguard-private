@@ -34,6 +34,7 @@ use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -481,6 +482,18 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
     public function inspectGrants(Panel $panel, TenantRef $tenant, string $origin, GrantFilter $filter, ?array $after, DateTimeImmutable $now, int $limit): array
     {
         return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->page($tenant, $origin, $filter, $after, $now, $limit));
+    }
+
+    /**
+     * @internal The stored grants of one kind of the subject inside the panel, tenant and origin as write-guarded models
+     * of the panel, in one context or in all contexts of the tenant, whatever their state.
+     *
+     * @param  'role'|'permission'  $kind
+     * @return list<RoleGrant|PermissionGrant>
+     */
+    public function grantModels(Panel $panel, TenantRef $tenant, string $origin, string $kind, SubjectRef $subject, ?AssignmentScopeRef $context): array
+    {
+        return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->models($kind, $tenant, $origin, $subject, $context));
     }
 
     /**

@@ -13,8 +13,11 @@ use AzGuard\Exceptions\PanelNotResolvedException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Roles\BaseRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use UnitEnum;
@@ -62,10 +65,103 @@ final class PanelResolver
      */
     public function resolve(Model|SubjectRef|null $subject = null, UnitEnum|string|null $permission = null, ?string $panel = null): array
     {
-        $signals = $this->signals($permission, $panel);
+        [$picked, $step] = $this->pick($subject, $permission === null ? [] : [$permission], [], $panel === null ? [] : [$panel]);
+
+        return [
+            'panel' => $picked,
+            'key' => $permission === null ? null : $this->key($picked, $permission),
+            'step' => $step,
+        ];
+    }
+
+    /**
+     * The panel for a call that names several permissions and roles: the same rule as `resolve()` over the signals of
+     * all of them. A role signals its panel by a full name `panel:key` or by a code role class registered in panels.
+     *
+     * @param  list<UnitEnum|string>  $permissions
+     * @param  list<UnitEnum|string>  $roles
+     * @param  list<string>  $panels  ids of the panels named by the caller; all of them must agree
+     *
+     * @throws ConflictingPanelException when explicit signals name different panels
+     * @throws AmbiguousPanelException when an enum or a role class belongs to several panels and nothing else names one
+     * @throws UnknownPermissionException when an enum is attached to no panel
+     * @throws UnknownRoleException when a role class is registered in no panel
+     * @throws UnknownPanelException when a named panel is not registered
+     * @throws PanelNotResolvedException
+     * @throws SubjectNotAcceptedException when the picked panel does not accept the subject
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function select(Model|SubjectRef|null $subject = null, array $permissions = [], array $roles = [], array $panels = []): Panel
+    {
+        return $this->pick($subject, $permissions, $roles, $panels)[0];
+    }
+
+    /**
+     * A permission or a pattern as a pattern of the panel: an enum through the catalog, a full name as it is, a name
+     * with the panel prefix without it. The panel comes from `select()` or `resolve()`.
+     *
+     * @throws InvalidPermissionKeyException
+     * @throws UnknownPermissionException
+     */
+    public function pattern(Panel $panel, UnitEnum|string $permission): PermissionPattern
+    {
+        if ($permission instanceof UnitEnum) {
+            $key = $this->registry->catalog($panel->id())->keyOf($permission);
+
+            return PermissionPattern::of($key->panel(), $key->local());
+        }
+
+        if (str_contains($permission, ':')) {
+            [$owner, $local] = explode(':', $permission, 2);
+
+            return PermissionPattern::of($owner, $local);
+        }
+
+        return PermissionPattern::of($panel->id(), $this->local($panel, $permission));
+    }
+
+    /**
+     * The panels that accept the subject, in registration order.
+     *
+     * @return list<Panel>
+     */
+    public function panelsOf(Model|SubjectRef $subject): array
+    {
+        $model = $this->modelOf($subject);
+
+        return $model === null ? [] : array_values(array_filter($this->registry->forModel($model), static fn (Panel $panel): bool => $panel->accepts($subject)));
+    }
+
+    /**
+     * The panel of the subject's model by step 3 of the rule, without the panel of the request; null when the model
+     * has none.
+     */
+    public function modelPanel(Model|SubjectRef $subject): ?Panel
+    {
+        return $this->ofModel($subject);
+    }
+
+    /**
+     * @param  list<UnitEnum|string>  $permissions
+     * @param  list<UnitEnum|string>  $roles
+     * @param  list<string>  $panels
+     * @return array{0: Panel, 1: 'explicit'|'current'|'model'}
+     */
+    private function pick(Model|SubjectRef|null $subject, array $permissions, array $roles, array $panels): array
+    {
+        $signals = [];
+        foreach ($panels as $panel) {
+            $signals['the panel argument "'.$panel.'"'] = [$this->registry->get($panel)->id()];
+        }
+        foreach ($permissions as $permission) {
+            $signals = [...$signals, ...$this->signals($permission)];
+        }
+        foreach ($roles as $role) {
+            $signals = [...$signals, ...$this->roleSignals($role)];
+        }
 
         [$picked, $step] = $signals === []
-            ? $this->implicit($subject, $permission)
+            ? $this->implicit($subject, $permissions[0] ?? null)
             : [$this->agreed($signals), self::EXPLICIT];
 
         if ($subject !== null && ! $picked->accepts($subject)) {
@@ -75,11 +171,7 @@ final class PanelResolver
             );
         }
 
-        return [
-            'panel' => $picked,
-            'key' => $permission === null ? null : $this->key($picked, $permission),
-            'step' => $step,
-        ];
+        return [$picked, $step];
     }
 
     /**
@@ -121,21 +213,15 @@ final class PanelResolver
     }
 
     /**
-     * Explicit signals as "what named the panel" => ids of the panels it allows.
+     * Explicit signals of a permission as "what named the panel" => ids of the panels it allows.
      *
      * @return array<string, list<string>>
      *
      * @throws UnknownPanelException
      * @throws UnknownPermissionException
      */
-    private function signals(UnitEnum|string|null $permission, ?string $panel): array
+    private function signals(UnitEnum|string $permission): array
     {
-        $signals = [];
-
-        if ($panel !== null) {
-            $signals['the panel argument "'.$panel.'"'] = [$this->registry->get($panel)->id()];
-        }
-
         if ($permission instanceof UnitEnum) {
             $attached = $this->registry->forEnum($permission::class);
 
@@ -145,28 +231,58 @@ final class PanelResolver
                 );
             }
 
-            $signals['the enum '.$permission::class] = array_map(static fn (Panel $panel): string => $panel->id(), $attached);
-
-            return $signals;
-        }
-
-        if ($permission === null) {
-            return $signals;
+            return ['the enum '.$permission::class => array_map(static fn (Panel $panel): string => $panel->id(), $attached)];
         }
 
         if (str_contains($permission, ':')) {
-            $signals['the full name "'.$permission.'"'] = [$this->registry->get(explode(':', $permission, 2)[0])->id()];
-
-            return $signals;
+            return ['the full name "'.$permission.'"' => [$this->registry->get(explode(':', $permission, 2)[0])->id()]];
         }
 
         $prefixed = $this->registry->forPrefix(explode('.', $permission, 2)[0]);
 
-        if ($prefixed !== null) {
-            $signals['the prefix of "'.$permission.'"'] = [$prefixed->id()];
+        return $prefixed === null ? [] : ['the prefix of "'.$permission.'"' => [$prefixed->id()]];
+    }
+
+    /**
+     * Explicit signals of a role: a full name `panel:key` names its panel, a code role class names the panels that
+     * register it. A role key or an enum case names no panel.
+     *
+     * @return array<string, list<string>>
+     *
+     * @throws UnknownPanelException
+     * @throws UnknownRoleException
+     */
+    private function roleSignals(UnitEnum|string $role): array
+    {
+        if ($role instanceof UnitEnum) {
+            return [];
         }
 
-        return $signals;
+        if (str_contains($role, ':')) {
+            return ['the full role name "'.$role.'"' => [$this->registry->get(explode(':', $role, 2)[0])->id()]];
+        }
+
+        $class = ltrim($role, '\\');
+
+        if (! is_subclass_of($class, BaseRole::class)) {
+            return [];
+        }
+        $panels = [];
+        foreach ($this->registry->all() as $panel) {
+            foreach ($this->registry->catalog($panel->id())->roles() as $definition) {
+                if ($definition['class'] === $class) {
+                    $panels[] = $panel->id();
+
+                    break;
+                }
+            }
+        }
+
+        if ($panels === []) {
+            throw new UnknownRoleException('Role class '.$class.' is not registered in any panel.');
+        }
+
+        return ['the role class '.$class => $panels];
     }
 
     /**
@@ -285,13 +401,15 @@ final class PanelResolver
             return PermissionKey::parse($permission);
         }
 
+        return PermissionKey::of($panel->id(), $this->local($panel, $permission));
+    }
+
+    /** A local name or pattern without the panel prefix. */
+    private function local(Panel $panel, string $permission): string
+    {
         $prefix = $panel->prefix();
 
-        if ($prefix !== null && str_starts_with($permission, $prefix.'.')) {
-            $permission = substr($permission, strlen($prefix) + 1);
-        }
-
-        return PermissionKey::of($panel->id(), $permission);
+        return $prefix !== null && str_starts_with($permission, $prefix.'.') ? substr($permission, strlen($prefix) + 1) : $permission;
     }
 
     private function hint(Model|SubjectRef|null $subject, UnitEnum|string|null $permission): string

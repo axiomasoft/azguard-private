@@ -11,8 +11,11 @@ use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Grammar\PatternMatcher;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Storage\Models\PermissionGrant;
+use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\Schema\HostKeyColumns;
 use AzGuard\Storage\StorageReadSession;
 use Closure;
@@ -53,6 +56,29 @@ final readonly class GrantInspection
         $row = $this->partition($kind, $tenant, $origin)->where('id', $parts[2])->first();
 
         return $row === null ? null : $this->rows->record($kind, $row);
+    }
+
+    /**
+     * Every stored grant of one kind of the subject inside the panel, tenant and origin, in one context or in all of
+     * them, whatever its state, by id.
+     *
+     * @param  'role'|'permission'  $kind
+     * @return list<RoleGrant|PermissionGrant>
+     */
+    public function models(string $kind, TenantRef $tenant, string $origin, SubjectRef $subject, ?AssignmentScopeRef $context): array
+    {
+        $query = $this->partition($kind, $tenant, $origin)->where('subject_type', $subject->type())
+            ->where('subject_id', HostKeyColumns::canonical($this->hostKeys, $subject->id()));
+
+        if ($context !== null) {
+            $query->where('context_key', $context->key());
+        }
+        $models = [];
+        foreach ($query->orderBy('id')->get() as $row) {
+            $models[] = $this->rows->model($kind, $row);
+        }
+
+        return $models;
     }
 
     /**

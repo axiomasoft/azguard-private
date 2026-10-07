@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P5.1",
   "title": "Трейт HasAzGuard, SubjectAccess, SubjectPanels",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Дать модели повседневный API D10/D57: `HasAzGuard` (+ контракт `AzGuardSubject`) с проверками, ролями, суперадмином и изменениями, неизменяемые `SubjectAccess` (панель, tenant, origin) и `SubjectPanels`, селектор `guard(array|string)` без поломки Eloquent mass assignment; панель выбирает только `PanelResolver`, решения — `Authorizer`, записи — `ChangePipeline`/менеджеры P5.3.",
   "why": "Основной вход приложений (`$user->hasPermission()`, `$user->guard('admin')->grantRole()`) и рецепты «Если вы пришли из Spatie» (V70). Жёсткие риски: выбор панели в обход resolver (P09/V64), мутация общего состояния wrapper между запросами (V87/R04), поломка native `Model::guard(array)` и загрузки класса (V108/R03), скрытая агрегация всех tenants в `permissionSet/roleNames` (05 §2), подмена окончательного решения списком прав (16 §8). RAG:— 05 §1/§2, 18 §1, 09 §1, D09–D11, D57; V64, V70, V87, V108; R03–R05; D8, D14, D18.",
   "scope": {
@@ -300,12 +300,65 @@
   },
   "result": {
     "started_at": "2026-10-07T18:02:42Z",
+    "finished_at": "2026-10-07T18:57:34Z",
     "executor": {
       "provider": "claude",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "6b6f20fe-c19d-4e23-ab45-caaabea81d0d"
-    }
+    },
+    "notes": "HasAzGuard/AzGuardSubject, SubjectAccess/SubjectPanels, сигналы ролей PanelResolver, Authorizer::roles/permissionSet через qualify-путь isSuperAdmin, grantModels reader; V64/V70/V87/V108/V12–V16/V86/V88, P11/P13/P14 сквозные, CRM R03–R05. V1 1031, V2 110, V3 79, V4 3736/1 skip, PHPStan 0, types 99.5%. Ревью grok-4.7/500k/high GREEN без находок. Логи artifacts/P5.1-execution, artifacts/P5.1-review.",
+    "deviations": [
+      "Файлы вне task_files: tests/Fixtures/Crm/Models/User.php (HasAzGuard для CRM SubjectApiTest), phpstan.neon (tests/Fixtures/Concerns/Member.php в paths — трейт иначе не анализируется)",
+      "V4: 1 skipped в composer test — pre-existing replica V46, как baseline P5.2–P5.3"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-07T18:57:34Z"
+      }
+    ]
   },
-  "updated_at": "2026-10-07T18:02:42Z"
+  "updated_at": "2026-10-07T18:57:34Z"
 }

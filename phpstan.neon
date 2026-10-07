@@ -6,6 +6,7 @@ parameters:
     - packages/core/src
     - packages/filament/src
     - tests/Fixtures/Visibility/VisibilityProject.php
+    - tests/Fixtures/Concerns/Member.php
 
   excludePaths:
     - legacy

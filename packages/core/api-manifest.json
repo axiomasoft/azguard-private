@@ -2546,6 +2546,1224 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Concerns\\HasAzGuard",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguard",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Concerns\\SubjectPanels"
+                },
+                {
+                    "name": "azguardDefaultPanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "azguardRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "grantPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "grantRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "guard",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "guarded",
+                            "type": "array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Concerns\\SubjectAccess|static"
+                },
+                {
+                    "name": "hasAllPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAllRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "inTenant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Concerns\\SubjectAccess"
+                },
+                {
+                    "name": "isSuperAdmin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "permissionNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "permissionSet",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Permissions\\PermissionSet"
+                },
+                {
+                    "name": "revokePermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "revokeRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "role",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "roleNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "syncPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "syncRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Concerns\\SubjectAccess",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'manual'"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "abilities",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "decide",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\Decision"
+                },
+                {
+                    "name": "fromOrigin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "grantPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "grantRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "hasAllPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAllRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "inTenant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isSuperAdmin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "permissionGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "permissionNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "permissionSet",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Permissions\\PermissionSet"
+                },
+                {
+                    "name": "revokePermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "revokeRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "role",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "roleGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "roleNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "scope",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AccessScope"
+                },
+                {
+                    "name": "syncPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "syncRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Concerns\\SubjectPanels",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "default",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "guard",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Concerns\\SubjectAccess"
+                },
+                {
+                    "name": "panels",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "permissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
             "kind": "interface",
             "final": false,
@@ -2811,6 +4029,509 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\AzGuardSubject",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguard",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Concerns\\SubjectPanels"
+                },
+                {
+                    "name": "azguardDefaultPanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
+                },
+                {
+                    "name": "azguardRef",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
+                },
+                {
+                    "name": "grantPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "grantRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "hasAllPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAllRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasAnyRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "UnitEnum|array|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "inTenant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Concerns\\SubjectAccess"
+                },
+                {
+                    "name": "isSuperAdmin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "permissionNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "permissionSet",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Permissions\\PermissionSet"
+                },
+                {
+                    "name": "revokePermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "revokeRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "role",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "roleNames",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "guard",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Support\\Collection"
+                },
+                {
+                    "name": "syncPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "syncRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {
@@ -17147,6 +18868,56 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "static"
+                },
+                {
+                    "name": "grantModels",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "kind",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "grants",
