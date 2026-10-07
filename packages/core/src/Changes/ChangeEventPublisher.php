@@ -19,6 +19,7 @@ use AzGuard\Events\RoleRevoked;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
@@ -105,7 +106,7 @@ final readonly class ChangeEventPublisher
                 EffectKind::Created => new RoleGranted(...$head, subject: $record->subject, role: $record->role, context: $record->scope->context,
                     origin: $record->origin, expiresAt: $record->until, fields: $record->fields),
                 EffectKind::Updated => new RoleGrantUpdated(...$head, subject: $record->subject, role: $record->role, context: $record->scope->context,
-                    origin: $record->origin, expiresAt: $record->until, fields: $record->fields),
+                    origin: $record->origin, expiresAt: $record->until, fields: $record->fields, previousRole: self::previousRole($effect, $record->role)),
                 EffectKind::Deleted => new RoleRevoked(...$head, subject: $record->subject, role: $record->role, context: $record->scope->context,
                     origin: $record->origin, expiresAt: $record->until, fields: $record->fields),
             };
@@ -120,6 +121,14 @@ final readonly class ChangeEventPublisher
             EffectKind::Deleted => new PermissionRevoked(...$head, subject: $record->subject, permission: $permission, context: $record->scope->context,
                 origin: $record->origin, expiresAt: $record->until, fields: $record->fields),
         };
+    }
+
+    /** The key a migrated grant had before, when the effect moved it to another role key. */
+    private static function previousRole(ChangeEffect $effect, RoleKey $role): ?RoleKey
+    {
+        $before = $effect->before instanceof GrantRecord ? $effect->before->role : null;
+
+        return $before === null || $before->equals($role) ? null : $before;
     }
 
     /**

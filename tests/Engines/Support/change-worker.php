@@ -7,7 +7,9 @@ require dirname(__DIR__, 3).'/vendor/autoload.php';
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
+use AzGuard\Changes\PanelManagers;
 use AzGuard\Changes\PermissionDetails;
+use AzGuard\Changes\RoleKeyMigration;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
@@ -118,6 +120,10 @@ try {
         'create-permission' => ChangeWorld::pipeline()->createPermission($panel, $tenant, $options['name'], new PermissionDetails($options['label'] ?? null)),
         'update-permission' => ChangeWorld::pipeline()->updatePermission($panel, $tenant, $options['name'], new PermissionDetails($options['label'] ?? null)),
         'delete-permission' => ChangeWorld::pipeline()->deletePermission($panel, $tenant, $options['name']),
+        'manager-update' => PanelManagers::for($panel, $tenant)->grants()->update($options['id'], new GrantDetails(null, $options['fields'] ?? []),
+            $options['fingerprint'] ?? null),
+        'manager-revoke' => PanelManagers::for($panel, $tenant)->grants()->revokeMany($options['ids']),
+        'migrate' => app(RoleKeyMigration::class)->run($panel, $options['from'], $options['to'], $tenant)[$tenant->key()],
         'grant-permission' => ChangeWorld::pipeline()->grant($panel, $tenant, ChangeWorld::user($options['user']), ChangeWorld::permission($options['name']),
             ChangeWorld::project($options['project'] ?? null)),
         default => throw new InvalidArgumentException('Unknown operation '.$options['op']),

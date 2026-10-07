@@ -55,7 +55,8 @@ use Throwable;
  * Order: identity → origin → structural and partition checks (subject, role, permission, tenant) → expiry and
  * fields normalized → assignment eligibility over the validated proposal → fingerprint of an update. A revocation
  * checks only identity, origin and its stored partition: an orphan, expired or inactive grant stays removable, and a
- * touch of the panel state is panel-wide and checks nothing but its identity. A
+ * touch of the panel state is panel-wide and checks nothing but its identity. A role key migration checks its stored
+ * row and the code catalog, not the live eligibility of a new grant. A
  * change of a dynamic permission checks the opt-in, the tenant, the details and the name against the catalog read
  * under the lock; it needs neither a subject nor an eligibility check.
  */
@@ -130,6 +131,12 @@ final class ChangeValidator
             return $final->finalized();
         }
 
+        if ($final->type->isMigration()) {
+            $this->migration($final);
+
+            return $final->finalized();
+        }
+
         if ($final->type->isAction()) {
             $this->action($final);
 
@@ -155,6 +162,47 @@ final class ChangeValidator
         }
 
         return $final->finalized();
+    }
+
+    /**
+     * A role key migration rests on the stored row it was planned from and on the current code catalog alone: the
+     * destination is a registered grantable role that lists the previous key among its former keys, and the stored
+     * grant is still the one that was read. Live assignment checks of a new grant do not apply to a historical row.
+     *
+     * @throws AzGuardException
+     */
+    private function migration(Change $change): void
+    {
+        $to = $change->role ?? throw new UnknownRoleException('A role key migration names the current role.');
+        $from = $change->previousRole ?? throw new UnknownRoleException('A role key migration names the former key.');
+        self::assertMigration($this->catalog()->roles(), $this->panel->id(), $from->key(), $to->key());
+        $stored = $this->reads->find($change->grantId ?? '', $this->tenant, $change->origin);
+
+        if ($stored === null || $stored->role === null || ! $stored->role->equals($from) || ! $stored->scope->equals($change->scope)
+            || ! hash_equals($stored->fingerprint, (string) $change->expectedFingerprint)) {
+            throw new StaleSelectionException('The stored grant of the former key changed or left this panel, tenant and origin after it was read.');
+        }
+    }
+
+    /**
+     * `$to` is a registered role that may be granted through storage and names `$from` among its former keys.
+     *
+     * @param  array<string, array{class: class-string<BaseRole>, key: string, former_keys: list<string>, grantable: bool}>  $roles
+     *
+     * @throws UnknownRoleException
+     * @throws RoleNotGrantableException
+     */
+    public static function assertMigration(array $roles, string $panel, string $from, string $to): void
+    {
+        $definition = $roles[$to] ?? throw new UnknownRoleException('Panel '.$panel.' has no role "'.$to.'" to migrate grants to.');
+
+        if (! in_array($from, $definition['former_keys'], true)) {
+            throw new UnknownRoleException('"'.$from.'" is not a former key of role "'.$to.'" of panel '.$panel.'.');
+        }
+
+        if (! $definition['grantable']) {
+            throw new RoleNotGrantableException('Role "'.$to.'" of panel '.$panel.' is not granted through storage; its former grants are not migrated.');
+        }
     }
 
     /**

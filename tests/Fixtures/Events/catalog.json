@@ -232,7 +232,8 @@
             "expires_at": "2027-01-01T00:00:00Z",
             "fields": {
                 "region": "R1"
-            }
+            },
+            "previous_role": null
         },
         "permission.granted": {
             "event_id": "01j0000000000000000000000a",
@@ -461,5 +462,45 @@
             "reason": "granted",
             "component": "database"
         }
+    },
+    "migration": {
+        "event_id": "01j0000000000000000000000a",
+        "type": "role.grant_updated",
+        "occurred_at": "2026-10-06T12:00:00Z",
+        "panel": "crm",
+        "tenant": {
+            "key": "crm.organization:1",
+            "type": "crm.organization",
+            "id": "1"
+        },
+        "actor": {
+            "type": "crm.user",
+            "id": "3",
+            "reason": "ticket"
+        },
+        "correlation_id": "01j0000000000000000000000b",
+        "state": {
+            "kind": "state",
+            "storage": "default",
+            "panel": "crm",
+            "incarnation": "01j0000000000000000000000c",
+            "version": 7,
+            "generation": 1,
+            "fingerprint": "fingerprint"
+        },
+        "subject": {
+            "type": "crm.user",
+            "id": "2"
+        },
+        "role": "crm:auditor",
+        "context": {
+            "key": "crm.project:1",
+            "type": "crm.project",
+            "id": "1"
+        },
+        "origin": "manual",
+        "expires_at": null,
+        "fields": [],
+        "previous_role": "crm:inspector"
     }
 }

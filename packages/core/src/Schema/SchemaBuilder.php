@@ -80,12 +80,22 @@ final readonly class SchemaBuilder
             writable: $panel->isWritable(),
             tenant: $tenant,
             permissions: $this->permissions($panel, $catalog, $descriptions, $owners),
-            roles: $this->roles($panel, $catalog),
+            roles: $this->roleSchemas($panel, $catalog),
             fields: $this->fields($panel, $descriptions),
             tenants: $this->tenants($panel, $resolver),
             scopes: $this->scopes($panel, $resolver),
             subjects: $this->subjects($panel, $resolver),
         );
+    }
+
+    /**
+     * The code roles of the panel alone, as `for()` shows them: they do not depend on a tenant, so nothing is read.
+     *
+     * @return list<RoleSchema>
+     */
+    public function roles(Panel $panel): array
+    {
+        return $this->roleSchemas($panel, $this->registry->catalog($panel->id()));
     }
 
     /**
@@ -215,7 +225,7 @@ final readonly class SchemaBuilder
     /**
      * @return list<RoleSchema>
      */
-    private function roles(Panel $panel, PanelCatalog $catalog): array
+    private function roleSchemas(Panel $panel, PanelCatalog $catalog): array
     {
         $roles = [];
 

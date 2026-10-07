@@ -410,6 +410,12 @@
                     "static": false
                 },
                 {
+                    "name": "previousRole",
+                    "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "reason",
                     "type": "?string",
                     "readonly": true,
@@ -715,6 +721,35 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "bool"
+                },
+                {
+                    "name": "migrate",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "stored",
+                            "type": "AzGuard\\Changes\\GrantRecord",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "to",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
                 },
                 {
                     "name": "occurredAt",
@@ -1601,6 +1636,10 @@
                 {
                     "name": "TouchPanel",
                     "value": "touch_panel"
+                },
+                {
+                    "name": "MigrateRoleGrant",
+                    "value": "migrate_role_grant"
                 }
             ],
             "constants": [],
@@ -1650,6 +1689,13 @@
                 },
                 {
                     "name": "isGrant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "isMigration",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
@@ -1835,6 +1881,228 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Changes\\GrantFilter",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [
+                "ACTIVE",
+                "ANY",
+                "DEFAULT_LIMIT",
+                "EXPIRED",
+                "MAX_LIMIT",
+                "ORPHANED"
+            ],
+            "properties": [
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "cursor",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "kind",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "limit",
+                    "type": "int",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "state",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "kind",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "subject",
+                            "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "permission",
+                            "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "state",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'any'"
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "50"
+                        },
+                        {
+                            "name": "cursor",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "after",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "cursor",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "conditions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "kinds",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Changes\\GrantPage",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "items",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "nextCursor",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "items",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "nextCursor",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
                         }
                     ],
                     "return": null
@@ -2635,6 +2903,194 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Changes\\GrantManager",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "find",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Changes\\GrantRecord"
+                },
+                {
+                    "name": "page",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "filter",
+                            "type": "AzGuard\\Changes\\GrantFilter",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\GrantPage"
+                },
+                {
+                    "name": "revokeMany",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ids",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "update",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "details",
+                            "type": "AzGuard\\Changes\\GrantDetails",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "expectedFingerprint",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Changes\\PermissionManager",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "all",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "create",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "label",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "group",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "fields",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "delete",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                },
+                {
+                    "name": "update",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "details",
+                            "type": "AzGuard\\Changes\\PermissionDetails",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Panels\\PanelRegistry",
             "kind": "interface",
             "final": false,
@@ -2876,6 +3332,43 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Contracts\\Roles\\RoleCatalog",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "all",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "find",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Schema\\RoleSchema"
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {
@@ -6681,6 +7174,12 @@
                     "static": false
                 },
                 {
+                    "name": "previousRole",
+                    "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "role",
                     "type": "AzGuard\\Kernel\\Identity\\RoleKey",
                     "readonly": true,
@@ -6789,6 +7288,14 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "previousRole",
+                            "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null
@@ -15182,6 +15689,21 @@
                         }
                     ],
                     "return": "AzGuard\\Schema\\PanelSchema"
+                },
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 }
             ],
             "stability": "api",
@@ -16670,6 +17192,99 @@
                     "return": "bool"
                 },
                 {
+                    "name": "inspectGrant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Changes\\GrantRecord"
+                },
+                {
+                    "name": "inspectGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "filter",
+                            "type": "AzGuard\\Changes\\GrantFilter",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "after",
+                            "type": "?array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "isDynamic",
                     "static": false,
                     "abstract": false,
@@ -17006,6 +17621,28 @@
                         }
                     ],
                     "return": "static"
+                },
+                {
+                    "name": "tenantsHolding",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "tenantsWithExpired",

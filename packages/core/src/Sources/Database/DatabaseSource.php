@@ -9,6 +9,8 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEffect;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\EffectKind;
+use AzGuard\Changes\GrantFilter;
+use AzGuard\Changes\GrantRecord;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
@@ -39,6 +41,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\Reads;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\GrantFields;
@@ -315,7 +318,7 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
      * Applies one change the change pipeline validated, inside the active mutation of the bound panel.
      *
      * @throws UnsupportedDirectWriteException outside the pipeline or the mutation, or for a foreign panel
-     * @throws PanelNotWritableException when a roles-only writer receives a permission grant, or a writer without
+     * @throws PanelNotWritableException when a roles-only writer receives a permission grant or update, or a writer without
      *                                   `dynamicPermissions()` receives a change of a dynamic permission
      */
     public function apply(Change $change): ChangeResult
@@ -334,7 +337,8 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
             throw new PanelNotWritableException('Panel '.$panel.' does not declare dynamic permissions.');
         }
 
-        if ($this->onlyRoles && ! $change->isAction() && ! $change->isRole()) {
+        // A roles-only writer still removes a permission grant stored before it became roles-only: cleanup stays possible.
+        if ($this->onlyRoles && ! $change->isAction() && ! $change->isRole() && ! $change->type->isRevocation()) {
             throw new PanelNotWritableException('Panel '.$panel.' stores role grants only.');
         }
         $storage = $this->resolvedStorage();
@@ -439,6 +443,74 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
         ksort($found, SORT_STRING);
 
         return array_values($found);
+    }
+
+    /**
+     * @internal Tenants of the panel that hold a stored grant of the role key `$role`, in every origin.
+     *
+     * @return list<TenantRef>
+     */
+    public function tenantsHolding(Panel $panel, string $role): array
+    {
+        $this->bindPanel($panel->id());
+        $found = [];
+        foreach ($this->resolvedStorage()->table('role_grants')->where('panel', $panel->id())->where('role', $role)
+            ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
+            $found[(string) $row->tenant_key] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+        }
+
+        return array_values($found);
+    }
+
+    /**
+     * @internal One stored grant by id inside the panel, tenant and origin, whatever its state, read on the primary
+     * outside any mutation; a foreign or malformed id is null.
+     */
+    public function inspectGrant(Panel $panel, TenantRef $tenant, string $origin, string $id): ?GrantRecord
+    {
+        return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): ?GrantRecord => $inspection->find($tenant, $origin, $id));
+    }
+
+    /**
+     * @internal At most `$limit` stored grants of the panel, tenant and origin that match the filter after `$after`,
+     * expired and orphaned grants included as the filter asks.
+     *
+     * @param  array{'role'|'permission', int}|null  $after
+     * @return list<GrantRecord>
+     */
+    public function inspectGrants(Panel $panel, TenantRef $tenant, string $origin, GrantFilter $filter, ?array $after, DateTimeImmutable $now, int $limit): array
+    {
+        return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->page($tenant, $origin, $filter, $after, $now, $limit));
+    }
+
+    /**
+     * One read of stored grants on a pinned primary session between two equal state reads, with the catalog of the
+     * tenant read on the same session; up to three attempts.
+     *
+     * @template T
+     *
+     * @param  Closure(GrantInspection): T  $read
+     * @return T
+     */
+    private function inspecting(Panel $panel, TenantRef $tenant, Closure $read): mixed
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $session = $storage->readSession(Reads::Primary);
+        $registry = app(PanelRegistry::class);
+        $fingerprint = $registry->fingerprint($panel->id());
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $this->token($session, $panel, $fingerprint);
+            $catalog = $registry->catalog($panel->id())->withDynamic($this->readPermissions($session, $panel, $tenant));
+            $result = $read(new GrantInspection($session, $storage->hostKeys(), $panel, $catalog, $this->onlyRoles,
+                new GrantRows($session, $panel, $registry, $this->selectedModels)));
+
+            if ($before->equals($this->token($session, $panel, $fingerprint))) {
+                return $result;
+            }
+        }
+
+        throw new ConsistencyException('Stored grants changed during all three inspection attempts.');
     }
 
     /**

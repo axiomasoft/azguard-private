@@ -206,6 +206,58 @@ final readonly class ChangePipeline
     }
 
     /**
+     * Moves every stored grant of the former key `$from` in the tenant to the code role `$to` that lists it in its
+     * former keys, in one mutation: each grant is its own `MigrateRoleGrant` change through the pipes, which may cancel
+     * it but not change it. Scope, subject, origin, expiry and fields stay; expired, inactive and orphaned grants move
+     * too and gain no authority. Where `$to` already holds the same identity, that grant keeps its fields, takes the
+     * later expiry and the former one is deleted. A role that is not a registered grantable role naming `$from` among
+     * its former keys is refused before anything is planned.
+     */
+    public function migrateRoleKey(Panel $panel, TenantRef $tenant, string $from, RoleKey $to, ?ActorRef $actor = null): ChangeResult
+    {
+        self::own($panel, $to);
+
+        return $this->run($panel, $tenant, static function (LockedReads $reads, ?ActorRef $actor) use ($panel, $tenant, $from, $to): array {
+            ChangeValidator::assertMigration($reads->catalog($tenant)->roles(), $panel->id(), $from, $to->key());
+
+            return array_map(static fn (GrantRecord $record): Change => Change::migrate($record, $to, $actor), $reads->grantsOfRole($tenant, $from));
+        }, $actor);
+    }
+
+    /**
+     * The plan `migrateRoleKey()` would carry out now, read under the panel lock without a write, a version bump, a
+     * pipe, a journal row or an event: for each stored grant of `$from`, the grant of `$to` it would merge into, if
+     * any, and the expiry the kept grant would have.
+     *
+     * @return list<array{source: GrantRecord, target: ?GrantRecord, until: ?DateTimeImmutable}>
+     */
+    public function planRoleKeyMigration(Panel $panel, TenantRef $tenant, string $from, RoleKey $to): array
+    {
+        self::own($panel, $to);
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource) {
+            throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer.');
+        }
+        $registry = $this->container->make(PanelRegistry::class);
+        $build = [$registry, $registry->buildId(), $registry->fingerprint($panel->id())];
+
+        return $writer->transaction(function () use ($writer, $panel, $tenant, $from, $to, $build): array {
+            $reads = $writer->lockedReads($panel);
+            $this->assertBuild($panel, ...$build);
+            ChangeValidator::assertMigration($reads->catalog($tenant)->roles(), $panel->id(), $from, $to->key());
+            $plan = [];
+            foreach ($reads->grantsOfRole($tenant, $from) as $source) {
+                $target = $reads->exact('role', $source->scope, $source->subject, $to->key(), $source->origin);
+                $plan[] = ['source' => $source, 'target' => $target, 'until' => $target === null ? $source->until
+                    : ($source->until === null || $target->until === null ? null : max($source->until, $target->until))];
+            }
+
+            return $plan;
+        });
+    }
+
+    /**
      * Raises the state version of the panel by one without changing a grant: every cached decision of the panel is
      * renewed. It runs through the `changing` pipes and the journal like any other change and publishes
      * `PanelStateTouched` after the commit. Returns the state the touch produced.

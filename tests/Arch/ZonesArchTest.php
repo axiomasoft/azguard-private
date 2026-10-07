@@ -81,6 +81,7 @@ const AZGUARD_CHANGE_VALUES = [
     'AzGuard\Changes\Change', 'AzGuard\Changes\ChangeType', 'AzGuard\Changes\ChangeContext', 'AzGuard\Changes\ChangeResult',
     'AzGuard\Changes\ChangeStatus', 'AzGuard\Changes\ChangeEffect', 'AzGuard\Changes\EffectKind', 'AzGuard\Changes\GrantRecord',
     'AzGuard\Changes\GrantDetails', 'AzGuard\Changes\PermissionRecord', 'AzGuard\Changes\PermissionDetails',
+    'AzGuard\Changes\GrantFilter', 'AzGuard\Changes\GrantPage',
 ];
 
 arch('contracts do not import implementations')
@@ -261,6 +262,8 @@ it('still rejects the change pipeline or another class of changes in sources and
     'pipeline in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
     'pipeline in contracts' => ['AzGuard\\Contracts\\Sources', 'AzGuard\\Changes\\ChangePipeline', 'use AzGuard\\Changes\\ChangePipeline;'],
     'qualified actor in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\ActingActor', 'function probe(\\AzGuard\\Changes\\ActingActor $a): void {}'],
+    'manager implementation in contracts' => ['AzGuard\\Contracts\\Changes', 'AzGuard\\Changes\\ScopedGrantManager', 'use AzGuard\\Changes\\ScopedGrantManager;'],
+    'filter-prefixed class in the database source' => ['AzGuard\\Sources\\Database', 'AzGuard\\Changes\\GrantFilterBuilder', 'use AzGuard\\Changes\\GrantFilterBuilder;'],
 ]);
 
 arch('storage does not use authorization or changes')

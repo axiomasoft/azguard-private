@@ -71,6 +71,10 @@ it('keeps the event types and the payload shape of every event as a JSON snapsho
     $snapshot = [
         'types' => array_map(fn (EventType $type): string => $type->value, EventType::cases()),
         'events' => array_map(fn (AccessEvent $event): array => $event->toArray(), catalogEvents()),
+        // A grant moved from a former key of its role names the key it had.
+        'migration' => (new RoleGrantUpdated(...catalogHead(), subject: SubjectRef::of('crm.user', 2), role: RoleKey::of('crm', 'auditor'),
+            context: AssignmentScopeRef::of('crm.project', 1), origin: 'manual', expiresAt: null, fields: [],
+            previousRole: RoleKey::of('crm', 'inspector')))->toArray(),
     ];
     $actual = json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
     $path = dirname(__DIR__, 2).'/Fixtures/Events/catalog.json';

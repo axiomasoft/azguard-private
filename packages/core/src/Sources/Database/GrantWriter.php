@@ -14,6 +14,7 @@ use AzGuard\Changes\GrantRecord;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnsupportedDirectWriteException;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Storage\Schema\HostKeyColumns;
 use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageMutation;
@@ -25,7 +26,8 @@ use Illuminate\Support\Str;
  * @internal Writes one validated change inside the active mutation of the panel: insert, update, delete or nothing.
  *
  * A repeat whose expiry (UTC, seconds) and canonical fields equal the stored grant is `Unchanged`: no write, no touch,
- * no effect. A revocation planned as an expiry marks its effect `expired`. The actor is stored but never compared.
+ * no effect. A revocation planned as an expiry marks its effect `expired`. The actor is stored but never compared. A
+ * role key migration carries a historical row to the current key and is the only change that writes `role`.
  * Writes go through the query builder of the mutation only.
  */
 final readonly class GrantWriter
@@ -39,22 +41,75 @@ final readonly class GrantWriter
         $key = $change->role?->key() ?? $change->permission?->local() ?? throw new UnsupportedDirectWriteException('A grant change names a key.');
         $subject = $change->subject ?? throw new UnsupportedDirectWriteException('A grant change names a subject.');
 
-        [$record, $effect] = match ($change->type) {
-            ChangeType::GrantRole, ChangeType::GrantPermission => $this->grant($change, $context, $kind,
-                $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin)),
-            ChangeType::RevokeRole, ChangeType::RevokePermission => $this->revoke($change, $kind,
-                $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin)),
-            ChangeType::UpdateGrant => $this->update($change, $context, $kind),
+        [$record, $effects] = match ($change->type) {
+            ChangeType::GrantRole, ChangeType::GrantPermission => self::one($this->grant($change, $context, $kind,
+                $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin))),
+            ChangeType::RevokeRole, ChangeType::RevokePermission => self::one($this->revoke($change, $kind,
+                $this->reads->exact($kind, $change->scope, $subject, $key, $change->origin))),
+            ChangeType::UpdateGrant => self::one($this->update($change, $context, $kind)),
+            ChangeType::MigrateRoleGrant => $this->migrate($change, $context, $subject),
             ChangeType::CreatePermission, ChangeType::UpdatePermission, ChangeType::DeletePermission => throw new UnsupportedDirectWriteException('A dynamic permission change is not written as a grant.'),
             ChangeType::TouchPanel => throw new UnsupportedDirectWriteException('A touch of the panel state is not written as a grant.'),
         };
 
-        if ($effect !== null) {
+        if ($effects !== []) {
             $this->mutation->touch($this->reads->panel()->id());
         }
 
-        return ChangeResult::written($record, $effect === null ? [] : [$effect], $this->reads->token($effect === null ? 0 : 1),
+        return ChangeResult::written($record, $effects, $this->reads->token($effects === [] ? 0 : 1),
             $change->correlationId() ?? throw new UnsupportedDirectWriteException('A change is applied by the change pipeline.'));
+    }
+
+    /**
+     * The stored grant of a former key moves to the current key with its id, scope, subject, origin, expiry, fields
+     * and stored actor. When the current key already holds the same identity, that grant stays: its expiry becomes the
+     * later of both (no expiry wins), its fields stay, and the former grant is deleted.
+     *
+     * @return array{?GrantRecord, list<ChangeEffect>}
+     */
+    private function migrate(Change $change, ChangeContext $context, SubjectRef $subject): array
+    {
+        $from = $change->previousRole ?? throw new UnsupportedDirectWriteException('A role key migration names the former key.');
+        $to = $change->role ?? throw new UnsupportedDirectWriteException('A role key migration names the current role.');
+        $source = $this->reads->find($change->grantId ?? '', $change->scope->tenant, $change->origin);
+
+        if ($source === null || $source->role === null || ! $source->role->equals($from) || ! $source->scope->equals($change->scope)
+            || ! $source->subject->equals($subject)) {
+            throw new StaleSelectionException('The stored grant of the former key no longer exists in this panel, tenant and origin.');
+        }
+        $now = self::stamp($context->now);
+        $target = $this->reads->exact('role', $change->scope, $subject, $to->key(), $change->origin);
+
+        if ($target === null) {
+            $this->mutation->table('role_grants')->where('panel', $change->panel)->where('id', self::number($source->id))
+                ->update(['role' => $to->key(), 'updated_at' => $now]);
+            $after = $this->reload('role', self::number($source->id));
+
+            return [$after, [new ChangeEffect(EffectKind::Updated, $change->type, $source, $after, self::eventId())]];
+        }
+        $effects = [];
+        $kept = $target;
+        $until = $source->until === null || $target->until === null ? null : max($source->until, $target->until);
+
+        if (! self::sameMoment($target->until, $until)) {
+            $this->mutation->table('role_grants')->where('panel', $change->panel)->where('id', self::number($target->id))
+                ->update(['expires_at' => $until === null ? null : self::stamp($until), 'updated_at' => $now]);
+            $kept = $this->reload('role', self::number($target->id));
+            $effects[] = new ChangeEffect(EffectKind::Updated, $change->type, $target, $kept, self::eventId());
+        }
+        $this->mutation->table('role_grants')->where('panel', $change->panel)->where('id', self::number($source->id))->delete();
+        $effects[] = new ChangeEffect(EffectKind::Deleted, $change->type, $source, null, self::eventId());
+
+        return [$kept, $effects];
+    }
+
+    /**
+     * @param  array{?GrantRecord, ?ChangeEffect}  $written
+     * @return array{?GrantRecord, list<ChangeEffect>}
+     */
+    private static function one(array $written): array
+    {
+        return [$written[0], $written[1] === null ? [] : [$written[1]]];
     }
 
     /**

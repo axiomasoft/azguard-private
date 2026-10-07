@@ -22,6 +22,7 @@ enum ChangeType: string
     case UpdatePermission = 'update_permission';
     case DeletePermission = 'delete_permission';
     case TouchPanel = 'touch_panel';
+    case MigrateRoleGrant = 'migrate_role_grant';
 
     /** A new or repeated grant of a role or a permission. */
     public function isGrant(): bool
@@ -46,6 +47,15 @@ enum ChangeType: string
         return $this === self::TouchPanel;
     }
 
+    /**
+     * A stored role grant carried from a former key of a code role to its current key by an explicit migration: the
+     * historical row keeps its scope, subject, origin, expiry and fields, and is not a new assignment.
+     */
+    public function isMigration(): bool
+    {
+        return $this === self::MigrateRoleGrant;
+    }
+
     /** Whether the change proposes new expiry and fields that pass Assignment validation. */
     public function proposes(): bool
     {
@@ -61,7 +71,7 @@ enum ChangeType: string
     public function phase(): AssignmentScopePhase
     {
         return match (true) {
-            $this === self::TouchPanel => AssignmentScopePhase::Inspection,
+            $this === self::TouchPanel, $this === self::MigrateRoleGrant => AssignmentScopePhase::Inspection,
             $this->isRevocation(), $this === self::DeletePermission => AssignmentScopePhase::Revocation,
             default => AssignmentScopePhase::Assignment,
         };

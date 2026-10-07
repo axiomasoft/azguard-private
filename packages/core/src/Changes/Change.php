@@ -22,6 +22,8 @@ use DateTimeImmutable;
  *
  * Identity — type, panel, scope, subject, key, origin, actor, grant id, expected fingerprint and, for a dynamic
  * permission, its name and label, group and description — is fixed when the change is planned under the panel lock.
+ * A role key migration also names the `previousRole` its stored grant leaves; its expiry and fields are the stored ones
+ * and no pipe replaces them.
  * A pipe may only replace `until` and `fields` through `withUntil()` and `withFields()` (the fields of the details for
  * a dynamic permission), cancel with `cancel()`, and must return the result it receives from `$next`. The engine
  * validates the final change again after all pipes.
@@ -54,6 +56,7 @@ final readonly class Change
         public ?PermissionDetails $details = null,
         public ?string $reason = null,
         public bool $expired = false,
+        public ?RoleKey $previousRole = null,
         private ?ChangeFrame $frame = null,
         private bool $final = false,
     ) {
@@ -71,6 +74,10 @@ final readonly class Change
 
         if ($expired && ! $type->isRevocation()) {
             throw new InvalidIdentityException('Only a revocation can be an expiry.');
+        }
+
+        if (($previousRole !== null) !== $type->isMigration()) {
+            throw new InvalidIdentityException('Only a role key migration names a previous role, and it always does.');
         }
 
         if ($type->isAction()) {
@@ -95,11 +102,16 @@ final readonly class Change
             throw new InvalidIdentityException('A grant change needs a subject.');
         }
 
-        if ($type === ChangeType::UpdateGrant && $grantId === null) {
-            throw new InvalidIdentityException('An update names the stored grant.');
+        if (($type === ChangeType::UpdateGrant || $type->isMigration()) && $grantId === null) {
+            throw new InvalidIdentityException('An update or a migration names the stored grant.');
         }
 
-        if (in_array($type, [ChangeType::GrantRole, ChangeType::RevokeRole], true) && $role === null
+        if ($type->isMigration() && ($role === null || $previousRole === null || $previousRole->panel() !== $panel
+            || $previousRole->key() === $role->key() || $expectedFingerprint === null)) {
+            throw new InvalidIdentityException('A role key migration moves one stored grant of the panel from a former key to another key.');
+        }
+
+        if (in_array($type, [ChangeType::GrantRole, ChangeType::RevokeRole, ChangeType::MigrateRoleGrant], true) && $role === null
             || in_array($type, [ChangeType::GrantPermission, ChangeType::RevokePermission], true) && $permission === null) {
             throw new InvalidIdentityException('Change type '.$type->value.' does not match its key.');
         }
@@ -164,6 +176,17 @@ final readonly class Change
         return $key instanceof RoleKey
             ? new self(ChangeType::RevokeRole, $stored->panel, $stored->scope, $stored->subject, $key, null, $stored->origin, $actor, null, [], $stored->id, null, expired: true)
             : new self(ChangeType::RevokePermission, $stored->panel, $stored->scope, $stored->subject, null, $key, $stored->origin, $actor, null, [], $stored->id, null, expired: true);
+    }
+
+    /**
+     * @internal planned by the change pipeline from a stored grant of a former key read under the lock: the grant moves
+     * to `$to` with its scope, subject, origin, expiry and fields; the fingerprint pins the row that was read
+     */
+    public static function migrate(GrantRecord $stored, RoleKey $to, ?ActorRef $actor): self
+    {
+        return new self(ChangeType::MigrateRoleGrant, $stored->panel, $stored->scope, $stored->subject, $to, null, $stored->origin, $actor,
+            $stored->until, $stored->fields, $stored->id, $stored->fingerprint, previousRole: $stored->role
+                ?? throw new InvalidIdentityException('Only a stored role grant is migrated to another role key.'));
     }
 
     /** @internal planned by the change pipeline: the state version of the whole panel is raised for `$reason` */
@@ -234,14 +257,16 @@ final readonly class Change
     public function bind(ChangeFrame $frame): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired, $frame);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired,
+            $this->previousRole, $frame);
     }
 
     /** @internal the change after final validation; only such a change is applied by the writer */
     public function finalized(): self
     {
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired, $this->frame, true);
+            $this->actor, $this->until, $this->fields, $this->grantId, $this->expectedFingerprint, $this->name, $this->details, $this->reason, $this->expired,
+            $this->previousRole, $this->frame, true);
     }
 
     /** @internal */
@@ -286,7 +311,7 @@ final readonly class Change
             && self::same($this->permission, $other->permission) && $this->origin === $other->origin
             && $this->actor == $other->actor && $this->grantId === $other->grantId
             && $this->expectedFingerprint === $other->expectedFingerprint && $this->name === $other->name
-            && $this->reason === $other->reason && $this->expired === $other->expired
+            && $this->reason === $other->reason && $this->expired === $other->expired && self::same($this->previousRole, $other->previousRole)
             && $this->details?->label === $other->details?->label && $this->details?->group === $other->details?->group
             && $this->details?->description === $other->details?->description && $this->frame === $other->frame;
     }
@@ -314,7 +339,8 @@ final readonly class Change
             : new PermissionDetails($this->details->label, $this->details->group, $this->details->description, $fields);
 
         return new self($this->type, $this->panel, $this->scope, $this->subject, $this->role, $this->permission, $this->origin,
-            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->name, $details, $this->reason, $this->expired, $this->frame);
+            $this->actor, $until, $fields, $this->grantId, $this->expectedFingerprint, $this->name, $details, $this->reason, $this->expired,
+            $this->previousRole, $this->frame);
     }
 
     /**

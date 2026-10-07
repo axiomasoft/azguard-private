@@ -14,7 +14,8 @@ use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
 
 /**
- * The expiry or fields of a stored role grant changed; the values are the new ones.
+ * The expiry or fields of a stored role grant changed; the values are the new ones. A migration from a former key of
+ * the role also changes the key: `previousRole` is then the former key, otherwise null.
  *
  * @api
  */
@@ -35,6 +36,7 @@ final readonly class RoleGrantUpdated extends AccessEvent
         public string $origin,
         public ?DateTimeImmutable $expiresAt,
         public array $fields,
+        public ?RoleKey $previousRole = null,
     ) {
         parent::__construct($eventId, $occurredAt, $panel, $tenant, $actor, $correlationId, $state);
     }
@@ -58,6 +60,7 @@ final readonly class RoleGrantUpdated extends AccessEvent
             'origin' => $this->origin,
             'expires_at' => self::moment($this->expiresAt),
             'fields' => $this->fields,
+            'previous_role' => $this->previousRole?->full(),
         ];
     }
 }
