@@ -22,6 +22,7 @@
 - 2026-10-07T08:51:06Z deviation P5.2 — Среда engine-проверок: php8.3 (default php) без pdo_pgsql, поэтому V5–V7 исполнены тем же командами с php8.4 (pdo_pgsql+pdo_mysql; воркеры наследуют PHP_BINARY). V4 docker compose запущен через sg docker c DOCKER_HOST=unix:///var/run/docker.sock и scratch DOCKER_CONFIG без credsStore desktop (docker-credential-desktop отсутствует); пользовательский ~/.docker/config.json не менялся.
 - 2026-10-07T08:53:34Z deviation P5.2 — V10 PHPStan уровень 8 уже на HEAD 572b9cd (php8.3 и php8.4, чистый worktree) даёт 2 ошибки offsetAccess.notFound в Authorization/Pipeline/Stages/AuthorityStage.php:246/260. Исправлено явными null-guard без изменения поведения (RoleContribution без definition уже пропущен выше, superAdmin(null)=false); файл вне task_files — коммит с --path.
 - 2026-10-07T09:02:55Z deviation P5.2 — V8 первый прогон: 9 падений PluginIsolation/PluginLifecycle — фикстура tests/Fixtures/Plugins/RecordChange была пустым классом-заглушкой pipe до P5.2; компиляция changing теперь требует public handle(Change, Closure) (DefinitionException по scope). Фикстура получила pass-through handle(); файл вне task_files — коммит с --path; V8 перезапущен.
+- 2026-10-07T12:12:17Z difficulty P8 — Документация описывает несуществующий singleton AuthorizationContextManager → P8: переписать раздел Concepts и рецепт multi-tenant на scoped CurrentContext/WithinContext
 
 ## Open questions
 
