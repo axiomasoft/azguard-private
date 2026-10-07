@@ -1,0 +1,5 @@
+PHP 8.3.35 (cli) (built: Sep 25 2026 05:16:50) (NTS)
+Linux 7.0.0-31-generic x86_64
+Wed Oct  7 06:29:23 PM UTC 2026
+pdo_mysql pdo_pgsql pdo_sqlite redis 
+394ab99c0a7d43dd01a427529a117b7d36176a97
