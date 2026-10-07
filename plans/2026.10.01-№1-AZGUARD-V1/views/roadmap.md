@@ -41,7 +41,7 @@ Execution sheet: run the batches in order. Route is the maximum class/effort of 
 | 34 | P4 | BP4-22 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.22` | frontier/high | done |
 | 35 | P4 | BP4-12 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.12` | frontier/high | done |
 | 36 | P4 | BP4-23 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.23` | frontier/high | done |
-| 37 | P4 | BP4-14 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.14` | frontier/high | ready |
+| 37 | P4 | BP4-14 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P4.14` | frontier/high | done |
 | 38 | P5 | B5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.1 P5.2 P5.3 P5.4 P5.5` | frontier/high | design-required |
 | 39 | P6 | B6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.1 P6.2 P6.3 P6.4 P6.5 P6.6 P6.7 P6.8 P6.9 P6.10` | implementation/medium | design-required |
 | 40 | P7 | B7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.1 P7.2 P7.3 P7.4 P7.5 P7.6 P7.7` | frontier/high | design-required |

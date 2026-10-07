@@ -24,6 +24,12 @@ Fresh affected405/105466 without skip, exact standard Pint exit0, PHPStan exit0/
 
 Full-002 completed composer test exit0:2846tests/2845passed/404255assertions/1replicaSkipped. This skip is not GREEN; matching unchanged real replica qualification above substantiates that separate requirement. Check-to-command mapping in acceptance-map.json; fresh superset commands replace no requirements and are recorded verbatim.
 
+Environment: standard Task commit refuses tracked generated views from historical plan migration even with scoped plan path, so native Git commits API-written plan results and renderer-generated views. Orphan REBASE_HEAD backup fixed first GIT_BUSY refusal; Git had no active operation. No Task package source edits. Owning fixes committed as a4cb70f; review pending.
+
 ## Final independent review
 
-PENDING — final fresh native grok/grok-4.7/high read-only delta session will inspect repairs and affected dependencies after tests. No context parameter. Existing full-phase codeGREEN source is knowledge/findings-P4-review, with acceptanceRED original V1/V4/V5 retained. P4.8/P4.12/P4.23 owner-accepted historical deviations remain; no past post-fix review/omitted qualification is invented.
+GREEN — Native independent grok/grok-4.7/high, session75fa5f10-27e5-4394-8a84-e68572794238. No context parameter. Initial delta review and same-session input supplement both GREEN, findings[]. Supplement supplies4existing V9files omitted from first snapshot, no new checks/product fixes; traceability limit corrected. Actual model/effort and all native calls read_only proven in review-attestation.json and compressed native updates/events. Review-only source hash equality and empty packages/tests/bin status proven. Original full-phase codeGREEN baseline reused; no new full audit of unchanged P4. Current reports review-verdict-initial.json and review-verdict.json; raw responses retained. Requirements and source rules unchanged. P4.8/P4.12/P4.23 accepted deviations retained; no historical skipped/unavailable/interrupted item falsely certified.
+
+## Current result and exact Next
+
+P4.10 done; P4.20 done; P4.14 done/GREEN. Phase P4 closed by canonical finish with lifecycle result done_with_deviations because historical owner-accepted P4.8/P4.12/P4.23 deviations are preserved. Current acceptance is GREEN, original RED evidence remains historical. Exact Next: design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5. P5 remains skeleton, no P5 implementation authorized or launched by this tail task. Cwd /home/vostrikov/projects/packages/azguard; source results only through canonical Task plan.py. All fixes committed in a4cb70f; final qualification record committed separately, then both pushed to origin/main.

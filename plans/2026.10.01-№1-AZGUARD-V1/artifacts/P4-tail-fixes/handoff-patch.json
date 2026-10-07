@@ -1,7 +1,4 @@
 {
-  "$schema": "urn:swissknifeman:task:plan:document:v1",
-  "id": "findings-P4-tail-fixes",
-  "title": "P4 owning tails and final delta acceptance",
   "sections": [
     {
       "id": "scope",
@@ -28,11 +25,5 @@
       "title": "Current result and exact Next",
       "text": "P4.10 done; P4.20 done; P4.14 done/GREEN. Phase P4 closed by canonical finish with lifecycle result done_with_deviations because historical owner-accepted P4.8/P4.12/P4.23 deviations are preserved. Current acceptance is GREEN, original RED evidence remains historical. Exact Next: design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P5. P5 remains skeleton, no P5 implementation authorized or launched by this tail task. Cwd /home/vostrikov/projects/packages/azguard; source results only through canonical Task plan.py. All fixes committed in a4cb70f; final qualification record committed separately, then both pushed to origin/main."
     }
-  ],
-  "applies_to": [
-    "P4",
-    "P4.10",
-    "P4.20",
-    "P4.14"
   ]
 }

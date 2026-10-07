@@ -311,6 +311,16 @@ docker test-базы и Redis
 ]
 ```
 
+## Closed
+
+```json
+{
+  "at": "2026-10-07T06:26:22Z",
+  "result": "done_with_deviations",
+  "summary": "23 item(s): 20 done, 3 done_with_deviations"
+}
+```
+
 ## Orchestration
 
 ```json

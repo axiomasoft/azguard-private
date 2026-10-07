@@ -161,3 +161,7 @@ Root attested codex/gpt-6.1-sol/high, approval never, danger-full-access, sessio
 ## Owning work and boundary
 
 P4.10 owns TraceTest.php:13; P4.20 owns coordinated P10b owner correction in spec+RegressionSpecsTest. Exact default V4/V5 scopes also require reconciliation before P4.14 GREEN; expanded checks do not erase original RED. P4.14 is read-only and no owning code/tests/config were repaired. Existing owner JSON migration and unrelated .gitignore/other-history edits remain outside the scoped review commit. Item lifecycle and findings are recorded through plan.py; the shared phase/master migration remains in its original pending working tree.
+
+## Current owning tail acceptance
+
+Historical RED sections and raw evidence above are retained without reinterpretation. Owning repairs in a4cb70f now qualified; current GREEN independent delta verdict grok/grok-4.7/high session75fa5f10-27e5-4394-8a84-e68572794238, no context parameter, no findings, same-session V9 input supplement. Current acceptance: knowledge/findings-P4-tail-fixes; raw artifacts/P4-tail-fixes. Fresh exact V1/V4/V5 exits0; composer test2845passed/1replicaSkipped (skip not PASS), separate actual replica qualification reused from original1test15assertions, plus explicit unchanged SQL/Redis sources. Prior P4 owner-accepted deviations retained; no repeated complete P4 audit.

@@ -1,0 +1,126 @@
+{
+  "verdict": "GREEN",
+  "findings": [],
+  "resolved_tail_findings": [
+    {
+      "id": "P414-V1-TRACE",
+      "owner": "P4.10",
+      "resolution": "tests/Unit/Authorization/TraceTest.php asserts the enabled record() shape stage/component/outcome pass/detail []/result Continue/exception null, and asserts the disabled Trace stays []. The logging test still expects warning context component/reason/exception class and empty steps. Trace::record() builds that key order; Continue falls through to outcome pass and a null error keeps detail [] and exception null."
+    },
+    {
+      "id": "P414-P10B-OWNER",
+      "owner": "P4.20",
+      "resolution": "tests/Regression/specs/P10b.md and RegressionSpecsTest.php both say PLAN2.P4.20. The covered line still names tests/Regression/P10bTest.php::P10b supported root sees its own changes and committed revoke survives a new request. That test still calls Authorizer::withinAuthorityTransaction and Storage::mutate. D14 section 7 assigns touch/incarnation/P10b to P4.20."
+    },
+    {
+      "id": "P4.14-V4-PINT",
+      "owner": "P4.14",
+      "resolution": "pint.json excludes plans while legacy and audits stay excluded and packages, tests, and bin stay in the default scan. Fresh vendor/bin/pint --test exited 0. Original V4.log remains the plans-artifact failure."
+    },
+    {
+      "id": "P4.14-V5-PHPSTAN",
+      "owner": "P4.14",
+      "resolution": "phpstan.neon stays level 8 with checkModelProperties, checkPhpDocMissingReturn, and reportUnmatchedIgnoredErrors. Paths are packages/core/src, packages/filament/src, and tests/Fixtures/Visibility/VisibilityProject.php, which uses ContextAware. No ignoreErrors, baseline, or suppression. Fresh analyse exited 0 with errors 0 after the turbo-extension warning. Original V5.log remains the ContextAware trait.unused failure."
+    }
+  ],
+  "inspected_files": [
+    "corrections.patch",
+    "contracts/findings-P4-review.json",
+    "contracts/findings-P4-tail-fixes.json",
+    "contracts/D14.json",
+    "contracts/D15.json",
+    "contracts/P4.10.json",
+    "contracts/P4.14.json",
+    "contracts/P4.20.json",
+    "validation/acceptance-map.json",
+    "validation/reuse-boundary.json",
+    "validation/original-red-manifest.json",
+    "validation/pint.json",
+    "validation/pint.log",
+    "validation/phpstan.json",
+    "validation/phpstan.log",
+    "validation/types.json",
+    "validation/types.log",
+    "validation/affected.json",
+    "validation/affected.log",
+    "validation/full-002.json",
+    "validation/full-002.log",
+    "validation/full-incomplete.json",
+    "validation/api.json",
+    "validation/api-write.json",
+    "validation/readonly-before.json",
+    "validation/git-preflight-repair.json",
+    "original-validation/qualification-summary.json",
+    "original-validation/product-before.json",
+    "original-validation/V1.log",
+    "original-validation/V2.log",
+    "original-validation/V3.log",
+    "original-validation/V3-evidence.json",
+    "original-validation/V4.log",
+    "original-validation/V5.log",
+    "original-validation/engine-pgsql.log",
+    "original-validation/engine-mysql.log",
+    "original-validation/engine-mariadb.log",
+    "original-validation/replica.log",
+    "original-validation/replica-window.json",
+    "original-validation/repeat-fence.log",
+    "tests/Unit/Authorization/TraceTest.php",
+    "packages/core/src/Authorization/Pipeline/Trace.php",
+    "tests/Regression/RegressionSpecsTest.php",
+    "tests/Regression/specs/P10b.md",
+    "tests/Regression/P10bTest.php",
+    "pint.json",
+    "phpstan.neon",
+    "packages/core/src/Scopes/ContextAware.php",
+    "tests/Fixtures/Visibility/VisibilityProject.php",
+    "tests/Fixtures/Visibility/VisibilityWorld.php",
+    "packages/core/src/Contracts/Scopes/ProvidesAccessScope.php",
+    "packages/core/src/Contracts/Scopes/ProvidesAssignmentScope.php",
+    "packages/core/src/Authorization/Authorizer.php",
+    "packages/core/src/Storage/Storage.php",
+    "packages/core/src/Kernel/Decision/Explanation.php",
+    "tests/Unit/Kernel/Decision/ExplanationTest.php",
+    "tests/Fixtures/Authorization/Cache/CacheWorld.php",
+    "tests/Engines/ReplicaLagTest.php",
+    "composer.json",
+    "phpunit.xml",
+    "CHANGELOG.md"
+  ],
+  "evidence_reuse_assessment": {
+    "fresh": {
+      "affected": "php -d memory_limit=1G vendor/bin/pest on TraceTest, cache, TransactionPropertiesTest, P10bTest, RegressionSpecsTest, BuildStateTest, ExplainTest, ExplainCommandTest, Unit/Kernel/Decision, and Feature/Visibility with --fail-on-skipped. Exit 0. 405 tests, 405 passed, 105466 assertions. Passed count equals the test count.",
+      "full-002": "composer test, which is pest --exclude-group=engines. Exit 0. 2846 tests, 2845 passed, 404255 assertions, skipped 1. The skipped count is outside passed. ReplicaLagTest skips unless AUTHORITY_REPLICA_TEST and is group replica, so the engines exclusion leaves it in this suite. The previous TraceTest failure is absent. This is the ordinary-suite evidence.",
+      "pint": "vendor/bin/pint --test. Exit 0. Log result passed. Config excludes plans and still scans packages, tests, and bin.",
+      "phpstan": "vendor/bin/phpstan analyse --memory-limit=1G. Exit 0. Log shows the turbo .so warning and {\"result\":\"passed\",\"errors\":0}. Config level remains 8 with the prior strict flags and the VisibilityProject consumer on the path.",
+      "types": "pest --type-coverage --min=98 --no-cache. Exit 0. Log total 99.3% across 219 source rows, including filament and excluding the four trait-only files. 99.3 >= 98.",
+      "api": "php bin/api-manifest.php --check exit 0 and --write exit 0. composer api:manifest is php bin/api-manifest.php --write.",
+      "readonly-before": "git status --porcelain -- packages tests bin exit 0 with empty output, timestamped after full-002. This is the pre-review cleanliness record for P4.14 V8. The acceptance map omits the V8 key; the log is present."
+    },
+    "historical_not_fresh": {
+      "engines": "original-validation engine logs: PostgreSQL 16.14, 35 tests, 2497 assertions; MySQL 8.4.10, 35 tests, 2497 assertions; MariaDB 10.11.19, 35 tests, 2553 assertions. All passed. qualification-summary records exit 0. full-002 excludes the engines group, so these logs stay separate historical passes.",
+      "redis": "original-validation/V3.log is composer test:redis, 2 tests, 26 assertions, exit 0. Redis 7.4.9 is recorded in qualification-summary database_versions. acceptance-map keeps P4.14 V3 on this original evidence.",
+      "replica": "original-validation/replica.log is 1 test, 15 assertions, passed. replica-window.json has commit_lsn and replay_lsn both 0/31F9480, paused Default allow, paused Primary deny, caught-up Default deny. This historical pass is the replica requirement. The ordinary-suite skip stays a skip.",
+      "repeat-fence": "original-validation/repeat-fence.log is 3 tests, 1562 assertions, passed.",
+      "docker_compose": "P4.14 V2 remains original-validation/V2.log, containers healthy, qualification-summary exit 0."
+    },
+    "supersets": "acceptance-map points narrower P4.10 and P4.20 commands at fresh broader runs: affected covers P4.20 V1 and P4.10 V1/V10; full-002 covers architecture and the listed core subsets and excludes engines; global pint and neon PHPStan cover the old scoped file lists and add the VisibilityProject consumer; default type coverage covers the 219 eligible sources at min 98; api-write matches composer api:manifest. The note states those original commands were not rerun.",
+    "inventory": "product-before.json has 761 path entries. reuse-boundary.json compares those 761 and lists only phpstan.neon, pint.json, RegressionSpecsTest.php, specs/P10b.md, and TraceTest.php. Original hashes in that boundary match product-before.json. Engine, Redis, and replica tests are outside that changed set. runtime_unchanged is true for that inventory.",
+    "old_red_preserved": "original-validation/V1.log is failed TraceTest.php:13, 2846 tests, 2844 passed, 1 failed, 1 skipped. V4.log fails only on four plans artifact PHP files. V5.log is ContextAware.php:17 trait.unused, errors 1, with the same turbo warning. full-incomplete.json is marked INCOMPLETE and says not to register acceptance. qualification-summary gate_reds still lists V1, V4, and V5.",
+    "deviations": "findings-P4-tail-fixes.json leaves P4.8, P4.12, and P4.23 as historical owner-accepted deviations and leaves the final review pending. This review does not reopen them.",
+    "not_certified_as_fresh_passes": [
+      "P4.14 V2 docker compose, V3 Redis, engine runs, replica, and repeat-fence",
+      "the incomplete first full-suite attempt",
+      "the ordinary-suite replica skip",
+      "P4.10 V9 and P4.20 V9 git diff --check: the map labels them diff and validation/ has no diff log or exit record"
+    ]
+  },
+  "limits": [
+    "Read-only snapshot review. Tests, Pint, PHPStan, and git were not re-executed. SHA-256 values were not recomputed; log bodies and sidecars were read.",
+    "Pint and PHPStan logs are harness summaries. The passing summaries match the stable one-line success wrapper also used by the earlier product Pint pass and expanded PHPStan pass. The preserved RED logs use the same wrapper and still show the old failures.",
+    "corrections.patch also updates CHANGELOG.md. That path is outside the 761-file inventory, so the five-file inventory delta stays accurate.",
+    "VisibilityWorld.php defines VisibilityClient, which also uses ContextAware. The authorized PHPStan path adds VisibilityProject.php. That consumer is on the path, and the fresh result is errors 0.",
+    "git diff --check has no captured fresh log. corrections.patch was read and shows no conflict markers. readonly-before shows a clean packages/tests/bin tree after the suite. This review does not count V9 as a fresh command pass; the missing label is a traceability gap with no false exit or false count.",
+    "Post-review executor git status is outside this snapshot. readonly-before is the pre-review empty porcelain record.",
+    "Unchanged P4 runtime and deferred P5–P8 work were not re-audited."
+  ]
+}

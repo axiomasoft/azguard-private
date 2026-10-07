@@ -1,7 +1,4 @@
 {
-  "$schema": "urn:swissknifeman:task:plan:document:v1",
-  "id": "findings-P4-review",
-  "title": "P4.14 — независимое финальное ревью P4",
   "sections": [
     {
       "id": "verdict",
@@ -43,9 +40,5 @@
       "title": "Current owning tail acceptance",
       "text": "Historical RED sections and raw evidence above are retained without reinterpretation. Owning repairs in a4cb70f now qualified; current GREEN independent delta verdict grok/grok-4.7/high session75fa5f10-27e5-4394-8a84-e68572794238, no context parameter, no findings, same-session V9 input supplement. Current acceptance: knowledge/findings-P4-tail-fixes; raw artifacts/P4-tail-fixes. Fresh exact V1/V4/V5 exits0; composer test2845passed/1replicaSkipped (skip not PASS), separate actual replica qualification reused from original1test15assertions, plus explicit unchanged SQL/Redis sources. Prior P4 owner-accepted deviations retained; no repeated complete P4 audit."
     }
-  ],
-  "applies_to": [
-    "P4",
-    "P4.14"
   ]
 }
