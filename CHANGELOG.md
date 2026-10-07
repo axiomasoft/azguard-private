@@ -6,6 +6,8 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **core:** Ошибка построения источника на пути динамического каталога (`decide()` для права, которого нет в статическом каталоге) даёт `Deny(SourceError)`, а не исключение из `decide()` (аудит P4, A08).
+
 - **core:** `decideMany()` кэширует внешнюю eligibility и нативный вердикт по полной идентичности вклада (класс, роль, область, источник, происхождение, паттерн, срок, поля) вместо `json_encode` value-объектов: раньше вердикт одного вклада переиспользовался для другого, и пакетный результат расходился со скалярным (в том числе ложный Allow). Ошибки конфигурации (`DefinitionException`, `UnknownPermissionException`, `InvalidConfigurationException` кроме `authority_transaction`) пробрасываются из `decideMany()` как из `decide()`, а не превращаются в `source_error` (аудит P4, A03, A07).
 
 - **core:** Прямой `Grant` с ключом роли `#[SuperAdmin]` засчитывается только своим паттерном и не освобождается от ограничений `exemptsSuperAdmin()`: раньше он давал Allow(SuperAdmin) на любое право панели в `decide()` и в точных списках (аудит P4, A02).

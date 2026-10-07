@@ -119,7 +119,14 @@ final readonly class PrepareStage
         $error = null;
 
         if ($definition === null && $catalog->isDynamic()) {
-            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic);
+            try {
+                $attempt = $this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic);
+            } catch (Throwable $caught) {
+                $trace->error('prepare', DecisionReason::SourceError->value, 'dynamic_sources', $caught);
+
+                return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
+                    Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources')];
+            }
             $frame = $frame->withReadAttempt($attempt);
 
             try {
