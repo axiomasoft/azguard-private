@@ -20,6 +20,6 @@ final class BackofficeGuardPanel extends PanelProvider
     {
         return $panel->for(User::class, guard: 'web')
             ->roles([BackofficeMemberRole::class])
-            ->permissions([EntryPermission::class, DatabaseSource::make()]);
+            ->permissions([EntryPermission::class, PagePermission::class, DatabaseSource::make()]);
     }
 }

@@ -9,6 +9,11 @@ parameters:
     - tests/Fixtures/Concerns/Member.php
     - tests/Fixtures/Contracts/Probes
     - tests/Fixtures/Testing/KitCase.php
+    # Users of the authorization traits of the Filament package, so that the traits are analysed.
+    - tests/Fixtures/Filament/Resources/OrderResource.php
+    - tests/Fixtures/Filament/RelationManagers/ProductsRelationManager.php
+    - tests/Fixtures/Filament/Pages/ReportsPage.php
+    - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
 
   level: 8
 

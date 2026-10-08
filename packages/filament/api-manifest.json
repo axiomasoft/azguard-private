@@ -2,6 +2,187 @@
     "package": "axiomasoft/azguard-filament",
     "classes": [
         {
+            "name": "AzGuard\\Filament\\Authorization\\FilamentGate",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "before",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "user",
+                            "type": "?object",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "ability",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "arguments",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "?bool"
+                },
+                {
+                    "name": "page",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "page",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "otherwise",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "relationManager",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "relationManager",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "action",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "otherwise",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "resource",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resource",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "action",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "visible",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "resource",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "query",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "widget",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "widget",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "otherwise",
+                            "type": "?Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Filament\\AzGuardPlugin",
             "kind": "class",
             "final": true,
@@ -370,6 +551,205 @@
                         }
                     ],
                     "return": "static"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Concerns\\AuthorizesPage",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "canAccess",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Concerns\\AuthorizesRelationManager",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "canViewForRecord",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "ownerRecord",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "pageClass",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "getAuthorizationResponse",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Concerns\\AuthorizesResource",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getAuthorizationResponse",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "getEloquentQuery",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Concerns\\AuthorizesWidget",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "canView",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Exports\\AuthorizedExportCsv",
+            "kind": "class",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Actions\\Exports\\Jobs\\ExportCsv",
+            "interfaces": [
+                "Illuminate\\Contracts\\Queue\\ShouldQueue"
+            ],
+            "constants": [
+                "OPTION"
+            ],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "handle",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Exports\\AuthorizedPrepareCsvExport",
+            "kind": "class",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Actions\\Exports\\Jobs\\PrepareCsvExport",
+            "interfaces": [
+                "Illuminate\\Contracts\\Queue\\ShouldQueue"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getExportCsvJob",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
                 }
             ],
             "stability": "api",

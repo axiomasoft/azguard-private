@@ -6,14 +6,32 @@ namespace AzGuard\Filament;
 
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Filament\Authorization\FilamentContext;
+use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Authorization\FilamentKeys;
+use AzGuard\Filament\Authorization\FilamentSurface;
+use AzGuard\Filament\Concerns\AuthorizesPage;
+use AzGuard\Filament\Concerns\AuthorizesResource;
+use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Panel;
+use Filament\Actions\AssociateAction;
+use Filament\Actions\AttachAction;
+use Filament\Actions\BulkAction;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use ReflectionClass;
+use ReflectionMethod;
 
 /**
  * Connects a Filament panel to a panel of AzGuard.
@@ -355,12 +373,94 @@ final class AzGuardPlugin implements Plugin
             throw self::invalid('authority() applies to FilamentDefinitions::Resources only; with FilamentDefinitions::Enums the authority is declared by the permission enums.');
         }
 
-        $this->keys($panel)->all();
+        $keys = $this->keys($panel)->all();
 
         if ($this->definitions === FilamentDefinitions::Resources && ! $this->hasFilamentSource($guard)) {
             throw self::invalid('The Filament panel "'.$panel->getId().'" defines permissions from its resources, but the AzGuard panel "'.$guard->id()
                 .'" has no FilamentSource: add FilamentSource::make(\''.$panel->getId().'\') to permissions([...]) of that panel.');
         }
+
+        if ($this->enforce) {
+            $classes = [];
+
+            foreach ($keys as $key) {
+                $classes[$key->class] = $key->surface;
+            }
+
+            foreach ($classes as $class => $surface) {
+                self::assertAuthorized($panel, $surface, $class);
+            }
+        }
+
+        self::authorizeRecordsOfActions();
+    }
+
+    /**
+     * A Filament panel that enforces decides every resource, page and widget it has through AzGuard; one that Filament
+     * would decide alone would be open.
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function assertAuthorized(FilamentPanel $panel, FilamentSurface $surface, string $class): void
+    {
+        [$trait, $methods] = match ($surface) {
+            FilamentSurface::Resource => [AuthorizesResource::class, ['getAuthorizationResponse', 'getEloquentQuery']],
+            FilamentSurface::Page => [AuthorizesPage::class, ['canAccess']],
+            FilamentSurface::Widget => [AuthorizesWidget::class, ['canView']],
+        };
+        $file = (new ReflectionClass($trait))->getFileName();
+
+        foreach ($methods as $method) {
+            if (! in_array($trait, class_uses_recursive($class), true) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
+                throw InvalidConfigurationException::failing('filament_enforce', $class.' in the Filament panel "'.$panel->getId().'", which enforces its permissions, is not decided by AzGuard: use '
+                    .$trait.' and keep its '.implode('() and ', $methods).'()'.($surface === FilamentSurface::Resource ? ' (change the query in modifyEloquentQuery())' : '')
+                    .', or exclude the class.');
+            }
+        }
+    }
+
+    /**
+     * Inside a Filament panel with the plugin, a bulk action that deletes, force-deletes or restores decides every
+     * selected record, and the records offered to attach or associate are the ones the user may view.
+     */
+    private static function authorizeRecordsOfActions(): void
+    {
+        BulkAction::configureUsing(static function (BulkAction $action): void {
+            $ability = match (true) {
+                $action instanceof DeleteBulkAction => 'delete',
+                $action instanceof ForceDeleteBulkAction => 'force_delete',
+                $action instanceof RestoreBulkAction => 'restore',
+                default => null,
+            };
+
+            if ($ability === null || FilamentContext::serving() === null) {
+                return;
+            }
+            $action->fetchSelectedRecords()->authorizeIndividualRecords(static function (Model $record) use ($action, $ability): Response {
+                $resource = FilamentContext::resourceOf($action->getLivewire());
+
+                if ($resource !== null) {
+                    return FilamentGate::resource($resource, $ability, $record);
+                }
+                $livewire = $action->getLivewire();
+                $filament = $livewire instanceof HasActions ? $livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) : null;
+
+                return $filament === null ? Response::deny() : $filament($record);
+            });
+        });
+
+        $visible = static function (AttachAction|AssociateAction $action): void {
+            if (FilamentContext::serving()?->enforced() !== true) {
+                return;
+            }
+            $action->recordSelectOptionsQuery(static function (Builder $query) use ($action): Builder {
+                $resource = FilamentContext::resourceOf($action->getLivewire());
+
+                return $resource === null ? $query : FilamentGate::visible($resource, $query);
+            });
+        };
+        AttachAction::configureUsing($visible);
+        AssociateAction::configureUsing($visible);
     }
 
     private function hasFilamentSource(Panel $guard): bool

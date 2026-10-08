@@ -14,6 +14,7 @@ use AzGuard\Tests\Fixtures\Filament\Models\Team;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use AzGuard\Tests\Fixtures\Filament\Panels\AdminFilamentProvider;
 use AzGuard\Tests\Fixtures\Filament\Panels\BackofficeFilamentProvider;
+use AzGuard\Tests\Fixtures\Filament\Panels\PlainFilamentProvider;
 use AzGuard\Tests\Fixtures\Filament\Panels\TenantedFilamentProvider;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
@@ -35,7 +36,8 @@ use Livewire\LivewireServiceProvider;
 
 /**
  * Boots the application with Filament, the fixture Filament panels `admin` and `backoffice` and the AzGuard panels
- * `admin`, `backoffice`, `seller` and `teams`, and the Filament panel `tenanted` over `teams`.
+ * `admin`, `backoffice`, `seller` and `teams`, the Filament panel `tenanted` over `teams` and the Filament panel `plain`
+ * without the plugin.
  *
  * Change `FilamentFixture` and call `bootFilament()` to boot the application again with other panels.
  */
@@ -72,6 +74,29 @@ trait BootsFilament
         Schema::create('orders', function (Blueprint $table): void {
             $table->id();
             $table->string('number')->nullable();
+            $table->boolean('secret')->default(false);
+            $table->boolean('locked')->default(false);
+        });
+        Schema::create('products', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name')->nullable();
+            $table->boolean('secret')->default(false);
+        });
+        Schema::create('order_product', function (Blueprint $table): void {
+            $table->foreignId('order_id');
+            $table->foreignId('product_id');
+        });
+        Schema::create('exports', function (Blueprint $table): void {
+            $table->id();
+            $table->timestamp('completed_at')->nullable();
+            $table->string('file_disk');
+            $table->string('file_name')->nullable();
+            $table->string('exporter');
+            $table->unsignedInteger('processed_rows')->default(0);
+            $table->unsignedInteger('total_rows');
+            $table->unsignedInteger('successful_rows')->default(0);
+            $table->foreignId('user_id');
+            $table->timestamps();
         });
         User::query()->insert([['id' => 1, 'name' => 'Member'], ['id' => 2, 'name' => 'Outsider']]);
         Order::query()->insert([['id' => 1, 'number' => 'A-1']]);
@@ -100,6 +125,7 @@ trait BootsFilament
             AdminFilamentProvider::class,
             BackofficeFilamentProvider::class,
             TenantedFilamentProvider::class,
+            PlainFilamentProvider::class,
         ];
     }
 

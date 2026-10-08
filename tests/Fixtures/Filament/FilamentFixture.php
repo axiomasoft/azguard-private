@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Filament;
 
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tests\Fixtures\Filament\Guards\AdminMemberRole;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
@@ -29,6 +30,9 @@ final class FilamentFixture
 
     public static FilamentDefinitions $definitions;
 
+    /** Whether the plugin of the `admin` Filament panel enforces its permissions. */
+    public static bool $enforce;
+
     public static ?string $authority;
 
     /** @var array{resources?: list<string>, pages?: list<string>, widgets?: list<string>} */
@@ -43,8 +47,14 @@ final class FilamentFixture
     /** @var list<PolicyBinding> */
     public static array $guardPolicies;
 
+    /** @var list<class-string> roles of the `admin` guard panel */
+    public static array $adminRoles;
+
     /** Ids of the users that the member roles of the fixture guard panels admit. */
     public static array $members;
+
+    /** @var list<string> what the member roles give besides the entry: names and patterns */
+    public static array $memberPermissions;
 
     /** Whether the `tenanted` Filament panel registers the plugin before it calls `tenant()`. */
     public static bool $tenantAfterPlugin;
@@ -76,12 +86,15 @@ final class FilamentFixture
         self::$pages = [ProbePage::class];
         self::$widgets = [];
         self::$definitions = FilamentDefinitions::Enums;
+        self::$enforce = true;
         self::$authority = null;
         self::$abilities = null;
         self::$exclude = [];
         self::$guardPermissions = [];
         self::$guardPolicies = [];
+        self::$adminRoles = [AdminMemberRole::class];
         self::$members = [1];
+        self::$memberPermissions = ['pages.*'];
         self::$tenantAfterPlugin = false;
         self::$catalogCachePath = null;
         self::$seen = [];

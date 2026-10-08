@@ -18,6 +18,7 @@ final class AdminFilamentProvider extends PanelProvider
             ->guardPanel('admin')
             ->manages(['admin', 'seller'])
             ->definitions(FilamentFixture::$definitions)
+            ->enforce(FilamentFixture::$enforce)
             ->exclude(
                 FilamentFixture::$exclude['resources'] ?? [],
                 FilamentFixture::$exclude['pages'] ?? [],

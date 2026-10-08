@@ -19,7 +19,7 @@ final class BackofficeMemberRole extends BaseRole implements GrantedAutomaticall
 {
     public function permissions(): array
     {
-        return [EntryPermission::Enter];
+        return [EntryPermission::Enter, ...FilamentFixture::$memberPermissions];
     }
 
     public function appliesTo(Model $subject, AccessScope $scope): bool

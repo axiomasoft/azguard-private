@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Filament\Authorization\FilamentGate;
+use AzGuard\Filament\Exports\AuthorizesExports;
+use Filament\Actions\Events\ActionCalling;
+use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -21,7 +26,9 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->publishes([__DIR__.'/../config/azguard-filament.php' => config_path('azguard-filament.php')], 'azguard-filament-config');
 
+        $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
+        $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }
 
     /**
@@ -36,5 +43,13 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
         if (is_string($class)) {
             Livewire::addPersistentMiddleware($class);
         }
+    }
+
+    /**
+     * The hook comes after the Gate adapter of the core, which answers first for the permissions it owns.
+     */
+    private function refuseUnownedFilamentChecks(): void
+    {
+        $this->app->make(Gate::class)->before(static fn (?object $user, string $ability, array $arguments = []): ?bool => FilamentGate::before($user, $ability, $arguments));
     }
 }
