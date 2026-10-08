@@ -21,6 +21,7 @@ use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\GrantsListCommand;
 use AzGuard\Laravel\Console\Commands\GrantsPruneCommand;
+use AzGuard\Laravel\Console\Commands\InstallCommand;
 use AzGuard\Laravel\Console\Commands\Make\MakeModelsCommand;
 use AzGuard\Laravel\Console\Commands\Make\MakePanelCommand;
 use AzGuard\Laravel\Console\Commands\Make\MakePermissionCommand;
@@ -144,7 +145,7 @@ final class AzGuardServiceProvider extends ServiceProvider
                 PermissionsShowCommand::class, RolesGrantCommand::class, RolesRevokeCommand::class, PermissionsGrantCommand::class,
                 PermissionsRevokeCommand::class, PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
                 GrantsPruneCommand::class, AuditPruneCommand::class, StateResetCommand::class, StubsCommand::class,
-                MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class, MakePolicyCommand::class, MakeSourceCommand::class,
+                InstallCommand::class, MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class, MakePolicyCommand::class, MakeSourceCommand::class,
                 MakePluginCommand::class, MakeRestrictionCommand::class, MakePipeCommand::class, MakeModelsCommand::class,
             ]);
         }

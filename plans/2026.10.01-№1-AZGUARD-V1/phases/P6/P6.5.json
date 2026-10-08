@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.5",
   "title": "azguard:install",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "`azguard:install [--migrate] [--force] [--connection=] [--host-keys=] [--panel=]`: публикует конфиг, спрашивает подключение и `host_keys` (или берёт опции), предлагает создать первую панель через `azguard:make:panel`, показывает миграции AzGuard, `migrate` — только с `--migrate` с передачей кода выхода, в конце — `azguard:doctor` (D40, D24 п.6).",
   "why": "Установка не должна запускать миграции без спроса и обязана честно сообщать об ошибке (D40, C10). Жёсткие риски: скрытый `migrate`, exit 0 при упавшей миграции, порча существующего конфига при повторном запуске, неканоничное значение `host_keys`.",
   "scope": {
@@ -142,7 +142,58 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:54:28Z",
+  "result": {
+    "started_at": "2026-10-08T11:05:19Z",
+    "finished_at": "2026-10-08T11:21:32Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "e1ee3384-d673-4942-9f21-079d5198dde5"
+    },
+    "notes": "InstallCommand + 14 тестов (V37); composer test до правки типов choice(), после неё повторены V1,V2,V4-V6 и tests/Feature/Console",
+    "deviations": [
+      "Публикация конфига копированием файла вместо vendor:publish; .env не создаётся; --connection валидируется по database.connections"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T11:21:32Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T11:21:32Z",
   "sections": [
     {
       "id": "Intent",

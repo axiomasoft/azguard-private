@@ -7,6 +7,7 @@
     "azguard:explain": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
     "azguard:grants:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json] [--] <subject>",
     "azguard:grants:prune": "[--panel [PANEL]] [--tenant [TENANT]] [--before [BEFORE]] [--dry-run]",
+    "azguard:install": "[--migrate] [--force] [--connection [CONNECTION]] [--host-keys [HOST-KEYS]] [--panel [PANEL]]",
     "azguard:make:models": "[--storage [STORAGE]] [--force] [--] <panel>",
     "azguard:make:panel": "[--model [MODEL]] [--force] [--] <panel>",
     "azguard:make:permission": "[--model [MODEL]] [--policy] [--abilities] [--force] [--] <panel> <group>",
