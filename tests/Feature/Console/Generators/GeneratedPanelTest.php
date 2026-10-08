@@ -13,6 +13,7 @@ use AzGuard\Tests\Fixtures\Sources\BootsWithCatalogCache;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 
 uses(BootsWithCatalogCache::class);
@@ -112,17 +113,31 @@ it('V78 finds the enum, the policy and the role of a generated panel by the fold
     $support = $this->generated->class('Orders\Policies\Support\Orders\OrderPolicy');
 
     expect(array_column($snapshot['permissions'], 'local'))->toBe([
-        'sales.orders.view-any', 'sales.orders.view', 'sales.orders.create', 'sales.orders.update', 'sales.orders.delete',
-        'sources.view-any', 'sources.view', 'sources.create', 'sources.update', 'sources.delete',
-        'support.orders.view-any', 'support.orders.view', 'support.orders.create', 'support.orders.update', 'support.orders.delete',
+        'sales.orders.view_any', 'sales.orders.view', 'sales.orders.create', 'sales.orders.update', 'sales.orders.delete',
+        'sources.view_any', 'sources.view', 'sources.create', 'sources.update', 'sources.delete',
+        'support.orders.view_any', 'support.orders.view', 'support.orders.create', 'support.orders.update', 'support.orders.delete',
     ])
         ->and($snapshot['bindings']['sales.orders.update'])->toBe($sales)
         ->and($snapshot['bindings']['support.orders.update'])->toBe($support)
-        ->and($snapshot['binding_methods']['sales.orders.view-any'])->toBe('viewAny')
+        ->and($snapshot['binding_methods']['sales.orders.view_any'])->toBe('viewAny')
         ->and(array_key_exists('sources.view', $snapshot['bindings']))->toBeFalse()
         ->and(array_keys($snapshot['roles']))->toBe(['manager'])
         ->and($snapshot['roles']['manager']['permissions'])->not->toBe([])
         ->and($snapshot['permissions'][0]['source'])->toBe('folder');
+});
+
+it('V78 finds the permission of a generated enum for the Gate ability viewAny of its #[Resource(model)]', function (): void {
+    generateOrdersApp($this->generated);
+    bootGenerated($this, $this->generated);
+    $user = User::query()->findOrFail(1);
+    $sales = $this->generated->class('Orders\Permissions\Sales\Orders\OrderPermission');
+
+    expect(app(PanelRegistry::class)->catalog('orders')->permissionForAbility(User::class, 'viewAny'))->toBe('sales.orders.view_any')
+        ->and(Gate::forUser($user)->allows('viewAny', User::class))->toBeFalse();
+
+    app(AzGuardManager::class)->panel('orders')->for($user)->grantPermission([$sales::ViewAny]);
+
+    expect(Gate::forUser($user)->allows('viewAny', User::class))->toBeTrue();
 });
 
 it('V78 derives no binding from a method name when the attribute is gone', function (): void {

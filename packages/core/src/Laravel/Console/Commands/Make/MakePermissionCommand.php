@@ -53,7 +53,7 @@ final class MakePermissionCommand extends MakeCommand
         $permissions = $panel->in($layout->folder('permissions').'/'.$relative);
         $key = implode('.', array_map(Str::kebab(...), $group));
 
-        if (! PermissionGrammar::isLocalKey($key.'.view-any')) {
+        if (! PermissionGrammar::isLocalKey($key.'.view_any')) {
             throw new InvalidCommandInput('The group '.implode('/', $group).' gives the permission key "'.$key.'", which is not valid: keys are lowercase segments of letters, digits, hyphens and underscores.');
         }
 

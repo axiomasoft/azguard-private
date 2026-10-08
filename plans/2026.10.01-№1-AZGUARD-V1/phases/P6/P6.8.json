@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.8",
   "title": "Генераторы и stubs по структуре D56/D72",
-  "status": "done_with_deviations",
+  "status": "done",
   "summary": "Генераторы на `Illuminate\\Console\\GeneratorCommand` и публикуемых стабах: `azguard:make:panel|permission|policy|role|source|plugin|restriction|pipe|models` и `azguard:stubs` создают структуру D56/D72 в `scaffold.path`; сгенерированная панель проходит V78/V106, контрактные наборы P6.7 и даёт одинаковый каталог live и после `azguard:catalog:cache`.",
   "why": "Генераторы задают раскладку, которую увидит каждый проект (D72), и закрывают V78/V106/R56. Жёсткие риски: генератор, создающий структуру, которую FolderSource не находит или находит иначе после кэша, policy без `#[Decides]` (binding не выводится), stub роли без явного `#[Role]` ключа, stub плагина с options-парсером вместо typed factory (V118), перезапись существующих файлов без `--force`.",
   "scope": {
@@ -179,7 +179,7 @@
   ],
   "route": {
     "class": "implementation",
-    "effort": "high"
+    "effort": "medium"
   },
   "review": {
     "mode": "none"
@@ -192,62 +192,59 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-08T10:38:08Z",
-    "finished_at": "2026-10-08T11:03:11Z",
+    "started_at": "2026-10-08T15:18:19Z",
+    "finished_at": "2026-10-08T15:22:52Z",
     "executor": {
       "provider": "claude",
-      "model": "sonnet-5-5",
-      "effort": "high",
-      "session": "8a8645a0-a8c2-44f0-b78d-21013927d2e1"
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "c96f1f15-4859-42c9-a836-824439ad611e"
     },
-    "notes": "Генераторы make:panel|permission|role|policy|source|plugin|restriction|pipe|models и azguard:stubs; V78/V106/V105-R56/V118 на сгенерированном потребителе, Pint и PHPStan на сгенерированном коде, контрактные наборы P6.7; раздел P6.8 в findings-P6-execution",
-    "deviations": [
-      "execute() вместо handle() для кодов выхода; DatabaseSource в провайдере панели; Model $user в policy-стабе; make:models без модели Permission; api-manifest.json без изменений"
-    ],
+    "notes": "stub permission view-any -> view_any, MakePermissionCommand key check, tests updated, Gate viewAny test added",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-08T11:03:11Z"
+        "at": "2026-10-08T15:22:52Z"
       }
     ]
   },
-  "updated_at": "2026-10-08T11:03:11Z",
+  "updated_at": "2026-10-08T15:22:52Z",
   "sections": [
     {
       "id": "Intent",

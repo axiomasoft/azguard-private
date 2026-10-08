@@ -22,7 +22,7 @@ it('creates the enum of a group under Permissions/{Group}', function (): void {
             "#[Resource(label: 'Orders')]",
             '#[RequiresGrant]',
             'enum OrderPermission: string',
-            "case ViewAny = 'orders.view-any';",
+            "case ViewAny = 'orders.view_any';",
             "case Delete = 'orders.delete';",
         );
 });

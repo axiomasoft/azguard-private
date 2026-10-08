@@ -11,7 +11,7 @@ namespace {{ namespace }};
 enum {{ class }}: string
 {
     #[Describe('View list')]
-    case ViewAny = '{{ key }}.view-any';
+    case ViewAny = '{{ key }}.view_any';
 
     #[Describe('View')]
     case View = '{{ key }}.view';
