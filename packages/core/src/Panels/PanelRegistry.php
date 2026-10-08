@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Catalog\CacheState;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Configuration\AzGuardConfig;
@@ -334,6 +335,32 @@ final class PanelRegistry implements PanelRegistryContract
         $fingerprint = $this->recipeFingerprints[$id] ?? throw $this->unknown($id);
 
         return $this->cache !== null && CatalogCache::entry(($this->cache)()->read(), (string) $this->buildId, $id, $fingerprint) !== null;
+    }
+
+    /**
+     * How the catalog cache file relates to the panels: missing, lacking the current catalog of a panel, or current.
+     * The doctor and `php artisan about` report this one answer.
+     *
+     * @internal read by the doctor and `about`
+     *
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function cacheState(): CacheState
+    {
+        $this->compiled();
+        $file = $this->cache === null ? [] : ($this->cache)()->read();
+
+        if ($file === []) {
+            return CacheState::Missing;
+        }
+
+        foreach ($this->recipeFingerprints as $id => $fingerprint) {
+            if (CatalogCache::entry($file, (string) $this->buildId, $id, $fingerprint) === null) {
+                return CacheState::Stale;
+            }
+        }
+
+        return CacheState::Current;
     }
 
     /**

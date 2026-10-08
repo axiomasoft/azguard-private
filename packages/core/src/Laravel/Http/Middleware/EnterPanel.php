@@ -8,6 +8,7 @@ use AzGuard\Authorization\PanelAdmission;
 use AzGuard\Exceptions\MissingPermissionCheckException;
 use AzGuard\Laravel\Http\PanelUser;
 use AzGuard\Laravel\Http\RouteChecks;
+use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
@@ -31,7 +32,8 @@ use Illuminate\Routing\Router;
  * (see `PanelAdmission`). A guest gets the standard authentication response. A denied user gets the `onDenied`
  * response of the panel, otherwise a 403 `AuthorizationException`. An admitted request runs with the panel as the
  * panel of the request and the admitted tenant and assignment scope as its current scope; both are restored when the
- * request leaves the middleware, also after an exception.
+ * request leaves the middleware, also after an exception. Queued jobs dispatched meanwhile carry the panel id as a
+ * hint (see `PanelContext`).
  *
  * Inside the panel the middleware adds the `azguard.can` checks of `#[CheckPermission]` attributes the router has not
  * applied itself, each once. In strict mode an action without any check and without `#[SkipPermissionCheck]` throws
@@ -49,6 +51,7 @@ final readonly class EnterPanel
         private PanelResolver $resolver,
         private PanelAdmission $admission,
         private RouteChecks $checks,
+        private PanelContext $jobs,
         private Router $router,
         private Translator $translator,
     ) {}
@@ -90,17 +93,20 @@ final readonly class EnterPanel
             $this->contexts->set($panel, $scope);
 
             try {
-                $route = $request->route();
+                // Jobs dispatched while the request runs carry the panel as the hint for their short names.
+                return $this->jobs->carry($panel, function () use ($request, $next, $panel): mixed {
+                    $route = $request->route();
 
-                if (! $route instanceof Route) {
-                    return $next($request);
-                }
+                    if (! $route instanceof Route) {
+                        return $next($request);
+                    }
 
-                if ($panel->requiresRouteChecks() && ! $this->checks->covered($route)) {
-                    $this->missingCheck($route, $panel);
-                }
+                    if ($panel->requiresRouteChecks() && ! $this->checks->covered($route)) {
+                        $this->missingCheck($route, $panel);
+                    }
 
-                return $this->through($request, array_values($this->router->resolveMiddleware($this->checks->missing($route))), $next);
+                    return $this->through($request, array_values($this->router->resolveMiddleware($this->checks->missing($route))), $next);
+                });
             } finally {
                 $this->contexts->set($panel, $previous);
             }

@@ -135,6 +135,16 @@ smoke() {
     fi
 
     php artisan about >/dev/null
+    # The AzGuard section of `about` (AboutCommand::add) on every supported Laravel.
+    local about
+    about="$(php artisan about --only=azguard)"
+    for row in 'AzGuard' 'Version' 'Catalog cache' 'Host keys'; do
+        if ! grep -q "${row}" <<<"${about}"; then
+            echo "error: 'php artisan about' has no \"${row}\" row of the AzGuard section" >&2
+            exit 1
+        fi
+    done
+    log "about: AzGuard section printed"
     log "OK"
 }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics\Checks;
 
-use AzGuard\Catalog\CatalogCache;
+use AzGuard\Catalog\CacheState;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
@@ -18,7 +18,7 @@ use AzGuard\Panels\PanelRegistry;
  */
 final readonly class CatalogCached implements DoctorCheck
 {
-    public function __construct(private PanelRegistry $registry, private CatalogCache $cache) {}
+    public function __construct(private PanelRegistry $registry) {}
 
     public function key(): string
     {
@@ -31,7 +31,7 @@ final readonly class CatalogCached implements DoctorCheck
             return;
         }
 
-        if ($this->cache->read() === []) {
+        if ($this->registry->cacheState() === CacheState::Missing) {
             yield DoctorFinding::warning($this->key(), 'There is no catalog cache: every boot builds the catalogs from the sources. Run azguard:catalog:cache when deploying.');
 
             return;

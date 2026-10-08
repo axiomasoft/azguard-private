@@ -13,6 +13,7 @@ use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Laravel\About\AboutSection;
 use AzGuard\Laravel\Console\Commands\AuditPruneCommand;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
@@ -48,6 +49,7 @@ use AzGuard\Laravel\Console\Commands\StubsCommand;
 use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Laravel\Http\Middleware\CheckPermission;
 use AzGuard\Laravel\Http\Middleware\EnterPanel;
+use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -62,8 +64,14 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Foundation\Console\AboutCommand;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use ReflectionClass;
 
 final class AzGuardServiceProvider extends ServiceProvider
 {
@@ -112,6 +120,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->scoped(CurrentContext::class);
         $this->app->scoped(WithinContext::class);
 
+        $this->app->singleton(PanelContext::class);
         $this->app->singleton(EventObservers::class);
         $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 
@@ -150,10 +159,42 @@ final class AzGuardServiceProvider extends ServiceProvider
             ]);
         }
         $this->scheduleMaintenance();
+        $this->registerLaravelMechanisms();
 
         $this->app->booted(function (): void {
             $this->app->make(PanelRegistry::class)->freeze();
         });
+    }
+
+    /**
+     * What Laravel offers instead of a mechanism of the package: `optimize` and `optimize:clear` run the catalog
+     * commands, `about` prints a section, and a queued job runs in the panel of the request that dispatched it.
+     */
+    private function registerLaravelMechanisms(): void
+    {
+        $this->registerOptimizations((new ReflectionClass(ServiceProvider::class))->hasMethod('optimizes'));
+
+        if (class_exists(AboutCommand::class)) {
+            AboutCommand::add(AboutSection::TITLE, AboutSection::class);
+        }
+
+        $events = $this->app->make('events');
+        // The context of the job is hydrated by a listener of the framework that boots before this one.
+        $events->listen(JobProcessing::class, [PanelContext::class, 'entering']);
+        $events->listen([JobProcessed::class, JobExceptionOccurred::class, JobFailed::class], [PanelContext::class, 'leaving']);
+    }
+
+    /**
+     * `optimizes()` exists from Laravel 11.27.1; on an older 11.x `optimize` does not build the catalog cache and the
+     * doctor warns about it for a production deployment.
+     *
+     * @param  bool  $supported  whether the framework offers `optimizes()`
+     */
+    private function registerOptimizations(bool $supported): void
+    {
+        if ($supported) {
+            $this->optimizes(optimize: 'azguard:catalog:cache', clear: 'azguard:catalog:clear', key: 'azguard');
+        }
     }
 
     /**

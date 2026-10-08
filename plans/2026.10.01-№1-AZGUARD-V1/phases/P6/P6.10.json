@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.10",
   "title": "optimizes, about, панель в Context для очередей",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Механизмы Laravel: `optimizes()` для `azguard:catalog:cache|clear` (при наличии метода), раздел `php artisan about` (при наличии `AboutCommand`), панель запроса в скрытом Laravel Context и её применение в job с восстановлением после job (V84, V103 queue/sync, R53/R54).",
   "why": "D58: AzGuard использует механизмы Laravel вместо своих. Жёсткие риски: job, относящий короткие имена не к той панели (hint после деплоя указывает на удалённую панель — должен быть fail-closed), доверие сохранённому при постановке Allow (F18), утечка панели job в запрос при sync queue, вызов `optimizes()` на Laravel < 11.27.1 (метода нет), падение `about` на не мигрированном хранилище.",
   "scope": {
@@ -205,7 +205,68 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:55:33Z",
+  "result": {
+    "started_at": "2026-10-08T11:42:23Z",
+    "finished_at": "2026-10-08T12:04:00Z",
+    "executor": {
+      "provider": "claude",
+      "model": "sonnet-5-5",
+      "effort": "high",
+      "session": "e7306be8-2251-4e45-9415-6b31d2e17439"
+    },
+    "notes": "optimizes/about/PanelContext готовы; V1 14 тестов, composer test 4315 passed 1 skipped (штатный), consumer-fixture на Laravel 11/12/13 OK, PHPStan 0, type coverage 99.5%. Отклонённая подсказка панели fail-closed (UnknownPanelException при резолве коротких имён).",
+    "deviations": [
+      "Файлы вне task_files: CurrentPanel, PanelResolver, PanelRegistry, Catalog/CacheState, CatalogCached, SourceConventionsTest, tests/Fixtures/Queue, bin/consumer-fixture.sh — см. log deviation"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-08T12:04:00Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T12:04:00Z",
   "sections": [
     {
       "id": "Intent",

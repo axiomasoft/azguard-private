@@ -345,11 +345,14 @@ final class PanelResolver
     }
 
     /**
-     * The panel of the request; it is skipped when it does not accept the subject.
+     * The panel of the request or job; it is skipped when it does not accept the subject.
+     *
+     * @throws UnknownPanelException when the panel is a hint of a queued job that no registered panel has any more
      */
     private function currentFor(Model|SubjectRef|null $subject): ?Panel
     {
-        $current = $this->current->get();
+        $rejected = $this->current->rejected();
+        $current = $rejected === null ? $this->current->get() : $this->registry->get($rejected);
 
         return $current !== null && ($subject === null || $current->accepts($subject)) ? $current : null;
     }
