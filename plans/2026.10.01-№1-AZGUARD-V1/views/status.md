@@ -244,16 +244,16 @@ Closed 2026-10-07T06:26:22Z (🟠 Done with deviations): 23 item(s): 20 done, 3 
 
 | Item | Title | Status | Route | Updated |
 |:--|:--|:--|:--|:--|
-| P5.2 | Пайплайн изменений: Change, pipes, финальная валидация, писатель | 🟠 Done with deviations | frontier/high | 2026-10-07T09:09:23Z |
-| P5.7 | Динамические права: create/update/delete через пайплайн изменений | 🟠 Done with deviations | implementation/high | 2026-10-07T12:43:34Z |
+| P5.2 | Пайплайн изменений: Change, pipes, финальная валидация, писатель | 🟠 Done with deviations | frontier/high | 2026-10-07T21:40:24Z |
+| P5.7 | Динамические права: create/update/delete через пайплайн изменений | 🟠 Done with deviations | implementation/high | 2026-10-07T21:40:25Z |
 | P5.4 | События после commit и плагин audit | 🟠 Done with deviations | implementation/high | 2026-10-07T13:40:53Z |
-| P5.8 | Каталоги поиска по умолчанию и LookupContext фазы Assignment | 🟠 Done with deviations | implementation/high | 2026-10-07T14:42:09Z |
-| P5.5 | PanelSchema | 🟢 Done | frontier/high | 2026-10-07T15:46:47Z |
+| P5.8 | Каталоги поиска по умолчанию и LookupContext фазы Assignment | 🟠 Done with deviations | implementation/high | 2026-10-07T21:40:25Z |
+| P5.5 | PanelSchema | 🟠 Done with deviations | frontier/high | 2026-10-07T21:40:25Z |
 | P5.3 | RoleCatalog, scoped GrantManager, PermissionManager | 🟠 Done with deviations | frontier/high | 2026-10-07T17:55:02Z |
 | P5.1 | Трейт HasAzGuard, SubjectAccess, SubjectPanels | 🟠 Done with deviations | frontier/high | 2026-10-07T18:57:34Z |
-| P5.6 | Review P5: независимая read-only проверка фазы | 🟠 Done with deviations | frontier/high | 2026-10-07T19:26:26Z |
+| P5.6 | Review P5: независимая read-only проверка фазы | 🟠 Done with deviations | frontier/high | 2026-10-07T21:51:06Z |
 
-Closed 2026-10-07T19:26:26Z (🟠 Done with deviations): 8 item(s): 1 done, 7 done_with_deviations
+Closed 2026-10-07T21:51:06Z (🟠 Done with deviations): 8 item(s): 8 done_with_deviations
 
 ## P6 — Laravel-поверхность и удаление legacy · ⬜ Skeleton
 

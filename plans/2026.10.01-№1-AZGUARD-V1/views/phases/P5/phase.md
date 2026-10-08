@@ -181,9 +181,9 @@ D18 → указанные разделы досье → код.
 
 ```json
 {
-  "at": "2026-10-07T19:26:26Z",
+  "at": "2026-10-07T21:51:06Z",
   "result": "done_with_deviations",
-  "summary": "8 item(s): 1 done, 7 done_with_deviations"
+  "summary": "8 item(s): 8 done_with_deviations"
 }
 ```
 
