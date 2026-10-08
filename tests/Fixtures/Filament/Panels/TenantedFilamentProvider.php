@@ -16,11 +16,13 @@ final class TenantedFilamentProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         $panel->id('tenanted')->path('tenanted')->authGuard('web');
+        $plugin = AzGuardPlugin::make()->guardPanel('teams')
+            ->resources(roles: FilamentFixture::$editors['roles'] ?? false, permissions: FilamentFixture::$editors['permissions'] ?? false);
 
         if (FilamentFixture::$tenantAfterPlugin) {
-            return $panel->plugin(AzGuardPlugin::make()->guardPanel('teams'))->tenant(Team::class);
+            return $panel->plugin($plugin)->tenant(Team::class);
         }
 
-        return $panel->tenant(Team::class)->plugin(AzGuardPlugin::make()->guardPanel('teams'));
+        return $panel->tenant(Team::class)->plugin($plugin);
     }
 }

@@ -14,6 +14,7 @@ use AzGuard\Contracts\Changes\PermissionManager;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Contracts\Sources\FencesReads;
+use AzGuard\Directories\PanelDirectories;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -139,6 +140,11 @@ final readonly class ScopedPanelAccess implements PanelAccess
     public function visibility(): Visibility
     {
         return app(Visibility::class);
+    }
+
+    public function directories(): PanelDirectories
+    {
+        return new PanelDirectories($this->panel, app());
     }
 
     public function state(): StateToken

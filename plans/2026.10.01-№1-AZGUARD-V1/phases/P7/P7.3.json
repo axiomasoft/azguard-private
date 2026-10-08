@@ -2,25 +2,239 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P7.3",
   "title": "RoleResource и PermissionResource по схеме",
-  "status": "todo",
-  "summary": "—",
-  "why": "—",
+  "status": "done_with_deviations",
+  "summary": "Каталоги по схеме панели: общий выбор цели редактора (панель ∈ `manages` ∩ writable → tenant) и контракт ядра G1 (`@api Directories\\PanelDirectories`, `PanelAccess::directories()`); `RoleResource` — read-only каталог ролей-классов из `PanelSchema::roles()` (ключ, подпись, класс, grantable/automatic, контексты и фильтры, superAdmin, права; PolicyOnly-badge); `PermissionResource` — все права панели (статичные только чтение с доменом и подсказкой политики; динамические — создание/подпись/группа/удаление с выдачами через `PermissionManager`) для панелей с динамическими правами. Acceptance: V23, V61, V76, R38 UI, R25 UI.",
+  "why": "D30/D80/D83: definitions только в PHP. Жёсткие риски: Livewire-payload с `class_name`/`definition`/`permissions` меняет роль (N02, V23); галочка выдачи PolicyOnly-права; редактор показывает панель вне `manages` или чужой tenant (выбор tenant из payload); динамическое право удаляется, а выдачи остаются; tenant целевой панели выбирается без перепроверки директорией.",
   "scope": {
-    "include": [],
-    "exclude": []
+    "include": [
+      "Ядро (G1): `packages/core/src/Directories/PanelDirectories.php` (`@api`, final readonly: `subjects(?string $type = null): SubjectDirectory`, `tenants(): TenantDirectory`, `scopes(string $type): AssignmentScopeDirectory`), `PanelAccess::directories(): PanelDirectories` в интерфейсе и `ScopedPanelAccess` (делегирует `DirectoryResolver`); тест в `tests/Feature/Directories/**`; манифест ядра; CHANGELOG.",
+      "`packages/filament/src/Editors/TargetSelector.php` (или трейт страниц): опции панели = `manages` ∩ `AzGuard::panel($id)->schema()->writable`; tenant: если целевая панель = guardPanel → scoped tenant запроса (Locked, не выбирается); если tenancy целевой панели отсутствует → глобальный; иначе поиск `directories()->tenants()->search(term, LookupContext(actor), 50)` и перепроверка `describe()` на каждом действии; смена панели/tenant очищает зависимые поля.",
+      "`packages/filament/src/Resources/RoleResource/**`: custom-data таблица по `schema()->roles()` выбранной панели, фильтр панели, страница просмотра (infolist): права роли с authority-badge, контекстные привязки и фильтры, автоматическая/выдаётся вручную, superAdmin; ни create/edit/delete страниц, ни действий записи; slug `azguard-roles`; `AuthorizesResource`; регистрация по `resources(roles: true)`.",
+      "`packages/filament/src/Resources/PermissionResource/**`: список `schema()->permissions()` (статичные — только чтение: домен/группа, описание, authority, `decidedBy`; динамические — действия create/edit(label, group через `PermissionDetails`)/delete); запись `AzGuard::actingAs($user, fn () => AzGuard::panel($id)->inTenant($tenant)->permissions()->create/update/delete(...))`; ресурс показывает только панели, где каталог динамический; slug `azguard-permissions`; регистрация по `resources(permissions: true)`.",
+      "Тесты `tests/Feature/Filament/Roles/**`: V23 (Livewire-вызовы с полями `class_name`/`definition`/`permissions`/`superAdmin` на страницах RoleResource не меняют ни класс, ни хранилище: нет методов записи, payload отклоняется, версия панели не меняется); V61 (code roles read-only; PolicyOnly-право — badge без галочки; динамические — только при opt-in); V76 (создать динамическое право в PermissionResource → выдать через `SubjectAccess::grantPermission` → `hasPermission` true → удалить в PermissionResource → выдачи удалены → false); панель вне `manages` и non-writable панель не видны; поддельный tenant B в форме при tenant A → отказ; `PanelDirectories` возвращает те же директории, что резолвер.",
+      "CRM README: R38 UI и R25 UI (definition endpoints отклоняются) — статусы."
+    ],
+    "exclude": [
+      "Выдачи ролей и прав, «Почему?» — P7.4; свои поля — P7.4/P7.5.",
+      "Создание/изменение ролей из UI — не существует в 1.0 (D80)."
+    ]
   },
-  "depends_on": [],
-  "decisions": [],
+  "depends_on": [
+    "P7.2"
+  ],
+  "related": [],
+  "decisions": [
+    "D27"
+  ],
   "skills": [],
-  "reads": [],
-  "task_files": [],
-  "rules": [],
-  "guidance": "—",
-  "validation": [],
-  "deliverables": [],
+  "reads": [
+    {
+      "path": "audits/2026-09-29-audit/opus/11-filament.md",
+      "why": "RoleResource, PermissionResource, тенанты",
+      "required": true,
+      "section": "§5, §5.1, §5.3, §9"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "схема панели; definitions read-only",
+      "required": true,
+      "section": "D54, D30, D83"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V23, V61, V76",
+      "required": true,
+      "section": "V23, V61, V76"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R25, R38",
+      "required": true,
+      "section": "R25, R38"
+    },
+    {
+      "path": "packages/core/src/Schema/PanelSchema.php",
+      "why": "writable, roles, permissions",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Schema/RoleSchema.php",
+      "why": "поля роли",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Schema/PermissionSchema.php",
+      "why": "authority, grantable, dynamic, decidedBy",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Contracts/PanelAccess.php",
+      "why": "добавляемый метод directories()",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Directories/DirectoryResolver.php",
+      "why": "внутренний резолвер, которому делегирует G1",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Directories/LookupContext.php",
+      "why": "входы поиска",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Changes/ScopedPermissionManager.php",
+      "why": "create/update/delete динамических",
+      "required": true
+    },
+    {
+      "path": "vendor/filament/tables/docs/09-custom-data.md",
+      "why": "records(), ключи записей, действия с array $record",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Directories/PanelDirectories.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Contracts/PanelAccess.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Concerns/ScopedPanelAccess.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Feature/Directories/**",
+      "change": "any"
+    },
+    {
+      "path": "packages/filament/src/Editors/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/filament/src/Resources/RoleResource/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/filament/src/Resources/RoleResource.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/filament/src/Resources/PermissionResource/**",
+      "change": "create"
+    },
+    {
+      "path": "packages/filament/src/Resources/PermissionResource.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/filament/src/AzGuardPlugin.php",
+      "change": "any",
+      "note": "Создаёт P7.1; пункт добавляет регистрацию своих ресурсов/страниц/настроек."
+    },
+    {
+      "path": "packages/filament/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Filament/**",
+      "change": "any"
+    },
+    {
+      "path": "tests/Feature/Filament/Roles/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Acceptance/Crm/README.md",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, `tests/Arch`, полный `composer test`, Pint, PHPStan (уровень проекта), type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; недоступный engine/сеть блокирует пункт, а не даёт GREEN.",
+    "Писать только в `packages/filament`, `tests`, `CHANGELOG.md`, `roadmap/` (если названо) и plan-артефакты пункта; `packages/core` — только файлы, названные в task_files. Код Vaulter и других пакетов не трогать. Новых runtime- и dev-зависимостей нет.",
+    "Пакет Filament использует только классы ядра из манифеста (`tests/Arch/ApiManifestTest.php`); не хватает — аддитивный `@api`-контракт в ядре в owning item (D27 п.6), а не обход и не копия логики.",
+    "Своей логики прав, ролей, выбора панели и tenant в пакете нет; решения — `SubjectAccess`/`PanelAccess`/`Visibility`, записи — только `SubjectAccess::grant*/revoke*`, `GrantManager`, `PermissionManager` (I1).",
+    "Состояние плагина — свойства экземпляра `AzGuardPlugin`; `config()` не пишется; статические свойства классов Filament (`checkPolicyExistence`, `skipAuthorization`) не меняются (I9).",
+    "Payload Livewire недоверенный: серверные значения — `#[Locked]`, каждый id из формы перепроверяется сервером на каждом действии (I5, F12).",
+    "Имена — из досье `03`, D27 и knowledge P7-filament-model; внутренние коды задач (`P7.2`, `V96`, `R37`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "RoleResource не имеет путей записи; состав роли, класс, фильтры и authority из UI не меняются (I8).",
+    "Целевая панель — только из `manages` ∩ writable; tenant guardPanel — только scoped tenant запроса; иной tenant — только через директорию с перепроверкой (I5)."
+  ],
+  "guidance": "Custom-data таблица ролей — массивы с ключом `key` роли; схема строится один раз на рендер (`schema()` неизменяема). `PanelDirectories` — тонкая обёртка: никакой новой логики поиска. Для V23 вызвать на Livewire-компоненте страницы просмотра `set('data.class_name', ...)`/`call('save')` и убедиться, что метод/свойство отсутствует (исключение Livewire) и что журнал изменений пуст.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament/Roles tests/Feature/Directories --compact --fail-on-skipped",
+      "expect": "exit 0; V23, V61, V76, выбор цели, PanelDirectories",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped",
+      "expect": "exit 0; P7.1–P7.2 и CRM не сломаны",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; зоны, манифест (filament → только @api ядра), запрет прямых записей соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без групп engines/redis/replica",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифесты `packages/core` и `packages/filament` перегенерированы `php bin/api-manifest.php --write` и совпадают с публичными именами пункта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "PanelDirectories, TargetSelector, RoleResource, PermissionResource, тесты, CRM README, CHANGELOG; раздел «P7.3» в `@plan/knowledge/findings-P7-execution.json`."
+  ],
   "route": {
     "class": "frontier",
-    "effort": "high"
+    "effort": "medium"
   },
   "review": {
     "mode": "none"
@@ -32,7 +246,70 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "1970-01-01T00:00:00Z",
+  "result": {
+    "started_at": "2026-10-08T19:03:28Z",
+    "finished_at": "2026-10-08T19:24:40Z",
+    "executor": {
+      "provider": "anthropic",
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+    },
+    "notes": "PanelDirectories (G1), TargetSelector, RoleResource read-only, PermissionResource с динамическими правами; V23/V61/V76/выбор цели покрыты tests/Feature/Filament/Roles; все 9 проверок exit 0 (composer test 4526). Жёсткий риск (Livewire payload, tenant) — рекомендуется task:review.",
+    "deviations": [
+      "Каталог ролей из PanelAccess::roles() и схема прав в глобальном tenant вместо schema()->roles() выбранного tenant",
+      "PolicyOnly-badge V61 проверяется в PermissionResource: ядро запрещает PolicyOnly-право в составе роли",
+      "Фикстуры Filament включают редакторы явно (FilamentFixture::$editors), seller/teams — dynamicPermissions(), добавлена панель readonly"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-08T19:24:40Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T19:24:40Z",
   "sections": [
     {
       "id": "Intent",

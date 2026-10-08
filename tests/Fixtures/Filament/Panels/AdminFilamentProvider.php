@@ -9,14 +9,15 @@ use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use Filament\Panel;
 use Filament\PanelProvider;
 
-/** The Filament panel `admin` at /admin; its guard panel is `admin`, it manages `admin` and `seller`. */
+/** The Filament panel `admin` at /admin; its guard panel is `admin`, it manages `admin` and `seller` unless a test names others. */
 final class AdminFilamentProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         $plugin = AzGuardPlugin::make()
             ->guardPanel('admin')
-            ->manages(['admin', 'seller'])
+            ->manages(FilamentFixture::$manages)
+            ->resources(roles: FilamentFixture::$editors['roles'] ?? false, permissions: FilamentFixture::$editors['permissions'] ?? false)
             ->definitions(FilamentFixture::$definitions)
             ->enforce(FilamentFixture::$enforce)
             ->exclude(

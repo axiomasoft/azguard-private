@@ -16,6 +16,6 @@ final class BackofficeFilamentProvider extends PanelProvider
     {
         return $panel->id('backoffice')->path('backoffice')->authGuard('web')
             ->pages([ProbePage::class])
-            ->plugin(AzGuardPlugin::make()->guardPanel('backoffice')->manages(['backoffice']));
+            ->plugin(AzGuardPlugin::make()->guardPanel('backoffice')->manages(['backoffice'])->resources(roles: false, permissions: false));
     }
 }

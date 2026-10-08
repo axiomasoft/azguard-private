@@ -12,7 +12,10 @@ use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Filament\Models\Team;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 
-/** A guard panel with required tenants, which the application connects to Filament with the tenant resolver. */
+/**
+ * A guard panel with required tenants, which the application connects to Filament with the tenant resolver; it keeps
+ * dynamic permissions per team.
+ */
 final class TeamsGuardPanel extends PanelProvider
 {
     public static function getId(): string
@@ -23,7 +26,8 @@ final class TeamsGuardPanel extends PanelProvider
     public function panel(PanelBuilder $panel): PanelBuilder
     {
         return $panel->for(User::class, guard: 'web')
-            ->permissions([EntryPermission::class, DatabaseSource::make()])
+            ->roles([GrantedMemberRole::class])
+            ->permissions([EntryPermission::class, EditorPermission::class, DatabaseSource::make()->dynamicPermissions()])
             ->tenants(TenantPolicy::required(Team::class)->requireMembership(TeamMembership::class))
             ->tenantResolvers([FilamentTenantResolver::class]);
     }

@@ -10,6 +10,7 @@ use AzGuard\Contracts\Catalog\PermissionCatalog;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Changes\PermissionManager;
 use AzGuard\Contracts\Roles\RoleCatalog;
+use AzGuard\Directories\PanelDirectories;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -103,6 +104,11 @@ interface PanelAccess
     public function catalog(): PermissionCatalog;
 
     public function visibility(): Visibility;
+
+    /**
+     * The directories an interface searches for subjects, tenants and assignment scopes of the panel.
+     */
+    public function directories(): PanelDirectories;
 
     /**
      * The state of the stored authority of the tenant, for explicit storage management; a decision never needs it.

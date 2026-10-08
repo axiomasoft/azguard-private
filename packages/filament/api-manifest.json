@@ -866,6 +866,178 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Filament\\Resources\\PermissionResource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Resources\\Resource",
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getAuthorizationResponse",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "getEloquentQuery",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "getPages",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "keepsDynamicPermissions",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
+                    "name": "row",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Schema\\PermissionSchema",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Resources\\RoleResource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Resources\\Resource",
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getAuthorizationResponse",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "record",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "Illuminate\\Auth\\Access\\Response"
+                },
+                {
+                    "name": "getEloquentQuery",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                },
+                {
+                    "name": "getPages",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "permissionsOf",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "schema",
+                            "type": "?AzGuard\\Schema\\PanelSchema",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "row",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "role",
+                            "type": "AzGuard\\Schema\\RoleSchema",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Filament\\Sources\\FilamentSource",
             "kind": "class",
             "final": true,

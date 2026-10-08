@@ -56,6 +56,18 @@ final class FilamentFixture
     /** @var list<string> what the member roles give besides the entry: names and patterns */
     public static array $memberPermissions;
 
+    /** @var array{roles?: bool, permissions?: bool} editors of the package in the `admin` and `tenanted` Filament panels; none by default */
+    public static array $editors;
+
+    /** @var list<mixed> extra enums of the `seller` panel */
+    public static array $sellerPermissions;
+
+    /** @var list<mixed> policies of the `seller` panel */
+    public static array $sellerPolicies;
+
+    /** @var list<string> the AzGuard panels the `admin` Filament panel manages */
+    public static array $manages;
+
     /** Whether the `tenanted` Filament panel registers the plugin before it calls `tenant()`. */
     public static bool $tenantAfterPlugin;
 
@@ -95,6 +107,10 @@ final class FilamentFixture
         self::$adminRoles = [AdminMemberRole::class];
         self::$members = [1];
         self::$memberPermissions = ['pages.*'];
+        self::$editors = [];
+        self::$sellerPermissions = [];
+        self::$sellerPolicies = [];
+        self::$manages = ['admin', 'seller'];
         self::$tenantAfterPlugin = false;
         self::$catalogCachePath = null;
         self::$seen = [];

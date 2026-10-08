@@ -13,6 +13,8 @@ use AzGuard\Filament\Authorization\FilamentSurface;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
+use AzGuard\Filament\Resources\PermissionResource;
+use AzGuard\Filament\Resources\RoleResource;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Panel;
@@ -335,7 +337,7 @@ final class AzGuardPlugin implements Plugin
 
     /**
      * Enters the guard panel on every request to the Filament panel; the service provider makes the middleware persistent,
-     * so that a Livewire update enters it again.
+     * so that a Livewire update enters it again. Registers the editors of the package that `resources()` keeps.
      */
     public function register(FilamentPanel $panel): void
     {
@@ -347,7 +349,19 @@ final class AzGuardPlugin implements Plugin
         } else {
             $panel->authMiddleware($middleware);
         }
+        $editors = [];
 
+        if ($this->hasEditor('roles')) {
+            $editors[] = RoleResource::class;
+        }
+
+        if ($this->hasEditor('permissions')) {
+            $editors[] = PermissionResource::class;
+        }
+
+        if ($editors !== []) {
+            $panel->resources($editors);
+        }
     }
 
     /**

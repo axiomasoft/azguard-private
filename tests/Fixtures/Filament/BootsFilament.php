@@ -7,6 +7,7 @@ namespace AzGuard\Tests\Fixtures\Filament;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tests\Fixtures\Filament\Guards\AdminGuardPanel;
 use AzGuard\Tests\Fixtures\Filament\Guards\BackofficeGuardPanel;
+use AzGuard\Tests\Fixtures\Filament\Guards\ReadonlyGuardPanel;
 use AzGuard\Tests\Fixtures\Filament\Guards\SellerGuardPanel;
 use AzGuard\Tests\Fixtures\Filament\Guards\TeamsGuardPanel;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
@@ -36,7 +37,7 @@ use Livewire\LivewireServiceProvider;
 
 /**
  * Boots the application with Filament, the fixture Filament panels `admin` and `backoffice` and the AzGuard panels
- * `admin`, `backoffice`, `seller` and `teams`, the Filament panel `tenanted` over `teams` and the Filament panel `plain`
+ * `admin`, `backoffice`, `seller`, `teams` and the read-only `readonly`, the Filament panel `tenanted` over `teams` and the Filament panel `plain`
  * without the plugin.
  *
  * Change `FilamentFixture` and call `bootFilament()` to boot the application again with other panels.
@@ -141,6 +142,6 @@ trait BootsFilament
             $app['config']->set('azguard.catalog.build_id', 'filament-fixture');
         }
 
-        $app['config']->set('azguard.panels', ['providers' => [AdminGuardPanel::class, BackofficeGuardPanel::class, SellerGuardPanel::class, TeamsGuardPanel::class]]);
+        $app['config']->set('azguard.panels', ['providers' => [AdminGuardPanel::class, BackofficeGuardPanel::class, SellerGuardPanel::class, TeamsGuardPanel::class, ReadonlyGuardPanel::class]]);
     }
 }
