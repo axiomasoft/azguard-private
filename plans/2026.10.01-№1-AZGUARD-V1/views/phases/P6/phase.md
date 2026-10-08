@@ -121,16 +121,6 @@ detailed
 ]
 ```
 
-## Closed
-
-```json
-{
-  "at": "2026-10-08T12:19:06Z",
-  "result": "blocked",
-  "summary": "11 item(s): 1 done, 9 done_with_deviations, 1 blocked"
-}
-```
-
 ## Orchestration
 
 ```json
@@ -175,4 +165,4 @@ detailed
 
 ## Phase Handoff
 
-Фаза детализирована; первый исполняемый пункт — P6.1.
+Актуальный Next: приёмка исправленного снимка P6.11, read-only. P6.1–P6.10 исторически реализованы, найденные дефекты исправляются owning items. P6.11 остаётся todo: полные V1–V15 и affected owning qualification не завершены; последнее поручение владельца запрещает долгие прогоны. P7 не начинать, READY не объявлять. Реестр, журналы всех попыток и native launch для будущего продолжения: knowledge/findings-P1-P6-closure-2026-10-08.

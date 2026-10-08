@@ -120,7 +120,7 @@ Source: [JSON](../../knowledge/brief-P4-acceptance-matrix.json). This view is fo
 | R05 | — | P5.1 trait/SubjectAccess; P6.1 facade; P6.2 HTTP/queue boundary |
 | R06 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
 | R07 | — | P5.2/P5.3 assignment/delegation/revocation pipeline |
-| R08 | — | P5.2/P5.3 assignment/delegation/revocation pipeline |
+| R08 | — | P8.1 external installation mapping → canonical host refs (D26, normative process map F21/D67); genuine future |
 | R09 | P4.15 Access inactive common filter | Assignment phase revalidation P5.2/P5.3 |
 | R10 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
 | R11 | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness | — |
@@ -187,3 +187,6 @@ Source: [JSON](../../knowledge/brief-P4-acceptance-matrix.json). This view is fo
 ## Швы и минимальная приёмка дизайна
 
 Policy invoker P4.1→P4.3; fence/selection P4.4→P4.17/P4.18/P4.8/P4.12; boundary P4.6→eligibility P4.19→properties/source/CRM; trace P4.1→explain P4.10; AST/SPI P4.22→visibility P4.12→qualification P4.23. Все типы создаются до первого потребителя; current P4.1 bundle требует refresh, status не обнуляется.
+
+
+Reconciliation 2026-10-08 (D24/D26): R42 import-lifecycle/R43 external sync относятся P8.1; старые указания P6.10 исторические. Остальные ссылки на P5/P6 здесь — первоначальные planned owners, не текущие todo. Существующие proof slices сведены в tests/Acceptance/Crm/README.md и knowledge/findings-P1-P6-closure-2026-10-08; свежая полная приёмка исправленного снимка ещё не завершена.

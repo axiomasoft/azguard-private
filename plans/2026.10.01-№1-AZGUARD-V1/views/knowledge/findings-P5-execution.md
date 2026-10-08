@@ -7,7 +7,9 @@ Source: [JSON](../../knowledge/findings-P5-execution.json). This view is for peo
 
 - P5
 
-## Исполнение ещё не начато
+## Исторический scaffold до исполнения P5
+
+Историческая предстартовая запись; текущие пункты P5 завершались позднее, см. последующие секции этого документа и findings-P5-review#P5-native-closure-2026-10-08. Исходный текст сохраняется:
 
 Scaffold подготовлен design review D20. P5.1–P5.8 todo; нет product/DB check evidence, нет runtime GREEN. Каждый owning item через plan.py set/push добавляет собственную section с фактическими test commands/exit/evidence/candidate, V/R/probe slices и отклонениями. P5.6 проверяет свежие реальные результаты на reviewed HEAD; эту Pending section нельзя принимать за proof.
 

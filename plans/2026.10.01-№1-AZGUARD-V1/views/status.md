@@ -255,7 +255,7 @@ Closed 2026-10-07T06:26:22Z (🟠 Done with deviations): 23 item(s): 20 done, 3 
 
 Closed 2026-10-07T21:51:06Z (🟠 Done with deviations): 8 item(s): 8 done_with_deviations
 
-## P6 — Laravel-поверхность и удаление legacy · 🔴 Blocked
+## P6 — Laravel-поверхность и удаление legacy · 🟡 In progress
 
 | Item | Title | Status | Route | Updated |
 |:--|:--|:--|:--|:--|
@@ -269,9 +269,7 @@ Closed 2026-10-07T21:51:06Z (🟠 Done with deviations): 8 item(s): 8 done_with_
 | P6.5 | azguard:install | 🟠 Done with deviations | implementation/medium | 2026-10-08T11:21:32Z |
 | P6.9 | Удаление legacy/0.3 и старых имён | 🟢 Done | economy/medium | 2026-10-08T11:28:41Z |
 | P6.10 | optimizes, about, панель в Context для очередей | 🟠 Done with deviations | implementation/high | 2026-10-08T12:04:00Z |
-| P6.11 | Review P6: независимая read-only проверка фазы | 🔴 Blocked | frontier/high | 2026-10-08T12:19:06Z |
-
-Closed 2026-10-08T12:19:06Z (🔴 Blocked): 11 item(s): 1 done, 9 done_with_deviations, 1 blocked
+| P6.11 | Review P6: независимая read-only проверка фазы | ⬜ Not started | frontier/high | 2026-10-08T14:52:01Z |
 
 ## P7 — Filament по схеме панели · ⬜ Skeleton
 

@@ -39,6 +39,8 @@ P6 строит публичную Laravel-поверхность над гот�
 - Зоны `AzGuard\Testing`, `AzGuard\Diagnostics`, `AzGuard\Laravel` уже перечислены в `tests/Arch/ZonesArchTest.php`; `AzGuard\Testing\` публичен по расположению в `bin/api-manifest.php`.
 - Регрессии: `tests/Regression/specs/P01c.md` и `P03.md` держат фасад (P6.1) и `azguard.can` (P6.2) как `future`.
 
+Reconciliation 2026-10-08: перечень выше фиксирует базу b9af206 перед реализацией, включая тогдашние future. Фасад/HasAzGuard/azguard.can теперь покрыты P01c/P03 и P6 HTTP наборами; карта Acceptance и findings-P6-execution описывают выполненные поверхности. Полная приёмка audit diff остаётся P6.11, не GREEN.
+
 ## Проверенные предпосылки Laravel (первичный источник — исходники тегов)
 
 Проверено 2026-10-08 по `raw.githubusercontent.com/laravel/framework/<tag>/…` и установленному vendor v13.34.0.
@@ -99,8 +101,10 @@ I4. **Строгий режим fail-closed.** При `requireRouteChecks()` д�
 `#[CheckPermission]`, если их проверку некому применить (11/12, 13.0–13.4 родитель).
 
 I5. **CLI пишет только через `ChangePipeline`** с актором `system` и причиной = имя команды; required-tenant панель
-требует `--tenant`; origin явный (`manual` по умолчанию); операции «все tenants» нет. Bypass отсутствует: команды не
-получают Storage/Eloquent write-handle.
+требует `--tenant`; origin явный (`manual` по умолчанию). Для адресных операций режим «все tenants» отсутствует.
+Исключение по 12 §1/§3: обслуживающие `grants:prune`/`audit:prune` без `--tenant` обходят все tenants
+выбранных панелей, только по истечению срока/retention; `--tenant` требует явную панель. Bypass отсутствует:
+команды не получают Storage/Eloquent write-handle.
 
 I6. **`azguard:state:reset` = новая версия + новая incarnation панели под той же блокировкой `panel_state`, что и
 mutate.** Interfering pairs: reset ∥ grant — сериализуются строкой `panel_state` (SELECT … FOR UPDATE на PG/MySQL/
