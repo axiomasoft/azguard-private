@@ -267,7 +267,8 @@ trait InteractsWithAzGuard
     }
 
     /**
-     * Values under a secret-like name (password, secret, token, credential, key), at any depth, as `[redacted]`.
+     * Values under a secret-like name (pass, secret, token, credential, key, private, dsn, auth), at any depth, as
+     * `[redacted]`; in any other string the password of a URL with credentials (`scheme://user:password@host`).
      *
      * @param  array<mixed>  $values
      * @return array<mixed>
@@ -277,8 +278,9 @@ trait InteractsWithAzGuard
         $redacted = [];
         foreach ($values as $name => $value) {
             $redacted[$name] = match (true) {
-                is_string($name) && preg_match('/password|secret|token|credential|key/i', $name) === 1 => '[redacted]',
+                is_string($name) && preg_match('/pass|secret|token|credential|key|private|dsn|auth/i', $name) === 1 => '[redacted]',
                 is_array($value) => $this->redacted($value),
+                is_string($value) => (string) preg_replace('#(://[^:/@\s]*:)[^@\s]*@#', '$1[redacted]@', $value),
                 default => $value,
             };
         }

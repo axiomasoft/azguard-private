@@ -48,3 +48,22 @@ it('prints the sources as a table without secrets', function (): void {
     expect(Artisan::call('azguard:sources:list'))->toBe(0);
     expect(Artisan::output())->toContain('crm-db', 'extend()', 'not registered', '[redacted]')->not->toContain('source-secret', 'nested-secret');
 });
+
+it('redacts DSNs, URLs with credentials and secret-like names in source parameters', function (): void {
+    config()->set('azguard.sources.crm-db', [
+        'dsn' => 'pgsql://azguard:dsn-secret-pass@127.0.0.1/azguard', 'url' => 'https://user:url-secret-pass@db.example/az',
+        'mirror' => 'mysql://reader:mirror-secret@10.0.0.2:3306/az?ssl=1', 'pass' => 'bare-pass-value', 'private' => 'private-key-material',
+        'host' => '127.0.0.1', 'endpoint' => 'https://db.example/az',
+    ]);
+    app()->forgetInstance(AzGuardConfig::class);
+    W::panel(sources: ['crm-db']);
+
+    expect(Artisan::call('azguard:sources:list', ['--json' => true]))->toBe(0);
+    $output = Artisan::output();
+    $parameters = array_column(json_decode($output, true, flags: JSON_THROW_ON_ERROR), null, 'name')['crm-db']['parameters'];
+
+    expect($output)->not->toContain('dsn-secret-pass', 'url-secret-pass', 'mirror-secret', 'bare-pass-value', 'private-key-material')
+        ->and($parameters)->toMatchArray(['dsn' => '[redacted]', 'pass' => '[redacted]', 'private' => '[redacted]', 'host' => '127.0.0.1',
+            'url' => 'https://user:[redacted]@db.example/az', 'mirror' => 'mysql://reader:[redacted]@10.0.0.2:3306/az?ssl=1',
+            'endpoint' => 'https://db.example/az']);
+});
