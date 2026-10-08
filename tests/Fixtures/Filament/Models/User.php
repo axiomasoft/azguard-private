@@ -24,4 +24,18 @@ final class User extends Authenticatable implements AzGuardSubject, FilamentUser
     {
         return true;
     }
+
+    /** How the directories of AzGuard name the user. */
+    public function azguardLabel(): ?string
+    {
+        $name = $this->getAttribute('name');
+
+        return is_string($name) ? $name : null;
+    }
+
+    /** @return list<string> */
+    public static function azguardSearchColumns(): array
+    {
+        return ['name'];
+    }
 }

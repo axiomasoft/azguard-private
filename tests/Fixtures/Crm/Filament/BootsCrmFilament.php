@@ -82,7 +82,7 @@ trait BootsCrmFilament
         CrmWorld::compile(static function (PanelBuilder $panel) use ($configure): void {
             // The authenticated model of Filament is a subject of the panel too, of the same type crm.user.
             $panel->for(model: CrmFilamentUser::class, guard: 'web')->tenantResolvers([new FilamentTenantResolver])
-                ->permissions([CrmFilamentPermission::class, EntryPermission::class])->policies([EntryPolicy::class]);
+                ->permissions([CrmFilamentPermission::class, CrmEditorPermission::class, EntryPermission::class])->policies([EntryPolicy::class]);
 
             if ($configure !== null) {
                 $configure($panel);

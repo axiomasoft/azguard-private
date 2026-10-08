@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 use InvalidArgumentException;
 
 /**
@@ -24,6 +28,9 @@ use InvalidArgumentException;
  *   through storage or in that scope type, the exact permission is now decided by its policy, or a pattern covers no
  *   assignable permission; such a grant gives no authority and stays listed for cleanup;
  * - `any` — all of them.
+ *
+ * `expiresBefore` keeps the grants with an expiry before that moment, so a grant without an expiry never matches it;
+ * `grantedBy` keeps the grants whose stored actor is that actor (a system actor matches by type, whatever its reason).
  *
  * Pages are ordered role grants first, then permission grants, each by id. `cursor` continues a page; it belongs to
  * the manager, the filter and the code build it came from.
@@ -54,6 +61,8 @@ final readonly class GrantFilter
         public string $state = self::ANY,
         public int $limit = self::DEFAULT_LIMIT,
         public ?string $cursor = null,
+        public ?DateTimeInterface $expiresBefore = null,
+        public ?ActorRef $grantedBy = null,
     ) {
         if ($kind !== null && $kind !== 'role' && $kind !== 'permission') {
             throw new InvalidArgumentException('A grant filter kind is "role", "permission" or null.');
@@ -79,7 +88,8 @@ final readonly class GrantFilter
     /** The same filter continuing after `$cursor`, the `nextCursor` of the page before; null starts again. */
     public function after(?string $cursor): self
     {
-        return new self($this->kind, $this->subject, $this->context, $this->role, $this->permission, $this->state, $this->limit, $cursor);
+        return new self($this->kind, $this->subject, $this->context, $this->role, $this->permission, $this->state, $this->limit, $cursor,
+            $this->expiresBefore, $this->grantedBy);
     }
 
     /**
@@ -107,6 +117,16 @@ final readonly class GrantFilter
             implode(',', $this->kinds()), $this->subject?->key() ?? '*',
             $this->context instanceof AssignmentScopeRef ? $this->context->key() : '*',
             $this->role?->full() ?? '*', $this->permission?->full() ?? '*', $this->state,
+            $this->expiresBeforeUtc() ?? '*', $this->grantedBy === null ? '*' : $this->grantedBy->type.':'.($this->grantedBy->id ?? ''),
         ];
+    }
+
+    /**
+     * @internal the moment of `expiresBefore` in UTC as storage keeps an expiry, or null without one
+     */
+    public function expiresBeforeUtc(): ?string
+    {
+        return $this->expiresBefore === null ? null
+            : DateTimeImmutable::createFromInterface($this->expiresBefore)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 }

@@ -2043,6 +2043,18 @@
                     "static": false
                 },
                 {
+                    "name": "expiresBefore",
+                    "type": "?DateTimeInterface",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "grantedBy",
+                    "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "kind",
                     "type": "?string",
                     "readonly": true,
@@ -2148,6 +2160,22 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "NULL"
+                        },
+                        {
+                            "name": "expiresBefore",
+                            "type": "?DateTimeInterface",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "grantedBy",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": null
@@ -2173,6 +2201,13 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                },
+                {
+                    "name": "expiresBeforeUtc",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?string"
                 },
                 {
                     "name": "kinds",

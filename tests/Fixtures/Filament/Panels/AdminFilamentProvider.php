@@ -17,7 +17,12 @@ final class AdminFilamentProvider extends PanelProvider
         $plugin = AzGuardPlugin::make()
             ->guardPanel('admin')
             ->manages(FilamentFixture::$manages)
-            ->resources(roles: FilamentFixture::$editors['roles'] ?? false, permissions: FilamentFixture::$editors['permissions'] ?? false)
+            ->resources(
+                roles: FilamentFixture::$editors['roles'] ?? false,
+                roleGrants: FilamentFixture::$editors['role_grants'] ?? false,
+                permissionGrants: FilamentFixture::$editors['permission_grants'] ?? false,
+                permissions: FilamentFixture::$editors['permissions'] ?? false,
+            )
             ->definitions(FilamentFixture::$definitions)
             ->enforce(FilamentFixture::$enforce)
             ->exclude(

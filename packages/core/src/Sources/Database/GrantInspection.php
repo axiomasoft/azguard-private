@@ -160,6 +160,18 @@ final readonly class GrantInspection
         if ($kind === 'permission' && $filter->permission !== null) {
             $query->where('permission', $filter->permission->local());
         }
+
+        $before = $filter->expiresBeforeUtc();
+
+        if ($before !== null) {
+            $query->whereNotNull('expires_at')->where('expires_at', '<', $before);
+        }
+
+        if ($filter->grantedBy !== null) {
+            $query->where('actor_type', $filter->grantedBy->type);
+            $filter->grantedBy->id === null ? $query->whereNull('actor_id')
+                : $query->where('actor_id', HostKeyColumns::canonical($this->hostKeys, $filter->grantedBy->id));
+        }
     }
 
     /** @param 'role'|'permission' $kind */

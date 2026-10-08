@@ -9,7 +9,7 @@ use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use Filament\Panel;
 use Filament\PanelProvider;
 
-/** The Filament panel of the CRM at /crm/{organization}, over the guard panel `crm`. */
+/** The Filament panel of the CRM at /crm/{organization}, over the guard panel `crm`; its grant editors manage `crm` and `backoffice`. */
 final class CrmFilamentProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -18,6 +18,6 @@ final class CrmFilamentProvider extends PanelProvider
             ->tenant(Organization::class)
             ->resources([ClientResource::class])
             ->widgets([ClientCountWidget::class])
-            ->plugin(AzGuardPlugin::make()->guardPanel('crm')->manages(['crm']));
+            ->plugin(AzGuardPlugin::make()->guardPanel('crm')->manages(['crm', 'backoffice']));
     }
 }

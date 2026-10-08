@@ -13,7 +13,9 @@ use AzGuard\Filament\Authorization\FilamentSurface;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
+use AzGuard\Filament\Resources\PermissionGrantResource;
 use AzGuard\Filament\Resources\PermissionResource;
+use AzGuard\Filament\Resources\RoleGrantResource;
 use AzGuard\Filament\Resources\RoleResource;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\PermissionAuthority;
@@ -353,6 +355,14 @@ final class AzGuardPlugin implements Plugin
 
         if ($this->hasEditor('roles')) {
             $editors[] = RoleResource::class;
+        }
+
+        if ($this->hasEditor('role_grants')) {
+            $editors[] = RoleGrantResource::class;
+        }
+
+        if ($this->hasEditor('permission_grants')) {
+            $editors[] = PermissionGrantResource::class;
         }
 
         if ($this->hasEditor('permissions')) {

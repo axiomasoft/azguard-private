@@ -19,6 +19,7 @@ use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\TenantMismatchException;
+use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -181,6 +182,43 @@ it('lists expired grants apart from active ones', function (): void {
     expect(managerIds($this->grants->page(new GrantFilter(state: GrantFilter::EXPIRED))))->toBe([$soon])
         ->and(managerIds($this->grants->page(new GrantFilter(state: GrantFilter::ACTIVE))))->toContain($this->a)->not->toContain($soon)
         ->and($this->grants->find($soon ?? '')?->until)->toEqual(new DateTimeImmutable('2026-10-06T13:00:00Z'));
+});
+
+it('filters by an expiry before a moment and by the actor who granted', function (): void {
+    $admin = ActorRef::of('crm.user', 9);
+    $soon = W::grant($this->panel, 'auditor', 1, null, until: new DateTimeImmutable('2026-11-01T10:00:00Z'), actor: $admin)->record?->id;
+    $later = W::grant($this->panel, 'auditor', 3, null, until: new DateTimeImmutable('2027-01-01T10:00:00Z'))->record?->id;
+    $system = W::grant($this->panel, 'seller', 1, 5, actor: ActorRef::system('import job'))->record?->id;
+    $moscow = new DateTimeImmutable('2026-11-01T13:00:01', new DateTimeZone('Europe/Moscow'));
+
+    expect(managerIds($this->grants->page(new GrantFilter(expiresBefore: new DateTimeImmutable('2026-12-01T00:00:00Z')))))->toBe([$soon])
+        ->and(managerIds($this->grants->page(new GrantFilter(expiresBefore: new DateTimeImmutable('2026-11-01T10:00:00Z')))))->toBe([])
+        ->and(managerIds($this->grants->page(new GrantFilter(expiresBefore: $moscow))))->toBe([$soon])
+        ->and(managerIds($this->grants->page(new GrantFilter(expiresBefore: new DateTimeImmutable('2028-01-01T00:00:00Z')))))->toBe([$soon, $later])
+        ->and(managerIds($this->grants->page(new GrantFilter(grantedBy: $admin))))->toBe([$soon])
+        ->and(managerIds($this->grants->page(new GrantFilter(grantedBy: ActorRef::of('crm.user', '9')))))->toBe([$soon])
+        ->and(managerIds($this->grants->page(new GrantFilter(grantedBy: ActorRef::of('crm.user', 8)))))->toBe([])
+        ->and(managerIds($this->grants->page(new GrantFilter(grantedBy: ActorRef::system()))))->toContain($system)->not->toContain($soon, $later)
+        ->and(managerIds(M::managers($this->panel, 2)->grants()->page(new GrantFilter(grantedBy: $admin))))->toBe([]);
+});
+
+it('binds a cursor to the expiry and actor conditions of the filter and keeps them on the next page', function (): void {
+    $admin = ActorRef::of('crm.user', 9);
+    $ids = [];
+    foreach ([['auditor', 1, null], ['auditor', 3, null], ['seller', 1, 5]] as [$role, $user, $project]) {
+        $ids[] = W::grant($this->panel, $role, $user, $project, until: new DateTimeImmutable('2026-11-01T10:00:00Z'), actor: $admin)->record?->id;
+    }
+    $filter = new GrantFilter(limit: 2, expiresBefore: new DateTimeImmutable('2026-12-01T00:00:00Z'), grantedBy: $admin);
+    $page = $this->grants->page($filter);
+
+    expect(managerAllIds($this->grants, $filter))->toBe($ids)
+        ->and($filter->after('x')->expiresBefore)->toBe($filter->expiresBefore)
+        ->and($filter->after('x')->grantedBy)->toBe($admin)
+        ->and(fn () => $this->grants->page(new GrantFilter(limit: 2, cursor: $page->nextCursor, grantedBy: $admin)))->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $this->grants->page(new GrantFilter(limit: 2, cursor: $page->nextCursor, expiresBefore: new DateTimeImmutable('2026-12-01T00:00:00Z'))))
+        ->toThrow(InvalidArgumentException::class)
+        ->and(fn () => $this->grants->page(new GrantFilter(limit: 2, cursor: $page->nextCursor, expiresBefore: new DateTimeImmutable('2026-12-02T00:00:00Z'), grantedBy: $admin)))
+        ->toThrow(InvalidArgumentException::class);
 });
 
 it('binds a cursor to the partition, the filter and the code build', function (): void {

@@ -56,7 +56,7 @@ final class FilamentFixture
     /** @var list<string> what the member roles give besides the entry: names and patterns */
     public static array $memberPermissions;
 
-    /** @var array{roles?: bool, permissions?: bool} editors of the package in the `admin` and `tenanted` Filament panels; none by default */
+    /** @var array{roles?: bool, role_grants?: bool, permission_grants?: bool, permissions?: bool} editors of the package in the `admin` and `tenanted` Filament panels; none by default */
     public static array $editors;
 
     /** @var list<mixed> extra enums of the `seller` panel */
@@ -65,8 +65,8 @@ final class FilamentFixture
     /** @var list<mixed> policies of the `seller` panel */
     public static array $sellerPolicies;
 
-    /** @var list<string> the AzGuard panels the `admin` Filament panel manages */
-    public static array $manages;
+    /** @var list<string>|null the AzGuard panels the `admin` Filament panel manages; null manages every panel */
+    public static ?array $manages;
 
     /** Whether the `tenanted` Filament panel registers the plugin before it calls `tenant()`. */
     public static bool $tenantAfterPlugin;
