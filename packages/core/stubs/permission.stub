@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+#[Resource(label: '{{ label }}'{{ model }})]
+#[RequiresGrant]
+enum {{ class }}: string
+{
+    #[Describe('View list')]
+    case ViewAny = '{{ key }}.view-any';
+
+    #[Describe('View')]
+    case View = '{{ key }}.view';
+
+    #[Describe('Create')]
+    case Create = '{{ key }}.create';
+
+    #[Describe('Update')]
+    case Update = '{{ key }}.update';
+
+    #[Describe('Delete')]
+    case Delete = '{{ key }}.delete';
+}

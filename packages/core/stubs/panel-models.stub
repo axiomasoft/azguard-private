@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+final class {{ class }} extends {{ base }}
+{
+    /**
+     * @return list<Field>
+     */
+    public static function azguardFields(): array
+    {
+        return [
+            // Field::string('reason'),
+        ];
+    }
+}

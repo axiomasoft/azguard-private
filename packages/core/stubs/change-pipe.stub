@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+final class {{ class }}
+{
+    public function handle(Change $change, Closure $next): ChangeResult
+    {
+        // Look at the change here; $change->cancel('reason') stops it, and the writer is reached through $next.
+        return $next($change);
+    }
+}

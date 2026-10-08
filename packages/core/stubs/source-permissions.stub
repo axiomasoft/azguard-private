@@ -1,0 +1,13 @@
+
+    /**
+     * @return iterable<PermissionDefinition>
+     */
+    public function permissions(Panel $panel, ?TenantRef $tenant = null): iterable
+    {
+        return [];
+    }
+
+    public function isDynamic(): bool
+    {
+        return false;
+    }

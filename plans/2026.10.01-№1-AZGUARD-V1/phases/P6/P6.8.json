@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.8",
   "title": "Генераторы и stubs по структуре D56/D72",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Генераторы на `Illuminate\\Console\\GeneratorCommand` и публикуемых стабах: `azguard:make:panel|permission|policy|role|source|plugin|restriction|pipe|models` и `azguard:stubs` создают структуру D56/D72 в `scaffold.path`; сгенерированная панель проходит V78/V106, контрактные наборы P6.7 и даёт одинаковый каталог live и после `azguard:catalog:cache`.",
   "why": "Генераторы задают раскладку, которую увидит каждый проект (D72), и закрывают V78/V106/R56. Жёсткие риски: генератор, создающий структуру, которую FolderSource не находит или находит иначе после кэша, policy без `#[Decides]` (binding не выводится), stub роли без явного `#[Role]` ключа, stub плагина с options-парсером вместо typed factory (V118), перезапись существующих файлов без `--force`.",
   "scope": {
@@ -191,7 +191,63 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:55:30Z",
+  "result": {
+    "started_at": "2026-10-08T10:38:08Z",
+    "finished_at": "2026-10-08T11:03:11Z",
+    "executor": {
+      "provider": "claude",
+      "model": "sonnet-5-5",
+      "effort": "high",
+      "session": "8a8645a0-a8c2-44f0-b78d-21013927d2e1"
+    },
+    "notes": "Генераторы make:panel|permission|role|policy|source|plugin|restriction|pipe|models и azguard:stubs; V78/V106/V105-R56/V118 на сгенерированном потребителе, Pint и PHPStan на сгенерированном коде, контрактные наборы P6.7; раздел P6.8 в findings-P6-execution",
+    "deviations": [
+      "execute() вместо handle() для кодов выхода; DatabaseSource в провайдере панели; Model $user в policy-стабе; make:models без модели Permission; api-manifest.json без изменений"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T11:03:11Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T11:03:11Z",
   "sections": [
     {
       "id": "Intent",

@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Storage\StorageRegistry;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        $storage = app(StorageRegistry::class)->get('{{ storage }}');
+        $schema = $storage->connection()->getSchemaBuilder();
+
+        // One column for each Field of {{ panel }}\Models: Field::string('reason') is $table->string('reason')->nullable().
+        $schema->table($storage->prefix().'role_grants', function (Blueprint $table): void {
+            //
+        });
+        $schema->table($storage->prefix().'permission_grants', function (Blueprint $table): void {
+            //
+        });
+    }
+
+    public function down(): void
+    {
+        //
+    }
+};

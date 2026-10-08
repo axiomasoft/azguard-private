@@ -45,6 +45,10 @@ it('gives every changing command the shared options of its kind', function (): v
         expect($byName['azguard:'.$command]->hasOption('force'))->toBeTrue();
     }
 
+    foreach (array_filter(array_keys($byName), static fn (string $name): bool => str_starts_with($name, 'azguard:make:')) as $name) {
+        expect($byName[$name]->hasOption('force'))->toBeTrue();
+    }
+
     foreach (['panels:list', 'sources:list', 'catalog:list', 'roles:list', 'grants:list', 'permissions:show', 'explain', 'doctor'] as $command) {
         expect($byName['azguard:'.$command]->hasOption('json'))->toBeTrue();
     }

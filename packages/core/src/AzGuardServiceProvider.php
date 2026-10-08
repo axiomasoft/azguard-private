@@ -21,6 +21,15 @@ use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\GrantsListCommand;
 use AzGuard\Laravel\Console\Commands\GrantsPruneCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakeModelsCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakePanelCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakePermissionCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakePipeCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakePluginCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakePolicyCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakeRestrictionCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakeRoleCommand;
+use AzGuard\Laravel\Console\Commands\Make\MakeSourceCommand;
 use AzGuard\Laravel\Console\Commands\PanelsListCommand;
 use AzGuard\Laravel\Console\Commands\PermissionsCreateCommand;
 use AzGuard\Laravel\Console\Commands\PermissionsDeleteCommand;
@@ -34,6 +43,7 @@ use AzGuard\Laravel\Console\Commands\RolesRevokeCommand;
 use AzGuard\Laravel\Console\Commands\SourcesListCommand;
 use AzGuard\Laravel\Console\Commands\StateResetCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
+use AzGuard\Laravel\Console\Commands\StubsCommand;
 use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Laravel\Http\Middleware\CheckPermission;
 use AzGuard\Laravel\Http\Middleware\EnterPanel;
@@ -133,7 +143,9 @@ final class AzGuardServiceProvider extends ServiceProvider
                 PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class, RolesListCommand::class, GrantsListCommand::class,
                 PermissionsShowCommand::class, RolesGrantCommand::class, RolesRevokeCommand::class, PermissionsGrantCommand::class,
                 PermissionsRevokeCommand::class, PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
-                GrantsPruneCommand::class, AuditPruneCommand::class, StateResetCommand::class,
+                GrantsPruneCommand::class, AuditPruneCommand::class, StateResetCommand::class, StubsCommand::class,
+                MakePanelCommand::class, MakePermissionCommand::class, MakeRoleCommand::class, MakePolicyCommand::class, MakeSourceCommand::class,
+                MakePluginCommand::class, MakeRestrictionCommand::class, MakePipeCommand::class, MakeModelsCommand::class,
             ]);
         }
         $this->scheduleMaintenance();

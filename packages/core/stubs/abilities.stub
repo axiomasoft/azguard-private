@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+/**
+ * What the subject may do with {{ label }}, for the frontend.
+ */
+final readonly class {{ class }}
+{
+    public function __construct(
+{{ properties }}
+    ) {}
+
+    public static function for(SubjectAccess $access, Model|AssignmentScopeRef|null $on = null): self
+    {
+        return new self(
+{{ arguments }}
+        );
+    }
+}

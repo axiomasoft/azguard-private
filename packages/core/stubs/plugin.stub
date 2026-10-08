@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+/**
+ * Settings of the plugin are typed parameters of its own named factory: add them to make() and keep them in
+ * properties, never in an options array.
+ */
+final class {{ class }} extends BasePlugin
+{
+    private function __construct() {}
+
+    public static function make(): self
+    {
+        return new self;
+    }
+
+    public function id(): string
+    {
+        return '{{ id }}';
+    }
+
+    public function register(PanelBuilder $panel, PluginContext $context): void
+    {
+        // Attach what the plugin brings: $panel->permissions([...]), ->restrictions([...]), ->changing([...]).
+    }
+}

@@ -7,6 +7,15 @@
     "azguard:explain": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
     "azguard:grants:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json] [--] <subject>",
     "azguard:grants:prune": "[--panel [PANEL]] [--tenant [TENANT]] [--before [BEFORE]] [--dry-run]",
+    "azguard:make:models": "[--storage [STORAGE]] [--force] [--] <panel>",
+    "azguard:make:panel": "[--model [MODEL]] [--force] [--] <panel>",
+    "azguard:make:permission": "[--model [MODEL]] [--policy] [--abilities] [--force] [--] <panel> <group>",
+    "azguard:make:pipe": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+    "azguard:make:plugin": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+    "azguard:make:policy": "[--enum [ENUM]] [--force] [--] <panel> <group>",
+    "azguard:make:restriction": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+    "azguard:make:role": "[--force] [--] <panel> <name>",
+    "azguard:make:source": "[--panel [PANEL]] [--shared] [--grants] [--permissions] [--roles] [--policies] [--force] [--] <name>",
     "azguard:panels:list": "[--settings] [--sources] [--schema] [--json]",
     "azguard:permissions:create": "[--panel [PANEL]] [--label [LABEL]] [--group [GROUP]] [--tenant [TENANT]] [--] <name>",
     "azguard:permissions:delete": "[--panel [PANEL]] [--tenant [TENANT]] [--force] [--] <name>",
@@ -19,5 +28,6 @@
     "azguard:roles:revoke": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
     "azguard:sources:list": "[--json]",
     "azguard:state:reset": "[--force] [--] <panel>",
-    "azguard:storage:migration": "<name>"
+    "azguard:storage:migration": "<name>",
+    "azguard:stubs": "[--force]"
 }

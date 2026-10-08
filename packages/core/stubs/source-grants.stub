@@ -1,0 +1,14 @@
+
+    /**
+     * @param  list<AccessScope>  $scopes
+     * @return iterable<Grant>
+     */
+    public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+    {
+        return [];
+    }
+
+    public function volatility(): Volatility
+    {
+        return Volatility::Volatile;
+    }

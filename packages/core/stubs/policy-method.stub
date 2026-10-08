@@ -1,0 +1,6 @@
+    #[Decides({{ enum }}::{{ case }})]
+    public function {{ method }}(Model $user, mixed $resource = null): bool
+    {
+        // The permission is granted; return false to veto it for this user or resource.
+        return true;
+    }

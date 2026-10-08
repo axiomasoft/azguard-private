@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+final class {{ class }} extends PanelProvider
+{
+    public static function getId(): string
+    {
+        return '{{ id }}';
+    }
+
+    public function panel(PanelBuilder $panel): PanelBuilder
+    {
+        // Permissions/, Policies/ and Roles/ next to this file join the panel on their own. Sources, restrictions,
+        // change pipes and plugins are attached here: ->permissions([...]), ->restrictions([...]), ->changing([...]),
+        // ->plugins([...]).
+        return $panel
+            ->for({{ model }}::class)
+            ->permissions([DatabaseSource::make()]);
+    }
+}
