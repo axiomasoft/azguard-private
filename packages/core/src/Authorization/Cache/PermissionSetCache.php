@@ -10,7 +10,10 @@ use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
@@ -67,9 +70,9 @@ final class PermissionSetCache
         $store = $panel->settings()->cacheStore();
 
         if ($entry === null && $volatility === Volatility::Stable && $fenced && $store !== null) {
-            $stored = $this->stores->store($store)->get($key);
+            $stored = $this->decode($this->stores->store($store)->get($key));
 
-            if (is_array($stored) && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
+            if ($stored !== null && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
                 && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable
                 && count(array_filter($stored['items'], static fn (mixed $item): bool => $item instanceof Grant || $item instanceof RoleContribution)) === count($stored['items'])) {
                 $entry = ['items' => $stored['items'], 'validUntil' => $stored['validUntil']];
@@ -107,8 +110,28 @@ final class PermissionSetCache
         $store = $panel->settings()->cacheStore();
 
         if ($volatility === Volatility::Stable && $fenced && $store !== null) {
-            $this->stores->store($store)->put($key, $entry, $validUntil);
+            $this->stores->store($store)->put($key, serialize($entry), $validUntil);
         }
+    }
+
+    /**
+     * The shared store keeps the entry as a string, because Laravel 13 unserializes cached values with
+     * `cache.serializable_classes` false by default and would turn every object of an array entry into an
+     * incomplete class; only the kernel value objects of a set are allowed back.
+     *
+     * @return array<mixed>|null
+     */
+    private function decode(mixed $stored): ?array
+    {
+        if (! is_string($stored)) {
+            return null;
+        }
+        $entry = @unserialize($stored, ['allowed_classes' => [
+            Grant::class, RoleContribution::class, PermissionPattern::class, RoleKey::class, AccessScope::class,
+            TenantRef::class, AssignmentScopeRef::class, DateTimeImmutable::class,
+        ]]);
+
+        return is_array($entry) ? $entry : null;
     }
 
     public function state(string $key): ?StateToken

@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P4.8",
   "title": "Кэш наборов прав, StateToken, version fence, expiry",
-  "status": "done_with_deviations",
+  "status": "done",
   "summary": "Raw contribution cache/key/refresh/absolute expiry без final Allow. Transactions/incarnation/touch — P4.20, real race/Redis/lag/perf — P4.21.",
   "why": "RAG:— 09 §8 (StateToken, чтение DB authority, refresh, гарантия отзыва, что можно кэшировать, incarnation), §14 (проверка внутри транзакции хоста), §16 (CodeStateToken vs StateToken); 06 §1.2 (Volatility); D24, D25, D44, D64 досье; 20 F23; V15 (P16), V18, V19, V49, V54 (кэш), V66 (`touch`), V99, V100, V120; probes P10, P10b; D4, D12 п.8, D14 п.3, п.6 плана.",
   "scope": {
@@ -212,7 +212,7 @@
   ],
   "route": {
     "class": "frontier",
-    "effort": "high"
+    "effort": "medium"
   },
   "review": {
     "mode": "none"
@@ -225,68 +225,64 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-06T07:53:00Z",
-    "finished_at": "2026-10-06T09:01:44Z",
+    "started_at": "2026-10-08T15:36:07Z",
+    "finished_at": "2026-10-08T15:40:39Z",
     "executor": {
-      "provider": "codex",
-      "model": "gpt-6.1-sol",
-      "effort": "high",
-      "session": "01a11032-58c2-76f0-b63c-628d15302474"
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "medium",
+      "session": "c96f1f15-4859-42c9-a836-824439ad611e"
     },
-    "attempt_id": "P48-owner-closure-20261006",
-    "notes": "Raw contribution cache/lifecycle/keys/expiry/fence/refresh completed. Automatic predicates remain live. Grok round1 all19paths oneP1 corrected by DB-wide memo + generic tenant partitions protected. Final2ac26c32e0ef12ee33b5112533eb4435bf50e44bfd171bcf0d36126a5c345c7f:120targeted,2444suite344406assertions,Arch72,PHPStan0,Pint/API/diff0,type99.75%200/200eligible. Candidate-bound raw logs/acceptance-map/qualification-summary in artifacts/P4.8-execution. Freshness/currentcanonical check/render-check exit0. Review2 interrupted130; no post-fix reviewerGREEN claimed. No future P4.20/P4.21 implementation or engine claims.",
-    "deviations": [
-      "Владелец явно отменил повторное review: «не делай, завершай». Первичный Grok verdict FINDINGS oneP1 исправлен и проверен; post-fix GREEN reviewer отсутствует. V6 serial no-cache/JSON proof and1GiB environment pin documented; source inventory complete."
-    ],
+    "notes": "PermissionSetCache пишет в общий store строку и читает с белым списком классов: Laravel 13 serializable_classes=false ломал попадания; тест-регрессия",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-06T09:01:44Z"
+        "at": "2026-10-08T15:40:39Z"
       }
     ]
   },
-  "updated_at": "2026-10-06T09:23:02Z",
+  "updated_at": "2026-10-08T15:40:39Z",
   "sections": [
     {
       "id": "Intent",
