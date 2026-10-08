@@ -84,13 +84,19 @@ const AZGUARD_CHANGE_VALUES = [
     'AzGuard\Changes\GrantFilter', 'AzGuard\Changes\GrantPage',
 ];
 
+/*
+ * `PanelAccess::visibility()` returns the @api query-visibility entry point of the engine, a final class of the
+ * authorization zone: the contract names that one class, never the authorizer or its stages.
+ */
+const AZGUARD_CONTRACT_ENTRY_POINTS = ['AzGuard\Authorization\Visibility'];
+
 arch('contracts do not import implementations')
     ->expect('AzGuard\Contracts')
     ->not->toUse([
         'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Storage', 'AzGuard\Sources', 'AzGuard\Laravel',
         'AzGuard\Internal', 'AzGuard\Testing', 'AzGuard\Diagnostics', 'AzGuard\Configuration',
     ])
-    ->ignoring(AZGUARD_CHANGE_VALUES);
+    ->ignoring([...AZGUARD_CHANGE_VALUES, ...AZGUARD_CONTRACT_ENTRY_POINTS]);
 
 forbidDependencies('authorization and schema never change access', ['AzGuard\Authorization', 'AzGuard\Schema'], ['AzGuard\Changes']);
 

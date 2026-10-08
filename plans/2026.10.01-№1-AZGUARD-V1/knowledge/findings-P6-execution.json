@@ -1,0 +1,15 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:document:v1",
+  "id": "findings-P6-execution",
+  "title": "P6: фактические результаты исполнения owning items",
+  "sections": [
+    {
+      "id": "P6.1",
+      "title": "P6.1 — фасад, PanelAccess, actingAs: фактическое исполнение",
+      "text": "Исполнитель claude/sonnet-5-5/high (route start: ROUTE_MODEL_UNKNOWN; эффорт из /model сессии). Реализовано: @api Contracts\\PanelAccess ровно с методами 05 §2; Concerns\\ScopedPanelAccess (final readonly, без тега): панель, tenant (?TenantRef) и origin заданы в конструкторе, inTenant/fromOrigin возвращают новый объект; tenant — явный, иначе текущий CurrentContext панели, иначе global у панели без tenants, иначе TenantRequiredException; for() → SubjectAccess с тем же tenant/origin (не-Model Authenticatable → SubjectNotAcceptedException); roles() не требует tenant (кодовые роли), grants/permissions → PanelManagers::for; schema → SchemaBuilder::for; decide/decideMany/explain → Authorizer с проверкой панели запроса (ConflictingPanelException) и tenant (TenantMismatchException; пустой tenant запроса заполняется tenant доступа); catalog → PanelRegistry::catalog; visibility → Visibility; state → FencesReads писателя, иначе PanelNotWritableException; touch → ChangePipeline::touch(panel,'manual'). AzGuardManager: panel/check/authorize/withinScope/currentScope/actingAs; панель check/authorize выбирает PanelResolver::select как трейт (один путь P01c); authorize бросает Response::deny(code: reason->value)->authorize() с общим сообщением; withinScope — панель запроса либо isDefault(), иначе PanelNotResolvedException, tenant берётся из CurrentContext панели; actingAs: строка → ActorRef::system(строка), пустая → InvalidArgumentException, Model/SubjectRef → ActorRef::of. Новый внутренний Scopes\\ModelIdentity (tenant/context/key модели в панели) — SubjectAccess делегирует ему, дублей нет. Отклонения: ScopedPanelAccess в Concerns\\ (арх-правило зон запрещает Panels→Changes); точечное исключение Authorization\\Visibility в арх-правиле контрактов; SchemaBuilder уже был @internal (исправление P5), правка не потребовалась. Приёмка (artifacts: scratchpad v/v*.txt; PHP 8.4, SQLite): V1 115 passed; V2 80; V3 composer test 3774 tests, 3773 passed, 1 skipped (прежний, как baseline P5); V4 pint passed; V5 phpstan 0 errors; V6 type coverage 99.5%; V7 manifest --check 0; V8 git diff --check 0. Регрессии: P01c — новый тест о ключе backoffice (трейт/фасад/PanelAccess) covered; P03 — фасадные check/authorize/panel()->decide/decideMany/explain в обоих режимах; CRM R03–R05 — фасадная часть в SubjectApiTest и README."
+    }
+  ],
+  "applies_to": [
+    "P6"
+  ]
+}

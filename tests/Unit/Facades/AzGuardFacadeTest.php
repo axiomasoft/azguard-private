@@ -34,21 +34,24 @@ it('binds one stateless manager as azguard and resolves the facade to it', funct
         ->and((new ReflectionProperty(AzGuardManager::class, 'app'))->getType()?->getName())->toBe(Application::class);
 });
 
-it('declares the panel methods and the source factory', function (): void {
+it('declares the panel, check, scope and actor methods and the source factory', function (): void {
     $doc = (new ReflectionClass(AzGuard::class))->getDocComment();
 
     expect($doc)->toBeString()
-        ->and(preg_match_all('/@method static /', (string) $doc))->toBe(6)
+        ->and(preg_match_all('/@method static /', (string) $doc))->toBe(12)
         ->and($doc)->toContain('registerPanel(')
         ->and($doc)->toContain('configurePanel(')
         ->and($doc)->toContain('configurePanels(')
         ->and($doc)->toContain('panels()')
         ->and($doc)->toContain('currentPanel()')
         ->and($doc)->toContain('sources()')
-        ->and($doc)->not->toContain('fake()')
-        ->and($doc)->not->toContain('authorize(')
-        ->and($doc)->not->toContain('withinScope(')
-        ->and($doc)->not->toContain('actingAs(');
+        ->and($doc)->toContain('panel(string $id)')
+        ->and($doc)->toContain('check(')
+        ->and($doc)->toContain('authorize(')
+        ->and($doc)->toContain('withinScope(')
+        ->and($doc)->toContain('currentScope()')
+        ->and($doc)->toContain('actingAs(')
+        ->and($doc)->not->toContain('fake()');
 });
 
 it('reads the panels and the current panel without choosing one', function (): void {

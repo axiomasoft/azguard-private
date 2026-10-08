@@ -4812,6 +4812,181 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\PanelAccess",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "catalog",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Catalog\\PermissionCatalog"
+                },
+                {
+                    "name": "decide",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\Decision"
+                },
+                {
+                    "name": "decideMany",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "requests",
+                            "type": "iterable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\DecisionSet"
+                },
+                {
+                    "name": "definition",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "explain",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\Explanation"
+                },
+                {
+                    "name": "for",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|Illuminate\\Contracts\\Auth\\Authenticatable|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Concerns\\SubjectAccess"
+                },
+                {
+                    "name": "fromOrigin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "origin",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "grants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Changes\\GrantManager"
+                },
+                {
+                    "name": "inTenant",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "permissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Changes\\PermissionManager"
+                },
+                {
+                    "name": "roles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Roles\\RoleCatalog"
+                },
+                {
+                    "name": "schema",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Schema\\PanelSchema"
+                },
+                {
+                    "name": "scope",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Identity\\AccessScope"
+                },
+                {
+                    "name": "state",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\StateToken"
+                },
+                {
+                    "name": "touch",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Kernel\\Decision\\StateToken"
+                },
+                {
+                    "name": "visibility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Authorization\\Visibility"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Panels\\PanelRegistry",
             "kind": "interface",
             "final": false,

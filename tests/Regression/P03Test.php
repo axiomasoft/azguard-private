@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Gate\GateWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +28,9 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
     $user = User::findOrFail(1);
     Gate::swap(Gate::forUser($user));
     expect($engine->decide($panel, $request)->allowed())->toBeTrue()
+        ->and(AzGuard::check($user, 'admin:orders.view'))->toBeTrue()
+        ->and(AzGuard::panel('admin')->for($user)->hasPermission('orders.view'))->toBeTrue()
+        ->and(AzGuard::panel('admin')->decide($request)->allowed())->toBeTrue()
         ->and(Gate::allows('admin:orders.view'))->toBeTrue()
         ->and(Blade::render("@can('admin:orders.view')\nyes\n@else\nno\n@endcan"))->toContain('yes');
     $deny = true;
@@ -36,6 +41,12 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
     expect($engine->decide($panel, $request)->allowed())->toBeFalse()
         ->and($engine->decideMany([$request])->get(0)->allowed())->toBeFalse()
         ->and($engine->explain($panel, $request)->decision()->allowed())->toBeFalse()
+        ->and(AzGuard::check($user, 'admin:orders.view'))->toBeFalse()
+        ->and(fn () => AzGuard::authorize($user, 'admin:orders.view'))->toThrow(AuthorizationException::class)
+        ->and(AzGuard::panel('admin')->for($user)->hasPermission('orders.view'))->toBeFalse()
+        ->and(AzGuard::panel('admin')->decide($request)->allowed())->toBeFalse()
+        ->and(AzGuard::panel('admin')->decideMany([$request])->get(0)->allowed())->toBeFalse()
+        ->and(AzGuard::panel('admin')->explain($request)->decision()->allowed())->toBeFalse()
         ->and(Gate::allows('admin:orders.view'))->toBeFalse()
         ->and(Gate::inspect('admin:orders.view')->denied())->toBeTrue()
         ->and(Blade::render("@can('admin:orders.view')\nyes\n@else\nno\n@endcan"))->toContain('no')->not->toContain('yes');

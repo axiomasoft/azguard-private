@@ -34,6 +34,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Scopes\CurrentContext;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Storage\Models\PermissionGrant;
@@ -500,21 +501,7 @@ final readonly class SubjectAccess
      */
     private function contextOf(Model $model): ?AssignmentScopeRef
     {
-        $types = [];
-        foreach ($this->panel->scopeDefinitions() as $definition) {
-            $class = $definition->model();
-
-            if ($class !== null && $model instanceof $class) {
-                $types[] = $definition->type();
-            }
-        }
-
-        if (count($types) > 1) {
-            throw new AssignmentScopeNotAcceptedException($model::class.' is the model of several assignment scope types of panel '
-                .$this->panel->id().': pass an AssignmentScopeRef.');
-        }
-
-        return $types === [] ? null : AssignmentScopeRef::of($types[0], self::key($model));
+        return ModelIdentity::context($this->panel, $model);
     }
 
     /** Whether a check may also pass the model as its resource: the panel can place it or has no tenants. */
@@ -535,14 +522,7 @@ final readonly class SubjectAccess
     /** @throws TenantMismatchException */
     private function tenantOf(Model $tenant): TenantRef
     {
-        $definition = $this->panel->tenants()->definition();
-        $class = $definition?->model();
-
-        if ($definition === null || $class === null || ! $tenant instanceof $class) {
-            throw new TenantMismatchException($tenant::class.' is not the tenant model of panel '.$this->panel->id().'.');
-        }
-
-        return TenantRef::of($definition->type(), self::key($tenant));
+        return ModelIdentity::tenant($this->panel, $tenant);
     }
 
     private function roleKey(string|UnitEnum $role): RoleKey
@@ -570,13 +550,7 @@ final readonly class SubjectAccess
     /** @throws InvalidIdentityException when the model has no key yet */
     private static function key(Model $model): int|string
     {
-        $key = $model->getKey();
-
-        if (! is_int($key) && ! is_string($key)) {
-            throw new InvalidIdentityException($model::class.' has no key: save the model first.');
-        }
-
-        return $key;
+        return ModelIdentity::key($model);
     }
 
     private function authorizer(): Authorizer

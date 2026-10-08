@@ -5,6 +5,8 @@ declare(strict_types=1);
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\TenantRequiredException;
+use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
@@ -132,3 +134,69 @@ it('R05 keeps an enum with guard unchanged when the crm prefix is its id, custom
         ->and($names)->toBe($expected)
         ->and($a->hasAllPermissions($names, on: $c1))->toBeTrue();
 })->with(['id' => [null], 'custom' => ['sales'], 'off' => [false]]);
+
+it('R03 reaches the crm panel through the facade without switching Auth, the model or the panel of the request', function (): void {
+    $anna = World::query()->findOrFail(1);
+    $session = new GenericUser(['id' => 1]);
+    Auth::guard('web')->setUser($session);
+    $driver = Auth::getDefaultDriver();
+    $guarded = $anna->getGuarded();
+    $hint = app(PanelRegistry::class)->get('backoffice');
+    app(CurrentPanel::class)->set($hint);
+    $access = AzGuard::panel('crm')->inTenant(Organization::query()->findOrFail(1));
+
+    expect($access->for($anna)->hasPermission(ClientPermission::Update, on: Client::query()->findOrFail(1)))->toBeTrue()
+        ->and(AzGuard::check($anna, ClientPermission::Update, Client::query()->findOrFail(1), 'crm'))->toBeTrue()
+        ->and($access->for($anna)->panel()->id())->toBe('crm')
+        ->and(Auth::getDefaultDriver())->toBe($driver)
+        ->and(Auth::guard('web')->user())->toBe($session)
+        ->and($anna->getGuarded())->toBe($guarded)
+        ->and(app(CurrentPanel::class)->get())->toBe($hint);
+});
+
+it('R04 keeps independent panel accesses of A and B through nested scopes and exceptions of the facade', function (): void {
+    $anna = World::query()->findOrFail(1);
+    $crm = AzGuard::panel('crm');
+    $a = $crm->inTenant(Organization::query()->findOrFail(1));
+    $b = $crm->inTenant(Organization::query()->findOrFail(2));
+    $panel = $crm->definition();
+    $hint = app(PanelRegistry::class)->get('backoffice');
+    app(CurrentPanel::class)->set($hint);
+    $c1 = Client::query()->findOrFail(1);
+    $c5 = Client::query()->findOrFail(5);
+
+    $nested = app(WithinContext::class)->run($panel, CrmWorld::scope(2), static function () use ($a, $b, $anna, $c1, $c5): array {
+        try {
+            $a->for($anna)->hasPermission('backoffice:clients.view', on: $c1);
+        } catch (ConflictingPanelException) {
+        }
+
+        return [$a->for($anna)->hasPermission(ClientPermission::Update, on: $c1), $b->for($anna)->hasPermission(ClientPermission::Update, on: $c5), $b->for($anna)->hasPermission(ClientPermission::View, on: $c5)];
+    });
+
+    expect($nested)->toBe([true, false, true])
+        ->and($a->scope()->tenant->key())->toBe('crm.organization:1')
+        ->and($b->scope()->tenant->key())->toBe('crm.organization:2')
+        ->and($a->for($anna)->roleNames(on: AssignmentScopeRef::of('crm.project', 1))->all())->toBe(['seller'])
+        ->and(app(CurrentPanel::class)->get())->toBe($hint)
+        ->and(app(CurrentContext::class)->get($panel))->toBeNull()
+        ->and(fn () => $crm->scope())->toThrow(TenantRequiredException::class)
+        ->and(AzGuard::panel('crm'))->not->toBe($crm);
+});
+
+it('R05 refuses a full name of backoffice inside the selected crm panel access and a shared enum without a panel in the facade', function (): void {
+    $anna = World::query()->findOrFail(1);
+    $c1 = Client::query()->findOrFail(1);
+    $a = AzGuard::panel('crm')->inTenant(Organization::query()->findOrFail(1))->for($anna);
+    app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('backoffice'));
+
+    expect(fn () => $a->hasPermission('backoffice:clients.view', on: $c1))->toThrow(ConflictingPanelException::class)
+        ->and(fn () => AzGuard::check($anna, 'backoffice:clients.view', $c1, 'crm'))->toThrow(ConflictingPanelException::class)
+        ->and(fn () => AzGuard::check($anna, ClientPermission::View, $c1))->toThrow(AmbiguousPanelException::class)
+        ->and(fn () => AzGuard::authorize($anna, ClientPermission::View, $c1))->toThrow(AmbiguousPanelException::class)
+        ->and($a->hasPermission(ClientPermission::View, on: $c1))->toBeTrue()
+        ->and(AzGuard::check($anna, ClientPermission::View, $c1, 'crm'))->toBeTrue()
+        ->and(AzGuard::check($anna, 'crm:clients.view', $c1))->toBeTrue()
+        ->and(AzGuard::check($anna, 'backoffice:clients.view', $c1))->toBeFalse()
+        ->and(AzGuard::check($anna, 'clients.view', $c1))->toBeFalse();
+});
