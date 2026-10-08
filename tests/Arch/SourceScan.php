@@ -331,6 +331,31 @@ final class SourceScan
         return $offenders;
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function transactionCalls(string $file): array
+    {
+        $tokens = token_get_all((string) file_get_contents($file));
+        $calls = [];
+
+        foreach ($tokens as $index => $token) {
+            if (! is_array($token) || $token[0] !== T_STRING || $token[1] !== 'transaction') {
+                continue;
+            }
+
+            $previous = $tokens[$index - 1] ?? null;
+            $next = $tokens[$index + 1] ?? null;
+            $called = is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR], true);
+
+            if ($called && $next === '(') {
+                $calls[] = 'transaction';
+            }
+        }
+
+        return $calls;
+    }
+
     /** @return list<array{int, string, int}|string> */
     private static function tokens(string $code): array
     {

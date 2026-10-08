@@ -441,28 +441,6 @@ function azguardZoneImports(string $file, array $zones): array
     return $found;
 }
 
-function azguardTransactionCalls(string $file): array
-{
-    $tokens = token_get_all((string) file_get_contents($file));
-    $calls = [];
-
-    foreach ($tokens as $index => $token) {
-        if (! is_array($token) || $token[0] !== T_STRING || $token[1] !== 'transaction') {
-            continue;
-        }
-
-        $previous = $tokens[$index - 1] ?? null;
-        $next = $tokens[$index + 1] ?? null;
-        $called = is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR], true);
-
-        if ($called && $next === '(') {
-            $calls[] = 'transaction';
-        }
-    }
-
-    return $calls;
-}
-
 it('rejects a StoresGrants transaction() call copied into the panel zone', function (): void {
     $directory = sys_get_temp_dir().'/azguard-stores-grants-'.bin2hex(random_bytes(4));
     mkdir($directory);
@@ -483,7 +461,7 @@ it('rejects a StoresGrants transaction() call copied into the panel zone', funct
 
     $root = dirname(__DIR__, 2);
 
-    expect(azguardTransactionCalls($copy))->toBe(['transaction'])
-        ->and(azguardTransactionCalls($root.'/packages/core/src/Panels/Panel.php'))->toBe([])
-        ->and(azguardTransactionCalls($root.'/packages/core/src/Sources/PanelSources.php'))->toBe([]);
+    expect(SourceScan::transactionCalls($copy))->toBe(['transaction'])
+        ->and(SourceScan::transactionCalls($root.'/packages/core/src/Panels/Panel.php'))->toBe([])
+        ->and(SourceScan::transactionCalls($root.'/packages/core/src/Sources/PanelSources.php'))->toBe([]);
 });

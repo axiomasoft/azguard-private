@@ -19,5 +19,5 @@ it('proves the authorization source boundary RED against a scratch copy', functi
 });
 
 it('keeps the coordinator provenance exception read only', function (): void {
-    expect(azguardTransactionCalls(dirname(__DIR__, 2).'/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php'))->toBe([]);
+    expect(SourceScan::transactionCalls(dirname(__DIR__, 2).'/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php'))->toBe([]);
 });
