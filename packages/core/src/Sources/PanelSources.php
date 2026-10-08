@@ -18,6 +18,7 @@ use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
+use AzGuard\Exceptions\DuplicateRoleException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\UnknownSourceException;
 use AzGuard\Exceptions\WriterConflictException;
@@ -40,7 +41,7 @@ use Illuminate\Contracts\Container\Container;
  * Enum classes of `permissions([...])` are not sources: the folder source takes them. A string name is built by the
  * source factory at the place of its record. An object stays the object the recipe holds.
  *
- * @phpstan-type Attached array{source: Source, origin: string, plugin: ?string, name: ?string}
+ * @phpstan-type Attached array{source: Source, origin: string, plugin: ?string, name: ?string, role_origins?: array<class-string, string>}
  */
 final readonly class PanelSources
 {
@@ -86,6 +87,7 @@ final readonly class PanelSources
             'origin' => $configured['origin'] ?? PanelRecipe::PROVIDER,
             'plugin' => $configured['plugin'] ?? null,
             'name' => null,
+            'role_origins' => self::roleOrigins($recipe, $discovery),
         ]];
         /** @var array<string, Source> $byId */
         $byId = [$folder->id() => $folder];
@@ -189,7 +191,7 @@ final readonly class PanelSources
      * @template TCapability of Source
      *
      * @param  class-string<TCapability>  $capability
-     * @return list<array{source: TCapability, origin: string, plugin: ?string, name: ?string}>
+     * @return list<array{source: TCapability, origin: string, plugin: ?string, name: ?string, role_origins?: array<class-string, string>}>
      */
     public function with(string $capability): array
     {
@@ -207,14 +209,14 @@ final readonly class PanelSources
     /**
      * Names and classes in assembly order. An object source has no name.
      *
-     * @return list<array{class: class-string<Source>, id: string, name?: string}>
+     * @return list<array{class: class-string<Source>, id: string, origin: string, name?: string}>
      */
     public function identity(): array
     {
         $rows = [];
 
         foreach ($this->sources as $attached) {
-            $row = ['class' => $attached['source']::class, 'id' => $attached['source']->id()];
+            $row = ['class' => $attached['source']::class, 'id' => $attached['source']->id(), 'origin' => $attached['origin']];
 
             if ($attached['name'] !== null) {
                 $row['name'] = $attached['name'];
@@ -333,6 +335,39 @@ final readonly class PanelSources
     private static function abstract(string $panel, string $name): string
     {
         return 'azguard.sources.'.$panel.'.'.$name;
+    }
+
+    /** @return array<class-string, string> */
+    private static function roleOrigins(PanelRecipe $recipe, DiscoverySnapshot $discovery): array
+    {
+        $origins = $discovery->roleOrigins;
+
+        foreach ($recipe->layered(PanelRecipe::ROLES) as $record) {
+            $origin = $record['origin'];
+            $label = $origin['kind'] === PanelRecipe::PLUGIN ? PanelRecipe::PLUGIN.':'.$origin['plugin'] : $origin['kind'];
+
+            foreach (is_array($record['value']) ? $record['value'] : [] as $class) {
+                if (is_string($class) && is_subclass_of($class, BaseRole::class)) {
+                    $origins[$class][] = $label;
+                }
+            }
+        }
+
+        $owners = [];
+        foreach ($origins as $class => $contributions) {
+            $distinct = array_values(array_unique($contributions));
+
+            if (count($distinct) > 1) {
+                throw new DuplicateRoleException(
+                    'Role '.$class.' of panel "'.$recipe->panelId().'" is contributed by '.implode(' and ', $distinct)
+                    .': independent origins cannot share a role.',
+                );
+            }
+
+            $owners[$class] = $distinct[0];
+        }
+
+        return $owners;
     }
 
     /** @return iterable<AssignmentScopeDefinition> */

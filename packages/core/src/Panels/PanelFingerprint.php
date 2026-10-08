@@ -77,6 +77,7 @@ final class PanelFingerprint
             'subjects' => $recipe->subjects(),
             'enums' => $recipe->enums(),
             'roles' => $recipe->roles(),
+            'role_origins' => self::roleOrigins($recipe),
             'discover' => self::discover($recipe),
             'policies' => array_map(self::policy(...), $recipe->items(PanelRecipe::POLICIES)),
             'plugins' => $panel->pluginIds(),
@@ -116,6 +117,23 @@ final class PanelFingerprint
         ];
     }
 
+    /** @return array<string, list<string>> */
+    private static function roleOrigins(PanelRecipe $recipe): array
+    {
+        $owners = [];
+        foreach ($recipe->layered(PanelRecipe::ROLES) as $record) {
+            $origin = $record['origin'];
+            $label = $origin['kind'] === PanelRecipe::PLUGIN ? PanelRecipe::PLUGIN.':'.$origin['plugin'] : $origin['kind'];
+            foreach (is_array($record['value']) ? $record['value'] : [] as $role) {
+                if (is_string($role) && ! in_array($label, $owners[$role] ?? [], true)) {
+                    $owners[$role][] = $label;
+                }
+            }
+        }
+
+        return $owners;
+    }
+
     /**
      * @return list<array{path: string, namespace: ?string, origin: string}>
      */
@@ -144,14 +162,22 @@ final class PanelFingerprint
         return $roots;
     }
 
-    private static function policy(mixed $item): string
+    /** @return array<string, string|null>|string */
+    private static function policy(mixed $item): array|string
     {
         if ($item instanceof PolicyBinding) {
             $permission = $item->permission instanceof UnitEnum
                 ? $item->permission::class.'::'.$item->permission->name
                 : (string) $item->permission;
 
-            return $permission.'@'.$item->policy.($item->method === null ? '' : '::'.$item->method);
+            return [
+                'permission' => $permission,
+                'kind' => $item->kind,
+                'policy' => $item->policy,
+                'method' => $item->method,
+                'ability' => $item->ability,
+                'resource_model' => $item->resourceModel,
+            ];
         }
 
         return self::name($item);

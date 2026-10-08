@@ -256,9 +256,14 @@ final readonly class AzGuardConfig
             return null;
         }
 
-        if (is_string($frequency) && preg_match('/\A(?:\S+ ){4}\S+\z/', $frequency) === 1
-            && CronExpression::isValidExpression($frequency)) {
-            return $frequency;
+        if (is_string($frequency) && preg_match('/\A(?:\S+ ){4}\S+\z/', $frequency) === 1) {
+            if (! class_exists(CronExpression::class)) {
+                throw new InvalidConfigurationException('azguard.schedule.prune_expired needs dragonmantank/cron-expression to validate a cron expression. Install it or use a named scheduler frequency.');
+            }
+
+            if (CronExpression::isValidExpression($frequency)) {
+                return $frequency;
+            }
         }
 
         if (is_string($frequency) && method_exists(ManagesFrequencies::class, $frequency)

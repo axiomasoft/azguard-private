@@ -14,6 +14,7 @@ use AzGuard\Tests\Fixtures\Panels\FixedTenantResolver;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Symfony\Component\Process\Process;
 
 uses(BootsWithConfiguration::class);
 
@@ -101,6 +102,31 @@ it('normalizes the generator target and the prune frequency', function (): void 
         ->and($config->scaffoldNamespace())->toBe('Domain\\Guards')
         ->and($config->scaffoldPath())->toBe('src/Guards')
         ->and(AzGuardConfig::fromRepository(new Repository(['azguard' => ['schedule' => ['prune_expired' => null]]]))->pruneExpiredFrequency())->toBeNull();
+});
+
+it('reports a missing cron parser as a configuration error in an illuminate-only host', function (): void {
+    $code = <<<'PHP'
+        $loader = require $argv[1];
+        $loader->unregister();
+        spl_autoload_register(static function (string $class) use ($loader): void {
+            if ($class !== 'Cron\\CronExpression') {
+                $loader->loadClass($class);
+            }
+        });
+        try {
+            AzGuard\Configuration\AzGuardConfig::fromRepository(new Illuminate\Config\Repository([
+                'azguard' => ['schedule' => ['prune_expired' => '0 3 * * *']],
+            ]));
+            exit(2);
+        } catch (AzGuard\Exceptions\InvalidConfigurationException $error) {
+            echo $error->getMessage();
+        }
+        PHP;
+    $process = new Process([PHP_BINARY, '-r', $code, dirname(__DIR__, 3).'/vendor/autoload.php'], timeout: 10);
+    $process->run();
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toContain('azguard.schedule.prune_expired', 'dragonmantank/cron-expression');
 });
 
 it('rejects a value outside its type in the new sections', function (array $azguard, string $key): void {

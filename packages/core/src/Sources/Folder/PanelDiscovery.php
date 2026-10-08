@@ -188,7 +188,7 @@ final class PanelDiscovery
         $enums = [];
         /** @var array<string, list<array{class: class-string, path: string, group: string, origin: string, for: ?string}>> $policies */
         $policies = [];
-        $roles = $scopes = $definitions = $granted = [];
+        $roles = $roleOrigins = $scopes = $definitions = $granted = [];
 
         foreach ($collected['classes'] as ['root' => $root, 'kind' => $kind, 'file' => $file]) {
             $resolved = self::classIn($file, $root['path'], $root['namespace']);
@@ -227,6 +227,7 @@ final class PanelDiscovery
 
             if ($kind === 'roles' && $resolved['kind'] === 'class' && is_subclass_of($resolved['class'], BaseRole::class)) {
                 $roles[] = $resolved['class'];
+                $roleOrigins[$resolved['class']][] = $root['origin'];
             }
 
             if ($kind === 'scopes' && $resolved['kind'] === 'class' && is_subclass_of($resolved['class'], AssignmentScopeDefinition::class)) {
@@ -271,6 +272,7 @@ final class PanelDiscovery
             sources: array_values(array_unique($sourceClasses)),
             enums: array_values($enumClasses),
             fromCache: false,
+            roleOrigins: $roleOrigins,
         );
     }
 

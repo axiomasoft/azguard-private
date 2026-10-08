@@ -179,7 +179,7 @@ final class PanelRegistry implements PanelRegistryContract
 
         foreach ([...array_keys($this->replacements), ...array_keys($this->configure)] as $id) {
             if (! isset($this->providers[$id])) {
-                throw $this->unknown($id);
+                throw $this->unknown((string) $id);
             }
         }
 
@@ -194,6 +194,7 @@ final class PanelRegistry implements PanelRegistryContract
         $panels = $recipes = $plugins = $fingerprints = $recipeFingerprints = $catalogs = $enums = [];
 
         foreach ($providers as $id => $providerClass) {
+            $id = (string) $id;
             [$recipes[$id], $plugins[$id]] = $this->write($id, $providerClass, $buildId);
             $stored = $this->storedDiscovery($cached, $buildId, $id);
             $discovery = PanelDiscovery::resolve($recipes[$id], $this->app, $stored);
@@ -201,8 +202,7 @@ final class PanelRegistry implements PanelRegistryContract
             $resolved = PanelSources::of($recipes[$id], $this->app, $discovery);
             $panels[$id] = $this->compiler->compile($recipes[$id], $resolved, $this->app);
             $recipeFingerprints[$id] = PanelFingerprint::of($panels[$id], $recipes[$id], $resolved->identity(), $discovery->fingerprint());
-            $snapshot = CatalogCache::entry($cached, $buildId, $id, $recipeFingerprints[$id]);
-            $catalogs[$id] = ($snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot))
+            $catalogs[$id] = self::cachedCatalog($cached, $buildId, $id, $recipeFingerprints[$id])
                 ?? PanelCatalog::build($panels[$id], $resolved, $this->app);
             foreach ($resolved->all() as ['source' => $source]) {
                 if ($source instanceof RelationSource) {
@@ -334,7 +334,7 @@ final class PanelRegistry implements PanelRegistryContract
         $this->compiled();
         $fingerprint = $this->recipeFingerprints[$id] ?? throw $this->unknown($id);
 
-        return $this->cache !== null && CatalogCache::entry(($this->cache)()->read(), (string) $this->buildId, $id, $fingerprint) !== null;
+        return $this->cache !== null && self::cachedCatalog(($this->cache)()->read(), (string) $this->buildId, $id, $fingerprint) !== null;
     }
 
     /**
@@ -355,12 +355,21 @@ final class PanelRegistry implements PanelRegistryContract
         }
 
         foreach ($this->recipeFingerprints as $id => $fingerprint) {
-            if (CatalogCache::entry($file, (string) $this->buildId, $id, $fingerprint) === null) {
+            if (self::cachedCatalog($file, (string) $this->buildId, (string) $id, $fingerprint) === null) {
                 return CacheState::Stale;
             }
         }
 
         return CacheState::Current;
+    }
+
+    /** @param array<mixed> $file */
+    private static function cachedCatalog(array $file, string $buildId, string $id, string $fingerprint): ?PanelCatalog
+    {
+        $snapshot = CatalogCache::entry($file, $buildId, $id, $fingerprint);
+        $catalog = $snapshot === null ? null : PanelCatalog::fromSnapshot($snapshot);
+
+        return $catalog?->panel() === $id ? $catalog : null;
     }
 
     /**

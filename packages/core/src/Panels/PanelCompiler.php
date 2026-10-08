@@ -736,7 +736,7 @@ final class PanelCompiler
 
         foreach ($catalogs as $catalog) {
             foreach ($prefixes as $prefix => $owner) {
-                $name = $catalog->nameWithFirstSegment($prefix);
+                $name = $catalog->nameWithFirstSegment((string) $prefix);
 
                 if ($name !== null) {
                     throw new PrefixConflictException(
