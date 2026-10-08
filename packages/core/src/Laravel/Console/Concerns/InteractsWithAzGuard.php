@@ -6,6 +6,7 @@ namespace AzGuard\Laravel\Console\Concerns;
 
 use AzGuard\AzGuardManager;
 use AzGuard\Changes\ActingActor;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantRecord;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Exceptions\AmbiguousPanelException;
@@ -133,6 +134,10 @@ trait InteractsWithAzGuard
         if ($input !== null) {
             [$type, $id] = $this->identity($input, '--tenant');
 
+            if ($type !== $panel->tenants()->definition()?->type()) {
+                throw new TenantMismatchException('Panel '.$panel->id().' does not take tenants of the type "'.$type.'".');
+            }
+
             return TenantRef::of($type, $id);
         }
 
@@ -181,10 +186,17 @@ trait InteractsWithAzGuard
         }
 
         try {
-            return (new DateTimeImmutable($input, new DateTimeZone('UTC')))->setTimezone(new DateTimeZone('UTC'));
+            $date = new DateTimeImmutable($input, new DateTimeZone('UTC'));
         } catch (Exception) {
-            throw new InvalidCommandInput('--'.$name.' is not a valid date: '.$input.'.');
+            $date = null;
         }
+
+        // A day or hour out of range is rolled over by PHP with a warning; such a date is refused, not shifted.
+        if ($date === null || DateTimeImmutable::getLastErrors() !== false) {
+            throw new InvalidCommandInput('--'.$name.' must be an ISO-8601 date or date-time; '.$input.' does not exist.');
+        }
+
+        return $date->setTimezone(new DateTimeZone('UTC'));
     }
 
     /**
@@ -272,6 +284,14 @@ trait InteractsWithAzGuard
         }
 
         return $redacted;
+    }
+
+    /** One line with the outcome of a change: its status, the number of effects and the resulting state version. */
+    protected function reportChange(string $what, ChangeResult $result): int
+    {
+        $this->components->info($what.': '.$result->status->value.', '.count($result->effects).' effect(s), state version '.$result->state->version.'.');
+
+        return Command::SUCCESS;
     }
 
     /** @param array<mixed> $data */

@@ -40,7 +40,23 @@
   },
   "mode": "either",
   "instructions": "Все записи через ChangePipeline с актором system:<команда>; reset — операция Storage под той же блокировкой panel_state; --force в production для необратимых; --dry-run не пишет.",
-  "status": "todo",
-  "outcome": null,
-  "updated_at": "2026-10-08T02:52:55Z"
+  "status": "accepted",
+  "outcome": {
+    "agent": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high"
+    },
+    "at": "2026-10-08T07:12:02Z",
+    "notes": "диф просмотрен; V1–V12 повторены зелёными после последней правки",
+    "changed": [
+      "packages/core/src",
+      "tests/Feature/Console",
+      "tests/Engines",
+      "tests/Fixtures/Console",
+      "tests/Acceptance/Crm/README.md",
+      "CHANGELOG.md"
+    ]
+  },
+  "updated_at": "2026-10-08T07:12:02Z"
 }

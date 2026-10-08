@@ -26,9 +26,11 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
+use AzGuard\Storage\StorageMutation;
 use Carbon\CarbonImmutable;
 use Closure;
 use DateTimeImmutable;
+use DateTimeZone;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Str;
 use UnitEnum;
@@ -270,6 +272,64 @@ final readonly class ChangePipeline
     }
 
     /**
+     * Gives the panel state a new incarnation and raises its version, under the lock of `panel_state` that every write
+     * of the panel takes: the reset after a manual change of the tables or a restore of the database. Tokens, cached
+     * decisions and permission sets of the old incarnation no longer pass the fence. The reset runs through the
+     * `changing` pipes and the journal as a touch with the reason `reset` and publishes `PanelStateTouched` after the
+     * commit. It is its own root transaction. Returns the new state.
+     *
+     * @throws InvalidConfigurationException inside an open transaction of the writer
+     */
+    public function reset(Panel $panel, ?ActorRef $actor = null): StateToken
+    {
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource) {
+            throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer that keeps a state.');
+        }
+
+        if ($writer->inTransaction()) {
+            throw InvalidConfigurationException::failing('panel_state', 'A reset of panel '.$panel->id().' runs in its own root transaction.');
+        }
+        $storage = $writer->boundStorage();
+
+        return $this->operate($panel, TenantRef::global(), static fn (LockedReads $reads, ?ActorRef $actor): array => [
+            Change::touchPanel($panel->id(), 'reset', $actor),
+        ], $actor, static fn () => $storage->renewIncarnation($panel->id()))->state;
+    }
+
+    /**
+     * Deletes the rows of the change journal of the panel that occurred before `$before`, in every tenant, `$batch`
+     * rows at a time, each batch under the lock of the panel state. The journal is not authority: nothing is touched
+     * and no event is published. Returns the number of rows deleted.
+     */
+    public function pruneJournal(Panel $panel, DateTimeImmutable $before, int $batch = 1000): int
+    {
+        if ($batch < 1) {
+            throw InvalidConfigurationException::failing('changing', 'A prune batch holds at least one row.');
+        }
+        $writer = $panel->writer();
+
+        if (! $writer instanceof DatabaseSource) {
+            throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer, so it keeps no journal.');
+        }
+        $storage = $writer->boundStorage();
+        $cutoff = $before->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $removed = 0;
+        do {
+            $count = $storage->mutate($panel->id(), static function (StorageMutation $mutation) use ($panel, $cutoff, $batch): int {
+                $ids = $mutation->table('audit_log')->where('panel', $panel->id())->where('occurred_at', '<', $cutoff)
+                    ->orderBy('id')->limit($batch)->pluck('id')->all();
+
+                return $ids === [] ? 0 : $mutation->table('audit_log')->whereIn('id', $ids)->delete();
+            });
+            $removed += $count;
+        } while ($count >= $batch);
+
+        return $removed;
+    }
+
+    /**
      * Removes the stored grants whose expiry is not after `$now`, in every origin, one tenant after the other and `$batch`
      * grants at a time, each batch its own mutation and each grant its own change through the pipes. Every removal
      * publishes `GrantExpired` instead of a revocation event. A tenant narrows the run to one tenant. Returns the
@@ -353,6 +413,15 @@ final readonly class ChangePipeline
      */
     public function run(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null): ChangeResult
     {
+        return $this->operate($panel, $tenant, $plan, $actor);
+    }
+
+    /**
+     * @param  Closure(LockedReads, ?ActorRef): list<Change>  $plan
+     * @param  (Closure(): mixed)|null  $locked  runs first under the lock, before the context of the changes is read
+     */
+    private function operate(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null, ?Closure $locked = null): ChangeResult
+    {
         $writer = $panel->writer() ?? throw new PanelNotWritableException('Panel '.$panel->id().' has no writer.');
 
         if (! $writer instanceof DatabaseSource) {
@@ -369,9 +438,13 @@ final readonly class ChangePipeline
         $correlation = strtolower((string) Str::ulid());
 
         /** @var array{list<ChangeResult>, StateToken} $outcome */
-        $outcome = $writer->transaction(function () use ($writer, $panel, $tenant, $plan, $actor, $actorModel, $build, $correlation): array {
+        $outcome = $writer->transaction(function () use ($writer, $panel, $tenant, $plan, $actor, $actorModel, $build, $correlation, $locked): array {
             $reads = $writer->lockedReads($panel);
             $this->assertBuild($panel, ...$build);
+
+            if ($locked !== null) {
+                $locked();
+            }
             $now = CarbonImmutable::now('UTC')->startOfSecond()->toDateTimeImmutable();
             $validator = new ChangeValidator($this->container, $panel, $tenant, $reads, $now, $reads->token(), $actor, $actorModel, $writer->isRolesOnly(), $writer->isDynamic());
             $frame = new ChangeFrame($validator->context(...), $correlation, $now);

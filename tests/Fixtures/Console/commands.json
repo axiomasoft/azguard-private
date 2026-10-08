@@ -1,0 +1,23 @@
+{
+    "azguard:audit:prune": "[--panel [PANEL]] [--before [BEFORE]] [--force]",
+    "azguard:catalog:cache": "",
+    "azguard:catalog:clear": "",
+    "azguard:catalog:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
+    "azguard:doctor": "[--panel [PANEL]] [--storage [STORAGE]] [--production] [--json]",
+    "azguard:explain": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
+    "azguard:grants:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json] [--] <subject>",
+    "azguard:grants:prune": "[--panel [PANEL]] [--tenant [TENANT]] [--before [BEFORE]] [--dry-run]",
+    "azguard:panels:list": "[--settings] [--sources] [--schema] [--json]",
+    "azguard:permissions:create": "[--panel [PANEL]] [--label [LABEL]] [--group [GROUP]] [--tenant [TENANT]] [--] <name>",
+    "azguard:permissions:delete": "[--panel [PANEL]] [--tenant [TENANT]] [--force] [--] <name>",
+    "azguard:permissions:grant": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
+    "azguard:permissions:revoke": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
+    "azguard:permissions:show": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--json] [--] <subject>",
+    "azguard:roles:grant": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
+    "azguard:roles:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
+    "azguard:roles:rename-key": "[--panel [PANEL]] [--tenant [TENANT]] [--dry-run] [--force] [--] <role> <new>",
+    "azguard:roles:revoke": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
+    "azguard:sources:list": "[--json]",
+    "azguard:state:reset": "[--force] [--] <panel>",
+    "azguard:storage:migration": "<name>"
+}

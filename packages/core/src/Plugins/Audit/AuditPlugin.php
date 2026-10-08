@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Plugins\Audit;
 
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\PanelRecipe;
 use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use InvalidArgumentException;
@@ -44,6 +45,32 @@ final class AuditPlugin extends BasePlugin
     public function retentionDays(): int
     {
         return $this->retentionDays;
+    }
+
+    /**
+     * The retention in days of the audit plugin the recipe attaches to its panel, in the order provider, plugins,
+     * `configure`; null when the panel has none. A plugin given by class name keeps the default.
+     *
+     * @internal read by `azguard:audit:prune`
+     */
+    public static function retentionIn(PanelRecipe $recipe): ?int
+    {
+        foreach ([PanelRecipe::PROVIDER, PanelRecipe::PLUGIN, PanelRecipe::CONFIGURE] as $layer) {
+            if ($layer === PanelRecipe::CONFIGURE && in_array('azguard/audit', $recipe->withoutPlugins(), true)) {
+                continue;
+            }
+            foreach ($recipe->plugins($layer) as $plugin) {
+                if ($plugin instanceof self) {
+                    return $plugin->retentionDays;
+                }
+
+                if ($plugin === self::class) {
+                    return self::make()->retentionDays;
+                }
+            }
+        }
+
+        return null;
     }
 
     public function id(): string

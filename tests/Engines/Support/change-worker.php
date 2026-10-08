@@ -10,6 +10,7 @@ use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\PanelManagers;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Changes\RoleKeyMigration;
+use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
@@ -41,7 +42,7 @@ $wait = static function (string $file): void {
     }
 };
 $id = $connection->selectOne($connection->getDriverName() === 'pgsql' ? 'select pg_backend_pid() as id' : 'select connection_id() as id')->id;
-$report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'removed' => null, 'version' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
+$report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'removed' => null, 'version' => null, 'incarnation' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
 
 if (isset($options['id_file'])) {
     file_put_contents($options['id_file'], (string) $id);
@@ -126,12 +127,15 @@ try {
         'migrate' => app(RoleKeyMigration::class)->run($panel, $options['from'], $options['to'], $tenant)[$tenant->key()],
         'grant-permission' => ChangeWorld::pipeline()->grant($panel, $tenant, ChangeWorld::user($options['user']), ChangeWorld::permission($options['name']),
             ChangeWorld::project($options['project'] ?? null)),
+        'reset' => ChangeWorld::pipeline()->reset($panel),
         default => throw new InvalidArgumentException('Unknown operation '.$options['op']),
     };
-    $report['status'] = $result->status->value;
-    $report['removed'] = count($result->removedGrantIds());
-    $report['effects'] = count($result->effects);
-    $report['version'] = $result->state->version;
+    $state = $result instanceof StateToken ? $result : $result->state;
+    $report['status'] = $result instanceof StateToken ? 'reset' : $result->status->value;
+    $report['removed'] = $result instanceof StateToken ? 0 : count($result->removedGrantIds());
+    $report['effects'] = $result instanceof StateToken ? 1 : count($result->effects);
+    $report['version'] = $state->version;
+    $report['incarnation'] = $state->incarnation;
 } catch (Throwable $error) {
     $report['error'] = $error::class;
     $report['message'] = $error->getMessage();

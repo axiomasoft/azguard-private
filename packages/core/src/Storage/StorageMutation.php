@@ -20,7 +20,7 @@ final class StorageMutation
     private array $callbacks = [];
 
     /** @param array<string, PanelState> $states */
-    public function __construct(private readonly Storage $storage, private readonly array $states, private readonly bool $nested) {}
+    public function __construct(private readonly Storage $storage, private array $states, private readonly bool $nested) {}
 
     public function state(string $panel): PanelState
     {
@@ -46,6 +46,13 @@ final class StorageMutation
     {
         $this->state($panel);
         $this->touched[$panel] = true;
+    }
+
+    /** @internal The storage renewed the incarnation of a panel this mutation locked. */
+    public function renewed(PanelState $state): void
+    {
+        $this->state($state->panel);
+        $this->states[$state->panel] = $state;
     }
 
     /** @param Closure(): void $callback */

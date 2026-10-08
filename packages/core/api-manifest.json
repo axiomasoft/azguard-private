@@ -16506,6 +16506,21 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "int"
+                },
+                {
+                    "name": "retentionIn",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "recipe",
+                            "type": "AzGuard\\Panels\\PanelRecipe",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?int"
                 }
             ],
             "stability": "api",
@@ -19703,6 +19718,35 @@
                     "return": "AzGuard\\Contracts\\Sources\\AssignmentScopeSelection"
                 },
                 {
+                    "name": "countExpired",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "int"
+                },
+                {
                     "name": "decisionFields",
                     "static": false,
                     "abstract": false,
@@ -19844,6 +19888,35 @@
                     "return": "array"
                 },
                 {
+                    "name": "grantOrigins",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "grants",
                     "static": false,
                     "abstract": false,
@@ -19893,6 +19966,35 @@
                         }
                     ],
                     "return": "bool"
+                },
+                {
+                    "name": "holderCounts",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "id",
@@ -21221,6 +21323,13 @@
                         }
                     ],
                     "return": "AzGuard\\Contracts\\Sources\\Source"
+                },
+                {
+                    "name": "names",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
                 },
                 {
                     "name": "register",
@@ -23311,6 +23420,21 @@
                         }
                     ],
                     "return": "AzGuard\\Storage\\StorageReadSession"
+                },
+                {
+                    "name": "renewIncarnation",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Storage\\PanelState"
                 },
                 {
                     "name": "schema",

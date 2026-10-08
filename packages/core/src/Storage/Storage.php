@@ -347,6 +347,33 @@ final class Storage
     /** @var array<string, true> */
     private array $pendingTouches = [];
 
+    /**
+     * @internal A new incarnation of the panel state, the reset after a manual change or a restore of the database.
+     *
+     * Runs inside the root mutation that holds the lock of `panel_state` — the lock every write of the panel takes —
+     * and marks the panel touched, so the root commit also raises its version. Tokens and cached decisions of the old
+     * incarnation never pass the fence again. A rollback or retry of the root keeps the old incarnation.
+     *
+     * @throws UnsupportedDirectWriteException outside the active mutation of the panel
+     * @throws InvalidConfigurationException inside a nested mutation: a reset is its own root
+     */
+    public function renewIncarnation(string $panel): PanelState
+    {
+        $mutation = $this->mutation($panel);
+
+        if ($mutation->isNested()) {
+            throw InvalidConfigurationException::failing('panel_state', 'A reset of panel '.$panel.' runs in its own root mutation, not inside another transaction.');
+        }
+        $state = $mutation->state($panel);
+        $renewed = new PanelState($panel, $state->version, strtolower((string) Str::ulid()), $state->updatedAt);
+        $this->table('panel_state')->where('panel', $panel)->update(['incarnation' => $renewed->incarnation]);
+        $this->locked[$panel] = $renewed;
+        $mutation->renewed($renewed);
+        $mutation->touch($panel);
+
+        return $renewed;
+    }
+
     /** @return array{version: int, identity_codec: int, storage_id: string, prefix: string, host_keys: string} */
     public function schema(): array
     {

@@ -12,16 +12,26 @@ use AzGuard\Changes\ChangeJournal;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Laravel\Console\Commands\AuditPruneCommand;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
 use AzGuard\Laravel\Console\Commands\CatalogListCommand;
 use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\GrantsListCommand;
+use AzGuard\Laravel\Console\Commands\GrantsPruneCommand;
 use AzGuard\Laravel\Console\Commands\PanelsListCommand;
+use AzGuard\Laravel\Console\Commands\PermissionsCreateCommand;
+use AzGuard\Laravel\Console\Commands\PermissionsDeleteCommand;
+use AzGuard\Laravel\Console\Commands\PermissionsGrantCommand;
+use AzGuard\Laravel\Console\Commands\PermissionsRevokeCommand;
 use AzGuard\Laravel\Console\Commands\PermissionsShowCommand;
+use AzGuard\Laravel\Console\Commands\RolesGrantCommand;
 use AzGuard\Laravel\Console\Commands\RolesListCommand;
+use AzGuard\Laravel\Console\Commands\RolesRenameKeyCommand;
+use AzGuard\Laravel\Console\Commands\RolesRevokeCommand;
 use AzGuard\Laravel\Console\Commands\SourcesListCommand;
+use AzGuard\Laravel\Console\Commands\StateResetCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
 use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Laravel\Http\Middleware\CheckPermission;
@@ -36,6 +46,7 @@ use AzGuard\Sources\SourceManager;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Storage\StorageTouched;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
@@ -118,12 +129,33 @@ final class AzGuardServiceProvider extends ServiceProvider
             $this->commands([
                 CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class, DoctorCommand::class,
                 PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class, RolesListCommand::class, GrantsListCommand::class,
-                PermissionsShowCommand::class,
+                PermissionsShowCommand::class, RolesGrantCommand::class, RolesRevokeCommand::class, PermissionsGrantCommand::class,
+                PermissionsRevokeCommand::class, PermissionsCreateCommand::class, PermissionsDeleteCommand::class, RolesRenameKeyCommand::class,
+                GrantsPruneCommand::class, AuditPruneCommand::class, StateResetCommand::class,
             ]);
         }
+        $this->scheduleMaintenance();
 
         $this->app->booted(function (): void {
             $this->app->make(PanelRegistry::class)->freeze();
+        });
+    }
+
+    /**
+     * With `schedule.enabled` and a `schedule.prune_expired` frequency, expired grants of every panel are pruned by the
+     * Laravel scheduler at that frequency: a scheduler method name such as `daily`, or a cron expression.
+     */
+    private function scheduleMaintenance(): void
+    {
+        $config = $this->app->make(AzGuardConfig::class);
+        $frequency = $config->pruneExpiredFrequency();
+
+        if (! $config->scheduleEnabled() || $frequency === null) {
+            return;
+        }
+        $this->callAfterResolving(Schedule::class, static function (Schedule $schedule) use ($frequency): void {
+            $event = $schedule->command(GrantsPruneCommand::class);
+            str_contains($frequency, ' ') ? $event->cron($frequency) : $event->{$frequency}();
         });
     }
 
