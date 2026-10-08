@@ -17,6 +17,8 @@ use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
 use AzGuard\Laravel\Gate\GateBridge;
+use AzGuard\Laravel\Http\Middleware\CheckPermission;
+use AzGuard\Laravel\Http\Middleware\EnterPanel;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -30,6 +32,7 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 
 final class AzGuardServiceProvider extends ServiceProvider
@@ -87,6 +90,9 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
 
         $this->registerConfiguredPanels();
+        $router = $this->app->make(Router::class);
+        $router->aliasMiddleware(EnterPanel::ALIAS, EnterPanel::class);
+        $router->aliasMiddleware(CheckPermission::ALIAS, CheckPermission::class);
         $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
             return $this->app->make(GateBridge::class)($user, $ability, $arguments);
         });

@@ -13,12 +13,14 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\User as CrmUser;
+use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Route;
 
 it('resolves a key of the admin panel to admin and never to the default panel', function (string $key): void {
     [$resolver, $current] = PanelWorld::compile([
@@ -67,6 +69,30 @@ it('P01c answers a key of the backoffice panel from backoffice in the trait, the
             ->and(array_unique($foreign))->toBe([false])
             ->and(fn () => AzGuard::panel('backoffice')->for($anna)->hasPermission('crm:clients.update', $client))->toThrow(ConflictingPanelException::class)
             ->and(fn () => AzGuard::panel('backoffice')->decide($request('crm')))->toThrow(ConflictingPanelException::class);
+    } finally {
+        CrmWorld::resetRuntime();
+        Carbon::setTestNow();
+        Relation::morphMap([], false);
+    }
+});
+
+it('P01c answers azguard.can for a key of the backoffice panel from backoffice inside the crm request panel', function (): void {
+    HttpWorld::seed();
+
+    try {
+        HttpWorld::panel();
+        Route::middleware([...HttpWorld::BINDINGS, 'azguard.panel:crm'])->group(function (): void {
+            foreach (['backoffice:clients.update', 'crm:clients.update', 'clients.update'] as $key) {
+                Route::get('/p01c/'.$key.'/{client}', static fn (Client $client): string => 'held')->middleware('azguard.can:'.$key.',client');
+            }
+        });
+        HttpWorld::actingAs(1);
+
+        // Anna is a seller in crm only: the request panel crm never answers a key of backoffice.
+        $this->get('/p01c/crm:clients.update/1', ['X-Tenant' => '1'])->assertOk();
+        $this->get('/p01c/clients.update/1', ['X-Tenant' => '1'])->assertOk();
+        $this->get('/p01c/backoffice:clients.update/1', ['X-Tenant' => '1'])->assertForbidden();
+        expect(AzGuard::check(CrmUser::query()->findOrFail(1), 'backoffice:clients.update', Client::query()->findOrFail(1)))->toBeFalse();
     } finally {
         CrmWorld::resetRuntime();
         Carbon::setTestNow();

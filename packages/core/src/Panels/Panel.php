@@ -20,6 +20,7 @@ use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\PanelSources;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use UnitEnum;
 
 /**
  * A compiled panel: an immutable description produced from the recipe of its provider.
@@ -67,7 +68,47 @@ final readonly class Panel
         private array $changingPipes = [],
         /** @var list<SubjectDescriptor> */
         private array $subjectDescriptors = [],
+        private string|UnitEnum|null $entryPermission = null,
+        private Closure|string|null $deniedResponse = null,
+        /** @var list<string> */
+        private array $entryMiddleware = [],
+        private bool $routeChecks = false,
     ) {}
+
+    /**
+     * The permission required to enter the panel in addition to a role of the panel, or null when a role is enough.
+     */
+    public function entry(): string|UnitEnum|null
+    {
+        return $this->entryPermission;
+    }
+
+    /**
+     * The response to a denied entry: a closure that takes the request and the panel and returns a response, or a
+     * redirect target (a route name or a URL); null answers 403.
+     */
+    public function onDenied(): Closure|string|null
+    {
+        return $this->deniedResponse;
+    }
+
+    /**
+     * Middleware that runs when a request enters the panel, in the order they were declared.
+     *
+     * @return list<string>
+     */
+    public function middleware(): array
+    {
+        return $this->entryMiddleware;
+    }
+
+    /**
+     * Strict mode: every route action of the panel declares a permission check or opts out explicitly.
+     */
+    public function requiresRouteChecks(): bool
+    {
+        return $this->routeChecks;
+    }
 
     /**
      * Pipes every change of grants passes through, in the order provider, plugins, `configure`.

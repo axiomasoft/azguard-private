@@ -1,0 +1,4 @@
+{
+    "azguard.can": "AzGuard\\Laravel\\Http\\Middleware\\CheckPermission",
+    "azguard.panel": "AzGuard\\Laravel\\Http\\Middleware\\EnterPanel"
+}

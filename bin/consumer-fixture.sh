@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Consumer fixture: install the BUILT package archives into a clean Laravel
-# application, the way a consumer receives them (no path repositories, no symlinks).
+# application, the way a consumer receives them (no path repositories, no symlinks),
+# then serve real HTTP requests through `azguard.panel` and `#[CheckPermission]`.
 #
 #   bash bin/consumer-fixture.sh [--laravel=13] [--version=1.0.0-alpha.dev] [--with-filament] [--keep]
 #
@@ -137,8 +138,29 @@ smoke() {
     log "OK"
 }
 
+# A panel, a controller with #[CheckPermission] behind azguard.panel and a feature test from fixtures/consumer/http:
+# 403 without the permission, 200 with it. Laravel 13 applies the attribute itself; 11 and 12 rely on azguard.panel.
+http_step() {
+    cd "${work}/app"
+
+    cp -R "${root}/fixtures/consumer/http/." .
+    php -r '
+        $file = "bootstrap/providers.php";
+        $providers = require $file;
+        $providers[] = "App\\Guards\\Shop\\ShopGuardPanelProvider";
+        file_put_contents($file, "<?php\n\nreturn ".var_export($providers, true).";\n");
+    '
+    printf "\nrequire __DIR__.'/azguard.php';\n" >> routes/web.php
+    composer dump-autoload --no-interaction >/dev/null
+
+    log "HTTP: #[CheckPermission] behind azguard.panel on Laravel ${laravel}"
+    php vendor/bin/phpunit tests/Feature/AzGuardHttpTest.php
+    log "HTTP OK"
+}
+
 check_network
 build_archives
 create_app
 install_archives
 smoke
+http_step

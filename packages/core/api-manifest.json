@@ -39,6 +39,130 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Attributes\\CheckPermission",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Routing\\Attributes\\Controllers\\Middleware",
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "message",
+                    "type": "?string",
+                    "readonly": false,
+                    "static": false
+                },
+                {
+                    "name": "on",
+                    "type": "?string",
+                    "readonly": false,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "UnitEnum|string",
+                    "readonly": false,
+                    "static": false
+                },
+                {
+                    "name": "status",
+                    "type": "int",
+                    "readonly": false,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "status",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "403"
+                        },
+                        {
+                            "name": "message",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "only",
+                            "type": "?array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "except",
+                            "type": "?array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "appliesTo",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "action",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Attributes\\SkipPermissionCheck",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Authorization\\Visibility",
             "kind": "class",
             "final": true,
@@ -10269,6 +10393,31 @@
             "via": "location"
         },
         {
+            "name": "AzGuard\\Exceptions\\MissingPermissionCheckException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "AzGuard\\Exceptions\\ConfigurationException",
+            "interfaces": [
+                "Stringable",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "code",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
             "name": "AzGuard\\Exceptions\\PanelNotResolvedException",
             "kind": "class",
             "final": true,
@@ -14260,6 +14409,38 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "array (\n)"
+                        },
+                        {
+                            "name": "entryPermission",
+                            "type": "UnitEnum|string|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "deniedResponse",
+                            "type": "Closure|string|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "entryMiddleware",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "routeChecks",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
                         }
                     ],
                     "return": null
@@ -14299,6 +14480,13 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                },
+                {
+                    "name": "entry",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "UnitEnum|string|null"
                 },
                 {
                     "name": "fields",
@@ -14358,6 +14546,20 @@
                     "return": "string"
                 },
                 {
+                    "name": "middleware",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "onDenied",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "Closure|string|null"
+                },
+                {
                     "name": "pluginIds",
                     "static": false,
                     "abstract": false,
@@ -14370,6 +14572,13 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "?string"
+                },
+                {
+                    "name": "requiresRouteChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
                 },
                 {
                     "name": "resourceScopes",

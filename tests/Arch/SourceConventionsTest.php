@@ -69,8 +69,9 @@ it('tags every contract as api or spi', function (): void {
 
 /*
  * One rule picks a panel. The request panel and the default panel of a model are read only by the resolver and the
- * registry that owns them. The core provider binds the request panel, and the facade root reads it for
- * `currentPanel()`; neither chooses a panel. Any other entry point asks the resolver.
+ * registry that owns them. The core provider binds the request panel, the facade root reads it for `currentPanel()`,
+ * and `azguard.panel` sets it for a request to the panel the resolver returned for the route; none chooses a panel.
+ * Any other entry point asks the resolver.
  */
 
 const AZGUARD_PANEL_SELECTION_METHODS = ['defaultFor', 'forModel', 'azguardDefaultPanel'];
@@ -82,6 +83,7 @@ const AZGUARD_PANEL_SELECTION_OWNERS = [
     'CurrentPanel' => [
         'packages/core/src/Panels/PanelResolver.php', 'packages/core/src/Panels/CurrentPanel.php',
         'packages/core/src/AzGuardServiceProvider.php', 'packages/core/src/AzGuardManager.php',
+        'packages/core/src/Laravel/Http/Middleware/EnterPanel.php',
     ],
 ];
 

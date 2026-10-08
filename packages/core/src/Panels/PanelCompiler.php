@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
 use ReflectionMethod;
 use Throwable;
+use UnitEnum;
 
 /**
  * Registers the plugins of a panel, turns its sealed recipe into a panel and checks what only the whole set of
@@ -189,7 +190,31 @@ final class PanelCompiler
             resourceScopes: $this->resourceScopes($recipe),
             changingPipes: $this->pipes($recipe),
             subjectDescriptors: $subjects,
+            entryPermission: $this->entry($recipe),
+            deniedResponse: $this->deniedResponse($recipe),
+            entryMiddleware: array_values(array_filter(self::items($recipe, PanelRecipe::MIDDLEWARE), is_string(...))),
+            routeChecks: ($this->resolved($recipe, PanelRecipe::REQUIRE_ROUTE_CHECKS)['value'] ?? false) === true,
         );
+    }
+
+    /**
+     * @throws PluginConflictException
+     */
+    private function entry(PanelRecipe $recipe): string|UnitEnum|null
+    {
+        $entry = $this->resolved($recipe, PanelRecipe::ENTRY)['value'] ?? null;
+
+        return is_string($entry) || $entry instanceof UnitEnum ? $entry : null;
+    }
+
+    /**
+     * @throws PluginConflictException
+     */
+    private function deniedResponse(PanelRecipe $recipe): Closure|string|null
+    {
+        $response = $this->resolved($recipe, PanelRecipe::ON_DENIED)['value'] ?? null;
+
+        return is_string($response) || $response instanceof Closure ? $response : null;
     }
 
     /**

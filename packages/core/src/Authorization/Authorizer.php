@@ -33,6 +33,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Scopes\MembershipRestriction;
 use AzGuard\Sources\Database\DatabaseSource;
 use Closure;
 use DateTimeImmutable;
@@ -51,7 +52,7 @@ final class Authorizer
     /** @var array<string,true> */
     private array $active = [];
 
-    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch) {}
+    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch, private readonly MembershipRestriction $membership) {}
 
     /** @internal Joint host work on the panel's authority connection.
      * @template T
@@ -217,6 +218,61 @@ final class Authorizer
             }
         } finally {
             unset($this->active[$key]);
+        }
+    }
+
+    /**
+     * @internal The scope a request of the subject takes in the panel: the given one, otherwise the ambient scope of
+     * the panel and its tenant and assignment scope resolvers, as for a decision. Null when the scope boundary refuses
+     * it, the subject is not a member of its tenant or assignment scope, or an input fails.
+     */
+    public function admissionScope(Panel $panel, SubjectRef $subject, ?AccessScope $scope = null): ?AccessScope
+    {
+        $request = AccessRequest::for($subject, PermissionKey::of($panel->id(), 'superadmin.qualify'));
+        $request = $scope === null ? $request : $request->inScope($scope);
+
+        try {
+            [, , $frame, $denial] = $this->prepare->inputs($panel, $request, null, new Trace(false), qualificationOnly: true);
+
+            return $denial === null && ! $this->membership->check($request, $frame)->denied() ? $frame->scope() : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @internal Assignment scopes of one type of the tenant in which a source holds a role assignment of the subject.
+     * A prefilter of raw witnesses, never an answer: each scope is qualified again on its own. Null when a source
+     * cannot select assignment scopes or fails.
+     *
+     * @return list<AssignmentScopeRef>|null
+     */
+    public function roleScopes(Panel $panel, SubjectRef $subject, TenantRef $tenant, string $type): ?array
+    {
+        $now = Carbon::now('UTC')->toDateTimeImmutable();
+        for ($attempt = 0; ; $attempt++) {
+            try {
+                [$request, , $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, AccessScope::in($tenant), new Trace(false), $now);
+
+                if ($denial !== null || $frame->readAttempt === null) {
+                    return null;
+                }
+                $scopes = [];
+                foreach ($frame->readAttempt->selections($request, $frame, $type) as [, $item]) {
+                    if ($item instanceof RoleContribution && ! $item->scope->context->isGlobal()) {
+                        $scopes[$item->scope->context->key()] = $item->scope->context;
+                    }
+                }
+                $frame->readAttempt->confirm($frame);
+
+                return array_values($scopes);
+            } catch (ReadAttemptChanged) {
+                if ($attempt === 2) {
+                    return null;
+                }
+            } catch (Throwable) {
+                return null;
+            }
         }
     }
 
