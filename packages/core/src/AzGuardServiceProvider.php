@@ -56,7 +56,13 @@ final class AzGuardServiceProvider extends ServiceProvider
 
         $this->app->singleton(PanelRegistry::class, static fn (Application $app): PanelRegistry => new PanelRegistry(
             $app,
-            new PanelCompiler(static fn (): array => $app->make(AzGuardConfig::class)->defaults()),
+            new PanelCompiler(
+                static fn (): array => $app->make(AzGuardConfig::class)->defaults(),
+                static fn (): array => [
+                    'tenants' => $app->make(AzGuardConfig::class)->defaultTenantResolvers(),
+                    'scopes' => $app->make(AzGuardConfig::class)->defaultScopeResolvers(),
+                ],
+            ),
             static fn (): CatalogCache => $app->make(CatalogCache::class),
         ));
         $this->app->alias(PanelRegistry::class, PanelRegistryContract::class);
@@ -86,6 +92,7 @@ final class AzGuardServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->publishes([__DIR__.'/../database/migrations' => database_path('migrations')], 'azguard-migrations');
+        $this->publishes([__DIR__.'/../config/azguard.php' => config_path('azguard.php')], 'azguard-config');
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
 
@@ -93,9 +100,12 @@ final class AzGuardServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware(EnterPanel::ALIAS, EnterPanel::class);
         $router->aliasMiddleware(CheckPermission::ALIAS, CheckPermission::class);
-        $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
-            return $this->app->make(GateBridge::class)($user, $ability, $arguments);
-        });
+
+        if ($this->app->make(AzGuardConfig::class)->gateEnabled()) {
+            $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
+                return $this->app->make(GateBridge::class)($user, $ability, $arguments);
+            });
+        }
 
         if ($this->app->runningInConsole()) {
             $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class]);

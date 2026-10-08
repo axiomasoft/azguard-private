@@ -67,6 +67,43 @@ return [
         // Dispatch a decision event on every check, for diagnostics.
         'trace_decisions' => false,
 
+        // Resolvers every panel tries after its own, in this order. A panel names the tenant and the assignment
+        // scope of a request with its own resolvers first; these are class names, never closures.
+        'tenants' => ['resolvers' => []],
+
+        'scopes' => ['resolvers' => []],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Laravel Gate
+    |--------------------------------------------------------------------------
+    |
+    | With enabled set to false the package does not register its Gate::before
+    | callback: @can, can() and Gate::allows() no longer see panel permissions.
+    | AzGuard::check() and the azguard.can middleware keep working.
+    |
+    */
+
+    'gate' => [
+        'enabled' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduler
+    |--------------------------------------------------------------------------
+    |
+    | prune_expired is how often expired grants are deleted: the name of a
+    | Laravel scheduler frequency method without arguments (hourly, daily,
+    | weekly), a cron expression, or null to register no pruning.
+    |
+    */
+
+    'schedule' => [
+        'enabled' => true,
+        'prune_expired' => 'daily',
     ],
 
     /*
@@ -136,6 +173,21 @@ return [
         'abilities' => 'Abilities',
         'queries' => 'Queries',
         'shared' => 'Shared',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Generators
+    |--------------------------------------------------------------------------
+    |
+    | Where the generators put the directory of a new panel: the namespace and
+    | the path relative to the application.
+    |
+    */
+
+    'scaffold' => [
+        'namespace' => 'App\\Guards',
+        'path' => 'app/Guards',
     ],
 
 ];

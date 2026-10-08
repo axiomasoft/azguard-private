@@ -8,6 +8,7 @@ use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicateRoleException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
@@ -216,7 +217,7 @@ final readonly class RoleCompiler
             $registered = $panel->scopeDefinition($scope->type());
 
             if ($registered === null || $registered::class !== $scope::class || $registered->model() !== $scope->model()) {
-                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
+                throw InvalidConfigurationException::failing('tenant_scope', 'Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
             }
 
             if (! ScopeConfiguration::sameStructure($registered, $scope)) {

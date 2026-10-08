@@ -160,6 +160,18 @@ final class Storage
         return $model;
     }
 
+    /**
+     * Checks that the model class fits its kind and this storage, without reading the database.
+     *
+     * @internal
+     *
+     * @throws StorageMismatchException
+     */
+    public function assertModel(string $kind, ?string $class = null): void
+    {
+        $this->makeModel($kind, $class);
+    }
+
     private function makeModel(string $kind, ?string $class): Model
     {
         [$base, $table] = match ($kind) {

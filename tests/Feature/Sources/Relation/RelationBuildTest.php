@@ -8,6 +8,7 @@ use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -63,7 +64,7 @@ it('rejects unknown static roles malformed relations and non-queryable definitio
             default => 'members',
         };
         RelationWorld::compile([RelationSource::make($definition, $via, $invalid === 'unknown role' ? 'ghost' : 'editor')]);
-    })->toThrow(DefinitionException::class);
+    })->toThrow($invalid === 'unknown role' ? UnknownRoleException::class : DefinitionException::class);
 })->with(['unknown role', 'missing relation', 'malformed relation', 'queryless', 'model null']);
 
 it('rejects duplicate source ids even when different relations supply the same scope type', function (): void {
@@ -90,7 +91,7 @@ it('validates a static role against a restored catalog on the cached build path'
         $cache->write($live->buildId(), $entries);
         $cached = new PanelRegistry(app(), cache: static fn (): CatalogCache => $cache);
         $cached->register(AdminPanel::class);
-        expect(fn () => $cached->freeze())->toThrow(DefinitionException::class, 'editor');
+        expect(fn () => $cached->freeze())->toThrow(UnknownRoleException::class, 'editor');
     } finally {
         @unlink($cache->path());
     }

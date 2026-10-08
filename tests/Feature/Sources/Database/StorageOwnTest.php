@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -46,5 +47,5 @@ it('fails explicitly if an own hash id is occupied by a different physical pair'
     $id = 'own-'.substr(hash('sha256', IdentityCodec::compose([$connection->getName(), 'collision_'])), 0, 60);
     app(StorageRegistry::class)->register(new Storage($id, $connection, 'occupied_'));
 
-    expect(fn () => Storage::own(prefix: 'collision_'))->toThrow(InvalidConfigurationException::class);
+    expect(fn () => Storage::own(prefix: 'collision_'))->toThrow(StorageMismatchException::class);
 });

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePolicy;
@@ -23,7 +24,7 @@ afterEach(fn () => Relation::morphMap([], false));
 
 it('requires a tenant membership adapter at panel compilation', function (): void {
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->tenants(TenantPolicy::required(Organization::class))]))
-        ->toThrow(DefinitionException::class);
+        ->toThrow(InvalidConfigurationException::class, 'membership adapter');
 });
 
 it('accepts configured common filters at compilation', function (): void {
@@ -79,14 +80,14 @@ it('rejects a role binding that changes registered scope identity', function ():
         }
     };
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(StoreScope::class))->roles([$role::class])]))
-        ->toThrow(DefinitionException::class, 'conflicting');
+        ->toThrow(InvalidConfigurationException::class, 'conflicting');
 });
 
 it('accepts model shortcuts only with a structural owner in tenant panels', function (): void {
     Relation::morphMap(['project' => Project::class], false);
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)
         ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-        ->scopes(AssignmentScopePolicy::inherit(Project::class))]))->toThrow(DefinitionException::class);
+        ->scopes(AssignmentScopePolicy::inherit(Project::class))]))->toThrow(InvalidConfigurationException::class, 'authoritative tenant owner');
     [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(Project::class))]);
     expect(array_values($registry->get('admin')->scopeDefinitions())[0])->toBeInstanceOf(ModelAssignmentScopeDefinition::class);
 });

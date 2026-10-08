@@ -18,6 +18,7 @@ use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\PanelDiscovery;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Sources\Relation\RelationSource;
@@ -205,6 +206,10 @@ final class PanelRegistry implements PanelRegistryContract
             foreach ($resolved->all() as ['source' => $source]) {
                 if ($source instanceof RelationSource) {
                     $source->validateCatalog($catalogs[$id]);
+                }
+
+                if ($source instanceof DatabaseSource) {
+                    $source->validateStorage();
                 }
             }
             $fingerprints[$id] = IdentityCodec::digest([$buildId, PanelFingerprint::withCatalog($recipeFingerprints[$id], $catalogs[$id])]);

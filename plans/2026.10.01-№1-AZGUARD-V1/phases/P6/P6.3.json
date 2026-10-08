@@ -2,25 +2,175 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.3",
   "title": "config/azguard.php и AzGuardConfig",
-  "status": "todo",
-  "summary": "—",
-  "why": "—",
+  "status": "done_with_deviations",
+  "summary": "Полный `config/azguard.php` по 07 §2 (+ `catalog.build_id`), публикация тегом `azguard-config`, типизированные аксессоры `AzGuardConfig` для новых секций, `gate.enabled` управляет регистрацией `Gate::before`; каждая строка таблицы 07 §5 имеет тест (V36); arch-правило «`config('azguard…')` только в `Configuration\\`».",
+  "why": "Конфиг — общая часть приложения (D33); строки 07 §5 реализованы разными пунктами P2–P6.2 и нигде не собраны в одну проверку. Жёсткие риски: молча проигнорированная опечатка ключа, ошибка безопасности, которая в production становится предупреждением (S3 Block Public Access — guardrail не ослабляется окружением), чтение конфига в обход `AzGuardConfig`, замыкание в конфиге, ломающее `config:cache`.",
   "scope": {
-    "include": [],
-    "exclude": []
+    "include": [
+      "Добавить в `config/azguard.php` и `AzGuardConfig` недостающие секции 07 §2: `defaults.tenants.resolvers`, `defaults.scopes.resolvers`, `gate.enabled`, `schedule.enabled`, `schedule.prune_expired` (строка-частота Laravel scheduler или null), `scaffold.namespace`, `scaffold.path`; существующие секции и `catalog.build_id` сохраняются; комментарии файла — английские, как сейчас. Неизвестный ключ в любой секции → `InvalidConfigurationException`.",
+      "Публикация: `publishes([config => config_path('azguard.php')], 'azguard-config')`; миграции остаются под `azguard-migrations`.",
+      "`gate.enabled = false` → `AzGuardServiceProvider` не регистрирует `Gate::before`; true — как сейчас.",
+      "`tests/Feature/Configuration/BootChecksTest.php`: dataset по каждой строке 07 §5 (код → класс исключения → минимальная конфигурация/панель, вызывающая его); строки, проверяемые при запросе (`missing_permission_check` — P6.2), ссылаются на HTTP-тест P6.2 через тот же сценарий; строка без реализации → реализовать в owning месте (класс, где живёт соответствующая сборка/проверка), не в тесте.",
+      "Снимок ключей `tests/Fixtures/Configuration/config-keys.json` (плоский список путей ключей опубликованного файла) и тест, что `AzGuardConfig` принимает ровно их.",
+      "Arch `tests/Arch/SourceConventionsTest.php`: вызов `config('azguard` и `Config::get('azguard` вне `packages/core/src/Configuration/` запрещён."
+    ],
+    "exclude": [
+      "`config/azguard-filament.php` — P7.1; предупреждения 07 §5 (низ таблицы) — doctor P6.4; регистрация `azguard:grants:prune` в планировщике — P6.6 (здесь только чтение `schedule.*`); `scaffold.*` используют генераторы P6.8."
+    ]
   },
-  "depends_on": [],
-  "decisions": [],
+  "depends_on": [
+    "P6.2"
+  ],
+  "related": [],
+  "decisions": [
+    "D24",
+    "D8",
+    "D12"
+  ],
   "skills": [],
-  "reads": [],
-  "task_files": [],
-  "rules": [],
-  "guidance": "—",
-  "validation": [],
-  "deliverables": [],
+  "reads": [
+    {
+      "path": "audits/2026-09-29-audit/opus/07-configuration.md",
+      "why": "§1–§6 целиком: файл, принципы, таблица проверок, сборка",
+      "required": true
+    },
+    {
+      "path": "packages/core/config/azguard.php",
+      "why": "текущий файл",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Configuration/AzGuardConfig.php",
+      "why": "текущие аксессоры и отклонение неизвестных ключей",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/AzGuardServiceProvider.php",
+      "why": "Gate::before, publishes",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/SourceConventionsTest.php",
+      "why": "куда добавить правило config()",
+      "required": true
+    },
+    {
+      "ref": "knowledge/P6-surface-model#Invariants",
+      "why": "I9 конфигурация; guardrail безопасности",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/config/azguard.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Configuration/**",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/AzGuardServiceProvider.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Panels/**",
+      "change": "modify",
+      "note": "только недостающие строки 07 §5"
+    },
+    {
+      "path": "packages/core/src/Sources/**",
+      "change": "modify",
+      "note": "только недостающие строки 07 §5"
+    },
+    {
+      "path": "tests/Feature/Configuration/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Configuration/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/SourceConventionsTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Гейты плана: targeted Pest, полный `composer test`, Pint, PHPStan (уровень проекта), arch, type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; недоступный engine/сеть блокирует пункт, а не даёт GREEN.",
+    "Писать только в `packages/core`, `tests`, `CHANGELOG.md` и plan-артефакты пункта (плюс файлы, названные в task_files); `packages/filament`, код Vaulter/других пакетов и `legacy/0.3/` не трогать. Новых runtime-зависимостей нет (исключение — `illuminate/log` в P6.10 по D24 п.2).",
+    "Имена — из досье `03`/D24/knowledge P6-surface-model; внутренние коды задач (`P6.2`, `V83`, `R39`) в docblock `src` запрещены, в тестах и findings допустимы.",
+    "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+    "Один ключ на понятие; старых ключей 0.3 и нормализатора нет (D01).",
+    "Замыканий в конфиге нет; значения — скаляры, списки, class-string.",
+    "Ошибка безопасности конфигурации — исключение во всех окружениях; предупреждения — только наблюдаемость.",
+    "Секреты (`sources.*` параметры подключения) не печатаются ни в исключениях, ни в снимке."
+  ],
+  "guidance": "Сначала инвентаризация: для каждой строки 07 §5 найти grep'ом класс исключения и существующий тест (`tests/Feature/**`), записать таблицу «строка → код → где проверено → тест» в findings P6.3. Затем dataset BootChecksTest переиспользует эти сценарии (одна панель-фикстура на строку). Для строк, у которых код в таблице — подкод (`invalid_configuration.host_keys`), проверять `code()` и подстроку подкода в сообщении/деталях так, как это уже делает существующий код (не вводить новую схему кодов).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Configuration tests/Feature/ServiceProviderTest.php tests/Arch/SourceConventionsTest.php --compact --fail-on-skipped",
+      "expect": "exit 0; каждая строка 07 §5 — отдельный зелёный кейс (V36)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; правила зон, записи и конфигурации соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без группы engines",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифест перегенерирован `php bin/api-manifest.php --write` и совпадает с публичными именами пункта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Полный конфиг, аксессоры, публикация, gate.enabled, BootChecksTest (V36), снимок ключей, arch-правило, CHANGELOG; таблица строк 07 §5 в разделе «P6.3» `@plan/knowledge/findings-P6-execution.json`."
+  ],
   "route": {
     "class": "implementation",
-    "effort": "medium"
+    "effort": "high"
   },
   "review": {
     "mode": "none"
@@ -32,7 +182,63 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "1970-01-01T00:00:00Z",
+  "result": {
+    "started_at": "2026-10-08T04:26:56Z",
+    "finished_at": "2026-10-08T04:53:19Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "e837ead4-5a91-4c78-ada0-819ea538cdf3"
+    },
+    "notes": "config/azguard.php и AzGuardConfig полные; gate.enabled; publish azguard-config; BootChecksTest покрывает 20 кодов 07 §5 (V36); снимок ключей; arch-правило config(); CHANGELOG.",
+    "deviations": [
+      "Коды таблицы 07 §5 вместо generic definition у шести проверок; изменения вне task_files (RoleCompiler, RelationSource, DatabaseSource, Storage, StorageRegistry, PanelRegistry, PanelCompiler)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T04:53:19Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T04:53:19Z",
   "sections": [
     {
       "id": "Intent",

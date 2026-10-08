@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace AzGuard\Configuration;
 
 use AzGuard\Exceptions\InvalidConfigurationException;
+use Illuminate\Console\Scheduling\ManagesFrequencies;
 use Illuminate\Contracts\Config\Repository;
 use ReflectionClass;
+use ReflectionMethod;
 
 /**
  * Typed view of `config/azguard.php` and the only place the package configuration is read.
@@ -15,7 +17,22 @@ use ReflectionClass;
  */
 final readonly class AzGuardConfig
 {
+    /** Keys of the root of `config/azguard.php`. */
+    private const array ROOT_KEYS = ['panels', 'storages', 'ids', 'sources', 'defaults', 'gate', 'schedule', 'catalog', 'discovery', 'scaffold'];
+
     private const array PANELS_KEYS = ['providers'];
+
+    private const array GATE_KEYS = ['enabled'];
+
+    private const array SCHEDULE_KEYS = ['enabled', 'prune_expired'];
+
+    private const array SCAFFOLD_KEYS = ['namespace', 'path'];
+
+    private const array STORAGE_KEYS = ['connection', 'table_prefix', 'host_keys'];
+
+    private const array MODEL_KEYS = ['role_grant', 'permission_grant', 'permission'];
+
+    private const array RESOLVER_GROUP_KEYS = ['resolvers'];
 
     private const array CATALOG_KEYS = ['build_id', 'cache_path'];
 
@@ -34,7 +51,7 @@ final readonly class AzGuardConfig
 
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
-        'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions', 'models'],
+        'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions', 'models', 'tenants', 'scopes'],
         'defaults.gate' => ['mode'],
         'defaults.cache' => ['store', 'ttl', 'generation'],
         'defaults.consistency' => ['reads', 'state_refresh'],
@@ -59,6 +76,15 @@ final readonly class AzGuardConfig
         private string $hostKeys,
         /** @var array<string, class-string> */
         private array $models,
+        /** @var list<class-string> */
+        private array $tenantResolvers,
+        /** @var list<class-string> */
+        private array $scopeResolvers,
+        private bool $gateEnabled,
+        private bool $scheduleEnabled,
+        private ?string $pruneExpiredFrequency,
+        private string $scaffoldNamespace,
+        private string $scaffoldPath,
     ) {}
 
     /**
@@ -66,6 +92,7 @@ final readonly class AzGuardConfig
      */
     public static function fromRepository(Repository $config): self
     {
+        self::assertKnownKeys('', self::section('', $config->get('azguard', [])), self::ROOT_KEYS);
         $panels = self::section('panels', $config->get('azguard.panels', []));
         self::assertKnownKeys('panels', $panels, self::PANELS_KEYS);
         $catalog = self::section('catalog', $config->get('azguard.catalog', []));
@@ -74,17 +101,31 @@ final readonly class AzGuardConfig
         $ids = self::section('ids', $config->get('azguard.ids', []));
         self::assertKnownKeys('ids', $ids, ['host_keys']);
         $hostKeys = self::hostKeysFrom($ids['host_keys'] ?? 'string');
+        $defaults = self::section('defaults', $config->get('azguard.defaults', []));
+        $gate = self::section('gate', $config->get('azguard.gate', []));
+        self::assertKnownKeys('gate', $gate, self::GATE_KEYS);
+        $schedule = self::section('schedule', $config->get('azguard.schedule', []));
+        self::assertKnownKeys('schedule', $schedule, self::SCHEDULE_KEYS);
+        $scaffold = self::section('scaffold', $config->get('azguard.scaffold', []));
+        self::assertKnownKeys('scaffold', $scaffold, self::SCAFFOLD_KEYS);
 
         return new self(
             self::panelProvidersFrom($panels['providers'] ?? []),
-            self::defaultsFrom(self::section('defaults', $config->get('azguard.defaults', []))),
+            self::defaultsFrom($defaults),
             self::buildIdFrom($catalog['build_id'] ?? null),
             self::cachePathFrom($catalog['cache_path'] ?? null),
             self::sourcesFrom($config->get('azguard.sources', [])),
             self::discoveryFrom(self::section('discovery', $config->get('azguard.discovery', []))),
             self::storagesFrom($config->get('azguard.storages', ['default' => []]), $hostKeys),
             $hostKeys,
-            self::modelsFrom($config->get('azguard.defaults.models', [])),
+            self::modelsFrom($defaults['models'] ?? []),
+            self::resolversFrom('defaults.tenants', $defaults['tenants'] ?? []),
+            self::resolversFrom('defaults.scopes', $defaults['scopes'] ?? []),
+            self::flag('gate.enabled', $gate['enabled'] ?? true),
+            self::flag('schedule.enabled', $schedule['enabled'] ?? true),
+            self::frequencyFrom(array_key_exists('prune_expired', $schedule) ? $schedule['prune_expired'] : 'daily'),
+            self::namespaceFrom($scaffold['namespace'] ?? 'App\\Guards'),
+            self::pathFrom($scaffold['path'] ?? 'app/Guards'),
         );
     }
 
@@ -92,6 +133,163 @@ final readonly class AzGuardConfig
     public function defaultModels(): array
     {
         return $this->models;
+    }
+
+    /**
+     * Resolvers of the current tenant every panel tries after its own, in the order the configuration lists them.
+     *
+     * @return list<class-string>
+     */
+    public function defaultTenantResolvers(): array
+    {
+        return $this->tenantResolvers;
+    }
+
+    /**
+     * Resolvers of the current assignment scope every panel tries after its own, in the order the configuration lists them.
+     *
+     * @return list<class-string>
+     */
+    public function defaultScopeResolvers(): array
+    {
+        return $this->scopeResolvers;
+    }
+
+    /** Whether the package registers its `Gate::before` callback. */
+    public function gateEnabled(): bool
+    {
+        return $this->gateEnabled;
+    }
+
+    /** Whether the package registers its tasks in the Laravel scheduler. */
+    public function scheduleEnabled(): bool
+    {
+        return $this->scheduleEnabled;
+    }
+
+    /**
+     * How often expired grants are pruned: the name of a frequency method of the Laravel scheduler (`daily`) or a
+     * cron expression. Null registers no pruning.
+     */
+    public function pruneExpiredFrequency(): ?string
+    {
+        return $this->pruneExpiredFrequency;
+    }
+
+    /** Namespace the generators put the panel directories in, without the leading or trailing backslash. */
+    public function scaffoldNamespace(): string
+    {
+        return $this->scaffoldNamespace;
+    }
+
+    /** Directory the generators put the panel directories in, relative to the application, without the trailing slash. */
+    public function scaffoldPath(): string
+    {
+        return $this->scaffoldPath;
+    }
+
+    /**
+     * Every key of the configuration file the package accepts, as a dotted path. A name chosen by the application
+     * is written `*`: `storages.*.connection`, and `sources` stands for the whole map of source parameters.
+     *
+     * @return list<string>
+     */
+    public static function knownKeys(): array
+    {
+        $keys = ['sources', 'panels.providers', 'defaults.resource_prefix', 'defaults.trace_decisions',
+            'defaults.tenants.resolvers', 'defaults.scopes.resolvers'];
+        $groups = [
+            'ids' => ['host_keys'], 'catalog' => self::CATALOG_KEYS, 'discovery' => self::DISCOVERY_KEYS, 'gate' => self::GATE_KEYS,
+            'schedule' => self::SCHEDULE_KEYS, 'scaffold' => self::SCAFFOLD_KEYS, 'storages.*' => self::STORAGE_KEYS,
+            'defaults.models' => self::MODEL_KEYS, 'defaults.gate' => self::DEFAULTS_KEYS['defaults.gate'],
+            'defaults.cache' => self::DEFAULTS_KEYS['defaults.cache'], 'defaults.consistency' => self::DEFAULTS_KEYS['defaults.consistency'],
+        ];
+
+        foreach ($groups as $group => $names) {
+            foreach ($names as $name) {
+                $keys[] = $group.'.'.$name;
+            }
+        }
+
+        sort($keys, SORT_STRING);
+
+        return $keys;
+    }
+
+    /**
+     * @return list<class-string>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private static function resolversFrom(string $name, mixed $group): array
+    {
+        $group = self::section($name, $group);
+        self::assertKnownKeys($name, $group, self::RESOLVER_GROUP_KEYS);
+        $resolvers = $group['resolvers'] ?? [];
+
+        if (! is_array($resolvers) || ! array_is_list($resolvers)) {
+            throw self::invalidValue($name.'.resolvers', $resolvers, 'a list of class names');
+        }
+
+        foreach ($resolvers as $class) {
+            if (! is_string($class) || ! class_exists($class)) {
+                throw self::invalidValue($name.'.resolvers', $class, 'an existing class');
+            }
+        }
+
+        /** @var list<class-string> $resolvers */
+        return $resolvers;
+    }
+
+    private static function flag(string $key, mixed $value): bool
+    {
+        return is_bool($value) ? $value : throw self::invalidValue($key, $value, 'true or false');
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function frequencyFrom(mixed $frequency): ?string
+    {
+        if ($frequency === null) {
+            return null;
+        }
+
+        if (is_string($frequency) && preg_match('/\A(?:\S+ ){4}\S+\z/', $frequency) === 1) {
+            return $frequency;
+        }
+
+        if (is_string($frequency) && method_exists(ManagesFrequencies::class, $frequency)
+            && (new ReflectionMethod(ManagesFrequencies::class, $frequency))->isPublic()
+            && (new ReflectionMethod(ManagesFrequencies::class, $frequency))->getNumberOfRequiredParameters() === 0) {
+            return $frequency;
+        }
+
+        throw self::invalidValue('schedule.prune_expired', $frequency, 'a frequency method of the Laravel scheduler without arguments, a cron expression or null');
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function namespaceFrom(mixed $namespace): string
+    {
+        $namespace = is_string($namespace) ? trim($namespace, '\\') : null;
+
+        return $namespace !== null && preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*\z/', $namespace) === 1
+            ? $namespace
+            : throw self::invalidValue('scaffold.namespace', $namespace, 'a PHP namespace');
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function pathFrom(mixed $path): string
+    {
+        $path = is_string($path) ? rtrim(str_replace('\\', '/', $path), '/') : null;
+
+        return $path !== null && $path !== '' && ! str_contains($path, "\0") && ! str_starts_with($path, '/') && ! in_array('..', explode('/', $path), true)
+            ? $path
+            : throw self::invalidValue('scaffold.path', $path, 'a directory relative to the application');
     }
 
     /** @return array<string, class-string> */
@@ -103,7 +301,7 @@ final readonly class AzGuardConfig
             'permission_grant' => 'AzGuard\\Storage\\Models\\PermissionGrant',
             'permission' => 'AzGuard\\Storage\\Models\\Permission',
         ];
-        self::assertKnownKeys('defaults.models', $models, array_keys($defaults));
+        self::assertKnownKeys('defaults.models', $models, self::MODEL_KEYS);
         $parsed = [];
         foreach ([...$defaults, ...$models] as $kind => $class) {
             if (! is_string($class) || ! class_exists($class)) {
@@ -144,7 +342,7 @@ final readonly class AzGuardConfig
                 throw InvalidConfigurationException::failing('storage', 'Invalid storage name.');
             }
             $parameters = self::section('storages.'.$name, $parameters);
-            self::assertKnownKeys('storages.'.$name, $parameters, ['connection', 'table_prefix', 'host_keys']);
+            self::assertKnownKeys('storages.'.$name, $parameters, self::STORAGE_KEYS);
             $connection = $parameters['connection'] ?? null;
             $prefix = $parameters['table_prefix'] ?? 'azg_';
 
@@ -421,7 +619,7 @@ final readonly class AzGuardConfig
     {
         return is_array($section)
             ? $section
-            : throw new InvalidConfigurationException('azguard.'.$name.' must be an array, got '.get_debug_type($section).'.');
+            : throw new InvalidConfigurationException(rtrim('azguard.'.$name, '.').' must be an array, got '.get_debug_type($section).'.');
     }
 
     private static function invalidValue(string $key, mixed $value, string $expected): InvalidConfigurationException
@@ -441,7 +639,7 @@ final readonly class AzGuardConfig
 
         if ($unknown !== []) {
             throw new InvalidConfigurationException(
-                'Unknown key'.(count($unknown) === 1 ? '' : 's').' in azguard.'.$name.': '.implode(', ', $unknown)
+                'Unknown key'.(count($unknown) === 1 ? '' : 's').' in '.rtrim('azguard.'.$name, '.').': '.implode(', ', $unknown)
                 .'. Known keys: '.implode(', ', $known).'.',
             );
         }

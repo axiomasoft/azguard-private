@@ -25,6 +25,7 @@ use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\StorageMismatchException;
@@ -196,6 +197,24 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
             throw new DefinitionException('A DatabaseSource instance belongs to one panel.');
         }
         $this->panelId = $panel;
+    }
+
+    /**
+     * Resolves the storage the source names and checks its models against it, so a misspelled storage or a model of
+     * another table stops the boot instead of the first check.
+     *
+     * @internal
+     *
+     * @throws InvalidConfigurationException when the storage is not registered
+     * @throws StorageMismatchException when a model does not fit the storage
+     */
+    public function validateStorage(): void
+    {
+        $storage = $this->resolvedStorage();
+
+        foreach (['role_grant', 'permission_grant', 'permission'] as $kind) {
+            $storage->assertModel($kind, $this->selectedModels[$kind] ?? null);
+        }
     }
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription

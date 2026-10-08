@@ -62,8 +62,12 @@ final class PanelCompiler
      * @param  (Closure(): array<string, bool|int|string|null>)|null  $defaults  values of the `defaults` section
      *                                                                           of the configuration by setting
      *                                                                           name, read when a panel is compiled
+     * @param  (Closure(): array{tenants: list<class-string>, scopes: list<class-string>})|null  $resolvers  tenant and
+     *                                                                                                       assignment scope resolvers of the
+     *                                                                                                       configuration, tried after those of
+     *                                                                                                       the panel
      */
-    public function __construct(private readonly ?Closure $defaults = null) {}
+    public function __construct(private readonly ?Closure $defaults = null, private readonly ?Closure $resolvers = null) {}
 
     /**
      * Runs `register()` of every plugin of the panel and seals the recipe.
@@ -158,8 +162,8 @@ final class PanelCompiler
         if (! $tenants instanceof TenantPolicy) {
             throw new DefinitionException('Panel '.$id.' requires tenant and assignment scope policy objects.');
         }
-        $this->membership($tenants->membership(), $container);
-        $this->membership($scopes->membership(), $container);
+        $this->membership($tenants->membership(), $container, 'tenant_scope', 'Tenant');
+        $this->membership($scopes->membership(), $container, 'membership', 'Assignment scope');
         foreach ($scopes->adapters() as $adapter) {
             ScopeConfiguration::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
             ScopeConfiguration::componentMetadata($adapter);
@@ -185,8 +189,8 @@ final class PanelCompiler
             tenantPolicy: $tenants,
             scopePolicy: $scopes,
             scopeDefinitions: $this->scopes($recipe, $tenants, $scopes, $container),
-            tenantResolvers: $this->components($recipe, PanelRecipe::TENANT_RESOLVERS, TenantResolver::class),
-            scopeResolvers: $this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class),
+            tenantResolvers: [...$this->components($recipe, PanelRecipe::TENANT_RESOLVERS, TenantResolver::class), ...$this->configured('tenants', TenantResolver::class)],
+            scopeResolvers: [...$this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class), ...$this->configured('scopes', AssignmentScopeResolver::class)],
             resourceScopes: $this->resourceScopes($recipe),
             changingPipes: $this->pipes($recipe),
             subjectDescriptors: $subjects,
@@ -359,7 +363,7 @@ final class PanelCompiler
         foreach ($definitions as $declared) {
             if (is_string($declared) && is_subclass_of($declared, Model::class)) {
                 if ($tenants->mode() === 'required') {
-                    throw new DefinitionException('Tenant panel '.$recipe->panelId().' requires a scope descriptor with an authoritative tenant owner.');
+                    throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$recipe->panelId().' requires a scope descriptor with an authoritative tenant owner.');
                 }
                 $definition = ModelAssignmentScopeDefinition::make($declared);
             } else {
@@ -371,7 +375,7 @@ final class PanelCompiler
             }
 
             if ($definition instanceof ModelAssignmentScopeDefinition && $tenants->mode() === 'required' && ! $definition->hasOwner()) {
-                throw new DefinitionException('Tenant panel '.$recipe->panelId().' requires an explicit scope owner callback.');
+                throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$recipe->panelId().' requires an explicit scope owner callback.');
             }
 
             try {
@@ -408,10 +412,10 @@ final class PanelCompiler
     }
 
     /** @param object|class-string|null $adapter */
-    private function membership(object|string|null $adapter, ?Container $container): void
+    private function membership(object|string|null $adapter, ?Container $container, string $check, string $kind): void
     {
         if (is_string($adapter) && ! ($container?->bound($adapter) ?? false) && ! (new ReflectionClass($adapter))->isInstantiable()) {
-            throw new DefinitionException('Membership adapter '.$adapter.' has no container binding.');
+            throw InvalidConfigurationException::failing($check, $kind.' membership adapter '.$adapter.' has no container binding: bind it or name a class that can be created.');
         }
     }
 
@@ -476,6 +480,31 @@ final class PanelCompiler
         }
 
         return $components;
+    }
+
+    /**
+     * Resolvers the configuration lists for every panel.
+     *
+     * @template T of object
+     *
+     * @param  class-string<T>  $contract
+     * @return list<class-string<T>>
+     *
+     * @throws InvalidConfigurationException
+     */
+    private function configured(string $group, string $contract): array
+    {
+        $configured = [];
+
+        foreach ($this->resolvers === null ? [] : ($this->resolvers)()[$group] as $class) {
+            if (! is_subclass_of($class, $contract)) {
+                throw new InvalidConfigurationException('azguard.defaults.'.$group.'.resolvers lists '.$class.', which must implement '.$contract.'.');
+            }
+
+            $configured[] = $class;
+        }
+
+        return $configured;
     }
 
     /** @return array<string, list<Field>> */

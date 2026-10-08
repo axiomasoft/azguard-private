@@ -6,6 +6,7 @@ namespace AzGuard\Storage;
 
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Illuminate\Database\DatabaseManager;
 
@@ -52,7 +53,7 @@ final class StorageRegistry
         foreach ($this->storages as $existing) {
             if ($existing->id() === $storage->id()
                 || ($existing->connectionName() === $storage->connectionName() && $existing->prefix() === $storage->prefix())) {
-                throw InvalidConfigurationException::failing('storage', 'Storage name or connection/prefix is already registered.');
+                throw new StorageMismatchException('Storage '.$storage->id().' names the physical storage of '.$existing->id().' (same connection and table prefix) or repeats its name.');
             }
         }
         $this->storages[$storage->id()] = $storage;

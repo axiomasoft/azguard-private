@@ -19770,6 +19770,13 @@
                     "return": "mixed"
                 },
                 {
+                    "name": "validateStorage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
                     "name": "volatility",
                     "static": false,
                     "abstract": false,
@@ -22390,6 +22397,29 @@
                         }
                     ],
                     "return": null
+                },
+                {
+                    "name": "assertModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "kind",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "class",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
                 },
                 {
                     "name": "authorityTransaction",

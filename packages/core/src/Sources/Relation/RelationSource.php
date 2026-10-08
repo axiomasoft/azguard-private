@@ -16,6 +16,7 @@ use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -106,7 +107,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         }
 
         if (! isset($catalog->roles()[$this->role])) {
-            throw new DefinitionException('RelationSource "'.$this->id().'" names the unknown static role "'.$this->role.'" in panel "'.$catalog->panel().'"; declare this PHP role in the panel or use a membership role callback.');
+            throw new UnknownRoleException('RelationSource "'.$this->id().'" names the unknown static role "'.$this->role.'" in panel "'.$catalog->panel().'"; declare this PHP role in the panel or use a membership role callback.');
         }
     }
 

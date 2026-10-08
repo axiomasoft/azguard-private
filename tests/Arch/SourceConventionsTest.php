@@ -47,11 +47,24 @@ it('keeps internal task codes out of source comments', function (): void {
     expect($offenders)->toBe([]);
 });
 
+const AZGUARD_CONFIG_READ = '/(?:\\bconfig\(|\bConfig::get\(|\bConfig::string\(|\bConfig::array\(|\bConfig::boolean\(|\bConfig::integer\()\s*[\'"]azguard/';
+
+it('recognizes a read of the package configuration through the helper or the facade', function (string $code, bool $reads): void {
+    expect(preg_match(AZGUARD_CONFIG_READ, $code) === 1)->toBe($reads);
+})->with([
+    'the helper' => ["config('azguard.defaults')", true],
+    'the global helper' => ['\\config( "azguard.gate")', true],
+    'the facade' => ["Config::get('azguard.gate.enabled')", true],
+    'a typed facade read' => ["Config::boolean('azguard.gate.enabled')", true],
+    'the config of another package' => ["config('app.name')", false],
+    'a translation key' => ["\$translator->get('azguard::http.forbidden')", false],
+]);
+
 it('reads package configuration only in the configuration zone', function (): void {
     $offenders = array_values(array_filter(
         SourceScan::files(),
         static fn (string $file): bool => ! str_contains($file, '/packages/core/src/Configuration/')
-            && preg_match('/config\(\s*[\'"]azguard/', (string) file_get_contents($file)) === 1,
+            && preg_match(AZGUARD_CONFIG_READ, (string) file_get_contents($file)) === 1,
     ));
 
     expect($offenders)->toBe([]);

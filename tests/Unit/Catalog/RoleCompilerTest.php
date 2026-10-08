@@ -7,6 +7,7 @@ use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicateRoleException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
@@ -171,7 +172,10 @@ it('takes an unknown exact name when the panel has a dynamic permission source',
 });
 
 it('checks assignment scopes of roles', function (array $roles, string $message): void {
-    expect(fn () => rolesOfAdmin($roles))->toThrow(DefinitionException::class, $message);
+    expect(fn () => rolesOfAdmin($roles))->toThrow(
+        str_contains($message, 'unregistered') ? InvalidConfigurationException::class : DefinitionException::class,
+        $message,
+    );
 })->with([
     'scope required without scopes' => [[inlineRole('clerk', scopeRequired: true)], 'requires a scope on every assignment but lists no scopes'],
     'not a scope' => [[inlineRole('clerk', scopes: [SellerRole::class])], 'lists '.SellerRole::class.' in scopes()'],
