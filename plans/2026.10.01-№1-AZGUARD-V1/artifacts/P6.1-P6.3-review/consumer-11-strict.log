@@ -1,0 +1,13 @@
+
+   INFO  Configuration cached successfully.  
+
+PHPUnit 11.5.57 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.4.1
+Configuration: /tmp/tmp.dtK7TYhoeE/app/phpunit.xml
+
+.....                                                               5 / 5 (100%)
+
+Time: 00:00.405, Memory: 42.50 MB
+
+OK (5 tests, 9 assertions)

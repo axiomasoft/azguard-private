@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Configuration;
 
 use AzGuard\Exceptions\InvalidConfigurationException;
+use Cron\CronExpression;
 use Illuminate\Console\Scheduling\ManagesFrequencies;
 use Illuminate\Contracts\Config\Repository;
 use ReflectionClass;
@@ -255,13 +256,15 @@ final readonly class AzGuardConfig
             return null;
         }
 
-        if (is_string($frequency) && preg_match('/\A(?:\S+ ){4}\S+\z/', $frequency) === 1) {
+        if (is_string($frequency) && preg_match('/\A(?:\S+ ){4}\S+\z/', $frequency) === 1
+            && CronExpression::isValidExpression($frequency)) {
             return $frequency;
         }
 
         if (is_string($frequency) && method_exists(ManagesFrequencies::class, $frequency)
             && (new ReflectionMethod(ManagesFrequencies::class, $frequency))->isPublic()
-            && (new ReflectionMethod(ManagesFrequencies::class, $frequency))->getNumberOfRequiredParameters() === 0) {
+            && (new ReflectionMethod(ManagesFrequencies::class, $frequency))->getNumberOfRequiredParameters() === 0
+            && ! (new ReflectionMethod(ManagesFrequencies::class, $frequency))->isVariadic()) {
             return $frequency;
         }
 
@@ -287,7 +290,8 @@ final readonly class AzGuardConfig
     {
         $path = is_string($path) ? rtrim(str_replace('\\', '/', $path), '/') : null;
 
-        return $path !== null && $path !== '' && ! str_contains($path, "\0") && ! str_starts_with($path, '/') && ! in_array('..', explode('/', $path), true)
+        return $path !== null && $path !== '' && ! str_contains($path, "\0") && ! str_starts_with($path, '/')
+            && preg_match('/\A[a-z][a-z0-9+.-]*:/i', $path) !== 1 && ! in_array('..', explode('/', $path), true)
             ? $path
             : throw self::invalidValue('scaffold.path', $path, 'a directory relative to the application');
     }

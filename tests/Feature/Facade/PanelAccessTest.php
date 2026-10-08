@@ -208,3 +208,15 @@ it('refuses the state of a panel that stores nothing', function (): void {
 
     expect(fn () => facadeCrm()->state())->toThrow(PanelNotWritableException::class);
 });
+
+it('refuses a request tenant that replaces the ambient tenant of the panel access', function (string $operation): void {
+    $access = AzGuard::panel('crm');
+    $request = AccessRequest::for(SubjectRef::of('crm.user', 1), PermissionKey::of('crm', 'clients.view'))
+        ->inTenant(TenantRef::of('crm.organization', 2))->on(null, Client::query()->findOrFail(5));
+
+    app(WithinContext::class)->run($access->definition(), CrmWorld::scope(1), function () use ($access, $request, $operation): void {
+        expect($access->scope()->tenant->key())->toBe('crm.organization:1');
+        expect(fn () => $access->{$operation}($operation === 'decideMany' ? [$request] : $request))
+            ->toThrow(TenantMismatchException::class);
+    });
+})->with(['decide', 'decideMany', 'explain']);

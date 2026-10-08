@@ -7,8 +7,10 @@ namespace AzGuard\Laravel\Http;
 use AzGuard\Attributes\CheckPermission;
 use AzGuard\Attributes\SkipPermissionCheck;
 use AzGuard\Laravel\Http\Middleware\CheckPermission as CheckPermissionMiddleware;
+use Closure;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Routing\Route;
+use Illuminate\Routing\Router;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -104,17 +106,23 @@ final class RouteChecks
      */
     public function covered(Route $route): bool
     {
-        if ($this->attributes($route) !== [] || $this->skipped($route)) {
+        if ($this->skipped($route)) {
             return true;
         }
+        $router = app(Router::class);
+        $middleware = $router->resolveMiddleware([
+            ...$route->gatherMiddleware(),
+            ...array_map(static fn (CheckPermission $check): Closure|string => $check->middleware, $this->attributes($route)),
+        ], $route->excludedMiddleware());
+        $prefixes = $router->resolveMiddleware([CheckPermissionMiddleware::ALIAS.':', 'can:']);
 
-        foreach ($route->gatherMiddleware() as $middleware) {
-            if (! is_string($middleware)) {
+        foreach ($middleware as $check) {
+            if (! is_string($check)) {
                 continue;
             }
 
-            foreach ([CheckPermissionMiddleware::ALIAS.':', CheckPermissionMiddleware::class.':', ...self::LARAVEL_CHECKS] as $prefix) {
-                if (str_starts_with($middleware, $prefix)) {
+            foreach ([...$prefixes, CheckPermissionMiddleware::class.':', ...self::LARAVEL_CHECKS] as $prefix) {
+                if (is_string($prefix) && str_starts_with($check, $prefix)) {
                     return true;
                 }
             }

@@ -32,6 +32,9 @@ use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageRegistry;
+use AzGuard\Tests\Fixtures\Configuration\AttributedConnectionRoleGrant;
+use AzGuard\Tests\Fixtures\Configuration\AttributedTableRoleGrant;
+use AzGuard\Tests\Fixtures\Configuration\WrongTableRoleGrant;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -138,6 +141,18 @@ function bootChecks(): array
                 app(StorageRegistry::class)->get('default')->model('role_grant', Model::class);
             },
         ],
+        'a source model bound to another table at freeze' => [
+            'storage_mismatch', StorageMismatchException::class, 'declares table',
+            fn () => adminWith([DatabaseSource::make()->models(roleGrant: WrongTableRoleGrant::class)]),
+        ],
+        'a source model with a foreign Table attribute at freeze' => [
+            'storage_mismatch', StorageMismatchException::class, 'declares table',
+            fn () => adminWith([DatabaseSource::make()->models(roleGrant: AttributedTableRoleGrant::class)]),
+        ],
+        'a source model with a foreign Connection attribute at freeze' => [
+            'storage_mismatch', StorageMismatchException::class, 'declares connection',
+            fn () => adminWith([DatabaseSource::make()->models(roleGrant: AttributedConnectionRoleGrant::class)]),
+        ],
         'a source that names an unknown storage' => [
             'invalid_configuration.storage', InvalidConfigurationException::class, 'Unknown storage nope',
             fn () => adminWith([DatabaseSource::make()->storage('nope')]),
@@ -156,6 +171,10 @@ function bootChecks(): array
                 new StaticSource('a', [StaticSource::grants('orders.view', 'View orders')]),
                 new StaticSource('b', [StaticSource::grants('orders.view', 'Show orders')]),
             ]),
+        ],
+        'two sources that claim one id' => [
+            'duplicate_permission', DuplicatePermissionException::class, 'two sources with the id',
+            fn () => adminWith([new StaticSource('same'), new StaticSource('same')]),
         ],
         'two roles that claim one key' => [
             'duplicate_role', DuplicateRoleException::class, 'Role key "manager"',

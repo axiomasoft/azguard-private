@@ -1,0 +1,23 @@
+Tail of /tmp/azguard-p6-review-consumer-13.log (last 22 lines; original full installation log remains in /tmp):
+
+No security vulnerability advisories found.
+[consumer-fixture] installed: versions : * 1.0.0-alpha.dev dist : [zip] /home/vostrikov/projects/packages/azguard/build/dist/axiomasoft-azguard-1.0.0-alpha.dev.zip 
+
+ INFO Discovering packages. 
+
+ axiomasoft/azguard .. DONE
+ laravel/pail .. DONE
+ laravel/pao .. DONE
+ laravel/tinker .. DONE
+ nesbot/carbon .. DONE
+ nunomaduro/collision .. DONE
+ nunomaduro/termwind .. DONE
+
+[consumer-fixture] discovered: AzGuard\AzGuardServiceProvider
+[consumer-fixture] OK
+> Illuminate\Foundation\ComposerScripts::postAutoloadDump
+> @php artisan package:discover --ansi
+[consumer-fixture] HTTP: #[CheckPermission] behind azguard.panel on Laravel 13
+{"tool":"phpunit","result":"passed","tests":5,"passed":5,"assertions":9,"duration_ms":139}
+[consumer-fixture] HTTP OK
+kept: /tmp/tmp.bbi5jm2ZVW

@@ -169,17 +169,19 @@ final readonly class ScopedPanelAccess implements PanelAccess
             throw new ConflictingPanelException('The access is for panel "'.$this->panel->id().'", the request is for "'.$request->permission()->panel().'".');
         }
 
-        if ($this->tenant === null) {
+        $tenant = $this->tenant ?? app(CurrentContext::class)->get($this->panel)?->tenant;
+
+        if ($tenant === null) {
             return $request;
         }
         $asked = $request->tenant();
 
         if ($asked === null) {
-            return $request->inTenant($this->tenant);
+            return $request->inTenant($tenant);
         }
 
-        if (! $asked->equals($this->tenant)) {
-            throw new TenantMismatchException('The access is for tenant "'.$this->tenant->key().'", the request is for "'.$asked->key().'".');
+        if (! $asked->equals($tenant)) {
+            throw new TenantMismatchException('The access is for tenant "'.$tenant->key().'", the request is for "'.$asked->key().'".');
         }
 
         return $request;

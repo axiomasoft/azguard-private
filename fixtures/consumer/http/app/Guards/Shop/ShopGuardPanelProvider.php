@@ -21,7 +21,7 @@ final class ShopGuardPanelProvider extends PanelProvider
 
     public function panel(PanelBuilder $panel): PanelBuilder
     {
-        return $panel->for(User::class, guard: 'web')
+        return $panel->for(User::class, guard: 'web')->requireRouteChecks()
             ->permissions([OrderPermission::class])
             ->roles([MemberRole::class, ManagerRole::class]);
     }

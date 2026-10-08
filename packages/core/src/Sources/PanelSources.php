@@ -17,6 +17,7 @@ use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\UnknownSourceException;
 use AzGuard\Exceptions\WriterConflictException;
@@ -67,7 +68,8 @@ final readonly class PanelSources
     /**
      * @throws UnknownSourceException when a source is named and no source is registered under the name
      * @throws InvalidIdentityException when the id of a source is malformed
-     * @throws DefinitionException when two sources of the panel share an id, or a creator fails
+     * @throws DuplicatePermissionException when two sources of the panel share an id
+     * @throws DefinitionException when a creator fails
      * @throws WriterConflictException when more than one source stores grants
      */
     public static function of(PanelRecipe $recipe, Container $container, ?DiscoverySnapshot $discovery = null): self
@@ -131,7 +133,7 @@ final readonly class PanelSources
                 IdentityCodec::assertSourceLabel($id);
 
                 if (isset($byId[$id])) {
-                    throw new DefinitionException(
+                    throw new DuplicatePermissionException(
                         'Panel "'.$panel.'" has two sources with the id "'.$id.'" ('.$byId[$id]::class.' and '.$source::class
                         .'): every source of a panel needs its own id.',
                     );

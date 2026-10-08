@@ -235,3 +235,32 @@ it('leaves routes outside strict mode alone', function (): void {
 
     $this->get('/unchecked', ['X-Tenant' => '1'])->assertOk();
 });
+
+it('refuses an excluded check in strict mode', function (string $kind, string $class, string $generation): void {
+    HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->requireRouteChecks());
+    $route = $kind === 'attribute'
+        ? httpRoute('/excluded/{client}', [ClientController::class, 'update'], class: $class, generation: $generation)
+        : Route::middleware([...HttpWorld::BINDINGS, 'azguard.panel:crm'])->get('/excluded/{client}', static fn (): string => 'unchecked');
+    $middleware = match ($kind) {
+        'attribute', 'azguard' => UPDATE_CHECK,
+        default => 'can:crm-open',
+    };
+
+    if ($kind !== 'attribute') {
+        $route->middleware($middleware);
+    }
+    $route->withoutMiddleware($middleware);
+    HttpWorld::actingAs(2);
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->get('/excluded/1', ['X-Tenant' => '1']))->toThrow(MissingPermissionCheckException::class);
+    $this->withExceptionHandling();
+    app()->detectEnvironment(static fn (): string => 'production');
+    $this->getJson('/excluded/1', ['X-Tenant' => '1'])->assertForbidden();
+})->with([
+    'attribute on Laravel 11/12' => ['attribute', OlderRouterRoute::class, 'laravel-12'],
+    'attribute on Laravel 13.0-13.4' => ['attribute', OlderRouterRoute::class, 'laravel-13.4'],
+    'attribute on Laravel 13.5+' => ['attribute', LaravelRoute::class, 'laravel-13.5'],
+    'route azguard.can' => ['azguard', LaravelRoute::class, 'laravel-13.5'],
+    'route Laravel can' => ['can', LaravelRoute::class, 'laravel-13.5'],
+]);
