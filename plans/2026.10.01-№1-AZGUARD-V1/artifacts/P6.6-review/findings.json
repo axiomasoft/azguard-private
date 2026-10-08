@@ -1,0 +1,21 @@
+{
+ "verdict": "ATTENTION",
+ "findings": [
+  {
+   "severity": "Major",
+   "confidence": "high",
+   "location": "packages/core/src/Laravel/Console/Concerns/InteractsWithAzGuard.php:280",
+   "failure_scenario": "azguard:sources:list --json prints source parameters named dsn, url, pass, and private in full, including a DSN and a URL that embed passwords. With azguard.sources.crm-db set to password=source-secret, dsn=pgsql://azguard:super-secret-pass@127.0.0.1/azguard, url=https://user:url-secret-pass@db.example/az, pass=bare-pass-value, private=private-key-material, the JSON redacts only password and leaves the other four values intact. grants:list uses the same helper for grant fields.",
+   "basis": "security",
+   "reproduction": "php -d memory_limit=1G vendor/bin/pest /tmp/sources-secret-repro.php --compact (exit 0). Observed parameters: \"password\": \"[redacted]\", \"dsn\": \"pgsql://azguard:super-secret-pass@127.0.0.1/azguard\", \"url\": \"https://user:url-secret-pass@db.example/az\", \"pass\": \"bare-pass-value\", \"private\": \"private-key-material\"."
+  }
+ ],
+ "questions": [
+  "The deliverable asks for a P6.6 section in knowledge/findings-P6-execution.json. Commits 602b193 and ad8bf59 do not add one (sections present are P6.1–P6.4). Is that section written by the coordinator because plan_mutation is forbidden?"
+ ],
+ "residual_risk": "azguard:grants:prune and azguard:audit:prune without --tenant walk every tenant of the selected panels. That matches dossier 12 §3 and D24: the scheduled prune has no tenant argument, each tenant is its own ChangePipeline mutation, and --before cannot move forward or inside audit retention. A reset whose changing pipe throws keeps the old incarnation because renewIncarnation runs inside the mutate transaction; the engine race test covers lock ordering and the cached read, and the feature test covers refusal inside an already open transaction.",
+ "reviewer": {
+  "route": "grok/grok-4.7/500k/high",
+  "session": "01a11a5c-3e58-7712-af1e-747dd6d12cca"
+ }
+}
