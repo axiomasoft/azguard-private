@@ -1,0 +1,2 @@
+$ DB_CONNECTION=pgsql PGSQL_PORT=25432 php -d memory_limit=1G vendor/bin/pest tests/Engines/StateResetRaceTest.php --ci --fail-on-skipped
+{"tool":"pest","result":"passed","tests":3,"passed":3,"assertions":26,"duration_ms":3546}

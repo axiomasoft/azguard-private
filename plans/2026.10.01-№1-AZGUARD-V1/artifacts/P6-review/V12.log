@@ -1,0 +1,2 @@
+$ vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+{"tool":"phpstan","result":"passed","errors":0}
