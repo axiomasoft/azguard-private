@@ -73,8 +73,21 @@ function legacyNamesScannedFiles(): array
     return $files;
 }
 
-it('removes the frozen 0.3 reference tree', function (): void {
-    expect(dirname(__DIR__, 2).'/legacy')->not->toBeDirectory();
+it('removes the frozen 0.3 files and links from the reference tree', function (): void {
+    $legacy = dirname(__DIR__, 2).'/legacy';
+    expect(is_link($legacy) || is_file($legacy))->toBeFalse();
+
+    if (! is_dir($legacy)) {
+        return;
+    }
+    // Git does not track empty directories; local vendor directories can remain after deleting the old source.
+    $entries = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($legacy, FilesystemIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST,
+    );
+    foreach ($entries as $entry) {
+        expect($entry->isFile() || $entry->isLink())->toBeFalse($entry->getPathname());
+    }
 });
 
 it('keeps the frozen 0.3 tree out of every composer autoload map', function (): void {
