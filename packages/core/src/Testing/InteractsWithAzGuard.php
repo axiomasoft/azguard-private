@@ -8,8 +8,10 @@ use AzGuard\AzGuardManager;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Storage\AuthorityReadBaseline;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Testing\DatabaseTransactionsManager;
 use UnitEnum;
 
 /**
@@ -23,6 +25,16 @@ use UnitEnum;
  */
 trait InteractsWithAzGuard
 {
+    /** @internal Laravel invokes this after starting RefreshDatabase's wrapping transaction. */
+    protected function setUpInteractsWithAzGuard(): void
+    {
+        $manager = app('db.transactions');
+
+        if (app()->runningUnitTests() && $manager instanceof DatabaseTransactionsManager) {
+            app()->instance(AuthorityReadBaseline::class, new RefreshDatabaseBaseline($manager));
+        }
+    }
+
     /**
      * Grants the permissions to the subject, tenant-wide or in the scope `$on`, and signs it in on the guard of the panel.
      *

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Consumer fixture: install the BUILT package archives into a clean Laravel
 # application, the way a consumer receives them (no path repositories, no symlinks),
-# then serve real HTTP requests through `azguard.panel` and `#[CheckPermission]`.
+# then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
 #   bash bin/consumer-fixture.sh [--laravel=13] [--version=1.0.0-alpha.dev] [--with-filament] [--keep]
 #
@@ -82,7 +82,9 @@ build_archives() {
 
 create_app() {
     log "creating a clean Laravel ${laravel}.x application"
-    composer create-project "laravel/laravel:^${laravel}.0" "${work}/app" --no-interaction --prefer-dist --no-progress >/dev/null
+    # Laravel's create-project hooks may migrate. Never inherit a host database target into those hooks.
+    APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: DB_URL= AZGUARD_DB_CONNECTION=sqlite \
+        composer create-project "laravel/laravel:^${laravel}.0" "${work}/app" --no-interaction --prefer-dist --no-progress >/dev/null
 }
 
 install_archives() {
@@ -158,14 +160,59 @@ http_step() {
         $file = "bootstrap/providers.php";
         $providers = require $file;
         $providers[] = "App\\Guards\\Shop\\ShopGuardPanelProvider";
+        $providers[] = "App\\Guards\\Stored\\StoredGuardPanelProvider";
         file_put_contents($file, "<?php\n\nreturn ".var_export($providers, true).";\n");
     '
     printf "\nrequire __DIR__.'/azguard.php';\n" >> routes/web.php
     composer dump-autoload --no-interaction >/dev/null
 
+    export APP_ENV=testing DB_CONNECTION=sqlite DB_URL= AZGUARD_DB_CONNECTION=sqlite
+    export DB_DATABASE="${work}/app/database/azguard_consumer_test.sqlite"
+    export AZGUARD_CONSUMER_FIXTURE_ROOT="${work}/app"
+    php -r '
+        if (! str_ends_with($argv[1], "/database/azguard_consumer_test.sqlite") || ! str_starts_with($argv[1], getcwd()."/")) {
+            throw new RuntimeException("Consumer database is not isolated inside its temporary application.");
+        }
+        $database = fopen($argv[1], "x");
+        if ($database === false) {
+            throw new RuntimeException("Could not create the isolated consumer database.");
+        }
+        fclose($database);
+        $xml = new DOMDocument;
+        $xml->load("phpunit.xml");
+        $php = $xml->getElementsByTagName("php")->item(0);
+        if ($php === null) {
+            throw new RuntimeException("Consumer phpunit.xml has no PHP environment section.");
+        }
+        $values = ["APP_ENV" => "testing", "DB_CONNECTION" => "sqlite", "DB_DATABASE" => $argv[1],
+            "DB_URL" => "", "AZGUARD_DB_CONNECTION" => "sqlite", "AZGUARD_CONSUMER_FIXTURE_ROOT" => getcwd()];
+        foreach ($values as $name => $value) {
+            foreach (iterator_to_array($php->childNodes) as $node) {
+                if ($node instanceof DOMElement && in_array($node->tagName, ["env", "server"], true) && $node->getAttribute("name") === $name) {
+                    $php->removeChild($node);
+                }
+            }
+            foreach (["server", "env"] as $channel) {
+                $node = $xml->createElement($channel);
+                $node->setAttribute("name", $name);
+                $node->setAttribute("value", $value);
+                $node->setAttribute("force", "true");
+                $php->appendChild($node);
+            }
+        }
+        $xml->save("phpunit.xml");
+    ' "${DB_DATABASE}"
+
+    log "Install: bigint host keys, sqlite connection and pre-existing config cache on Laravel ${laravel}"
+    php artisan config:cache --no-interaction
+    php artisan azguard:install --connection=sqlite --host-keys=bigint --migrate --force --no-interaction
+
     log "HTTP: #[CheckPermission] behind azguard.panel on Laravel ${laravel}"
     php vendor/bin/phpunit tests/Feature/AzGuardHttpTest.php
     log "HTTP OK"
+    log "RefreshDatabase: installed writer, shared file cache, rollback/restart and production guard on Laravel ${laravel}"
+    php vendor/bin/phpunit tests/Feature/AzGuardBaselineTest.php
+    log "RefreshDatabase OK"
 }
 
 check_network

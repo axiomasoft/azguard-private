@@ -27,7 +27,7 @@ final class ObservedPipe
     public function __construct(private readonly object|string $pipe)
     {
         app('events')->listen(QueryExecuted::class, function (QueryExecuted $query): void {
-            if (preg_match('/^\s*(insert|update|delete|replace|create|drop|alter|truncate)\b/i', $query->sql) === 1) {
+            if (WriteLog::isWrite($query->sql)) {
                 $this->log[] = $query->sql;
             }
         });

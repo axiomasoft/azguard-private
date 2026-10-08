@@ -6,8 +6,9 @@ namespace AzGuard\Testing\Contracts;
 
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\PluginContext;
+use Closure;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -93,26 +94,25 @@ trait PluginContractTests
     #[Test]
     public function bootDoesNotChangeThePanel(): void
     {
-        $plugin = $this->azguardPlugin();
+        $plugin = new ObservedPlugin($this->azguardPlugin(), function (Panel $panel, Closure $boot): void {
+            $before = ContractWorld::snapshot($panel);
+            $boot();
+            $this->assertSame($before, ContractWorld::snapshot($panel), 'boot() changed the panel.');
+        });
         $registry = ContractWorld::build(fn (PanelBuilder $builder) => $builder->plugins([...$this->azguardCompanions(), $plugin]));
-        $panel = $registry->get(ContractWorld::PANEL);
-        $before = ContractWorld::snapshot($panel);
-
-        $this->azguardPlugin()->boot($panel, new PluginContext($panel->id(), $plugin->id(), $registry->buildId(), []));
-
-        $this->assertSame($before, ContractWorld::snapshot($panel), 'boot() changed the panel.');
         $this->assertTrue($registry->isFrozen(), 'boot() unfroze the registry.');
     }
 
     #[Test]
     public function pluginKeptOffAPanelLeavesNoTraceThere(): void
     {
-        $baseline = ContractWorld::snapshot(ContractWorld::build(null, static fn (PanelBuilder $builder) => null)->get(ContractWorld::OTHER));
+        $baseline = ContractWorld::snapshot(ContractWorld::build(null, static fn (PanelBuilder $builder) => null,
+            fn (PanelBuilder $builder) => $builder->plugins($this->azguardCompanions()))->get(ContractWorld::OTHER));
         $id = $this->azguardPlugin()->id();
         $registry = ContractWorld::build(
             null,
             static fn (PanelBuilder $builder) => $builder->withoutPlugins([$id]),
-            fn (PanelBuilder $builder) => $builder->plugins([$this->azguardPlugin()]),
+            fn (PanelBuilder $builder) => $builder->plugins([...$this->azguardCompanions(), $this->azguardPlugin()]),
         );
 
         $this->assertContains($id, $registry->get(ContractWorld::PANEL)->pluginIds(), 'The plugin is not on the panel it is attached to.');

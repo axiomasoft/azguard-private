@@ -30,13 +30,19 @@ final class StorageReadSession
 
     private readonly ?AuthorityTransaction $transaction;
 
+    private readonly ?AuthorityReadBaseline $baseline;
+
+    private readonly ?string $baselineIdentity;
+
     /** @param Closure(string, ?string): Model $models */
     public function __construct(private readonly Storage $storage, private readonly Reads $reads, private readonly Closure $models)
     {
         $this->transaction = $storage->authorityTransaction();
+        $this->baseline = app()->bound(AuthorityReadBaseline::class) ? app(AuthorityReadBaseline::class) : null;
+        $this->baselineIdentity = $this->baseline?->identity($storage);
         $this->assertNoTransaction();
         $authority = $storage->connection();
-        $pdo = $this->transaction !== null || $reads === Reads::Primary ? $authority->getPdo() : $authority->getRawReadPdo();
+        $pdo = $this->transaction !== null || $this->baselineIdentity !== null || $reads === Reads::Primary ? $authority->getPdo() : $authority->getRawReadPdo();
 
         if ($reads === Reads::Default && $pdo === null) {
             if ($authority->getConfig('read') !== null) {
@@ -78,9 +84,15 @@ final class StorageReadSession
     {
         $connection = $this->storage->connection();
 
-        return IdentityCodec::digest([$this->storage->id(), $this->storage->connectionName(), $this->storage->prefix(),
+        $identity = [$this->storage->id(), $this->storage->connectionName(), $this->storage->prefix(),
             $this->storage->hostKeys(), $this->reads->value, (string) json_encode(array_intersect_key($connection->getConfig(),
-                array_flip(['driver', 'database', 'host', 'port', 'unix_socket', 'read', 'write'])), JSON_THROW_ON_ERROR)]);
+                array_flip(['driver', 'database', 'host', 'port', 'unix_socket', 'read', 'write'])), JSON_THROW_ON_ERROR)];
+
+        if ($this->baselineIdentity !== null) {
+            $identity[] = $this->baselineIdentity;
+        }
+
+        return IdentityCodec::digest($identity);
     }
 
     /** Request memo is also tied to the currently resolved physical handle. */
@@ -130,6 +142,14 @@ final class StorageReadSession
 
             if ($this->storage->authorityTransaction() !== $this->transaction || ($readPdo !== null && $readPdo !== $write)) {
                 throw InvalidConfigurationException::failing('authority_transaction', 'Tentative authority must use the registered root write handle.');
+            }
+
+            return;
+        }
+
+        if ($this->baselineIdentity !== null) {
+            if ($this->baseline?->identity($this->storage) !== $this->baselineIdentity || ($readPdo !== null && $readPdo !== $write)) {
+                throw InvalidConfigurationException::failing('authority_transaction', 'The isolated authority baseline or its write handle has changed.');
             }
 
             return;

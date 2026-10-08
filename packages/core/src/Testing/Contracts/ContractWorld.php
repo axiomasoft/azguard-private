@@ -49,12 +49,18 @@ final class ContractWorld
             $registry->register(ContractOtherPanel::class);
         }
 
+        $previous = app(PanelRegistry::class);
+        app()->instance(PanelRegistry::class, $registry);
+
         try {
             $registry->freeze();
+        } catch (Throwable $error) {
+            app()->instance(PanelRegistry::class, $previous);
+
+            throw $error;
         } finally {
             self::reset();
         }
-        app()->instance(PanelRegistry::class, $registry);
         app()->forgetScopedInstances();
         app()->forgetInstance(Authorizer::class);
 
@@ -143,7 +149,7 @@ final class ContractWorld
     {
         $log = new WriteLog;
         app('events')->listen(QueryExecuted::class, static function (QueryExecuted $query) use ($log): void {
-            if ($log->active && preg_match('/^\s*(insert|update|delete|replace|create|drop|alter|truncate)\b/i', $query->sql) === 1) {
+            if ($log->active && WriteLog::isWrite($query->sql)) {
                 $log->writes[] = $query->sql;
             }
         });

@@ -2,19 +2,26 @@
 
 declare(strict_types=1);
 
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\Reads;
+use AzGuard\Storage\AuthorityReadBaseline;
+use AzGuard\Storage\StorageRegistry;
 use AzGuard\Testing\FakeSubject;
 use AzGuard\Testing\InteractsWithAzGuard;
+use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
 use AzGuard\Tests\Fixtures\Testing\KitOrder;
 use AzGuard\Tests\Fixtures\Testing\KitStore;
 use AzGuard\Tests\Fixtures\Testing\KitWorld;
 use AzGuard\Tests\Fixtures\Testing\OrdersPermission;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Database\DatabaseTransactionsManager;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -22,11 +29,10 @@ use PHPUnit\Framework\AssertionFailedError;
 
 /*
  * The kit signs a subject in with real grants stored through the change pipeline; the checks of the test run through
- * the same engine as in production. The database is not wrapped in a transaction: the engine reads authority only
- * outside a transaction it did not open.
+ * the same engine as in production, including the cache and fence inside Laravel's isolated baseline transaction.
  */
 
-uses(DatabaseMigrations::class, InteractsWithAzGuard::class);
+uses(RefreshDatabase::class, InteractsWithAzGuard::class);
 
 beforeEach(function (): void {
     KitWorld::panel();
@@ -121,7 +127,7 @@ it('is not signed in before the call and survives the application events being f
     Event::assertNotDispatched(AzGuard\Events\AccessDecided::class);
 });
 
-it('keeps the check a deny with source_error when the test wraps the database in a transaction', function (): void {
+it('keeps the check a deny with source_error inside another transaction above the test baseline', function (): void {
     $this->app->make('db')->connection()->beginTransaction();
 
     try {
@@ -134,3 +140,113 @@ it('keeps the check a deny with source_error when the test wraps the database in
         $this->app->make('db')->connection()->rollBack();
     }
 });
+
+it('executes the shared cache and invalidates grants on a nested change commit inside RefreshDatabase', function (): void {
+    KitWorld::panel(static fn (PanelBuilder $panel) => $panel->cache('array', ttl: 3600));
+    $user = FakeSubject::of(1);
+    $this->actingAsWithPermissions($user, [OrdersPermission::View]);
+    expect(AzGuard::check($user, OrdersPermission::View))->toBeTrue();
+    app()->forgetScopedInstances();
+    $budget = CacheWorld::emptyBudget();
+    CacheWorld::listen($budget);
+
+    expect(AzGuard::check($user, OrdersPermission::View))->toBeTrue()
+        ->and($budget['grants'])->toBe(0)->and($budget['state'])->toBeGreaterThan(0);
+
+    AzGuard::actingAs('testing', static fn () => AzGuard::panel('seller')->for($user)->revokePermission(OrdersPermission::View));
+    expect(AzGuard::panel('seller')->for($user)->decide(OrdersPermission::View)->reason)->toBe(DecisionReason::NotGranted);
+});
+
+it('binds read sessions and cache identities to the exact test root across rollback and restart', function (): void {
+    $storage = app(StorageRegistry::class)->get('default');
+    $old = $storage->readSession(Reads::Primary);
+    $baseline = app(AuthorityReadBaseline::class);
+    $identity = $old->authorityIdentity();
+    $this->actingAsWithPermissions(FakeSubject::of(1), [OrdersPermission::View]);
+    $storage->connection()->rollBack();
+
+    expect(fn () => $old->assertUsable())->toThrow(InvalidConfigurationException::class)
+        ->and($baseline->identity($storage))->toBeNull()
+        ->and($storage->table('permission_grants')->count())->toBe(0);
+
+    $this->beginDatabaseTransaction();
+    expect(fn () => $storage->readSession(Reads::Primary))->toThrow(InvalidConfigurationException::class);
+    $this->setUpInteractsWithAzGuard();
+    expect($storage->readSession(Reads::Primary)->authorityIdentity())->not->toBe($identity)
+        ->and(fn () => $old->assertUsable())->toThrow(InvalidConfigurationException::class)
+        ->and(AzGuard::panel('seller')->for(FakeSubject::of(1))->decide(OrdersPermission::View)->reason)->toBe(DecisionReason::NotGranted);
+});
+
+it('publishes change callbacks only when the transaction above the test baseline commits', function (bool $commit): void {
+    $fake = AzGuard::fake();
+    $user = FakeSubject::of(1);
+    $storage = app(StorageRegistry::class)->get('default');
+    $storage->connection()->beginTransaction();
+    $this->actingAsWithPermissions($user, [OrdersPermission::View]);
+    expect($fake->changes())->toBe([]);
+    $commit ? $storage->connection()->commit() : $storage->connection()->rollBack();
+
+    expect($fake->changes())->toHaveCount($commit ? 1 : 0)
+        ->and(AzGuard::check($user, OrdersPermission::View))->toBe($commit)
+        ->and($storage->state('seller')?->version)->toBe($commit ? 1 : null);
+})->with([true, false]);
+
+it('does not reuse a rolled-back shared cache entry when the next test root reaches the same revision', function (): void {
+    KitWorld::panel(static fn (PanelBuilder $panel) => $panel->cache('array', ttl: 3600));
+    $storage = app(StorageRegistry::class)->get('default');
+    $connection = $storage->connection();
+    $connection->rollBack();
+    $storage->mutate('seller', static fn (): null => null);
+    $this->beginDatabaseTransaction();
+    $this->setUpInteractsWithAzGuard();
+
+    try {
+        $user = FakeSubject::of(1);
+        $this->actingAsWithPermissions($user, [OrdersPermission::View]);
+        expect(AzGuard::check($user, OrdersPermission::View))->toBeTrue();
+        $first = $storage->state('seller');
+        $connection->rollBack();
+        $this->beginDatabaseTransaction();
+        $this->setUpInteractsWithAzGuard();
+        $this->actingAsWithPermissions(FakeSubject::of(2), [OrdersPermission::View]);
+        app()->forgetScopedInstances();
+        $second = $storage->state('seller');
+
+        expect($second->incarnation)->toBe($first->incarnation)
+            ->and($second->version)->toBe($first->version)
+            ->and(AzGuard::panel('seller')->for($user)->decide(OrdersPermission::View)->reason)->toBe(DecisionReason::NotGranted);
+    } finally {
+        $connection->rollBack();
+        $storage->table('panel_state')->where('panel', 'seller')->delete();
+        $this->beginDatabaseTransaction();
+    }
+});
+
+it('rejects the test baseline when its environment manager execution context or PDO changes', function (string $change): void {
+    $storage = app(StorageRegistry::class)->get('default');
+    $session = $storage->readSession(Reads::Default);
+    $manager = app('db.transactions');
+    $pdo = $storage->connection()->getRawPdo();
+
+    try {
+        if ($change === 'environment') {
+            app()->detectEnvironment(static fn (): string => 'production');
+        } elseif ($change === 'manager') {
+            app()->instance('db.transactions', new DatabaseTransactionsManager);
+        } elseif ($change === 'pdo') {
+            $storage->connection()->setPdo(new PDO('sqlite::memory:'));
+        }
+        $assert = static fn () => $session->assertUsable();
+        expect($change === 'fiber' ? static fn () => (new Fiber($assert))->start() : $assert)
+            ->toThrow(InvalidConfigurationException::class);
+    } finally {
+        app()->detectEnvironment(static fn (): string => 'testing');
+        app()->instance('db.transactions', $manager);
+
+        if ($change === 'pdo') {
+            $pdo->rollBack();
+            $storage->connection()->setPdo($pdo);
+            $this->beginDatabaseTransaction();
+        }
+    }
+})->with(['environment', 'manager', 'fiber', 'pdo']);
