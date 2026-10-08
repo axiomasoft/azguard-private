@@ -96,6 +96,27 @@ it('leaves a configuration without a providers list alone and says so', function
         ->and(Artisan::output())->toContain('has no azguard.panels.providers list');
 });
 
+it('never registers a panel provider in another configuration section', function (): void {
+    mkdir($this->generated->path('config'), 0o755, true);
+    $config = "<?php\nreturn ['panels' => [], 'custom' => ['providers' => []]];\n";
+    file_put_contents($this->generated->path('config/azguard.php'), $config);
+
+    expect(Artisan::call('azguard:make:panel', ['panel' => 'Orders', '--model' => GENERATED_USER]))->toBe(0)
+        ->and($this->generated->read('config/azguard.php'))->toBe($config)
+        ->and(Artisan::output())->toContain('has no azguard.panels.providers list');
+});
+
+it('ignores commented provider names and commented configuration examples', function (): void {
+    mkdir($this->generated->path('config'), 0o755, true);
+    $class = $this->generated->class('Orders\\OrdersGuardPanelProvider');
+    $comment = "// Example: 'panels' => ['providers' => [{$class}::class]];\n";
+    file_put_contents($this->generated->path('config/azguard.php'), "<?php\n{$comment}return ['panels' => ['providers' => []]];\n");
+
+    expect(Artisan::call('azguard:make:panel', ['panel' => 'Orders', '--model' => GENERATED_USER]))->toBe(0)
+        ->and(listedProviders($this->generated))->toBe([$class])
+        ->and($this->generated->read('config/azguard.php'))->toContain($comment);
+});
+
 it('does not overwrite the provider without --force', function (): void {
     Artisan::call('azguard:make:panel', ['panel' => 'Orders', '--model' => GENERATED_USER]);
     file_put_contents($this->generated->path('app/Guards/Orders/OrdersGuardPanelProvider.php'), 'owner code');

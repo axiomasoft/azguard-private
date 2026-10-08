@@ -33,36 +33,95 @@ final readonly class ProviderRegistration
             return self::UNPUBLISHED;
         }
         $source = $this->files->get($configFile);
+        $tokens = [];
+        $offset = 0;
 
-        if (preg_match('/(?<![\w\\\\])\\\\?'.preg_quote($provider, '/').'::class\b/', $source) === 1) {
-            return self::LISTED;
+        foreach (token_get_all($source) as $token) {
+            $text = is_array($token) ? $token[1] : $token;
+
+            if (! is_array($token) || ! in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+                $tokens[] = ['text' => $text, 'offset' => $offset];
+            }
+            $offset += strlen($text);
         }
-        $edited = self::insert($source, $provider);
+        $start = null;
+        $depth = 0;
 
-        if ($edited === null) {
+        foreach ($tokens as $index => $token) {
+            if ($depth === 0 && $token['text'] === 'return' && ($tokens[$index + 1]['text'] ?? null) === '[') {
+                $start = $index + 1;
+
+                break;
+            }
+
+            if (in_array($token['text'], ['[', '(', '{'], true)) {
+                $depth++;
+            } elseif (in_array($token['text'], [']', ')', '}'], true)) {
+                $depth--;
+            }
+        }
+        $panels = $start === null ? null : self::arrayProperty($tokens, $start, 'panels');
+        $providers = $panels === null ? null : self::arrayProperty($tokens, $panels[0], 'providers');
+
+        if ($providers === null) {
             return self::UNRECOGNIZED;
         }
+        [$open, $close, $key] = $providers;
+        $entries = implode('', array_column(array_slice($tokens, $open + 1, $close - $open - 1), 'text'));
+
+        if (preg_match('/(?<![\w\\\\])\\\\?'.preg_quote($provider, '/').'::class\b/', $entries) === 1) {
+            return self::LISTED;
+        }
+        $edited = self::insert($source, $provider, $tokens[$open]['offset'] + 1, $tokens[$key]['offset']);
         $this->files->put($configFile, $edited);
 
         return self::ADDED;
     }
 
-    private static function insert(string $source, string $provider): ?string
+    /**
+     * Find a literal array at one direct key; comments and nested sections cannot masquerade as that key.
+     *
+     * @param  list<array{text: string, offset: int}>  $tokens
+     * @return array{int, int, int}|null opening bracket, closing bracket and key token
+     */
+    private static function arrayProperty(array $tokens, int $start, string $key): ?array
     {
-        if (preg_match('/[\'"]panels[\'"]\s*=>\s*\[/', $source, $panels, PREG_OFFSET_CAPTURE) !== 1) {
-            return null;
-        }
-        $from = $panels[0][1] + strlen($panels[0][0]);
+        $depth = 1;
+        $found = null;
 
-        if (preg_match('/[\'"]providers[\'"]\s*=>\s*\[/', $source, $providers, PREG_OFFSET_CAPTURE, $from) !== 1) {
-            return null;
+        for ($index = $start + 1; $index < count($tokens); $index++) {
+            $text = $tokens[$index]['text'];
+
+            if ($depth === 1 && in_array($text, ["'".$key."'", '"'.$key.'"'], true)
+                && ($tokens[$index + 1]['text'] ?? null) === '=>' && ($tokens[$index + 2]['text'] ?? null) === '[') {
+                $found = [$index + 2, $index];
+            }
+
+            if (in_array($text, ['[', '(', '{'], true)) {
+                $depth++;
+            } elseif (in_array($text, [']', ')', '}'], true)) {
+                $depth--;
+
+                if ($found !== null && $depth === 1) {
+                    return [$found[0], $index, $found[1]];
+                }
+
+                if ($depth === 0) {
+                    return null;
+                }
+            }
         }
-        $open = $providers[0][1] + strlen($providers[0][0]);
+
+        return null;
+    }
+
+    private static function insert(string $source, string $provider, int $open, int $key): string
+    {
         $line = $provider.'::class,';
 
         // `'providers' => [],` becomes a list of one entry.
         if (preg_match('/\G\s*\]/', $source, $closed, 0, $open) === 1) {
-            $indent = self::indentOf($source, $providers[0][1]);
+            $indent = self::indentOf($source, $key);
 
             return substr($source, 0, $open)."\n".$indent.'    '.$line."\n".$indent.']'.substr($source, $open + strlen($closed[0]));
         }
@@ -70,7 +129,7 @@ final readonly class ProviderRegistration
         // The entries are indented like the first line after the bracket; a commented placeholder counts.
         $indent = preg_match('/\G[ \t]*\R([ \t]*)\S/', $source, $next, 0, $open) === 1
             ? $next[1]
-            : self::indentOf($source, $providers[0][1]).'    ';
+            : self::indentOf($source, $key).'    ';
 
         return substr($source, 0, $open)."\n".$indent.$line.substr($source, $open);
     }
