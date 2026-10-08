@@ -109,3 +109,9 @@ as a runtime dependency. Moving branches were observed on the review date, not p
 - [PostgreSQL 16 administration functions](https://www.postgresql.org/docs/16/functions-admin.html): replay pause/resume, observed pause state and catch-up by WAL LSN.
 
 The profile-isolated test fixture uses these documented mechanisms; no upstream code or dependency was vendored.
+
+## PLAN2 — contract write observer, 2026-10-08
+
+- [PostgreSQL 16 EXPLAIN](https://www.postgresql.org/docs/16/sql-explain.html), checked 2026-10-08:
+  `ANALYZE` executes the statement; the contract-kit write observer distinguishes executing DML from planning it.
+  Runtime PostgreSQL replay is a separate qualification gate.

@@ -59,7 +59,7 @@ jobs:
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
 
       - name: Run tests
-        run: vendor/bin/pest --ci
+        run: vendor/bin/pest --ci --exclude-group=engines,redis,replica
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
@@ -70,12 +70,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        connection: [pgsql, mysql]
+        connection: [pgsql, mysql, mariadb]
         include:
           - connection: pgsql
             service: postgres
           - connection: mysql
             service: mysql
+          - connection: mariadb
+            service: mariadb
     services:
       postgres:
         image: postgres:16-alpine
@@ -101,6 +103,20 @@ jobs:
           - 3306:3306
         options: >-
           --health-cmd "mysqladmin ping -h 127.0.0.1 -u root -pazguard --silent"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_DATABASE: azguard_test
+          MARIADB_USER: azguard
+          MARIADB_PASSWORD: azguard
+          MARIADB_ROOT_PASSWORD: azguard
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -132,11 +148,53 @@ jobs:
           MYSQL_DATABASE: azguard_test
           MYSQL_USERNAME: azguard
           MYSQL_PASSWORD: azguard
+          MARIADB_HOST: 127.0.0.1
+          MARIADB_PORT: 3307
+          MARIADB_DATABASE: azguard_test
+          MARIADB_USERNAME: azguard
+          MARIADB_PASSWORD: azguard
+
+      - name: Engine qualification without skips (${{ matrix.connection }})
+        run: composer test:engines:${{ matrix.connection }}
+        env:
+          PGSQL_PORT: 5432
+          MYSQL_PORT: 3306
+          MARIADB_PORT: 3307
+
+  test-replica:
+    name: PostgreSQL · authority replica
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_pgsql
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Start isolated primary and streaming replica
+        run: docker compose --profile authority-replica up -d --wait authority-primary authority-replica
+
+      - name: Qualify real replica lag without skips
+        run: composer test:replica
+
+      - name: Capture replica service logs
+        if: always()
+        run: docker compose --profile authority-replica logs --no-color authority-primary authority-replica
+
+      - name: Stop isolated replica services
+        if: always()
+        run: docker compose --profile authority-replica down
 
   test-redis:
     name: Redis · cross-process cache
-    # Disabled until the 1.0 cache layer exists; PLAN2.P4.8 enables it.
-    if: false
     runs-on: ubuntu-latest
     services:
       redis:
@@ -190,7 +248,7 @@ jobs:
         run: composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
-        run: vendor/bin/pest --ci --coverage --min=85 --coverage-clover=coverage.xml
+        run: vendor/bin/pest --ci --exclude-group=engines,redis,replica --coverage --min=85 --coverage-clover=coverage.xml
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

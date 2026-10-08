@@ -75,8 +75,10 @@ Xdebug and remains blocking. Evidence is in
 
 ## Local database matrix
 
-`composer test` runs against SQLite `:memory:` by default. To exercise the
-package against real database engines (Postgres 16, MySQL 8) and Redis, bring
+`composer test` runs against SQLite `:memory:` by default and excludes the
+`engines`, `redis` and `replica` groups. Those require their dedicated test services;
+excluding them does not qualify those backends. To exercise the
+package against real database engines (Postgres 16, MySQL 8, MariaDB 10.11) and Redis, bring
 up the local stand:
 
 ```bash
@@ -86,13 +88,13 @@ make ps                # check status
 make down               # stop and remove the stand
 ```
 
-`docker-compose.yml` defines three services — `pgsql` (Postgres 16), `mysql`
-(MySQL 8), `redis` (Redis 7) — each with a healthcheck (`pg_isready` /
-`mysqladmin ping` / `redis-cli ping`) and a named volume for its data. Ports
+`docker-compose.yml` defines four default services — `postgres` (Postgres 16), `mysql`
+(MySQL 8), `mariadb` (MariaDB 10.11), `redis` (Redis 7) — each with a healthcheck
+and a named volume for its data. The `authority-replica` profile adds an isolated
+Postgres primary and replica for the [replica qualification](tests/Engines/Support/replica-README.md). Ports
 are published on `127.0.0.1` only; credentials come from `.env`, never
 hardcoded in the compose file. The database names default to `azguard_test`
-(`.env.example`), keeping the invariant that test databases carry the `test`
-substring.
+(`.env.example`), keeping the invariant that test database names end in `_test`.
 
 With the stand up, run the suite against a real engine via `composer
 test:pgsql` / `composer test:mysql` — these switch `DB_CONNECTION` and
@@ -114,12 +116,11 @@ is a hard failure, not a silent pass.
 ## Conventions
 
 - `declare(strict_types=1)` in every PHP file; PHPStan level 8; Pest 4.
-- Permissions and roles are referenced by **enums and classes**, never magic
-  strings (see the docs).
-- Role contract: a panel-scoped code role uses a persisted name such as
-  `app:admin`; `roles.class_name` holds its exact PHP FQCN
-  (`App\Guards\App\Roles\AdminRole`). The built-in super-admin keeps the
-  reserved name `super-admin`; DB-only roles use their own stored name.
+- Permission references support enum cases and validated names; roles are PHP
+  classes with stable keys declared by `#[Role]` or `key()`.
+- Role definitions live in the panel catalog. The database stores assignments
+  in `role_grants`, partitioned by panel, tenant, subject, scope and origin;
+  there is no role-definition table or DB-only role in 1.0.
 
 ## Git workflow
 

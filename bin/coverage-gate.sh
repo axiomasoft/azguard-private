@@ -20,4 +20,4 @@ fi
 
 # Invoke PHP explicitly: vendor/bin/pest's shebang is `/usr/bin/env php`
 # and would otherwise pick a PATH binary that has no driver.
-XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --coverage --min=85
+XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --exclude-group=engines,redis,replica --coverage --min=85
