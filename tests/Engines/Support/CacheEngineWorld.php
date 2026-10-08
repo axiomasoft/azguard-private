@@ -45,33 +45,23 @@ final class CacheEngineWorld
         $sql = match ($connection->getDriverName()) {
             'pgsql' => "select count(*) as n from pg_stat_activity where datname = current_database() and wait_event_type = 'Lock' and pid = ".$connectionId,
             'mysql' => 'select count(*) from performance_schema.data_lock_waits w join performance_schema.threads t on t.thread_id = w.requesting_thread_id where t.processlist_id = '.$connectionId,
-            default => 'select count(*) from information_schema.innodb_lock_waits w join information_schema.innodb_trx t on t.trx_id = w.requesting_trx_id where t.trx_mysql_thread_id = '.$connectionId,
+            default => 'select count(*) from information_schema.innodb_lock_waits w'
+                .' join information_schema.innodb_trx t on t.trx_id = w.requesting_trx_id'
+                .' join information_schema.innodb_locks l on l.lock_id = w.requested_lock_id'
+                .' where t.trx_mysql_thread_id = '.$connectionId." and t.trx_state = 'LOCK WAIT'"
+                .' and l.lock_table = '.$observer->quote('`'.$config['database'].'`.`azg_panel_state`'),
         };
         $deadline = microtime(true) + 10;
         do {
-            if ($connection->getDriverName() === 'mariadb') {
-                // Information-schema transaction snapshots can lag behind this fresh lock wait.
-                $status = $observer->query('SHOW ENGINE INNODB STATUS')->fetch(PDO::FETCH_ASSOC)['Status'];
-                $waiting = false;
-                foreach (explode('---TRANSACTION', $status) as $transaction) {
-                    if (str_contains($transaction, 'MariaDB thread id '.$connectionId.',')
-                        && str_contains($transaction, 'LOCK WAIT')
-                        && str_contains($transaction, '`'.$config['database'].'`.`azg_panel_state`')) {
-                        $waiting = true;
-
-                        break;
-                    }
-                }
-            } else {
-                $waiting = (int) (isset($observer) ? $observer->query($sql)->fetchColumn() : $connection->selectOne($sql)->n) > 0;
-            }
+            $waiting = (int) (isset($observer) ? $observer->query($sql)->fetchColumn() : $connection->selectOne($sql)->n) > 0;
 
             if ($waiting) {
                 return;
             }
-            usleep(10000);
+            // MariaDB refreshes its transaction/lock snapshot only after a 100 ms idle interval.
+            usleep($connection->getDriverName() === 'mariadb' ? 120000 : 10000);
         } while (microtime(true) < $deadline);
 
-        throw new RuntimeException('Independent revoke did not enter a server-observed lock wait.');
+        throw new RuntimeException('Worker connection '.$connectionId.' did not enter a server-observed lock wait.');
     }
 }

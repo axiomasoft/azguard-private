@@ -125,7 +125,13 @@ final class ChangeValidator
             throw new TenantMismatchException('A change leaves the tenant of its operation.');
         }
 
-        if ($final->type->isRevocation() || $final->type->isTouch()) {
+        if ($final->type->isRevocation()) {
+            $this->revocation($final);
+
+            return $final->finalized();
+        }
+
+        if ($final->type->isTouch()) {
             return $final->finalized();
         }
 
@@ -160,6 +166,21 @@ final class ChangeValidator
         }
 
         return $final->finalized();
+    }
+
+    /** A stored revocation never follows a replacement row; expiry also pins the selected expired version. */
+    private function revocation(Change $change): void
+    {
+        if ($change->grantId === null || $change->subject === null) {
+            return;
+        }
+        $stored = $this->reads->exact($change->isRole() ? 'role' : 'permission', $change->scope, $change->subject,
+            $change->role?->key() ?? $change->permission?->local() ?? '', $change->origin);
+
+        if ($stored !== null && ($stored->id !== $change->grantId
+            || $change->expired && ! hash_equals($stored->fingerprint, (string) $change->expectedFingerprint))) {
+            throw new StaleSelectionException('The selected grant was replaced or its expiry changed after the revocation was planned.');
+        }
     }
 
     /**

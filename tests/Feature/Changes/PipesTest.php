@@ -149,6 +149,16 @@ it('rolls back when a pipe breaks the exactly-once continuation or forges the re
 
         return $next($c);
     }],
+    'caught double next' => [static function (Change $c, Closure $next): ChangeResult {
+        $result = $next($c);
+
+        try {
+            $next($c);
+        } catch (InvalidConfigurationException) {
+        }
+
+        return $result;
+    }],
     'forged result' => [static function (Change $c, Closure $next): ChangeResult {
         $result = $next($c);
 

@@ -174,8 +174,8 @@ final readonly class Change
         $key = $stored->role ?? $stored->permission ?? throw new InvalidIdentityException('A stored grant has no key.');
 
         return $key instanceof RoleKey
-            ? new self(ChangeType::RevokeRole, $stored->panel, $stored->scope, $stored->subject, $key, null, $stored->origin, $actor, null, [], $stored->id, null, expired: true)
-            : new self(ChangeType::RevokePermission, $stored->panel, $stored->scope, $stored->subject, null, $key, $stored->origin, $actor, null, [], $stored->id, null, expired: true);
+            ? new self(ChangeType::RevokeRole, $stored->panel, $stored->scope, $stored->subject, $key, null, $stored->origin, $actor, null, [], $stored->id, $stored->fingerprint, expired: true)
+            : new self(ChangeType::RevokePermission, $stored->panel, $stored->scope, $stored->subject, null, $key, $stored->origin, $actor, null, [], $stored->id, $stored->fingerprint, expired: true);
     }
 
     /**

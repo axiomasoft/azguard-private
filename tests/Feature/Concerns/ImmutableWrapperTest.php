@@ -72,6 +72,13 @@ it('leaves a wrapper usable and unchanged after an exception in the middle of a 
         ->and(app(CurrentContext::class)->get($a->panel()))->toBeNull();
 });
 
+it('rejects a conflicting guard even for an empty permission batch', function (string $method): void {
+    $access = User::query()->findOrFail(1)->guard('crm');
+
+    expect($access->{$method}([], guard: 'crm'))->toBeFalse()
+        ->and(fn () => $access->{$method}([], guard: 'backoffice'))->toThrow(ConflictingPanelException::class);
+})->with(['hasAnyPermission', 'hasAllPermissions']);
+
 it('captures no ambient tenant: the next request, job or fiber answers with its own current scope', function (): void {
     $anna = User::query()->findOrFail(1);
     $crm = $anna->guard('crm');

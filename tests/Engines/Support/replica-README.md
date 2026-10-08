@@ -34,10 +34,12 @@ The JSON `controlled_window_ms` is an observed test pause, not a replication SLA
 
 The host-lock test polls a real server lock wait. PostgreSQL observes `pg_stat_activity` through
 a separate normal test connection. MySQL/MariaDB use a separate loopback root **read-only query**
-to `performance_schema.data_lock_waits` (MySQL) or `SHOW ENGINE INNODB STATUS` (MariaDB),
+to `performance_schema.data_lock_waits` (MySQL) or the joined `INNODB_LOCK_WAITS`,
+`INNODB_TRX` and `INNODB_LOCKS` tables (MariaDB),
 restricted to the exact worker connection on the configured `_test` database;
 `MYSQL_ROOT_PASSWORD`/`MARIADB_ROOT_PASSWORD` override the local test defaults. No privilege is
 granted to the application account. The independent writer remains the normal application user.
+MariaDB polling waits 120 ms between reads so its shared information-schema snapshot can refresh.
 
 Redis uses database 15 with a random qualification prefix and deletes only its own keys; it
 never flushes a database. The benchmark reports PHP/framework/server/hardware, sample/warmup

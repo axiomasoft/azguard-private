@@ -58,13 +58,12 @@ final class OnceTerminal
     private function guarded(Container $container, object|string $pipe): Closure
     {
         return static function (mixed $change, Closure $next) use ($container, $pipe): ChangeResult {
-            $called = false;
+            $calls = 0;
             $downstream = null;
-            $guardedNext = static function (mixed $passed) use ($next, &$called, &$downstream): mixed {
-                if ($called) {
+            $guardedNext = static function (mixed $passed) use ($next, &$calls, &$downstream): mixed {
+                if (++$calls !== 1) {
                     throw self::broken('A changing pipe called $next twice.');
                 }
-                $called = true;
 
                 return $downstream = $next($passed);
             };
@@ -72,7 +71,7 @@ final class OnceTerminal
             $returned = $pipe instanceof Closure ? $pipe($change, $guardedNext)
                 : (is_string($pipe) ? $container->make($pipe) : $pipe)->handle($change, $guardedNext);
 
-            if (! $called || ! $downstream instanceof ChangeResult || $returned !== $downstream) {
+            if ($calls !== 1 || ! $downstream instanceof ChangeResult || $returned !== $downstream) {
                 throw self::broken('A changing pipe must call $next once and return its result.');
             }
 

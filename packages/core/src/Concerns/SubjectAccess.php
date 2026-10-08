@@ -386,6 +386,8 @@ final readonly class SubjectAccess
     private function decisions(array $permissions, Model|AssignmentScopeRef|null $on, ?string $guard): array
     {
         if ($permissions === []) {
+            $this->select([], [], $guard);
+
             return [];
         }
         $requests = array_map(fn (string|UnitEnum $permission): AccessRequest => $this->request($permission, $on, $guard), $permissions);

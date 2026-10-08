@@ -6,6 +6,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\ChangeType;
+use AzGuard\Changes\PanelManagers;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownPermissionException;
@@ -164,4 +165,77 @@ it('discards the touch and delivery of an effective grandchild when its parent m
         ->and($result->state->version)->toBe($before[1])
         ->and([W::keys(), W::version()])->toBe($before)
         ->and(EventWorld::events())->toBe([]);
+});
+
+it('refuses to revoke a replacement grant that was not the selected id', function (): void {
+    $armed = false;
+    $panel = null;
+    $panel = W::panel([static function (Change $change, Closure $next) use (&$armed, &$panel): ChangeResult {
+        if ($armed && $change->type === ChangeType::RevokeRole) {
+            $armed = false;
+            W::revoke($panel, 'analyst', 2, 1);
+            W::grant($panel, 'analyst', 2, 1);
+        }
+
+        return $next($change);
+    }], static fn (PanelBuilder $builder) => $builder->plugins([AuditPlugin::make()]));
+    $record = W::grant($panel, 'analyst', 2, 1)->record;
+    $before = [W::rows(), W::version(), EventWorld::auditRows()];
+    EventWorld::listen();
+    $armed = true;
+
+    expect(fn () => PanelManagers::for($panel, W::tenant())->grants()->revokeMany([$record->id]))
+        ->toThrow(StaleSelectionException::class)
+        ->and([W::rows(), W::version(), EventWorld::auditRows()])->toBe($before)
+        ->and(EventWorld::events())->toBe([]);
+});
+
+it('refuses to expire a grant that a nested pipe renewed after the prune selection', function (): void {
+    $armed = false;
+    $panel = null;
+    $panel = W::panel([static function (Change $change, Closure $next) use (&$armed, &$panel): ChangeResult {
+        if ($armed && $change->expired) {
+            $armed = false;
+            W::grant($panel, 'analyst', 2, 1, until: new DateTimeImmutable('2027-01-01T00:00:00Z'));
+        }
+
+        return $next($change);
+    }], static fn (PanelBuilder $builder) => $builder->plugins([AuditPlugin::make()]));
+    W::grant($panel, 'analyst', 2, 1, until: new DateTimeImmutable('2026-10-06T13:00:00Z'));
+    $before = [W::rows(), W::version(), EventWorld::auditRows()];
+    EventWorld::listen();
+    $armed = true;
+
+    expect(fn () => W::pipeline()->pruneExpired($panel, W::tenant(), new DateTimeImmutable('2026-10-06T14:00:00Z')))
+        ->toThrow(StaleSelectionException::class)
+        ->and([W::rows(), W::version(), EventWorld::auditRows()])->toBe($before)
+        ->and(EventWorld::events())->toBe([]);
+});
+
+it('continues expiry batches after a nested revoke makes a selected expiry a no-op', function (): void {
+    $alive = W::rows();
+    $armed = false;
+    $panel = null;
+    $panel = W::panel([static function (Change $change, Closure $next) use (&$armed, &$panel): ChangeResult {
+        if ($armed && $change->expired) {
+            $armed = false;
+            W::pipeline()->revoke($panel, $change->scope->tenant, $change->subject, $change->role, $change->scope->context, $change->origin);
+        }
+
+        return $next($change);
+    }], static fn (PanelBuilder $builder) => $builder->plugins([AuditPlugin::make()]));
+    foreach ([1, 2, 3] as $user) {
+        W::grant($panel, 'analyst', $user, 1, until: new DateTimeImmutable('2026-10-06T13:00:00Z'));
+    }
+    $version = W::version();
+    $audit = count(EventWorld::auditRows());
+    EventWorld::listen();
+    $armed = true;
+
+    expect(W::pipeline()->pruneExpired($panel, W::tenant(), new DateTimeImmutable('2026-10-06T14:00:00Z'), batch: 2))->toBe(2)
+        ->and(W::rows())->toBe($alive)
+        ->and(W::version())->toBe($version + 2)
+        ->and(EventWorld::types())->toBe(['role.revoked', 'grant.expired', 'grant.expired'])
+        ->and(EventWorld::levels())->toBe([0, 0, 0])
+        ->and(count(EventWorld::auditRows()))->toBe($audit + 3);
 });

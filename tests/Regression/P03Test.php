@@ -8,6 +8,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Gate\SubjectUser;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -27,7 +28,7 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
             return $hook && $deny ? BeforeResult::Deny : BeforeResult::Continue;
         });
     });
-    $user = User::findOrFail(1);
+    $user = SubjectUser::findOrFail(1);
     Gate::swap(Gate::forUser($user));
     // The stand's user is a plain model: a request guard authenticates it for the azguard.can route.
     Auth::viaRequest('p03', static fn (): User => User::findOrFail(1));
@@ -35,6 +36,8 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
     Auth::forgetGuards();
     Route::get('/p03', static fn (): string => 'allowed')->middleware('azguard.can:admin:orders.view');
     expect($engine->decide($panel, $request)->allowed())->toBeTrue()
+        ->and($user->hasPermission('admin:orders.view'))->toBeTrue()
+        ->and($user->guard('admin')->hasPermission('orders.view'))->toBeTrue()
         ->and(AzGuard::check($user, 'admin:orders.view'))->toBeTrue()
         ->and(AzGuard::panel('admin')->for($user)->hasPermission('orders.view'))->toBeTrue()
         ->and(AzGuard::panel('admin')->decide($request)->allowed())->toBeTrue()
@@ -47,6 +50,8 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
         $source->direct = [];
     }
     expect($engine->decide($panel, $request)->allowed())->toBeFalse()
+        ->and($user->hasPermission('admin:orders.view'))->toBeFalse()
+        ->and($user->guard('admin')->hasPermission('orders.view'))->toBeFalse()
         ->and($engine->decideMany([$request])->get(0)->allowed())->toBeFalse()
         ->and($engine->explain($panel, $request)->decision()->allowed())->toBeFalse()
         ->and(AzGuard::check($user, 'admin:orders.view'))->toBeFalse()

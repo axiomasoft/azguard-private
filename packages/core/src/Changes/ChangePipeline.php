@@ -349,11 +349,16 @@ final readonly class ChangePipeline
         $removed = 0;
         foreach ($writer->tenantsWithExpired($panel, $tenant, $now) as $each) {
             do {
-                $result = $this->run($panel, $each, static fn (LockedReads $reads, ?ActorRef $actor): array => array_map(
-                    static fn (GrantRecord $record): Change => Change::expire($record, $actor), $reads->expired($each, $now, $batch)), $actor);
-                $count = count($result->effects);
-                $removed += $count;
-            } while ($count >= $batch);
+                $selected = 0;
+                $result = $this->run($panel, $each, static function (LockedReads $reads, ?ActorRef $actor) use ($each, $now, $batch, &$selected): array {
+                    $records = $reads->expired($each, $now, $batch);
+                    $selected = count($records);
+
+                    return array_map(static fn (GrantRecord $record): Change => Change::expire($record, $actor), $records);
+                }, $actor);
+                $removed += count($result->effects);
+                // Nested revocations can turn selected expiries into no-ops without exhausting the remaining rows.
+            } while ($selected >= $batch);
         }
 
         return $removed;
