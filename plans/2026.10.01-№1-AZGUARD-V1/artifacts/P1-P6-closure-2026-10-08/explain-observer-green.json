@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Feature/Testing/ContractKitRegressionTest.php",
+    "--compact",
+    "--fail-on-skipped"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "started_at": "2026-10-08T14:21:33.123661+00:00",
+  "seconds": 0.364,
+  "exit_code": 0,
+  "timeout_seconds": 30,
+  "product_sha256_before": "e6fe1a9b15fc731ef71f8460dd1303f8a07c8281d9d8fc1463d3fadb45a02a51",
+  "product_sha256_after": "e6fe1a9b15fc731ef71f8460dd1303f8a07c8281d9d8fc1463d3fadb45a02a51",
+  "head": "ba02a9a422aa76d20333129b430861ca052258d4",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "CACHE_STORE": "array",
+    "SESSION_DRIVER": "array",
+    "QUEUE_CONNECTION": "sync",
+    "XDEBUG_MODE": "off"
+  },
+  "AUTHORITY_REPLICA_TEST": "unset"
+}

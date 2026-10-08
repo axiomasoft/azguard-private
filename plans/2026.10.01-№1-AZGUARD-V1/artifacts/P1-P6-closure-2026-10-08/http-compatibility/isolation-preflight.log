@@ -1,0 +1,12 @@
+{
+    "app_env": "testing",
+    "driver": "sqlite",
+    "database": ":memory:",
+    "cache_store": "array",
+    "cache_driver": "array",
+    "pdo_driver": "sqlite",
+    "laravel": "13.33.0",
+    "native_middleware": true,
+    "native_authorize": true,
+    "replica_override_unset": true
+}

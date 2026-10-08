@@ -1,0 +1,39 @@
+{
+  "owning_items": [
+    "P6.6",
+    "P4.21",
+    "P6.11"
+  ],
+  "status": "PREDECLARED_NOT_RUN",
+  "database": "Isolated loopback MariaDB azguard_test, port23307; verify resolved target and services before any write; serial only",
+  "repetitions": 10,
+  "seeds": [
+    1050,
+    1051,
+    1052,
+    1053,
+    1054,
+    1055,
+    1056,
+    1057,
+    1058,
+    1059
+  ],
+  "command": [
+    "env",
+    "APP_ENV=testing",
+    "DB_CONNECTION=mariadb",
+    "MARIADB_PORT=23307",
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Engines/StateResetRaceTest.php",
+    "--ci",
+    "--fail-on-skipped",
+    "--random-order",
+    "--random-order-seed=<seed>"
+  ],
+  "policy": "Execute all ten prespecified attempts and retain each command/version/log/result; any failure/skip/timeout makes this set RED. Diagnostic reruns get separate names and cannot replace acceptance. Code changes invalidate the affected set and require a new explicitly identified set. No run launched under the current no-long-runs instruction.",
+  "command_validation": "Explicit --random-order avoids PHPUnit warning before XML merge; fixture is still NOT_RUN and acceptance attempts have not started."
+}

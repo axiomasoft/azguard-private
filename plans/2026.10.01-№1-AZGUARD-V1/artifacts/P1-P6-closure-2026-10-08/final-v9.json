@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Arch",
+    "--compact",
+    "--fail-on-skipped"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "started_at": "2026-10-08T14:26:30.008961+00:00",
+  "seconds": 10.028,
+  "exit_code": 0,
+  "timeout_seconds": 30,
+  "product_sha256_before": "dd1ebe2712763043aa966ccbe5766a07489a0d672c51eb9c3f00e170aef7e0f8",
+  "product_sha256_after": "dd1ebe2712763043aa966ccbe5766a07489a0d672c51eb9c3f00e170aef7e0f8",
+  "head": "ba02a9a422aa76d20333129b430861ca052258d4",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "CACHE_STORE": "array",
+    "SESSION_DRIVER": "array",
+    "QUEUE_CONNECTION": "sync",
+    "XDEBUG_MODE": "off"
+  },
+  "AUTHORITY_REPLICA_TEST": "unset"
+}

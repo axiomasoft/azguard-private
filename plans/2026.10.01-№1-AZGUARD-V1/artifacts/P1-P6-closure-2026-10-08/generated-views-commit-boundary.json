@@ -1,0 +1,23 @@
+{
+  "canonical_api": "Task commit reviewer excludes views/context by design",
+  "canonical_selected": 171,
+  "outside": [
+    "plans/2026.10.01-№1-AZGUARD-V1/views/decisions/D25.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/decisions/D26.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/handoff.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/index.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/P6-surface-model.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/brief-P4-acceptance-matrix.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/findings-P1-P6-audit-2026-10-08.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/findings-P1-P6-closure-2026-10-08.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/findings-P1-execution.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/knowledge/findings-P5-execution.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/open-questions.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/phases/P6/P6.11.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/phases/P6/phase.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/plan.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/roadmap.md",
+    "plans/2026.10.01-№1-AZGUARD-V1/views/status.md"
+  ],
+  "resolution": "Canonical data/evidence committed via Task API. Existing tracked and requested generated views are separately staged by explicit path list after render --check; no hand edits or git add -A."
+}

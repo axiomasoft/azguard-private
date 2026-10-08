@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "data": {
+    "ref": "knowledge/review-P6-4-2026-10-08",
+    "kind": "document",
+    "doc": {
+      "$schema": "urn:swissknifeman:task:plan:document:v1",
+      "id": "review-P6-4-2026-10-08",
+      "title": "Review P6.4 2026-10-08",
+      "sections": [
+        {
+          "id": "verdict",
+          "title": "Verdict",
+          "text": "ATTENTION. Reviewer route grok/grok-4.7/500k/high, session 01a11a23-9639-7301-9a19-b142e7379a9c."
+        },
+        {
+          "id": "findings",
+          "title": "Findings",
+          "text": "```json\n[\n  {\n    \"severity\": \"Major\",\n    \"confidence\": \"high\",\n    \"location\": \"packages/core/src/Storage/StorageRegistry.php:21\",\n    \"failure_scenario\": \"azguard.storages.ghost.connection is no_such_connection, a name absent from database.connections. azguard:doctor throws InvalidArgumentException from StorageRegistry while the container builds the registry for Doctor::context(). DoctorCommand catches only UnknownPanelException and InvalidConfigurationException, so the process has no finding, no JSON and no exit code 1, and no other check runs.\",\n    \"basis\": \"input contract\"\n  },\n  {\n    \"severity\": \"Major\",\n    \"confidence\": \"high\",\n    \"location\": \"packages/core/src/Diagnostics/Doctor.php:263\",\n    \"failure_scenario\": \"database.connections.secondary.password and azguard.sources.ldap.password are the string pw. A check message and detail contain that password. azguard:doctor --json exits 0 and prints the password in both the message and the details. Doctor::secrets() drops every secret value shorter than 4 characters before redaction.\",\n    \"basis\": \"security\"\n  },\n  {\n    \"severity\": \"Minor\",\n    \"confidence\": \"high\",\n    \"location\": \"plans/2026.10.01-№1-AZGUARD-V1/knowledge/findings-P6-execution.json:5\",\n    \"failure_scenario\": \"The P6.4 deliverable requires a section «P6.4» in findings-P6-execution.json. The file sections are only P6.1, P6.2 and P6.3, and the rendered view has no ## P6.4 heading. The execution record of this item is absent.\",\n    \"basis\": \"input contract\"\n  }\n]\n```"
+        }
+      ],
+      "applies_to": [
+        "P6.4"
+      ]
+    }
+  }
+}

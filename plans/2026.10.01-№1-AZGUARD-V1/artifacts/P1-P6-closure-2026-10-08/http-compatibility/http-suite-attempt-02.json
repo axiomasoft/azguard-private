@@ -1,0 +1,37 @@
+{
+  "id": "http-suite-attempt-02",
+  "argv": [
+    "timeout",
+    "--signal=KILL",
+    "30s",
+    "env",
+    "-u",
+    "AUTHORITY_REPLICA_TEST",
+    "APP_ENV=testing",
+    "DB_CONNECTION=sqlite",
+    "DB_DATABASE=:memory:",
+    "CACHE_STORE=array",
+    "CACHE_DRIVER=array",
+    "XDEBUG_MODE=off",
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Feature/Http",
+    "--ci",
+    "--fail-on-skipped"
+  ],
+  "exit": 0,
+  "duration_seconds": 1.259,
+  "log": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P1-P6-closure-2026-10-08/http-compatibility/http-suite-attempt-02.log",
+  "owning_item": "P6.2",
+  "php": "/usr/bin/php8.4",
+  "laravel": "13.33.0",
+  "snapshot_files": {
+    "tests/Feature/Http/RouteChecksTest.php": "b67d6e97163ddf6942f65059534325ef182182bc7507fd392500c621699d2943",
+    "tests/Fixtures/Http/OlderRouterRoute.php": "fdfd1095d335f11c9ab03f088c5cfaf70c7e0835e7e9b683706034893a0a507b",
+    "tests/Fixtures/Http/Controllers/FallbackGatedController.php": "ec910da1307f5de4c886db0e0a2f49dd9c676e142ab53042df9df0cc42ced712"
+  },
+  "isolation_evidence": "preflight-results.json",
+  "scope": "HTTP feature suite only; actual Laravel11/12 and13.0-13.4 matrix not run."
+}

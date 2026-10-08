@@ -1,0 +1,29 @@
+{
+  "sections": [
+    {
+      "id": "Phase-Context",
+      "title": "Phase Context",
+      "text": "Детализировано 2026-10-08 по досье 13 F6; 07; 12 §1–§3, §7; 05 §2–§3; D09, D32, D33, D38–D40, D56, D58, D72, D73; 09 §3.1, §12; 20 F18/F21 и реальному коду HEAD b9af206.\nМодель фазы — [knowledge/P6-surface-model](../../knowledge/P6-surface-model.json): база кода, проверенные предпосылки Laravel (optimizes с v11.27.1, родительские атрибуты контроллеров с 13.5), паттерны AWS/S3 с источниками, инварианты I1–I9, адаптер маршрутов, модель doctor, карта приёмки.\nРешение фазы — [D24](../../decisions/D24.json): порядок по владению кодом, P6.11 Review, адаптеры версий, fake-шпион и форма контрактных наборов, владелец внешнего импорта P8.1, `azguard:audit:prune`, коды выхода install, SHA справочника 0.3 для P7.\nПринимает по D8: остальные методы фасада (P6.1); чтение entry/onDenied/middleware/requireRouteChecks и V64 middleware (P6.2); полный конфиг с catalog.build_id и таблица 07 §5 (P6.3); ChecksHealth/DoctorCheck/doctorChecks и production без build id (P6.4); panels:list, sources:list (P6.6); SourceContractTests/PluginContractTests (P6.7); генераторы D72 (P6.8); optimizes и Context (P6.10).\nПринимает по D12: doctor-сверку storage_state и fields.meta (P6.4); reset с новой incarnation (P6.6); storages/ids/defaults.models в полном конфиге (P6.3). По D18: PanelAccess/фасад (P6.1), rename-key/prune/audit (P6.6), AuditTableExists (P6.4)."
+    },
+    {
+      "id": "Order",
+      "title": "Order",
+      "text": "| Шаг | Пункт | Batch | Почему здесь |\n|---|---|---|---|\n| 1 | P6.1 | BP6-1 | фасад и PanelAccess — проводка готового ядра, база для HTTP/CLI |\n| 2 | P6.2 | BP6-2 | HTTP-вход и общий сборщик RouteChecks; нужен строке 07 §5 missing_permission_check и doctor |\n| 3 | P6.3 | BP6-3 | полный конфиг и V36 после того, как последняя строка 07 §5 (P6.2) существует |\n| 4 | P6.4 | BP6-4 | doctor читает конфиг P6.3 и RouteChecks P6.2 |\n| 5 | P6.6 | BP6-6 | команды; reset/prune/audit/rename поверх пайплайна; снимок команд |\n| 6 | P6.7 | BP6-7 | kit и контрактные наборы против встроенных реализаций |\n| 7 | P6.8 | BP6-8 | генераторы проверяются наборами P6.7 |\n| 8 | P6.5 | BP6-5 | install вызывает make:panel (P6.8) и doctor (P6.4) — D24 п.1 |\n| 9 | P6.9 | BP6-9 | удаление legacy после того, как генераторы перестали в нём нуждаться |\n| 10 | P6.10 | BP6-10 | Context пишет EnterPanel (P6.2); about делит признак свежести с doctor (P6.4) |\n| 11 | P6.11 | BP6-11 | read-only Review P6 |\n\nВсе batches solo, стратегия sequential: каждый пункт меняет `AzGuardServiceProvider` и общие снимки, параллельные lanes конфликтовали бы."
+    },
+    {
+      "id": "Acceptance",
+      "title": "Acceptance",
+      "text": "Нормативная карта V/R/probe → owning item — раздел «Acceptance» `@plan/knowledge/P6-surface-model.json`. Фаза закрыта, когда P6.1–P6.10 done, P01c/P03 фасадные и `azguard.can` строки covered, каждая строка 07 §5 имеет тест, CRM README честно показывает статусы R-кейсов P6, consumer-фикстура 11/12/13 зелёная, и verdict P6.11 — GREEN."
+    },
+    {
+      "id": "Validation-strategy",
+      "title": "Validation strategy",
+      "text": "Каждый пункт: targeted Pest своих тестов, `tests/Arch`, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check` (где меняется публичный API), `git diff --check`; P6.6 — engine-гонка `StateResetRaceTest` на PG/MySQL/MariaDB; P6.2/P6.10 — `bin/consumer-fixture.sh` на Laravel 11/12/13 (нет сети = blocker, не GREEN). Итоги исполнения — разделы пунктов в `@plan/knowledge/findings-P6-execution.json`."
+    },
+    {
+      "id": "Phase-Handoff",
+      "title": "Phase Handoff",
+      "text": "Актуальный Next: приёмка исправленного снимка P6.11, read-only. P6.1–P6.10 исторически реализованы, найденные дефекты исправляются owning items. P6.11 остаётся todo: полные V1–V15 и affected owning qualification не завершены; последнее поручение владельца запрещает долгие прогоны. P7 не начинать, READY не объявлять. Реестр, журналы всех попыток и native launch для будущего продолжения: knowledge/findings-P1-P6-closure-2026-10-08."
+    }
+  ]
+}

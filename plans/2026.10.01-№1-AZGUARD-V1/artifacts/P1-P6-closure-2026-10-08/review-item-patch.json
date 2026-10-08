@@ -1,0 +1,25 @@
+{
+  "reads": [
+    {
+      "path": "audits/2026-09-29-audit/opus/13-workstreams.md",
+      "section": "F6",
+      "why": "готово-когда пунктов",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V-строки фазы",
+      "required": true
+    },
+    {
+      "ref": "knowledge/P6-surface-model#Acceptance",
+      "why": "карта приёмки фазы для сверки",
+      "required": true
+    },
+    {
+      "ref": "knowledge/findings-P1-P6-closure-2026-10-08",
+      "why": "Реестр старых и новых finding closures, окончательные снимки/неуспешные попытки, запрет долгих прогонов и оставшиеся owning гейты",
+      "required": true
+    }
+  ]
+}

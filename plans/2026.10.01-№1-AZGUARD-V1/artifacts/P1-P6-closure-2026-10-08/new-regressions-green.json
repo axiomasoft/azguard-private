@@ -1,0 +1,32 @@
+{
+  "command": [
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Feature/Catalog/CatalogCacheTest.php",
+    "tests/Feature/Changes/NestedMutationTest.php",
+    "tests/Feature/Console/InstallCommandTest.php",
+    "tests/Feature/Visibility/ScopeResolverTest.php",
+    "--compact",
+    "--fail-on-skipped"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "started_at": "2026-10-08T14:17:14.177975+00:00",
+  "seconds": 0.915,
+  "exit_code": 1,
+  "timeout_seconds": 30,
+  "product_sha256_before": "4a23dc3d44af33ad30a842e22f14195abe4f521e16070083b51e6d3b6e9925b9",
+  "product_sha256_after": "4a23dc3d44af33ad30a842e22f14195abe4f521e16070083b51e6d3b6e9925b9",
+  "head": "ba02a9a422aa76d20333129b430861ca052258d4",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "CACHE_STORE": "array",
+    "SESSION_DRIVER": "array",
+    "QUEUE_CONNECTION": "sync",
+    "XDEBUG_MODE": "off"
+  },
+  "AUTHORITY_REPLICA_TEST": "unset"
+}

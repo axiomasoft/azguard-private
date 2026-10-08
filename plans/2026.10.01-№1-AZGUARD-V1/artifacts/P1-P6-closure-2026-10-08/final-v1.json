@@ -1,0 +1,37 @@
+{
+  "command": [
+    "/usr/bin/php8.4",
+    "-d",
+    "memory_limit=1G",
+    "vendor/bin/pest",
+    "tests/Feature/Facade",
+    "tests/Feature/Http",
+    "tests/Feature/Configuration",
+    "tests/Feature/Diagnostics",
+    "tests/Feature/Console",
+    "tests/Feature/Testing",
+    "tests/Feature/Laravel",
+    "tests/Contracts",
+    "tests/Regression",
+    "--compact",
+    "--fail-on-skipped"
+  ],
+  "cwd": "/home/vostrikov/projects/packages/azguard",
+  "started_at": "2026-10-08T14:24:53.354907+00:00",
+  "seconds": 9.628,
+  "exit_code": 0,
+  "timeout_seconds": 30,
+  "product_sha256_before": "3bcffce6abd2e1aba4daf33d6bbfe017ea657067d70ca13e26c861a5e19e90da",
+  "product_sha256_after": "3bcffce6abd2e1aba4daf33d6bbfe017ea657067d70ca13e26c861a5e19e90da",
+  "head": "ba02a9a422aa76d20333129b430861ca052258d4",
+  "environment": {
+    "APP_ENV": "testing",
+    "DB_CONNECTION": "sqlite",
+    "DB_DATABASE": ":memory:",
+    "CACHE_STORE": "array",
+    "SESSION_DRIVER": "array",
+    "QUEUE_CONNECTION": "sync",
+    "XDEBUG_MODE": "off"
+  },
+  "AUTHORITY_REPLICA_TEST": "unset"
+}

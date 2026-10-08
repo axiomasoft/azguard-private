@@ -1,0 +1,8 @@
+{
+  "code_commit": "237006430458ab3551e762fdfa7c355e9ae993ce",
+  "product_sha256": "e8be3fa3bc762855be4ef8a9b32586a3c3f92634249169bd19d0949128fff24b",
+  "relationship": "Every completed product check records exact path hashes. The final committed product equals the previously observed product bytes; changing Git HEAD during scoped commits does not turn old attempts into new runs. Plan artifacts are excluded from product hash.",
+  "full_acceptance": "NOT_GREEN",
+  "static_review": "GREEN",
+  "model_effort_identity": "Exact current provider model/effort is not exposed; codex/unknown authoring carrier, no lifecycle start declaration."
+}
