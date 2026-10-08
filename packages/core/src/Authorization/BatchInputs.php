@@ -19,10 +19,12 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionMethod;
 use RuntimeException;
 use Throwable;
 
@@ -114,7 +116,10 @@ final class BatchInputs
             }
         }
         foreach ($groups as ['definition' => $definition, 'frames' => $frames]) {
-            if (! $definition instanceof QueryableAssignmentScopeDefinition) {
+            // Only the inherited resolver is equivalent to query + tenantOf. A custom
+            // resolver may refuse a record or report an unavailable structural owner.
+            if (! $definition instanceof QueryableAssignmentScopeDefinition
+                || (new ReflectionMethod($definition, 'resolve'))->getDeclaringClass()->getName() !== BaseAssignmentScope::class) {
                 foreach ($frames as $key => $frame) {
                     try {
                         $this->scopes[$key] = $definition->resolve($frame->scope()->context);

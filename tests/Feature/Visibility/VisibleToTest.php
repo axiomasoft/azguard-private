@@ -15,6 +15,7 @@ use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(fn () => W::seed());
@@ -83,4 +84,21 @@ it('throws before resource execution without partially mutating the caller when 
     foreach (DB::connection()->getQueryLog() as $entry) {
         expect($entry['query'])->not->toContain('visibility_clients');
     }
+});
+
+it('rejects an ungrouped raw context relation before it can widen scoped visibility', function (): void {
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]));
+    $model = new class extends VisibilityClient
+    {
+        public function project(): BelongsTo
+        {
+            return parent::project()->whereRaw('active = ? or active = ?', [true, false]);
+        }
+    };
+    $query = $model->newQuery();
+    $sql = $query->toSql();
+
+    expect(fn () => $visibility->visibleTo($panel, $query, W::subject(), 'orders.view'))
+        ->toThrow(VisibilityNotSupportedException::class)
+        ->and($query->toSql())->toBe($sql);
 });

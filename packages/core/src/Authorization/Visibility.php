@@ -206,7 +206,8 @@ final readonly class Visibility
         $sourceRead->confirm($frame);
         $query->getQuery()->addNestedWhereQuery($group->getQuery());
 
-        return $query;
+        // Context relations also contribute native constraints after predicate compilation.
+        return $compiler->constrain($query, P::pass());
     }
 
     /** @param list<QueryBuilder> $branches */

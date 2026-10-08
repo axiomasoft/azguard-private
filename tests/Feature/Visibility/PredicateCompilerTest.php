@@ -49,6 +49,36 @@ class PredicateResource extends Model
     {
         return $this->belongsTo(PredicateForeignProject::class, 'project_id');
     }
+
+    /** @return BelongsTo<PredicateProject, $this> */
+    public function rawProject(): BelongsTo
+    {
+        return $this->project()->whereRaw('active = ? or active = ?', [true, false]);
+    }
+
+    /** @return BelongsTo<PredicateProject, $this> */
+    public function groupedRawProject(): BelongsTo
+    {
+        return $this->project()->where(fn (Builder $query) => $query->whereRaw('active = ? or active = ?', [true, false]));
+    }
+
+    /** @return BelongsTo<PredicateProject, $this> */
+    public function orProject(): BelongsTo
+    {
+        return $this->project()->where('active', true)->orWhere('active', false);
+    }
+
+    /** @return BelongsTo<PredicateScopedProject, $this> */
+    public function scopedProject(): BelongsTo
+    {
+        return $this->belongsTo(PredicateScopedProject::class, 'project_id');
+    }
+
+    /** @return BelongsTo<PredicateUnionProject, $this> */
+    public function unionProject(): BelongsTo
+    {
+        return $this->belongsTo(PredicateUnionProject::class, 'project_id');
+    }
 }
 
 class PredicateProject extends Model
@@ -61,6 +91,28 @@ class PredicateProject extends Model
     public function members(): HasMany
     {
         return $this->hasMany(PredicateMember::class, 'project_id');
+    }
+
+    /** @return HasMany<PredicateMember, $this> */
+    public function rawMembers(): HasMany
+    {
+        return $this->members()->whereRaw('active = ? or active = ?', [true, false]);
+    }
+}
+
+class PredicateScopedProject extends PredicateProject
+{
+    protected static function booted(): void
+    {
+        static::addGlobalScope('raw-or', fn (Builder $query) => $query->whereRaw('active = ? or active = ?', [true, false]));
+    }
+}
+
+class PredicateUnionProject extends PredicateProject
+{
+    protected static function booted(): void
+    {
+        static::addGlobalScope('union', fn (Builder $query) => $query->union(PredicateProject::query()));
     }
 }
 
@@ -238,6 +290,21 @@ it('rejects unsupported or unknown nodes atomically even behind a constant', fun
 it('rejects partition trees until the caller chooses an outcome', function (): void {
     expect(fn () => (new PredicateCompiler)->constrain(PredicateResource::query(), P::policyResult(true)))
         ->toThrow(InvalidSourceContributionException::class);
+});
+
+it('rejects relation constraints that could bypass the correlation and nested denial', function (string $relation): void {
+    $query = PredicateResource::query()->where('tenant_id', 1);
+    $sql = $query->toSql();
+    $bindings = $query->getBindings();
+
+    expect(fn () => (new PredicateCompiler)->constrain($query, P::exists($relation, P::deny())))
+        ->toThrow(DefinitionException::class)
+        ->and($query->toSql())->toBe($sql)->and($query->getBindings())->toBe($bindings);
+})->with(['rawProject', 'orProject', 'scopedProject', 'unionProject', 'project.rawMembers']);
+
+it('keeps grouped native relation raw predicates correlated with the nested authority', function (): void {
+    expect(predicateIds(P::exists('groupedRawProject', P::eq('active', true))))->toBe([1, 3])
+        ->and(predicateIds(P::exists('groupedRawProject', P::deny())))->toBe([]);
 });
 
 it('rejects replaced and aliased roots without mutating their queries', function (string $from): void {

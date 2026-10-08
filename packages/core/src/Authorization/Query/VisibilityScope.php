@@ -15,6 +15,7 @@ use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
@@ -79,17 +80,19 @@ final readonly class VisibilityScope
             throw new VisibilityNotSupportedException('context_query_identity');
         }
         $compiler = $this->compiler;
-        $compiler->constrain($query, $this->owner($query, $request, $frame));
-
-        if (! $frame->scope()->context->isGlobal()) {
-            $query->whereKey($frame->scope()->context->id());
-        }
 
         if (! $eligibility) {
+            $compiler->constrain($query, $this->owner($query, $request, $frame));
+
+            if (! $frame->scope()->context->isGlobal()) {
+                $query->whereKey($frame->scope()->context->id());
+            }
+
             return $query;
         }
         $runtime = (new ScopeEligibility($this->container))->runtime($request->subject(), $frame, common: $common);
         $definitions = [$this->definition];
+        $requiresRecord = false;
 
         if (! $common && $frame->role() !== null) {
             foreach ($frame->role()->scopes() as $declared) {
@@ -100,8 +103,14 @@ final readonly class VisibilityScope
                         throw new VisibilityNotSupportedException('role_scope_identity');
                     }
                     $definitions[] = $binding;
+                    $requiresRecord = true;
                 }
             }
+        }
+        $compiler->constrain($query, $this->owner($query, $request, $frame, $requiresRecord));
+
+        if (! $frame->scope()->context->isGlobal()) {
+            $query->whereKey($frame->scope()->context->id());
         }
         $declared = $frame->panel()->scopes()->adapters()[$this->definition->type()] ?? null;
 
@@ -110,7 +119,7 @@ final readonly class VisibilityScope
             // A native filter can inspect runtime.scope: preserve the concrete scalar runtime per context.
             // Rebuild from the structural owner query, before any filter has seen a global placeholder.
             $structural = $this->definition->query();
-            $compiler->constrain($structural, $this->owner($structural, $request, $frame));
+            $compiler->constrain($structural, $this->owner($structural, $request, $frame, $requiresRecord));
             $records = (clone $structural)->limit(1001)->get();
 
             if ($records->count() > 1000) {
@@ -155,7 +164,7 @@ final readonly class VisibilityScope
     }
 
     /** @param Builder<Model> $query */
-    private function owner(Builder $query, AccessRequest $request, EvaluationFrame $frame): P
+    private function owner(Builder $query, AccessRequest $request, EvaluationFrame $frame, bool $requiresRecord = false): P
     {
         if ($this->definition instanceof FiltersAccessQueries) {
             $predicate = $this->definition->predicate($request, $query->getModel()::class, $frame);
@@ -189,8 +198,29 @@ final readonly class VisibilityScope
             throw new VisibilityNotSupportedException('owner_budget', $this->definition::class);
         }
         $ids = [];
+        $customResolver = (new ReflectionMethod($this->definition, 'resolve'))->getDeclaringClass()->getName() !== BaseAssignmentScope::class;
         foreach ($records as $record) {
-            if ($this->definition->tenantOf($record)->equals($frame->scope()->tenant)) {
+            if ($customResolver) {
+                $ref = AssignmentScopeRef::of($this->definition->type(), $record->getKey());
+                $resolved = $this->definition->resolve($ref);
+
+                if ($resolved === null || ! $resolved->ref->equals($ref) || ! $resolved->tenant->equals($frame->scope()->tenant)) {
+                    continue;
+                }
+
+                if ($requiresRecord && $resolved->record === null) {
+                    // Scalar treats this as an authority error, including when a direct grant also exists.
+                    throw new VisibilityNotSupportedException('role_scope_record');
+                }
+                $model = $this->definition->model();
+
+                if ($resolved->record !== null && (($model !== null && ! $resolved->record instanceof $model)
+                    || (! is_int($resolved->record->getKey()) && ! is_string($resolved->record->getKey()))
+                    || (string) $resolved->record->getKey() !== $ref->id())) {
+                    continue;
+                }
+                $ids[] = $record->getKey();
+            } elseif ($this->definition->tenantOf($record)->equals($frame->scope()->tenant)) {
                 $ids[] = $record->getKey();
             }
         }

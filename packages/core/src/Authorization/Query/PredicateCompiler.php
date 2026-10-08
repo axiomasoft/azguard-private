@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Expression;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -45,18 +46,48 @@ final class PredicateCompiler
                 throw new DefinitionException('Group host OR conditions before applying exact predicates.');
             }
         }
+        $this->assertCorrelatedQueries($effective->getQuery());
         $this->isolateHostConditions($effective);
         // Build on a detached group: unsupported siblings and invalid identifiers
         // leave the host query untouched, including its bindings and structure.
         $group = $effective->getModel()->newModelQuery();
         $group->setQuery($effective->getQuery()->forNestedWhere());
         $this->compile($group, $predicate, $effective->getModel(), $this->columns);
+        $this->assertCorrelatedQueries($group->getQuery());
         $effective->getQuery()->addNestedWhereQuery($group->getQuery());
         $query->setQuery($effective->getQuery());
         $query->setEagerLoads($effective->getEagerLoads());
         $query->withoutGlobalScopes();
 
         return $query;
+    }
+
+    /** Native relation constraints and deferred scopes have been merged by whereHas at this point. */
+    private function assertCorrelatedQueries(QueryBuilder $query): void
+    {
+        foreach ($query->wheres as $where) {
+            $nested = $where['query'] ?? null;
+
+            if (! $nested instanceof QueryBuilder) {
+                continue;
+            }
+
+            if (in_array(strtolower((string) $where['type']), ['exists', 'notexists'], true)) {
+                if ($nested->unions) {
+                    throw new DefinitionException('Exact relation predicates cannot constrain every arm of a UNION query.');
+                }
+                foreach ($nested->wheres as $constraint) {
+                    $constant = strtolower((string) $constraint['type']) === 'raw'
+                        && in_array($constraint['sql'], ['1 = 0', '1 = 1'], true);
+
+                    if (str_starts_with(strtolower((string) $constraint['boolean']), 'or')
+                        || (! $constant && $this->mayCarryOr($constraint))) {
+                        throw new DefinitionException('Group native relation OR and raw conditions before applying exact predicates.');
+                    }
+                }
+            }
+            $this->assertCorrelatedQueries($nested);
+        }
     }
 
     /**

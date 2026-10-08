@@ -6,12 +6,10 @@ namespace AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes;
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
-use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
-use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Tests\Fixtures\Crm\Models\Project;
@@ -28,15 +26,6 @@ final class ProjectScope extends BaseAssignmentScope implements FiltersAccessQue
         return new self;
     }
 
-    public function resolve(AssignmentScopeRef $ref): ?ResolvedAssignmentScope
-    {
-        if (self::$failure === 'resolve') {
-            throw new RuntimeException('project resolver unavailable');
-        }
-
-        return parent::resolve($ref);
-    }
-
     public function type(): string
     {
         return 'crm.project';
@@ -44,6 +33,11 @@ final class ProjectScope extends BaseAssignmentScope implements FiltersAccessQue
 
     public function query(): Builder
     {
+        // Keep the nominal descriptor on the inherited resolver; inject failures at its actual query seam.
+        if (self::$failure === 'resolve') {
+            throw new RuntimeException('project resolver unavailable');
+        }
+
         if (self::$failure === 'query') {
             throw new RuntimeException('project directory unavailable');
         }
