@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.4",
   "title": "Doctor",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`Diagnostics\\Doctor` с контрактами `Contracts\\Diagnostics\\DoctorCheck`, `Contracts\\Sources\\ChecksHealth`, значениями `DoctorFinding`/`DoctorContext`/`Severity`, всеми проверками ядра 12 §2 (кроме `filament.plugin`), проверками источников/панели/плагинов и командой `azguard:doctor [--panel=] [--storage=] [--production] [--json]` со стабильным JSON и exit 1 при ошибке.",
   "why": "Doctor — CI-гейт конфигурации до деплоя (паттерн IAM Access Analyzer). Он закрывает отложенные строки: orphan-роли V11, `storage_state` против конфига (D12), decision-поле в `meta`, production без build id (D8), `AuditTableExists` (D18), `routes.checks` (V83). Жёсткие риски: утечка секретов подключения в вывод (V104), одна упавшая проверка, скрывающая остальные, ложный GREEN при недоступном хранилище, второй сканер маршрутов вместо `RouteChecks`.",
   "scope": {
@@ -228,7 +228,16 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:55:23Z",
+  "result": {
+    "started_at": "2026-10-08T05:31:02Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "c39476ee-4c86-4595-b984-eabb99f75639"
+    }
+  },
+  "updated_at": "2026-10-08T05:31:02Z",
   "sections": [
     {
       "id": "Intent",
