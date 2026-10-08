@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Catalog\CacheState;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
@@ -102,6 +103,53 @@ it('ignores the entry of a panel whose recipe changed', function (): void {
 
     expect($changed['reads'])->toBe(['orders' => 1])
         ->and(array_column($changed['snapshot']['permissions'], 'local'))->toBe(['orders.view']);
+});
+
+it('rebuilds a cached catalog when a role moves between the same plugin ids', function (bool $customSource): void {
+    $describe = static function (string $owner) use ($customSource): void {
+        AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel
+            ->permissions($customSource ? [] : [StaticSource::names('app', 'clients.view')])->plugins(array_map(
+                static fn (string $id) => ProbePlugin::make($id, register: static function (PanelBuilder $plugin) use ($id, $owner, $customSource): void {
+                    if ($id === $owner) {
+                        if ($customSource) {
+                            $plugin->permissions([new StaticSource('app', [StaticSource::grants('clients.view')], [new ManagerRole])]);
+                        } else {
+                            $plugin->roles([ManagerRole::class]);
+                        }
+                    }
+                }), ['one/access', 'two/access'],
+            )));
+    };
+    $describe('one/access');
+    $live = bootCachedAdmin($this);
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+    $describe('two/access');
+    $changed = bootCachedAdmin($this);
+
+    expect($changed['snapshot']['roles']['manager']['origin'])->toBe('plugin:two/access')
+        ->and($changed['fingerprint'])->not->toBe($live['fingerprint'])
+        ->and(app(PanelRegistry::class)->isCached('admin'))->toBeFalse();
+
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+    expect(bootCachedAdmin($this))->toBe([...$changed, 'reads' => []]);
+})->with(['explicit folder role' => [false], 'custom role source' => [true]]);
+
+it('reports a rejected catalog snapshot as stale after rebuilding it from the sources', function (): void {
+    bootCachedAdmin($this);
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+    $cache = app(CatalogCache::class);
+    $file = $cache->read();
+    $file['panels']['admin']['catalog']['permissions'][0]['authority'] = 'invalid';
+    $cache->write($file['build_id'], $file['panels']);
+
+    expect(bootCachedAdmin($this)['reads'])->toBe(['orders' => 1, 'crm' => 1])
+        ->and(app(PanelRegistry::class)->isCached('admin'))->toBeFalse()
+        ->and(app(PanelRegistry::class)->cacheState())->toBe(CacheState::Stale);
+
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+
+    expect(app(PanelRegistry::class)->isCached('admin'))->toBeTrue()
+        ->and(app(PanelRegistry::class)->cacheState())->toBe(CacheState::Current);
 });
 
 it('removes the file with azguard:catalog:clear and builds from the sources again', function (): void {

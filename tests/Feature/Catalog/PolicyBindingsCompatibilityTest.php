@@ -95,6 +95,28 @@ it('rejects the previous catalog schema rather than restoring untyped policy bin
     expect(CatalogCache::entry($old, 'binding-build', 'admin', 'recipe'))->toBeNull();
 });
 
+it('rebuilds a cached catalog when the native ability in the panel recipe changes', function (): void {
+    $describe = static fn (string $ability): Closure => static function (PanelBuilder $panel) use ($ability): PanelBuilder {
+        Gate::define('old-access', static fn (): bool => true);
+        Gate::define('new-access', static fn (): bool => false);
+
+        return $panel->resourcePrefix(false)->permissions([StaticSource::names('orders', 'orders.view')])
+            ->policies([PolicyBinding::gate('orders.view', $ability)]);
+    };
+    AdminPanel::describe($describe('old-access'));
+    $this->bootCatalogPanels([AdminPanel::class]);
+    $before = app(PanelRegistry::class)->fingerprint('admin');
+    $this->artisan('azguard:catalog:cache')->assertSuccessful();
+
+    AdminPanel::describe($describe('new-access'));
+    $this->bootCatalogPanels([AdminPanel::class]);
+    $registry = app(PanelRegistry::class);
+
+    expect($registry->catalog('admin')->policyBindings()['orders.view']->ability)->toBe('new-access')
+        ->and($registry->fingerprint('admin'))->not->toBe($before)
+        ->and(StaticSource::$reads)->toBe(['orders' => 1]);
+});
+
 it('detects collisions through the typed map for php gate, gate php and gate gate bindings', function (string $first, string $second): void {
     Gate::define('beta-access', static fn (): bool => true);
     Gate::define('other-access', static fn (): bool => true);

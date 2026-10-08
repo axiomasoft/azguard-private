@@ -51,7 +51,8 @@ final readonly class RoleCompiler
     {
         $compiled = $claimed = $seen = $scopeTypes = [];
 
-        foreach ($sources->with(ProvidesRoles::class) as ['source' => $source, 'origin' => $origin]) {
+        foreach ($sources->with(ProvidesRoles::class) as $attached) {
+            $source = $attached['source'];
             foreach (PanelCatalog::untrusted($source->roles($panel)) as $role) {
                 if (! $role instanceof BaseRole) {
                     throw new InvalidSourceContributionException(
@@ -59,6 +60,8 @@ final readonly class RoleCompiler
                         .' from roles(); a source returns '.BaseRole::class.' objects.',
                     );
                 }
+
+                $origin = $attached['role_origins'][$role::class] ?? $attached['origin'];
 
                 if (($seen[$role::class] ?? null) === $origin) {
                     continue;
