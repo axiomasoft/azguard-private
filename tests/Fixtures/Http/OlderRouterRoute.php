@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Http;
 
-use Illuminate\Routing\Attributes\Controllers\Middleware;
+use AzGuard\Attributes\CheckPermission;
 use Illuminate\Routing\Route;
 use ReflectionAttribute;
 use ReflectionClass;
 
 /**
- * A route as an older router gathers controller middleware, on the installed Laravel 13:
- * `laravel-12` reads no controller middleware attributes (Laravel 11 and 12), `laravel-13.4` reads the attributes of
- * the controller and the action but not of parent controllers (Laravel 13.0–13.4).
+ * An explicit simulation of older router handling of CheckPermission attributes on any installed framework:
+ * `laravel-12` reads no attributes; `laravel-13.4` reads the controller and action without parent controllers.
+ * Real framework compatibility is checked separately through its native Route, never through this simulation.
  */
 final class OlderRouterRoute extends Route
 {
@@ -29,8 +29,8 @@ final class OlderRouterRoute extends Route
         $method = $this->getActionMethod();
         $middleware = [];
 
-        foreach ([...$reflection->getAttributes(Middleware::class, ReflectionAttribute::IS_INSTANCEOF),
-            ...$reflection->getMethod($method)->getAttributes(Middleware::class, ReflectionAttribute::IS_INSTANCEOF)] as $attribute) {
+        foreach ([...$reflection->getAttributes(CheckPermission::class, ReflectionAttribute::IS_INSTANCEOF),
+            ...$reflection->getMethod($method)->getAttributes(CheckPermission::class, ReflectionAttribute::IS_INSTANCEOF)] as $attribute) {
             $instance = $attribute->newInstance();
 
             if (! self::methodExcludedByOptions($method, ['only' => $instance->only, 'except' => $instance->except])) {

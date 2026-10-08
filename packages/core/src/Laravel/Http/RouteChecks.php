@@ -23,7 +23,7 @@ use ReflectionMethod;
  * The expected checks are the `#[CheckPermission]` attributes of the action in the order Laravel reads controller
  * middleware attributes: parent controllers from the root, the controller, then the action, each filtered by
  * `only`/`except`. A check is missing when its exact `azguard.can` middleware is not among the middleware the router
- * gathered for the route; comparing exact strings never runs one check twice, whichever Laravel version applied
+ * gathered for the route; resolving aliases, groups and exclusions first never runs one check twice, whichever Laravel version applied
  * which attributes. Strict mode and the doctor read the same answer.
  *
  * @internal
@@ -72,15 +72,24 @@ final class RouteChecks
      */
     public function missing(Route $route): array
     {
-        $gathered = array_filter($route->gatherMiddleware(), is_string(...));
-        $excluded = array_filter($route->excludedMiddleware(), is_string(...));
+        $router = app(Router::class);
+        $excluded = $route->excludedMiddleware();
+        $gathered = $router->resolveMiddleware($route->gatherMiddleware(), $excluded);
         $missing = [];
 
         foreach ($this->attributes($route) as $check) {
             $middleware = $check->middleware;
 
-            if (is_string($middleware) && ! in_array($middleware, $gathered, true) && ! in_array($middleware, $excluded, true)) {
-                $missing[$middleware] = $middleware;
+            if (! is_string($middleware)) {
+                continue;
+            }
+
+            foreach ($router->resolveMiddleware([$middleware], $excluded) as $resolved) {
+                if (! in_array($resolved, $gathered, true)) {
+                    $missing[$middleware] = $middleware;
+
+                    break;
+                }
             }
         }
 
