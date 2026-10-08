@@ -62,7 +62,7 @@ run_package() {
     fi
     local output status=0
     output="$(XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=1G vendor/bin/pest \
-        --exclude-group=engines,redis,replica \
+        --exclude-group=engines --exclude-group=redis --exclude-group=replica \
         --mutate \
         --parallel \
         --processes=4 \

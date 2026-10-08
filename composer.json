@@ -51,18 +51,18 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines,redis,replica",
-        "test:parallel": "vendor/bin/pest --exclude-group=engines,redis,replica --parallel --passthru-php='-d memory_limit=1G'",
-        "test:coverage": "vendor/bin/pest --exclude-group=engines,redis,replica --coverage --min=85",
+        "test": "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica",
+        "test:parallel": "vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica --parallel --passthru-php='-d memory_limit=1G'",
+        "test:coverage": "vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
         "test:pgsql": [
             "@putenv DB_CONNECTION=pgsql",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=redis,replica"
+            "php -d memory_limit=1G vendor/bin/pest --exclude-group=redis --exclude-group=replica"
         ],
         "test:mysql": [
             "@putenv DB_CONNECTION=mysql",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=redis,replica"
+            "php -d memory_limit=1G vendor/bin/pest --exclude-group=redis --exclude-group=replica"
         ],
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
@@ -105,7 +105,7 @@
         ],
         "test:mariadb": [
             "@putenv DB_CONNECTION=mariadb",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines,redis,replica"
+            "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica"
         ],
         "test:engines:mariadb": [
             "@putenv DB_CONNECTION=mariadb",
