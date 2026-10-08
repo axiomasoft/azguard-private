@@ -7,6 +7,7 @@ namespace AzGuard\Laravel\Http;
 use AzGuard\Attributes\CheckPermission;
 use AzGuard\Attributes\SkipPermissionCheck;
 use AzGuard\Laravel\Http\Middleware\CheckPermission as CheckPermissionMiddleware;
+use AzGuard\Laravel\Http\Middleware\EnterPanel;
 use Closure;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Routing\Route;
@@ -23,7 +24,7 @@ use ReflectionMethod;
  * middleware attributes: parent controllers from the root, the controller, then the action, each filtered by
  * `only`/`except`. A check is missing when its exact `azguard.can` middleware is not among the middleware the router
  * gathered for the route; comparing exact strings never runs one check twice, whichever Laravel version applied
- * which attributes. Strict mode and diagnostics read the same answer.
+ * which attributes. Strict mode and the doctor read the same answer.
  *
  * @internal
  */
@@ -129,6 +130,22 @@ final class RouteChecks
         }
 
         return false;
+    }
+
+    /**
+     * The panel id the route enters with `azguard.panel:{id}`, or null when the route enters no panel.
+     */
+    public function panelOf(Route $route): ?string
+    {
+        $prefix = EnterPanel::class.':';
+
+        foreach (app(Router::class)->resolveMiddleware($route->gatherMiddleware(), $route->excludedMiddleware()) as $middleware) {
+            if (is_string($middleware) && str_starts_with($middleware, $prefix)) {
+                return substr($middleware, strlen($prefix));
+            }
+        }
+
+        return null;
     }
 
     private function skipped(Route $route): bool

@@ -7,6 +7,7 @@ namespace AzGuard\Panels;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
@@ -198,7 +199,32 @@ final class PanelCompiler
             deniedResponse: $this->deniedResponse($recipe),
             entryMiddleware: array_values(array_filter(self::items($recipe, PanelRecipe::MIDDLEWARE), is_string(...))),
             routeChecks: ($this->resolved($recipe, PanelRecipe::REQUIRE_ROUTE_CHECKS)['value'] ?? false) === true,
+            healthChecks: $this->doctorChecks($recipe),
         );
+    }
+
+    /**
+     * Doctor checks of `doctorChecks()`: an object or a class that implements `DoctorCheck`, with where it came from.
+     *
+     * @return list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}>
+     *
+     * @throws DefinitionException
+     */
+    private function doctorChecks(PanelRecipe $recipe): array
+    {
+        $checks = [];
+        foreach ($recipe->layered(PanelRecipe::DOCTOR_CHECKS) as $record) {
+            $origin = $record['origin']['kind'] === PanelRecipe::PLUGIN ? PanelRecipe::PLUGIN.':'.$record['origin']['plugin'] : $record['origin']['kind'];
+            foreach (is_array($record['value']) ? $record['value'] : [] as $check) {
+                if (! $check instanceof DoctorCheck && (! is_string($check) || ! is_subclass_of($check, DoctorCheck::class))) {
+                    throw new DefinitionException('Panel '.$recipe->panelId().' expects a '.DoctorCheck::class.' object or class in doctorChecks from '
+                        .json_encode($record['origin']).', got '.self::describe($check).'.');
+                }
+                $checks[] = ['check' => $check, 'origin' => $origin];
+            }
+        }
+
+        return $checks;
     }
 
     /**

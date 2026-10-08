@@ -90,13 +90,19 @@ const AZGUARD_CHANGE_VALUES = [
  */
 const AZGUARD_CONTRACT_ENTRY_POINTS = ['AzGuard\Authorization\Visibility'];
 
+/*
+ * `DoctorCheck::run()` takes the run and returns findings: the two immutable values of the diagnostics zone, never the
+ * doctor or a check.
+ */
+const AZGUARD_DIAGNOSTICS_VALUES = ['AzGuard\Diagnostics\DoctorContext', 'AzGuard\Diagnostics\DoctorFinding'];
+
 arch('contracts do not import implementations')
     ->expect('AzGuard\Contracts')
     ->not->toUse([
         'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Storage', 'AzGuard\Sources', 'AzGuard\Laravel',
         'AzGuard\Internal', 'AzGuard\Testing', 'AzGuard\Diagnostics', 'AzGuard\Configuration',
     ])
-    ->ignoring([...AZGUARD_CHANGE_VALUES, ...AZGUARD_CONTRACT_ENTRY_POINTS]);
+    ->ignoring([...AZGUARD_CHANGE_VALUES, ...AZGUARD_CONTRACT_ENTRY_POINTS, ...AZGUARD_DIAGNOSTICS_VALUES]);
 
 forbidDependencies('authorization and schema never change access', ['AzGuard\Authorization', 'AzGuard\Schema'], ['AzGuard\Changes']);
 
@@ -392,6 +398,7 @@ arch('grants are stored only through the change pipeline, the database source or
         'AzGuard\Panels\Panel', 'AzGuard\Sources\PanelSources',
         'AzGuard\Authorization\Pipeline\Stages\AuthorityStage', // read-only provenance check; no transaction calls
         'AzGuard\Authorization\Authorizer', // internal supported root helper; delegates to DatabaseSource
+        'AzGuard\Diagnostics\Checks\PanelsSources', // doctor counts writers in the source descriptions; stores nothing
 
     ])
     ->ignoring('AzGuard\Tests');

@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.4",
   "title": "Doctor",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "`Diagnostics\\Doctor` с контрактами `Contracts\\Diagnostics\\DoctorCheck`, `Contracts\\Sources\\ChecksHealth`, значениями `DoctorFinding`/`DoctorContext`/`Severity`, всеми проверками ядра 12 §2 (кроме `filament.plugin`), проверками источников/панели/плагинов и командой `azguard:doctor [--panel=] [--storage=] [--production] [--json]` со стабильным JSON и exit 1 при ошибке.",
   "why": "Doctor — CI-гейт конфигурации до деплоя (паттерн IAM Access Analyzer). Он закрывает отложенные строки: orphan-роли V11, `storage_state` против конфига (D12), decision-поле в `meta`, production без build id (D8), `AuditTableExists` (D18), `routes.checks` (V83). Жёсткие риски: утечка секретов подключения в вывод (V104), одна упавшая проверка, скрывающая остальные, ложный GREEN при недоступном хранилище, второй сканер маршрутов вместо `RouteChecks`.",
   "scope": {
@@ -230,14 +230,62 @@
   },
   "result": {
     "started_at": "2026-10-08T05:31:02Z",
+    "finished_at": "2026-10-08T06:36:57Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "c39476ee-4c86-4595-b984-eabb99f75639"
-    }
+    },
+    "notes": "Doctor: контракты DoctorCheck/ChecksHealth, Doctor/DoctorFinding/DoctorContext/Severity, 19 проверок ядра + ChecksHealth Folder/Database + audit.table, azguard:doctor с --json/exit 1/2. V1 55 passed; V2 86; V3 3996 passed/1 skipped baseline ReplicaLag; V4-V8 GREEN; type coverage 99.56%. Ревью grok-4.7/500k/high ATTENTION: 2 Major + 1 Minor подтверждены и исправлены (RED→GREEN). Раздел P6.4 в findings-P6-execution.",
+    "deviations": [
+      "Вне task_files: Storage::verifySchema, AzGuardConfig::configuredBuildId/sources, фикстуры ReportsTableExists и ScopeWorld (предсуществующая утечка порядка random)",
+      "Исправления ревью grok-4.7 (2 Major) вошли в коммит executor: отдельный --role fix невозможен поверх незакоммиченной работы; повторное ревью не запускалось"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T06:36:57Z"
+      }
+    ]
   },
-  "updated_at": "2026-10-08T05:31:02Z",
+  "updated_at": "2026-10-08T06:36:57Z",
   "sections": [
     {
       "id": "Intent",

@@ -320,6 +320,40 @@ final class PanelRegistry implements PanelRegistryContract
     }
 
     /**
+     * Whether the catalog cache holds the catalog of the panel for this build and the current recipe of the panel, so
+     * the panel would take its static catalog from the file instead of its sources.
+     *
+     * @internal read by the doctor
+     *
+     * @throws UnknownPanelException
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function isCached(string $id): bool
+    {
+        $this->compiled();
+        $fingerprint = $this->recipeFingerprints[$id] ?? throw $this->unknown($id);
+
+        return $this->cache !== null && CatalogCache::entry(($this->cache)()->read(), (string) $this->buildId, $id, $fingerprint) !== null;
+    }
+
+    /**
+     * What folder discovery found for the panel at boot, as the catalog cache stores it.
+     *
+     * @internal read by the doctor
+     *
+     * @return array<mixed>
+     *
+     * @throws UnknownPanelException
+     * @throws DefinitionException when the panels are not compiled yet
+     */
+    public function discovery(string $id): array
+    {
+        $this->compiled();
+
+        return isset($this->recipeFingerprints[$id]) ? $this->discoveries[$id] ?? [] : throw $this->unknown($id);
+    }
+
+    /**
      * Catalogs of all panels built again from their sources, as the catalog cache stores them.
      *
      * @return array<string, PanelEntry>

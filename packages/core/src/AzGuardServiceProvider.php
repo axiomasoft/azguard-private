@@ -14,6 +14,7 @@ use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
+use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
 use AzGuard\Laravel\Gate\GateBridge;
@@ -108,7 +109,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         }
 
         if ($this->app->runningInConsole()) {
-            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class]);
+            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class, DoctorCommand::class]);
         }
 
         $this->app->booted(function (): void {

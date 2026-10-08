@@ -359,6 +359,19 @@ final class Storage
         if ($this->schemaChecked) {
             return;
         }
+        $this->verifySchema();
+        $this->schemaChecked = true;
+    }
+
+    /**
+     * Compares the stored `storage_state` with the configuration of this storage now, whatever an earlier check found.
+     *
+     * @internal read by the doctor
+     *
+     * @throws StorageMismatchException when the state differs or cannot be read; a read failure is the previous exception
+     */
+    public function verifySchema(): void
+    {
         $expected = $this->schema();
         $found = null;
 
@@ -376,7 +389,6 @@ final class Storage
             || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
             throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.');
         }
-        $this->schemaChecked = true;
     }
 
     private function lockPanel(string $panel): PanelState

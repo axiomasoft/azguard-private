@@ -4936,6 +4936,43 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Diagnostics\\DoctorCheck",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "key",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "run",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Diagnostics\\DoctorContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\PanelAccess",
             "kind": "interface",
             "final": false,
@@ -6161,6 +6198,30 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Contracts\\Sources\\ChecksHealth",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "doctorChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "spi",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Contracts\\Sources\\DescribesSchema",
             "kind": "interface",
             "final": false,
@@ -6881,6 +6942,492 @@
                 }
             ],
             "stability": "spi",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Diagnostics\\Doctor",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "container",
+                            "type": "Illuminate\\Contracts\\Container\\Container",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "context",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panels",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "storages",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "production",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "false"
+                        }
+                    ],
+                    "return": "AzGuard\\Diagnostics\\DoctorContext"
+                },
+                {
+                    "name": "run",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Diagnostics\\DoctorContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Diagnostics\\DoctorContext",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panels",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "storages",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "production",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "config",
+                            "type": "AzGuard\\Configuration\\AzGuardConfig",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "?AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "config",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Configuration\\AzGuardConfig"
+                },
+                {
+                    "name": "forPanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isProduction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "panel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Panels\\Panel"
+                },
+                {
+                    "name": "panels",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "storages",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Diagnostics\\DoctorFinding",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [
+                "KEY",
+                "REDACTED"
+            ],
+            "properties": [
+                {
+                    "name": "details",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "key",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "message",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "scope",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "severity",
+                    "type": "AzGuard\\Diagnostics\\Severity",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "severity",
+                            "type": "AzGuard\\Diagnostics\\Severity",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "message",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'core'"
+                        },
+                        {
+                            "name": "details",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "error",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "message",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'core'"
+                        },
+                        {
+                            "name": "details",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "in",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "details",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "isError",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "redacted",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "secrets",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "toArray",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "warning",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "message",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'core'"
+                        },
+                        {
+                            "name": "details",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Diagnostics\\Severity",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Error",
+                    "value": "error"
+                },
+                {
+                    "name": "Warning",
+                    "value": "warning"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
+                }
+            ],
+            "stability": "api",
             "via": "tag"
         },
         {
@@ -14441,6 +14988,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "false"
+                        },
+                        {
+                            "name": "healthChecks",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
                         }
                     ],
                     "return": null
@@ -14468,6 +15023,13 @@
                     "return": "array"
                 },
                 {
+                    "name": "attachedSources",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "before",
                     "static": false,
                     "abstract": false,
@@ -14476,6 +15038,13 @@
                 },
                 {
                     "name": "changing",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "doctorChecks",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
@@ -18988,6 +19557,7 @@
             "readonly": false,
             "parent": null,
             "interfaces": [
+                "AzGuard\\Contracts\\Sources\\ChecksHealth",
                 "AzGuard\\Contracts\\Sources\\DescribesSchema",
                 "AzGuard\\Contracts\\Sources\\FencesReads",
                 "AzGuard\\Contracts\\Sources\\FiltersQueries",
@@ -19090,6 +19660,13 @@
                     "return": "void"
                 },
                 {
+                    "name": "boundStorage",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Storage\\Storage"
+                },
+                {
                     "name": "contextsCovering",
                     "static": false,
                     "abstract": false,
@@ -19150,6 +19727,21 @@
                     "return": "static"
                 },
                 {
+                    "name": "decisionFieldsInMeta",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "describe",
                     "static": false,
                     "abstract": false,
@@ -19173,11 +19765,33 @@
                     "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
                 },
                 {
+                    "name": "doctorChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "dynamicPermissions",
                     "static": false,
                     "abstract": false,
                     "parameters": [],
                     "return": "static"
+                },
+                {
+                    "name": "dynamicTenants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "grantModels",
@@ -19259,6 +19873,28 @@
                     "return": "iterable"
                 },
                 {
+                    "name": "hasReadHosts",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "hasTable",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "base",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
+                },
+                {
                     "name": "id",
                     "static": false,
                     "abstract": false,
@@ -19271,6 +19907,28 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "bool"
+                },
+                {
+                    "name": "inspectCatalog",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Catalog\\PanelCatalog"
                 },
                 {
                     "name": "inspectGrant",
@@ -19402,6 +20060,21 @@
                     "return": "static"
                 },
                 {
+                    "name": "missingModelColumns",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "models",
                     "static": false,
                     "abstract": false,
@@ -19447,6 +20120,28 @@
                         }
                     ],
                     "return": "AzGuard\\Storage\\StorageReadSession"
+                },
+                {
+                    "name": "orphanedGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
                 },
                 {
                     "name": "permissions",
@@ -19704,6 +20399,13 @@
                     "return": "static"
                 },
                 {
+                    "name": "storageModels",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
                     "name": "tenantsHolding",
                     "static": false,
                     "abstract": false,
@@ -19770,6 +20472,21 @@
                     "return": "mixed"
                 },
                 {
+                    "name": "unacceptedSubjects",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "validateStorage",
                     "static": false,
                     "abstract": false,
@@ -19817,6 +20534,7 @@
             "readonly": false,
             "parent": null,
             "interfaces": [
+                "AzGuard\\Contracts\\Sources\\ChecksHealth",
                 "AzGuard\\Contracts\\Sources\\DescribesSchema",
                 "AzGuard\\Contracts\\Sources\\FiltersQueries",
                 "AzGuard\\Contracts\\Sources\\ProvidesGrants",
@@ -19946,6 +20664,13 @@
                         }
                     ],
                     "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
+                },
+                {
+                    "name": "doctorChecks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
                 },
                 {
                     "name": "folderNames",
@@ -22623,6 +23348,13 @@
                         }
                     ],
                     "return": "Illuminate\\Database\\Query\\Builder"
+                },
+                {
+                    "name": "verifySchema",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
                 },
                 {
                     "name": "withinAuthorityTransaction",

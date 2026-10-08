@@ -114,6 +114,33 @@ final readonly class GrantInspection
         return $records;
     }
 
+    /** The catalog the inspection classifies against: the code catalog with the dynamic permissions of the tenant. */
+    public function catalog(): PanelCatalog
+    {
+        return $this->catalog;
+    }
+
+    /**
+     * How many stored grants of the tenant and origin are orphaned, by role key and by permission name.
+     *
+     * @return array{role: array<string, int>, permission: array<string, int>}
+     */
+    public function orphans(TenantRef $tenant, string $origin, DateTimeImmutable $now): array
+    {
+        $found = ['role' => [], 'permission' => []];
+
+        foreach (['role', 'permission'] as $kind) {
+            $query = $this->partition($kind, $tenant, $origin);
+            $this->state($query, $kind, $tenant, $origin, GrantFilter::ORPHANED, $now);
+
+            foreach ($query->selectRaw($kind.' as name, count(*) as aggregate')->groupBy($kind)->orderBy($kind)->get() as $row) {
+                $found[$kind][(string) $row->name] = (int) $row->aggregate;
+            }
+        }
+
+        return $found;
+    }
+
     /** @param 'role'|'permission' $kind */
     private function filter(Builder $query, string $kind, GrantFilter $filter): void
     {

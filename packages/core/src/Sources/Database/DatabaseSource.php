@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Database;
 
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEffect;
@@ -14,6 +15,7 @@ use AzGuard\Changes\GrantRecord;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
+use AzGuard\Contracts\Sources\ChecksHealth;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\FiltersQueries;
@@ -23,6 +25,10 @@ use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
+use AzGuard\Diagnostics\Checks\DecisionFieldsInMeta;
+use AzGuard\Diagnostics\Checks\GrantsDead;
+use AzGuard\Diagnostics\Checks\ModelColumns;
+use AzGuard\Diagnostics\Checks\RolesOrphaned;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -66,7 +72,7 @@ use ReflectionClass;
  *
  * @api
  */
-final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants, StoresGrants
+final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants, StoresGrants
 {
     private bool $onlyRoles = false;
 
@@ -215,6 +221,195 @@ final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueri
         foreach (['role_grant', 'permission_grant', 'permission'] as $kind) {
             $storage->assertModel($kind, $this->selectedModels[$kind] ?? null);
         }
+    }
+
+    /** Stored grants the code no longer gives, decision fields kept in `meta` and columns the own models lack. */
+    public function doctorChecks(): array
+    {
+        return [new RolesOrphaned($this), new GrantsDead($this), new DecisionFieldsInMeta($this), new ModelColumns($this)];
+    }
+
+    /** @internal The storage the source reads and writes. */
+    public function boundStorage(): Storage
+    {
+        return $this->resolvedStorage();
+    }
+
+    /**
+     * @internal The model class of each storage kind the source uses: its own one or the default of the configuration.
+     *
+     * @return array<string, class-string>
+     */
+    public function storageModels(): array
+    {
+        return [...app(AzGuardConfig::class)->defaultModels(), ...$this->selectedModels];
+    }
+
+    /** @internal Whether the connection of the storage has separate read hosts. */
+    public function hasReadHosts(): bool
+    {
+        return $this->resolvedStorage()->connection()->getRawReadPdo() !== null;
+    }
+
+    /** @internal Whether a table of the storage exists, by its base name. */
+    public function hasTable(string $base): bool
+    {
+        return StorageHealth::missingTables($this->resolvedStorage(), [$base]) === [];
+    }
+
+    /**
+     * @internal Tenants of the panel that hold permissions created at run time.
+     *
+     * @return list<TenantRef>
+     */
+    public function dynamicTenants(Panel $panel): array
+    {
+        $this->bindPanel($panel->id());
+        $found = [];
+        foreach ($this->resolvedStorage()->table('permissions')->where('panel', $panel->id())
+            ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
+            $found[] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+        }
+
+        return $found;
+    }
+
+    /**
+     * @internal The catalog of the panel with the permissions the tenant created at run time.
+     *
+     * @throws DefinitionException when a stored permission collides with the catalog
+     */
+    public function inspectCatalog(Panel $panel, TenantRef $tenant): PanelCatalog
+    {
+        return $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): PanelCatalog => $inspection->catalog());
+    }
+
+    /**
+     * @internal Stored grants of the panel the current code no longer gives, counted by tenant, origin and name, as
+     * the inspection of grants classifies them.
+     *
+     * @return list<array{kind: 'role'|'permission', name: string, tenant: string, origin: string, rows: int}>
+     */
+    public function orphanedGrants(Panel $panel, DateTimeImmutable $now): array
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $partitions = [];
+        foreach (['role_grants', 'permission_grants'] as $table) {
+            foreach ($storage->table($table)->where('panel', $panel->id())->select('tenant_key', 'tenant_type', 'tenant_id', 'origin')->distinct()->get() as $row) {
+                $partitions[$row->tenant_key."\0".$row->origin] = [
+                    $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id), (string) $row->origin,
+                ];
+            }
+        }
+        ksort($partitions, SORT_STRING);
+        $found = [];
+
+        foreach ($partitions as [$tenant, $origin]) {
+            $orphans = $this->inspecting($panel, $tenant, static fn (GrantInspection $inspection): array => $inspection->orphans($tenant, $origin, $now));
+
+            foreach ($orphans as $kind => $names) {
+                foreach ($names as $name => $rows) {
+                    $found[] = ['kind' => $kind, 'name' => (string) $name, 'tenant' => $tenant->key(), 'origin' => $origin, 'rows' => $rows];
+                }
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @internal Stored grants of the panel whose subject type is the morph class of no subject model of the panel.
+     *
+     * @return list<array{kind: 'role'|'permission', type: string, rows: int}>
+     */
+    public function unacceptedSubjects(Panel $panel): array
+    {
+        $this->bindPanel($panel->id());
+        $accepted = array_map(static fn (string $model): string => (new $model)->getMorphClass(), $panel->subjectModels());
+        $found = [];
+
+        foreach (['role', 'permission'] as $kind) {
+            foreach ($this->resolvedStorage()->table($kind.'_grants')->where('panel', $panel->id())->whereNotIn('subject_type', $accepted)
+                ->selectRaw('subject_type, count(*) as aggregate')->groupBy('subject_type')->orderBy('subject_type')->get() as $row) {
+                $found[] = ['kind' => $kind, 'type' => (string) $row->subject_type, 'rows' => (int) $row->aggregate];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @internal Decision fields the source reads that the grant model or the panel keeps in `meta`.
+     *
+     * @return list<array{kind: string, field: string}>
+     */
+    public function decisionFieldsInMeta(Panel $panel): array
+    {
+        $found = [];
+
+        foreach ($this->declaredFields($panel) as $kind => $fields) {
+            foreach ($this->fields[$kind] as $name) {
+                if (($fields[$name] ?? null)?->isInMeta() === true) {
+                    $found[] = ['kind' => $kind, 'field' => $name];
+                }
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * @internal Columns the grant models of the source declare outside `meta` that their tables lack.
+     *
+     * @return list<array{table: string, model: class-string, columns: list<string>}>
+     */
+    public function missingModelColumns(Panel $panel): array
+    {
+        $storage = $this->resolvedStorage();
+        $models = $this->storageModels();
+        $found = [];
+
+        foreach ($this->declaredFields($panel) as $kind => $fields) {
+            $columns = array_values(array_map(static fn (Field $field): string => $field->name(), array_filter($fields, static fn (Field $field): bool => ! $field->isInMeta())));
+
+            if ($columns === []) {
+                continue;
+            }
+            $missing = StorageHealth::missingColumns($storage, $kind.'s', $columns);
+
+            if ($missing !== []) {
+                $found[] = ['table' => $storage->prefix().$kind.'s', 'model' => $models[$kind], 'columns' => $missing];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Fields of each grant kind the source writes: those of its model, then those of the panel, by name.
+     *
+     * @return array<'role_grant'|'permission_grant', array<string, Field>>
+     */
+    private function declaredFields(Panel $panel): array
+    {
+        $models = $this->storageModels();
+        $declared = [];
+
+        foreach (['role_grant' => FieldTarget::RoleGrant, 'permission_grant' => FieldTarget::PermissionGrant] as $kind => $target) {
+            if ($kind === 'permission_grant' && $this->onlyRoles) {
+                continue;
+            }
+            $class = $models[$kind];
+            $fields = [];
+
+            foreach ([...(is_a($class, RoleGrant::class, true) || is_a($class, PermissionGrant::class, true) ? $class::azguardFields() : []), ...$panel->fields($target)] as $field) {
+                $fields[$field->name()] ??= $field;
+            }
+            $declared[$kind] = $fields;
+        }
+
+        return $declared;
     }
 
     public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription

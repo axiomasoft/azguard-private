@@ -7,6 +7,7 @@ namespace AzGuard\Sources\Folder;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
+use AzGuard\Contracts\Sources\ChecksHealth;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -16,6 +17,7 @@ use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\Volatility;
+use AzGuard\Diagnostics\Checks\DiscoveryCached;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\DuplicatePolicyBindingException;
@@ -52,7 +54,7 @@ use UnitEnum;
  *
  * @api
  */
-final class FolderSource implements DescribesSchema, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
+final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
 {
     /** @var array{permissions: ?string, policies: ?string, roles: ?string, abilities: ?string} */
     private array $folders = [
@@ -115,6 +117,12 @@ final class FolderSource implements DescribesSchema, FiltersQueries, ProvidesGra
     public function isDynamic(): bool
     {
         return false;
+    }
+
+    /** Whether the catalog cache still records what discovery finds in the folders. */
+    public function doctorChecks(): array
+    {
+        return [app(DiscoveryCached::class)];
     }
 
     /**

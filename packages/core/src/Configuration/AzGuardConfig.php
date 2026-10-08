@@ -409,6 +409,14 @@ final readonly class AzGuardConfig
     }
 
     /**
+     * The id of the build the configuration names in `catalog.build_id`, or null when the fallback hash is used.
+     */
+    public function configuredBuildId(): ?string
+    {
+        return $this->buildId;
+    }
+
+    /**
      * The file of the catalog cache, or null for the default `bootstrap/cache/azguard.php`.
      */
     public function catalogCachePath(): ?string
@@ -424,6 +432,16 @@ final readonly class AzGuardConfig
     public function source(string $name): array
     {
         return $this->sources[$name] ?? [];
+    }
+
+    /**
+     * Parameters of every named source, by name.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function sources(): array
+    {
+        return $this->sources;
     }
 
     /**

@@ -6,10 +6,12 @@ namespace AzGuard\Panels;
 
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Scopes\TenantResolver;
+use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -73,6 +75,8 @@ final readonly class Panel
         /** @var list<string> */
         private array $entryMiddleware = [],
         private bool $routeChecks = false,
+        /** @var list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}> */
+        private array $healthChecks = [],
     ) {}
 
     /**
@@ -108,6 +112,31 @@ final readonly class Panel
     public function requiresRouteChecks(): bool
     {
         return $this->routeChecks;
+    }
+
+    /**
+     * Doctor checks of the panel and its plugins in the order provider, plugins, `configure`, each with where it came
+     * from: `provider`, `configure` or `plugin:<id>`.
+     *
+     * @internal read by the doctor
+     *
+     * @return list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}>
+     */
+    public function doctorChecks(): array
+    {
+        return $this->healthChecks;
+    }
+
+    /**
+     * The source objects of the panel in the order they were assembled.
+     *
+     * @internal read by the doctor
+     *
+     * @return list<Source>
+     */
+    public function attachedSources(): array
+    {
+        return $this->resolved === null ? [] : array_column($this->resolved->all(), 'source');
     }
 
     /**

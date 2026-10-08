@@ -1,0 +1,100 @@
+[
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "The decision field \"eligible\" of permission_grant grants in panel backoffice is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "eligible",
+            "kind": "permission_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "The decision field \"eligible\" of role_grant grants in panel backoffice is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "eligible",
+            "kind": "role_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "The decision field \"region\" of permission_grant grants in panel backoffice is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "region",
+            "kind": "permission_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "The decision field \"region\" of role_grant grants in panel backoffice is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "region",
+            "kind": "role_grant"
+        }
+    },
+    {
+        "key": "membership.configured",
+        "severity": "warning",
+        "scope": "panel:backoffice",
+        "message": "Panel backoffice inherits roles into assignment scopes without a scope membership: a role granted on a parent applies to every scope below it.",
+        "details": {
+            "mode": "inherit"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:crm",
+        "message": "The decision field \"eligible\" of permission_grant grants in panel crm is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "eligible",
+            "kind": "permission_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:crm",
+        "message": "The decision field \"eligible\" of role_grant grants in panel crm is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "eligible",
+            "kind": "role_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:crm",
+        "message": "The decision field \"region\" of permission_grant grants in panel crm is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "region",
+            "kind": "permission_grant"
+        }
+    },
+    {
+        "key": "fields.meta",
+        "severity": "warning",
+        "scope": "panel:crm",
+        "message": "The decision field \"region\" of role_grant grants in panel crm is kept in meta: give it a column when grants are many or filtered by it.",
+        "details": {
+            "field": "region",
+            "kind": "role_grant"
+        }
+    },
+    {
+        "key": "membership.configured",
+        "severity": "warning",
+        "scope": "panel:crm",
+        "message": "Panel crm inherits roles into assignment scopes without a scope membership: a role granted on a parent applies to every scope below it.",
+        "details": {
+            "mode": "inherit"
+        }
+    }
+]

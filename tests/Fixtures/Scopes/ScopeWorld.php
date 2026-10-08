@@ -33,6 +33,7 @@ final class ScopeWorld
     public static function compile(GeneratedSource $source, string $mode = 'inherit', ?Closure $configure = null, ?StoreScope $definition = null, bool $tenant = true): array
     {
         RuntimePolicy::$result = true;
+        RuntimePolicy::$callback = null;
         RuntimePolicy::$calls = 0;
         Relation::morphMap(['user' => User::class], false);
 

@@ -15,6 +15,7 @@ use InvalidArgumentException;
  * plugin keeps no journal.
  *
  * `retentionDays` is how long a row is kept; the journal is cleaned by the maintenance command, never by this plugin.
+ * Doctor checks that the journal table exists (`audit.table`).
  *
  * @api
  */
@@ -52,7 +53,7 @@ final class AuditPlugin extends BasePlugin
 
     public function register(PanelBuilder $panel, PluginContext $context): void
     {
-        $panel->changing([RecordChange::class]);
+        $panel->changing([RecordChange::class])->doctorChecks([AuditTableExists::class]);
     }
 
     private static function assertRetention(int $days): void
