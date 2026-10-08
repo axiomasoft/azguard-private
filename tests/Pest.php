@@ -11,7 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
-uses(TestCase::class)->in('Unit', 'Feature', 'Regression', 'Engines', 'Acceptance');
+uses(TestCase::class)->in('Unit', 'Feature', 'Regression', 'Engines', 'Acceptance', 'Contracts');
 
 uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())
     ->afterEach(function (): void {

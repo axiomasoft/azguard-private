@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.7",
   "title": "Тестовый kit, AzGuardFake, контрактные наборы",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Тестовый kit `AzGuard\\Testing`: `InteractsWithAzGuard` (`actingAsWithPermissions`, `actingAsSuperAdmin`), `AzGuardFake` (шпион, ассерты D39/03 §11), `AzGuard::fake()`, `FakeSubject`, `FakeSource`, `RecordedCheck`/`RecordedChange`; контрактные наборы `Testing\\Contracts\\{Source,Restriction,Hook,Plugin,SubjectResolver,AssignmentScopeResolver}ContractTests`, проходящие против встроенных и фикстурных реализаций.",
   "why": "Авторы приложений и расширений проверяют права на настоящем AzGuard (D39). Жёсткие риски: fake, который разрешает то, что живая система запретит (D24 п.3, урок IAM Policy Simulator), утечка `Testing` в production-код, контрактный набор, который проходит на сломанной реализации (нет негативной фикстуры), отложенные из P2.4/P2.7 наборы (D8 п.3).",
   "scope": {
@@ -191,7 +191,62 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:55:28Z",
+  "result": {
+    "started_at": "2026-10-08T09:21:33Z",
+    "finished_at": "2026-10-08T10:07:02Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-sonnet-5-5",
+      "effort": "high"
+    },
+    "notes": "Kit, AzGuardFake, шесть контрактных наборов, 30 негативных доказательств; V3 4169 (1 baseline skipped), type coverage 99.5%. Раздел P6.7 в findings-P6-execution.",
+    "deviations": [
+      "Точка подключения fake вне task_files (EventObservers, Authorizer::trace, ChangeEventPublisher, провайдер); файлы вне task_files (tests/Fixtures/Testing, AzGuardFacadeTest, phpstan.neon); под RefreshDatabase kit не работает: движок fail-closed на чтении прав внутри чужой транзакции (source_error), распознавание транзакции хоста не делалось без решения владельца."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T10:07:02Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T10:07:02Z",
   "sections": [
     {
       "id": "Intent",

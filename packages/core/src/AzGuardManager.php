@@ -28,6 +28,7 @@ use AzGuard\Scopes\CurrentContext;
 use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\WithinContext;
 use AzGuard\Sources\SourceManager;
+use AzGuard\Testing\AzGuardFake;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Access\Response;
@@ -45,7 +46,20 @@ use UnitEnum;
  */
 final class AzGuardManager
 {
+    private ?AzGuardFake $fake = null;
+
     public function __construct(private readonly Application $app) {}
+
+    /**
+     * Starts a spy that records the checks and the changes of the application for the assertions of a test. It decides
+     * nothing: every check still runs through the real engine. A second call stops the first spy and starts a new one.
+     */
+    public function fake(): AzGuardFake
+    {
+        $this->fake?->stop();
+
+        return $this->fake = new AzGuardFake($this->app);
+    }
 
     /**
      * @param  class-string<PanelProvider>  $provider

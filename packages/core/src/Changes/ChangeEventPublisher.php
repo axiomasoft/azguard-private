@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Changes;
 
 use AzGuard\Events\AccessEvent;
+use AzGuard\Events\EventObservers;
 use AzGuard\Events\GrantExpired;
 use AzGuard\Events\PanelStateTouched;
 use AzGuard\Events\PermissionCreated;
@@ -56,7 +57,10 @@ final readonly class ChangeEventPublisher
     public function dispatch(array $events): void
     {
         $dispatcher = $this->container->make(Dispatcher::class);
+        $observers = $this->container->make(EventObservers::class);
         foreach ($events as $event) {
+            $observers->observe($event);
+
             try {
                 $dispatcher->dispatch($event);
             } catch (Throwable $error) {

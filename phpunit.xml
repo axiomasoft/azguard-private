@@ -22,6 +22,9 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Contracts">
+            <directory>tests/Contracts</directory>
+        </testsuite>
         <testsuite name="Regression">
             <directory>tests/Regression</directory>
         </testsuite>

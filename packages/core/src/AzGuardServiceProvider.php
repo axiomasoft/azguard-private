@@ -11,6 +11,7 @@ use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\ChangeJournal;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
+use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\Console\Commands\AuditPruneCommand;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
@@ -100,6 +101,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->scoped(CurrentContext::class);
         $this->app->scoped(WithinContext::class);
 
+        $this->app->singleton(EventObservers::class);
         $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 
         $this->app->singleton(AzGuardManager::class);

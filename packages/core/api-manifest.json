@@ -23505,6 +23505,1234 @@
             ],
             "stability": "api",
             "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Testing\\AzGuardFake",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "container",
+                            "type": "Illuminate\\Contracts\\Container\\Container",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "assertChecked",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "times",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertDecided",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "effect",
+                            "type": "AzGuard\\Kernel\\Decision\\Effect",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertNotChecked",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertPermissionGranted",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertPermissionRevoked",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertRoleGranted",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "assertRoleRevoked",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "mixed",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "UnitEnum|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|AzGuard\\Kernel\\Identity\\AnyAssignmentScope|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "changes",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "checks",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "stop",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\AssignmentScopeResolverContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "requestWithoutAScopeGivesNull",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "resolvingIsIdempotent",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "scopeSurvivesTheCodecAndHasNoColonInItsType",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\HookContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "beforeHookAnswersWithABeforeResultAndWritesNothing",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "cancelledChangeLeavesNoTrace",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "pipeWritesNothingBesidesTheWriter",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\PluginContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "bootDoesNotChangeThePanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "pluginBuildsOnACleanPanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "pluginBuildsOnTwoPanelsAndTouchesOnlyTheOneItIsAttachedTo",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "pluginHasAStableId",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "pluginKeptOffAPanelLeavesNoTraceThere",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\RestrictionContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "restrictionAnswersTheSameRequestTheSameWay",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "restrictionDoesNotFailOnOrdinaryRequestsAndNamesItsDenial",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "restrictionHasAStableKey",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "restrictionWritesNothingWhileItDecides",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\SourceContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describeMatchesWhatTheSourceGives",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "panelAcceptsAndDescribesTheSource",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "sameVersionGivesTheSameAnswer",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "sourceAnswersOnlyForItsOwnPanel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "sourceHasAValidStableId",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "sourceTakesNowFromTheContext",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "writerStoresOnlyInsideThePipelineTransaction",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\SubjectResolverContractTests",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "missingSubjectHasNoModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "modelOfTheReferenceResolvesBackToTheSameReference",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "referenceSurvivesTheCodecAndHasNoColonInItsType",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "resolvingIsIdempotent",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "whatIsNotASubjectIsRefused",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\FakeSource",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Sources\\ProvidesGrants",
+                "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
+                "AzGuard\\Contracts\\Sources\\Source"
+            ],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'fake'"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "clear",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
+                },
+                {
+                    "name": "grantPermission",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "grantRole",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "until",
+                            "type": "?DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "grants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
+                    "name": "id",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "roleGrants",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "iterable"
+                },
+                {
+                    "name": "volatility",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Sources\\Volatility"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\FakeSubject",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Database\\Eloquent\\Model",
+            "interfaces": [
+                "ArrayAccess",
+                "Illuminate\\Contracts\\Auth\\Authenticatable",
+                "Illuminate\\Contracts\\Broadcasting\\HasBroadcastChannel",
+                "Illuminate\\Contracts\\Queue\\QueueableEntity",
+                "Illuminate\\Contracts\\Routing\\UrlRoutable",
+                "Illuminate\\Contracts\\Support\\Arrayable",
+                "Illuminate\\Contracts\\Support\\CanBeEscapedWhenCastToString",
+                "Illuminate\\Contracts\\Support\\Jsonable",
+                "JsonSerializable",
+                "Stringable"
+            ],
+            "constants": [
+                "TYPE"
+            ],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "getAuthIdentifier",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getAuthIdentifierForBroadcasting",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getAuthIdentifierName",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getAuthPassword",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getAuthPasswordName",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getMorphClass",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "string"
+                },
+                {
+                    "name": "getRememberToken",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "getRememberTokenName",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": null
+                },
+                {
+                    "name": "newEloquentBuilder",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Testing\\FakeSubjectBuilder"
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "1"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "setRememberToken",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": null,
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\InteractsWithAzGuard",
+            "kind": "trait",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "actingAsSuperAdmin",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "actingAsWithPermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permissions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "panel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\RecordedChange",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "actor",
+                    "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "context",
+                    "type": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "event",
+                    "type": "AzGuard\\Events\\AccessEvent",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "role",
+                    "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "type",
+                    "type": "AzGuard\\Events\\EventType",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "AzGuard\\Events\\EventType",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Kernel\\Identity\\RoleKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "?AzGuard\\Kernel\\Identity\\PermissionPattern",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "?AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "event",
+                            "type": "AzGuard\\Events\\AccessEvent",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "event",
+                            "type": "AzGuard\\Events\\AccessEvent",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Testing\\RecordedCheck",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "component",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "context",
+                    "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "effect",
+                    "type": "AzGuard\\Kernel\\Decision\\Effect",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "panel",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "permission",
+                    "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "subject",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "tenant",
+                    "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "permission",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "effect",
+                            "type": "AzGuard\\Kernel\\Decision\\Effect",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reason",
+                            "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "component",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "event",
+                            "type": "AzGuard\\Events\\AccessDecided",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
         }
     ]
 }

@@ -10,6 +10,7 @@ use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Events\AccessDecided;
+use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RecursionDetectedException;
@@ -394,11 +395,15 @@ final class Authorizer
     /**
      * Publishes the decision when the panel traces decisions; otherwise nothing is built or dispatched. A decision
      * made inside a transaction the package holds open waits for its commit; a failing listener is reported and the
-     * decision stands.
+     * decision stands. The test kit watches the decisions of a panel that does not trace: it receives the event and the
+     * dispatcher does not.
      */
     private function trace(Panel $panel, AccessRequest $request, Decision $decision, ?ActorRef $actor, DateTimeImmutable $now): void
     {
-        if (! $panel->settings()->traceDecisions()) {
+        $observers = app(EventObservers::class);
+        $traced = $panel->settings()->traceDecisions();
+
+        if (! $traced && ! $observers->active()) {
             return;
         }
         $event = new AccessDecided(
@@ -406,7 +411,13 @@ final class Authorizer
             correlationId: strtolower((string) Str::ulid()), state: $decision->state, subject: $request->subject(), permission: $request->permission(),
             context: $decision->scope->context, effect: $decision->effect, reason: $decision->reason, component: $decision->component,
         );
-        $deliver = static function () use ($event): void {
+        $deliver = static function () use ($event, $observers, $traced): void {
+            $observers->observe($event);
+
+            if (! $traced) {
+                return;
+            }
+
             try {
                 app(Dispatcher::class)->dispatch($event);
             } catch (Throwable $error) {

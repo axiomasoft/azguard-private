@@ -37,6 +37,7 @@ use UnitEnum;
  * @method static mixed withinScope(Model|AssignmentScopeRef $context, Closure $callback)
  * @method static AssignmentScopeRef|null currentScope()
  * @method static mixed actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure $callback)
+ * @method static \AzGuard\Testing\AzGuardFake fake()
  *
  * @see AzGuardManager
  */

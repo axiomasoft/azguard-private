@@ -7,6 +7,8 @@ parameters:
     - packages/filament/src
     - tests/Fixtures/Visibility/VisibilityProject.php
     - tests/Fixtures/Concerns/Member.php
+    - tests/Fixtures/Contracts/Probes
+    - tests/Fixtures/Testing/KitCase.php
 
   excludePaths:
     - legacy
