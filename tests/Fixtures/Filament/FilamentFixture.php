@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Tests\Fixtures\Filament;
+
+use AzGuard\Filament\FilamentDefinitions;
+use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
+use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
+use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
+use Filament\Resources\ResourceConfiguration;
+use Illuminate\Support\ServiceProvider;
+
+/**
+ * What the fixture panels are built from. A test changes it and then boots the application again with `bootFilament()`;
+ * `reset()` returns the defaults.
+ */
+final class FilamentFixture
+{
+    /** @var list<class-string|ResourceConfiguration> */
+    public static array $resources;
+
+    /** @var list<class-string> */
+    public static array $pages;
+
+    /** @var list<class-string> */
+    public static array $widgets;
+
+    public static FilamentDefinitions $definitions;
+
+    public static ?string $authority;
+
+    /** @var array{resources?: list<string>, pages?: list<string>, widgets?: list<string>} */
+    public static array $exclude;
+
+    /** @var list<string>|null abilities of the plugin of the `admin` Filament panel; null keeps the default */
+    public static ?array $abilities;
+
+    /** @var list<mixed> extra sources and enums of the `admin` guard panel */
+    public static array $guardPermissions;
+
+    /** @var list<PolicyBinding> */
+    public static array $guardPolicies;
+
+    /** Ids of the users that the member roles of the fixture guard panels admit. */
+    public static array $members;
+
+    /** Whether the `tenanted` Filament panel registers the plugin before it calls `tenant()`. */
+    public static bool $tenantAfterPlugin;
+
+    /** Where `azguard:catalog:cache` writes, with the build id; null leaves the configuration alone. */
+    public static ?string $catalogCachePath;
+
+    /** @var list<array{guard: ?string, filament: ?string}> */
+    public static array $seen;
+
+    /** Sets the defaults when nothing has set them yet. */
+    public static function ensure(): void
+    {
+        if (! isset(self::$resources)) {
+            self::reset();
+        }
+    }
+
+    /**
+     * Returns the defaults, and forgets the `optimize` tasks that the providers of Filament registered in static
+     * properties of the base provider: they must not outlive the application that registered them, also when its boot
+     * failed. Every application registers its own again when it boots.
+     */
+    public static function reset(): void
+    {
+        ServiceProvider::$optimizeCommands = [];
+        ServiceProvider::$optimizeClearCommands = [];
+        self::$resources = [OrderResource::class, ArchivedOrderResource::class];
+        self::$pages = [ProbePage::class];
+        self::$widgets = [];
+        self::$definitions = FilamentDefinitions::Enums;
+        self::$authority = null;
+        self::$abilities = null;
+        self::$exclude = [];
+        self::$guardPermissions = [];
+        self::$guardPolicies = [];
+        self::$members = [1];
+        self::$tenantAfterPlugin = false;
+        self::$catalogCachePath = null;
+        self::$seen = [];
+    }
+}

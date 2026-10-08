@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Filament\BootsFilament;
+use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\TestCase;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -12,6 +14,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 uses(TestCase::class)->in('Unit', 'Feature', 'Regression', 'Engines', 'Acceptance', 'Contracts');
+
+uses(BootsFilament::class)->group('filament')->afterEach(fn () => FilamentFixture::reset())->in('Feature/Filament');
 
 uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())
     ->afterEach(function (): void {

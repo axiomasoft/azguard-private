@@ -215,9 +215,50 @@ http_step() {
     log "RefreshDatabase OK"
 }
 
+# The Filament package: the configuration publishes by its tag and the plugin, the source and the tenant resolver load in
+# the booted application of the consumer, with the defaults of the published configuration.
+filament_step() {
+    cd "${work}/app"
+
+    log "Filament: published configuration, plugin and FilamentSource on Laravel ${laravel}"
+    rm -f config/azguard-filament.php
+    php artisan vendor:publish --tag=azguard-filament-config --no-interaction
+    if [[ ! -f config/azguard-filament.php ]]; then
+        echo "error: vendor:publish --tag=azguard-filament-config did not write config/azguard-filament.php" >&2
+        exit 1
+    fi
+
+    php -r '
+        require "vendor/autoload.php";
+        $app = require "bootstrap/app.php";
+        $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+        $plugin = AzGuard\Filament\AzGuardPlugin::make();
+        $checks = [
+            "plugin id" => $plugin->getId() === "azguard",
+            "definitions default" => $plugin->getDefinitions() === AzGuard\Filament\FilamentDefinitions::Enums,
+            "enforce default" => $plugin->isEnforced() === true,
+            "abilities default" => in_array("view_any", $plugin->getAbilities(), true),
+            "published configuration" => config("azguard-filament.definitions") === "enums",
+            "source id" => AzGuard\Filament\Sources\FilamentSource::make("admin")->id() === "filament",
+            "tenant resolver" => (new AzGuard\Filament\FilamentTenantResolver) instanceof AzGuard\Contracts\Scopes\TenantResolver,
+        ];
+        foreach ($checks as $name => $ok) {
+            if (! $ok) {
+                fwrite(STDERR, "error: Filament check failed: {$name}\n");
+                exit(1);
+            }
+        }
+    '
+    log "Filament OK"
+}
+
 check_network
 build_archives
 create_app
 install_archives
 smoke
 http_step
+if ((with_filament)); then
+    filament_step
+fi
