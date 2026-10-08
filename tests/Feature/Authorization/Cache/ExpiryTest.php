@@ -49,7 +49,7 @@ it('bounds cache validity by the nearest active expiry and rejects equality at n
     $short = AuthorizationWorld::grant(expires: $nearest);
     $long = AuthorizationWorld::grant(expires: $now->modify('+30 seconds'));
     $cache->put('nearest-expiry', $panel, Volatility::Stable, true, [$expired, $short, $long], $now);
-    $stored = app('cache')->store('array')->get('nearest-expiry');
+    $stored = unserialize(app('cache')->store('array')->get('nearest-expiry'));
     expect($stored['validUntil'])->toEqual($nearest)
         ->and($cache->get('nearest-expiry', $panel, Volatility::Stable, true, $now))->toBe([$short, $long])
         ->and($cache->get('nearest-expiry', $panel, Volatility::Stable, true, $nearest))->toBeNull();

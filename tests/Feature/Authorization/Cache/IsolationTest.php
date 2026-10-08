@@ -63,8 +63,8 @@ it('stores a serializable raw shape containing only kernel contributions and dec
     $now = Carbon::now()->toDateTimeImmutable();
     $grant = AuthorizationWorld::grant(fields: ['city' => 'Volgograd', 'ids' => ['007', 7], 'flag' => true, 'missing' => null]);
     app(PermissionSetCache::class)->put('raw-shape', $panel, Volatility::Stable, true, [$grant], $now);
-    $payload = app('cache')->store('array')->get('raw-shape');
-    expect(array_keys($payload))->toBe(['items', 'validUntil'])->and($payload['items'])->toBe([$grant]);
+    $payload = unserialize(app('cache')->store('array')->get('raw-shape'));
+    expect(array_keys($payload))->toBe(['items', 'validUntil'])->and($payload['items'])->toEqual([$grant]);
     $serialized = serialize($payload);
     expect($serialized)->not->toContain('Eloquent', 'Builder', 'Closure', 'AzGuard\\Kernel\\Decision\\Decision', 'EvaluationFrame', 'Policy');
     $restored = unserialize($serialized);
@@ -112,4 +112,15 @@ it('keeps two physical authority storages and subjects from sharing warmed DB gr
     app(StorageSchema::class)->create($owned->id());
     [$otherEngine, $otherPanel] = CacheWorld::database(DatabaseSource::make()->storage($owned));
     expect($otherEngine->decide($otherPanel, $request)->reason)->toBe(DecisionReason::NotGranted);
+});
+
+it('hits a shared store that unserializes without classes, as Laravel 13 does by default', function (): void {
+    config(['cache.serializable_classes' => false, 'cache.stores.serialized' => ['driver' => 'array', 'serialize' => true]]);
+    [, $panel] = AuthorizationWorld::compile(new CacheSource, fn (PanelBuilder $panel) => $panel->cache('serialized'));
+    $now = Carbon::now()->toDateTimeImmutable();
+    $grant = AuthorizationWorld::grant(fields: ['city' => 'Volgograd']);
+    app(PermissionSetCache::class)->put('plain-shape', $panel, Volatility::Stable, true, [$grant], $now);
+    $fresh = new PermissionSetCache(app('cache'));
+
+    expect($fresh->get('plain-shape', $panel, Volatility::Stable, true, $now))->toEqual([$grant]);
 });
