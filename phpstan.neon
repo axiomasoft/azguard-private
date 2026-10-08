@@ -10,9 +10,6 @@ parameters:
     - tests/Fixtures/Contracts/Probes
     - tests/Fixtures/Testing/KitCase.php
 
-  excludePaths:
-    - legacy
-
   level: 8
 
   checkModelProperties: true

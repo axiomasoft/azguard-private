@@ -11,7 +11,7 @@
 
 > 🇷🇺 Русская версия — [README.ru.md](README.ru.md).
 
-> **Status:** AzGuard is being rebuilt as 1.0 (PLAN2). The description below refers to 0.3; the 0.3 code lives in `legacy/0.3/`.
+> **Status:** AzGuard is being rebuilt as 1.0 (PLAN2). The description below refers to 0.3; the 0.3 code was removed from the tree in P6.9 and stays readable in git history (`git show 491980a:legacy/0.3/<path>`).
 
 ---
 

@@ -1,7 +1,6 @@
 {
     "preset": "laravel",
     "exclude": [
-        "legacy",
         "audits",
         "plans"
     ],

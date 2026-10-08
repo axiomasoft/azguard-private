@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.9",
   "title": "Удаление legacy/0.3 и старых имён",
-  "status": "todo",
+  "status": "done",
   "summary": "Удалить справочник `legacy/0.3/` и все ссылки на него в инструментах, заменить `LegacyIsolationTest` arch-тестом «старые имена 0.3 отсутствуют» (13 F6 P6.9 + 03 переименования) по `packages/`, `tests/`, `bin/`, `composer.json`, `.github/`, конфигу; зафиксировать SHA справочника для P7 (D24 п.7).",
   "why": "D01/D2: старый код не живёт рядом с 1.0. Жёсткие риски: случайно оставленное старое имя в публичном API/конфиге, потеря справочника 0.3 для Filament P7, удаление `docs/` до переписывания (P8.2) ломает docs-сборку.",
   "scope": {
@@ -173,7 +173,60 @@
     "need": "none",
     "status": "not_needed"
   },
-  "updated_at": "2026-10-08T02:54:38Z",
+  "result": {
+    "started_at": "2026-10-08T11:23:27Z",
+    "finished_at": "2026-10-08T11:28:41Z",
+    "executor": {
+      "provider": "claude",
+      "model": "sonnet-5-5",
+      "effort": "medium",
+      "session": "45fd36c8-aecf-4b77-8f6b-d7d621ee74df"
+    },
+    "notes": "legacy/ удалён, SHA справочника 491980a в findings P6.9; LegacyNamesTest заменил LegacyIsolationTest; composer test: 4301 passed, 1 skipped (штатный skip набора, не из P6.9).",
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-08T11:28:41Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-08T11:28:41Z",
   "sections": [
     {
       "id": "Intent",

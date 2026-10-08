@@ -4,7 +4,6 @@
 # Keep distributed packages lean — exclude dev-only paths from `git archive` / dist.
 /.github            export-ignore
 /docs               export-ignore
-/legacy             export-ignore
 /tests              export-ignore
 /workbench          export-ignore
 /.editorconfig      export-ignore

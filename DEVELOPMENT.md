@@ -9,9 +9,8 @@ The repository is being rebuilt as AzGuard 1.0 (PLAN2). The 0.3 code is frozen a
 | `packages/core` | `axiomasoft/azguard`, namespace `AzGuard\` (1.0 code, grows phase by phase) |
 | `packages/filament` | `axiomasoft/azguard-filament`, namespace `AzGuard\Filament\` |
 | `tests/` | Pest suites `Arch`, `Unit`, `Feature`, `Regression` on Orchestra Testbench |
-| `legacy/0.3/` | Frozen 0.3 packages, tests, and reports; reference only, removed in PLAN2.P6.9 |
 
-`legacy/` is excluded from autoload, Pest, PHPStan, Pint, Rector, coverage, and CI. The `context` package is not
+The 0.3 reference tree was removed in PLAN2.P6.9; read it with `git show 491980a:legacy/0.3/<path>`. The `context` package is not
 recreated; its behavior moves into the core package. Package documentation under `docs/` still describes 0.3
 until it is rewritten in P8.2.
 

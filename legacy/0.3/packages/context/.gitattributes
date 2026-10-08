@@ -1,6 +1,0 @@
-* text=auto eol=lf
-*.php diff=php
-
-# Lean dist for the split package repo (axioma-studio/azguard-context).
-/CHANGELOG.md   export-ignore
-/.gitattributes export-ignore
