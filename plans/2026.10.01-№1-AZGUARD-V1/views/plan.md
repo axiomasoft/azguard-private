@@ -81,7 +81,7 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | P3 | Хранилище | detailed | 5/5 | 🟢 Done |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | detailed | 23/23 | 🟠 Done with deviations |
 | P5 | Модель и изменения | detailed | 8/8 | 🟠 Done with deviations |
-| P6 | Laravel-поверхность и удаление legacy | detailed | 3/11 | 🟡 In progress |
+| P6 | Laravel-поверхность и удаление legacy | detailed | 10/11 | 🔴 Blocked |
 | P7 | Filament по схеме панели | skeleton | 0/7 | ⬜ Skeleton |
 | P8 | Интеграции, документация, гейты, CRM-приёмка, выпуски | skeleton | 0/8 | ⬜ Skeleton |
 

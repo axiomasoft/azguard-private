@@ -2,3 +2,7 @@
 # Open questions — PLAN2 Plan №1 — AzGuard 1.0: перестройка по целевой архитектуре
 
 No open questions.
+
+## Blocked items
+
+- P6.11 — Review P6: независимая read-only проверка фазы: Владельцу: (1) F1 — решить требование 12 §7/D24 о kit под RefreshDatabase: разрешить Storage распознавать baseline-транзакцию тестового хоста (hard risk, правка контракта P4.20) или изменить нормативное требование; (2) допустить owning-исправления F1 (P6.7), F2 (P6.6: детерминированный наблюдатель MariaDB в StateResetRace), F3 (P6.2/P6.3: illuminate/auth и cron-expression в require ядра) и F4 (P5.1: трейт в P03Test) штатным repeat-admission или новыми пунктами; после них — повторная проверка гейтов и GREEN-закрытие P6.
