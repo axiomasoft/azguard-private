@@ -87,6 +87,18 @@ it('validates a source label and exposes the default origin', function (): void 
         ->and(fn () => IdentityCodec::assertSourceLabel(str_repeat('a', 129)))->toThrow(InvalidIdentityException::class);
 });
 
+it('rejects recursive identity lists while allowing repeated references to a finite list', function (): void {
+    $cycle = [];
+    $cycle[] = &$cycle;
+
+    expect(fn () => IdentityCodec::compose($cycle))->toThrow(InvalidIdentityException::class, 'recursive array');
+
+    $shared = ['orders', 'view'];
+    $parts = [&$shared, &$shared];
+
+    expect(IdentityCodec::compose($parts))->toBe('[1,["orders","view"],["orders","view"]]');
+});
+
 it('gives distinct (panel, subject, contexts) tuples distinct digests', function (): void {
     IdentityGenerator::seed();
     $digests = [];

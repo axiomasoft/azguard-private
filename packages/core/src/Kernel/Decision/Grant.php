@@ -11,6 +11,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use DateTimeImmutable;
+use ReflectionReference;
 
 /**
  * A grant from any source: "the permission holds because of this", with its owner (origin), scope and expiry.
@@ -95,13 +96,25 @@ final readonly class Grant
         return $this->expiresAt === null || $this->expiresAt > $now;
     }
 
-    private static function assertPlain(mixed $value, string $path): mixed
+    /** @param array<string, true> $references */
+    private static function assertPlain(mixed $value, string $path, array $references = []): mixed
     {
         if (is_array($value)) {
             $plain = [];
 
             foreach ($value as $key => $nested) {
-                $plain[$key] = self::assertPlain($nested, $path.'.'.$key);
+                $nestedReferences = $references;
+                $reference = is_array($nested) ? ReflectionReference::fromArrayElement($value, $key)?->getId() : null;
+
+                if ($reference !== null) {
+                    if (isset($references[$reference])) {
+                        throw new InvalidSourceContributionException('Decision field "'.$path.'.'.$key.'" contains a recursive array.');
+                    }
+
+                    $nestedReferences[$reference] = true;
+                }
+
+                $plain[$key] = self::assertPlain($nested, $path.'.'.$key, $nestedReferences);
             }
 
             return $plain;

@@ -121,6 +121,24 @@ it('keeps stored fields unchanged when returned field arrays are modified', func
     expect($fields)->toBe(['department' => 'sales', 'metadata' => [8 => 7, 'labels' => ['owner']]]);
 });
 
+it('rejects cyclic fields but accepts shared acyclic field references', function (): void {
+    $cycle = [];
+    $cycle['self'] = &$cycle;
+    $scope = AccessScope::in(TenantRef::global());
+
+    expect(fn () => Grant::of(PermissionPattern::of('admin', 'a.b'), 'folder', $scope, fields: ['cycle' => $cycle]))
+        ->toThrow(InvalidSourceContributionException::class, 'recursive array')
+        ->and(fn () => RoleContribution::of(RoleKey::of('admin', 'r'), $scope, 'folder', fields: ['cycle' => $cycle]))
+        ->toThrow(InvalidSourceContributionException::class, 'recursive array');
+
+    $shared = ['department' => 'sales'];
+    $fields = ['references' => [&$shared, &$shared]];
+    $grant = Grant::of(PermissionPattern::of('admin', 'a.b'), 'folder', $scope, fields: $fields);
+    $shared['department'] = 'changed';
+
+    expect($grant->fields())->toBe(['references' => [['department' => 'sales'], ['department' => 'sales']]]);
+});
+
 it('describes a role contribution with its owner', function (): void {
     $scope = AccessScope::in(TenantRef::of('org', 1));
     $contribution = RoleContribution::of(RoleKey::of('admin', 'analyst'), $scope, 'relation:project', fields: ['seller' => 5]);

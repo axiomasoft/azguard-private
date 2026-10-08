@@ -6,6 +6,7 @@ namespace AzGuard\Kernel\Identity;
 
 use AzGuard\Exceptions\InvalidIdentityException;
 use JsonException;
+use ReflectionReference;
 
 /**
  * One identity codec for SQL, cache and events: canonical ids, type aliases, tagged references and composite keys.
@@ -189,9 +190,10 @@ final readonly class IdentityCodec
 
     /**
      * @param  array<mixed>  $parts
+     * @param  array<string, true>  $references
      * @return list<mixed>
      */
-    private static function normalize(array $parts): array
+    private static function normalize(array $parts, array $references = []): array
     {
         if (! array_is_list($parts)) {
             throw new InvalidIdentityException('Cannot compose an array with keys into an identity key; use a list.');
@@ -199,10 +201,21 @@ final readonly class IdentityCodec
 
         $normalized = [];
 
-        foreach ($parts as $part) {
+        foreach ($parts as $index => $part) {
+            $nestedReferences = $references;
+            $reference = is_array($part) ? ReflectionReference::fromArrayElement($parts, $index)?->getId() : null;
+
+            if ($reference !== null) {
+                if (isset($references[$reference])) {
+                    throw new InvalidIdentityException('Cannot compose a recursive array into an identity key.');
+                }
+
+                $nestedReferences[$reference] = true;
+            }
+
             $normalized[] = match (true) {
                 is_object($part) => self::encode($part),
-                is_array($part) => self::normalize($part),
+                is_array($part) => self::normalize($part, $nestedReferences),
                 is_string($part), is_int($part), is_bool($part), $part === null => $part,
                 default => throw new InvalidIdentityException('Cannot compose a '.get_debug_type($part).' into an identity key.'),
             };
