@@ -8,6 +8,7 @@ use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 /**
  * Sets AzGuard up in an application: publishes the configuration, takes the connection and the type of host keys, offers
@@ -15,6 +16,8 @@ use Illuminate\Filesystem\Filesystem;
  *
  * - An existing configuration file or `.env` key is kept unless `--force`; the chosen values are written into the
  *   published file as text, so the rest of it stays as the application wrote it.
+ * - Migrations and checks boot fresh Artisan processes so they see the published configuration and providers. A
+ *   pre-existing configuration cache is cleared before setup. Child commands never wait for an interactive prompt.
  * - `migrate` runs only with `--migrate`. Its exit code is the exit code of the command and stops it before the checks;
  *   after a successful `migrate` the exit code is the one of `azguard:doctor`. Without `--migrate` the checks are
  *   printed, but the exit code reports the installation steps only: the tables do not exist yet.
@@ -49,13 +52,26 @@ final class InstallCommand extends Command
             $connection = $this->connection();
             $panel = $this->panelName();
 
+            if ($this->files->isFile($this->laravel->getCachedConfigPath())) {
+                $cleared = $this->call('config:clear');
+
+                if ($cleared !== self::SUCCESS || ! $this->files->missing($this->laravel->getCachedConfigPath())) {
+                    $this->components->error('The configuration cache could not be cleared; installation was not started.');
+
+                    return $cleared === self::SUCCESS ? self::FAILURE : $cleared;
+                }
+            }
             $this->publishConfig($hostKeys);
-            $this->writeConnection($connection);
+            $effectiveConnection = $this->writeConnection($connection);
             $status = $panel === null ? self::SUCCESS : $this->call('azguard:make:panel', ['panel' => $panel]);
+
+            if ($status !== self::SUCCESS) {
+                return $status;
+            }
             $this->listMigrations();
 
             if ($this->option('migrate') === true) {
-                $migrated = $this->call('migrate', $this->option('force') === true ? ['--force' => true] : []);
+                $migrated = $this->fresh('migrate', $effectiveConnection, $this->option('force') === true ? ['--force'] : []);
 
                 if ($migrated !== self::SUCCESS) {
                     $this->components->error('The migrations failed with exit code '.$migrated.'; the checks were not run.');
@@ -65,9 +81,9 @@ final class InstallCommand extends Command
             } else {
                 $this->components->info('The migrations were not run: pass --migrate or run `php artisan migrate`.');
             }
-            $doctor = $this->call('azguard:doctor');
+            $doctor = $this->fresh('azguard:doctor', $effectiveConnection);
 
-            return $status !== self::SUCCESS ? $status : ($this->option('migrate') === true ? $doctor : self::SUCCESS);
+            return $this->option('migrate') === true ? $doctor : self::SUCCESS;
         });
     }
 
@@ -143,10 +159,11 @@ final class InstallCommand extends Command
         $this->components->info('Published config/azguard.php with ids.host_keys = "'.$hostKeys.'".');
     }
 
-    private function writeConnection(?string $connection): void
+    /** The selected connection of the child processes, unless an existing .env value was kept. */
+    private function writeConnection(?string $connection): ?string
     {
         if ($connection === null) {
-            return;
+            return null;
         }
         $env = $this->laravel->basePath('.env');
         $line = self::ENV_KEY.'='.$connection;
@@ -154,20 +171,41 @@ final class InstallCommand extends Command
         if (! $this->files->isFile($env)) {
             $this->components->warn('.env was not found: add `'.$line.'` to the environment of the application.');
 
-            return;
+            return $connection;
         }
         $contents = $this->files->get($env);
+        $pattern = '/^[\t ]*(?:export[\t ]+)?([\'"]?)'.self::ENV_KEY.'\1[\t ]*=.*$/m';
 
-        if (preg_match('/^'.self::ENV_KEY.'=.*$/m', $contents) !== 1) {
+        if (preg_match($pattern, $contents) !== 1) {
             $this->files->put($env, ($contents === '' ? '' : rtrim($contents, "\r\n")."\n").$line."\n");
         } elseif ($this->option('force') === true) {
-            $this->files->put($env, (string) preg_replace('/^'.self::ENV_KEY.'=.*$/m', $line, $contents, 1));
+            $this->files->put($env, (string) preg_replace($pattern, $line, $contents, 1));
         } else {
             $this->components->warn(self::ENV_KEY.' is already set in .env and was kept: pass --force to change it.');
 
-            return;
+            return null;
         }
         $this->components->info('Set '.self::ENV_KEY.' in .env.');
+
+        return $connection;
+    }
+
+    /** @param list<string> $options */
+    private function fresh(string $command, ?string $connection, array $options = []): int
+    {
+        $environment = $this->option('env');
+        $environmentOptions = is_string($environment) && $environment !== '' ? ['--env='.$environment] : [];
+        $process = $this->laravel->make(Process::class, [
+            'command' => [PHP_BINARY, $this->laravel->basePath('artisan'), $command, '--no-interaction', ...$environmentOptions, ...$options],
+            'cwd' => $this->laravel->basePath(),
+            // Dotenv values inherited from the already booted parent must not override the newly chosen connection.
+            'env' => $connection === null ? [] : [self::ENV_KEY => $connection],
+            'timeout' => 300,
+        ]);
+
+        return $process->run(function (string $type, string $output): void {
+            $this->output->write($output);
+        });
     }
 
     private function listMigrations(): void
