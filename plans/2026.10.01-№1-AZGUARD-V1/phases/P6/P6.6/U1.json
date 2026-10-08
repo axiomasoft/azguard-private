@@ -1,0 +1,27 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:unit:v1",
+  "id": "U1",
+  "item": "P6.6",
+  "title": "Помощники CLI и читающие команды",
+  "goal": "Общие помощники разбора subject/--on/--tenant/--origin/--panel/актора и шесть читающих команд (panels:list, sources:list, catalog:list, roles:list, grants:list, permissions:show) с --json и тестами.",
+  "files": [
+    "packages/core/src/Laravel/Console/Concerns/**",
+    "packages/core/src/Laravel/Console/Commands/{PanelsListCommand.php,SourcesListCommand.php,CatalogListCommand.php,RolesListCommand.php,GrantsListCommand.php,PermissionsShowCommand.php}",
+    "packages/core/src/Sources/Database/**",
+    "tests/Feature/Console/{PanelsListCommandTest.php,SourcesListCommandTest.php,CatalogListCommandTest.php,RolesListCommandTest.php,GrantsListCommandTest.php,PermissionsShowCommandTest.php,ConsoleInputTest.php}"
+  ],
+  "checks": [
+    "V1",
+    "V8",
+    "V9"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "mode": "either",
+  "instructions": "Читающие команды ничего не пишут; секреты параметров источников не печатаются; панель только через resolver.",
+  "status": "todo",
+  "outcome": null,
+  "updated_at": "2026-10-08T02:52:54Z"
+}

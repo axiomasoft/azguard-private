@@ -50,10 +50,20 @@ Execution sheet: run the batches in order. Route is the maximum class/effort of 
 | 43 | P5 | BP5-3 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.3` | frontier/high | done |
 | 44 | P5 | BP5-1 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.1` | frontier/high | done |
 | 45 | P5 | BP5-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P5.6` | frontier/high | done |
-| 46 | P6 | B6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.1 P6.2 P6.3 P6.4 P6.5 P6.6 P6.7 P6.8 P6.9 P6.10` | implementation/medium | design-required |
-| 47 | P7 | B7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.1 P7.2 P7.3 P7.4 P7.5 P7.6 P7.7` | frontier/high | design-required |
-| 48 | P8 | B8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.1 P8.2 P8.3 P8.4` | frontier/high | design-required |
-| 49 | P8 | BP8-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.5` | implementation/medium | design-required |
-| 50 | P8 | BP8-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.6` | implementation/medium | design-required |
-| 51 | P8 | BP8-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.7` | frontier/high | design-required |
-| 52 | P8 | BP8-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.8` | implementation/medium | design-required |
+| 46 | P6 | BP6-1 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.1` | implementation/high | done |
+| 47 | P6 | BP6-2 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.2` | frontier/high | done |
+| 48 | P6 | BP6-3 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.3` | implementation/high | done |
+| 49 | P6 | BP6-4 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.4` | frontier/high | ready |
+| 50 | P6 | BP6-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.6` | frontier/high | waiting: BP6-4 |
+| 51 | P6 | BP6-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.7` | implementation/high | waiting: BP6-4 |
+| 52 | P6 | BP6-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.8` | implementation/high | waiting: BP6-4 |
+| 53 | P6 | BP6-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.5` | implementation/medium | waiting: BP6-4 |
+| 54 | P6 | BP6-9 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.9` | economy/medium | waiting: BP6-4 |
+| 55 | P6 | BP6-10 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.10` | implementation/high | waiting: BP6-4 |
+| 56 | P6 | BP6-11 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P6.11` | frontier/high | waiting: BP6-4 |
+| 57 | P7 | B7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.1 P7.2 P7.3 P7.4 P7.5 P7.6 P7.7` | frontier/high | design-required |
+| 58 | P8 | B8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.1 P8.2 P8.3 P8.4` | frontier/high | design-required |
+| 59 | P8 | BP8-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.5` | implementation/medium | design-required |
+| 60 | P8 | BP8-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.6` | implementation/medium | design-required |
+| 61 | P8 | BP8-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.7` | frontier/high | design-required |
+| 62 | P8 | BP8-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.8` | implementation/medium | design-required |

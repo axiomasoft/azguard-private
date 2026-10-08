@@ -5,29 +5,19 @@ Source: [JSON](../../../phases/P6/phase.json). This view is for people; agents u
 
 ## Design
 
-skeleton
+detailed
 
 ## Goal
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P6`
-
-Фасад, middleware и атрибуты контроллеров, конфиг, doctor, install, команды, тестовый kit и контрактные наборы, генераторы, удаление legacy/0.3, механизмы Laravel (optimize, about, Context).
-Зависимость фаз: P5. Разделы досье: 13 F6; 07; 12 §1–§3, §7; D09, D32, D33, D38–D40, D58.
-Принимает по [D8](../../decisions/D8-p2-dependency-closure.md): остальные методы `AzGuardManager`/`Facades\AzGuard` (P6.1); чтение `entry`/`onDenied`/`middleware`/`requireRouteChecks` и строки V64 для middleware (P6.2); полный `config/azguard.php` с `catalog.build_id`, публикацию и таблицу 07 §5 целиком (P6.3); `ChecksHealth`, `DoctorCheck`, проверку списка `doctorChecks` и «production без явного build id» (P6.4); `azguard:panels:list`, `azguard:sources:list` (P6.6); `SourceContractTests`/`PluginContractTests` на встроенных и фикстурных реализациях (P6.7); генераторы структуры D72 (P6.8); `optimizes()` для `azguard:catalog:cache|clear` и панель в `Context` очередей (P6.10).
-Принимает по [D12](../../decisions/D12-p3-storage-closure.md): doctor-сверку `storage_state` с конфигом и предупреждение о decision-поле в `meta` (P6.4); reset/restore с новой incarnation (P6.6); `storages`/`ids`/`defaults.models` в полном конфиге и публикации (P6.3).
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+Публичная Laravel-поверхность AzGuard 1.0 над ядром P1–P5: фасад и `PanelAccess`, middleware `azguard.panel`/`azguard.can` с атрибутами контроллеров и строгим режимом, полный конфиг с проверками при загрузке, doctor, команды, установка, тестовый kit и контрактные наборы, генераторы структуры D72, механизмы Laravel (optimize/about/Context), удаление справочника 0.3. Семантика решения и записи не меняется: каждый вход — адаптер над `Authorizer`/`PanelResolver`/`ChangePipeline`.
 
 ## Context
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P6`
-
-Фасад, middleware и атрибуты контроллеров, конфиг, doctor, install, команды, тестовый kit и контрактные наборы, генераторы, удаление legacy/0.3, механизмы Laravel (optimize, about, Context).
-Зависимость фаз: P5. Разделы досье: 13 F6; 07; 12 §1–§3, §7; D09, D32, D33, D38–D40, D58.
-Принимает по [D8](../../decisions/D8-p2-dependency-closure.md): остальные методы `AzGuardManager`/`Facades\AzGuard` (P6.1); чтение `entry`/`onDenied`/`middleware`/`requireRouteChecks` и строки V64 для middleware (P6.2); полный `config/azguard.php` с `catalog.build_id`, публикацию и таблицу 07 §5 целиком (P6.3); `ChecksHealth`, `DoctorCheck`, проверку списка `doctorChecks` и «production без явного build id» (P6.4); `azguard:panels:list`, `azguard:sources:list` (P6.6); `SourceContractTests`/`PluginContractTests` на встроенных и фикстурных реализациях (P6.7); генераторы структуры D72 (P6.8); `optimizes()` для `azguard:catalog:cache|clear` и панель в `Context` очередей (P6.10).
-Принимает по [D12](../../decisions/D12-p3-storage-closure.md): doctor-сверку `storage_state` с конфигом и предупреждение о decision-поле в `meta` (P6.4); reset/restore с новой incarnation (P6.6); `storages`/`ids`/`defaults.models` в полном конфиге и публикации (P6.3).
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+Детализировано 2026-10-08 по досье 13 F6; 07; 12 §1–§3, §7; 05 §2–§3; D09, D32, D33, D38–D40, D56, D58, D72, D73; 09 §3.1, §12; 20 F18/F21 и реальному коду HEAD b9af206.
+Модель фазы — [knowledge/P6-surface-model](../../knowledge/P6-surface-model.json): база кода, проверенные предпосылки Laravel (optimizes с v11.27.1, родительские атрибуты контроллеров с 13.5), паттерны AWS/S3 с источниками, инварианты I1–I9, адаптер маршрутов, модель doctor, карта приёмки.
+Решение фазы — [D24](../../decisions/D24.json): порядок по владению кодом, P6.11 Review, адаптеры версий, fake-шпион и форма контрактных наборов, владелец внешнего импорта P8.1, `azguard:audit:prune`, коды выхода install, SHA справочника 0.3 для P7.
+Принимает по D8: остальные методы фасада (P6.1); чтение entry/onDenied/middleware/requireRouteChecks и V64 middleware (P6.2); полный конфиг с catalog.build_id и таблица 07 §5 (P6.3); ChecksHealth/DoctorCheck/doctorChecks и production без build id (P6.4); panels:list, sources:list (P6.6); SourceContractTests/PluginContractTests (P6.7); генераторы D72 (P6.8); optimizes и Context (P6.10).
+Принимает по D12: doctor-сверку storage_state и fields.meta (P6.4); reset с новой incarnation (P6.6); storages/ids/defaults.models в полном конфиге (P6.3). По D18: PanelAccess/фасад (P6.1), rename-key/prune/audit (P6.6), AuditTableExists (P6.4).
 
 ## Depends on
 
@@ -39,30 +29,92 @@ review-пункт и batch задаются там же.
 - P6.2
 - P6.3
 - P6.4
-- P6.5
 - P6.6
 - P6.7
 - P6.8
+- P6.5
 - P6.9
 - P6.10
+- P6.11
 
 ## Batches
 
 ```json
 [
   {
-    "id": "B6",
+    "id": "BP6-1",
     "items": [
-      "P6.1",
-      "P6.2",
-      "P6.3",
-      "P6.4",
-      "P6.5",
-      "P6.6",
-      "P6.7",
-      "P6.8",
-      "P6.9",
+      "P6.1"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-2",
+    "items": [
+      "P6.2"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-3",
+    "items": [
+      "P6.3"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-4",
+    "items": [
+      "P6.4"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-6",
+    "items": [
+      "P6.6"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-7",
+    "items": [
+      "P6.7"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-8",
+    "items": [
+      "P6.8"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-5",
+    "items": [
+      "P6.5"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-9",
+    "items": [
+      "P6.9"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-10",
+    "items": [
       "P6.10"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP6-11",
+    "items": [
+      "P6.11"
     ],
     "mode": "recommended"
   }
@@ -77,36 +129,40 @@ review-пункт и batch задаются там же.
 }
 ```
 
-## P6 — Laravel-поверхность и удаление legacy
-
-
-
 ## Phase Context
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P6`
+Детализировано 2026-10-08 по досье 13 F6; 07; 12 §1–§3, §7; 05 §2–§3; D09, D32, D33, D38–D40, D56, D58, D72, D73; 09 §3.1, §12; 20 F18/F21 и реальному коду HEAD b9af206.
+Модель фазы — [knowledge/P6-surface-model](../../knowledge/P6-surface-model.json): база кода, проверенные предпосылки Laravel (optimizes с v11.27.1, родительские атрибуты контроллеров с 13.5), паттерны AWS/S3 с источниками, инварианты I1–I9, адаптер маршрутов, модель doctor, карта приёмки.
+Решение фазы — [D24](../../decisions/D24.json): порядок по владению кодом, P6.11 Review, адаптеры версий, fake-шпион и форма контрактных наборов, владелец внешнего импорта P8.1, `azguard:audit:prune`, коды выхода install, SHA справочника 0.3 для P7.
+Принимает по D8: остальные методы фасада (P6.1); чтение entry/onDenied/middleware/requireRouteChecks и V64 middleware (P6.2); полный конфиг с catalog.build_id и таблица 07 §5 (P6.3); ChecksHealth/DoctorCheck/doctorChecks и production без build id (P6.4); panels:list, sources:list (P6.6); SourceContractTests/PluginContractTests (P6.7); генераторы D72 (P6.8); optimizes и Context (P6.10).
+Принимает по D12: doctor-сверку storage_state и fields.meta (P6.4); reset с новой incarnation (P6.6); storages/ids/defaults.models в полном конфиге (P6.3). По D18: PanelAccess/фасад (P6.1), rename-key/prune/audit (P6.6), AuditTableExists (P6.4).
 
-Фасад, middleware и атрибуты контроллеров, конфиг, doctor, install, команды, тестовый kit и контрактные наборы, генераторы, удаление legacy/0.3, механизмы Laravel (optimize, about, Context).
-Зависимость фаз: P5. Разделы досье: 13 F6; 07; 12 §1–§3, §7; D09, D32, D33, D38–D40, D58.
-Принимает по [D8](../../decisions/D8-p2-dependency-closure.md): остальные методы `AzGuardManager`/`Facades\AzGuard` (P6.1); чтение `entry`/`onDenied`/`middleware`/`requireRouteChecks` и строки V64 для middleware (P6.2); полный `config/azguard.php` с `catalog.build_id`, публикацию и таблицу 07 §5 целиком (P6.3); `ChecksHealth`, `DoctorCheck`, проверку списка `doctorChecks` и «production без явного build id» (P6.4); `azguard:panels:list`, `azguard:sources:list` (P6.6); `SourceContractTests`/`PluginContractTests` на встроенных и фикстурных реализациях (P6.7); генераторы структуры D72 (P6.8); `optimizes()` для `azguard:catalog:cache|clear` и панель в `Context` очередей (P6.10).
-Принимает по [D12](../../decisions/D12-p3-storage-closure.md): doctor-сверку `storage_state` с конфигом и предупреждение о decision-поле в `meta` (P6.4); reset/restore с новой incarnation (P6.6); `storages`/`ids`/`defaults.models` в полном конфиге и публикации (P6.3).
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+## Order
 
-## Item index
+| Шаг | Пункт | Batch | Почему здесь |
+|---|---|---|---|
+| 1 | P6.1 | BP6-1 | фасад и PanelAccess — проводка готового ядра, база для HTTP/CLI |
+| 2 | P6.2 | BP6-2 | HTTP-вход и общий сборщик RouteChecks; нужен строке 07 §5 missing_permission_check и doctor |
+| 3 | P6.3 | BP6-3 | полный конфиг и V36 после того, как последняя строка 07 §5 (P6.2) существует |
+| 4 | P6.4 | BP6-4 | doctor читает конфиг P6.3 и RouteChecks P6.2 |
+| 5 | P6.6 | BP6-6 | команды; reset/prune/audit/rename поверх пайплайна; снимок команд |
+| 6 | P6.7 | BP6-7 | kit и контрактные наборы против встроенных реализаций |
+| 7 | P6.8 | BP6-8 | генераторы проверяются наборами P6.7 |
+| 8 | P6.5 | BP6-5 | install вызывает make:panel (P6.8) и doctor (P6.4) — D24 п.1 |
+| 9 | P6.9 | BP6-9 | удаление legacy после того, как генераторы перестали в нём нуждаться |
+| 10 | P6.10 | BP6-10 | Context пишет EnterPanel (P6.2); about делит признак свежести с doctor (P6.4) |
+| 11 | P6.11 | BP6-11 | read-only Review P6 |
 
-| ID | Title | Spec |
-|:--|:--|:--|
-| P6.1 | Фасад, PanelAccess, actingAs | [P6.1.md](P6.1.md) |
-| P6.2 | Middleware azguard.panel/azguard.can и CheckPermission | [P6.2.md](P6.2.md) |
-| P6.3 | config/azguard.php и AzGuardConfig | [P6.3.md](P6.3.md) |
-| P6.4 | Doctor | [P6.4.md](P6.4.md) |
-| P6.5 | azguard:install | [P6.5.md](P6.5.md) |
-| P6.6 | Команды | [P6.6.md](P6.6.md) |
-| P6.7 | Тестовый kit, AzGuardFake, контрактные наборы | [P6.7.md](P6.7.md) |
-| P6.8 | Генераторы и stubs по структуре D56/D72 | [P6.8.md](P6.8.md) |
-| P6.9 | Удаление legacy/0.3 и старых имён | [P6.9.md](P6.9.md) |
-| P6.10 | optimizes, about, панель в Context для очередей | [P6.10.md](P6.10.md) |
+Все batches solo, стратегия sequential: каждый пункт меняет `AzGuardServiceProvider` и общие снимки, параллельные lanes конфликтовали бы.
+
+## Acceptance
+
+Нормативная карта V/R/probe → owning item — раздел «Acceptance» `@plan/knowledge/P6-surface-model.json`. Фаза закрыта, когда P6.1–P6.10 done, P01c/P03 фасадные и `azguard.can` строки covered, каждая строка 07 §5 имеет тест, CRM README честно показывает статусы R-кейсов P6, consumer-фикстура 11/12/13 зелёная, и verdict P6.11 — GREEN.
+
+## Validation strategy
+
+Каждый пункт: targeted Pest своих тестов, `tests/Arch`, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check` (где меняется публичный API), `git diff --check`; P6.6 — engine-гонка `StateResetRaceTest` на PG/MySQL/MariaDB; P6.2/P6.10 — `bin/consumer-fixture.sh` на Laravel 11/12/13 (нет сети = blocker, не GREEN). Итоги исполнения — разделы пунктов в `@plan/knowledge/findings-P6-execution.json`.
 
 ## Phase Handoff
 
-Фаза не детализирована.
+Фаза детализирована; первый исполняемый пункт — P6.1.
