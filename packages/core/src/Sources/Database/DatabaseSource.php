@@ -678,6 +678,73 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
+     * @internal How many grants of the panel expired by `$now`, in every origin; `$tenant` narrows to one. Counted for a
+     * dry run of the prune, never for a decision.
+     */
+    public function countExpired(Panel $panel, ?TenantRef $tenant, DateTimeImmutable $now): int
+    {
+        $this->bindPanel($panel->id());
+        $count = 0;
+        foreach (['role_grants', 'permission_grants'] as $table) {
+            $query = $this->resolvedStorage()->table($table)->where('panel', $panel->id())->whereNotNull('expires_at')
+                ->where('expires_at', '<=', $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'));
+
+            if ($tenant !== null) {
+                $query->where('tenant_key', $tenant->key());
+            }
+            $count += $query->count();
+        }
+
+        return $count;
+    }
+
+    /**
+     * @internal Distinct subjects with a stored role grant that has not expired by `$now`, by role key, in the tenant and
+     * every origin and context. Read for listings, never for a decision.
+     *
+     * @return array<string, int>
+     */
+    public function holderCounts(Panel $panel, TenantRef $tenant, DateTimeImmutable $now): array
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $holders = $storage->table('role_grants')->where('panel', $panel->id())->where('tenant_key', $tenant->key())
+            ->where(static fn (Builder $query): Builder => $query->whereNull('expires_at')
+                ->orWhere('expires_at', '>', $now->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')))
+            ->select('role', 'subject_type', 'subject_id')->distinct();
+        $counts = [];
+        foreach ($storage->connection()->query()->useWritePdo()->fromSub($holders, 'holders')->select('role')->selectRaw('count(*) as holders')
+            ->groupBy('role')->orderBy('role')->get() as $row) {
+            $counts[(string) $row->role] = (int) $row->holders;
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @internal Origins of the stored grants of the subject in the tenant, of both kinds, sorted.
+     *
+     * @return list<string>
+     */
+    public function grantOrigins(Panel $panel, TenantRef $tenant, SubjectRef $subject): array
+    {
+        $this->bindPanel($panel->id());
+        $storage = $this->resolvedStorage();
+        $origins = [];
+        foreach (['role_grants', 'permission_grants'] as $table) {
+            foreach ($storage->table($table)->where('panel', $panel->id())->where('tenant_key', $tenant->key())
+                ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()))
+                ->distinct()->pluck('origin') as $origin) {
+                $origins[(string) $origin] = true;
+            }
+        }
+        $origins = array_keys($origins);
+        sort($origins, SORT_STRING);
+
+        return $origins;
+    }
+
+    /**
      * @internal One stored grant by id inside the panel, tenant and origin, whatever its state, read on the primary
      * outside any mutation; a foreign or malformed id is null.
      */

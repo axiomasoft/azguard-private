@@ -69,6 +69,22 @@ final class SourceManager extends Manager
     }
 
     /**
+     * Every registered name with the class declared by `#[AsSource]`, or null for a creator registered with `extend()`,
+     * ordered by name.
+     *
+     * @internal read by `azguard:sources:list`
+     *
+     * @return array<string, class-string<Source>|null>
+     */
+    public function names(): array
+    {
+        $names = array_map(static fn (): null => null, $this->customCreators) + $this->attributes;
+        ksort($names, SORT_STRING);
+
+        return $names;
+    }
+
+    /**
      * A new instance of the named source. The creator receives the parameters of `azguard.sources.<name>`.
      *
      * @throws UnknownSourceException when nothing is registered under the name

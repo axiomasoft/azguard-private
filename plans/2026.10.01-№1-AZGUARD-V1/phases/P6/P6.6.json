@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P6.6",
   "title": "Команды",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Команды 12 §1, кроме уже существующих (`catalog:cache|clear`, `storage:migration`, `explain`), install/doctor/make/filament: списки панелей/источников/каталога/ролей/выдач/прав, выдачи/отзывы, dynamic actions, `roles:rename-key`, `grants:prune` + планировщик, `state:reset`, `audit:prune`; общие опции `--panel`, `--tenant`, `--origin`, `--json`, `--force`, `--dry-run`; снимок команд.",
   "why": "CLI — операционный вход (D38) и владелец reset/restore (D12/P4.20), rename-key/prune/audit (D18). Жёсткие риски: запись мимо `ChangePipeline` или с актором-пользователем, выбор панели «сам» вместо ошибки (D05), операция над всеми tenants, необратимое действие в production без `--force`, reset, который не меняет incarnation и воскрешает кэш (V100/R57), гонка reset ∥ grant.",
   "scope": {
@@ -250,7 +250,16 @@
     "U1",
     "U2"
   ],
-  "updated_at": "2026-10-08T02:55:25Z",
+  "result": {
+    "started_at": "2026-10-08T06:40:21Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "8854aebe-52c4-4c70-b576-8d2f2787d893"
+    }
+  },
+  "updated_at": "2026-10-08T06:40:21Z",
   "sections": [
     {
       "id": "Intent",

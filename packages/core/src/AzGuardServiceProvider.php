@@ -14,8 +14,14 @@ use AzGuard\Contracts\Panels\PanelRegistry as PanelRegistryContract;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
 use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
+use AzGuard\Laravel\Console\Commands\CatalogListCommand;
 use AzGuard\Laravel\Console\Commands\DoctorCommand;
 use AzGuard\Laravel\Console\Commands\ExplainCommand;
+use AzGuard\Laravel\Console\Commands\GrantsListCommand;
+use AzGuard\Laravel\Console\Commands\PanelsListCommand;
+use AzGuard\Laravel\Console\Commands\PermissionsShowCommand;
+use AzGuard\Laravel\Console\Commands\RolesListCommand;
+use AzGuard\Laravel\Console\Commands\SourcesListCommand;
 use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
 use AzGuard\Laravel\Gate\GateBridge;
 use AzGuard\Laravel\Http\Middleware\CheckPermission;
@@ -109,7 +115,11 @@ final class AzGuardServiceProvider extends ServiceProvider
         }
 
         if ($this->app->runningInConsole()) {
-            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class, DoctorCommand::class]);
+            $this->commands([
+                CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class, DoctorCommand::class,
+                PanelsListCommand::class, SourcesListCommand::class, CatalogListCommand::class, RolesListCommand::class, GrantsListCommand::class,
+                PermissionsShowCommand::class,
+            ]);
         }
 
         $this->app->booted(function (): void {
