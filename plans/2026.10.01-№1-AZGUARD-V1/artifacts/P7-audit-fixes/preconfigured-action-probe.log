@@ -1,0 +1,1 @@
+{"tool":"pest","result":"failed","tests":1,"passed":0,"assertions":3,"duration_ms":198,"failed":1,"failures":[{"test":"P\\Tmp\\azguardpreconfiguredactionprobe::__pest_evaluable_it_preconfigured_custom_action_has_no_implicit_bypass_when_served_later","file":"/tmp/azguard-preconfigured-action-probe.php","line":21,"message":"Expecting null not to be null ."}]}
