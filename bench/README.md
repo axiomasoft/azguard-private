@@ -132,6 +132,35 @@ writes slower than a check takes, so a check rarely spans a write.
 | mysql-none | paced50:w4 | 300 | 0 (0%) | 0% | 7.26 / 15.11 / 20.73 | 6.4 |
 | mysql-none | paced200:w4 | 300 | 49 (16%) | 0% | 6.91 / 20.73 / 23.82 | 6.02 |
 
+## Consistency under writes (2026-10-09, mini tier, after steps 1-6)
+
+Files `results/2026-10-09-consistency-after-*`, same profile and tier. `consistency_error` is 0 in every stage on
+every driver (it was 14-22% under closed-loop writers). With a cache, writes to other subjects no longer evict
+entries (`disjoint`: 100% hits). The hot subject is written all the time, so its misses are correct. The earlier
+97% / 63% (*) counted hits that ignored the write. SQL per check: 5 on a miss, 2 on a hit (the observed-state
+statement included). The box was under heavy shared load during the after run (load average 8-20), so the latency
+columns are only indicative. Snapshot duration and panel lock wait/hold are not instrumented separately. Write
+latency (p50 3-17 ms, p95 4-50 ms; mysql hot p95 86 ms) bounds lock wait plus hold.
+
+| driver | stage | consistency_error before → after | hit ratio before → after | check p95 ms before → after |
+|---|---|---|---|---|
+| sqlite | disjoint | 66 (22%) → 0 | 0% → 0% | 5.54 → 6.85 |
+| sqlite | hot | 58 (19%) → 0 | 0% → 0% | 7.83 → 7.31 |
+| sqlite | paced200 | 64 (21%) → 0 | 0% → 0% | 5.79 → 7.62 |
+| sqlite+array | disjoint | 61 (20%) → 0 | 49% → 100% | 6.66 → 4.93 |
+| sqlite+array | hot | 61 (20%) → 0 | 97%* → 48% | 10.87 → 8.34 |
+| sqlite+array | paced50 | 0 → 0 | 2% → 77% | 8.18 → 7.75 |
+| sqlite+array | paced200 | 54 (18%) → 0 | 24% → 64% | 6.38 → 6.91 |
+| pgsql | disjoint | 54 (18%) → 0 | 0% → 0% | 17.37 → 21.89 |
+| pgsql | paced50 | 8 (3%) → 0 | 0% → 0% | 25.03 → 23.92 |
+| pgsql | paced200 | 56 (19%) → 0 | 0% → 0% | 19.17 → 31.32 |
+| pgsql+redis | disjoint | 47 (16%) → 0 | 42% → 100% | 28.21 → 8.47 |
+| pgsql+redis | hot | 42 (14%) → 0 | 63%* → 21% | 35.22 → 15.41 |
+| pgsql+redis | paced200 | 60 (20%) → 0 | 36% → 80% | 24.74 → 12.22 |
+| mysql | disjoint | 42 (14%) → 0 | 0% → 0% | 22.15 → 25.89 |
+| mysql | paced200 | 49 (16%) → 0 | 0% → 0% | 20.73 → 10.57 |
+| mariadb | all four stages | — → 0 | — | 9.9–18.7 |
+
 ## CI
 
 The smoke tier runs in the test suite (`tests/Feature/Bench/LoadBenchSmokeTest.php`), so the harness cannot rot.
