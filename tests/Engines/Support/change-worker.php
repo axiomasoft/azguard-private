@@ -45,7 +45,9 @@ $id = $connection->selectOne($connection->getDriverName() === 'pgsql' ? 'select 
 $report = ['connection_id' => (int) $id, 'pipes' => 0, 'status' => null, 'effects' => null, 'removed' => null, 'version' => null, 'incarnation' => null, 'error' => null, 'message' => null, 'fingerprint' => null];
 
 if (isset($options['id_file'])) {
-    file_put_contents($options['id_file'], (string) $id);
+    // Write then rename: the parent polls for the file, so it must never see it created but still empty.
+    file_put_contents($options['id_file'].'.tmp', (string) $id);
+    rename($options['id_file'].'.tmp', $options['id_file']);
 }
 
 try {
