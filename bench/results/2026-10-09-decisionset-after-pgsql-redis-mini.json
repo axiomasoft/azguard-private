@@ -1,0 +1,1023 @@
+{
+    "schema": "urn:azguard:bench:result:1",
+    "date": "2026-10-09T21:42:11Z",
+    "commit": "aad41106db18",
+    "dirty": true,
+    "tier": "mini",
+    "driver": "pgsql",
+    "cache": "redis",
+    "environment": {
+        "php": "8.4.26",
+        "laravel": "13.35.0",
+        "database": "pgsql",
+        "database_server": "16.15",
+        "opcache": true,
+        "xdebug": false,
+        "cpu": "Intel(R) Xeon(R) Processor",
+        "cpus": 8,
+        "os": "Linux 6.12.94+"
+    },
+    "dataset": {
+        "tier": {
+            "name": "mini",
+            "users": 200,
+            "heavy_roles": 20,
+            "heavy_direct": 200,
+            "posts": 10000,
+            "tenants": 20,
+            "members_per_tenant": 10,
+            "iterations": 200,
+            "warmup": 20,
+            "ladder": [
+                1,
+                2,
+                4
+            ],
+            "reps": 3
+        },
+        "rows": {
+            "users": 200,
+            "posts": 10000,
+            "teams": 20,
+            "team_user": 200,
+            "azg_role_grants": 509,
+            "azg_permission_grants": 220
+        },
+        "digest": "97bdddcaad4f0b3be0fb6da9c77dc5cee0b639a4d164a88488767425eb08ba4e"
+    },
+    "profiles": [
+        {
+            "id": "decision-set",
+            "description": "decideMany() over 100 to 2 000 distinct subjects: snapshot span, SQL and latency; a writer beside a set of 500",
+            "primary_op": "set",
+            "stages": [
+                {
+                    "name": "set100:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 5,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        1.496,
+                        1.433,
+                        1.434
+                    ],
+                    "reps": [
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2290,
+                                "p95_us": 3370,
+                                "p99_us": 3370,
+                                "max_us": 3370,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.3
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 303837.9,
+                                "p95_us": 333511.5,
+                                "p99_us": 333511.5,
+                                "max_us": 333511.5,
+                                "sql_per_op": 3,
+                                "ops_per_s": 3.3
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2210,
+                                "p95_us": 2320,
+                                "p99_us": 2320,
+                                "max_us": 2320,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.5
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 286794.9,
+                                "p95_us": 294777.7,
+                                "p99_us": 294777.7,
+                                "max_us": 294777.7,
+                                "sql_per_op": 3,
+                                "ops_per_s": 3.5
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2060,
+                                "p95_us": 2530,
+                                "p99_us": 2530,
+                                "max_us": 2530,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.5
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 286005.1,
+                                "p95_us": 322313.8,
+                                "p99_us": 322313.8,
+                                "max_us": 322313.8,
+                                "sql_per_op": 3,
+                                "ops_per_s": 3.5
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.snapshot": {
+                            "p50_us": 2210,
+                            "p95_us": 2530,
+                            "p99_us": 2530,
+                            "sql_per_op": 0,
+                            "ops_per_s": 3.5,
+                            "errors": 0,
+                            "p95_cv": 0.166,
+                            "stable": false
+                        },
+                        "set": {
+                            "p50_us": 286794.9,
+                            "p95_us": 322313.8,
+                            "p99_us": 322313.8,
+                            "sql_per_op": 3,
+                            "ops_per_s": 3.5,
+                            "errors": 0,
+                            "p95_cv": 0.051,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                },
+                {
+                    "name": "set250:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 5,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        3.573,
+                        3.463,
+                        3.632
+                    ],
+                    "reps": [
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 3000,
+                                "p95_us": 3220,
+                                "p99_us": 3220,
+                                "max_us": 3220,
+                                "sql_per_op": 0,
+                                "ops_per_s": 1.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 683353.5,
+                                "p95_us": 882561.8,
+                                "p99_us": 882561.8,
+                                "max_us": 882561.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 1.4
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2950,
+                                "p95_us": 3680,
+                                "p99_us": 3680,
+                                "max_us": 3680,
+                                "sql_per_op": 0,
+                                "ops_per_s": 1.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 688916,
+                                "p95_us": 723909.7,
+                                "p99_us": 723909.7,
+                                "max_us": 723909.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 1.4
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 3360,
+                                "p95_us": 4030,
+                                "p99_us": 4030,
+                                "max_us": 4030,
+                                "sql_per_op": 0,
+                                "ops_per_s": 1.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 718354.5,
+                                "p95_us": 787835.6,
+                                "p99_us": 787835.6,
+                                "max_us": 787835.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 1.4
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.snapshot": {
+                            "p50_us": 3000,
+                            "p95_us": 3680,
+                            "p99_us": 3680,
+                            "sql_per_op": 0,
+                            "ops_per_s": 1.4,
+                            "errors": 0,
+                            "p95_cv": 0.091,
+                            "stable": true
+                        },
+                        "set": {
+                            "p50_us": 688916,
+                            "p95_us": 787835.6,
+                            "p99_us": 787835.6,
+                            "sql_per_op": 5,
+                            "ops_per_s": 1.4,
+                            "errors": 0,
+                            "p95_cv": 0.082,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                },
+                {
+                    "name": "set500:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 5,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        6.708,
+                        7.332,
+                        6.815,
+                        6.499,
+                        6.711
+                    ],
+                    "reps": [
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5110,
+                                "p95_us": 5830,
+                                "p99_us": 5830,
+                                "max_us": 5830,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.7
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 1345380.7,
+                                "p95_us": 1363078.7,
+                                "p99_us": 1363078.7,
+                                "max_us": 1363078.7,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.7
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 4400,
+                                "p95_us": 5560,
+                                "p99_us": 5560,
+                                "max_us": 5560,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.7
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 1384986.3,
+                                "p95_us": 1841443.5,
+                                "p99_us": 1841443.5,
+                                "max_us": 1841443.5,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.7
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 4050,
+                                "p95_us": 5380,
+                                "p99_us": 5380,
+                                "max_us": 5380,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.7
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 1337419.9,
+                                "p95_us": 1533114.6,
+                                "p99_us": 1533114.6,
+                                "max_us": 1533114.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.7
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 3780,
+                                "p95_us": 5340,
+                                "p99_us": 5340,
+                                "max_us": 5340,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.8
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 1318410.8,
+                                "p95_us": 1329048.3,
+                                "p99_us": 1329048.3,
+                                "max_us": 1329048.3,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.8
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 4450,
+                                "p95_us": 5300,
+                                "p99_us": 5300,
+                                "max_us": 5300,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.7
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 1321736.9,
+                                "p95_us": 1425011.8,
+                                "p99_us": 1425011.8,
+                                "max_us": 1425011.8,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.7
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.snapshot": {
+                            "p50_us": 4400,
+                            "p95_us": 5380,
+                            "p99_us": 5380,
+                            "sql_per_op": 0,
+                            "ops_per_s": 0.7,
+                            "errors": 0,
+                            "p95_cv": 0.036,
+                            "stable": true
+                        },
+                        "set": {
+                            "p50_us": 1337419.9,
+                            "p95_us": 1425011.8,
+                            "p99_us": 1425011.8,
+                            "sql_per_op": 7,
+                            "ops_per_s": 0.7,
+                            "errors": 0,
+                            "p95_cv": 0.124,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                },
+                {
+                    "name": "set1000:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 5,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        13.684,
+                        13.464,
+                        13.439
+                    ],
+                    "reps": [
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 9991.8,
+                                "p95_us": 11086.7,
+                                "p99_us": 11086.7,
+                                "max_us": 11086.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2712542,
+                                "p95_us": 2929506,
+                                "p99_us": 2929506,
+                                "max_us": 2929506,
+                                "sql_per_op": 13,
+                                "ops_per_s": 0.4
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 9645.4,
+                                "p95_us": 11047.1,
+                                "p99_us": 11047.1,
+                                "max_us": 11047.1,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2689681.5,
+                                "p95_us": 2834481.1,
+                                "p99_us": 2834481.1,
+                                "max_us": 2834481.1,
+                                "sql_per_op": 13,
+                                "ops_per_s": 0.4
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 9388,
+                                "p95_us": 10775.1,
+                                "p99_us": 10775.1,
+                                "max_us": 10775.1,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.4
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 2710110.9,
+                                "p95_us": 2870408.3,
+                                "p99_us": 2870408.3,
+                                "max_us": 2870408.3,
+                                "sql_per_op": 13,
+                                "ops_per_s": 0.4
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.snapshot": {
+                            "p50_us": 9645.4,
+                            "p95_us": 11047.1,
+                            "p99_us": 11047.1,
+                            "sql_per_op": 0,
+                            "ops_per_s": 0.4,
+                            "errors": 0,
+                            "p95_cv": 0.013,
+                            "stable": true
+                        },
+                        "set": {
+                            "p50_us": 2710110.9,
+                            "p95_us": 2870408.3,
+                            "p99_us": 2870408.3,
+                            "sql_per_op": 13,
+                            "ops_per_s": 0.4,
+                            "errors": 0,
+                            "p95_cv": 0.014,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                },
+                {
+                    "name": "set2000:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 5,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        28.581,
+                        27.262,
+                        26.751,
+                        27.98,
+                        26.717
+                    ],
+                    "reps": [
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 21335.7,
+                                "p95_us": 22465.7,
+                                "p99_us": 22465.7,
+                                "max_us": 22465.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.2
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5359654.9,
+                                "p95_us": 7250332.7,
+                                "p99_us": 7250332.7,
+                                "max_us": 7250332.7,
+                                "sql_per_op": 25,
+                                "ops_per_s": 0.2
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 20773.5,
+                                "p95_us": 22287.8,
+                                "p99_us": 22287.8,
+                                "max_us": 22287.8,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.2
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5437677.6,
+                                "p95_us": 5605255.4,
+                                "p99_us": 5605255.4,
+                                "max_us": 5605255.4,
+                                "sql_per_op": 25,
+                                "ops_per_s": 0.2
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 20865,
+                                "p95_us": 21406.1,
+                                "p99_us": 21406.1,
+                                "max_us": 21406.1,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.2
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5298994.6,
+                                "p95_us": 5558678.7,
+                                "p99_us": 5558678.7,
+                                "max_us": 5558678.7,
+                                "sql_per_op": 25,
+                                "ops_per_s": 0.2
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 21178.1,
+                                "p95_us": 22046.6,
+                                "p99_us": 22046.6,
+                                "max_us": 22046.6,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.2
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5543154.4,
+                                "p95_us": 5917402.2,
+                                "p99_us": 5917402.2,
+                                "max_us": 5917402.2,
+                                "sql_per_op": 25,
+                                "ops_per_s": 0.2
+                            }
+                        },
+                        {
+                            "probe.snapshot": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 20392.9,
+                                "p95_us": 23576.3,
+                                "p99_us": 23576.3,
+                                "max_us": 23576.3,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.2
+                            },
+                            "set": {
+                                "count": 5,
+                                "errors": 0,
+                                "p50_us": 5310941.4,
+                                "p95_us": 5514977.4,
+                                "p99_us": 5514977.4,
+                                "max_us": 5514977.4,
+                                "sql_per_op": 25,
+                                "ops_per_s": 0.2
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.snapshot": {
+                            "p50_us": 20865,
+                            "p95_us": 22287.8,
+                            "p99_us": 22287.8,
+                            "sql_per_op": 0,
+                            "ops_per_s": 0.2,
+                            "errors": 0,
+                            "p95_cv": 0.032,
+                            "stable": true
+                        },
+                        "set": {
+                            "p50_us": 5359654.9,
+                            "p95_us": 5605255.4,
+                            "p99_us": 5605255.4,
+                            "sql_per_op": 25,
+                            "ops_per_s": 0.2,
+                            "errors": 0,
+                            "p95_cv": 0.11,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                },
+                {
+                    "name": "writer500:w2",
+                    "workers": 2,
+                    "iterations_per_worker": 10,
+                    "warmup_per_worker": 1,
+                    "windows_s": [
+                        15.476,
+                        15.591,
+                        15.487,
+                        15.561,
+                        15.612
+                    ],
+                    "reps": [
+                        {
+                            "probe.lock_hold": {
+                                "count": 253,
+                                "errors": 0,
+                                "p50_us": 7390.8,
+                                "p95_us": 9985.1,
+                                "p99_us": 32800.9,
+                                "max_us": 157440,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.3
+                            },
+                            "probe.lock_wait": {
+                                "count": 253,
+                                "errors": 0,
+                                "p50_us": 760,
+                                "p95_us": 1240,
+                                "p99_us": 1950,
+                                "max_us": 2580,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.3
+                            },
+                            "probe.snapshot": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 4650,
+                                "p95_us": 5560,
+                                "p99_us": 5560,
+                                "max_us": 5560,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.6
+                            },
+                            "set": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1375282.7,
+                                "p95_us": 1459767.3,
+                                "p99_us": 1459767.3,
+                                "max_us": 1459767.3,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.6
+                            },
+                            "write_burst": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1517213.7,
+                                "p95_us": 1557404.5,
+                                "p99_us": 1557404.5,
+                                "max_us": 1557404.5,
+                                "sql_per_op": 192.4,
+                                "ops_per_s": 0.6
+                            }
+                        },
+                        {
+                            "probe.lock_hold": {
+                                "count": 260,
+                                "errors": 0,
+                                "p50_us": 7659,
+                                "p95_us": 9877.9,
+                                "p99_us": 11359.9,
+                                "max_us": 12368.2,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.7
+                            },
+                            "probe.lock_wait": {
+                                "count": 260,
+                                "errors": 0,
+                                "p50_us": 810,
+                                "p95_us": 1130,
+                                "p99_us": 1340,
+                                "max_us": 1590,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.7
+                            },
+                            "probe.snapshot": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 4480,
+                                "p95_us": 5760,
+                                "p99_us": 5760,
+                                "max_us": 5760,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.6
+                            },
+                            "set": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1330869.9,
+                                "p95_us": 1824959.6,
+                                "p99_us": 1824959.6,
+                                "max_us": 1824959.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.6
+                            },
+                            "write_burst": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1547211.1,
+                                "p95_us": 1557202.7,
+                                "p99_us": 1557202.7,
+                                "max_us": 1557202.7,
+                                "sql_per_op": 195.6,
+                                "ops_per_s": 0.6
+                            }
+                        },
+                        {
+                            "probe.lock_hold": {
+                                "count": 256,
+                                "errors": 0,
+                                "p50_us": 7321.2,
+                                "p95_us": 9868.6,
+                                "p99_us": 11172.8,
+                                "max_us": 124483.4,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.5
+                            },
+                            "probe.lock_wait": {
+                                "count": 256,
+                                "errors": 0,
+                                "p50_us": 750,
+                                "p95_us": 1090,
+                                "p99_us": 2450,
+                                "max_us": 4500,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.5
+                            },
+                            "probe.snapshot": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 4060,
+                                "p95_us": 5150,
+                                "p99_us": 5150,
+                                "max_us": 5150,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.6
+                            },
+                            "set": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1298311.9,
+                                "p95_us": 1385564.4,
+                                "p99_us": 1385564.4,
+                                "max_us": 1385564.4,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.6
+                            },
+                            "write_burst": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1536442.3,
+                                "p95_us": 1558782.4,
+                                "p99_us": 1558782.4,
+                                "max_us": 1558782.4,
+                                "sql_per_op": 194.3,
+                                "ops_per_s": 0.6
+                            }
+                        },
+                        {
+                            "probe.lock_hold": {
+                                "count": 259,
+                                "errors": 0,
+                                "p50_us": 7300.4,
+                                "p95_us": 9904.7,
+                                "p99_us": 10626.6,
+                                "max_us": 11019.1,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.6
+                            },
+                            "probe.lock_wait": {
+                                "count": 259,
+                                "errors": 0,
+                                "p50_us": 790,
+                                "p95_us": 1150,
+                                "p99_us": 1490,
+                                "max_us": 3410,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.6
+                            },
+                            "probe.snapshot": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 4390,
+                                "p95_us": 4950,
+                                "p99_us": 4950,
+                                "max_us": 4950,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.6
+                            },
+                            "set": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1355376.5,
+                                "p95_us": 1548126.4,
+                                "p99_us": 1548126.4,
+                                "max_us": 1548126.4,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.6
+                            },
+                            "write_burst": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1540564.1,
+                                "p95_us": 1561437.5,
+                                "p99_us": 1561437.5,
+                                "max_us": 1561437.5,
+                                "sql_per_op": 194.7,
+                                "ops_per_s": 0.6
+                            }
+                        },
+                        {
+                            "probe.lock_hold": {
+                                "count": 260,
+                                "errors": 0,
+                                "p50_us": 7348.5,
+                                "p95_us": 9571.1,
+                                "p99_us": 10749.5,
+                                "max_us": 11034.5,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.7
+                            },
+                            "probe.lock_wait": {
+                                "count": 260,
+                                "errors": 0,
+                                "p50_us": 760,
+                                "p95_us": 1100,
+                                "p99_us": 1270,
+                                "max_us": 1490,
+                                "sql_per_op": 0,
+                                "ops_per_s": 16.7
+                            },
+                            "probe.snapshot": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 4310,
+                                "p95_us": 5210,
+                                "p99_us": 5210,
+                                "max_us": 5210,
+                                "sql_per_op": 0,
+                                "ops_per_s": 0.6
+                            },
+                            "set": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1315628.9,
+                                "p95_us": 1448628.6,
+                                "p99_us": 1448628.6,
+                                "max_us": 1448628.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 0.6
+                            },
+                            "write_burst": {
+                                "count": 10,
+                                "errors": 0,
+                                "p50_us": 1539204,
+                                "p95_us": 1556322.4,
+                                "p99_us": 1556322.4,
+                                "max_us": 1556322.4,
+                                "sql_per_op": 195.6,
+                                "ops_per_s": 0.6
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "probe.lock_hold": {
+                            "p50_us": 7348.5,
+                            "p95_us": 9877.9,
+                            "p99_us": 11172.8,
+                            "sql_per_op": 0,
+                            "ops_per_s": 16.6,
+                            "errors": 0,
+                            "p95_cv": 0.014,
+                            "stable": true
+                        },
+                        "probe.lock_wait": {
+                            "p50_us": 760,
+                            "p95_us": 1130,
+                            "p99_us": 1490,
+                            "sql_per_op": 0,
+                            "ops_per_s": 16.6,
+                            "errors": 0,
+                            "p95_cv": 0.047,
+                            "stable": true
+                        },
+                        "probe.snapshot": {
+                            "p50_us": 4390,
+                            "p95_us": 5210,
+                            "p99_us": 5210,
+                            "sql_per_op": 0,
+                            "ops_per_s": 0.6,
+                            "errors": 0,
+                            "p95_cv": 0.055,
+                            "stable": true
+                        },
+                        "set": {
+                            "p50_us": 1330869.9,
+                            "p95_us": 1459767.3,
+                            "p99_us": 1459767.3,
+                            "sql_per_op": 7,
+                            "ops_per_s": 0.6,
+                            "errors": 0,
+                            "p95_cv": 0.101,
+                            "stable": false
+                        },
+                        "write_burst": {
+                            "p50_us": 1539204,
+                            "p95_us": 1557404.5,
+                            "p99_us": 1557404.5,
+                            "sql_per_op": 194.7,
+                            "ops_per_s": 0.6,
+                            "errors": 0,
+                            "p95_cv": 0.001,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "a set over decision_sets.max_subjects is refused, not split",
+                            "ok": true,
+                            "detail": "5001 subjects"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

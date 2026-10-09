@@ -198,15 +198,36 @@ holds it, `probe.snapshot` the span of the read snapshot of one check (a cache h
 - With a cache, writes to other subjects keep 100% hits (`disjoint`); the subject written all the time (`hot`) misses
   correctly.
 - A `DecisionSet` reads its subjects inside one snapshot, so that snapshot spans the whole set: 167 ms on SQLite and
-  0.5-0.8 s on the servers for 500 subjects without a cache, 2-4 ms with one. The set issues 3 SQL per subject
-  (1 506 for 500) because subject revisions are read one statement per subject; batching them is the open
-  proposal. The 5 001-subject set is refused by `decision_sets.max_subjects`.
+  0.5-0.8 s on the servers for 500 subjects without a cache, 2-4 ms with one, because subject revisions were read one
+  statement per subject (1 506 SQL for 500). Batched since `ae27bbea`, see "DecisionSet batching" below. The
+  5 001-subject set is refused by `decision_sets.max_subjects`.
 - `abilities()` of 50 for the heavy subject: 102-131 ms p50 on every driver (2-2.6 ms per permission, was about 4).
 
 Micro suite (`tests/Benchmarks/Suite.php`, SQLite, OPcache off, `results/2026-10-09-final-suite-sqlite.md`): a check
 in the same request 595 µs (1 role) / 2.03 ms (20 roles + 200 direct grants); in a new request without a cache store
 4.82 ms / 21.55 ms with 5 SQL, with an array store 3.58 ms / 6.03 ms with 2 SQL; `visibleTo()` first page of 10 000
 posts 6.93 ms; `grantRole()` 3.19 ms.
+
+## DecisionSet batching (2026-10-09, mini tier)
+
+Files `results/2026-10-09-decisionset-after-*`, commit `aad41106` (`18a83eaa` for mysql, a test-only change; batched
+reads from `ae27bbea`), profile `decision-set`, same host and tier as the final results above (before =
+`results/2026-10-09-final-*`). A set of 500 subjects now reads its revisions and grants in a fixed number of statements instead of three per subject:
+
+| driver | set p50 ms before → after | SQL before → after | snapshot p50 ms before → after |
+|---|---|---|---|
+| sqlite | 1708 → 1441 | 1506 → 9 | 167 → 22.6 |
+| sqlite+array | 1434 → 1349 | 506 → 7 | 1.81 → 1.75 |
+| pgsql | 2708 → 1339 | 1506 → 9 | 813 → 28.4 |
+| pgsql+redis | 1708 → 1337 | 506 → 7 | 3.95 → 4.4 |
+| mysql | 2209 → 1336 | 1506 → 9 | 477 → 27.3 |
+| mariadb | 2263 → 1518 | 1506 → 9 | 511 → 30.6 |
+
+- The snapshot of a 500-subject set without a cache shrinks 7 times on SQLite (167 → 23 ms) and 17-29 times on the
+  servers (0.5-0.8 s → 27-31 ms), so a long set no longer holds a read snapshot open while writers commit. The SQL count grows with the chunk count, not the subjects:
+  9 for 500, 17 for 1 000, 33 for 2 000.
+- What remains of the set time (about 2.7 ms per subject) is evaluation in PHP, the same on every driver.
+- With a writer on the same panel (`writer500:w2`) the set still ends with `consistency_error` 0.
 
 ## CI
 
