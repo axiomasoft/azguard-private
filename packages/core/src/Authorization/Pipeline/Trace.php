@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Authorization\Pipeline;
 
 use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use Illuminate\Database\Eloquent\Model;
@@ -98,7 +99,13 @@ final class Trace
     public function error(string $stage, string $reason, string $component, Throwable $error): void
     {
         $this->record($stage, $reason, $component, $error);
-        Log::warning('AzGuard evaluation failed.', ['component' => $component, 'reason' => $reason, 'exception' => $error::class]);
+        $context = ['component' => $component, 'reason' => $reason, 'exception' => $error::class];
+
+        // A package code names the cause (for example invalid_configuration.authority_transaction) without the message.
+        if ($error instanceof AzGuardException) {
+            $context['code'] = $error->code();
+        }
+        Log::warning('AzGuard evaluation failed.', $context);
     }
 
     /** @return list<array<string, mixed>> */
