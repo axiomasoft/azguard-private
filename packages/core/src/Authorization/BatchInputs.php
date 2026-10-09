@@ -73,8 +73,13 @@ final class BatchInputs
                 }
                 $this->subjects[$key] = null;
                 foreach ($panel->subjectModels() as $class) {
-                    if ((new $class)->getMorphClass() === $ref->type()) {
-                        $groups[$class][$key] = $ref;
+                    $model = new $class;
+
+                    if ($model->getMorphClass() === $ref->type()) {
+                        // An id the key cannot hold names no model; querying it would fail the whole chunk on PostgreSQL.
+                        if (ModelSubjectResolver::keyCanHold($model, $ref->id())) {
+                            $groups[$class][$key] = $ref;
+                        }
 
                         break;
                     }
