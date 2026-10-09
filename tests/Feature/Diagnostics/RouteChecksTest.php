@@ -6,13 +6,17 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Http\Controllers\ClientController;
+use AzGuard\Tests\Fixtures\Http\Controllers\FallbackGatedController;
 use AzGuard\Tests\Fixtures\Http\Controllers\OpenController;
 use AzGuard\Tests\Fixtures\Http\Controllers\ReportController;
 use AzGuard\Tests\Fixtures\Http\EntryPermission;
 use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Http\OlderRouterRoute;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\Application;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Routing\Route as LaravelRoute;
+use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Carbon;
 
 /*
@@ -47,7 +51,8 @@ it('passes checked, skipped and Laravel-checked actions of a strict panel', func
     HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->requireRouteChecks());
     doctorRoute('clients/{client}', ClientController::class, 'update');
     doctorRoute('ping', OpenController::class, 'ping');
-    doctorRoute('gated', OpenController::class, 'gated');
+    // Laravel 13 reads #[Authorize] itself; on 11/12 the strict-mode check of the action is a #[CheckPermission].
+    doctorRoute('gated', class_exists(Authorize::class) ? OpenController::class : FallbackGatedController::class, 'gated');
     doctorRoute('reports', ReportController::class, 'index');
 
     expect(routeFindings())->toBe([]);
@@ -73,8 +78,11 @@ it('fails a #[CheckPermission] that names a permission of another panel than the
 
 it('fails a #[CheckPermission] outside a panel that the router of this Laravel version does not apply', function (): void {
     HttpWorld::panel();
+    // Only Laravel 13.5+ applies the attributes of a parent controller and of the action outside a panel itself.
     doctorRoute('applied', ReportController::class, 'rebuild', []);
-    expect(routeFindings())->toBe([]);
+    expect(routeFindings())->toBe(version_compare(Application::VERSION, '13.5.0', '<') ? ['core GET|HEAD /applied'] : []);
+
+    app('router')->setRoutes(new RouteCollection);
 
     doctorRoute('older', ReportController::class, 'rebuild', [], OlderRouterRoute::class);
     $finding = DoctorWorld::only(DoctorWorld::run(), 'routes.checks');

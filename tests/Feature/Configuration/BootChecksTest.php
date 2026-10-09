@@ -56,6 +56,8 @@ use AzGuard\Tests\Fixtures\Sources\Relation\ProjectDefinition;
 use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
 use AzGuard\Tests\Fixtures\Sources\WriterSource;
+use Illuminate\Database\Eloquent\Attributes\Connection;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
@@ -101,9 +103,26 @@ function adminWith(array $sources): PanelRegistry
 }
 
 /**
+ * The rows that apply to the installed Laravel: Eloquent reads #[Table] and #[Connection] only from Laravel 13, so on
+ * 11 and 12 those attributes bind nothing and there is no mismatch to report.
+ *
  * @return array<string, array{0: string, 1: class-string<AzGuardException>, 2: string, 3: Closure(): mixed}>
  */
 function bootChecks(): array
+{
+    $checks = allBootChecks();
+
+    if (! class_exists(Table::class) || ! class_exists(Connection::class)) {
+        unset($checks['a source model with a foreign Table attribute at freeze'], $checks['a source model with a foreign Connection attribute at freeze']);
+    }
+
+    return $checks;
+}
+
+/**
+ * @return array<string, array{0: string, 1: class-string<AzGuardException>, 2: string, 3: Closure(): mixed}>
+ */
+function allBootChecks(): array
 {
     return [
         'host_keys outside the list, globally' => [
