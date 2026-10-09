@@ -37,6 +37,7 @@ trait InteractsWithAzGuard
 
     /**
      * Grants the permissions to the subject, tenant-wide or in the scope `$on`, and signs it in on the guard of the panel.
+     * Direct permissions never admit to `azguard.panel` routes: use {@see self::actingAsWithRoles()} for those.
      *
      * @param  list<string|UnitEnum>  $permissions
      */
@@ -45,6 +46,21 @@ trait InteractsWithAzGuard
         $manager = app(AzGuardManager::class);
         $selected = app(PanelResolver::class)->select($subject, $permissions, [], $panel === null ? [] : [$panel]);
         $manager->actingAs('testing', static fn () => $manager->panel($selected->id())->for($subject)->grantPermission($permissions, $on));
+
+        return $this->azguardSignIn($subject, $selected->subject($subject)?->guard);
+    }
+
+    /**
+     * Grants the roles to the subject, tenant-wide or in the scope `$on`, and signs it in on the guard of the panel.
+     * Unlike direct permissions, a role also admits the subject to `azguard.panel` routes and Filament panels.
+     *
+     * @param  list<string|UnitEnum>  $roles  role keys, `panel:key` names, role classes or enum cases
+     */
+    public function actingAsWithRoles(Model $subject, array $roles, Model|AssignmentScopeRef|null $on = null, ?string $panel = null): static
+    {
+        $manager = app(AzGuardManager::class);
+        $selected = app(PanelResolver::class)->select($subject, [], $roles, $panel === null ? [] : [$panel]);
+        $manager->actingAs('testing', static fn () => $manager->panel($selected->id())->for($subject)->grantRole($roles, $on));
 
         return $this->azguardSignIn($subject, $selected->subject($subject)?->guard);
     }
