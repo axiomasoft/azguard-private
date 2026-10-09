@@ -82,7 +82,7 @@ it('prepares once and decides at one state when another connection commits durin
     expect($observed)->toBeInstanceOf(EvaluationFrame::class)
         ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Old')
         ->and($beforeTimes)->toHaveCount(1)->and($afterCalls)->toBe(1)
-        ->and($reads)->toBe(['panel_state', 'panel_state', 'permissions', 'panel_state', 'permission_grants', 'role_grants'])
+        ->and($reads)->toBe(['panel_state', 'permissions', 'panel_state', 'panel_state', 'permission_grants', 'role_grants'])
         ->and($decision->reason)->toBe(DecisionReason::Granted)->and($decision->state->version)->toBe($version);
 
 });

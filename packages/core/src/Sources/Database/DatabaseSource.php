@@ -944,7 +944,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             }
 
             return $rows;
-        }, $before);
+        }, $before, $subject);
 
         return [$state, [
             'grants' => $this->hydrate($session, 'permission_grant', $rows['permission_grant'], $subject, $context),
@@ -986,7 +986,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             }
 
             return ['role_grant' => $roles, 'permission_grant' => $grants];
-        }, $before);
+        }, $before, $subject);
 
         return [$state, (function () use ($session, $subject, $context, $rows): AssignmentScopeSelection {
             $contributions = [...$this->hydrate($session, 'role_grant', $rows['role_grant'], $subject, $context),
@@ -1050,11 +1050,22 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      * @param  ?StateToken  $before  a state read on this session earlier, the start of the first attempt's fence
      * @return array{StateToken, T}
      */
-    public function readConsistently(StorageReadSession $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null): array
+    public function readConsistently(StorageReadSession $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null, ?SubjectRef $subject = null): array
     {
         $this->bindPanel($context->panel()->id());
 
-        return $this->consistently($session, $context->panel(), $context->state()->fingerprint, $rows, $before);
+        return $this->consistently($session, $context->panel(), $context->state()->fingerprint, $rows, $before, $subject);
+    }
+
+    /**
+     * @internal The observed state of one subject's grants: panel version, epoch, incarnation and the subject's
+     * revision, read in one statement.
+     */
+    public function readObserved(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject): StateToken
+    {
+        $this->bindPanel($context->panel()->id());
+
+        return $this->token($session, $context->panel(), $context->state()->fingerprint, $subject);
     }
 
     /**
@@ -1063,20 +1074,21 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      * @param  Closure(): T  $rows
      * @return array{StateToken, T}
      */
-    private function consistently(StorageReadSession $session, Panel $panel, string $fingerprint, Closure $rows, ?StateToken $earlier = null): array
+    private function consistently(StorageReadSession $session, Panel $panel, string $fingerprint, Closure $rows, ?StateToken $earlier = null, ?SubjectRef $subject = null): array
     {
         if ($session->canSnapshot()) {
             // One snapshot: the state is read inside it, never taken from an earlier autocommit read.
-            return $session->snapshot(fn (): array => [$this->token($session, $panel, $fingerprint), $rows()]);
+            return $session->snapshot(fn (): array => [$this->token($session, $panel, $fingerprint, $subject), $rows()]);
         }
+        $earlier = $earlier !== null && ($subject === null) === ($earlier->subjectRevision === null) ? $earlier : null;
 
         // Tentative authority (the panel is locked by this root) and a test baseline read inside an open transaction
         // of their own; they keep the bounded fence.
         for ($attempt = 0; $attempt < 3; $attempt++) {
-            $before = $attempt === 0 && $earlier !== null ? $earlier : $this->token($session, $panel, $fingerprint);
+            $before = $attempt === 0 && $earlier !== null ? $earlier : $this->token($session, $panel, $fingerprint, $subject);
             $result = $rows();
 
-            if ($before->equals($this->token($session, $panel, $fingerprint))) {
+            if ($before->equals($this->token($session, $panel, $fingerprint, $subject))) {
                 return [$before, $result];
             }
         }
@@ -1084,12 +1096,16 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         throw new ConsistencyException('DatabaseSource authority changed during all three read attempts.');
     }
 
-    private function token(StorageReadSession $session, Panel $panel, string $fingerprint): StateToken
+    private function token(StorageReadSession $session, Panel $panel, string $fingerprint, ?SubjectRef $subject = null): StateToken
     {
-        $state = $session->state($panel->id());
+        if ($subject === null) {
+            [$state, $revision] = [$session->state($panel->id()), null];
+        } else {
+            [$state, $revision] = $session->observed($panel->id(), $subject->type(), HostKeyColumns::canonical($this->resolvedStorage()->hostKeys(), $subject->id()));
+        }
 
         return StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0,
-            $panel->settings()->cacheGeneration(), $fingerprint, $state->epoch ?? 0);
+            $panel->settings()->cacheGeneration(), $fingerprint, $state->epoch ?? 0, $revision);
     }
 
     /**

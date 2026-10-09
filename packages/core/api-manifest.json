@@ -13652,6 +13652,12 @@
                     "static": false
                 },
                 {
+                    "name": "subjectRevision",
+                    "type": "?int",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "version",
                     "type": "int",
                     "readonly": true,
@@ -13728,6 +13734,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "0"
+                        },
+                        {
+                            "name": "subjectRevision",
+                            "type": "?int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": "self"
@@ -20716,6 +20730,14 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "NULL"
+                        },
+                        {
+                            "name": "subject",
+                            "type": "?AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": "array"
@@ -20748,6 +20770,35 @@
                         }
                     ],
                     "return": "array"
+                },
+                {
+                    "name": "readObserved",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\StateToken"
                 },
                 {
                     "name": "readPermissions",
