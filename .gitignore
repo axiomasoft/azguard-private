@@ -33,13 +33,6 @@ tests/temp/
 .swissknifeman/
 .cursorrules
 .mcp.json
-.codex/state/
-.codex/config.toml
-.codex/hooks.pre-telemetry-*/
-.cursor/state/
-.cursor/logs/
-.cursor/runs/
-.cursor/mcp.json
 packages/core/core
 packages/filament/filament
 skills-lock.json
@@ -50,5 +43,12 @@ CLAUDE.md
 AGENTS.md
 *.bak
 .tmp*
-.grok/config.toml
-.grok/state/
+.grok/
+.codex/
+.cursor/
+.swissknife/
+.swissknife.json
+.mcp.json.example
+# Process locks of the plan CLI: per-process state, never evidence.
+plans/.lock
+plans/**/.plan-cache/*.lock
