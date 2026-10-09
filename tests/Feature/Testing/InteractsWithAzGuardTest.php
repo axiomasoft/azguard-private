@@ -16,6 +16,7 @@ use AzGuard\Storage\StorageRegistry;
 use AzGuard\Testing\FakeSubject;
 use AzGuard\Testing\InteractsWithAzGuard;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
+use AzGuard\Tests\Fixtures\Testing\KitClerkRole;
 use AzGuard\Tests\Fixtures\Testing\KitOrder;
 use AzGuard\Tests\Fixtures\Testing\KitStore;
 use AzGuard\Tests\Fixtures\Testing\KitWorld;
@@ -105,6 +106,24 @@ it('signs in a superadmin through the superadmin role of the panel', function ()
     $this->post(route('seller.orders.cancel', ['order' => 1]))->assertOk();
     $fake->assertDecided($admin, 'seller:orders.cancel', Effect::Allow);
     expect(AzGuard::panel('seller')->for($admin)->isSuperAdmin())->toBeTrue();
+});
+
+it('signs in with roles: a role, unlike a direct permission, admits to an azguard.panel route', function (): void {
+    KitWorld::panel(static fn (PanelBuilder $panel) => $panel->roles([KitClerkRole::class]));
+    Route::post('/panel/orders/{order}/cancel', static fn (): string => 'cancelled')
+        ->middleware(['web', 'azguard.panel:seller', 'azguard.can:orders.cancel,order']);
+    $fake = AzGuard::fake();
+    $direct = FakeSubject::of(5);
+    $clerk = FakeSubject::of(6);
+
+    $this->actingAsWithPermissions($direct, [OrdersPermission::Cancel]);
+    $this->post('/panel/orders/1/cancel')->assertForbidden();
+
+    expect($this->actingAsWithRoles($clerk, [KitClerkRole::class]))->toBe($this)
+        ->and(Auth::guard('web')->user())->toBe($clerk);
+    $this->post('/panel/orders/1/cancel')->assertOk();
+    $fake->assertRoleGranted($clerk, 'clerk');
+    expect($fake->changes()[1]->actor?->reason)->toBe('testing');
 });
 
 it('refuses a superadmin when the panel has no superadmin role', function (): void {

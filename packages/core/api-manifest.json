@@ -24655,6 +24655,44 @@
                         }
                     ],
                     "return": "static"
+                },
+                {
+                    "name": "actingAsWithRoles",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "on",
+                            "type": "Illuminate\\Database\\Eloquent\\Model|AzGuard\\Kernel\\Identity\\AssignmentScopeRef|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        },
+                        {
+                            "name": "panel",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "static"
                 }
             ],
             "stability": "api",
