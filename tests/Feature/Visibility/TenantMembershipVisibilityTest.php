@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
@@ -14,7 +16,7 @@ afterEach(fn () => W::reset());
 it('denies ordinary granted visibility when fixed tenant membership is absent', function () {
     W::seed();
     $source = new VisibilitySource;
-    [$visibility,$panel,$authorizer] = W::compile($source, fn (PanelBuilder $panel) => $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(members: []))), tenant: true);
+    [$visibility, $panel, $authorizer] = W::compile($source, fn (PanelBuilder $panel) => $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(members: []))), tenant: true);
     $source->direct = [W::grant(1)];
     $request = AccessRequest::for(W::subject(), PermissionKey::of('admin', 'orders.view'))->on(null, VisibilityProject::query()->find(1))->inTenant(W::tenant());
     expect($authorizer->decide($panel, $request)->allowed())->toBeFalse();
