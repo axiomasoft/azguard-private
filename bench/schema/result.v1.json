@@ -1,0 +1,62 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:azguard:bench:result:1",
+    "title": "AzGuard load bench result",
+    "description": "One run of bench/bin/run.php: environment, dataset and, per profile and stage, raw-sample statistics of every repetition and their summary. Latencies are microseconds, nearest-rank percentiles over raw samples.",
+    "type": "object",
+    "required": ["schema", "date", "commit", "dirty", "tier", "driver", "cache", "environment", "dataset", "profiles"],
+    "properties": {
+        "schema": {"const": "urn:azguard:bench:result:1"},
+        "date": {"type": "string", "format": "date-time"},
+        "commit": {"type": "string"},
+        "dirty": {"type": "boolean", "description": "packages/ or bench/ had uncommitted changes"},
+        "tier": {"enum": ["smoke", "mini", "ci", "ref"]},
+        "driver": {"enum": ["sqlite", "pgsql", "mysql", "mariadb"]},
+        "cache": {"enum": ["none", "array", "redis"]},
+        "environment": {
+            "type": "object",
+            "required": ["php", "laravel", "database", "database_server", "opcache", "xdebug", "cpu", "cpus", "os"]
+        },
+        "dataset": {
+            "type": "object",
+            "required": ["tier", "rows", "digest"],
+            "properties": {"rows": {"type": "object", "additionalProperties": {"type": "integer"}}, "digest": {"type": "string"}}
+        },
+        "profiles": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "description", "primary_op", "stages"],
+                "properties": {
+                    "stages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name", "workers", "iterations_per_worker", "warmup_per_worker", "windows_s", "reps", "summary", "checks"],
+                            "properties": {
+                                "workers": {"type": "integer", "minimum": 1},
+                                "reps": {"type": "array", "items": {"type": "object", "additionalProperties": {"$ref": "#/$defs/repetition"}}},
+                                "summary": {"type": "object", "additionalProperties": {"$ref": "#/$defs/summary"}},
+                                "checks": {
+                                    "type": "array",
+                                    "items": {"type": "object", "required": ["name", "ok", "detail"], "properties": {"ok": {"type": "boolean"}}}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "repetition": {
+            "type": "object",
+            "required": ["count", "errors", "p50_us", "p95_us", "p99_us", "max_us", "sql_per_op", "ops_per_s"]
+        },
+        "summary": {
+            "type": "object",
+            "required": ["p50_us", "p95_us", "p99_us", "sql_per_op", "ops_per_s", "errors", "p95_cv", "stable"],
+            "properties": {"stable": {"type": "boolean", "description": "p95 varies at most 10% across repetitions"}}
+        }
+    }
+}

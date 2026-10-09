@@ -21,6 +21,7 @@ return RectorConfig::configure()
     ->withPaths([
         __DIR__.'/packages/core/src',
         __DIR__.'/packages/filament/src',
+        __DIR__.'/bench/src',
     ])
     ->withPhpSets(php83: true)
     ->withSets([

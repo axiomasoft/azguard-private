@@ -5,6 +5,8 @@ parameters:
   paths:
     - packages/core/src
     - packages/filament/src
+    - bench/src
+    - bench/bin
     - tests/Fixtures/Visibility/VisibilityProject.php
     - tests/Fixtures/Concerns/Member.php
     - tests/Fixtures/Contracts/Probes

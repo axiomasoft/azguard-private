@@ -1,0 +1,12 @@
+{
+    "schema": "urn:azguard:bench:profiles:1",
+    "note": "The single list of load profiles and of their order; bench/bin/run.php --profile=all runs them in this order.",
+    "profiles": [
+        {"id": "checks-concurrent", "class": "AzGuardBench\\Load\\Profiles\\ConcurrentChecks", "primary_op": "check"},
+        {"id": "large-sets", "class": "AzGuardBench\\Load\\Profiles\\LargeSets", "primary_op": "miss"},
+        {"id": "visible-at-scale", "class": "AzGuardBench\\Load\\Profiles\\VisibleAtScale", "primary_op": "page"},
+        {"id": "cache-cold-warm", "class": "AzGuardBench\\Load\\Profiles\\CacheColdWarm", "primary_op": "warm_store"},
+        {"id": "grant-revoke-load", "class": "AzGuardBench\\Load\\Profiles\\GrantRevokeLoad", "primary_op": "check_under_writes"},
+        {"id": "multi-tenant", "class": "AzGuardBench\\Load\\Profiles\\MultiTenant", "primary_op": "member"}
+    ]
+}
