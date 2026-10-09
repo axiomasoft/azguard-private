@@ -151,7 +151,8 @@ final class ListPermissions extends Page implements HasTable
             return;
         }
         Notification::make()->success()->title('Saved')->send();
-        $this->resetTable();
+        // The filters stay: the panel and the tenant the editor chose are the target of the next change.
+        $this->flushCachedTableRecords();
     }
 
     /** Whether the filter names a panel, and a tenant where the editor chooses one. */

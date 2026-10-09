@@ -153,6 +153,33 @@ it('chooses the tenant of another panel in its directory and writes in that tena
         ->assertSet('tableFilters.target.tenant', null);
 });
 
+it('keeps the chosen panel and tenant after it creates, renames and deletes a permission', function (): void {
+    FilamentFixture::$manages = ['admin', 'seller', 'teams'];
+    $this->bootFilament();
+    GateWorld::seed();
+    EditorWorld::seed();
+    EditorWorld::editor(EDITS);
+
+    $component = Livewire::test(ListPermissions::class)
+        ->set('tableFilters.target.panel', 'teams')
+        ->set('tableFilters.target.tenant', '8');
+    $names = fn (int $team): array => array_map(fn ($p) => $p->key->local(), AzGuard::panel('teams')->inTenant(TenantRef::of('team', $team))->permissions()->all());
+
+    $component->callAction(TestAction::make('create')->table(), ['name' => 'boards.edit'])
+        ->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8');
+    expect($names(8))->toContain('boards.edit')->and($names(7))->not->toContain('boards.edit');
+
+    $component->callAction(TestAction::make('edit')->table('boards.edit'), ['label' => 'Edit boards', 'group' => null])
+        ->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8');
+
+    $component->callAction(TestAction::make('delete')->table('boards.edit'))
+        ->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8');
+    expect($names(8))->not->toContain('boards.edit');
+});
+
 it('refuses a tenant that the directory of the panel does not know', function (): void {
     FilamentFixture::$manages = ['admin', 'seller', 'teams'];
     $this->bootFilament();
