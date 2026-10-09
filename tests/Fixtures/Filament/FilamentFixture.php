@@ -11,7 +11,10 @@ use AzGuard\Tests\Fixtures\Filament\Guards\AdminMemberRole;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
+use Filament\Actions\Action;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\ResourceConfiguration;
+use Filament\Tables\Columns\Column;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -22,6 +25,18 @@ final class FilamentFixture
 {
     /** @var list<class-string|ResourceConfiguration> */
     public static array $resources;
+
+    /** @var list<Column> */
+    public static array $tableColumns = [];
+
+    /** @var list<Action> */
+    public static array $recordActions = [];
+
+    /** @var list<Action> */
+    public static array $toolbarActions = [];
+
+    /** @var list<class-string<RelationManager>> */
+    public static array $relations = [];
 
     /** @var list<class-string> */
     public static array $pages;
@@ -108,6 +123,7 @@ final class FilamentFixture
         ServiceProvider::$optimizeCommands = [];
         ServiceProvider::$optimizeClearCommands = [];
         self::$resources = [OrderResource::class, ArchivedOrderResource::class];
+        self::$tableColumns = self::$recordActions = self::$toolbarActions = self::$relations = [];
         self::$pages = [ProbePage::class];
         self::$widgets = [];
         self::$definitions = FilamentDefinitions::Enums;

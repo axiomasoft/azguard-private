@@ -11,6 +11,7 @@ use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Authorization\FilamentKeys;
 use AzGuard\Filament\Authorization\FilamentSurface;
 use AzGuard\Filament\Concerns\AuthorizesPage;
+use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
@@ -33,6 +34,9 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
+use Filament\Resources\RelationManagers\RelationGroup;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
@@ -463,6 +467,10 @@ final class AzGuardPlugin implements Plugin
 
             foreach ($classes as $class => $surface) {
                 self::assertAuthorized($panel, $surface, $class);
+
+                if ($surface === FilamentSurface::Resource) {
+                    self::assertRelations($class::getRelations());
+                }
             }
         }
 
@@ -535,6 +543,32 @@ final class AzGuardPlugin implements Plugin
         };
         AttachAction::configureUsing($visible);
         AssociateAction::configureUsing($visible);
+    }
+
+    /** @param array<class-string<RelationManager>|RelationGroup|RelationManagerConfiguration> $relations */
+    private static function assertRelations(array $relations): void
+    {
+        $trait = AuthorizesRelationManager::class;
+        $file = (new ReflectionClass($trait))->getFileName();
+
+        foreach ($relations as $relation) {
+            if ($relation instanceof RelationGroup) {
+                self::assertRelations($relation->getManagers());
+
+                continue;
+            }
+            $class = $relation instanceof RelationManagerConfiguration ? $relation->relationManager : $relation;
+
+            foreach (['canViewForRecord', 'getAuthorizationResponse', 'makeTable'] as $method) {
+                if (! in_array($trait, class_uses_recursive($class), true) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
+                    throw self::invalid($class.' in an enforced resource must use '.$trait.' and keep its authorization and visibility methods.');
+                }
+            }
+
+            if (FilamentContext::relationResource($class) === null) {
+                throw self::invalid($class.' in an enforced resource must name a related resource with '.AuthorizesResource::class.'.');
+            }
+        }
     }
 
     private function hasFilamentSource(Panel $guard): bool

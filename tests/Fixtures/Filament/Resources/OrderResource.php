@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Filament\Resources;
 
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Tests\Fixtures\Filament\Exports\OrderExporter;
+use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
 use AzGuard\Tests\Fixtures\Filament\RelationManagers\ProductsRelationManager;
 use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
@@ -29,14 +30,15 @@ class OrderResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([TextColumn::make('number')->searchable()])
+        return $table->columns(FilamentFixture::$tableColumns ?: [TextColumn::make('number')->searchable()])
+            ->recordActions(FilamentFixture::$recordActions)
             ->headerActions([ExportAction::make()->exporter(OrderExporter::class)])
-            ->toolbarActions([DeleteBulkAction::make(), ExportBulkAction::make()->exporter(OrderExporter::class)]);
+            ->toolbarActions(FilamentFixture::$toolbarActions ?: [DeleteBulkAction::make(), ExportBulkAction::make()->exporter(OrderExporter::class)]);
     }
 
     public static function getRelations(): array
     {
-        return [ProductsRelationManager::class];
+        return FilamentFixture::$relations ?: [ProductsRelationManager::class];
     }
 
     public static function getPages(): array

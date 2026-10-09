@@ -234,69 +234,66 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-08T18:05:48Z",
-    "finished_at": "2026-10-08T18:53:25Z",
+    "started_at": "2026-10-09T05:44:37Z",
+    "finished_at": "2026-10-09T05:57:55Z",
     "executor": {
-      "provider": "claude",
-      "model": "claude-opus-5-5",
-      "effort": "high",
-      "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
     },
-    "notes": "FilamentGate, трейты AuthorizesResource/RelationManager/Page/Widget, deny-only Gate::before, поштучный bulk, видимость attach/associate, AuthorizedExportCsv с повторной видимостью, boot-проверка enforce; 38 тестов Gate + 7 CRM FilamentTest (V25, V95, V96, V102, R34, R39, R40 Filament), README, CHANGELOG, findings P7.2. Жёсткий риск: граница безопасности UI и публичный API (манифест filament) — рекомендован task:review.",
+    "notes": "Исправлены F1/F2 и воспроизведённые обходы через raw column closure и relation manager без трейта. Разрешённые custom row/bulk и панели без плагина проверены. Full suite 4612/4612, Filament+CRM 190/190, arch 95/95, PHPStan 0 ошибок, Pint/API/diff зелёные, fresh serial type coverage 99.5%. Evidence: artifacts/P7-audit-fixes/*.log.",
     "deviations": [
-      "Экспорт: AuthorizedPrepareCsvExport (job() Filament задаёт prepare-job) и слушатель ActionCalling вместо ExportAction::configureUsing; options несут panel/permission/tenant/model.",
-      "Gate::before: false только для ability Filament на модели без policy и без Gate-ability; иначе null.",
-      "Boot-проверка enforce покрывает ресурсы, страницы, виджеты и переопределение методов трейтов; hook modifyEloquentQuery(). phpstan.neon вне task_files: 4 фикстуры-пользователя трейтов в paths."
+      "V7 выполнен свежим эквивалентным serial Pest type-coverage вместо ненадёжного fork-режима; docs/model Task projection stale, используется установленный canon v4."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-08T18:53:25Z"
+        "at": "2026-10-09T05:57:55Z"
       }
     ]
   },
-  "updated_at": "2026-10-08T18:53:25Z",
+  "updated_at": "2026-10-09T05:57:55Z",
   "sections": [
     {
       "id": "Intent",

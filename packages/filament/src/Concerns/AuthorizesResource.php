@@ -20,7 +20,8 @@ use UnitEnum;
  * chosen after it, and a Filament panel that enforces refuses a resource that overrides the methods of this trait.
  *
  * Inline editable columns of a table save a record without any of these checks; they are not supported in a resource
- * that AzGuard decides, unless they are `disabled()`.
+ * that AzGuard decides, unless they are `disabled()`. Enforced panels refuse enabled editors and exposed methods of
+ * editable columns before Livewire invokes them. A column action must be a Filament Action, not a raw closure.
  *
  * @phpstan-require-extends FilamentResource
  *

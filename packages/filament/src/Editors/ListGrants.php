@@ -172,7 +172,8 @@ abstract class ListGrants extends Page implements HasTable
     /** Shows the answer of «Why?» that `explain()` stored. */
     public function explanationAction(): Action
     {
-        return ExplainAction::answer(fn (): ?array => $this->explanation);
+        return ExplainAction::answer(fn (): ?array => $this->explanation)
+            ->authorize(static fn (): bool => static::getResource()::can('view'));
     }
 
     /**

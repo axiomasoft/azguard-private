@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Filament\Authorization;
+
+use Closure;
+use Filament\Tables\Columns\Contracts\Editable;
+use Filament\Tables\Contracts\HasTable;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Inline editing is unsupported in guarded tables. Check the final column settings before a Livewire call can write.
+ *
+ * @internal
+ */
+final class RefusesEditableColumns
+{
+    /** @param array<mixed> $params */
+    public function __invoke(object $component, string $method, array $params): void
+    {
+        if (! in_array($method, ['updateTableColumnState', 'callTableColumnMethod', 'callTableColumnAction'], true) || ! $component instanceof HasTable) {
+            return;
+        }
+        $context = FilamentContext::serving();
+        $resource = FilamentContext::resourceOf($component);
+
+        if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+            return;
+        }
+        $name = $params[0] ?? null;
+        $key = $params[1] ?? null;
+
+        if (! is_string($name) || ! is_string($key)) {
+            return;
+        }
+        $column = $component->getTable()->getColumn($name);
+
+        if ($method === 'callTableColumnAction') {
+            // A raw closure never reaches ActionCalling; use an explicitly authorized Action instead.
+            abort_if($column?->getAction() instanceof Closure, 403);
+
+            return;
+        }
+
+        if (! $column instanceof Editable) {
+            return;
+        }
+        $record = $component->getTableRecord($key);
+
+        if (! $record instanceof Model) {
+            return;
+        }
+        $column->record($record);
+        // Exposed column methods may skip disabled(), so do not dispatch those methods even on a disabled editor.
+        abort_unless($method === 'updateTableColumnState' && $column->isDisabled(), 403);
+    }
+}

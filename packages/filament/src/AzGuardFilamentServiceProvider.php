@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Filament\Authorization\AuthorizesActions;
 use AzGuard\Filament\Authorization\FilamentGate;
+use AzGuard\Filament\Authorization\RefusesEditableColumns;
 use AzGuard\Filament\Commands\FilamentGenerateCommand;
 use AzGuard\Filament\Exports\AuthorizesExports;
+use Filament\Actions\Action;
 use Filament\Actions\Events\ActionCalling;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -32,7 +35,10 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
             $this->commands([FilamentGenerateCommand::class]);
         }
 
+        Action::configureUsing(AuthorizesActions::configure(...));
+        $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesActions::class);
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
+        Livewire::listen('call', (new RefusesEditableColumns)(...));
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));
         $this->app->booted($this->refuseUnownedFilamentChecks(...));
     }

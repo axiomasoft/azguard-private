@@ -14,6 +14,7 @@ use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
 use AzGuard\Tests\Fixtures\Filament\Unguarded\PlainOrderResource;
 use AzGuard\Tests\Fixtures\Filament\Unguarded\PlainPage;
+use AzGuard\Tests\Fixtures\Filament\Unguarded\PlainProductsRelationManager;
 use AzGuard\Tests\Fixtures\Filament\Unguarded\PlainWidget;
 use AzGuard\Tests\Fixtures\Filament\Unguarded\QueryOrderResource;
 use Filament\Facades\Filament;
@@ -167,3 +168,10 @@ final class OrderGatePolicy
         return true;
     }
 }
+
+it('refuses a relation manager without the authorization and visibility trait in an enforced resource', function (): void {
+    FilamentFixture::$relations = [PlainProductsRelationManager::class];
+    $this->bootFilament();
+
+    expect(fn () => Filament::getPanel('admin')->boot())->toThrow(ConfigurationException::class, 'AuthorizesRelationManager');
+});

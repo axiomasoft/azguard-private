@@ -76,11 +76,7 @@
       "mode": "recommended"
     }
   ],
-  "closed": {
-    "at": "2026-10-09T03:46:35Z",
-    "result": "blocked",
-    "summary": "8 item(s): 2 done, 5 done_with_deviations, 1 blocked"
-  },
+  "closed": null,
   "orchestration": {
     "strategy": "sequential"
   },
