@@ -41,6 +41,19 @@ AzGuard::panel('admin')->for($user)->decide(PostPermission::Update, $post); // D
 
 `$subject` may be a model, an `Authenticatable` or a `SubjectRef::of('user', 1)`.
 
+### 503 and 500 for failed decisions (opt-in)
+
+`authorize()`, the Gate and `azguard.can` answer 403 for every denial, including a decision that failed because a
+source was down. To answer 503 (with `Retry-After`) for a transient failure and 500 for a host-code failure, change
+the one line at the call site:
+
+```php
+DecisionResponder::authorize(AzGuard::panel('admin')->for($user)->decide(PostPermission::Update, $post));
+```
+
+`AzGuard\Laravel\Http\DecisionResponder` keeps 403 for a real denial and never puts the reason in the body. See
+[Consistency](../advanced/consistency.md#failures) for the failure kinds.
+
 ## Laravel Gate
 
 AzGuard registers a `Gate::before` callback, so `can()`, `@can`, `Gate::allows()`, `$this->authorize()` and
