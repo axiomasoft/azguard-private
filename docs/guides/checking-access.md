@@ -23,7 +23,9 @@ $user->roleNames();         // Collection of role keys
   `roleGrants()` and `permissionGrants()`.
 - **The second argument (`on:`)** is a resource model, which is passed to policies and resolved to its scope.
   It can also be an assignment scope (a model or `AssignmentScopeRef`). See
-  [Tenants and scopes](/guides/tenants-and-scopes).
+  [Tenants and scopes](/guides/tenants-and-scopes). A scope **model** such as `$team` also reaches the policy
+  as `$resource`. A policy that expects a `Post` should check the type (`$resource instanceof Post`). Pass
+  `AssignmentScopeRef::of('team', $id)` when you mean the scope only.
 - **Introspection, not authorization.** `permissionNames()` and `permissionSet()` list the grants the subject
   holds. They do not run policies or restrictions, so `hasPermission()` stays the answer to "may they?".
 
@@ -135,6 +137,35 @@ PostAbilities::for($user->guard('admin'), $post);
 ```
 
 Share it with Inertia or return it from an API resource. Every flag is a full decision, policies included.
+
+## Filtering lists
+
+Checking records one by one does not scale to lists or pagination. Ask for the query of visible records
+instead. The result is the same as `hasPermission()` for each row, compiled to SQL:
+
+```php
+$admin = AzGuard::panel('admin');
+
+$posts = $admin->visibility()
+    ->visibleTo($admin->definition(), Post::query(), $user, PostPermission::View)
+    ->latest()
+    ->paginate();
+```
+
+This is a fixed number of queries (4 in the example app), whatever the number of rows. The panel must be able
+to express **every** rule that decides the permission in SQL. Otherwise the call throws
+`VisibilityNotSupportedException` with the reason, instead of returning a wrong list:
+
+| Rule | Needs |
+|---|---|
+| Assignment scopes | The model implements `ProvidesAssignmentScope` with the `ContextAware` trait. `resourceScopes()` resolvers cannot filter queries |
+| Policies deciding the permission | `FiltersAccessQueries` on the policy ([example](/guides/filament#_4-lists-need-query-capable-rules)) |
+| Restrictions | `FiltersAccessQueries` on the restriction |
+| Before hooks | An invokable class with `FiltersAccessQueries`; a closure cannot be compiled |
+| Custom sources | `FiltersQueries` on the source (`DatabaseSource` and `RelationSource` have it) |
+| `GrantedAutomatically` roles | Not supported in lists in 1.0 |
+
+Filament resources with `AuthorizesResource` use this query automatically.
 
 ## Queues and the console
 
