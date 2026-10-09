@@ -56,6 +56,6 @@ it('keeps a static before denial outside neighbouring DB authority and scalar st
     if ($broken) {
         expect($failedReads)->toBeGreaterThan(0);
     } else {
-        expect($set->get(1)->state)->toBeInstanceOf(StateToken::class)->and($budget['grants'])->toBe(2)->and($budget['state'])->toBe(2);
+        expect($set->get(1)->state)->toBeInstanceOf(StateToken::class)->and($budget['grants'])->toBe(2)->and($budget['state'])->toBe(1);
     }
 })->with(['healthy authority' => false, 'failing authority' => true]);

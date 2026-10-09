@@ -9,6 +9,7 @@ use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -50,10 +51,21 @@ final readonly class BatchEvaluation
             $attempt = $entry['frame']->readAttempt;
             $groups[$attempt === null ? 'code'.$i : (string) spl_object_id($attempt)][$i] = $entry;
         }
+        // Every group starts (admission, before hooks) first; then the database reads of all requests that consume
+        // authority run in one snapshot per storage connection (design doc, step 5); then each group evaluates.
+        $starts = [];
+        $consuming = [];
+        foreach ($groups as $g => $group) {
+            $starts[$g] = $this->start($group, $enter, $leave);
+            foreach (is_array($starts[$g]) ? $starts[$g]['consuming'] : [] as $entry) {
+                $consuming[] = [$entry['request'], $entry['frame']];
+            }
+        }
+        ReadAttempt::readMany($consuming);
         $decisions = [];
         $finished = [];
-        foreach ($groups as $group) {
-            [$results, $entries] = $this->group($group, $enter, $leave);
+        foreach ($groups as $g => $group) {
+            [$results, $entries] = $this->group($group, $enter, $leave, $starts[$g]);
             $decisions += $results;
             $finished += $entries;
         }
@@ -70,6 +82,7 @@ final readonly class BatchEvaluation
                 $state = $decision->state;
 
                 if ($state instanceof StateToken) {
+                    $state = $state->panelState();
                     $key = IdentityCodec::compose([$state->storageId, $state->panel]);
 
                     if (isset($states[$key]) && ! $states[$key]->equals($state)) {
@@ -159,21 +172,22 @@ final readonly class BatchEvaluation
         return $entries;
     }
 
-    /** @param non-empty-array<int, Prepared> $entries
+    /**
+     * Starts every request of a group (admission, before hooks) and narrows the attempt's batch to the scopes of
+     * the requests that consume authority. A failure is handed to the group, which degrades it.
+     *
+     * @param  non-empty-array<int, Prepared>  $entries
      * @param  Closure(Panel, AccessRequest): void  $enter
      * @param  Closure(Panel, AccessRequest): void  $leave
-     * @return array{array<int, Decision>, array<int, Prepared>}
+     * @return array{started: array<int, array{?Decision, list<Restriction>, ?Decision}>, consuming: array<int, Prepared>}|Throwable
      */
-    private function group(array $entries, Closure $enter, Closure $leave): array
+    private function start(array $entries, Closure $enter, Closure $leave): array|Throwable
     {
-        $first = $entries[array_key_first($entries)];
-        $attempt = $first['frame']->readAttempt;
-        $decisions = [];
+        $started = [];
+        $consuming = [];
+        $scopes = [];
 
         try {
-            $started = [];
-            $consuming = [];
-            $scopes = [];
             foreach ($entries as $i => $entry) {
                 $enter($entry['frame']->panel(), $entry['request']);
 
@@ -190,8 +204,32 @@ final readonly class BatchEvaluation
                     }
                 }
             }
-            $attempt?->batch(array_values($scopes));
-            $this->roleWitnesses($consuming);
+            $entries[array_key_first($entries)]['frame']->readAttempt?->batch(array_values($scopes));
+        } catch (Throwable $error) {
+            return $error;
+        }
+
+        return ['started' => $started, 'consuming' => $consuming];
+    }
+
+    /** @param non-empty-array<int, Prepared> $entries
+     * @param  Closure(Panel, AccessRequest): void  $enter
+     * @param  Closure(Panel, AccessRequest): void  $leave
+     * @param  array{started: array<int, array{?Decision, list<Restriction>, ?Decision}>, consuming: array<int, Prepared>}|Throwable  $start
+     * @return array{array<int, Decision>, array<int, Prepared>}
+     */
+    private function group(array $entries, Closure $enter, Closure $leave, array|Throwable $start): array
+    {
+        $first = $entries[array_key_first($entries)];
+        $attempt = $first['frame']->readAttempt;
+        $decisions = [];
+        $started = is_array($start) ? $start['started'] : [];
+
+        try {
+            if ($start instanceof Throwable) {
+                throw $start;
+            }
+            $this->roleWitnesses($start['consuming']);
             foreach ($entries as $i => $entry) {
                 $enter($entry['frame']->panel(), $entry['request']);
 

@@ -43,9 +43,9 @@ it('fences all 250 contexts and reuses raw sets with the configured refresh mode
     CacheWorld::listen($budget);
     $set = $engine->decideMany($requests);
     expect($set)->toHaveCount(250)->and(BatchPolicy::$calls)->toBe(250)
-        ->and($budget['state'])->toBe(2)->and($budget['grants'])->toBeLessThanOrEqual(6)
-        // The state keys the cache lookup, then the snapshot reads it again before every chunk of grants.
-        ->and($budget['grants'])->toBeGreaterThan(0)->and(array_slice($budget['sequence'], 0, 2))->toBe(['panel_state', 'panel_state'])
+        ->and($budget['state'])->toBe(1)->and($budget['grants'])->toBeLessThanOrEqual(6)
+        // One snapshot for the set: the observed state keys the cache lookups, then the chunks of grants follow.
+        ->and($budget['grants'])->toBeGreaterThan(0)->and(array_slice($budget['sequence'], 0, 2))->toBe(['panel_state', 'permission_grants'])
         ->and($budget['sequence'][array_key_last($budget['sequence'])])->toBe('role_grants');
 
     foreach ($set as $i => $decision) {
