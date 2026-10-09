@@ -1097,6 +1097,33 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     }
 
     /**
+     * @internal The observed states of many subjects of this source's panel: {@see readObserved()} for a DecisionSet,
+     * one statement per subject type and {@see StorageReadSession::OBSERVED_CHUNK} subjects instead of one per subject.
+     *
+     * @param  array<array-key, array{EvaluationContext, SubjectRef}>  $entries
+     * @return array<array-key, StateToken> by the keys of $entries
+     */
+    public function readObservedMany(StorageReadSession $session, array $entries): array
+    {
+        $ids = [];
+        foreach ($entries as $n => [$context, $subject]) {
+            $this->bindPanel($context->panel()->id());
+            $ids[$subject->type()][$n] = HostKeyColumns::canonical($this->resolvedStorage()->hostKeys(), $subject->id());
+        }
+        $tokens = [];
+        foreach ($ids as $type => $byEntry) {
+            [$state, $revisions] = $session->observedMany($this->panelId ?? '', $type, array_values($byEntry));
+            foreach ($byEntry as $n => $id) {
+                $panel = $entries[$n][0]->panel();
+                $tokens[$n] = StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0,
+                    $panel->settings()->cacheGeneration(), $entries[$n][0]->state()->fingerprint, $state->epoch ?? 0, $revisions[$id] ?? 0);
+            }
+        }
+
+        return $tokens;
+    }
+
+    /**
      * @template T
      *
      * @param  Closure(): T  $rows

@@ -231,9 +231,19 @@ final class ReadAttempt
 
             try {
                 $read = $session->snapshot(static function () use ($members, $session): array {
+                    // One statement per source and subject type for all observed states, not one per subject.
+                    [$entries, $sources] = [[], []];
+                    foreach ($members as $n => [$attempt, $source, $subject]) {
+                        $entries[spl_object_id($source)][$n] = [$attempt->initial, $subject];
+                        $sources[spl_object_id($source)] = $source;
+                    }
+                    $states = [];
+                    foreach ($entries as $id => $byMember) {
+                        $states += $sources[$id]->readObservedMany($session, $byMember);
+                    }
                     $read = [];
                     foreach ($members as $n => [$attempt, $source, $subject, $requests]) {
-                        $observed = $source->readObserved($session, $attempt->initial, $subject);
+                        $observed = $states[$n];
                         $hits = [];
                         $miss = $attempt->cache === null;
                         foreach ($requests as [$request, $frame]) {
