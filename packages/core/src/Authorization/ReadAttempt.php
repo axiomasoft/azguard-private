@@ -7,12 +7,14 @@ namespace AzGuard\Authorization;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -28,8 +30,16 @@ use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Storage\AuthorityTransaction;
 use AzGuard\Storage\StorageReadSession;
+use Closure;
 
-/** @internal One operation's consumed source revisions and pinned handles; never shared or cached.
+/**
+ * @internal One operation's consumed source revisions and pinned handles; never shared or cached.
+ *
+ * The boundary of a consistent read (audits/2026-10-09-consistency-design.md, step 1): the engine prepares host inputs
+ * once, this attempt materializes source data, and the engine evaluates once. Each materialization reads a source at
+ * one state (its own bounded retry repeats raw source reads only); it never asks the engine to run the pipeline again,
+ * so host hooks, model events and policies run once per operation. A decision reflects the sources at read time.
+ *
  * @phpstan-import-type Attached from PanelSources
  */
 final class ReadAttempt
@@ -47,11 +57,11 @@ final class ReadAttempt
     /** @var array<string, string> */
     private array $stateKeys = [];
 
-    /** @var array<string, bool> */
+    /** @var array<string, StateToken> */
     private array $fresh = [];
 
-    /** @var array<string, true> */
-    private array $materialized = [];
+    /** @var array<string, StateToken> the state each fenced source was materialized at, by source id */
+    private array $observed = [];
 
     /** @var array<int|string, array{key: string, source: ProvidesGrants|ProvidesRoleGrants, items: list<Grant|RoleContribution>}> */
     private array $pending = [];
@@ -67,6 +77,9 @@ final class ReadAttempt
 
     /** @var array<string, list<Grant|RoleContribution>> */
     private array $batchSlices = [];
+
+    /** @var array<string, ConsistencyException> */
+    private array $batchFailures = [];
 
     /** @param list<AccessScope> $scopes */
     public function batch(array $scopes): void
@@ -96,42 +109,53 @@ final class ReadAttempt
     private function databaseItems(DatabaseSource $source, AccessRequest $request, EvaluationFrame $frame): array
     {
         if ($this->batchScopes === null) {
-            $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $frame->sourceScopes(), $frame);
+            [$state, $snapshot] = $source->materializeAssignments($this->sessions[$source->id()], $frame, $request->subject(), $frame->sourceScopes(), $this->unread($source));
+            $this->observe($source, $state);
 
             return [...$snapshot['grants'], ...$snapshot['roles']];
         }
-        $key = PermissionSetCache::key($this->states[$source->id()], $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
-            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $this->sessions[$source->id()]->authorityIdentity(), $frame->panel()->settings()->cacheGeneration());
+        $key = $this->key($source, $request, $frame);
 
         if (isset($this->batchSlices[$key])) {
             return $this->batchSlices[$key];
         }
-        $items = $this->transaction === null ? $this->cache?->get($key, $frame->panel(), $source->volatility(), true, $frame->now()) : null;
+        $items = $this->transaction === null && $this->cache !== null ? $this->cache->get($key, $frame->panel(), $source->volatility(), true, $frame->now()) : null;
 
         if ($items !== null) {
             return $this->batchSlices[$key] = $items;
         }
-        $this->beforeMaterializing($source);
+
+        if (isset($this->batchFailures[$source->id()])) {
+            // One failed batch read fails every request of the group; it is not read again per request.
+            throw $this->batchFailures[$source->id()];
+        }
 
         if (! array_key_exists($source->id(), $this->batchAssignments)) {
+            $scopes = $this->batchScopes ?? [];
+
+            try {
+                [$state, $snapshot] = $source->materializeAssignments($this->sessions[$source->id()], $frame, $request->subject(), $scopes, $this->unread($source));
+            } catch (ConsistencyException $error) {
+                throw $this->batchFailures[$source->id()] = $error;
+            }
+            $this->observe($source, $state);
+            $consumed = array_flip(array_map(static fn (AccessScope $scope): string => IdentityCodec::compose([$scope]), $scopes));
             $items = [];
-            foreach (array_chunk($this->batchScopes ?? [], 100) as $chunk) {
-                $snapshot = $source->readAssignments($this->sessions[$source->id()], $request->subject(), $chunk, $frame);
-                foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
-                    if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
-                        || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
-                        || ! in_array(IdentityCodec::compose([$item->scope]), array_map(static fn ($scope): string => IdentityCodec::compose([$scope]), $chunk), true)) {
-                        throw new InvalidSourceContributionException('Batch contribution differs from the consumed scope chunk.');
-                    }
-                    $items[] = $item;
+            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
+                if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
+                    || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
+                    || ! isset($consumed[IdentityCodec::compose([$item->scope])])) {
+                    throw new InvalidSourceContributionException('Batch contribution differs from the consumed scopes.');
                 }
+                $items[] = $item;
             }
             $this->batchAssignments[$source->id()] = $items;
         }
         $items = array_values(array_filter($this->batchAssignments[$source->id()], static fn (Grant|RoleContribution $item): bool => $frame->acceptsContributionScope($item->scope)));
 
-        if ($this->transaction === null) {
-            $this->pending[$key] = ['key' => $key, 'source' => $source, 'items' => $items];
+        if ($this->transaction === null && $this->cache !== null) {
+            $published = $this->key($source, $request, $frame);
+            $this->pending[$published] = ['key' => $published, 'source' => $source, 'items' => $items];
         }
 
         return $this->batchSlices[$key] = $items;
@@ -148,11 +172,14 @@ final class ReadAttempt
                 continue;
             }
             $this->begin($source);
-            $this->beforeMaterializing($source);
-            $items = $source instanceof DatabaseSource
-                ? $source->readPermissions($this->sessions[$source->id()], $this->initial->panel(), $this->initial->scope()->tenant)
-                : $source->permissions($this->initial->panel(), $this->initial->scope()->tenant);
-            foreach (PanelCatalog::untrusted($items) as $item) {
+
+            if ($source instanceof DatabaseSource) {
+                [$state, $items] = $source->materializePermissions($this->sessions[$source->id()], $this->initial, $this->initial->scope()->tenant, $this->unread($source));
+                $this->observe($source, $state);
+            } else {
+                $items = $this->fenced($source, fn (): array => [...PanelCatalog::untrusted($source->permissions($this->initial->panel(), $this->initial->scope()->tenant))]);
+            }
+            foreach ($items as $item) {
                 $definitions[] = $item;
             }
         }
@@ -176,13 +203,12 @@ final class ReadAttempt
                 continue;
             }
             $this->begin($source);
-            $authority = $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
-            $key = PermissionSetCache::key($this->states[$source->id()] ?? $this->initial->state(), $request->subject(), $frame->scope()->tenant,
-                $frame->sourceScopes(), $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
             // Automatic role predicates consume live subject/host data on every operation.
             $liveAutomatic = $source instanceof FolderSource && array_filter(array_column($this->static->roles(), 'class'),
                 static fn (string $class): bool => is_subclass_of($class, GrantedAutomatically::class)) !== [];
-            $items = $liveAutomatic || $this->transaction !== null ? null : $this->cache?->get($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $frame->now());
+            $cache = $liveAutomatic || $this->transaction !== null ? null : $this->cache;
+            $cached = $cache !== null;
+            $items = $cache?->get($this->key($source, $request, $frame), $frame->panel(), $source->volatility(), $source instanceof FencesReads, $frame->now());
 
             if ($items !== null) {
                 foreach ($items as $item) {
@@ -192,7 +218,6 @@ final class ReadAttempt
 
                 continue;
             }
-            $this->beforeMaterializing($source);
 
             if ($source instanceof FolderSource) {
                 $source->bindRoleClasses(array_column($this->static->roles(), 'class'));
@@ -201,28 +226,7 @@ final class ReadAttempt
             if ($source instanceof DatabaseSource) {
                 $items = $this->databaseItems($source, $request, $frame);
             } else {
-                $items = [];
-
-                if ($source instanceof ProvidesGrants) {
-                    foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
-                        if (! $item instanceof Grant) {
-                            throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
-                        }
-                        // Capture declared secrets before advancing a potentially throwing lazy iterator.
-                        $trace?->contribution($item, $source::class);
-                        $items[] = $item;
-                    }
-                }
-
-                if ($source instanceof ProvidesRoleGrants) {
-                    foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
-                        if (! $item instanceof RoleContribution) {
-                            throw new InvalidSourceContributionException('Unexpected role contribution type.');
-                        }
-                        $trace?->contribution($item, $source::class);
-                        $items[] = $item;
-                    }
-                }
+                $items = $this->fenced($source, fn (): array => $this->external($source, $request, $frame, $trace));
             }
             foreach ($items as $item) {
                 if ($source instanceof DatabaseSource) {
@@ -236,8 +240,10 @@ final class ReadAttempt
                 $contributions[] = [$source, $item];
             }
 
-            if (! $liveAutomatic && $this->transaction === null) {
-                $pending[] = ['key' => $key, 'source' => $source, 'items' => $items];
+            if ($cached) {
+                // Published under the state the items were read at, not the state the lookup was keyed by.
+                $published = $this->key($source, $request, $frame);
+                $pending[] = ['key' => $published, 'source' => $source, 'items' => $items];
             }
         }
 
@@ -252,33 +258,15 @@ final class ReadAttempt
         return $contributions;
     }
 
+    /**
+     * Accepts the attempt: publishes what it read to the cache under the states it was read at. No source is read
+     * again: a write after the materialization does not discard the decision (it reflects the sources at read time).
+     */
     public function confirm(EvaluationFrame $frame): EvaluationFrame
     {
         $this->transaction?->assertActive();
-        $stable = true;
-        foreach ($this->sources as ['source' => $source]) {
-            if (! $source instanceof FencesReads || ! isset($this->states[$source->id()])) {
-                continue;
-            }
-
-            if ($source instanceof DatabaseSource) {
-                $this->sessions[$source->id()]->assertUsable();
-            }
-
-            if (! isset($this->materialized[$source->id()])) {
-                continue;
-            }
-            $after = $source instanceof DatabaseSource ? $source->readState($this->sessions[$source->id()], $this->initial)
-                : $source->state($this->initial->panel(), $this->initial->scope()->tenant);
-            $stable = $this->states[$source->id()]->equals($after) && $stable;
-        }
-
-        if (! $stable) {
-            foreach ($this->stateKeys as $key) {
-                $this->cache?->forgetState($key);
-            }
-
-            throw new ReadAttemptChanged($this->initial);
+        foreach ($this->sessions as $session) {
+            $session->assertUsable();
         }
 
         foreach ($this->stateKeys as $id => $key) {
@@ -310,14 +298,17 @@ final class ReadAttempt
                 throw new VisibilityNotSupportedException('source_error', $source::class);
             }
             $this->begin($source);
-            $this->beforeMaterializing($source);
 
             if ($source instanceof FolderSource) {
                 $source->bindRoleClasses(array_column($this->static->roles(), 'class'));
             }
-            $selection = $source instanceof DatabaseSource
-                ? $source->readSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type, $frame)
-                : $source->contextsCovering($request->subject(), $request->permission(), $type, $frame);
+
+            if ($source instanceof DatabaseSource) {
+                [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type, $frame, $this->unread($source));
+                $this->observe($source, $state);
+            } else {
+                $selection = $this->fenced($source, fn (): ?AssignmentScopeSelection => $source->contextsCovering($request->subject(), $request->permission(), $type, $frame));
+            }
 
             if ($selection === null) {
                 throw new VisibilityNotSupportedException('unsupported_selection', $source::class);
@@ -371,6 +362,10 @@ final class ReadAttempt
     {
         $database = null;
         foreach ($this->sources as ['source' => $source]) {
+            if ($source instanceof FencesReads && isset($this->stateKeys[$source->id()]) && ! isset($this->states[$source->id()])) {
+                $this->states[$source->id()] = $this->readState($source);
+            }
+
             if ($source instanceof DatabaseSource && isset($this->states[$source->id()])) {
                 $database = $this->states[$source->id()];
             }
@@ -381,7 +376,7 @@ final class ReadAttempt
 
     private function begin(Source $source): void
     {
-        if (! $source instanceof FencesReads || isset($this->states[$source->id()])) {
+        if (! $source instanceof FencesReads || isset($this->stateKeys[$source->id()])) {
             return;
         }
 
@@ -399,27 +394,109 @@ final class ReadAttempt
             $this->initial->panel()->settings()->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
         $memo = $this->transaction === null && $this->initial->panel()->settings()->stateRefresh() === StateRefresh::Request ? $this->cache?->state($key) : null;
-        $this->fresh[$source->id()] = $memo === null;
-        $this->states[$source->id()] = $memo ?? $this->readState($source);
+
+        // Without a cache no lookup needs the state before the read: the materialization reads it.
+        if ($memo !== null) {
+            $this->states[$source->id()] = $memo;
+        } elseif ($this->cache !== null) {
+            $this->states[$source->id()] = $this->fresh[$source->id()] = $this->readState($source);
+        }
     }
 
-    private function beforeMaterializing(Source $source): void
+    /** A state read on the source's session by this attempt and not yet used as the start of a read fence. */
+    private function unread(Source $source): ?StateToken
+    {
+        $state = $this->fresh[$source->id()] ?? null;
+        unset($this->fresh[$source->id()]);
+
+        return $state;
+    }
+
+    /** The cache key of a source's contributions at the state the attempt holds for it now. */
+    private function key(Source $source, AccessRequest $request, EvaluationFrame $frame): string
+    {
+        $authority = $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
+
+        if ($source instanceof FencesReads && ! isset($this->states[$source->id()])) {
+            $this->states[$source->id()] = $this->fresh[$source->id()] = $this->readState($source);
+        }
+
+        return PermissionSetCache::key($this->states[$source->id()] ?? $this->initial->state(), $request->subject(), $frame->scope()->tenant,
+            $frame->sourceScopes(), $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
+    }
+
+    /**
+     * Records the state a source was materialized at. Two reads of one source in one attempt (the dynamic catalog,
+     * then the contributions) must observe the same state; otherwise the attempt fails with ConsistencyException
+     * (a bounded consistency_error, nothing runs again).
+     */
+    private function observe(Source $source, StateToken $state): void
+    {
+        $previous = $this->observed[$source->id()] ?? null;
+
+        if ($previous !== null && ! $previous->equals($state)) {
+            throw new ConsistencyException('The source changed between two reads of one operation.');
+        }
+        $this->observed[$source->id()] = $state;
+        $this->states[$source->id()] = $state;
+    }
+
+    /**
+     * A bounded fence around one read of a source that is not the database source: the state before, the read, the
+     * state after; up to three attempts, then ConsistencyException. Only the source read repeats.
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $read
+     * @return T
+     */
+    private function fenced(Source $source, Closure $read): mixed
     {
         if (! $source instanceof FencesReads) {
-            return;
+            return $read();
         }
+        $earlier = $this->unread($source);
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $attempt === 0 && $earlier !== null ? $earlier : $source->state($this->initial->panel(), $this->initial->scope()->tenant);
+            $result = $read();
 
-        if (! $this->fresh[$source->id()]) {
-            $before = $this->readState($source);
+            if ($before->equals($source->state($this->initial->panel(), $this->initial->scope()->tenant))) {
+                $this->observe($source, $before);
 
-            if (! $this->states[$source->id()]->equals($before)) {
-                $this->cache?->forgetState($this->stateKeys[$source->id()]);
-
-                throw new ReadAttemptChanged($this->initial);
+                return $result;
             }
-            $this->fresh[$source->id()] = true;
         }
-        $this->materialized[$source->id()] = true;
+
+        throw new ConsistencyException('Source authority changed during all three read attempts.');
+    }
+
+    /** @return list<Grant|RoleContribution> */
+    private function external(Source $source, AccessRequest $request, EvaluationFrame $frame, ?Trace $trace): array
+    {
+        $items = [];
+
+        if ($source instanceof ProvidesGrants) {
+            foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
+                if (! $item instanceof Grant) {
+                    throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
+                }
+                // Capture declared secrets before advancing a potentially throwing lazy iterator.
+                $trace?->contribution($item, $source::class);
+                $items[] = $item;
+            }
+        }
+
+        if ($source instanceof ProvidesRoleGrants) {
+            foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
+                if (! $item instanceof RoleContribution) {
+                    throw new InvalidSourceContributionException('Unexpected role contribution type.');
+                }
+                $trace?->contribution($item, $source::class);
+                $items[] = $item;
+            }
+        }
+
+        return $items;
     }
 
     private function readState(FencesReads $source): StateToken

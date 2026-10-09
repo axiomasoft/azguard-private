@@ -13,6 +13,7 @@ use AzGuard\Catalog\RoleCompiler;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RecursionDetectedException;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -84,30 +85,23 @@ final class Authorizer
 
         try {
             $now = Carbon::now('UTC')->toDateTimeImmutable();
-            for ($attempt = 0; ; $attempt++) {
-                $trace = new Trace(false);
-                [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
+            $trace = new Trace(false);
+            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
 
-                if ($denial !== null) {
-                    return false;
-                }
-
-                try {
-                    [$frame, , $denial] = $this->authority->qualify($request, $frame, $catalog, $trace);
-                    $frame = $frame->readAttempt?->confirm($frame) ?? $frame;
-
-                    return $denial === null && $frame->qualifiedSuperAdmin;
-                } catch (ReadAttemptChanged) {
-                    if ($attempt === 2) {
-                        return false;
-                    }
-                } catch (Throwable $error) {
-                    $trace->error('state', 'source_error', 'sources', $error);
-
-                    return false;
-                }
+            if ($denial !== null) {
+                return false;
             }
 
+            try {
+                [$frame, , $denial] = $this->authority->qualify($request, $frame, $catalog, $trace);
+                $frame = $frame->readAttempt?->confirm($frame) ?? $frame;
+
+                return $denial === null && $frame->qualifiedSuperAdmin;
+            } catch (Throwable $error) {
+                $trace->error('state', $error instanceof ConsistencyException ? 'consistency_error' : 'source_error', 'sources', $error);
+
+                return false;
+            }
         } finally {
             unset($this->active[$key]);
         }
@@ -202,32 +196,26 @@ final class Authorizer
 
         try {
             $now = Carbon::now('UTC')->toDateTimeImmutable();
-            for ($attempt = 0; ; $attempt++) {
-                $trace = new Trace(false);
-                [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
+            $trace = new Trace(false);
+            [$request, $catalog, $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, $scope, $trace, $now);
 
-                if ($denial !== null) {
-                    return [[], $catalog];
+            if ($denial !== null) {
+                return [[], $catalog];
+            }
+
+            try {
+                if ($catalog->isDynamic() && $frame->readAttempt !== null) {
+                    $catalog = $frame->readAttempt->catalog();
+                    $frame = $frame->withDynamicRead();
                 }
+                [$frame, $qualified, $denial] = $this->authority->qualifiedContributions($request, $frame, $catalog, $trace);
+                $frame->readAttempt?->confirm($frame);
 
-                try {
-                    if ($catalog->isDynamic() && $frame->readAttempt !== null) {
-                        $catalog = $frame->readAttempt->catalog();
-                        $frame = $frame->withDynamicRead();
-                    }
-                    [$frame, $qualified, $denial] = $this->authority->qualifiedContributions($request, $frame, $catalog, $trace);
-                    $frame->readAttempt?->confirm($frame);
+                return [$denial === null ? $qualified : [], $catalog];
+            } catch (Throwable $error) {
+                $trace->error('state', $error instanceof ConsistencyException ? 'consistency_error' : 'source_error', 'sources', $error);
 
-                    return [$denial === null ? $qualified : [], $catalog];
-                } catch (ReadAttemptChanged) {
-                    if ($attempt === 2) {
-                        return [[], $catalog];
-                    }
-                } catch (Throwable $error) {
-                    $trace->error('state', 'source_error', 'sources', $error);
-
-                    return [[], $catalog];
-                }
+                return [[], $catalog];
             }
         } finally {
             unset($this->active[$key]);
@@ -263,29 +251,24 @@ final class Authorizer
     public function roleScopes(Panel $panel, SubjectRef $subject, TenantRef $tenant, string $type): ?array
     {
         $now = Carbon::now('UTC')->toDateTimeImmutable();
-        for ($attempt = 0; ; $attempt++) {
-            try {
-                [$request, , $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, AccessScope::in($tenant), new Trace(false), $now);
 
-                if ($denial !== null || $frame->readAttempt === null) {
-                    return null;
-                }
-                $scopes = [];
-                foreach ($frame->readAttempt->selections($request, $frame, $type) as [, $item]) {
-                    if ($item instanceof RoleContribution && ! $item->scope->context->isGlobal()) {
-                        $scopes[$item->scope->context->key()] = $item->scope->context;
-                    }
-                }
-                $frame->readAttempt->confirm($frame);
+        try {
+            [$request, , $frame, $denial] = $this->prepare->prepareSuperAdmin($panel, $subject, AccessScope::in($tenant), new Trace(false), $now);
 
-                return array_values($scopes);
-            } catch (ReadAttemptChanged) {
-                if ($attempt === 2) {
-                    return null;
-                }
-            } catch (Throwable) {
+            if ($denial !== null || $frame->readAttempt === null) {
                 return null;
             }
+            $scopes = [];
+            foreach ($frame->readAttempt->selections($request, $frame, $type) as [, $item]) {
+                if ($item instanceof RoleContribution && ! $item->scope->context->isGlobal()) {
+                    $scopes[$item->scope->context->key()] = $item->scope->context;
+                }
+            }
+            $frame->readAttempt->confirm($frame);
+
+            return array_values($scopes);
+        } catch (Throwable) {
+            return null;
         }
     }
 
@@ -378,27 +361,14 @@ final class Authorizer
 
         try {
             $now ??= Carbon::now('UTC')->toDateTimeImmutable();
-            for ($attempt = 0; ; $attempt++) {
-                $trace = new Trace($diagnostic || $request->isTraced(), diagnostic: $diagnostic);
+            // One preparation, one consistent read of the sources, one evaluation: nothing here runs twice.
+            $trace = new Trace($diagnostic || $request->isTraced(), diagnostic: $diagnostic);
+            [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace, $now);
+            $decision = $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
+            $trace->finish();
+            $this->trace($panel, $request, $decision, $actor, $now);
 
-                try {
-                    [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace, $now);
-
-                    $decision = $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
-                    $trace->finish();
-                    $this->trace($panel, $request, $decision, $actor, $now);
-
-                    return [$decision, $trace, $now];
-                } catch (ReadAttemptChanged $changed) {
-                    if ($attempt === 2) {
-                        $decision = $this->pipeline->inconsistent($request, $changed->frame, $trace);
-                        $trace->finish();
-                        $this->trace($panel, $request, $decision, $actor, $now);
-
-                        return [$decision, $trace, $now];
-                    }
-                }
-            }
+            return [$decision, $trace, $now];
         } finally {
             unset($this->active[$key]);
         }

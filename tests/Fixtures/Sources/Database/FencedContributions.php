@@ -26,6 +26,9 @@ final class FencedContributions implements FencesReads, ProvidesGrants, Provides
 
     public int $stateCalls = 0;
 
+    /** The data changes once, during the first read of the grants: a write that commits mid-read. */
+    private int $version = 1;
+
     public function id(): string
     {
         return 'external-fence';
@@ -40,12 +43,13 @@ final class FencedContributions implements FencesReads, ProvidesGrants, Provides
     {
         $this->stateCalls++;
 
-        return StateToken::of('external', $panel->id(), 'root', $this->stateCalls === 1 ? 1 : 2, 0, 'code');
+        return StateToken::of('external', $panel->id(), 'root', $this->version, 0, 'code');
     }
 
     public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
     {
         $this->grantCalls++;
+        $this->version = 2;
 
         return [Grant::of(PermissionPattern::of('admin', $this->grantCalls === 1 ? 'documents.view' : 'documents.edit'), $this->id(), $context->scope())];
     }

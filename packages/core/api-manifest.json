@@ -20431,6 +20431,138 @@
                     "return": "static"
                 },
                 {
+                    "name": "materializeAssignments",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "before",
+                            "type": "?AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "materializePermissions",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "before",
+                            "type": "?AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "materializeSelection",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "key",
+                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contextType",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "before",
+                            "type": "?AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "missingModelColumns",
                     "static": false,
                     "abstract": false,
@@ -20538,7 +20670,7 @@
                     "return": "iterable"
                 },
                 {
-                    "name": "readAssignments",
+                    "name": "readConsistently",
                     "static": false,
                     "abstract": false,
                     "parameters": [
@@ -20550,25 +20682,26 @@
                             "hasDefault": false
                         },
                         {
-                            "name": "subject",
-                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "scopes",
-                            "type": "array",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
                             "name": "context",
                             "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "rows",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "before",
+                            "type": "?AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
                         }
                     ],
                     "return": "array"
@@ -20630,49 +20763,6 @@
                         }
                     ],
                     "return": "array"
-                },
-                {
-                    "name": "readSelection",
-                    "static": false,
-                    "abstract": false,
-                    "parameters": [
-                        {
-                            "name": "session",
-                            "type": "AzGuard\\Storage\\StorageReadSession",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "subject",
-                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "key",
-                            "type": "AzGuard\\Kernel\\Identity\\PermissionKey",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "contextType",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "context",
-                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "AzGuard\\Contracts\\Sources\\AssignmentScopeSelection"
                 },
                 {
                     "name": "readState",

@@ -67,21 +67,17 @@ final readonly class Visibility
             }
         }
         $now = Carbon::now('UTC')->toDateTimeImmutable();
-        for ($attempt = 0; ; $attempt++) {
-            try {
-                $candidate = $this->build($panel, clone $query, $subject, $permission, $scope, $now);
-                $query->setQuery($candidate->getQuery())->setEagerLoads($candidate->getEagerLoads())->withoutGlobalScopes();
 
-                return $query;
-            } catch (ReadAttemptChanged) {
-                if ($attempt === 2) {
-                    throw new VisibilityNotSupportedException('consistency_error', 'sources');
-                }
-            } catch (VisibilityNotSupportedException|ConflictingPanelException|SubjectNotAcceptedException $error) {
-                throw $error;
-            } catch (Throwable $error) {
-                throw new VisibilityNotSupportedException($error instanceof ConsistencyException ? 'consistency_error' : 'source_error', $error::class);
-            }
+        try {
+            $candidate = $this->build($panel, clone $query, $subject, $permission, $scope, $now);
+            $query->setQuery($candidate->getQuery())->setEagerLoads($candidate->getEagerLoads())->withoutGlobalScopes();
+
+            return $query;
+        } catch (VisibilityNotSupportedException|ConflictingPanelException|SubjectNotAcceptedException $error) {
+            throw $error;
+        } catch (Throwable $error) {
+            // A source read that stayed inconsistent is consistency_error; nothing is retried with host inputs.
+            throw new VisibilityNotSupportedException($error instanceof ConsistencyException ? 'consistency_error' : 'source_error', $error::class);
         }
     }
 

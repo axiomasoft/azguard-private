@@ -5,7 +5,6 @@ declare(strict_types=1);
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
-use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -36,7 +35,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('retries Prepare metadata and both assignment capabilities together without a second grants fence', function (): void {
+it('prepares once and fails closed when the catalog changes before the assignments are read', function (): void {
     $observed = null;
     $beforeTimes = [];
     $afterCalls = 0;
@@ -73,18 +72,18 @@ it('retries Prepare metadata and both assignment capabilities together without a
     });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $decision = app(Authorizer::class)->decide($panel, $request);
+    // Host hooks ran once with the catalog of the first read; the assignment read retried locally and saw a newer
+    // state of the panel than the catalog, so the decision is consistency_error, not a mix of both states.
     expect($observed)->toBeInstanceOf(EvaluationFrame::class)
-        ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('New')
-        ->and($observed->matchingGrants())->toBe([])->and($observed->state())->toBeInstanceOf(StateToken::class)
-        ->and($observed->sourceStates['database']->version)->toBe($decision->state->version)
-        ->and($beforeTimes)->toHaveCount(2)->and($beforeTimes[0])->toBe($beforeTimes[1])->and($afterCalls)->toBe(1)
-        ->and($reads)->toBe(['panel_state', 'permissions', 'permission_grants', 'role_grants', 'panel_state',
-            'panel_state', 'permissions', 'permission_grants', 'role_grants', 'panel_state'])
-        ->and($decision->reason)->toBe(DecisionReason::NotGranted);
+        ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Old')
+        ->and($beforeTimes)->toHaveCount(1)->and($afterCalls)->toBe(1)
+        ->and($reads)->toBe(['panel_state', 'permissions', 'panel_state',
+            'panel_state', 'permission_grants', 'role_grants', 'panel_state', 'panel_state', 'permission_grants', 'role_grants', 'panel_state'])
+        ->and($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($decision->state)->not->toBeInstanceOf(StateToken::class);
 
 });
 
-it('discards a disappeared definition and its old grant instead of authorizing a stale action', function (): void {
+it('fails closed instead of authorizing a stale action when the definition disappears during the read', function (): void {
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     $changed = false;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$changed): void {
@@ -97,8 +96,7 @@ it('discards a disappeared definition and its old grant instead of authorizing a
         }
     });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
-    expect(fn () => app(Authorizer::class)->decide($panel, $request))->toThrow(UnknownPermissionException::class);
-    expect($changed)->toBeTrue();
+    expect(app(Authorizer::class)->decide($panel, $request)->reason)->toBe(DecisionReason::ConsistencyError)->and($changed)->toBeTrue();
 });
 
 it('returns ConsistencyError after exactly three unstable dynamic attempts', function (): void {
@@ -148,7 +146,7 @@ it('runs before denial before assignment reads and observes only the accepted de
         ->and($external->reads)->toBe(0)->and($afterCalls)->toBe(1);
 });
 
-it('retries a changed before-denial fence three times without assignment reads or discarded observations', function (): void {
+it('runs a writing before hook once and decides with its denial', function (): void {
     $beforeCalls = $afterCalls = 0;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(),
         before: function () use (&$beforeCalls): BeforeResult {
@@ -167,11 +165,12 @@ it('retries a changed before-denial fence three times without assignment reads o
     });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $decision = app(Authorizer::class)->decide($panel, $request);
-    expect($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($assignmentReads)->toBe(0)
-        ->and($decision->state)->not->toBeInstanceOf(StateToken::class)->and($beforeCalls)->toBe(3)->and($afterCalls)->toBe(1);
+    // A decision reflects the state at read time: a write by a hook does not run the hook again.
+    expect($decision->reason)->toBe(DecisionReason::Hook)->and($assignmentReads)->toBe(0)
+        ->and($beforeCalls)->toBe(1)->and($afterCalls)->toBe(1);
 });
 
-it('holds the dynamic fence through every other source read and resets their contributions on retry', function (): void {
+it('reads every source once; a write by a later source does not discard the database read', function (): void {
     $external = new InterferingSource;
     $observed = null;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(), additionalSources: [$external],
@@ -180,8 +179,8 @@ it('holds the dynamic fence through every other source read and resets their con
         });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $decision = app(Authorizer::class)->decide($panel, $request);
-    expect($external->reads)->toBe(2)->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('After external read')
-        ->and($observed->matchingGrants())->toBe([])->and($decision->reason)->toBe(DecisionReason::NotGranted);
+    expect($external->reads)->toBe(1)->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Old')
+        ->and($observed->matchingGrants())->not->toBe([])->and($decision->reason)->toBe(DecisionReason::Granted);
 });
 
 it('pins dynamic metadata and grants to Default while Primary reads its own complete snapshot', function (): void {

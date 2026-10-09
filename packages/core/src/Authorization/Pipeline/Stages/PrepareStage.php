@@ -10,9 +10,9 @@ use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\ReadAttempt;
-use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -135,17 +135,13 @@ final readonly class PrepareStage
                 if (! $catalog->has($request->permission())) {
                     $attempt->confirm($frame);
                 }
-            } catch (ReadAttemptChanged $caught) {
-                throw $caught;
             } catch (Throwable $caught) {
                 try {
                     $attempt->confirm($frame);
-                } catch (ReadAttemptChanged $changed) {
-                    throw $changed;
                 } catch (Throwable $stateError) {
                     $caught = $stateError;
                 }
-                $reason = DecisionReason::SourceError;
+                $reason = $caught instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
                 $trace->error('prepare', $reason->value, 'dynamic_sources', $caught);
 
                 return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,

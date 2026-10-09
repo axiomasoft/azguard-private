@@ -326,10 +326,10 @@ final class ScopedSourceWorld
             }
         });
         $decision = app(Authorizer::class)->decide($panel, self::request('reports.export', $scope));
-        expect($decision->reason)->toBe(DecisionReason::NotGranted)->and($changed)->toBeTrue()->and($reads)->toBe(4)
-            ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('After')
-            ->and($observed->matchingGrants())->toBe([])->and($decision->state)->toBeInstanceOf(StateToken::class)
-            ->and($decision->state->version)->toBe(DatabaseWorld::storage()->state('admin')->version);
+        // The assignment read retries locally; it then sees a newer state than the prepared catalog: fail closed.
+        expect($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($changed)->toBeTrue()->and($reads)->toBe(4)
+            ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Before')
+            ->and($decision->state)->not->toBeInstanceOf(StateToken::class);
     }
 
     private static function relations(): void
