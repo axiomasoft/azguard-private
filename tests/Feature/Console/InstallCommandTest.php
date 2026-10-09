@@ -304,3 +304,15 @@ PHP;
                 'subject_column' => 'integer', 'panels' => ['admin']]);
     }
 });
+
+it('repeats an installation: an existing panel provider and an equal configuration are kept without a failure', function (): void {
+    expect(Artisan::call('azguard:install', ['--host-keys' => 'bigint', '--panel' => 'Admin', '--migrate' => true, '--no-interaction' => true]))->toBe(0);
+    $provider = $this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php');
+    $this->ran = [];
+
+    expect(Artisan::call('azguard:install', ['--host-keys' => 'bigint', '--panel' => 'Admin', '--migrate' => true, '--no-interaction' => true]))->toBe(0)
+        ->and(Artisan::output())->toContain('AdminGuardPanelProvider.php exists and was kept')
+        ->toContain('config/azguard.php exists and was kept.')->not->toContain('set ids.host_keys')
+        ->and($this->generated->read('app/Guards/Admin/AdminGuardPanelProvider.php'))->toBe($provider)
+        ->and($this->ran)->toBe(['migrate', 'azguard:doctor']);
+});

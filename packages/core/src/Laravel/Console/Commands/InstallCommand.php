@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Laravel\Console\Concerns\InvalidCommandInput;
+use AzGuard\Laravel\Console\Scaffold\Layout;
+use AzGuard\Laravel\Console\Scaffold\ProviderRegistration;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
@@ -63,7 +66,7 @@ final class InstallCommand extends Command
             }
             $this->publishConfig($hostKeys);
             $effectiveConnection = $this->writeConnection($connection);
-            $status = $panel === null ? self::SUCCESS : $this->call('azguard:make:panel', ['panel' => $panel]);
+            $status = $panel === null || $this->keptPanel($panel) ? self::SUCCESS : $this->call('azguard:make:panel', ['panel' => $panel]);
 
             if ($status !== self::SUCCESS) {
                 return $status;
@@ -138,7 +141,9 @@ final class InstallCommand extends Command
         $target = $this->laravel->configPath('azguard.php');
 
         if ($this->files->exists($target) && $this->option('force') !== true) {
-            $this->components->warn('config/azguard.php exists and was kept: set ids.host_keys to "'.$hostKeys.'" in it yourself, or pass --force.');
+            data_get($this->files->getRequire($target), 'ids.host_keys') === $hostKeys
+                ? $this->components->info('config/azguard.php exists and was kept.')
+                : $this->components->warn('config/azguard.php exists and was kept: set ids.host_keys to "'.$hostKeys.'" in it yourself, or pass --force.');
 
             return;
         }
@@ -157,6 +162,28 @@ final class InstallCommand extends Command
         }
         $this->files->put($target, $edited);
         $this->components->info('Published config/azguard.php with ids.host_keys = "'.$hostKeys.'".');
+    }
+
+    /**
+     * A second run keeps the provider of the panel instead of failing on it, so the installation stays repeatable;
+     * the provider is still listed in the configuration. `--force` regenerates it.
+     */
+    private function keptPanel(string $panel): bool
+    {
+        if ($this->option('force') === true) {
+            return false;
+        }
+        $layout = new Layout($this->laravel->make(AzGuardConfig::class), $this->laravel->basePath());
+        $name = $layout->panelName($panel);
+        $place = $layout->panel($name);
+
+        if (! is_file($place->file($name.'GuardPanelProvider'))) {
+            return false;
+        }
+        (new ProviderRegistration($this->files))->register($this->laravel->configPath('azguard.php'), $place->fqcn($name.'GuardPanelProvider'));
+        $this->components->info($layout->relative($place->file($name.'GuardPanelProvider')).' exists and was kept.');
+
+        return true;
     }
 
     /** The selected connection of the child processes, unless an existing .env value was kept. */
