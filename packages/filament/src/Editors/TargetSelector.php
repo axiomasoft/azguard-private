@@ -10,13 +10,13 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Authorization\FilamentContext;
-use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\CurrentContext;
+use AzGuard\Scopes\ModelIdentity;
 use Closure;
 use DateTimeImmutable;
 use Filament\Facades\Filament;
@@ -195,7 +195,7 @@ final readonly class TargetSelector
         return new LookupContext(
             panel: $panel,
             scope: AccessScope::in(TenantRef::global()),
-            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), ModelKey::of($actor)),
+            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), ModelIdentity::key($actor)),
             actorModel: $actor,
             subject: null,
             user: null,

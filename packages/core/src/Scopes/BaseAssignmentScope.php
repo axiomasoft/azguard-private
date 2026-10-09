@@ -56,7 +56,7 @@ abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinit
             );
         }
 
-        $record = $this->query()->whereKey($ref->id())->first();
+        $record = ModelKey::find($this->query(), $ref->id());
 
         return $record === null ? null : new ResolvedAssignmentScope($ref, $this->tenantOf($record), $record);
     }

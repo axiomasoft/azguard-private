@@ -7,6 +7,7 @@ namespace AzGuard\Authorization;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Scopes\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 final class ModelSubjectResolver
@@ -17,13 +18,19 @@ final class ModelSubjectResolver
         return self::given($panel, $request->subjectModel(), $request->subject()) ?? $this->resolve($panel, $request->subject());
     }
 
+    /**
+     * The stored model whose key is exactly the id of the reference. An id that an integer key cannot hold (`a/b`, `01`)
+     * names no model and is not sent to the database: PostgreSQL rejects it with an error (and aborts the surrounding
+     * transaction) where SQLite and MySQL coerce it to another row. A row the database matched by coercion or by a
+     * case-insensitive collation is not the subject either.
+     */
     public function resolve(Panel $panel, SubjectRef $subject): ?Model
     {
         foreach ($panel->subjectModels() as $class) {
             $model = new $class;
 
             if ($model->getMorphClass() === $subject->type()) {
-                return $model->newQuery()->whereKey($subject->id())->first();
+                return ModelKey::find($model->newQuery(), $subject->id());
             }
         }
 
@@ -39,9 +46,8 @@ final class ModelSubjectResolver
         if (! $model instanceof Model || ! $model->exists || $model->getMorphClass() !== $subject->type()) {
             return null;
         }
-        $key = $model->getKey();
 
-        if ((! is_int($key) && ! is_string($key)) || (string) $key !== $subject->id()) {
+        if (ModelKey::of($model) !== $subject->id()) {
             return null;
         }
         foreach ($panel->subjectModels() as $class) {

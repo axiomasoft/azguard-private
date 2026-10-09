@@ -21,6 +21,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Scopes\ModelKey;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Sources\PanelSources;
 use Closure;
@@ -73,8 +74,13 @@ final class BatchInputs
                 }
                 $this->subjects[$key] = null;
                 foreach ($panel->subjectModels() as $class) {
-                    if ((new $class)->getMorphClass() === $ref->type()) {
-                        $groups[$class][$key] = $ref;
+                    $model = new $class;
+
+                    if ($model->getMorphClass() === $ref->type()) {
+                        // An id the key cannot hold names no model; querying it would fail the whole chunk on PostgreSQL.
+                        if (ModelKey::canHold($model, $ref->id())) {
+                            $groups[$class][$key] = $ref;
+                        }
 
                         break;
                     }
@@ -141,7 +147,7 @@ final class BatchInputs
             }
             foreach (array_chunk($frames, 100, true) as $chunk) {
                 try {
-                    $records = $definition->query()->whereKey(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
+                    $records = ModelKey::where($definition->query(), array_values(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk)))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
                     foreach ($chunk as $key => $frame) {
                         try {
                             $record = $records->get($frame->scope()->context->id());

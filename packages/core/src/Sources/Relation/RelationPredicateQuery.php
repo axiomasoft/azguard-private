@@ -100,11 +100,12 @@ final class RelationPredicateQuery extends Builder
     }
 
     /**
+     * Laravel 11 declares $uniqueBy and $update untyped and Laravel 12+ narrows them; `mixed` is the
+     * only parameter type compatible with every supported Builder, so the override loads on all three.
+     *
      * @param  array<mixed>  $values
-     * @param  array<mixed>|string  $uniqueBy
-     * @param  array<mixed>  $update
      */
-    public function upsert(array $values, array|string $uniqueBy, ?array $update = null): never
+    public function upsert(array $values, mixed $uniqueBy, mixed $update = null): never
     {
         $this->refuse();
     }
