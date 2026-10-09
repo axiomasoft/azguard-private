@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Panels\PanelResolver;
 use Illuminate\Console\Command;
@@ -38,7 +39,7 @@ final class PermissionsCreateCommand extends Command
             $group = $this->stringOption('group');
 
             return $this->reportChange('Creation of permission '.$local,
-                $this->asSystem(static fn () => $access->permissions()->create($local, $label, $group)));
+                $this->asSystem(static fn (): ChangeResult => $access->permissions()->create($local, $label, $group)));
         });
     }
 }

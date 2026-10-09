@@ -50,7 +50,7 @@ abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinit
     {
         if ($ref->isGlobal() || $ref->type() !== $this->type()) {
             throw new InvalidAssignmentScopeException(
-                'Assignment scope '.$this::class.' accepts type "'.$this->type().'" and refuses '.($ref->isGlobal()
+                'Assignment scope '.static::class.' accepts type "'.$this->type().'" and refuses '.($ref->isGlobal()
                     ? 'the global scope'
                     : 'type "'.$ref->type().'"').': a foreign reference is not treated as missing.',
             );
@@ -101,7 +101,7 @@ abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinit
     {
         if (! is_a($class, AssignmentScopeFilter::class, true)) {
             throw new DefinitionException(
-                $this::class.'::filter() expects an '.AssignmentScopeFilter::class.' object, its class or a closure, got '
+                static::class.'::filter() expects an '.AssignmentScopeFilter::class.' object, its class or a closure, got '
                 .json_encode($class).'.',
             );
         }
@@ -119,7 +119,7 @@ abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinit
     {
         if (! is_a($class, AssignmentScopeDirectory::class, true)) {
             throw new DefinitionException(
-                $this::class.'::directory() expects a class that implements '.AssignmentScopeDirectory::class.', got '
+                static::class.'::directory() expects a class that implements '.AssignmentScopeDirectory::class.', got '
                 .json_encode($class).'.',
             );
         }

@@ -25,11 +25,12 @@ use AzGuard\Panels\StateRefresh;
 use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
+use AzGuard\Sources\PanelSources;
 use AzGuard\Storage\AuthorityTransaction;
 use AzGuard\Storage\StorageReadSession;
 
 /** @internal One operation's consumed source revisions and pinned handles; never shared or cached.
- * @phpstan-import-type Attached from \AzGuard\Sources\PanelSources
+ * @phpstan-import-type Attached from PanelSources
  */
 final class ReadAttempt
 {

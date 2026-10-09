@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use Illuminate\Console\Command;
 
@@ -40,7 +41,7 @@ final class RolesGrantCommand extends Command
             $fields = $this->fields((array) $this->option('field'));
 
             return $this->reportChange('Grant of role '.$role.' to '.$subject->key(),
-                $this->asSystem(static fn () => $access->grantRole($role, $context, $until, $fields)));
+                $this->asSystem(static fn (): ChangeResult => $access->grantRole($role, $context, $until, $fields)));
         });
     }
 }

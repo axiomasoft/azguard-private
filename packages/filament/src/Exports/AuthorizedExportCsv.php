@@ -56,11 +56,10 @@ class AuthorizedExportCsv extends ExportCsv
         if (is_array($tenant) && is_string($tenant['type'] ?? null) && (is_string($tenant['id'] ?? null) || is_int($tenant['id'] ?? null))) {
             $access = $access->inTenant(TenantRef::of($tenant['type'], $tenant['id']));
         }
-        /** @var Model $model */
         $model = new $authority['model'];
         $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), $user->getKey()),
             $authority['permission'], $access->scope());
-        $visible = array_map('strval', $query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all());
+        $visible = array_map(strval(...), $query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all());
 
         return array_values(array_filter($this->records, static fn (mixed $key): bool => in_array((string) $key, $visible, true)));
     }

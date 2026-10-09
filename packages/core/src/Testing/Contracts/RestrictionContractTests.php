@@ -64,7 +64,7 @@ trait RestrictionContractTests
     public function restrictionAnswersTheSameRequestTheSameWay(): void
     {
         $source = new FakeSource;
-        $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $builder->permissions([$source])->restrictions([$this->azguardRestriction()]));
+        $panel = ContractWorld::panel(fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->restrictions([$this->azguardRestriction()]));
         $subject = $this->azguardSubject();
         $ref = SubjectRef::of($subject->getMorphClass(), $subject->getKey());
 
@@ -83,11 +83,11 @@ trait RestrictionContractTests
     {
         $restriction = $this->azguardRestriction();
         $source = new FakeSource;
-        $panel = ContractWorld::panel(static fn (PanelBuilder $builder) => $builder->permissions([$source]));
+        $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source]));
         $subject = $this->azguardSubject();
         $source->grantPermission(SubjectRef::of($subject->getMorphClass(), $subject->getKey()), app(PanelResolver::class)->pattern($panel, ContractPermission::View));
         $source->grantPermission(SubjectRef::of($subject->getMorphClass(), $subject->getKey()), app(PanelResolver::class)->pattern($panel, ContractPermission::Edit));
-        $restricted = ContractWorld::panel(static fn (PanelBuilder $builder) => $builder->permissions([$source])->restrictions([$restriction]));
+        $restricted = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->restrictions([$restriction]));
 
         foreach ($this->azguardPermissions() as $permission) {
             $decision = ContractWorld::decide($restricted, $subject, $permission);
@@ -104,7 +104,7 @@ trait RestrictionContractTests
     public function restrictionWritesNothingWhileItDecides(): void
     {
         $source = new FakeSource;
-        $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $builder->permissions([$source])->restrictions([$this->azguardRestriction()]));
+        $panel = ContractWorld::panel(fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->restrictions([$this->azguardRestriction()]));
         $subject = $this->azguardSubject();
 
         foreach ($this->azguardPermissions() as $permission) {

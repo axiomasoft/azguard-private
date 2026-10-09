@@ -110,7 +110,7 @@ final readonly class IdentityCodec
     public static function decode(array $encoded): PermissionKey|PermissionPattern|RoleKey|SubjectRef|TenantRef|AssignmentScopeRef|AccessScope|ActorRef
     {
         $parts = array_values($encoded);
-        $shape = array_map(static fn (mixed $part): string => get_debug_type($part), $parts);
+        $shape = array_map(get_debug_type(...), $parts);
 
         $ref = match ($shape) {
             ['string', 'string', 'string'] => match ($parts[0]) {

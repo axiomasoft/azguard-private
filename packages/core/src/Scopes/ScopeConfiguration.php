@@ -118,7 +118,7 @@ final class ScopeConfiguration
         }
 
         if ($later->settings()->directory !== null) {
-            $merged = $merged->directory($later->settings()->directory);
+            return $merged->directory($later->settings()->directory);
         }
 
         return $merged;

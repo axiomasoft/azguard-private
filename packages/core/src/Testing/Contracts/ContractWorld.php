@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Testing\Contracts;
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Panels\Panel;
@@ -101,7 +102,7 @@ final class ContractWorld
         return [
             'settings' => $panel->settings()->toArray(),
             'plugins' => $panel->pluginIds(),
-            'sources' => array_map(static fn ($source): string => $source->id.'|'.implode(',', $source->capabilities), $panel->sources()),
+            'sources' => array_map(static fn (SourceDescription $source): string => $source->id.'|'.implode(',', $source->capabilities), $panel->sources()),
             'permissions' => array_keys($catalog->all()),
             'roles' => array_keys($catalog->roles()),
             'before' => count($panel->before()),

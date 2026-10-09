@@ -38,7 +38,7 @@ enum ChangeType: string
     /** A change of a dynamic permission itself, not of a grant. */
     public function isAction(): bool
     {
-        return $this === self::CreatePermission || $this === self::UpdatePermission || $this === self::DeletePermission;
+        return in_array($this, [self::CreatePermission, self::UpdatePermission, self::DeletePermission], true);
     }
 
     /** A deliberate raise of the panel state version: it names no subject, key or grant and changes no stored row. */

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources\PermissionResource\Pages;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Exceptions\AzGuardException;
@@ -71,7 +72,7 @@ final class ListPermissions extends Page implements HasTable
                         ->default($selector->defaultPanel())
                         ->selectablePlaceholder(false)
                         ->live()
-                        ->afterStateUpdated(static fn (Set $set) => $set('tenant', null)),
+                        ->afterStateUpdated(static fn (Set $set): mixed => $set('tenant', null)),
                     Select::make('tenant')->label('Tenant')
                         ->searchable()
                         ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get('panel'), (string) $search))
@@ -88,7 +89,7 @@ final class ListPermissions extends Page implements HasTable
                         TextInput::make('label')->label('Label'),
                         TextInput::make('group')->label('Group'),
                     ])
-                    ->action(fn (array $data) => $this->write('create', static fn (PanelAccess $access) => $access->permissions()->create(
+                    ->action(fn (array $data) => $this->write('create', static fn (PanelAccess $access): ChangeResult => $access->permissions()->create(
                         (string) $data['name'],
                         self::text($data['label'] ?? null),
                         self::text($data['group'] ?? null),
@@ -102,14 +103,14 @@ final class ListPermissions extends Page implements HasTable
                         TextInput::make('label')->label('Label'),
                         TextInput::make('group')->label('Group'),
                     ])
-                    ->action(fn (array $record, array $data) => $this->write('update', static fn (PanelAccess $access) => $access->permissions()->update(
+                    ->action(fn (array $record, array $data) => $this->write('update', static fn (PanelAccess $access): ChangeResult => $access->permissions()->update(
                         $record['name'],
                         new PermissionDetails(self::text($data['label'] ?? null), self::text($data['group'] ?? null), $record['description']),
                     ))),
                 Action::make('delete')->label('Delete')->color('danger')->requiresConfirmation()
                     ->modalDescription('The permission is deleted with every grant of it in this tenant.')
                     ->visible(static fn (array $record): bool => $record['dynamic'] && PermissionResource::can('delete'))
-                    ->action(fn (array $record) => $this->write('delete', static fn (PanelAccess $access) => $access->permissions()->delete($record['name']))),
+                    ->action(fn (array $record) => $this->write('delete', static fn (PanelAccess $access): ChangeResult => $access->permissions()->delete($record['name']))),
             ])
             ->paginated(false);
     }

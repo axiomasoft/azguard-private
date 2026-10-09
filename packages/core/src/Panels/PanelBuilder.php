@@ -548,8 +548,6 @@ final class PanelBuilder
     }
 
     /**
-     * @return Source|class-string<BackedEnum>|string
-     *
      * @throws DefinitionException
      */
     private function definition(mixed $definition): Source|string

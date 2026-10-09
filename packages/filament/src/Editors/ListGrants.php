@@ -329,7 +329,7 @@ abstract class ListGrants extends Page implements HasTable
             Select::make('context_type')->label('Context type')
                 ->options(fn (): array => $this->editor() === null ? [] : [GrantEditor::TENANT_WIDE => 'Whole tenant', ...$this->editor()->scopeTypes()])
                 ->live()
-                ->afterStateUpdated(static fn (Set $set) => $set('context', null)),
+                ->afterStateUpdated(static fn (Set $set): mixed => $set('context', null)),
             Select::make('context')->label('Context')
                 ->searchable()
                 ->getSearchResultsUsing(fn (Get $get, ?string $search): array => $this->editor()?->inspectContexts($get('context_type'), (string) $search) ?? [])
@@ -364,13 +364,11 @@ abstract class ListGrants extends Page implements HasTable
      */
     private function grantForm(string $label): array
     {
-        $after = static function (array $fields): Closure {
-            return static function (Set $set) use ($fields): void {
-                foreach ($fields as $field) {
-                    $set($field, $field === 'fields' ? [] : null);
-                }
-            };
-        };
+        $after = (static fn (array $fields): Closure => static function (Set $set) use ($fields): void {
+            foreach ($fields as $field) {
+                $set($field, $field === 'fields' ? [] : null);
+            }
+        });
         $editor = fn (Get $get): ?GrantEditor => $this->formEditor($get);
 
         return [
