@@ -115,11 +115,11 @@ final readonly class AuthorityStage
         [$frame, $denial, $count] = $this->walk($request, $frame, $catalog, $trace,
             function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($request, $trace, &$matching, &$superAdmin, &$qualified): void {
                 $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
-                $covers = $item instanceof Grant && PatternMatcher::covers($item->pattern->local(), $request->permission()->local());
+                $covers = $item instanceof Grant && PatternMatcher::coversValidated($item->pattern->local(), $request->permission()->local());
 
                 if ($item instanceof RoleContribution && $roleDefinition !== null) {
                     foreach ($roleDefinition['permissions'] as $pattern) {
-                        $covers = $covers || PatternMatcher::covers($pattern, $request->permission()->local());
+                        $covers = $covers || PatternMatcher::coversValidated($pattern, $request->permission()->local());
                     }
                 }
 

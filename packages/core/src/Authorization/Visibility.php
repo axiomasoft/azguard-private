@@ -172,8 +172,8 @@ final readonly class Visibility
                     continue;
                 }
                 $admin = $item instanceof RoleContribution && ($roleDefinition['super_admin'] ?? false);
-                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local())
-                    : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::covers($pattern, $request->permission()->local())) !== [];
+                $covers = $item instanceof Grant ? PatternMatcher::coversValidated($item->pattern->local(), $request->permission()->local())
+                    : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::coversValidated($pattern, $request->permission()->local())) !== [];
                 // Conditions and role eligibility qualify each live contribution before permission matching.
                 $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
                 $branchFrame = ($ref->isGlobal() ? $frame : $frame->withScope(AccessScope::in($frame->scope()->tenant, $ref)))->forContribution($item, $role);

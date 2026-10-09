@@ -23,12 +23,23 @@ final class PatternMatcher
         PermissionGrammar::assertPattern($pattern);
         PermissionGrammar::assertLocalKey($local);
 
-        $patternSegments = explode('.', $pattern);
-        $wildcard = array_pop($patternSegments);
+        return self::coversValidated($pattern, $local);
+    }
 
-        if ($wildcard !== PermissionGrammar::WILDCARD_ONE && $wildcard !== PermissionGrammar::WILDCARD_DEEP) {
+    /**
+     * `covers()` for values that already passed the grammar: pattern and key value objects and compiled roles. The
+     * decision path calls this for every pattern of every role, so it skips the second validation.
+     *
+     * @internal
+     */
+    public static function coversValidated(string $pattern, string $local): bool
+    {
+        if ($pattern === $local || ! str_ends_with($pattern, '*')) {
             return $pattern === $local;
         }
+
+        $patternSegments = explode('.', $pattern);
+        $wildcard = array_pop($patternSegments);
 
         $localSegments = explode('.', $local);
         $prefixLength = count($patternSegments);

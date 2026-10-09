@@ -48,7 +48,7 @@ final readonly class PermissionPattern
 
     public function covers(PermissionKey $key): bool
     {
-        return $this->panel === $key->panel() && PatternMatcher::covers($this->local, $key->local());
+        return $this->panel === $key->panel() && PatternMatcher::coversValidated($this->local, $key->local());
     }
 
     public function isExact(): bool
