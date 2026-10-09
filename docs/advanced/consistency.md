@@ -54,8 +54,8 @@ request or job. Revokes committed by other processes become visible on the next 
 
 `Reads::Default` may read from a replica. A replica can lag behind the primary, so **replica mode is not strict
 freshness**: a decision may reflect a state from before a committed revoke. `azguard:doctor` warns about it
-(`consistency.reads`). A freshness receipt that would make replica reads wait for a known commit is planned for
-1.x.
+(`consistency.reads`). A freshness receipt that would make replica reads wait for a known commit is on the
+roadmap (`ROADMAP.md` in the repository).
 
 ## DecisionSet
 

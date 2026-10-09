@@ -19,6 +19,7 @@
 /DEVELOPMENT.md     export-ignore
 /RELEASING.md       export-ignore
 /UPGRADING.md       export-ignore
+/ROADMAP.md         export-ignore
 
 # AI / dev tooling — never ship in the Composer dist tarball.
 /AGENTS.md          export-ignore
