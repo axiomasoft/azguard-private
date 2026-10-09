@@ -76,6 +76,9 @@ final class Summary
     /** @param  array<string, array{p95_cv: float}>  $summary */
     public static function worstCv(array $summary): float
     {
-        return $summary === [] ? 0.0 : max(array_map(static fn (array $s): float => $s['p95_cv'], $summary));
+        // Probe samples (lock wait, snapshot span) describe the stage; they do not decide its repetitions.
+        $ops = array_filter($summary, static fn (string $op): bool => ! str_starts_with($op, 'probe.'), ARRAY_FILTER_USE_KEY);
+
+        return $ops === [] ? 0.0 : max(array_map(static fn (array $s): float => $s['p95_cv'], $ops));
     }
 }
