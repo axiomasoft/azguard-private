@@ -10,7 +10,7 @@ use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Policies\RuntimeInvoker;
 use AzGuard\Scopes\AssignmentScopeRuntime;
-use AzGuard\Scopes\ModelKey;
+use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;

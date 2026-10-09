@@ -2,16 +2,22 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Support;
 
+use AzGuard\Exceptions\InvalidIdentityException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @internal The one rule for looking a model up by the id of a reference. An id is text (`IdentityCodec`); a key column
- * may be an integer. SQLite and MySQL coerce `5abc` or `05` to row 5, PostgreSQL rejects the comparison with an error
- * (and aborts the surrounding transaction), and a case-insensitive collation matches `ABC` to `abc`. Every lookup goes
- * through here so a single check, a batch and a list all agree that only the row whose key is the id as written matches.
+ * Looks a model up by the id of an identity reference (`SubjectRef`, `TenantRef`, `AssignmentScopeRef`), matching
+ * only the row whose key is that id as written.
+ *
+ * A reference id is text; a key column is often an integer. Compared directly, SQLite and MySQL coerce `05` or `5abc`
+ * to row 5, a case-insensitive collation matches `ABC` to `abc`, and PostgreSQL rejects `a/b` with an error that also
+ * aborts the surrounding transaction. AzGuard resolves every subject, tenant and context through this class, so use it
+ * for ids that come from a request, a form or a queue payload when the answer must agree with AzGuard's.
+ *
+ * @api
  */
 final class ModelKey
 {
@@ -33,17 +39,33 @@ final class ModelKey
         return preg_match('/^-?(0|[1-9][0-9]*)$/', $id) === 1 && (string) (int) $id === $id;
     }
 
-    /** The key of a stored model as the text of a reference, or null when it has none. */
-    public static function of(Model $model): ?string
+    /**
+     * The key of a stored model as the id of a reference.
+     *
+     * @throws InvalidIdentityException when the model has no int or string key (it is not saved yet)
+     */
+    public static function of(Model $model): string
     {
         $key = $model->getKey();
 
-        return is_int($key) || is_string($key) ? (string) $key : null;
+        if (! is_int($key) && ! is_string($key)) {
+            throw new InvalidIdentityException($model::class.' has no key: save the model first.');
+        }
+
+        return (string) $key;
+    }
+
+    /** Whether the key of the model is exactly the id; a model without a key matches no id. */
+    public static function matches(Model $model, string $id): bool
+    {
+        $key = $model->getKey();
+
+        return (is_int($key) || is_string($key)) && (string) $key === $id;
     }
 
     /**
-     * Constrains the query to the rows whose key is one of the ids; an id the key cannot hold is never sent to the
-     * database, and a query left with no id (a global reference has none) matches nothing.
+     * Constrains the query to the rows whose key is one of the ids. An id the key cannot hold is never sent to the
+     * database; a query left with no id (a global reference has none) matches nothing.
      *
      * @template TModel of Model
      *
@@ -76,6 +98,6 @@ final class ModelKey
         }
         $found = $query->whereKey($id)->first();
 
-        return $found !== null && self::of($found) === $id ? $found : null;
+        return $found !== null && self::matches($found, $id) ? $found : null;
     }
 }

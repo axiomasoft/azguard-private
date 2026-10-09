@@ -22,6 +22,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 - **core:** Grants with expiry, custom fields, tenants and assignment scopes; change pipes; events published after
   commit with actor and reason; runtime (dynamic) permissions; pruning.
 - **core:** `visibleTo()` filters an Eloquent query to the records a subject may see, in SQL.
+- **core:** `AzGuard\Support\ModelKey` finds a model by the id of a reference only by its exact key (`01` and
+  `a/b` find nothing and never reach the database), as AzGuard resolves subjects, tenants and contexts.
 - **core:** Laravel integration: Gate, middleware `azguard.panel` / `azguard.can`, controller attributes, Blade,
   queues (the panel travels in Laravel Context), Octane-safe request state, `optimize` and `about` hooks.
 - **core:** Commands: `install`, generators, `doctor`, `explain`, grant and role management, catalog cache, state reset.

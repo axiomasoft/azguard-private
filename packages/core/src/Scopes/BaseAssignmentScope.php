@@ -13,6 +13,7 @@ use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

@@ -21,7 +21,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\ModelKey;
+use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -117,7 +117,7 @@ final readonly class BoundaryStage
                     $model = $definition->model();
 
                     if (($model !== null && ! $resolved->record instanceof $model)
-                        || ModelKey::of($resolved->record) !== $frame->scope()->context->id()) {
+                        || ! ModelKey::matches($resolved->record, $frame->scope()->context->id() ?? '')) {
                         return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeMismatch)];
                     }
                 }

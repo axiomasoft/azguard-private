@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
-use AzGuard\Scopes\ModelKey;
+use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Support\ModelKey;
 use AzGuard\Tests\Fixtures\Scopes\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
@@ -50,6 +52,28 @@ it('finds only the row whose key is the id as written', function (): void {
     expect(ModelKey::find(Project::query(), '2')?->getAttribute('organization_id'))->toBe('globex')
         ->and(ModelKey::find(Project::query(), '02'))->toBeNull()
         ->and(ModelKey::find(Project::query(), '3'))->toBeNull()
-        ->and(ModelKey::of(new Project))->toBeNull()
         ->and(ModelKey::of(Project::query()->findOrFail(1)))->toBe('1');
+});
+
+it('answers an id the key cannot hold without a query', function (): void {
+    $queries = 0;
+    DB::listen(function () use (&$queries): void {
+        $queries++;
+    });
+
+    expect(ModelKey::find(Project::query(), 'a/b'))->toBeNull()
+        ->and(ModelKey::find(Project::query(), '01'))->toBeNull()
+        ->and(ModelKey::find(Project::query(), null))->toBeNull()
+        ->and(ModelKey::where(Project::query(), ['a/b', '01'])->exists())->toBeFalse()
+        ->and($queries)->toBe(1);
+});
+
+it('matches a stored model only to its key as written and refuses the key of an unsaved one', function (): void {
+    $project = Project::query()->findOrFail(1);
+
+    expect(ModelKey::matches($project, '1'))->toBeTrue()
+        ->and(ModelKey::matches($project, '01'))->toBeFalse()
+        ->and(ModelKey::matches($project, 'a/b'))->toBeFalse()
+        ->and(ModelKey::matches(new Project, ''))->toBeFalse()
+        ->and(fn () => ModelKey::of(new Project))->toThrow(InvalidIdentityException::class);
 });

@@ -7,7 +7,7 @@ namespace AzGuard\Directories;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Scopes\ModelIdentity;
-use AzGuard\Scopes\ModelKey;
+use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 /**
