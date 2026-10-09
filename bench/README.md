@@ -43,6 +43,7 @@ filtered by owner and a tenant panel over teams. Seeding is deterministic, worke
 | visible-at-scale | `visibleTo` page of 25 and count over all posts | user 10 sees exactly its posts |
 | cache-cold-warm | the same check with a flushed store, a warm store and a warm request; then a shared warm store | — |
 | grant-revoke-load | 1–2 writers toggle grants while readers check the same subjects | final state equals the last write |
+| consistency-load | one writer; readers on other subjects (`disjoint`), on one hot subject (`hot`), under an open-loop writer at 50 and 200 writes/s (`paced*`); hits vs misses | final state equals the last write |
 | multi-tenant | member, outsider and tenant admin checks on the tenant panel | every answer is right |
 
 A check that ends in an engine error (`*_error` reason) counts as an error, not as a fast denial: the package fails
@@ -100,6 +101,36 @@ What the bench found:
   but visible: with one writer about 20% of concurrent reads are denied, with two about 44%, on every driver.
 - **`abilities()` costs about 4 ms per permission for a heavy subject.** That is the cost of one decision over 220
   contributions, the same as a check in a warm request.
+
+## Consistency under writes (2026-10-09, mini tier, before the snapshot read)
+
+`consistency-load`, one rep, 4 workers (one writer, three readers), files `results/2026-10-09-consistency-before-*`.
+The baseline of the plan in `audits/2026-10-09-consistency-design.md`: in `disjoint` no reader reads a subject the
+writer changes, yet 14-22% of checks end in `consistency_error`. The panel-wide version is the only cause. `paced50`
+writes slower than a check takes, so a check rarely spans a write.
+
+| driver+cache | stage | checks | consistency_error | hit ratio | check p50 / p95 / p99 ms | SQL/check (miss) |
+|---|---|---|---|---|---|---|
+| sqlite-none | disjoint:w4 | 300 | 66 (22%) | 0% | 3.82 / 5.54 / 11.07 | 5.11 |
+| sqlite-none | hot:w4 | 300 | 58 (19%) | 0% | 4.75 / 7.83 / 14.30 | 5.25 |
+| sqlite-none | paced50:w4 | 300 | 0 (0%) | 0% | 4.24 / 8.74 / 14.65 | 6.02 |
+| sqlite-none | paced200:w4 | 300 | 64 (21%) | 0% | 3.87 / 5.79 / 11.29 | 5.21 |
+| sqlite-array | disjoint:w4 | 300 | 61 (20%) | 49% | 3.85 / 6.66 / 10.76 | 5.29 |
+| sqlite-array | hot:w4 | 300 | 61 (20%) | 97% | 7.52 / 10.87 / 10.87 | 10 |
+| sqlite-array | paced50:w4 | 300 | 0 (0%) | 2% | 4.27 / 8.18 / 10.36 | 5.9 |
+| sqlite-array | paced200:w4 | 300 | 54 (18%) | 24% | 4.24 / 6.38 / 10.78 | 5.11 |
+| pgsql-none | disjoint:w4 | 300 | 54 (18%) | 0% | 7.03 / 17.37 / 24.16 | 5.98 |
+| pgsql-none | hot:w4 | 300 | 58 (19%) | 0% | 8.12 / 20.53 / 28.60 | 5.87 |
+| pgsql-none | paced50:w4 | 300 | 8 (3%) | 0% | 8.34 / 25.03 / 40.66 | 6.82 |
+| pgsql-none | paced200:w4 | 300 | 56 (19%) | 0% | 6.75 / 19.17 / 23.48 | 5.98 |
+| pgsql-redis | disjoint:w4 | 300 | 47 (16%) | 42% | 8.65 / 28.21 / 42.28 | 7.01 |
+| pgsql-redis | hot:w4 | 300 | 42 (14%) | 63% | 12.25 / 35.22 / 38.42 | 7.64 |
+| pgsql-redis | paced50:w4 | 300 | 0 (0%) | 3% | 8.36 / 18.99 / 27.79 | 6.68 |
+| pgsql-redis | paced200:w4 | 300 | 60 (20%) | 36% | 8.35 / 24.74 / 36.55 | 6.27 |
+| mysql-none | disjoint:w4 | 300 | 42 (14%) | 0% | 7.27 / 22.15 / 29.10 | 6.67 |
+| mysql-none | hot:w4 | 300 | 41 (14%) | 0% | 7.39 / 19.91 / 29.03 | 6.53 |
+| mysql-none | paced50:w4 | 300 | 0 (0%) | 0% | 7.26 / 15.11 / 20.73 | 6.4 |
+| mysql-none | paced200:w4 | 300 | 49 (16%) | 0% | 6.91 / 20.73 / 23.82 | 6.02 |
 
 ## CI
 
