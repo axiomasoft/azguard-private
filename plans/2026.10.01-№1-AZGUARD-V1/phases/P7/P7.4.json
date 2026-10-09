@@ -265,66 +265,66 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T06:02:36Z",
-    "finished_at": "2026-10-09T06:02:36Z",
+    "started_at": "2026-10-09T06:46:08Z",
+    "finished_at": "2026-10-09T06:46:08Z",
     "executor": {
       "provider": "codex",
       "model": "gpt-6.1-sol",
       "effort": "high"
     },
-    "notes": "F6 исправлен: CRM README R25/R34 соответствует реализованным editor surfaces; explanation answer явно авторизован view. Export-тест CRM использует реальную цепочку заданий Filament, затем исполняет chunk с повторной видимостью. V1 grants+changes, V2 phase, V3 arch, V4 full, V5–V9 зелёные; evidence artifacts/P7-audit-fixes/.",
+    "notes": "F10/G2/F6 закрыты: Assignment LookupContext для выбранных subject/definition/proposed, CRM custom directory UI write regression, R25/R34/R53/R63 и R49 owner уточнены. Raw fields сохранены для атомарной проверки core writer. Grants+Changes, phase368/full4627/Arch95, Pint/PHPStan/API/diff зелёные, types99.5%; final Grok GREEN.",
     "deviations": [
-      "V7: fresh serial no-cache type coverage (99.5%) replaces unreliable fork-mode result. Full check evidence in artifacts/P7-audit-fixes/."
+      "Исправления подготовлены в совместном correction cycle reopened P7.2/P7.4 до регистрации start P7.4; зависимость P7.2 закрыта перед finish. CRM fixtures/test/README включены explicit --path из-за буквального brace task_files matcher. V7 fresh serial uncached Pest min98 вместо forked composer script с недостоверными null chunks."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T06:02:36Z"
+        "at": "2026-10-09T06:46:08Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T06:02:36Z",
+  "updated_at": "2026-10-09T06:46:08Z",
   "sections": [
     {
       "id": "Intent",

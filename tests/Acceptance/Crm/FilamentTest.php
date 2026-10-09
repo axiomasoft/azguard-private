@@ -10,6 +10,9 @@ use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Scopes\AssignmentScopePhase;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Tests\Fixtures\Crm\ContextAwareProjectDirectory;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Filament\BootsCrmFilament;
 use AzGuard\Tests\Fixtures\Crm\Filament\ClientCalled;
@@ -20,6 +23,9 @@ use AzGuard\Tests\Fixtures\Crm\Filament\CrmEditorPermission;
 use AzGuard\Tests\Fixtures\Crm\Filament\CrmFilamentUser;
 use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ListClients;
 use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ViewClient;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\CallerRole;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use AzGuard\Tests\Fixtures\Http\EntryPermission;
@@ -33,6 +39,7 @@ use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
@@ -321,4 +328,36 @@ it('R28 lists a grant in an inactive project and an expired one and revokes them
         ->callAction(TestAction::make('revoke')->table('role:'.$expired))->assertNotified('Saved');
 
     expect(backofficeGrants())->toBe([]);
+});
+
+it('R36 gives a custom directory the selected subject and role when describing and saving a grant context', function (): void {
+    World::compile(configure: World::$configure, backoffice: static fn (PanelBuilder $panel) => $panel->scopes(
+        AssignmentScopePolicy::inherit(
+            ProjectScope::make()
+                ->filter(new ActiveProjects)
+                ->directory(ContextAwareProjectDirectory::class),
+        ),
+    ), exact: true);
+    Facade::clearResolvedInstances();
+    filamentGrantEditor();
+    $this->serveCrm(4);
+    $directory = new ContextAwareProjectDirectory;
+    app()->instance($directory::class, $directory);
+
+    Livewire::test(ListRoleGrants::class)
+        ->callAction(TestAction::make('create')->table(), ['panel' => 'backoffice', 'tenant' => '1', 'subject' => 'crm.user:4',
+            'key' => 'caller', 'context_type' => 'crm.project', 'context' => '1'])
+        ->assertHasNoActionErrors()->assertNotified('Saved');
+
+    $assignments = array_values(array_filter($directory->lookups,
+        static fn ($lookup): bool => $lookup->phase === AssignmentScopePhase::Assignment));
+    expect($assignments)->not->toBeEmpty();
+    foreach ($assignments as $lookup) {
+        expect($lookup->subject?->key())->toBe('crm.user:4')
+            ->and($lookup->role)->toBeInstanceOf(CallerRole::class)
+            ->and($lookup->actor?->type)->toBe('crm.user')
+            ->and($lookup->actor?->id)->toBe('4')
+            ->and($lookup->scope->tenant->id())->toBe('1');
+    }
+    expect(backofficeGrants())->toHaveCount(1);
 });
