@@ -13,7 +13,7 @@ on:
       - 'docs/**'
       - 'composer.json'
       - '.github/workflows/docs.yml'
-      - 'bin/docs-parity-gate.sh'
+      - 'bin/docs-language-gate.sh'
       - 'bin/docs-php-version-gate.sh'
   workflow_dispatch:
 
@@ -27,22 +27,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  parity:
-    name: EN/RU parity
+  lint:
+    name: Docs lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Check EN/RU documentation parity
-        run: bash bin/docs-parity-gate.sh
+      - name: Check that the documentation is English-only
+        run: bash bin/docs-language-gate.sh
 
       - name: Check docs PHP version matches composer floor
         run: bash bin/docs-php-version-gate.sh
 
   build:
     if: github.event_name != 'pull_request'
-    needs: parity
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
