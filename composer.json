@@ -52,7 +52,7 @@
     },
     "scripts": {
         "test": "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica",
-        "test:parallel": "vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica --parallel --passthru-php='-d memory_limit=1G'",
+        "test:parallel": "vendor/bin/pest --exclude-group=stand --parallel --passthru-php='-d memory_limit=1G'",
         "test:coverage": "vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
