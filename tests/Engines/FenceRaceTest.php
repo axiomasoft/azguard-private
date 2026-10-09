@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
-use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -18,7 +17,9 @@ use Illuminate\Database\Events\QueryExecuted;
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
 
-it('V99 discards every mixed read at a process barrier and retries the whole authority set', function (string $edge, bool $continuous): void {
+// audits/2026-10-09-consistency-design.md, step 2: one snapshot per source read, no retry, a decision reflects the
+// state at read time. Another process commits at the barrier and acknowledges before the reader goes on.
+it('V99 reads one snapshot across a process barrier and never retries', function (string $edge, bool $continuous, bool $granted): void {
     $worker = new AuthorityProcess;
 
     try {
@@ -40,17 +41,20 @@ it('V99 discards every mixed read at a process barrier and retries the whole aut
                 $barriers++;
             }
         });
+        $version = DatabaseWorld::storage()->state('admin')->version;
         $decision = $engine->decide($panel, DatabaseWorld::request());
-        expect($decision->allowed())->toBeFalse()
-            ->and($decision->reason)->toBe($continuous ? DecisionReason::ConsistencyError : DecisionReason::NotGranted)
-            ->and($barriers)->toBe($continuous ? 3 : 1);
+        // A revoke before the snapshot (at the autocommit lookup of the cache key) is seen; one inside it is not.
+        expect($decision->allowed())->toBe($granted)
+            ->and($decision->reason)->toBe($granted ? DecisionReason::Granted : DecisionReason::NotGranted)
+            ->and($barriers)->toBe(1)
+            ->and($decision->state->version)->toBe($granted ? $version : $version + 1);
     } finally {
         $worker->close();
     }
-})->with(['T_before' => ['panel_state', false], 'between grants' => ['permission_grants', false], 'T_after' => ['role_grants', false],
-    'all attempts change' => ['role_grants', true]])->group('engines');
+})->with(['before the snapshot' => ['panel_state', false, false], 'between grants' => ['permission_grants', false, true],
+    'after the last read' => ['role_grants', false, true], 'every read changes' => ['role_grants', true, true]])->group('engines');
 
-it('V99 discards a dynamic Prepare when another process deletes its catalogue and grants', function (): void {
+it('V99 fails closed when another process deletes the catalogue between the catalog and assignment snapshots', function (): void {
     DatabaseWorld::define();
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'reports.export', 'origin' => 'dynamic'])]);
     $worker = new AuthorityProcess;
@@ -65,7 +69,7 @@ it('V99 discards a dynamic Prepare when another process deletes its catalogue an
             }
         });
         $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
-        expect(fn () => app(Authorizer::class)->decide($panel, $request))->toThrow(UnknownPermissionException::class)
+        expect(app(Authorizer::class)->decide($panel, $request)->reason)->toBe(DecisionReason::ConsistencyError)
             ->and($hit)->toBeTrue();
     } finally {
         $worker->close();

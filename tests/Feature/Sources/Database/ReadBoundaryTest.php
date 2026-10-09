@@ -27,9 +27,9 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    ConcurrentWriter::close();
     app(StorageSchema::class)->drop('default');
     DatabaseWorld::storage()->connection()->getSchemaBuilder()->dropIfExists('users');
-    ConcurrentWriter::close();
     Relation::morphMap([], false);
 });
 
@@ -46,6 +46,7 @@ it('runs host hooks and model events once when another connection commits during
     Event::listen('eloquent.retrieved: '.app(AzGuardConfig::class)->defaultModels()['role_grant'], function () use (&$retrieved): void {
         $retrieved++;
     });
+    $version = DatabaseWorld::storage()->state('admin')->version;
     $written = false;
     $grantReads = 0;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$written, &$grantReads): void {
@@ -64,10 +65,12 @@ it('runs host hooks and model events once when another connection commits during
     });
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
-    // The fenced read retried the raw rows only: the second read saw the revoke, nothing was hydrated twice.
-    expect($written)->toBeTrue()->and($before)->toBe(1)->and($after)->toBe(1)->and($grantReads)->toBe(2)
-        ->and($retrieved)->toBe(0)->and($decision->reason)->toBe(DecisionReason::NotGranted)
-        ->and($decision->state->version)->toBe(DatabaseWorld::storage()->state('admin')->version);
+    // One snapshot, no retry: the decision reflects the state at read time (the grant before the revoke), each row
+    // is hydrated once after the snapshot, and the state token names that state, not the newer one.
+    expect($written)->toBeTrue()->and($before)->toBe(1)->and($after)->toBe(1)->and($grantReads)->toBe(1)
+        ->and($retrieved)->toBe(1)->and($decision->reason)->toBe(DecisionReason::Granted)
+        ->and($decision->state->version)->toBe($version)
+        ->and(DatabaseWorld::storage()->state('admin')->version)->toBe($version + 1);
 });
 
 it('fails a hydration error as a source error without reading the source again', function (): void {
@@ -84,4 +87,33 @@ it('fails a hydration error as a source error without reading the source again',
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
     expect($decision->reason)->toBe(DecisionReason::SourceError)->and($grantReads)->toBe(1);
+});
+
+it('leaves no open transaction when the snapshot read throws', function (): void {
+    [$panel] = DatabaseWorld::compile(DatabaseSource::make());
+    $connection = DatabaseWorld::storage()->connection();
+    $connection->listen(static function (QueryExecuted $event): void {
+        if (str_contains($event->sql, 'azg_role_grants') && str_starts_with(strtolower(ltrim($event->sql)), 'select')) {
+            throw new RuntimeException('read failed');
+        }
+    });
+    $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
+
+    expect($decision->reason)->toBe(DecisionReason::SourceError)->and($connection->getPdo()->inTransaction())->toBeFalse()
+        ->and($connection->transactionLevel())->toBe(0);
+});
+
+it('fails a snapshot that another caller ended inside the read', function (): void {
+    [$panel] = DatabaseWorld::compile(DatabaseSource::make());
+    $connection = DatabaseWorld::storage()->connection();
+    $pdo = $connection->getPdo();
+    $connection->listen(static function (QueryExecuted $event) use ($pdo): void {
+        if (str_contains($event->sql, 'azg_role_grants') && $pdo->inTransaction()) {
+            $pdo->exec('COMMIT');
+        }
+    });
+    $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
+
+    expect($decision->reason)->toBe(DecisionReason::SourceError)->and($pdo->inTransaction())->toBeFalse()
+        ->and($connection->transactionLevel())->toBe(0);
 });

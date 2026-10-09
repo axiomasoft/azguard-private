@@ -30,6 +30,8 @@ final class ConcurrentWriter
             return;
         }
         self::$file = sys_get_temp_dir().'/azg-concurrent-'.bin2hex(random_bytes(6)).'.sqlite';
+        // The rows the test has written so far move with it.
+        $connection->getPdo()->exec("VACUUM INTO '".self::$file."'");
         $pdo = new PDO('sqlite:'.self::$file, options: [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $pdo->exec('PRAGMA journal_mode='.($wal ? 'WAL' : 'DELETE'));
         self::$memory = $connection->getPdo();
@@ -39,7 +41,7 @@ final class ConcurrentWriter
     public static function connection(): Connection
     {
         if (self::$file === null) {
-            return app('db')->connection('secondary');
+            return self::$writer ??= app('db')->connection('secondary');
         }
 
         return self::$writer ??= new SQLiteConnection(new PDO('sqlite:'.self::$file, options: [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]), self::$file);

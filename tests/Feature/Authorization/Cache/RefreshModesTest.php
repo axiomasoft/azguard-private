@@ -33,12 +33,12 @@ beforeEach(function (): void {
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
 });
 
-it('a cold read encloses both capabilities in one coherent fence', function (): void {
+it('a cold read encloses the state and both capabilities in one snapshot', function (): void {
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make());
     $budget = CacheWorld::emptyBudget();
     CacheWorld::listen($budget);
     expect($engine->decide($panel, DatabaseWorld::request())->allowed())->toBeTrue()
-        ->and($budget['sequence'])->toBe(['panel_state', 'permission_grants', 'role_grants', 'panel_state']);
+        ->and($budget['sequence'])->toBe(['panel_state', 'panel_state', 'permission_grants', 'role_grants']);
 });
 
 it('refreshes a warm revision once per request or once per check', function (StateRefresh $refresh, int $reads): void {

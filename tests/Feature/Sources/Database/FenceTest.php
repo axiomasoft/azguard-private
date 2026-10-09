@@ -10,20 +10,23 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
+use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\FencedContributions;
 use AzGuard\Tests\Fixtures\Sources\Database\FencedDefinitionsOnly;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\SQLiteConnection;
 
 beforeEach(function (): void {
+    ConcurrentWriter::open();
     app(StorageSchema::class)->create('default');
 });
 
 afterEach(function (): void {
+    ConcurrentWriter::close();
     $connection = DatabaseWorld::storage()->connection();
     while ($connection->transactionLevel() > 0) {
         $connection->rollBack();
@@ -33,7 +36,7 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it('discards both capabilities when the fence changes and returns a coherent retried set', function (): void {
+it('reads both capabilities in one snapshot while another connection commits a change of both', function (): void {
     DatabaseWorld::insert('role', [DatabaseWorld::row()]);
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
     $source = DatabaseSource::make();
@@ -50,20 +53,23 @@ it('discards both capabilities when the fence changes and returns a coherent ret
             return;
         }
         $changes++;
-        DatabaseWorld::storage()->mutate('admin', function (StorageMutation $mutation): void {
-            $mutation->table('role_grants')->update(['role' => 'unknown']);
-            $mutation->table('permission_grants')->update(['permission' => 'documents.edit']);
-            $mutation->touch('admin');
+        ConcurrentWriter::commit(function (Connection $connection): void {
+            $connection->table('azg_role_grants')->update(['role' => 'unknown']);
+            $connection->table('azg_permission_grants')->update(['permission' => 'documents.edit']);
+            ConcurrentWriter::touch($connection);
         });
     });
+    $version = DatabaseWorld::storage()->state('admin')->version;
     $snapshot = $source->readContributions(SubjectRef::of('user', 1), [$frame->scope()], $frame);
 
-    expect($changes)->toBe(1)->and($grantReads)->toBe(4)->and($snapshot['roles'][0]->role->key())->toBe('unknown')
-        ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.edit')
-        ->and($snapshot['state']->version)->toBe(DatabaseWorld::storage()->state('admin')->version);
+    // The write committed between the two reads; both rows and the state are those of the snapshot, before it.
+    expect($changes)->toBe(1)->and($grantReads)->toBe(2)->and($snapshot['roles'][0]->role->key())->toBe('editor')
+        ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.view')
+        ->and($snapshot['state']->version)->toBe($version)
+        ->and(DatabaseWorld::storage()->state('admin')->version)->toBe($version + 1);
 });
 
-it('denies ConsistencyError after exactly three unstable whole-set attempts', function (): void {
+it('never retries the snapshot read while another connection writes on every read', function (): void {
     DatabaseWorld::seedSubject();
     DatabaseWorld::insert('role', [DatabaseWorld::row()]);
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission')]);
@@ -74,11 +80,11 @@ it('denies ConsistencyError after exactly three unstable whole-set attempts', fu
             return;
         }
         $attempts++;
-        DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
+        ConcurrentWriter::commit(fn (Connection $connection) => ConcurrentWriter::touch($connection));
     });
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
-    expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($attempts)->toBe(3);
+    expect($decision->allowed())->toBeTrue()->and($decision->reason)->toBe(DecisionReason::Granted)->and($attempts)->toBe(1);
 });
 
 it('rejects consumed unrecognized framework and raw PDO transactions before assignment reads', function (bool $raw): void {

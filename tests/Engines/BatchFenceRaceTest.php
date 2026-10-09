@@ -16,7 +16,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
 
-it('reads a deduplicated context union in bounded chunks inside one fence', function (): void {
+it('reads a deduplicated context union in bounded chunks inside one snapshot', function (): void {
     DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
         $mutation->table('permission_grants')->delete();
         foreach ([1, 101] as $id) {
@@ -37,7 +37,8 @@ it('reads a deduplicated context union in bounded chunks inside one fence', func
         ->and(count($set->states()))->toBe(1)
         ->and(array_column($reads['admin'], 'table'))->toHaveCount(6)
         ->and($reads['admin'][0]['table'])->toBe('panel_state')
-        ->and($reads['admin'][5]['table'])->toBe('panel_state');
+        ->and($reads['admin'][1]['table'])->toBe('panel_state')
+        ->and($reads['admin'][5]['table'])->toBe('role_grants');
     foreach (['permission_grants', 'role_grants'] as $table) {
         $chunks = array_values(array_filter($reads['admin'], static fn (array $read): bool => $read['table'] === $table));
         $contexts = array_merge(...array_column($chunks, 'contexts'));
@@ -55,7 +56,7 @@ it('reads a deduplicated context union in bounded chunks inside one fence', func
     }
 })->group('engines');
 
-it('discards every chunk after an acknowledged parallel revoke and exposes only the final group', function (bool $continuous): void {
+it('keeps every chunk in the snapshot when another process revokes between chunks', function (bool $continuous): void {
     DatabaseWorld::storage()->mutate('cabinet', static function (StorageMutation $mutation): void {
         $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', overrides: ['panel' => 'cabinet']));
         $mutation->touch('cabinet');
@@ -68,6 +69,7 @@ it('discards every chunk after an acknowledged parallel revoke and exposes only 
     $requests = BatchEngineWorld::requests();
     // Interleaving an independent panel also checks the returned request order.
     array_splice($requests, 50, 0, [BatchEngineWorld::cabinetRequest()]);
+    $version = DatabaseWorld::storage()->state('admin')->version;
     $worker = new AuthorityProcess;
     $barriers = 0;
 
@@ -85,16 +87,17 @@ it('discards every chunk after an acknowledged parallel revoke and exposes only 
 
         $set = $engine->decideMany($requests);
 
-        $attempts = $continuous ? 3 : 2;
-        $reason = $continuous ? DecisionReason::ConsistencyError : DecisionReason::NotGranted;
-        expect($barriers)->toBe($continuous ? 3 : 1)
+        // One snapshot, no retry: chunk two is read at the state of chunk one, before the revoke.
+        $attempts = 1;
+        $reason = DecisionReason::Granted;
+        expect($barriers)->toBe(1)->and($set->get(0)->state->version)->toBe($version)
             ->and($set)->toHaveCount(102)
             ->and(count($set->states()))->toBe(2)
             ->and($reads['admin'])->toHaveCount(6 * $attempts)
             ->and($reads['cabinet'])->toHaveCount(4)
             ->and($seen)->toHaveCount(102);
         foreach ($set as $index => $decision) {
-            expect($decision->allowed())->toBe($index === 50)
+            expect($decision->allowed())->toBeTrue()
                 ->and($decision->state->panel)->toBe($requests[$index]->permission()->panel());
 
             if ($index !== 50) {
@@ -113,4 +116,4 @@ it('discards every chunk after an acknowledged parallel revoke and exposes only 
     } finally {
         $worker->close();
     }
-})->with(['revoke between chunks' => [false], 'all three group attempts change' => [true]])->group('engines');
+})->with(['one revoke between chunks' => [false], 'a write at every odd chunk' => [true]])->group('engines');
