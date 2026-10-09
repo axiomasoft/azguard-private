@@ -360,50 +360,51 @@
 
 ## 7. Целевая структура
 
-### 7.1. Монорепо
+### 7.1. Монорепо и namespace
+
+Корневые namespace **уже сейчас** совпадают с будущими границами, поэтому вынос = перенос каталога. Логические
+слои ядра (7.3) — группы для арх-тестов, а не переименование: `Authorization` не нужно звать `Engine`, чтобы
+граница работала.
 
 ```text
 packages/
-├── core/                      axiomasoft/azguard-core
-│   ├── config/  database/migrations/  resources/
+├── core/                         axiomasoft/azguard
+│   ├── config/ database/migrations/ (только таблицы ядра) stubs/
 │   └── src/
-│       ├── Kernel/            Identity/ Grammar/ Permissions/ Decision/ Support/
-│       ├── Exceptions/
-│       ├── Contracts/         Sources/ Authorization/ Plugins/ Diagnostics/ Tenancy/ Changes/ Values/
-│       ├── Definition/        Panels/ Catalog/ Roles/ Permissions/ Attributes/ Policies/ Schema/
-│       ├── Engine/            Pipeline/ Query/ Cache/ Batch/ Read/
-│       ├── Storage/           Database/ Models/ Schema/
-│       ├── Sources/           Folder/ Gate/
-│       ├── Tenancy/           изоляция, текущий контекст, членство
-│       ├── Changes/           pipeline, validator, managers
-│       ├── Events/
-│       ├── Diagnostics/       Doctor, Explain, Checks/
-│       ├── Laravel/           Gate/ Http/ Queue/ Console/ Concerns/ Facades/ ServiceProvider
-│       └── Testing/           Fake, InteractsWithAzGuard
-├── azguard/                   axiomasoft/azguard (метапакет, только composer.json)
-├── tenancy/src/               Contracts/ Definitions/ Query/ Resolvers/ TenancyPlugin.php
-├── sources/src/Relation/      RelationSource, предикаты
-├── audit/                     src/ (AuditPlugin, RecordChange, ChangeJournal, Console/) + database/migrations/
-├── devtools/src/              Console/Make/ Console/Scaffold/ Testing/Contracts/ + stubs/
-└── filament/src/              как сейчас + Directories/
+│       ├── Kernel/               значения, без фреймворка                     ┐
+│       ├── Exceptions/           иерархия по кодам                            │
+│       ├── Contracts/            SPI: Sources/ Authorization/ Plugins/        │
+│       │                         Diagnostics/ Tenancy/ Changes/ Values/       │
+│       ├── Panels/ Catalog/ Roles/ Permissions/ Attributes/ Policies/ Schema/ │ ядро
+│       ├── Authorization/        конвейер, видимость, батч, кэш               │
+│       ├── Storage/  Sources/{Database,Folder,Gate}/                          │
+│       ├── Tenancy/              изоляция, членство, текущий контекст         │
+│       ├── Changes/              запись, валидация, менеджеры                 │
+│       ├── Events/  Diagnostics/  Laravel/  Facades/  Concerns/  Testing/     │
+│       ├── Directories/          сервис справочников UI + Contracts/          ┘
+│       ├── Scopes/               плагин: области назначения (+ Contracts/, Query/, своя миграция при необходимости)
+│       ├── Sources/Relation/     плагин: RelationSource
+│       └── Plugins/Audit/        плагин: журнал (+ своя миграция, команда, doctor-проверка)
+└── filament/                     axiomasoft/azguard-filament
 ```
 
+Встроенный плагин держит **всё своё** внутри своего корня: классы, контракты, исключения, миграцию, команды,
+doctor-проверки, документацию. Ни один файл ядра не упоминает его namespace (арх-тест A6).
 
-### 7.2. Направление зависимостей между пакетами
+### 7.2. Направление зависимостей
 
 ```mermaid
 flowchart BT
-  core["azguard-core"]
-  tenancy["azguard-tenancy"] --> core
-  sources["azguard-sources"] --> core
-  audit["azguard-audit"] --> core
-  devtools["azguard-devtools (dev)"] --> core
-  filament["azguard-filament"] --> core
-  meta["azguard (метапакет)"] --> core & tenancy & sources & audit
+  core["ядро azguard"]
+  scopes["плагин Scopes"] --> core
+  relation["плагин Sources/Relation"] --> core
+  audit["плагин Plugins/Audit"] --> core
+  filament["пакет azguard-filament"] --> core
+  future["будущие пакеты (Р1–Р3)"] -.-> core
 ```
 
-Правило: стрелки только вниз, к ядру; модули не зависят друг от друга.
-Filament может знать о `tenancy` только через `@spi` ядра (опциональная интеграция через `suggest`).
+Правило: стрелки только к ядру, плагины и пакеты не зависят друг от друга. Filament показывает области назначения
+через `@spi` ядра, если плагин включён на панели, и не импортирует `AzGuard\Scopes\`.
 
 ### 7.3. Слои внутри ядра
 
@@ -412,8 +413,8 @@ flowchart BT
   K["Kernel (pure PHP)"]
   X["Exceptions"] --> K
   C["Contracts = SPI + Values"] --> K & X
-  D["Definition: панели, каталог, роли, политики, схема"] --> C
-  E["Engine: конвейер, видимость, батч, кэш"] --> C & D
+  D["Definition: Panels, Catalog, Roles, Permissions, Attributes, Policies, Schema"] --> C
+  E["Engine = Authorization: конвейер, видимость, батч, кэш"] --> C & D
   S["Storage + Sources (реализации SPI)"] --> C & D
   T["Tenancy (изоляция)"] --> C & D
   CH["Changes: запись грантов"] --> C & D & S
