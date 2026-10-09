@@ -10,6 +10,7 @@ use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\PolicyFile;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
+use AzGuard\Permissions\PolicyOnly;
 use ReflectionEnum;
 
 /**
@@ -47,9 +48,9 @@ final class MakePolicyCommand extends MakeCommand
         if ($enum !== null) {
             [$enumClass, $cases] = $this->enumOf($enum);
 
-            return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, true))];
+            return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, true, ! $this->isPolicyOnly($enumClass)))];
         }
-        [$enumClass, $cases] = $this->enumOfGroup($layout, $panel->in($layout->folder('permissions').'/'.$relative)->directory, $relative);
+        [$enumClass, $cases, $policyOnly] = $this->enumOfGroup($layout, $panel->in($layout->folder('permissions').'/'.$relative)->directory, $relative);
         $others = array_values(array_filter(
             glob($place->directory.'/*.php') ?: [],
             static fn (string $file): bool => basename($file) !== $class.'.php' && ! str_contains((string) file_get_contents($file), '#[PolicyFor('),
@@ -60,7 +61,13 @@ final class MakePolicyCommand extends MakeCommand
                 .$enumClass.' to bind this policy to its enum with #[PolicyFor].');
         }
 
-        return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, false))];
+        return [new GeneratedFile($place->file($class), PolicyFile::render($stubs, $place, $class, $enumClass, $cases, false, ! $policyOnly))];
+    }
+
+    /** A policy of a policy-only enum starts by denying: no grant stands behind it. */
+    private function isPolicyOnly(string $enum): bool
+    {
+        return enum_exists($enum) && (new ReflectionEnum($enum))->getAttributes(PolicyOnly::class) !== [];
     }
 
     /**
@@ -83,7 +90,7 @@ final class MakePolicyCommand extends MakeCommand
     }
 
     /**
-     * @return array{class-string, list<string>}
+     * @return array{class-string, list<string>, bool}
      */
     private function enumOfGroup(Layout $layout, string $directory, string $relative): array
     {
@@ -109,6 +116,6 @@ final class MakePolicyCommand extends MakeCommand
             throw new InvalidCommandInput($found[0]->class.' has no cases to decide.');
         }
 
-        return [$found[0]->class, $found[0]->cases];
+        return [$found[0]->class, $found[0]->cases, $found[0]->policyOnly];
     }
 }
