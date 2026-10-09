@@ -111,16 +111,13 @@ final readonly class AuthorityStage
         $matching = [];
         $superAdmin = false;
         $qualified = false;
+        $permission = $request->permission()->local();
+        $wildcards = [];
         [$frame, $denial, $count] = $this->walk($request, $frame, $catalog, $trace,
-            function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($request, $trace, &$matching, &$superAdmin, &$qualified): void {
+            function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($permission, $trace, &$matching, &$superAdmin, &$qualified, &$wildcards): void {
                 $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
-                $covers = $item instanceof Grant && PatternMatcher::coversValidated($item->pattern->local(), $request->permission()->local());
-
-                if ($item instanceof RoleContribution && $roleDefinition !== null) {
-                    foreach ($roleDefinition['permissions'] as $pattern) {
-                        $covers = $covers || PatternMatcher::coversValidated($pattern, $request->permission()->local());
-                    }
-                }
+                // Exact patterns are a lookup, as in permissionSet(); only wildcards are matched.
+                $covers = self::covers($permission, $item, $roleDefinition, $wildcards);
 
                 if ($admin || $covers) {
                     $qualified = true;
@@ -353,6 +350,36 @@ final readonly class AuthorityStage
         }
 
         throw new ConsistencyException('Source authority changed during all three read attempts.');
+    }
+
+    /**
+     * Whether the grant pattern or a permission pattern of the role covers the permission: an exact pattern by lookup,
+     * only wildcards by matching. `$wildcards` keeps the wildcard patterns of each role for the rest of the decision.
+     *
+     * @param  CompiledRole|null  $role
+     * @param  array<string, list<string>>  $wildcards
+     */
+    private static function covers(string $permission, Grant|RoleContribution $item, ?array $role, array &$wildcards): bool
+    {
+        if ($item instanceof Grant) {
+            return PatternMatcher::coversValidated($item->pattern->local(), $permission);
+        }
+
+        if ($role === null) {
+            return false;
+        }
+
+        if (in_array($permission, $role['permissions'], true)) {
+            return true;
+        }
+        $wildcards[$role['key']] ??= array_values(array_filter($role['permissions'], static fn (string $pattern): bool => str_ends_with($pattern, '*')));
+        foreach ($wildcards[$role['key']] as $pattern) {
+            if (PatternMatcher::coversValidated($pattern, $permission)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @param CompiledRole|null $role */

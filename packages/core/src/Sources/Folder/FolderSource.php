@@ -73,6 +73,9 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
     /** @var list<class-string<BaseRole>>|null */
     private ?array $roleClasses = null;
 
+    /** @var list<string>|null */
+    private ?array $enumGrantedToAll = null;
+
     public static function make(): static
     {
         return new self;
@@ -166,6 +169,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
         $this->discovery = $discovery;
         $this->recipe = $recipe;
         $this->container = $container;
+        $this->enumGrantedToAll = null;
     }
 
     /**
@@ -266,21 +270,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
         }
 
         $discovery = $this->prepared($panel);
-        $permissions = $discovery->grantedToAll;
-
-        foreach ($this->recipe()->enums() as $enum) {
-            if (! is_subclass_of($enum, BackedEnum::class)) {
-                continue;
-            }
-
-            foreach (AttributeReader::rows($enum, null) as $row) {
-                $this->validateAutomaticGrant($row);
-
-                if ($row['granted_to_all']) {
-                    $permissions[] = $row['local'];
-                }
-            }
-        }
+        $permissions = [...$discovery->grantedToAll, ...$this->enumGrantedToAll()];
 
         foreach (array_unique($permissions) as $permission) {
             foreach ($scopes as $scope) {
@@ -307,6 +297,38 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
         }
 
         return $items === [] ? AssignmentScopeSelection::nowhere() : AssignmentScopeSelection::everywhere($items);
+    }
+
+    /**
+     * The `#[GrantedToAll]` permissions of the enums of the recipe. Code does not change within a process, so they are
+     * read by reflection once per source instead of once per check; a definition error is not memoized and is thrown
+     * again on the next read.
+     *
+     * @return list<string>
+     *
+     * @throws DefinitionException
+     */
+    private function enumGrantedToAll(): array
+    {
+        if ($this->enumGrantedToAll !== null) {
+            return $this->enumGrantedToAll;
+        }
+        $permissions = [];
+        foreach ($this->recipe()->enums() as $enum) {
+            if (! is_subclass_of($enum, BackedEnum::class)) {
+                continue;
+            }
+
+            foreach (AttributeReader::rows($enum, null) as $row) {
+                $this->validateAutomaticGrant($row);
+
+                if ($row['granted_to_all']) {
+                    $permissions[] = $row['local'];
+                }
+            }
+        }
+
+        return $this->enumGrantedToAll = $permissions;
     }
 
     /** @param array{local: string, authority: string, granted_to_all: bool} $row */
