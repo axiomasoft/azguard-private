@@ -149,6 +149,17 @@ it('chooses the tenant of another panel in its directory and writes in that tena
     expect($names(8))->toContain('boards.edit')
         ->and($names(7))->not->toContain('boards.edit');
 
+    $component->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8')
+        ->callAction(TestAction::make('edit')->table('boards.edit'), ['label' => 'Edit boards', 'group' => null])
+        ->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8')
+        ->callAction(TestAction::make('delete')->table('boards.edit'))
+        ->assertSet('tableFilters.target.panel', 'teams')
+        ->assertSet('tableFilters.target.tenant', '8');
+
+    expect($names(8))->not->toContain('boards.edit');
+
     $component->set('tableFilters.target.panel', 'seller')
         ->assertSet('tableFilters.target.tenant', null);
 });
