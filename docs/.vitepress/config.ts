@@ -52,6 +52,7 @@ const sidebar = [
       { text: 'Sources', link: '/advanced/sources' },
       { text: 'Hooks and plugins', link: '/advanced/hooks-and-plugins' },
       { text: 'Performance', link: '/advanced/performance' },
+      { text: 'Consistency', link: '/advanced/consistency' },
       { text: 'Operations', link: '/advanced/operations' },
     ],
   },

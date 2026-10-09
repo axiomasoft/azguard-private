@@ -35,8 +35,8 @@ This page explains what costs time, how to configure caching, and what the bench
 Or per panel: `$panel->cache(store: 'redis')`.
 
 - **`cache.store`.** Without a store, every request resolves sets from the database (5 queries for the first
-  check). With a shared store such as Redis, it is 2. Any change through AzGuard bumps the state version, so
-  cached sets never outlive a grant or a revoke.
+  check). With a shared store such as Redis, it is 2. A grant or revoke raises the revision of its subject, so
+  cached sets never outlive it, and writes to other subjects keep them (see [Consistency](/advanced/consistency)).
 - **`consistency.state_refresh`.** `StateRefresh::Request` (the default) reads the state version once per
   request or job. `StateRefresh::Check` reads it before every check. Use it only for long-running workers that
   must see revokes made by other processes immediately.

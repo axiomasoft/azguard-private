@@ -41,8 +41,9 @@ is used concurrently.
 
 ## Manual database changes and restores
 
-Cached decisions are keyed by the panel's state version. Writes through AzGuard bump it. After you edit the
-grant tables by hand or restore a backup, start a new state so that no cache serves old answers:
+Cached permission sets are keyed by the panel's incarnation, epoch and each subject's revision. Writes through
+AzGuard raise them (see [Consistency](/advanced/consistency)). After you edit the grant tables by hand or restore a
+backup, start a new state (new incarnation, new epoch) so that no cache serves old answers:
 
 ```bash
 php artisan azguard:state:reset admin
