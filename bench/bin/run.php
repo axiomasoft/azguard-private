@@ -34,7 +34,7 @@ $work = $root.'/bench/.runs/'.getmypid();
 $profiles = ProfileCatalog::select($option('profile', 'all'));
 
 $stand = Stand::boot($driver, $cache, $work);
-$log = static fn (string $line) => fwrite(STDERR, '['.gmdate('H:i:s').'] '.$line."\n");
+$log = static fn (string $line): int|false => fwrite(STDERR, '['.gmdate('H:i:s').'] '.$line."\n");
 $log("seeding tier {$tier->name} on {$driver}");
 $t = hrtime(true);
 $stand->migrate();
@@ -97,6 +97,16 @@ $result = [
 ];
 ResultFile::write($result, $out);
 $log("written {$out}.json and {$out}.md");
-array_map(static fn (string $f) => @unlink($f), glob($work.'/azguard_bench.sqlite*') ?: []);
+array_map(static fn (string $f): bool => @unlink($f), glob($work.'/azguard_bench.sqlite*') ?: []);
+
+// Raw samples and worker logs stay only when something failed: the checks point there.
+if (! $failed) {
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($work, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $entry) {
+        if ($entry instanceof SplFileInfo) {
+            $entry->isDir() ? rmdir($entry->getPathname()) : unlink($entry->getPathname());
+        }
+    }
+    rmdir($work);
+}
 
 exit($failed ? 1 : 0);
