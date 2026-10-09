@@ -239,17 +239,28 @@ final readonly class GrantEditor
         return $options;
     }
 
-    public function contextLabel(?string $type, ?string $id): ?string
+    /** @param array<mixed> $proposed */
+    public function contextLabel(?string $type, ?string $id, ?string $subject = null, ?string $key = null, array $proposed = []): ?string
     {
         $context = $this->contextRef($type, $id);
+        $target = $subject === null ? null : $this->subject($subject);
 
-        return $context === null ? null : $this->access->directories()->scopes((string) $type)->describe($context, $this->lookup())?->label;
+        if ($subject !== null && $target === null) {
+            return null;
+        }
+        $lookup = $target === null ? $this->lookup(phase: AssignmentScopePhase::Inspection)
+            : $this->lookup($target, $this->definition($key), SchemaFields::declared($this->schema, $this->fieldTarget(), $proposed));
+
+        return $context === null ? null : $this->access->directories()->scopes((string) $type)->describe($context, $lookup)?->label;
     }
 
     /** The context of a type and an id when the directory of the target panel describes it in the target tenant. */
-    public function context(?string $type, ?string $id): ?AssignmentScopeRef
+    public function context(?string $type, ?string $id, ?LookupContext $lookup = null): ?AssignmentScopeRef
     {
-        return $this->contextLabel($type, $id) === null ? null : $this->contextRef($type, $id);
+        $context = $this->contextRef($type, $id);
+
+        return $context === null || $this->access->directories()->scopes((string) $type)
+            ->describe($context, $lookup ?? $this->lookup(phase: AssignmentScopePhase::Inspection)) === null ? null : $context;
     }
 
     /**
@@ -263,16 +274,18 @@ final readonly class GrantEditor
     {
         $subject = $this->subject(self::text($data['subject'] ?? null)) ?? throw self::refused('subject', 'The subject is not known to the panel.');
         $key = self::text($data['key'] ?? null);
-        $this->definition($key) ?? throw self::refused('key', 'The '.$this->kind.' is not defined in the panel.');
+        $definition = $this->definition($key) ?? throw self::refused('key', 'The '.$this->kind.' is not defined in the panel.');
         $type = self::text($data['context_type'] ?? null) ?? self::TENANT_WIDE;
 
         if (! array_key_exists($type, $this->contextTypes($key))) {
             throw self::refused('context_type', 'The '.$this->kind.' is not granted in this type of context.');
         }
+        $state = is_array($data['fields'] ?? null) ? $data['fields'] : null;
+        $lookup = $this->lookup($subject, $definition, SchemaFields::declared($this->schema, $this->fieldTarget(), $state));
         $on = $type === self::TENANT_WIDE ? null
-            : ($this->context($type, self::text($data['context'] ?? null)) ?? throw self::refused('context', 'The context is not known to the panel in this tenant.'));
+            : ($this->context($type, self::text($data['context'] ?? null), $lookup) ?? throw self::refused('context', 'The context is not known to the panel in this tenant.'));
         $until = self::moment($data['until'] ?? null);
-        $fields = SchemaFields::values($this->schema, $this->fieldTarget(), is_array($data['fields'] ?? null) ? $data['fields'] : null);
+        $fields = SchemaFields::values($this->schema, $this->fieldTarget(), $state);
         $access = $this->access->for($subject);
 
         return AzGuard::actingAs($user, fn (): ChangeResult => $this->kind === 'role'

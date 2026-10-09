@@ -172,7 +172,8 @@ abstract class ListGrants extends Page implements HasTable
     /** Shows the answer of «Why?» that `explain()` stored. */
     public function explanationAction(): Action
     {
-        return ExplainAction::answer(fn (): ?array => $this->explanation);
+        return ExplainAction::answer(fn (): ?array => $this->explanation)
+            ->authorize(static fn (): bool => static::getResource()::can('view'));
     }
 
     /**
@@ -404,7 +405,9 @@ abstract class ListGrants extends Page implements HasTable
                 ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor($get)?->searchContexts(
                     $get('context_type'), (string) $search, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
                 ) ?? [])
-                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor($get)?->contextLabel($get('context_type'), $value))
+                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor($get)?->contextLabel(
+                    $get('context_type'), $value, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
+                ))
                 ->visible(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE)
                 ->required(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE),
             DateTimePicker::make('until')->label('Until'),

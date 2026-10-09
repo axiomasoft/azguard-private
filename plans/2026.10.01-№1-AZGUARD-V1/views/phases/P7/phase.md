@@ -101,9 +101,9 @@ Filament-интеграция AzGuard 1.0 над публичным API ядра
 
 ```json
 {
-  "at": "2026-10-09T03:46:35Z",
-  "result": "blocked",
-  "summary": "8 item(s): 2 done, 5 done_with_deviations, 1 blocked"
+  "at": "2026-10-09T06:46:43Z",
+  "result": "done_with_deviations",
+  "summary": "8 item(s): 2 done, 6 done_with_deviations"
 }
 ```
 

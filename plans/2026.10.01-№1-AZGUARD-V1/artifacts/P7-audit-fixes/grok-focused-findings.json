@@ -1,0 +1,11 @@
+{
+  "verdict": "GREEN",
+  "findings": [],
+  "checked_invariants": [
+    "I2 held (preconstructed action decides at execution; cloned row uses the evaluating instance; native veto preserved; unconfigured enforced bulk fails closed)",
+    "I5 held (grant describe receives subject, definition, and declared proposed fields; inspection without a subject stays Inspection; raw fields still reach the writer)",
+    "I6 held (column guard uses the same Livewire argument binding and fails closed on malformed calls)",
+    "I8 held (unknown grant fields are not stripped before the writer)"
+  ],
+  "questions": []
+}

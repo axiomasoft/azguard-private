@@ -19,12 +19,9 @@ use UnitEnum;
  * Change the query of the resource in `modifyEloquentQuery()`, not in `getEloquentQuery()`: the visible records are
  * chosen after it, and a Filament panel that enforces refuses a resource that overrides the methods of this trait.
  *
- * In a Filament panel that enforces, what Filament leaves open on the tables and pages of the resource is closed until
- * the application decides it: an action that runs code (`Action::make()->action()`, `DetachAction`, `DissociateAction`) is
- * refused unless it calls `authorize()`, `visible()` or `hidden()`; a bulk action of the application, `DetachBulkAction`
- * and `DissociateBulkAction` refuse every record unless they call `authorizeIndividualRecords()`; an inline editable
- * column (`TextInputColumn`, `ToggleColumn`, `CheckboxColumn`, `SelectColumn`) is disabled unless the user may update the
- * record of the row. An action or column that sets its own `authorize()` or `disabled()` decides itself.
+ * Inline editable columns of a table save a record without any of these checks; they are not supported in a resource
+ * that AzGuard decides, unless they are `disabled()`. Enforced panels refuse enabled editors and exposed methods of
+ * editable columns before Livewire invokes them. A column action must be a Filament Action, not a raw closure.
  *
  * @phpstan-require-extends FilamentResource
  *

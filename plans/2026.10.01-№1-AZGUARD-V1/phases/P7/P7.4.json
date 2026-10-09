@@ -265,67 +265,66 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T05:30:31Z",
-    "finished_at": "2026-10-09T05:37:56Z",
+    "started_at": "2026-10-09T06:46:08Z",
+    "finished_at": "2026-10-09T06:46:08Z",
     "executor": {
-      "provider": "claude",
-      "model": "claude-sonnet-5-5",
-      "effort": "high",
-      "session": "a056841a-785a-4c2d-911f-8fc788344222"
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
     },
-    "notes": "F6: README Crm — R25 без future P7.4 формы выдач (добавлен тест R25 в RoleGrantResourceTest: ключи определения роли в payload формы ничего не меняют), R34 без future P7.4 editor surfaces, ссылка на ExplicitSurfacesTest. R49 future P7.4 export не менялся: вне находок",
+    "notes": "F10/G2/F6 закрыты: Assignment LookupContext для выбранных subject/definition/proposed, CRM custom directory UI write regression, R25/R34/R53/R63 и R49 owner уточнены. Raw fields сохранены для атомарной проверки core writer. Grants+Changes, phase368/full4627/Arch95, Pint/PHPStan/API/diff зелёные, types99.5%; final Grok GREEN.",
     "deviations": [
-      "Повтор по поручению владельца (Review P7 F6); route ROUTE_MODEL_UNKNOWN при start"
+      "Исправления подготовлены в совместном correction cycle reopened P7.2/P7.4 до регистрации start P7.4; зависимость P7.2 закрыта перед finish. CRM fixtures/test/README включены explicit --path из-за буквального brace task_files matcher. V7 fresh serial uncached Pest min98 вместо forked composer script с недостоверными null chunks."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T05:37:56Z"
+        "at": "2026-10-09T06:46:08Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T05:37:56Z",
+  "updated_at": "2026-10-09T06:46:08Z",
   "sections": [
     {
       "id": "Intent",

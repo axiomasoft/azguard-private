@@ -6,12 +6,12 @@ namespace AzGuard\Filament;
 
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\InvalidConfigurationException;
-use AzGuard\Filament\Authorization\ExplicitAuthorization;
 use AzGuard\Filament\Authorization\FilamentContext;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Authorization\FilamentKeys;
 use AzGuard\Filament\Authorization\FilamentSurface;
 use AzGuard\Filament\Concerns\AuthorizesPage;
+use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
@@ -24,7 +24,6 @@ use AzGuard\Filament\Resources\RoleResource;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Panel;
-use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkAction;
@@ -35,7 +34,9 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
-use Filament\Tables\Columns\Column;
+use Filament\Resources\RelationManagers\RelationGroup;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
@@ -466,6 +467,10 @@ final class AzGuardPlugin implements Plugin
 
             foreach ($classes as $class => $surface) {
                 self::assertAuthorized($panel, $surface, $class);
+
+                if ($surface === FilamentSurface::Resource) {
+                    self::assertRelations($class::getRelations());
+                }
             }
         }
 
@@ -498,9 +503,7 @@ final class AzGuardPlugin implements Plugin
 
     /**
      * Inside a Filament panel with the plugin, a bulk action that deletes, force-deletes or restores decides every
-     * selected record, and the records offered to attach or associate are the ones the user may view. A panel that
-     * enforces also refuses the action of the application that says nothing about who may run it, and disables an inline
-     * editable column until the user may update its record.
+     * selected record, and the records offered to attach or associate are the ones the user may view.
      */
     private static function authorizeRecordsOfActions(): void
     {
@@ -512,13 +515,7 @@ final class AzGuardPlugin implements Plugin
                 default => null,
             };
 
-            if ($ability === null) {
-                ExplicitAuthorization::bulkAction($action);
-
-                return;
-            }
-
-            if (FilamentContext::serving() === null) {
+            if ($ability === null || FilamentContext::serving() === null) {
                 return;
             }
             $action->fetchSelectedRecords()->authorizeIndividualRecords(static function (Model $record) use ($action, $ability): Response {
@@ -534,9 +531,6 @@ final class AzGuardPlugin implements Plugin
             });
         });
 
-        Action::configureUsing(ExplicitAuthorization::action(...));
-        Column::configureUsing(ExplicitAuthorization::column(...));
-
         $visible = static function (AttachAction|AssociateAction $action): void {
             if (FilamentContext::serving()?->enforced() !== true) {
                 return;
@@ -549,6 +543,32 @@ final class AzGuardPlugin implements Plugin
         };
         AttachAction::configureUsing($visible);
         AssociateAction::configureUsing($visible);
+    }
+
+    /** @param array<class-string<RelationManager>|RelationGroup|RelationManagerConfiguration> $relations */
+    private static function assertRelations(array $relations): void
+    {
+        $trait = AuthorizesRelationManager::class;
+        $file = (new ReflectionClass($trait))->getFileName();
+
+        foreach ($relations as $relation) {
+            if ($relation instanceof RelationGroup) {
+                self::assertRelations($relation->getManagers());
+
+                continue;
+            }
+            $class = $relation instanceof RelationManagerConfiguration ? $relation->relationManager : $relation;
+
+            foreach (['canViewForRecord', 'getAuthorizationResponse', 'makeTable'] as $method) {
+                if (! in_array($trait, class_uses_recursive($class), true) || (new ReflectionMethod($class, $method))->getFileName() !== $file) {
+                    throw self::invalid($class.' in an enforced resource must use '.$trait.' and keep its authorization and visibility methods.');
+                }
+            }
+
+            if (FilamentContext::relationResource($class) === null) {
+                throw self::invalid($class.' in an enforced resource must name a related resource with '.AuthorizesResource::class.'.');
+            }
+        }
     }
 
     private function hasFilamentSource(Panel $guard): bool

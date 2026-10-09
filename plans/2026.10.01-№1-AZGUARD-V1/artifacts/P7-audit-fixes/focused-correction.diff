@@ -1,0 +1,349 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index d788f3d..e2f2a80 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,9 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
+ 
+ ## [Unreleased]
+ 
++- **filament:** Серверная проверка колонок использует фактическую привязку аргументов Livewire (числовые ключи, named и mixed payloads). Default authorizer действует в панели исполнения даже для заранее созданных actions и читает текущий экземпляр действия при клонировании строк. Custom directory получает выбранные subject/role и объявленные proposed fields при проверке контекста формы и сохранении выдачи.
++
++
+ - **filament:** Закрыты обходы авторизации через custom actions/bulk, включённые inline-редакторы, raw column callbacks и relation managers без трейта. Enforced-панели проверяют bulk-записи до callback; обычные панели сохраняют поведение Filament. Редактор динамических прав сохраняет выбранные панель и tenant после create/update/delete. Тесты экспорта используют штатную цепочку заданий закреплённого Filament.
+ 
+ 
+diff --git a/packages/filament/src/Authorization/AuthorizesActions.php b/packages/filament/src/Authorization/AuthorizesActions.php
+index b887ffd..826636c 100644
+--- a/packages/filament/src/Authorization/AuthorizesActions.php
++++ b/packages/filament/src/Authorization/AuthorizesActions.php
+@@ -20,10 +20,8 @@ final class AuthorizesActions
+ {
+     public static function configure(Action $action): void
+     {
+-        if (FilamentContext::serving()?->enforced() !== true) {
+-            return;
+-        }
+-        $action->authorize(static function () use ($action): Response {
++        // An action may be constructed before the request selects its panel. Decide at execution, not construction.
++        $action->authorize(static function (Action $action): Response {
+             $livewire = $action->getHasActionsLivewire();
+             $otherwise = $livewire?->getDefaultActionAuthorizationResponse($action);
+             $context = FilamentContext::serving();
+@@ -40,7 +38,7 @@ public static function configure(Action $action): void
+                 $record instanceof Model && ! in_array($action->getName(), ['export', 'attach', 'associate'], true) ? $record : null);
+         });
+ 
+-        if (! $action instanceof BulkAction) {
++        if (! $action instanceof BulkAction || FilamentContext::serving()?->enforced() !== true) {
+             return;
+         }
+         $action->authorizeIndividualRecords(static function (Model $record) use ($action): Response {
+diff --git a/packages/filament/src/Authorization/RefusesEditableColumns.php b/packages/filament/src/Authorization/RefusesEditableColumns.php
+index 796efe0..40f3818 100644
+--- a/packages/filament/src/Authorization/RefusesEditableColumns.php
++++ b/packages/filament/src/Authorization/RefusesEditableColumns.php
+@@ -8,6 +8,8 @@
+ use Filament\Tables\Columns\Contracts\Editable;
+ use Filament\Tables\Contracts\HasTable;
+ use Illuminate\Database\Eloquent\Model;
++use Livewire\ImplicitlyBoundMethod;
++use Throwable;
+ 
+ /**
+  * Inline editing is unsupported in guarded tables. Check the final column settings before a Livewire call can write.
+@@ -28,13 +30,18 @@ public function __invoke(object $component, string $method, array $params): void
+         if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
+             return;
+         }
+-        $name = $params[0] ?? null;
+-        $key = $params[1] ?? null;
+ 
+-        if (! is_string($name) || ! is_string($key)) {
+-            return;
++        try {
++            // Use the same binding as Livewire: named, positional and mixed payloads must name the same column/row.
++            $bound = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params)['named'];
++        } catch (Throwable) {
++            abort(403);
+         }
+-        $column = $component->getTable()->getColumn($name);
++        $name = $bound[$method === 'updateTableColumnState' ? 'column' : 'name'] ?? null;
++        $key = $bound[$method === 'updateTableColumnState' ? 'record' : 'recordKey'] ?? null;
++
++        abort_unless(is_scalar($name) && is_scalar($key), 403);
++        $column = $component->getTable()->getColumn((string) $name);
+ 
+         if ($method === 'callTableColumnAction') {
+             // A raw closure never reaches ActionCalling; use an explicitly authorized Action instead.
+@@ -46,7 +53,7 @@ public function __invoke(object $component, string $method, array $params): void
+         if (! $column instanceof Editable) {
+             return;
+         }
+-        $record = $component->getTableRecord($key);
++        $record = $component->getTableRecord((string) $key);
+ 
+         if (! $record instanceof Model) {
+             return;
+diff --git a/packages/filament/src/Editors/GrantEditor.php b/packages/filament/src/Editors/GrantEditor.php
+index 8ad0981..1186c9d 100644
+--- a/packages/filament/src/Editors/GrantEditor.php
++++ b/packages/filament/src/Editors/GrantEditor.php
+@@ -239,17 +239,28 @@ public function inspectContexts(?string $type, string $term): array
+         return $options;
+     }
+ 
+-    public function contextLabel(?string $type, ?string $id): ?string
++    /** @param array<mixed> $proposed */
++    public function contextLabel(?string $type, ?string $id, ?string $subject = null, ?string $key = null, array $proposed = []): ?string
+     {
+         $context = $this->contextRef($type, $id);
++        $target = $subject === null ? null : $this->subject($subject);
+ 
+-        return $context === null ? null : $this->access->directories()->scopes((string) $type)->describe($context, $this->lookup())?->label;
++        if ($subject !== null && $target === null) {
++            return null;
++        }
++        $lookup = $target === null ? $this->lookup(phase: AssignmentScopePhase::Inspection)
++            : $this->lookup($target, $this->definition($key), SchemaFields::declared($this->schema, $this->fieldTarget(), $proposed));
++
++        return $context === null ? null : $this->access->directories()->scopes((string) $type)->describe($context, $lookup)?->label;
+     }
+ 
+     /** The context of a type and an id when the directory of the target panel describes it in the target tenant. */
+-    public function context(?string $type, ?string $id): ?AssignmentScopeRef
++    public function context(?string $type, ?string $id, ?LookupContext $lookup = null): ?AssignmentScopeRef
+     {
+-        return $this->contextLabel($type, $id) === null ? null : $this->contextRef($type, $id);
++        $context = $this->contextRef($type, $id);
++
++        return $context === null || $this->access->directories()->scopes((string) $type)
++            ->describe($context, $lookup ?? $this->lookup(phase: AssignmentScopePhase::Inspection)) === null ? null : $context;
+     }
+ 
+     /**
+@@ -263,16 +274,18 @@ public function grant(array $data, Model $user): ChangeResult
+     {
+         $subject = $this->subject(self::text($data['subject'] ?? null)) ?? throw self::refused('subject', 'The subject is not known to the panel.');
+         $key = self::text($data['key'] ?? null);
+-        $this->definition($key) ?? throw self::refused('key', 'The '.$this->kind.' is not defined in the panel.');
++        $definition = $this->definition($key) ?? throw self::refused('key', 'The '.$this->kind.' is not defined in the panel.');
+         $type = self::text($data['context_type'] ?? null) ?? self::TENANT_WIDE;
+ 
+         if (! array_key_exists($type, $this->contextTypes($key))) {
+             throw self::refused('context_type', 'The '.$this->kind.' is not granted in this type of context.');
+         }
++        $state = is_array($data['fields'] ?? null) ? $data['fields'] : null;
++        $lookup = $this->lookup($subject, $definition, SchemaFields::declared($this->schema, $this->fieldTarget(), $state));
+         $on = $type === self::TENANT_WIDE ? null
+-            : ($this->context($type, self::text($data['context'] ?? null)) ?? throw self::refused('context', 'The context is not known to the panel in this tenant.'));
++            : ($this->context($type, self::text($data['context'] ?? null), $lookup) ?? throw self::refused('context', 'The context is not known to the panel in this tenant.'));
+         $until = self::moment($data['until'] ?? null);
+-        $fields = SchemaFields::values($this->schema, $this->fieldTarget(), is_array($data['fields'] ?? null) ? $data['fields'] : null);
++        $fields = SchemaFields::values($this->schema, $this->fieldTarget(), $state);
+         $access = $this->access->for($subject);
+ 
+         return AzGuard::actingAs($user, fn (): ChangeResult => $this->kind === 'role'
+diff --git a/packages/filament/src/Editors/ListGrants.php b/packages/filament/src/Editors/ListGrants.php
+index 8146fe3..62edcef 100644
+--- a/packages/filament/src/Editors/ListGrants.php
++++ b/packages/filament/src/Editors/ListGrants.php
+@@ -405,7 +405,9 @@ private function grantForm(string $label): array
+                 ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor($get)?->searchContexts(
+                     $get('context_type'), (string) $search, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
+                 ) ?? [])
+-                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor($get)?->contextLabel($get('context_type'), $value))
++                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor($get)?->contextLabel(
++                    $get('context_type'), $value, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
++                ))
+                 ->visible(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE)
+                 ->required(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE),
+             DateTimePicker::make('until')->label('Until'),
+diff --git a/tests/Acceptance/Crm/FilamentTest.php b/tests/Acceptance/Crm/FilamentTest.php
+index 6afc392..d3abbfe 100644
+--- a/tests/Acceptance/Crm/FilamentTest.php
++++ b/tests/Acceptance/Crm/FilamentTest.php
+@@ -10,6 +10,9 @@
+ use AzGuard\Laravel\Queue\PanelContext;
+ use AzGuard\Panels\PanelBuilder;
+ use AzGuard\Panels\PanelRegistry;
++use AzGuard\Scopes\AssignmentScopePhase;
++use AzGuard\Scopes\AssignmentScopePolicy;
++use AzGuard\Tests\Fixtures\Crm\ContextAwareProjectDirectory;
+ use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
+ use AzGuard\Tests\Fixtures\Crm\Filament\BootsCrmFilament;
+ use AzGuard\Tests\Fixtures\Crm\Filament\ClientCalled;
+@@ -20,6 +23,9 @@
+ use AzGuard\Tests\Fixtures\Crm\Filament\CrmFilamentUser;
+ use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ListClients;
+ use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ViewClient;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\CallerRole;
++use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
+ use AzGuard\Tests\Fixtures\Crm\Models\Client;
+ use AzGuard\Tests\Fixtures\Crm\Models\User;
+ use AzGuard\Tests\Fixtures\Http\EntryPermission;
+@@ -33,6 +39,7 @@
+ use Illuminate\Support\Facades\Bus;
+ use Illuminate\Support\Facades\DB;
+ use Illuminate\Support\Facades\Event;
++use Illuminate\Support\Facades\Facade;
+ use Illuminate\Support\Facades\Queue;
+ use Illuminate\Support\Facades\Storage;
+ use Livewire\Features\SupportTesting\Testable;
+@@ -322,3 +329,35 @@ function backofficeGrants(): array
+ 
+     expect(backofficeGrants())->toBe([]);
+ });
++
++it('R36 gives a custom directory the selected subject and role when describing and saving a grant context', function (): void {
++    World::compile(configure: World::$configure, backoffice: static fn (PanelBuilder $panel) => $panel->scopes(
++        AssignmentScopePolicy::inherit(
++            ProjectScope::make()
++                ->filter(new ActiveProjects)
++                ->directory(ContextAwareProjectDirectory::class),
++        ),
++    ), exact: true);
++    Facade::clearResolvedInstances();
++    filamentGrantEditor();
++    $this->serveCrm(4);
++    $directory = new ContextAwareProjectDirectory;
++    app()->instance($directory::class, $directory);
++
++    Livewire::test(ListRoleGrants::class)
++        ->callAction(TestAction::make('create')->table(), ['panel' => 'backoffice', 'tenant' => '1', 'subject' => 'crm.user:4',
++            'key' => 'caller', 'context_type' => 'crm.project', 'context' => '1'])
++        ->assertHasNoActionErrors()->assertNotified('Saved');
++
++    $assignments = array_values(array_filter($directory->lookups,
++        static fn ($lookup): bool => $lookup->phase === AssignmentScopePhase::Assignment));
++    expect($assignments)->not->toBeEmpty();
++    foreach ($assignments as $lookup) {
++        expect($lookup->subject?->key())->toBe('crm.user:4')
++            ->and($lookup->role)->toBeInstanceOf(CallerRole::class)
++            ->and($lookup->actor?->type)->toBe('crm.user')
++            ->and($lookup->actor?->id)->toBe('4')
++            ->and($lookup->scope->tenant->id())->toBe('1');
++    }
++    expect(backofficeGrants())->toHaveCount(1);
++});
+diff --git a/tests/Acceptance/Crm/README.md b/tests/Acceptance/Crm/README.md
+index 2e47e18..c35d919 100644
+--- a/tests/Acceptance/Crm/README.md
++++ b/tests/Acceptance/Crm/README.md
+@@ -58,11 +58,11 @@ DB assignment refresh — Check. RelationSource использует Request-vol
+ | R46 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
+ | R47 | [RuntimeInputsTest.php](RuntimeInputsTest.php), [AssignmentsTest.php](AssignmentsTest.php), [PipesTest.php](../../Feature/Changes/PipesTest.php), [GrantManagerTest.php](../../Feature/Changes/Managers/GrantManagerTest.php), [DirectoriesTest.php](DirectoriesTest.php) | partial | P4.19/P4.15 Access DI; P5.2 Assignment: target user/BaseRole/validated proposed/actor/scope/phase через DI-фильтр; P5.2/P5.3: revocation pipe получает фазу Revocation и пустой proposed, bulk проходит каждый pipe; P5.8: Inspection показывает inactive context и не раскрывает label foreign tenant. Эти срезы не заявляют полную R47 DI-матрицу Revocation/Inspection внешнего plugin; **future:** P8.7 consumer |
+ | R48 | [BuildInputsTest.php](BuildInputsTest.php) | partial | P4.15 local real configured panels/plugin inputs slice; **future:** P8.7 full consumer plugin reload/factory/model contracts, P2 plugin build already closed |
+-| R49 | [DiagnosticsTest.php](DiagnosticsTest.php), [SchemaTest.php](SchemaTest.php) | partial | P4.10/P4.15 trace/cache secret and local runtime inputs; P5.5: схема — детерминированный JSON-снимок `tests/Fixtures/Schema/crm-panel-schema.json`, typed секрет плагина, live-модели и контейнер не сериализуются; **future:** P7.4 export; P8.7 plugin consumer |
++| R49 | [DiagnosticsTest.php](DiagnosticsTest.php), [SchemaTest.php](SchemaTest.php) | partial | P4.10/P4.15 trace/cache secret and local runtime inputs; P5.5: схема — детерминированный JSON-снимок `tests/Fixtures/Schema/crm-panel-schema.json`, typed секрет плагина, live-модели и контейнер не сериализуются; **future:** P8.7 consumer export with explicit safe field selection and plugin consumer |
+ | R50 | [ConsumerSpiTest.php](ConsumerSpiTest.php), [ExternalScopeTest.php](ExternalScopeTest.php) | partial | P4.15 local public SPI resolve/owner/native/external; P4.23 local query freshness/owner and exact slice GREEN; P5.8: directory consumer-а из `ProjectScope::directory()` через публичный SPI заменяет директорию по умолчанию (DirectoriesTest); **future:** P8.7 installed external consumer qualification |
+ | R51 | [ConsistencyTest.php](ConsistencyTest.php) | GREEN cache slice | P4.21 ordinary/scoped-admin expiry=now in warm memo |
+ | R52 | [ConsistencyTest.php](ConsistencyTest.php), [RevocationRaceTest.php](../../Engines/RevocationRaceTest.php), [ReplicaLagTest.php](../../Engines/ReplicaLagTest.php) | GREEN cache slice | P4.21 local/independent root revoke, request window, Primary/check and real paused-replay Default window |
+-| R53 | [QueueTest.php](QueueTest.php) | partial | P6.10: настоящая очередь `database` и `queue:work` — job экспорта несёт ссылки (субъект, tenant, клиент) и авторизует заново при исполнении: при залогиненном в это время Борисе job Анны решается как для Анны (разрешено), его собственный экспорт того же клиента отказан; после снятия права (`expire`) тот же job запрещён, поставленное при постановке решение не переносится; **future:** P7.2 export consumer |
++| R53 | [QueueTest.php](QueueTest.php) | partial | P6.10: настоящая очередь `database` и `queue:work` — job экспорта несёт ссылки (субъект, tenant, клиент) и авторизует заново при исполнении: при залогиненном в это время Борисе job Анны решается как для Анны (разрешено), его собственный экспорт того же клиента отказан; после снятия права (`expire`) тот же job запрещён, поставленное при постановке решение не переносится; P7.2: Filament export recheck покрыт R34; **future:** P8.7 export consumer |
+ | R54 | [HttpTest.php](HttpTest.php) | partial | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; P6.2: одно приложение, запросы A/B и упавший запрос с шагом Octane между ними (`forgetScopedInstances`, guards) — пользователь, панель, scope и memo не переносятся, Authorizer новый; P6.10: два job подряд в одном worker (из запроса `azguard.panel:crm` и из консоли) — панель, скрытый ключ, ambient scope и Authorizer первого не переходят ко второму; **future:** P8.7 concurrent external consumer |
+ | R55 | — | future | P4.19/P4.8/P4.20 internal lifecycle/fiber carriers; P6.2 request и P6.10 queue lifecycle покрыты в R54; **future:** actual Octane worker; P8.7 concurrent external consumer |
+ | R56 | [GeneratedPanelTest.php](../../Feature/Console/Generators/GeneratedPanelTest.php) | partial | P6.8: V105/R56 проверяет решения сгенерированной панели live и после `azguard:catalog:cache`, discovery/catalog fingerprint совпадают, policy veto сохраняется; **future:** P8.7 actual installed cached consumer boot. Свежая Laravel 11/12/13 квалификация изменённого install/baseline остаётся обязательной P6.11 |
+@@ -72,7 +72,7 @@ DB assignment refresh — Check. RelationSource использует Request-vol
+ | R60 | — | future | P4.4/P4.18/P4.21/P4.23 engines relevant SQL/fixtures; **future:** P8.4 framework matrix; P8.7 installed external consumer |
+ | R61 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
+ | R62 | [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar | P4.15 — Authorizer literal controls, source spy/actual target-actor/whole witness |
+-| R63 | [AuthorityModesTest.php](AuthorityModesTest.php), [AssignmentsTest.php](AssignmentsTest.php), [HttpTest.php](HttpTest.php), [ManagersTest.php](ManagersTest.php), [OrphanCleanupTest.php](../../Feature/Changes/Managers/OrphanCleanupTest.php) | partial | P4.1/P4.3/P4.15 read slice; P5.2 exact PolicyOnly write → PermissionNotGrantableException без записи/version, wildcard не авторизует; P6.2 HTTP: выдача PolicyOnly через трейт внутри `azguard.panel` — то же исключение без записи/version, выданный по HTTP `clients.*` не открывает `azguard.can` PolicyOnly-маршрут; P6.6 CLI ([PermissionsGrantCommandTest.php](../../Feature/Console/PermissionsGrantCommandTest.php)): `azguard:permissions:grant` exact PolicyOnly → PermissionNotGrantableException, exit 1, без записи/version; P5.3: stored PolicyOnly exact rows видны как orphaned, не меняют authority и доступны cleanup; этот cleanup-срез не означает разрешение изменять PolicyOnly assignment; **future:** P7.4 UI write boundary |
++| R63 | [AuthorityModesTest.php](AuthorityModesTest.php), [AssignmentsTest.php](AssignmentsTest.php), [HttpTest.php](HttpTest.php), [ManagersTest.php](ManagersTest.php), [OrphanCleanupTest.php](../../Feature/Changes/Managers/OrphanCleanupTest.php) | partial | P4.1/P4.3/P4.15 read slice; P5.2 exact PolicyOnly write → PermissionNotGrantableException без записи/version, wildcard не авторизует; P6.2 HTTP: выдача PolicyOnly через трейт внутри `azguard.panel` — то же исключение без записи/version, выданный по HTTP `clients.*` не открывает `azguard.can` PolicyOnly-маршрут; P6.6 CLI ([PermissionsGrantCommandTest.php](../../Feature/Console/PermissionsGrantCommandTest.php)): `azguard:permissions:grant` exact PolicyOnly → PermissionNotGrantableException, exit 1, без записи/version; P5.3: stored PolicyOnly exact rows видны как orphaned, не меняют authority и доступны cleanup; этот cleanup-срез не означает разрешение изменять PolicyOnly assignment; P7.4: UI write boundary покрыт R38; **future:** P8.7 consumer |
+ | R64 | [VisibilityTest.php](VisibilityTest.php), [AuthorityModesTest.php](AuthorityModesTest.php) | GREEN scalar/exact | P4.23: action mode parity, PolicyOnly without grant tables, Grants outage fails closed |
+ | R65 | [AuthorityModesTest.php](AuthorityModesTest.php), [DynamicActionsTest.php](DynamicActionsTest.php), [ManagersTest.php](ManagersTest.php) | partial | P4.17/P4.18/P4.15 enum assignment/dynamic reads; P5.7: enum-выдача без копии в permissions, dynamic create отклонён до opt-in, действие всегда Grants; P5.3: `PermissionManager::all/create` — enum-права без копии, create без opt-in → `PanelNotWritableException`, созданное действие Grants; **future:** P8.7 consumer |
+ | R66 | [AuthorityModesTest.php](AuthorityModesTest.php), [ManagersTest.php](ManagersTest.php), [ManagerRaceTest.php](../../Engines/ManagerRaceTest.php), [GrantChecksTest.php](../../Feature/Diagnostics/GrantChecksTest.php), [DoctorCommandTest.php](../../Feature/Diagnostics/DoctorCommandTest.php) | partial | P4.2/P4.15/P4.20 removed keys/build/read mode authority; P5.3: former key без authority до явной `RoleKeyMigration`, обычная выдача former key отклонена, миграция восстанавливает доступ текущей роли, PolicyOnly-строка не перекрывает режим, cleanup removed role; гонки migration ∥ grant(from) на PostgreSQL/MySQL/MariaDB; P6.4 doctor: выдача удалённой роли → `roles.orphaned` warning (cleanup), выдача по former key → warning с указанием текущей роли, роль вне допустимой области → error, выдача права, ставшего PolicyOnly, → `grants.dead`; устаревший снимок каталога → `catalog.cached`/`roles.keys`; JSON-снимок стенда `tests/Fixtures/Diagnostics/doctor.json`; P6.6 CLI ([RolesRenameKeyCommandTest.php](../../Feature/Console/RolesRenameKeyCommandTest.php), [GrantsPruneCommandTest.php](../../Feature/Console/GrantsPruneCommandTest.php)): former key без authority до `azguard:roles:rename-key`, `--dry-run` показывает план со слиянием без записи/version, перенос восстанавливает доступ текущей роли, production без `--force` — отказ; `azguard:grants:prune` удаляет истёкшие выдачи всех tenants с `GrantExpired` (не revoke), `--before` только назад, `--dry-run` считает; **future:** P8.7 stale workers |
+diff --git a/tests/Feature/Filament/Gate/SurfacesTest.php b/tests/Feature/Filament/Gate/SurfacesTest.php
+index f822d11..c4b1def 100644
+--- a/tests/Feature/Filament/Gate/SurfacesTest.php
++++ b/tests/Feature/Filament/Gate/SurfacesTest.php
+@@ -10,6 +10,7 @@
+ use AzGuard\Panels\CurrentPanel;
+ use AzGuard\Panels\PanelRegistry;
+ use AzGuard\Tests\Fixtures\Filament\Exports\OrderExporter;
++use AzGuard\Tests\Fixtures\Filament\Fields\ExposedEditingColumn;
+ use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
+ use AzGuard\Tests\Fixtures\Filament\GateWorld;
+ use AzGuard\Tests\Fixtures\Filament\Models\Order;
+@@ -19,12 +20,14 @@
+ use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
+ use Filament\Actions\Action;
+ use Filament\Actions\BulkAction;
++use Filament\Actions\DeleteAction;
+ use Filament\Actions\ExportAction;
+ use Filament\Actions\Exports\Enums\ExportFormat;
+ use Filament\Actions\Exports\Jobs\ExportCompletion;
+ use Filament\Actions\Exports\Jobs\PrepareCsvExport;
+ use Filament\Actions\Exports\Models\Export;
+ use Filament\Actions\Testing\TestAction;
++use Filament\Facades\Filament;
+ use Filament\Tables\Columns\CheckboxColumn;
+ use Filament\Tables\Columns\TextColumn;
+ use Filament\Tables\Columns\TextInputColumn;
+@@ -283,3 +286,66 @@ final class UncheckedPrepareCsvExport extends PrepareCsvExport {}
+ 
+     expect(Order::query()->findOrFail(1)->number)->toBe('PLAIN');
+ });
++
++it('refuses hostile Livewire column payloads before saving a visible record', function (array $params): void {
++    FilamentFixture::$tableColumns = [TextInputColumn::make('number')];
++    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
++
++    Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]])->assertForbidden();
++
++    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
++})->with([
++    'integer' => [['number', 1, 'HACKED']],
++    'float' => [['number', 1.0, 'HACKED']],
++    'boolean' => [['number', true, 'HACKED']],
++    'named' => [['column' => 'number', 'record' => '1', 'input' => 'HACKED']],
++    'mixed' => [['column' => 'number', 0 => 1, 'input' => 'HACKED']],
++    'malformed' => [['column' => 'number', 'record' => ['1'], 'input' => 'HACKED']],
++]);
++
++it('refuses raw column closures with integer or named record keys', function (array $params): void {
++    FilamentFixture::$tableColumns = [TextColumn::make('number')->action(static fn (Order $record) => $record->delete())];
++    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
++
++    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]])->assertForbidden();
++
++    expect(Order::query()->find(1))->not->toBeNull();
++})->with([
++    'integer' => [['number', 1]],
++    'named' => [['name' => 'number', 'recordKey' => 1]],
++    'mixed' => [['name' => 'number', 0 => 1]],
++]);
++
++it('denies a preconfigured custom action when its serving panel enforces', function (): void {
++    Filament::setCurrentPanel(null);
++    FilamentFixture::$recordActions = [Action::make('destroy')->action(static fn (Order $record) => $record->delete())];
++    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
++
++    Livewire::test(ListOrders::class)->assertActionHidden(TestAction::make('destroy')->table(1))
++        ->call('mountAction', 'destroy', [], ['table' => true, 'recordKey' => '1'])->call('callMountedAction');
++
++    expect(Order::query()->find(1))->not->toBeNull();
++});
++
++it('runs a permitted preconfigured native action in the selected panel', function (): void {
++    Filament::setCurrentPanel(null);
++    FilamentFixture::$recordActions = [DeleteAction::make()];
++    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete']));
++
++    Livewire::test(ListOrders::class)->callAction(TestAction::make('delete')->table(1));
++
++    expect(Order::query()->find(1))->toBeNull()->and(Order::query()->find(4))->not->toBeNull();
++});
++
++it('refuses exposed editable-column methods even on a disabled editor', function (array $params): void {
++    FilamentFixture::$tableColumns = [ExposedEditingColumn::make('number')->disabled()];
++    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
++
++    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]])->assertForbidden();
++
++    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
++})->with([
++    'positional' => [['number', 1, 'replaceNumber', ['HACKED']]],
++    'named' => [['name' => 'number', 'recordKey' => 1, 'method' => 'replaceNumber', 'arguments' => ['HACKED']]],
++    'mixed' => [['name' => 'number', 0 => 1, 'method' => 'replaceNumber', 'arguments' => ['HACKED']]],
++]);

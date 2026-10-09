@@ -247,67 +247,66 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T05:23:23Z",
-    "finished_at": "2026-10-09T05:30:25Z",
+    "started_at": "2026-10-09T05:57:56Z",
+    "finished_at": "2026-10-09T06:02:35Z",
     "executor": {
-      "provider": "claude",
-      "model": "claude-sonnet-5-5",
-      "effort": "high",
-      "session": "a056841a-785a-4c2d-911f-8fc788344222"
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
     },
-    "notes": "F3: ListPermissions::write не вызывает resetTable() (как ListGrants::write), кэш строк сбрасывается flushCachedTableRecords, фильтр цели остаётся. Регрессия PermissionResourceTest: панель teams и tenant 8 сохраняются после create/edit/delete; без фикса падает",
+    "notes": "F3 исправлен: resetPage/flushCachedTableRecords сохраняют target panel/tenant; тест проверяет create/edit/delete в team 8 и неизменность team 7. Все V1–V9 зелёные; full 4612, phase Filament+CRM 353, arch 95, PHPStan 0 ошибок, serial types 99.5%.",
     "deviations": [
-      "Повтор по поручению владельца (Review P7 F3); route ROUTE_MODEL_UNKNOWN при start"
+      "V7: fresh serial no-cache type coverage (99.5%) replaces unreliable fork-mode result. Full check evidence in artifacts/P7-audit-fixes/."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T05:30:25Z"
+        "at": "2026-10-09T06:02:35Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T05:30:25Z",
+  "updated_at": "2026-10-09T06:02:35Z",
   "sections": [
     {
       "id": "Intent",

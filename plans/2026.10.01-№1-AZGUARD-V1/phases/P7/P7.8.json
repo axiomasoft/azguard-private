@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P7.8",
   "title": "Review P7: независимая read-only проверка фазы",
-  "status": "blocked",
+  "status": "done_with_deviations",
   "summary": "Независимая read-only проверка фазы P7 (D3): соответствие кода P7.1–P7.7 досье 11, D23/D30/D54/D83, D27 и knowledge P7-filament-model; полный прогон гейтов; verdict GREEN/RED с находками и owning items в `@plan/knowledge/findings-P7-review.json`.",
   "why": "Review ловит межпунктовые швы: поверхность Filament, не закрытая трейтом; Gate::before, возвращающий allow; count/export до видимости; IDOR в редакторах; расхождение ключей генератора и FilamentKeys; использование внутренних классов ядра; вторые реализации данных панелей/генераторов.",
   "scope": {
@@ -145,68 +145,69 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T05:38:14Z",
-    "finished_at": "2026-10-09T06:13:33Z",
+    "started_at": "2026-10-09T06:02:37Z",
+    "finished_at": "2026-10-09T06:46:43Z",
     "executor": {
-      "provider": "claude",
-      "model": "claude-sonnet-5-5",
-      "effort": "high",
-      "session": "a056841a-785a-4c2d-911f-8fc788344222"
+      "provider": "codex",
+      "model": "gpt-6.1-sol",
+      "effort": "high"
     },
-    "notes": "Ревьюер grok-4.7 high, сессия 01a11f2b; F1,F2,F3,F6 закрыты; новые F7–F10 подтверждены пробниками; документ review-P7-8-2026-10-09-r2, раздел P7-verdict-2 в findings-P7-review",
-    "escalation": "Повторное ревью RED: F7–F10 (major, owning P7.2) и F12 (minor, P7.4); решение владельца: сводка с исправлениями, уже запушенными в origin/main (ed38e0a, 80974a8 и др.), и новый круг исправления P7.2",
+    "notes": "Verdict GREEN после owning исправлений и независимого второго аудита Grok4.7 (full RED G1/G2, один correction cycle, focused GREEN findings=[] questions=[]). Все подтверждённые root/исходные/Grok находки закрыты. 4627 full,368 phase,95 Arch,types99.5%,consumers Laravel11/12/13 зелёные; product1383 hashes неизменны. Итог knowledge/findings-P7-review.json.",
+    "deviations": [
+      "V8 выполнен fresh serial uncached Pest min98 вместо недостоверного forked composer type coverage. OS read-only bwrap недоступен: permission denied; Grok работал с read-only tool allowlist в plan mode, sandbox off; effort high подтверждён argv. Stale project Task v2 bootstrap обойдён canonical Task v4. Generated views исключены CLI commit и оставлены обновлёнными."
+    ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       },
       {
         "id": "V10",
         "exit": 0,
-        "at": "2026-10-09T06:13:33Z"
+        "at": "2026-10-09T06:46:43Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T06:13:33Z"
+  "updated_at": "2026-10-09T06:46:43Z"
 }

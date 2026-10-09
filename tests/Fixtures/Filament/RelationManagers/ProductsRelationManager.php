@@ -7,7 +7,6 @@ namespace AzGuard\Tests\Fixtures\Filament\RelationManagers;
 use AzGuard\Filament\Concerns\AuthorizesRelationManager;
 use AzGuard\Tests\Fixtures\Filament\Resources\ProductResource;
 use Filament\Actions\AttachAction;
-use Filament\Actions\DetachBulkAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -25,7 +24,6 @@ final class ProductsRelationManager extends RelationManager
     {
         return $table->recordTitleAttribute('name')
             ->columns([TextColumn::make('name')])
-            ->headerActions([AttachAction::make()->preloadRecordSelect()])
-            ->toolbarActions([DetachBulkAction::make()]);
+            ->headerActions([AttachAction::make()->preloadRecordSelect()]);
     }
 }

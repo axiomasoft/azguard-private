@@ -1,0 +1,17 @@
+[
+  {
+    "name": "roles",
+    "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament/Roles tests/Feature/Directories --compact --fail-on-skipped",
+    "exit": 0
+  },
+  {
+    "name": "phase",
+    "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped",
+    "exit": 0
+  },
+  {
+    "name": "pint-fix",
+    "cmd": "vendor/bin/pint tests/Feature/Filament/Roles/PermissionResourceTest.php",
+    "exit": 0
+  }
+]
