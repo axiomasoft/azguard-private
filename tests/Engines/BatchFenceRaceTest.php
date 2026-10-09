@@ -35,10 +35,10 @@ it('reads a deduplicated context union in bounded chunks inside one snapshot', f
 
     expect($set)->toHaveCount(103)
         ->and(count($set->states()))->toBe(1)
-        ->and(array_column($reads['admin'], 'table'))->toHaveCount(6)
+        ->and(array_column($reads['admin'], 'table'))->toHaveCount(5)
         ->and($reads['admin'][0]['table'])->toBe('panel_state')
-        ->and($reads['admin'][1]['table'])->toBe('panel_state')
-        ->and($reads['admin'][5]['table'])->toBe('role_grants');
+        ->and($reads['admin'][1]['table'])->toBe('permission_grants')
+        ->and($reads['admin'][4]['table'])->toBe('role_grants');
     foreach (['permission_grants', 'role_grants'] as $table) {
         $chunks = array_values(array_filter($reads['admin'], static fn (array $read): bool => $read['table'] === $table));
         $contexts = array_merge(...array_column($chunks, 'contexts'));
@@ -93,8 +93,8 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
         expect($barriers)->toBe(1)->and($set->get(0)->state->version)->toBe($version)
             ->and($set)->toHaveCount(102)
             ->and(count($set->states()))->toBe(2)
-            ->and($reads['admin'])->toHaveCount(6 * $attempts)
-            ->and($reads['cabinet'])->toHaveCount(4)
+            ->and($reads['admin'])->toHaveCount(5 * $attempts)
+            ->and($reads['cabinet'])->toHaveCount(3)
             ->and($seen)->toHaveCount(102);
         foreach ($set as $index => $decision) {
             expect($decision->allowed())->toBeTrue()
