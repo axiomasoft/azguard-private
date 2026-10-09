@@ -7,10 +7,15 @@ on:
       - 'docs/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'composer.json'
       - '.github/workflows/docs.yml'
+      - 'bin/docs-language-gate.sh'
+      - 'bin/docs-php-version-gate.sh'
   pull_request:
     paths:
       - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
       - 'composer.json'
       - '.github/workflows/docs.yml'
       - 'bin/docs-language-gate.sh'
@@ -19,12 +24,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   lint:
@@ -40,18 +39,18 @@ jobs:
       - name: Check docs PHP version matches composer floor
         run: bash bin/docs-php-version-gate.sh
 
+  # Pull requests build too: a broken page must fail the PR, not the deploy after merge.
   build:
-    if: github.event_name != 'pull_request'
     needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -65,11 +64,19 @@ jobs:
         run: npm run docs:build
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs/.vitepress/dist
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -78,4 +85,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
