@@ -70,9 +70,9 @@ export default defineConfig({
   description: 'Code-first authorization for Laravel: roles as classes, permissions as enums, one decision pipeline.',
   base,
   srcExclude: ['adr/**', '05_AI/**'],
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }]],
+  head: [['link', { rel: 'icon', type: 'image/png', href: `${base}favicon.png` }]],
   themeConfig: {
-    logo: '/logo.svg',
+    logo: '/logo.png',
     siteTitle: 'AzGuard',
     nav: [
       { text: 'Guide', link: '/getting-started/introduction', activeMatch: '/(getting-started|concepts|guides)/' },

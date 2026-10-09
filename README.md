@@ -1,3 +1,5 @@
+<p align="center"><img src="art/logo.png" width="128" height="128" alt="AzGuard logo"></p>
+
 # AzGuard
 
 [![Tests](https://github.com/axiomasoft/azguard-private/actions/workflows/tests.yml/badge.svg)](https://github.com/axiomasoft/azguard-private/actions/workflows/tests.yml)
