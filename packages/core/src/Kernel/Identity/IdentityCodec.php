@@ -40,7 +40,12 @@ final readonly class IdentityCodec
     public static function assertTypeAlias(string $type, string $exception = InvalidIdentityException::class): void
     {
         if (preg_match(self::TYPE_ALIAS_PATTERN, $type) !== 1) {
-            throw new $exception(self::message('type alias', $type, 'must match '.self::TYPE_ALIAS_PATTERN));
+            // A class name here is almost always an Eloquent model without a morph alias: say how to fix it.
+            $hint = str_contains($type, '\\')
+                ? '; a model needs a morph alias, for example Relation::enforceMorphMap([\'user\' => '.$type.'::class])'
+                : '';
+
+            throw new $exception(self::message('type alias', $type, 'must match '.self::TYPE_ALIAS_PATTERN.$hint));
         }
     }
 

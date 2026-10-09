@@ -7,6 +7,7 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Filament\BootsFilament;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Panels\Vendor;
 use AzGuard\Tests\TestCase;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
@@ -31,6 +32,12 @@ uses()->group('stand')->beforeEach(function (): void {
         $this->markTestSkipped('Engine suite requires PostgreSQL, MySQL or MariaDB.');
     }
 })->in('Engines');
+
+// Doctor reports a subject model without a morph alias (panels.valid); the fixture panels declare theirs like an
+// application does.
+uses()->beforeEach(fn () => Relation::morphMap(['user' => User::class, 'vendor' => Vendor::class], false))
+    ->afterEach(fn () => Relation::morphMap([], false))
+    ->in('Feature/Diagnostics');
 
 uses()->beforeEach(function (): void {
     Relation::morphMap(['user' => User::class], false);
