@@ -8,6 +8,7 @@
         {"id": "cache-cold-warm", "class": "AzGuardBench\\Load\\Profiles\\CacheColdWarm", "primary_op": "warm_store"},
         {"id": "grant-revoke-load", "class": "AzGuardBench\\Load\\Profiles\\GrantRevokeLoad", "primary_op": "check_under_writes"},
         {"id": "consistency-load", "class": "AzGuardBench\\Load\\Profiles\\ConsistencyLoad", "primary_op": "check"},
-        {"id": "multi-tenant", "class": "AzGuardBench\\Load\\Profiles\\MultiTenant", "primary_op": "member"}
+        {"id": "multi-tenant", "class": "AzGuardBench\\Load\\Profiles\\MultiTenant", "primary_op": "member"},
+        {"id": "decision-set", "class": "AzGuardBench\\Load\\Profiles\\DecisionSetSize", "primary_op": "set"}
     ]
 }
