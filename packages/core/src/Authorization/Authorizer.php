@@ -146,21 +146,32 @@ final class Authorizer
                 $grants[] = (string) $local;
             }
         }
+        $assignable = array_fill_keys($grants, true);
         $held = [];
         $until = null;
         foreach ($qualified as [$item, $role]) {
             $everything = $item instanceof RoleContribution && $role !== null && $role['super_admin'];
             $patterns = $item instanceof Grant ? [$item->pattern->local()] : ($role['permissions'] ?? []);
-            $adds = false;
-            foreach ($grants as $local) {
-                $covered = $everything;
-                foreach ($covered ? [] : $patterns as $pattern) {
-                    $covered = $covered || PatternMatcher::covers($pattern, $local);
-                }
+            $covered = $everything ? $grants : [];
+            // An exact pattern covers only itself: a lookup. Only wildcards are matched against the catalog. Patterns
+            // come from grant values and compiled roles and catalog keys from definitions, all validated already.
+            foreach ($everything ? [] : $patterns as $pattern) {
+                if (! str_ends_with($pattern, '*')) {
+                    if (isset($assignable[$pattern])) {
+                        $covered[] = $pattern;
+                    }
 
-                if ($covered) {
-                    $held[$local] = $adds = true;
+                    continue;
                 }
+                foreach ($grants as $local) {
+                    if (PatternMatcher::coversValidated($pattern, $local)) {
+                        $covered[] = $local;
+                    }
+                }
+            }
+            $adds = $covered !== [];
+            foreach ($covered as $local) {
+                $held[$local] = true;
             }
 
             if ($adds && $item->expiresAt !== null && ($until === null || $item->expiresAt < $until)) {
