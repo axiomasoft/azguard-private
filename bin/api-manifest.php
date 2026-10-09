@@ -36,11 +36,26 @@ const API_LOCATION_CLASSES = [
     'AzGuard\\Panels\\PanelProvider',
 ];
 
+/*
+ * Classes declared differently by the installed Laravel. The manifest records the Laravel 13 shape (the dev
+ * requirement); on an older Laravel the committed entry is kept instead of the fallback declaration.
+ */
+const API_LARAVEL_DEPENDENT = [
+    'AzGuard\\Attributes\\CheckPermission' => 'Illuminate\\Routing\\Attributes\\Controllers\\Middleware',
+];
+
 /**
  * @return array{package: string, classes: list<array<string, mixed>>}
  */
 function apiManifest(string $root, string $package): array
 {
+    $committed = [];
+    $path = "{$root}/{$package}/api-manifest.json";
+    $stored = is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
+    foreach (is_array($stored) ? $stored['classes'] ?? [] : [] as $entry) {
+        $committed[$entry['name']] = $entry;
+    }
+
     /** @var array{name: string, autoload: array{psr-4: array<string, string>}} $composer */
     $composer = json_decode((string) file_get_contents("{$root}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
     $classes = [];
@@ -61,7 +76,10 @@ function apiManifest(string $root, string $package): array
                 continue;
             }
 
-            $entry = apiDescribe(new ReflectionClass($fqcn));
+            $dependsOn = API_LARAVEL_DEPENDENT[$fqcn] ?? null;
+            $entry = $dependsOn !== null && ! class_exists($dependsOn) && isset($committed[$fqcn])
+                ? $committed[$fqcn]
+                : apiDescribe(new ReflectionClass($fqcn));
 
             if ($entry !== null) {
                 $classes[$fqcn] = $entry;
@@ -133,7 +151,7 @@ function apiDescribe(ReflectionClass $class): ?array
         if ($property->getDeclaringClass()->getName() === $name) {
             $properties[$property->getName()] = [
                 'name' => $property->getName(),
-                'type' => apiType($property->getType()),
+                'type' => apiType($property->getType(), $name),
                 'readonly' => $property->isReadOnly(),
                 'static' => $property->isStatic(),
             ];
@@ -149,8 +167,8 @@ function apiDescribe(ReflectionClass $class): ?array
                 'name' => $method->getName(),
                 'static' => $method->isStatic(),
                 'abstract' => $method->isAbstract() && ! $class->isInterface(),
-                'parameters' => array_map(apiParameter(...), $method->getParameters()),
-                'return' => apiType($method->getReturnType()),
+                'parameters' => array_map(static fn (ReflectionParameter $parameter): array => apiParameter($parameter, $name), $method->getParameters()),
+                'return' => apiType($method->getReturnType(), $name),
             ];
         }
     }
@@ -166,11 +184,11 @@ function apiDescribe(ReflectionClass $class): ?array
 /**
  * @return array<string, mixed>
  */
-function apiParameter(ReflectionParameter $parameter): array
+function apiParameter(ReflectionParameter $parameter, string $self): array
 {
     $described = [
         'name' => $parameter->getName(),
-        'type' => apiType($parameter->getType()),
+        'type' => apiType($parameter->getType(), $self),
         'byRef' => $parameter->isPassedByReference(),
         'variadic' => $parameter->isVariadic(),
         'hasDefault' => $parameter->isDefaultValueAvailable(),
@@ -186,9 +204,17 @@ function apiParameter(ReflectionParameter $parameter): array
     return $described;
 }
 
-function apiType(?ReflectionType $type): ?string
+/**
+ * The declared type with the class itself written as `self`. PHP 8.5 reflection resolves `self` to the class name
+ * while 8.3/8.4 keep `self`; one spelling keeps the manifest identical on every supported PHP.
+ */
+function apiType(?ReflectionType $type, string $self): ?string
 {
-    return $type === null ? null : (string) $type;
+    if ($type === null) {
+        return null;
+    }
+
+    return preg_replace_callback('/[A-Za-z_\\\\][A-Za-z0-9_\\\\]*/', static fn (array $m): string => ltrim($m[0], '\\') === $self ? 'self' : $m[0], (string) $type);
 }
 
 /**

@@ -76,7 +76,7 @@ it('makes a plugin with its own typed named factory and no options', function ()
     expect($reflection->getMethod('id')->invoke($make->invoke(null)))->toBe('app/audit-trail')
         ->and(is_subclass_of($class, Plugin::class))->toBeTrue()
         ->and($make->isStatic() && $make->isPublic())->toBeTrue()
-        ->and($make->getReturnType()?->getName())->toBe('self')
+        ->and($make->getReturnType()?->getName())->toBeIn(['self', $class]) // PHP 8.5 reflection resolves self to the class
         ->and($make->getNumberOfParameters())->toBe(0)
         ->and($reflection->getConstructor()?->isPrivate())->toBeTrue()
         ->and($reflection->hasMethod('options'))->toBeFalse()
