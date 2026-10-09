@@ -35,7 +35,9 @@ final readonly class DecisionSet implements Countable, IteratorAggregate
         $states = [];
 
         foreach ($decisions as $decision) {
-            $state = $decision->state;
+            // The set's state of a storage panel is the panel state; decisions of different subjects read at one
+            // snapshot carry different subject revisions of that one state.
+            $state = $decision->state instanceof StateToken ? $decision->state->panelState() : $decision->state;
             $key = $state instanceof CodeStateToken
                 ? IdentityCodec::compose(['code', $state->panel, $state->buildId])
                 : IdentityCodec::compose(['storage', $state->storageId, $state->panel]);

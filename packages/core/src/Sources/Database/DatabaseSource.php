@@ -926,30 +926,58 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function materializeAssignments(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes, ?StateToken $before = null): array
     {
+        $this->prepareAssignments($session, $context);
+        [$state, $rows] = $this->readConsistently($session, $context, fn (): array => $this->assignmentRows($session, $context, $subject, $scopes), $before, $subject);
+
+        return [$state, $this->hydrateAssignments($session, $context, $subject, $rows)];
+    }
+
+    /** @internal Checks the models and fields of both assignment kinds before any read. */
+    public function prepareAssignments(StorageReadSession $session, EvaluationContext $context): void
+    {
+        $this->bindPanel($context->panel()->id());
+
         if (! $this->onlyRoles) {
             $this->hydrator($session, 'permission_grant', $context);
         }
         $this->hydrator($session, 'role_grant', $context);
-        // Scopes are read in chunks of 100 pairs, every chunk inside the same consistent read.
-        $chunks = array_chunk($scopes, 100);
-        [$state, $rows] = $this->readConsistently($session, $context, function () use ($session, $subject, $context, $chunks): array {
-            $rows = ['permission_grant' => [], 'role_grant' => []];
-            foreach (['permission_grant', 'role_grant'] as $kind) {
-                if ($kind === 'permission_grant' && $this->onlyRoles) {
-                    continue;
-                }
-                foreach ($chunks as $chunk) {
-                    $rows[$kind] = [...$rows[$kind], ...$this->rows($session, $kind, $subject, $chunk, $context)];
-                }
+    }
+
+    /**
+     * @internal Raw assignment rows of one subject on the session, inside the caller's consistent read: scopes in
+     * chunks of 100 pairs, plain arrays, no model or host code.
+     *
+     * @param  list<AccessScope>  $scopes
+     * @return array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}
+     */
+    public function assignmentRows(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes): array
+    {
+        $this->bindPanel($context->panel()->id());
+        $rows = ['permission_grant' => [], 'role_grant' => []];
+        foreach (['permission_grant', 'role_grant'] as $kind) {
+            if ($kind === 'permission_grant' && $this->onlyRoles) {
+                continue;
             }
+            foreach (array_chunk($scopes, 100) as $chunk) {
+                $rows[$kind] = [...$rows[$kind], ...$this->rows($session, $kind, $subject, $chunk, $context)];
+            }
+        }
 
-            return $rows;
-        }, $before, $subject);
+        return $rows;
+    }
 
-        return [$state, [
+    /**
+     * @internal Grants and role contributions of raw rows, built after the read committed.
+     *
+     * @param  array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}  $rows
+     * @return array{grants: list<Grant>, roles: list<RoleContribution>}
+     */
+    public function hydrateAssignments(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $rows): array
+    {
+        return [
             'grants' => $this->hydrate($session, 'permission_grant', $rows['permission_grant'], $subject, $context),
             'roles' => $this->hydrate($session, 'role_grant', $rows['role_grant'], $subject, $context),
-        ]];
+        ];
     }
 
     public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): AssignmentScopeSelection

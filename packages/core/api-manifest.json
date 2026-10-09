@@ -13745,6 +13745,13 @@
                         }
                     ],
                     "return": "self"
+                },
+                {
+                    "name": "panelState",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "self"
                 }
             ],
             "stability": "api",
@@ -19957,6 +19964,42 @@
                     "return": "AzGuard\\Changes\\ChangeResult"
                 },
                 {
+                    "name": "assignmentRows",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
                     "name": "bindPanel",
                     "static": false,
                     "abstract": false,
@@ -20286,6 +20329,42 @@
                         {
                             "name": "now",
                             "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "hydrateAssignments",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "rows",
+                            "type": "array",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -20696,6 +20775,28 @@
                         }
                     ],
                     "return": "iterable"
+                },
+                {
+                    "name": "prepareAssignments",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
                 },
                 {
                     "name": "readConsistently",

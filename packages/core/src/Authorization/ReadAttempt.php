@@ -18,6 +18,7 @@ use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Decision\StateToken;
@@ -31,6 +32,7 @@ use AzGuard\Sources\PanelSources;
 use AzGuard\Storage\AuthorityTransaction;
 use AzGuard\Storage\StorageReadSession;
 use Closure;
+use Throwable;
 
 /**
  * @internal One operation's consumed source revisions and pinned handles; never shared or cached.
@@ -81,7 +83,7 @@ final class ReadAttempt
     /** @var array<string, list<Grant|RoleContribution>> */
     private array $batchSlices = [];
 
-    /** @var array<string, ConsistencyException> */
+    /** @var array<string, Throwable> */
     private array $batchFailures = [];
 
     /** @param list<AccessScope> $scopes */
@@ -117,6 +119,11 @@ final class ReadAttempt
 
             return [...$snapshot['grants'], ...$snapshot['roles']];
         }
+
+        if (isset($this->batchFailures[$source->id()])) {
+            // One failed batch read fails every request of the group; it is not read again per request.
+            throw $this->batchFailures[$source->id()];
+        }
         $key = $this->key($source, $request, $frame);
 
         if (isset($this->batchSlices[$key])) {
@@ -128,11 +135,6 @@ final class ReadAttempt
             return $this->batchSlices[$key] = $items;
         }
 
-        if (isset($this->batchFailures[$source->id()])) {
-            // One failed batch read fails every request of the group; it is not read again per request.
-            throw $this->batchFailures[$source->id()];
-        }
-
         if (! array_key_exists($source->id(), $this->batchAssignments)) {
             $scopes = $this->batchScopes ?? [];
 
@@ -142,17 +144,7 @@ final class ReadAttempt
                 throw $this->batchFailures[$source->id()] = $error;
             }
             $this->observe($source, $state);
-            $consumed = array_flip(array_map(static fn (AccessScope $scope): string => IdentityCodec::compose([$scope]), $scopes));
-            $items = [];
-            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
-                if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
-                    || ($item->role !== null && $item->role->panel() !== $frame->panel()->id())
-                    || ! isset($consumed[IdentityCodec::compose([$item->scope])])) {
-                    throw new InvalidSourceContributionException('Batch contribution differs from the consumed scopes.');
-                }
-                $items[] = $item;
-            }
-            $this->batchAssignments[$source->id()] = $items;
+            $this->acceptBatch($source, $frame->panel()->id(), $scopes, $snapshot);
         }
         $items = array_values(array_filter($this->batchAssignments[$source->id()], static fn (Grant|RoleContribution $item): bool => $frame->acceptsContributionScope($item->scope)));
 
@@ -162,6 +154,155 @@ final class ReadAttempt
         }
 
         return $this->batchSlices[$key] = $items;
+    }
+
+    /**
+     * @param  list<AccessScope>  $scopes
+     * @param  array{grants: list<Grant>, roles: list<RoleContribution>}  $snapshot
+     */
+    private function acceptBatch(DatabaseSource $source, string $panel, array $scopes, array $snapshot): void
+    {
+        $consumed = array_flip(array_map(static fn (AccessScope $scope): string => IdentityCodec::compose([$scope]), $scopes));
+        $items = [];
+        foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
+            if (($item instanceof Grant && $item->pattern->panel() !== $panel)
+                || ($item->role !== null && $item->role->panel() !== $panel)
+                || ! isset($consumed[IdentityCodec::compose([$item->scope])])) {
+                throw new InvalidSourceContributionException('Batch contribution differs from the consumed scopes.');
+            }
+            $items[] = $item;
+        }
+        $this->batchAssignments[$source->id()] = $items;
+    }
+
+    /**
+     * One snapshot for a DecisionSet (audits/2026-10-09-consistency-design.md, step 5): the database reads of every
+     * batch attempt that shares a storage connection run in one read-only transaction: the observed state of each
+     * subject, the cache lookups of its requests and the raw rows of the subjects with a miss. Nothing of the host
+     * runs inside; rows are hydrated after COMMIT. Each attempt then evaluates from what was read, so all its
+     * decisions and those of the other subjects match one database state. A failed read fails the attempts of that
+     * snapshot; an attempt inside an authority transaction or a test baseline keeps its own read.
+     *
+     * @param  list<array{AccessRequest, EvaluationFrame}>  $entries
+     */
+    public static function readMany(array $entries): void
+    {
+        $plans = [];
+        foreach ($entries as [$request, $frame]) {
+            $attempt = $frame->readAttempt;
+
+            if ($attempt === null || $attempt->batchScopes === null) {
+                continue;
+            }
+            $plans[spl_object_id($attempt)]['attempt'] = $attempt;
+            $plans[spl_object_id($attempt)]['requests'][] = [$request, $frame];
+        }
+        $groups = [];
+        foreach ($plans as ['attempt' => $attempt, 'requests' => $requests]) {
+            foreach ($attempt->sources as ['source' => $source]) {
+                if (! $source instanceof DatabaseSource) {
+                    continue;
+                }
+
+                try {
+                    $attempt->begin($source);
+                    $session = $attempt->sessions[$source->id()];
+
+                    if ($attempt->transaction !== null || ! $session->canSnapshot() || array_key_exists($source->id(), $attempt->batchAssignments)) {
+                        continue;
+                    }
+                    $source->prepareAssignments($session, $attempt->initial);
+                    $subject = $requests[0][0]->subject();
+                    $attempt->memoKeys[$source->id()] = IdentityCodec::digest([$attempt->stateKeys[$source->id()], $subject]);
+
+                    if ($attempt->servedByMemo($source, $requests)) {
+                        continue;
+                    }
+                } catch (Throwable $error) {
+                    $attempt->batchFailures[$source->id()] = $error;
+
+                    continue;
+                }
+                $groups[$session->authorityIdentity()."\0".$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
+            }
+        }
+        foreach ($groups as $members) {
+            $session = $members[0][0]->sessions[$members[0][1]->id()];
+
+            try {
+                $read = $session->snapshot(static function () use ($members, $session): array {
+                    $read = [];
+                    foreach ($members as $n => [$attempt, $source, $subject, $requests]) {
+                        $observed = $source->readObserved($session, $attempt->initial, $subject);
+                        $hits = [];
+                        $miss = $attempt->cache === null;
+                        foreach ($requests as [$request, $frame]) {
+                            $key = $attempt->keyAt($observed, $source, $request, $frame);
+                            $items = $attempt->cache?->get($key, $frame->panel(), $source->volatility(), true, $frame->now());
+                            $miss = $miss || $items === null;
+
+                            if ($items !== null) {
+                                $hits[$key] = $items;
+                            }
+                        }
+                        $read[$n] = [$observed, $hits, $miss ? $source->assignmentRows($session, $attempt->initial, $subject, $attempt->batchScopes ?? []) : null];
+                    }
+
+                    return $read;
+                });
+            } catch (Throwable $error) {
+                foreach ($members as [$attempt, $source]) {
+                    $attempt->batchFailures[$source->id()] = $error;
+                }
+
+                continue;
+            }
+            foreach ($members as $n => [$attempt, $source, $subject]) {
+                [$observed, $hits, $rows] = $read[$n];
+
+                try {
+                    $attempt->observe($source, $observed);
+                    $attempt->batchSlices = [...$attempt->batchSlices, ...$hits];
+
+                    if ($rows !== null) {
+                        $attempt->acceptBatch($source, $attempt->initial->panel()->id(), $attempt->batchScopes ?? [],
+                            $source->hydrateAssignments($attempt->sessions[$source->id()], $attempt->initial, $subject, $rows));
+                    }
+                } catch (Throwable $error) {
+                    $attempt->batchFailures[$source->id()] = $error;
+                }
+            }
+        }
+    }
+
+    /**
+     * With `state_refresh = request`, a subject whose observed state this request already read and whose every
+     * request hits the cache under it needs no read at all: the relaxed mode of the panel, as for a single check.
+     *
+     * @param  list<array{AccessRequest, EvaluationFrame}>  $requests
+     */
+    private function servedByMemo(DatabaseSource $source, array $requests): bool
+    {
+        $memo = $this->memoized($this->memoKeys[$source->id()] ?? '');
+
+        // A state this attempt already read (the dynamic catalog) is newer than a request memo.
+        if ($memo === null || $memo->subjectRevision === null || $this->cache === null || isset($this->states[$source->id()])) {
+            return false;
+        }
+        $hits = [];
+        foreach ($requests as [$request, $frame]) {
+            $key = $this->keyAt($memo, $source, $request, $frame);
+            $items = $this->cache->get($key, $frame->panel(), $source->volatility(), true, $frame->now());
+
+            if ($items === null) {
+                return false;
+            }
+            $hits[$key] = $items;
+        }
+        $this->states[$source->id()] = $memo;
+        $this->batchSlices = [...$this->batchSlices, ...$hits];
+
+        return true;
     }
 
     public function catalog(): PanelCatalog
@@ -447,8 +588,15 @@ final class ReadAttempt
             $this->states[$source->id()] = $this->fresh[$source->id()] = $this->readState($source);
         }
 
-        return PermissionSetCache::key($this->states[$source->id()] ?? $this->initial->state(), $request->subject(), $frame->scope()->tenant,
-            $frame->sourceScopes(), $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
+        return $this->keyAt($this->states[$source->id()] ?? $this->initial->state(), $source, $request, $frame, $authority);
+    }
+
+    private function keyAt(StateToken|CodeStateToken $state, Source $source, AccessRequest $request, EvaluationFrame $frame, ?string $authority = null): string
+    {
+        $authority ??= $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
+
+        return PermissionSetCache::key($state, $request->subject(), $frame->scope()->tenant, $frame->sourceScopes(),
+            $source::class.':'.$source->id(), $frame->panel()->settings()->reads()->value, $authority, $frame->panel()->settings()->cacheGeneration());
     }
 
     /**

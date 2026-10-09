@@ -40,7 +40,7 @@ it('accounts every CRM resource with scalar parity and bounds structural SQL by 
         }
     }
     expect($batchIds)->toBe($expectedIds)
-        ->and($budget['state'])->toBe(2)->and($budget['assignments'])->toBeLessThanOrEqual(2 * (int) ceil($contexts / 100))
+        ->and($budget['state'])->toBe(1)->and($budget['assignments'])->toBeLessThanOrEqual(2 * (int) ceil($contexts / 100))
         ->and($budget['clients'])->toBe(0)->and($budget['users'])->toBeLessThanOrEqual(2)
         // Owner/common/native witnesses are bounded by unique scopes and the two role shapes.
         ->and($budget['projects'])->toBeLessThanOrEqual(4 * (int) ceil($contexts / 100))

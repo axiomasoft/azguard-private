@@ -84,7 +84,7 @@ it('permits a policy to check another permission scheduled later in the same bat
     Log::shouldNotHaveReceived('warning');
 });
 
-it('runs a writing hook once and fails subject groups read at different states without evaluating again', function (): void {
+it('runs a writing hook once and decides both subject groups at the one snapshot read after it', function (): void {
     app(StorageSchema::class)->create('default');
     User::query()->insert(['id' => 2]);
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission'), DatabaseWorld::row('permission', overrides: ['subject_id' => '2'])]);
@@ -106,12 +106,15 @@ it('runs a writing hook once and fails subject groups read at different states w
     $two = AccessRequest::for(SubjectRef::of('user', 2), $one->permission());
     $set = $engine->decideMany([$one, $two, DatabaseWorld::request(DatabasePermission::Policy)]);
     expect($touches)->toBe(1)->and($set)->toHaveCount(3)->and($observed)->toHaveCount(3)
-        ->and($set->get(0)->reason)->toBe(DecisionReason::ConsistencyError)->and($set->get(1)->reason)->toBe(DecisionReason::ConsistencyError)
-        ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(2)->reason)->toBe(DecisionReason::Policy);
+        // Before hooks run before the set's snapshot (design doc, step 5): both subjects are read after the touch.
+        ->and($set->get(0)->reason)->toBe(DecisionReason::Granted)->and($set->get(1)->reason)->toBe(DecisionReason::Granted)
+        ->and($set->get(0)->state->panelState()->equals($set->get(1)->state->panelState()))->toBeTrue()
+        ->and($set->get(0)->state->version)->toBe(DatabaseWorld::storage()->state('admin')->version)
+        ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(2)->reason)->toBe(DecisionReason::Policy)
+        ->and($set->get(2)->state)->toBeInstanceOf(CodeStateToken::class);
 
     foreach ($set as $i => $decision) {
-        expect($decision->state)->toBeInstanceOf(CodeStateToken::class);
         $this->assertEquals($decision, $observed[$i]);
     }
-    expect($set->states())->toHaveCount(1);
+    expect($set->states())->toHaveCount(2);
 });

@@ -54,6 +54,13 @@ final readonly class StateToken
         return new self($storageId, $panel, $incarnation, $version, $generation, $fingerprint, $epoch, $subjectRevision);
     }
 
+    /** The state of the panel this token was read at, without the revision of one subject. */
+    public function panelState(): self
+    {
+        return $this->subjectRevision === null ? $this
+            : new self($this->storageId, $this->panel, $this->incarnation, $this->version, $this->generation, $this->fingerprint, $this->epoch);
+    }
+
     public function equals(self $other): bool
     {
         return $this->storageId === $other->storageId
