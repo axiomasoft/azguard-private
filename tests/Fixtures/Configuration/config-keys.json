@@ -1,6 +1,7 @@
 [
     "catalog.build_id",
     "catalog.cache_path",
+    "decision_sets.max_subjects",
     "defaults.cache.generation",
     "defaults.cache.store",
     "defaults.cache.ttl",

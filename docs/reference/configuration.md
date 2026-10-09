@@ -37,6 +37,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `defaults.tenants.resolvers` | `[]` | Tenant resolver classes tried after a panel's own resolvers |
 | `defaults.scopes.resolvers` | `[]` | Assignment scope resolver classes tried after a panel's own resolvers |
 | `gate.enabled` | `true` | `false` stops registering `Gate::before`. `@can` and `can()` then no longer see AzGuard permissions; `AzGuard::check()` and the middleware still work |
+| `decision_sets.max_subjects` | `500` | Most distinct subjects of one `decideMany()`. Its reads share one snapshot. A larger set throws `DecisionSetTooLargeException` and is never split silently (see [Consistency](/advanced/consistency#decisionset)) |
 | `schedule.enabled` | `true` | Register scheduled pruning of expired grants |
 | `schedule.prune_expired` | `daily` | A scheduler frequency method name (`hourly`, `daily`, `weekly`), a cron expression, or `null` |
 | `catalog.build_id` | `env('AZGUARD_BUILD_ID')` | Names the deployed build. Cached catalogs of another build are never used. Set it to the commit hash on every deploy |

@@ -12,6 +12,7 @@ use AzGuard\Contracts\Changes\PermissionManager;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Directories\PanelDirectories;
 use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Exceptions\DecisionSetTooLargeException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\TenantMismatchException;
@@ -92,6 +93,7 @@ interface PanelAccess
      *
      * @throws ConflictingPanelException when a request is for another panel
      * @throws TenantMismatchException when a request names a tenant other than the one of the access
+     * @throws DecisionSetTooLargeException when the requests name more distinct subjects than decision_sets.max_subjects
      */
     public function decideMany(iterable $requests): DecisionSet;
 
