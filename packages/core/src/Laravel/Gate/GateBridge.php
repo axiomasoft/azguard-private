@@ -69,6 +69,10 @@ final readonly class GateBridge
             $context = $arguments[1] ?? null;
             $request = AccessRequest::for($ref, $key);
 
+            if ($subject instanceof Model) {
+                $request = $request->withSubjectModel($subject);
+            }
+
             if ($context instanceof AccessScope) {
                 $request = $request->inScope($context, is_object($resource) ? $resource : null);
             } else {

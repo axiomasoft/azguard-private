@@ -11,6 +11,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Laravel\Gate\GateBridge;
 use Closure;
+use Filament\Facades\Filament;
 use Filament\Pages\Page;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\Resource as FilamentResource;
@@ -192,7 +193,10 @@ final class FilamentGate
                 return $enforced ? self::refused('azguard.filament.subject') : $otherwise();
             }
 
-            return GateBridge::toGateResult($access->decide(AccessRequest::for($subject, PermissionKey::of($context->guardPanel(), $key))->on(null, $record)));
+            $request = AccessRequest::for($subject, PermissionKey::of($context->guardPanel(), $key))->on(null, $record);
+            $user = Filament::auth()->user();
+
+            return GateBridge::toGateResult($access->decide($user === null ? $request : $request->withSubjectModel($user)));
         } catch (UnknownPermissionException) {
             if (! $enforced) {
                 return $otherwise();

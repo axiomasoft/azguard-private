@@ -12329,6 +12329,13 @@
                     "return": "AzGuard\\Kernel\\Identity\\SubjectRef"
                 },
                 {
+                    "name": "subjectModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?object"
+                },
+                {
                     "name": "tenant",
                     "static": false,
                     "abstract": false,
@@ -12347,6 +12354,21 @@
                             "variadic": false,
                             "hasDefault": true,
                             "default": "true"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "withSubjectModel",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "object",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
                         }
                     ],
                     "return": "self"

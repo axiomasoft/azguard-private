@@ -55,7 +55,7 @@ final readonly class PanelAdmission
         }
         [, $permission] = $this->authorizer->resolve($subject, $entry, $panel->id());
 
-        return $this->authorizer->decide($panel, AccessRequest::for($ref, $permission)->inScope($scope))->allowed() ? $scope : null;
+        return $this->authorizer->decide($panel, AccessRequest::for($ref, $permission)->withSubjectModel($subject)->inScope($scope))->allowed() ? $scope : null;
     }
 
     private function holdsRole(Panel $panel, SubjectRef $subject, AccessScope $scope): bool

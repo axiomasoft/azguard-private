@@ -63,6 +63,13 @@ final class BatchInputs
             }
             foreach ($refs as $ref) {
                 $key = self::subjectKey($panel, $ref);
+                $given = ModelSubjectResolver::given($panel, $request->subjectModel(), $ref);
+
+                if ($given !== null) {
+                    $this->subjects[$key] = $given;
+
+                    continue;
+                }
                 $this->subjects[$key] = null;
                 foreach ($panel->subjectModels() as $class) {
                     if ((new $class)->getMorphClass() === $ref->type()) {
