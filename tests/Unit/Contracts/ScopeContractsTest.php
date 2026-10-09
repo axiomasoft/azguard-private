@@ -53,7 +53,7 @@ function scopeDefinition(AssignmentScopeDefinition|string $scope): AssignmentSco
     return is_string($scope) ? new $scope : $scope;
 }
 
-it('repeats the scope and subject contracts of the dossier', function (string $contract, array $signatures): void {
+it('keeps the documented scope and subject contracts', function (string $contract, array $signatures): void {
     $reflection = new ReflectionClass($contract);
 
     expect($reflection->isInterface())->toBeTrue()

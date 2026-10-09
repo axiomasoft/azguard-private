@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /**
- * The frozen 0.3 reference was removed in P6.9. This guard keeps its names from returning
+ * The frozen 0.3 reference was removed. This guard keeps its names from returning
  * to the 1.0 sources, tests, launchers, composer manifest, CI and configuration.
- * The 0.3 tree stays readable through git (see the P6.9 section of findings-P6-execution).
+ * The 0.3 tree stays readable through git: `git show 491980a:legacy/0.3/<path>`.
  */
 const LEGACY_NAMES_FORBIDDEN = [
-    // Removed API, config keys, aliases and commands (13 F6, 03 renames).
+    // Removed API, config keys, aliases and commands.
     'GrantBuilder', 'ContextGrantBuilder', 'HasScopedRoles', 'PolicyAttributeRegistrar',
     'AbilitiesResolver', 'NullSafeUniqueIndex', 'AzGuardManagerInterface', 'SkipGuardCheck',
     'azguard.grant', 'azguard.panel_check', 'azguard.roles', 'check.access',

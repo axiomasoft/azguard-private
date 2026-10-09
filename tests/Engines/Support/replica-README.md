@@ -45,7 +45,7 @@ Redis uses database 15 with a random qualification prefix and deletes only its o
 never flushes a database. The benchmark reports PHP/framework/server/hardware, sample/warmup
 counts and nearest-rank p95/p99. SQL policy cost is separate; the benchmark has no membership
 adapter (`membership=0`). Real CRM membership freshness is checked by CRM acceptance tests.
-No latency pass threshold is invented; D44 SQL counts are executable assertions.
+No latency pass threshold is invented; the SQL query budgets are executable assertions.
 
 Primary sources for the fixture:
 - [PostgreSQL 16 pg_basebackup](https://www.postgresql.org/docs/16/app-pgbasebackup.html)

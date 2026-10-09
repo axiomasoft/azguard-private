@@ -8,7 +8,7 @@ use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 
 /**
- * Two grants permissions and one decided by its policy alone, as P2.8 will read them from attributes.
+ * Two grants permissions and one decided by its policy alone, read from attributes.
  */
 enum ClientPermission: string
 {

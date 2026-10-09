@@ -35,11 +35,11 @@ result is `unavailable`, never green.
 ## CI
 
 The `consumer-fixture` job in `.github/workflows/tests.yml` runs both variants on PHP 8.4 and Laravel 13. It is
-non-blocking (`continue-on-error: true`); PLAN2.P8.3 makes it blocking.
+non-blocking (`continue-on-error: true`) until the fixtures below exist.
 
-## Planned fixtures (PLAN2.P8.4)
+## Planned fixtures
 
-The current script is the skeleton. P8.4 fills it with these fixtures and the support matrix:
+The current script is the skeleton. These fixtures and the support matrix are planned:
 
 | | Fixture |
 |:--|:--|

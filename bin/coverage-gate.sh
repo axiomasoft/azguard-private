@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Coverage gate for `composer check` (F50). Honest-skip twin of
+# Coverage gate for `composer check`. Honest-skip twin of
 # bin/mutation-gate.sh — see that file for the driver-detection rationale.
 set -euo pipefail
 

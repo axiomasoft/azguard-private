@@ -9,7 +9,7 @@ use AzGuard\Changes\ChangeResult;
 use Closure;
 
 /**
- * Delegation as an application pipe (D23): the actor may hand out only the roles and contexts delegated to it,
+ * Delegation as an application pipe: the actor may hand out only the roles and contexts delegated to it,
  * never a super admin role or a wildcard. The core holds no delegation policy.
  */
 final class DelegationPipe

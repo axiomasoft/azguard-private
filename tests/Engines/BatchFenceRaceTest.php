@@ -16,7 +16,7 @@ use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 beforeEach(fn () => CacheEngineWorld::seed());
 afterEach(fn () => CacheEngineWorld::clean());
 
-it('P4.9 reads a deduplicated context union in bounded chunks inside one fence', function (): void {
+it('reads a deduplicated context union in bounded chunks inside one fence', function (): void {
     DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
         $mutation->table('permission_grants')->delete();
         foreach ([1, 101] as $id) {
@@ -55,7 +55,7 @@ it('P4.9 reads a deduplicated context union in bounded chunks inside one fence',
     }
 })->group('engines');
 
-it('P4.9 discards every chunk after an acknowledged parallel revoke and exposes only the final group', function (bool $continuous): void {
+it('discards every chunk after an acknowledged parallel revoke and exposes only the final group', function (bool $continuous): void {
     DatabaseWorld::storage()->mutate('cabinet', static function (StorageMutation $mutation): void {
         $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', overrides: ['panel' => 'cabinet']));
         $mutation->touch('cabinet');

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 /*
- * D20: fromOrigin() narrows changes and stored-grant lists to one partition and never authorization. A revocation in
+ * fromOrigin() narrows changes and stored-grant lists to one partition and never authorization. A revocation in
  * one origin leaves an independent witness of another origin in force. A change inside a host transaction is
  * tentative: neither an event nor a later read takes it before the host commits.
  */

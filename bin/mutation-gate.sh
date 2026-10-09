@@ -2,7 +2,7 @@
 # Native Pest mutation gate.
 #
 # Pest 4 bundles pest-plugin-mutate, whose runner keeps the coverage test IDs
-# consistent with Pest. Infection 0.34 cannot resolve those IDs (P4.5).
+# consistent with Pest. Infection 0.34 cannot resolve those IDs.
 # Each package starts from fresh coverage; scores are enforced independently.
 set -euo pipefail
 

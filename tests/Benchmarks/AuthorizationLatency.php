@@ -84,7 +84,7 @@ try {
                 sort($times, SORT_NUMERIC);
 
                 if ($temperature === 'warm' && ($counts['state'] !== 0 || $counts['grants'] !== 0)) {
-                    throw new RuntimeException('D44 warmed request exceeds zero authority query budget.');
+                    throw new RuntimeException('A warmed request exceeds the zero authority query budget.');
                 }
                 $rows[] = ['grants' => $grants, 'policy' => $policy, 'cache' => $temperature,
                     'samples' => $samples, 'warmup' => $warmup,
@@ -100,7 +100,7 @@ try {
             }
 
             if ($counts['state'] !== 1 || $counts['grants'] !== 0 || LatencyPolicy::$queries !== ($policy ? 10 : 0)) {
-                throw new RuntimeException('D44 new warmed request exceeded authority/live policy budget.');
+                throw new RuntimeException('A new warmed request exceeded the authority and live policy query budget.');
             }
         }
     }

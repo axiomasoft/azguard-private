@@ -39,7 +39,7 @@ afterEach(function (): void {
     }
 });
 
-it('real Redis serializes raw sets across requests, obeys D44, and invalidates independent generations and revocations', function (): void {
+it('real Redis serializes raw sets across requests, obeys the query budget, and invalidates independent generations and revocations', function (): void {
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('qualification', 60));
     $first = $engine->decide($panel, DatabaseWorld::request());
     expect($first->allowed())->toBeTrue()->and($this->redis->client()->keys('*'))->not->toBeEmpty();

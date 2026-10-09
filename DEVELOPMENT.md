@@ -2,17 +2,16 @@
 
 ## State of 1.0
 
-The repository is being rebuilt as AzGuard 1.0 (PLAN2). The 0.3 code is frozen and is not part of any build.
+This monorepo holds AzGuard 1.0. The 0.3 code is not part of any build.
 
 | Path | What it is |
 |---|---|
-| `packages/core` | `axiomasoft/azguard`, namespace `AzGuard\` (1.0 code, grows phase by phase) |
+| `packages/core` | `axiomasoft/azguard`, namespace `AzGuard\` (the core) |
 | `packages/filament` | `axiomasoft/azguard-filament`, namespace `AzGuard\Filament\` |
 | `tests/` | Pest suites `Arch`, `Unit`, `Feature`, `Regression` on Orchestra Testbench |
 
-The 0.3 reference tree was removed in PLAN2.P6.9; read it with `git show 491980a:legacy/0.3/<path>`. The `context` package is not
-recreated; its behavior moves into the core package. Package documentation under `docs/` still describes 0.3
-until it is rewritten in P8.2.
+The 0.3 reference tree was removed; read it with `git show 491980a:legacy/0.3/<path>`. The 0.3 `context` package
+is not recreated; its behavior is part of the core package.
 
 ## Local development
 
@@ -67,13 +66,12 @@ threshold. Do not lower a threshold to make a red gate pass. Exclusions live
 next to the package settings in `bin/mutation-gate.sh`, carry an inline
 rationale, and are reviewed as code.
 
-P4.5 measured 100.00% for core, filament, and context. A later Xdebug run on
-2026-09-24 still measured 100.00%, so the native Pest gates now enforce 99%.
+The first native Pest measurement was 100.00% for every package, and an Xdebug run on
+2026-09-24 confirmed it, so the native Pest gates enforce 99%.
 Line coverage on that run was 87.1%, so `composer check:coverage` and the CI
 coverage job enforce `--min=85` (`floor(87.1) - 2`). Local runs use PATH `php`,
 then `php8.4`, and skip only when neither binary has pcov/Xdebug; CI supplies
-Xdebug and remains blocking. Evidence is in
-`plans/archive/2026.07.18-AZGUARD-STABLE/artifacts/P4-mutation-baseline.md`.
+Xdebug and remains blocking.
 
 ## Local database matrix
 

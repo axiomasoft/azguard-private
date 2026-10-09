@@ -28,7 +28,7 @@ it('declares StoresGrants as apply and transaction of one writer', function (): 
         ->and((new ReflectionClass(StoresGrants::class))->getDocComment())->toContain('@spi');
 });
 
-it('declares the evaluation context the dossier names and nothing else', function (): void {
+it('declares the documented evaluation context and nothing else', function (): void {
     $methods = array_map(
         static fn (ReflectionMethod $method): string => $method->getName(),
         (new ReflectionClass(EvaluationContext::class))->getMethods(),
