@@ -72,3 +72,11 @@ per scenario (30 for the slow ones).
 - **Compare runs, not thresholds.** The numbers are relative: OPcache, a real database server and the
   machine change them. Compare a change against `main` on the same machine.
 - **Other databases.** `DB_CONNECTION=pgsql composer bench` uses the test databases of the suite.
+
+## Load bench
+
+`composer bench:load` runs `bench/`: forked workers call the API at the same time against one database, with tiers
+from seconds (`smoke`) to a million posts (`ref`). Profiles cover concurrent checks, large role and permission sets,
+`visibleTo()` at scale, a cold and a warm cache, grants and revokes under read load, and tenant checks. Each run writes
+JSON and Markdown to `bench/results/`. Drivers, tiers, the result format and how to compare two runs:
+[`bench/README.md`](https://github.com/axiomasoft/azguard-private/blob/main/bench/README.md).
