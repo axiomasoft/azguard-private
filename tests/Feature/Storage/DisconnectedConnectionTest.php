@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Panels\Reads;
+use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Concerns\SubjectWorld;
 use Illuminate\Support\Facades\DB;
@@ -28,5 +30,27 @@ it('reopens a disconnected authority connection for the next check', function ()
     } finally {
         app('db')->purge('testbench');
         unlink($file);
+    }
+});
+
+// The session pins the PDO on a private clone of the connection; since Laravel 12 a clone and its grammar reference
+// each other, so only the cycle collector would free it. A finished session must not keep a disconnected PDO (and the
+// server connection behind it) open.
+it('releases the pinned handle when a read session ends, so DB::disconnect() closes the connection', function (): void {
+    app(StorageSchema::class)->create('default');
+    $storage = app(StorageRegistry::class)->get('default');
+    $session = $storage->readSession(Reads::Primary);
+    $session->table('subject_revisions')->count();
+    $pdo = WeakReference::create($storage->connection()->getPdo());
+
+    $storage->connection()->disconnect();
+    gc_disable();
+
+    try {
+        unset($session);
+
+        expect($pdo->get())->toBeNull();
+    } finally {
+        gc_enable();
     }
 });
