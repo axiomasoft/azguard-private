@@ -1,0 +1,110 @@
+{
+    "date": "2026-10-09T08:33:22Z",
+    "php": "8.4.26",
+    "laravel": "13.35.0",
+    "database": "sqlite",
+    "opcache": false,
+    "xdebug": false,
+    "cpu": "Intel(R) Xeon(R) Processor",
+    "catalog": {
+        "permissions": 1000,
+        "roles": 40,
+        "role_size": 50,
+        "heavy_roles": 20,
+        "heavy_direct": 200,
+        "posts": 10000
+    },
+    "results": [
+        {
+            "scenario": "check, same request, 1 role",
+            "samples": 300,
+            "median_us": 418.6,
+            "p95_us": 577,
+            "sql_per_op": 0
+        },
+        {
+            "scenario": "check, same request, 20 roles + 200 direct",
+            "samples": 300,
+            "median_us": 2016.7,
+            "p95_us": 2214.5,
+            "sql_per_op": 0
+        },
+        {
+            "scenario": "check, same request, wildcard g1.**",
+            "samples": 300,
+            "median_us": 391.7,
+            "p95_us": 578.3,
+            "sql_per_op": 0
+        },
+        {
+            "scenario": "check, new request, no cache store, 1 role",
+            "samples": 300,
+            "median_us": 3872.6,
+            "p95_us": 5653.1,
+            "sql_per_op": 5
+        },
+        {
+            "scenario": "check, new request, no cache store, heavy",
+            "samples": 300,
+            "median_us": 17358.6,
+            "p95_us": 22934.3,
+            "sql_per_op": 5
+        },
+        {
+            "scenario": "check, new request, array cache store, 1 role",
+            "samples": 300,
+            "median_us": 3155.3,
+            "p95_us": 3907.1,
+            "sql_per_op": 2
+        },
+        {
+            "scenario": "check, new request, array cache store, heavy",
+            "samples": 300,
+            "median_us": 5409.8,
+            "p95_us": 7268.3,
+            "sql_per_op": 2
+        },
+        {
+            "scenario": "abilities(20), new request, heavy",
+            "samples": 300,
+            "median_us": 97481.3,
+            "p95_us": 116254,
+            "sql_per_op": 5
+        },
+        {
+            "scenario": "100 records with a policy, one request (per op = 100 checks)",
+            "samples": 30,
+            "median_us": 63925.1,
+            "p95_us": 76565.4,
+            "sql_per_op": 5
+        },
+        {
+            "scenario": "visibleTo(): first page of 10000 posts, new request",
+            "samples": 30,
+            "median_us": 4586.3,
+            "p95_us": 5157.5,
+            "sql_per_op": 8
+        },
+        {
+            "scenario": "visibleTo(): count of 10000 posts, new request",
+            "samples": 30,
+            "median_us": 4759.4,
+            "p95_us": 6791,
+            "sql_per_op": 8
+        },
+        {
+            "scenario": "grantRole() of a new subject",
+            "samples": 300,
+            "median_us": 2128.2,
+            "p95_us": 3346.4,
+            "sql_per_op": 6.8
+        },
+        {
+            "scenario": "compile panel registry (1 000 permissions, 40 roles)",
+            "samples": 30,
+            "median_us": 62654.8,
+            "p95_us": 66576.6,
+            "sql_per_op": 0
+        }
+    ]
+}

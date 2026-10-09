@@ -45,6 +45,20 @@ permissions under `RefreshDatabase`.**
 A transaction your test opens on top of that, such as `DB::transaction()` in the code under test, is still
 denied. That is the same behavior as production.
 
+### Changing the user in a test
+
+A check on a model uses that instance, so a change written past it is not seen, just as `Auth::user()` does
+not see it:
+
+```php
+User::whereKey($user->id)->update(['active' => false]);
+
+$user->hasPermission(PostPermission::View);            // still uses active = true
+$user->refresh()->hasPermission(PostPermission::View); // reads the row again
+```
+
+Grants need no such step: `grantRole()`, `revokeRole()` and the other change methods are seen by the next check.
+
 ## Recording checks and changes
 
 ```php
