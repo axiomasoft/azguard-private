@@ -48,10 +48,15 @@ final class BatchInputs
     /** @var list<array{AccessRequest, EvaluationFrame}> */
     private array $witnesses = [];
 
+    private readonly ReadSessions $sessions;
+
     /** @var array<string, bool|Throwable> */
     private array $eligibility = [];
 
-    public function __construct(private readonly Container $container) {}
+    public function __construct(private readonly Container $container)
+    {
+        $this->sessions = new ReadSessions;
+    }
 
     /** @param list<array{Panel, AccessRequest}> $requests */
     public function loadSubjects(array $requests, ?ActorRef $actor): void
@@ -181,7 +186,7 @@ final class BatchInputs
     {
         $key = IdentityCodec::compose([$frame->panel()->id(), $subject, $frame->scope()->tenant]);
 
-        return $this->attempts[$key] ??= new ReadAttempt($catalog, $sources, $frame, $cache);
+        return $this->attempts[$key] ??= new ReadAttempt($catalog, $sources, $frame, $cache, shared: $this->sessions);
     }
 
     /** Actual role/contribution witnesses, populated after the grouped raw read. */

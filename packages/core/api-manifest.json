@@ -20219,7 +20219,9 @@
                 "AzGuard\\Contracts\\Sources\\Source",
                 "AzGuard\\Contracts\\Sources\\StoresGrants"
             ],
-            "constants": [],
+            "constants": [
+                "ASSIGNMENT_SUBJECT_CHUNK"
+            ],
             "properties": [],
             "methods": [
                 {
@@ -20318,6 +20320,42 @@
                         {
                             "name": "subject",
                             "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scopes",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                },
+                {
+                    "name": "assignmentRowsMany",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "session",
+                            "type": "AzGuard\\Storage\\StorageReadSession",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subjects",
+                            "type": "array",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false

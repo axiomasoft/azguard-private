@@ -68,6 +68,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
 use ReflectionClass;
+use Throwable;
 
 /**
  * Raw database assignments. Role expansion and qualification belong to the engine.
@@ -965,6 +966,76 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         }
 
         return $rows;
+    }
+
+    /**
+     * Subjects per IN list of {@see assignmentRowsMany()}, with up to 100 scope pairs (two bindings each) beside it:
+     * below the bound-parameter limit of every supported driver (SQLite before 3.32 allows 999).
+     */
+    public const int ASSIGNMENT_SUBJECT_CHUNK = 500;
+
+    /**
+     * @internal The raw assignment rows of many subjects of one panel under the same scopes, as {@see assignmentRows()}
+     * returns them for each, in one statement per kind, subject type and chunk instead of one per subject and kind. A
+     * subject whose id is not a host key of the storage gets its error instead of rows; the others are unaffected.
+     *
+     * @param  array<int|string, SubjectRef>  $subjects
+     * @param  list<AccessScope>  $scopes
+     * @return array<int|string, array{permission_grant: list<array<string, mixed>>, role_grant: list<array<string, mixed>>}|Throwable>
+     */
+    public function assignmentRowsMany(StorageReadSession $session, EvaluationContext $context, array $subjects, array $scopes): array
+    {
+        $this->bindPanel($context->panel()->id());
+        $scopes = self::validatedScopes($scopes);
+        $hostKeys = $this->resolvedStorage()->hostKeys();
+        [$result, $byType] = [[], []];
+        foreach ($subjects as $member => $subject) {
+            try {
+                $byType[$subject->type()][HostKeyColumns::canonical($hostKeys, $subject->id())][] = $member;
+                $result[$member] = ['permission_grant' => [], 'role_grant' => []];
+            } catch (Throwable $error) {
+                $result[$member] = $error;
+            }
+        }
+
+        if ($scopes === []) {
+            return $result;
+        }
+        foreach (['permission_grant', 'role_grant'] as $kind) {
+            if ($kind === 'permission_grant' && $this->onlyRoles) {
+                continue;
+            }
+            foreach ($byType as $type => $members) {
+                foreach (array_chunk(array_keys($members), self::ASSIGNMENT_SUBJECT_CHUNK) as $ids) {
+                    foreach (array_chunk($scopes, 100) as $chunk) {
+                        $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
+                            ->where('panel', $context->panel()->id())->where('subject_type', $type)
+                            ->whereIn('subject_id', array_map(strval(...), $ids))
+                            ->where(function (Builder $query) use ($chunk): void {
+                                foreach ($chunk as $scope) {
+                                    $query->orWhere(fn (Builder $pair): Builder => $pair->where('tenant_key', $scope->tenant->key())->where('context_key', $scope->context->key()));
+                                }
+                            });
+                        // The same stable order as the per-subject read: contributions keep the order of their grants.
+                        foreach ($query->orderBy('id')->get() as $row) {
+                            $row = Narrow::row($row);
+                            $id = $row['subject_id'] ?? null;
+
+                            foreach ((is_int($id) || is_string($id)) ? $members[(string) $id] ?? [] : [] as $member) {
+                                $rows = $result[$member];
+
+                                if (is_array($rows)) {
+                                    $rows[$kind][] = $row;
+                                    $result[$member] = $rows;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /**
