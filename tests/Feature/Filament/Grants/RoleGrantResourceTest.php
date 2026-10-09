@@ -9,6 +9,7 @@ use AzGuard\Filament\Editors\GrantEditor;
 use AzGuard\Filament\Editors\TargetSelector;
 use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Kernel\Identity\ActorRef;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Tests\Fixtures\Filament\GrantWorld;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
@@ -388,4 +389,19 @@ it('pages the grants by the cursor of the manager and starts again when the filt
 
     expect(array_keys(grantRows($component)))->toHaveCount(1)
         ->and($component->get('grantCursors'))->toBe([]);
+});
+
+it('finds the subject model of a lookup only by its exact key, never by a coerced or invalid id', function (): void {
+    GrantWorld::editor();
+    $editor = GrantEditor::of(TargetSelector::current()->access('admin'), 'role');
+    $queries = 0;
+    DB::listen(function () use (&$queries): void {
+        $queries++;
+    });
+
+    expect($editor->lookup(SubjectRef::of('user', 'a/b'))->user)->toBeNull()
+        ->and($editor->lookup(SubjectRef::of('user', '02'))->user)->toBeNull()
+        ->and($editor->lookup(SubjectRef::of('user', '2abc'))->user)->toBeNull()
+        ->and($queries)->toBe(0)
+        ->and($editor->lookup(SubjectRef::of('user', '2'))->user?->getKey())->toBe(2);
 });

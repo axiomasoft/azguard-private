@@ -41,6 +41,16 @@ AzGuard::panel('admin')->for($user)->decide(PostPermission::Update, $post); // D
 
 `$subject` may be a model, an `Authenticatable` or a `SubjectRef::of('user', 1)`.
 
+To load the model of a reference id that came from a request or a form, use `AzGuard\Support\ModelKey`. It finds
+only the row whose key is the id as written, as AzGuard does, where a plain `whereKey()` lets the database match
+`01` to row 1 and lets PostgreSQL fail on `a/b`:
+
+```php
+use AzGuard\Support\ModelKey;
+
+$user = ModelKey::find(User::query(), $ref->id()); // null for '01', 'a/b' or a missing row
+```
+
 ### 503 and 500 for failed decisions (opt-in)
 
 `authorize()`, the Gate and `azguard.can` answer 403 for every denial, including a decision that failed because a

@@ -7,6 +7,7 @@ namespace AzGuard\Scopes;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 use Throwable;
 

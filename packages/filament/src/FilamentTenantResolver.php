@@ -6,8 +6,8 @@ namespace AzGuard\Filament;
 
 use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Facades\AzGuard;
-use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Support\ModelKey;
 use Filament\Facades\Filament;
 use Illuminate\Http\Request;
 

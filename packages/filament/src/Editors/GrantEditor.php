@@ -14,7 +14,6 @@ use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Forms\SchemaFields;
-use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Explanation;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -27,6 +26,7 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Scopes\AssignmentScopePhase;
+use AzGuard\Support\ModelKey;
 use Closure;
 use DateTimeImmutable;
 use Filament\Facades\Filament;
@@ -459,7 +459,7 @@ final readonly class GrantEditor
     {
         foreach ($this->schema->subjects() as $type) {
             if ($type->type === $subject->type()) {
-                return $type->model::query()->whereKey($subject->id())->first();
+                return ModelKey::find($type->model::query(), $subject->id());
             }
         }
 

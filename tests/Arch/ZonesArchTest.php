@@ -17,7 +17,7 @@ const AZGUARD_OUTER_ZONES = [
     'AzGuard\Policies', 'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Schema', 'AzGuard\Storage',
     'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
     'AzGuard\Diagnostics', 'AzGuard\Internal', 'AzGuard\Facades', 'AzGuard\Concerns', 'AzGuard\Events',
-    'AzGuard\Attributes', 'AzGuard\Permissions', 'AzGuard\Directories',
+    'AzGuard\Attributes', 'AzGuard\Permissions', 'AzGuard\Directories', 'AzGuard\Support',
 ];
 
 /**
@@ -110,6 +110,12 @@ forbidDependencies(
     'panels, catalog, scopes, policies and schema stay off storage and changes',
     ['AzGuard\Panels', 'AzGuard\Catalog', 'AzGuard\Scopes', 'AzGuard\Policies', 'AzGuard\Schema'],
     ['AzGuard\Storage', 'AzGuard\Changes'],
+);
+
+forbidDependencies(
+    'support helpers lean only on the framework, the kernel and the exceptions',
+    ['AzGuard\\Support'],
+    array_values(array_diff(AZGUARD_OUTER_ZONES, ['AzGuard\\Support'])),
 );
 
 forbidDependencies(

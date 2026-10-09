@@ -7,7 +7,7 @@ namespace AzGuard\Authorization;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\ModelKey;
+use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 final class ModelSubjectResolver
@@ -47,7 +47,7 @@ final class ModelSubjectResolver
             return null;
         }
 
-        if (ModelKey::of($model) !== $subject->id()) {
+        if (! ModelKey::matches($model, $subject->id())) {
             return null;
         }
         foreach ($panel->subjectModels() as $class) {
