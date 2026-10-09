@@ -60,6 +60,9 @@ final class ReadAttempt
     /** @var array<string, StateToken> */
     private array $fresh = [];
 
+    /** @var array<string, string> memo key of the observed state of the database source, by source id */
+    private array $memoKeys = [];
+
     /** @var array<string, StateToken> the state each fenced source was materialized at, by source id */
     private array $observed = [];
 
@@ -270,8 +273,11 @@ final class ReadAttempt
         }
 
         foreach ($this->stateKeys as $id => $key) {
-            if ($this->publish && $this->transaction === null && isset($this->states[$id])) {
-                $this->cache?->rememberState($key, $this->states[$id]);
+            $key = $this->memoKeys[$id] ?? $key;
+            $state = $this->states[$id] ?? null;
+
+            if ($this->publish && $this->transaction === null && $state !== null && (! isset($this->memoKeys[$id]) || $state->subjectRevision !== null)) {
+                $this->cache?->rememberState($key, $state);
             }
         }
         foreach ($this->pending as ['key' => $key, 'source' => $source, 'items' => $items]) {
@@ -393,7 +399,12 @@ final class ReadAttempt
             $this->initial->panel()->settings()->cacheGeneration(), $partition, $source::class, $source->id(),
             $this->initial->panel()->settings()->reads()->value, $authority]);
         $this->stateKeys[$source->id()] = $key;
-        $memo = $this->transaction === null && $this->initial->panel()->settings()->stateRefresh() === StateRefresh::Request ? $this->cache?->state($key) : null;
+
+        if ($source instanceof DatabaseSource) {
+            // The observed state of the database source is read with the subject's revision when a key needs it.
+            return;
+        }
+        $memo = $this->memoized($key);
 
         // Without a cache no lookup needs the state before the read: the materialization reads it.
         if ($memo !== null) {
@@ -412,12 +423,27 @@ final class ReadAttempt
         return $state;
     }
 
-    /** The cache key of a source's contributions at the state the attempt holds for it now. */
+    private function memoized(string $key): ?StateToken
+    {
+        return $this->transaction === null && $this->initial->panel()->settings()->stateRefresh() === StateRefresh::Request ? $this->cache?->state($key) : null;
+    }
+
+    /**
+     * The cache key of a source's contributions at the state the attempt holds for it now. For the database source
+     * that state is the observed state of the subject (one statement: panel state and subject revision), and the key
+     * is its ContributionKey; the decision reports that observed state, also on a cache hit.
+     */
     private function key(Source $source, AccessRequest $request, EvaluationFrame $frame): string
     {
         $authority = $source instanceof DatabaseSource ? $this->sessions[$source->id()]->authorityIdentity() : $source::class;
 
-        if ($source instanceof FencesReads && ! isset($this->states[$source->id()])) {
+        if ($source instanceof DatabaseSource && ($this->states[$source->id()]->subjectRevision ?? null) === null) {
+            $this->begin($source);
+            $memoKey = $this->memoKeys[$source->id()] = IdentityCodec::digest([$this->stateKeys[$source->id()], $request->subject()]);
+            // A state this attempt already read (the dynamic catalog) is newer than a request memo.
+            $this->states[$source->id()] = (isset($this->states[$source->id()]) ? null : $this->memoized($memoKey))
+                ?? ($this->fresh[$source->id()] = $source->readObserved($this->sessions[$source->id()], $this->initial, $request->subject()));
+        } elseif ($source instanceof FencesReads && ! isset($this->states[$source->id()])) {
             $this->states[$source->id()] = $this->fresh[$source->id()] = $this->readState($source);
         }
 

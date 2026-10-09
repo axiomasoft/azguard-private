@@ -78,7 +78,8 @@ final class BatchEngineWorld
                 if (! preg_match('/azg_'.$table.'["`]/', $query->sql)) {
                     continue;
                 }
-                $panel = $query->bindings[0];
+                // The observed-state read joins the subject's revision first; its panel is the last binding.
+                $panel = $table === 'panel_state' ? $query->bindings[array_key_last($query->bindings)] : $query->bindings[0];
                 // The first three bindings identify panel/subject; each scope then
                 // contributes a tenant/context pair. A global tenant is not a context.
                 $contexts = $table === 'panel_state' ? [] : array_column(array_chunk(array_slice($query->bindings, 3), 2), 1);

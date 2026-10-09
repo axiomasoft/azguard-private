@@ -53,9 +53,16 @@ final class PermissionSetCache
     {
         $contexts = array_map(static fn (AccessScope $scope): string => IdentityCodec::compose([$scope]), $scopes);
         sort($contexts, SORT_STRING);
-        $revision = $state instanceof StateToken
-            ? ['storage', $state->storageId, $state->panel, $state->incarnation, $state->version, $state->generation, $state->fingerprint]
-            : ['code', $state->panel, $state->buildId, $state->fingerprint];
+        // ContributionKey (audits/2026-10-09-consistency-design.md, step 4): with the subject's revision the key names
+        // what the contributions depend on (incarnation, epoch, revision) and never the panel version, so a write of
+        // another subject keeps it. A state without a revision (an opaque source state) keys by its version.
+        $revision = match (true) {
+            $state instanceof StateToken && $state->subjectRevision !== null => ['subject', $state->storageId, $state->panel, $state->incarnation,
+                $state->epoch, $state->subjectRevision, $state->generation, $state->fingerprint],
+            $state instanceof StateToken => ['storage', $state->storageId, $state->panel, $state->incarnation, $state->version, $state->epoch,
+                $state->generation, $state->fingerprint],
+            default => ['code', $state->panel, $state->buildId, $state->fingerprint],
+        };
 
         return 'azguard:sets:'.IdentityCodec::digest([$revision, $generation, $subject, $tenant, array_values(array_unique($contexts)), $source, $readMode, $authority]);
     }

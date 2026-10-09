@@ -49,7 +49,8 @@ it('retries stale request state before reading the dynamic catalog and consumes 
     $storage->connection()->transaction(function () use ($storage): void {
         $storage->table('permissions')->update(['label' => 'Fresh']);
         $storage->table('permission_grants')->delete();
-        $storage->table('panel_state')->where('panel', 'admin')->increment('version');
+        // A change of definitions and of unnamed subjects moves the epoch, as the write protocol does.
+        $storage->table('panel_state')->where('panel', 'admin')->incrementEach(['version' => 1, 'epoch' => 1]);
     });
     $catalogReads = 0;
     $storage->connection()->listen(function (QueryExecuted $query) use (&$catalogReads): void {

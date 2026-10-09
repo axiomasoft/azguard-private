@@ -20,7 +20,7 @@ it('R15 V112 host city and active fields refresh under the identical grant state
     Project::query()->whereKey(1)->update(['is_active' => false]);
     $inactive = World::decide($panel);
     World::assertDecision($inactive, false, DecisionReason::AssignmentScopeIneligible);
-    expect(World::database()->state($panel, World::scope()->tenant)->equals($before->state))->toBeTrue();
+    expect(World::database()->state($panel, World::scope()->tenant)->version)->toBe($before->state->version);
     Project::query()->whereKey(1)->update(['is_active' => true]);
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
 });

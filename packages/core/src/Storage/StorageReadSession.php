@@ -15,6 +15,7 @@ use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Database\QueryException;
 use JsonException;
 use PDO;
@@ -207,6 +208,29 @@ final class StorageReadSession
 
         return $row === null ? null : new PanelState($row->panel, (int) $row->version, $row->incarnation,
             new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
+    }
+
+    /**
+     * The panel state and the revision of one subject in one statement: `panel_state` LEFT JOIN `subject_revisions`
+     * (a missing revision row is revision 0). A cache hit takes its observed state from this statement, never from the
+     * cache entry (audits/2026-10-09-consistency-design.md, step 4).
+     *
+     * @return array{?PanelState, int}
+     */
+    public function observed(string $panel, string $subjectType, string $subjectId): array
+    {
+        PermissionGrammar::assertPanelId($panel);
+        $this->storage->authorityTransaction($panel);
+        $this->assertSchema();
+        $row = $this->table('panel_state as ps')
+            ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $subjectId): void {
+                $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->where('sr.subject_id', '=', $subjectId);
+            })
+            ->where('ps.panel', $panel)
+            ->first(['ps.panel', 'ps.version', 'ps.incarnation', 'ps.updated_at', 'ps.epoch', 'sr.revision']);
+
+        return $row === null ? [null, 0] : [new PanelState($row->panel, (int) $row->version, $row->incarnation,
+            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch), (int) ($row->revision ?? 0)];
     }
 
     /** The snapshot transaction on the pinned PDO is still the one this session opened. */
