@@ -1,0 +1,212 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P7.8",
+  "title": "Review P7: независимая read-only проверка фазы",
+  "status": "blocked",
+  "summary": "Независимая read-only проверка фазы P7 (D3): соответствие кода P7.1–P7.7 досье 11, D23/D30/D54/D83, D27 и knowledge P7-filament-model; полный прогон гейтов; verdict GREEN/RED с находками и owning items в `@plan/knowledge/findings-P7-review.json`.",
+  "why": "Review ловит межпунктовые швы: поверхность Filament, не закрытая трейтом; Gate::before, возвращающий allow; count/export до видимости; IDOR в редакторах; расхождение ключей генератора и FilamentKeys; использование внутренних классов ядра; вторые реализации данных панелей/генераторов.",
+  "scope": {
+    "include": [
+      "Прочитать D27, knowledge P7-filament-model (все разделы), досье 11 целиком, строки 14 (V23–V26, V61–V63, V75, V76, V95, V96, V102), 17 (R24, R25, R28, R34, R36–R40), findings-P7-execution.",
+      "Проверить каждый инвариант I1–I10 по коду: enforcement, bypass, interfering; каждую строку раздела Acceptance — тест существует, проверяет заявленное, не skipped.",
+      "Прогнать V1–V9 этого пункта; итог и находки — новый документ `findings-P7-review` (verdict, таблица находок: severity, файл:строка, owning item P7.n, исправление); исправления не делать."
+    ],
+    "exclude": [
+      "Изменение кода и плана, кроме документа findings-P7-review и результата пункта."
+    ]
+  },
+  "depends_on": [
+    "P7.7"
+  ],
+  "related": [],
+  "decisions": [
+    "D27",
+    "D3"
+  ],
+  "skills": [],
+  "reads": [
+    {
+      "path": "audits/2026-09-29-audit/opus/11-filament.md",
+      "why": "нормативная спецификация фазы",
+      "required": true
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "строки P7",
+      "required": true,
+      "section": "V23–V26, V61–V63, V75, V76, V95, V96, V102"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R-кейсы P7",
+      "required": true,
+      "section": "R24, R25, R28, R34, R36–R40"
+    },
+    {
+      "path": "tests/Acceptance/Crm/README.md",
+      "why": "честность статусов",
+      "required": true
+    },
+    {
+      "ref": "knowledge/findings-P7-execution",
+      "why": "итоги и отклонения пунктов P7.1–P7.7",
+      "required": true
+    },
+    {
+      "ref": "knowledge/P7-filament-model#Invariants",
+      "why": "сверка каждого инварианта I1–I10 по коду (документ целиком уже в pack)",
+      "required": true
+    }
+  ],
+  "task_files": [],
+  "rules": [
+    "Read-only: код, тесты и план не меняются; единственный артефакт — документ `findings-P7-review` и результат пункта.",
+    "Падение или пропуск проверки ≠ успех; verdict GREEN только при всех V зелёных и без находок severity ≥ major.",
+    "Находка указывает owning item P7.n и файл:строку; исправление делает owning item, не review."
+  ],
+  "guidance": "Начать с `git diff <SHA начала P7>..HEAD --stat`, затем по каждому инварианту искать обход (`rg 'Gate::before|configureUsing|Storage\\\\Models|DirectoryResolver|PanelRecipe' packages/filament/src`).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "bash bin/consumer-fixture.sh --laravel=11 --with-filament",
+      "expect": "exit 0 (нет сети → blocker)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "bash bin/consumer-fixture.sh --laravel=13 --with-filament",
+      "expect": "exit 0 (нет сети → blocker)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+      "expect": "exit 0; зоны, манифест (filament → только @api ядра), запрет прямых записей соблюдены",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0; полный набор без групп engines/redis/replica",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/pint --test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+      "expect": "exit 0; 0 ошибок на уровне проекта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "composer test:types",
+      "expect": "exit 0; type coverage >= 98%",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V9",
+      "cmd": "php bin/api-manifest.php --check",
+      "expect": "exit 0; манифесты `packages/core` и `packages/filament` перегенерированы `php bin/api-manifest.php --write` и совпадают с публичными именами пункта",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V10",
+      "cmd": "git diff --check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "`@plan/knowledge/findings-P7-review.json`: verdict, находки с owning items, журнал прогонов V1–V10."
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-09T03:10:30Z",
+    "finished_at": "2026-10-09T03:46:35Z",
+    "executor": {
+      "provider": "claude",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "b24eddbc-4fcc-47d4-9630-e13c88415bdf"
+    },
+    "notes": "Review P7 на grok/grok-4.7 (сессия 01a11ea6-29dd-7d92-a820-ebfbefe64620, read-only): ATTENTION; итог пункта RED по правилу пункта — 2 major подтверждены исполнителем. Документ knowledge/findings-P7-review, сырой отчёт knowledge/review-P7-8-2026-10-09, стрим artifacts/P7.8/grok-review.jsonl, прогоны artifacts/P7.8/checks-executor.txt. Все V1–V10 exit 0.",
+    "escalation": "Владелец: допустить repeat-admission P7.2 для F1/F2 (свои действия и inline editable columns на guarded-ресурсе пишут без права — обход авторизации), затем P7.3 (F3) и P7.4 (F6), по одному пункту за запуск; после исправлений — повторная приёмка P7.8. Фаза P7 не закрывается GREEN до этого.",
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V7",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V8",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V9",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      },
+      {
+        "id": "V10",
+        "exit": 0,
+        "at": "2026-10-09T03:46:35Z"
+      }
+    ]
+  },
+  "updated_at": "2026-10-09T03:46:35Z"
+}

@@ -1,0 +1,11 @@
+V1 exit=0 secs=101 cmd=php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped
+V4 exit=0 secs=17 cmd=php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped
+V5 exit=0 secs=242 cmd=composer test
+V6 exit=0 secs=1 cmd=vendor/bin/pint --test
+V7 exit=0 secs=3 cmd=vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+V8 exit=0 secs=4 cmd=composer test:types
+V9 exit=0 secs=0 cmd=php bin/api-manifest.php --check
+V10 exit=0 secs=0 cmd=git diff --check
+V2 exit=0 secs=72 cmd=bash bin/consumer-fixture.sh --laravel=11 --with-filament
+V3 exit=0 secs=67 cmd=bash bin/consumer-fixture.sh --laravel=13 --with-filament
+DONE
