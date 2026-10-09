@@ -4,14 +4,14 @@ Checked on **2026-10-09** against the latest releases on Packagist and their doc
 packages are mature and maintained, and each fits some applications better than AzGuard. Report an
 inaccuracy in an issue and it will be corrected.
 
-| Package | Version checked | Supports |
+| Package | Version checked | Requires (PHP constraint, Laravel, other) |
 |---|---|---|
-| [spatie/laravel-permission](https://spatie.be/docs/laravel-permission/v8/introduction) | 8.3.0 (2026-07-03) | PHP ^8.3, Laravel 12–13 |
-| [silber/bouncer](https://github.com/JosephSilber/bouncer) | 1.0.4 (2026-03-18) | PHP ^8.2, Laravel 11–13 |
+| [spatie/laravel-permission](https://spatie.be/docs/laravel-permission/v8/introduction) | 8.3.0 (2026-07-03) | ^8.3, Laravel 12–13 |
+| [silber/bouncer](https://github.com/JosephSilber/bouncer) | 1.0.4 (2026-03-18) | ^8.2, Laravel 11–13 |
 | [santigarcor/laratrust](https://laratrust.santigarcor.me/) | 8.5.5 (2026-03-06) | Laravel 10–13 |
 | [casbin/laravel-authz](https://github.com/php-casbin/laravel-authz) | 5.1.1 (2026-09-27) | Laravel 10–13, on casbin/casbin 4.6.0 |
 | [bezhansalleh/filament-shield](https://github.com/bezhansalleh/filament-shield) | 4.3.1 (2026-07-25) | Filament 4–5, built on spatie/laravel-permission |
-| AzGuard | 1.0 | PHP 8.3–8.5, Laravel 11–13, Filament 5 |
+| AzGuard | 1.0 | 8.3–8.5, Laravel 11–13, Filament 5 |
 
 ## Feature matrix
 
