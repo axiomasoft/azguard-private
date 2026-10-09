@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuardBench\Load;
 
 use AzGuard\Tests\TestCase;
+use AzGuardBench\Load\Profiles\DecisionSetSize;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -53,6 +54,8 @@ final class Stand
                 parent::getEnvironmentSetUp($app);
                 $app['config']->set('azguard.panels.providers', [Catalog::class('BenchPanelProvider'), Catalog::class('WorkspacePanelProvider')]);
                 $app['config']->set('azguard.schedule.enabled', false);
+                // Sets above the default limit are measured on purpose (profile decision-set).
+                $app['config']->set('azguard.decision_sets.max_subjects', DecisionSetSize::STAND_LIMIT);
                 $app['config']->set('bench.cache_store', self::$store);
                 $app['config']->set('app.debug', false);
                 $app['config']->set('database.redis.client', 'phpredis');
