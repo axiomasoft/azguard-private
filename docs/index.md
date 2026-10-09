@@ -6,7 +6,7 @@ hero:
   text: Authorization for Laravel, in code
   tagline: Roles are classes, permissions are enums, and every check goes through one decision pipeline that fails closed.
   image:
-    src: /logo.svg
+    src: /logo.png
     alt: AzGuard
   actions:
     - theme: brand

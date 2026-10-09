@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <path d="M24 3 L42 10 L42 26 C42 35 33 42 24 45 C15 42 6 35 6 26 L6 10 Z" fill="#01696f"/>
-  <path d="M24 7 L39 13 L39 26 C39 33.5 31.5 39.5 24 42 C16.5 39.5 9 33.5 9 26 L9 13 Z" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-  <text x="24" y="30" font-family="system-ui,-apple-system,sans-serif" font-size="16" font-weight="700" fill="white" text-anchor="middle" letter-spacing="-0.5">Az</text>
-</svg>
