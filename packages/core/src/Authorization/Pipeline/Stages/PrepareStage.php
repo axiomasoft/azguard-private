@@ -53,7 +53,7 @@ final readonly class PrepareStage
                 $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, null, $subject));
             } catch (Throwable $error) {
                 $trace->error('prepare', 'source_error', 'sources', $error);
-                $denial = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'sources');
+                $denial = Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'sources');
             }
         }
 
@@ -101,7 +101,7 @@ final readonly class PrepareStage
 
         [$frame, $boundaryDenial] = $this->boundary->resolve(request: $request, frame: $frame, trace: $trace, structural: false);
 
-        return [$catalog, $definition, $frame, $boundaryDenial ?? ($error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class))];
+        return [$catalog, $definition, $frame, $boundaryDenial ?? ($error === null ? null : Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class))];
     }
 
     /** @return array{PanelCatalog,PermissionDefinition,EvaluationFrame,?Decision} */
@@ -124,7 +124,7 @@ final readonly class PrepareStage
                 $trace->error('prepare', DecisionReason::SourceError->value, 'dynamic_sources', $caught);
 
                 return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
-                    Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources')];
+                    Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources')];
             }
             $frame = $frame->withReadAttempt($attempt);
 
@@ -145,7 +145,7 @@ final readonly class PrepareStage
                 $trace->error('prepare', $reason->value, 'dynamic_sources', $caught);
 
                 return [$catalog, new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame,
-                    Decision::deny($reason, $frame->state(), $frame->scope(), 'dynamic_sources')];
+                    Decision::failed($reason, $frame->state(), $frame->scope(), 'dynamic_sources')];
             }
             $definition = $catalog->get($request->permission());
 
@@ -160,7 +160,7 @@ final readonly class PrepareStage
             }
         }
 
-        return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
+        return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
     }
 
     private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject, bool $publish = true): ReadAttempt

@@ -97,7 +97,7 @@ final readonly class AccessPipeline
             } catch (Throwable $error) {
                 $confirmed = false;
                 $trace->error('state', 'source_error', 'dynamic_sources', $error);
-                $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
+                $decision = Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
             }
         }
         $decision = $decision->allowed()

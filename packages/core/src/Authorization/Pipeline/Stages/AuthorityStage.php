@@ -209,7 +209,7 @@ final readonly class AuthorityStage
             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
             $trace->error('sources', $reason->value, $component, $error);
 
-            return [$frame, Decision::deny($reason, $frame->state(), $frame->scope(), $component), 0];
+            return [$frame, Decision::failed($reason, $frame->state(), $frame->scope(), $component), 0];
         }
         foreach ($contributions as [$source,$item]) {
             $trace->qualifying($item);
