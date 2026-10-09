@@ -6,9 +6,9 @@ namespace AzGuard\Filament\Exports;
 
 use AzGuard\Contracts\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\ModelIdentity;
 use Filament\Actions\Exports\Jobs\ExportCsv;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -58,7 +58,7 @@ class AuthorizedExportCsv extends ExportCsv
             $access = $access->inTenant(TenantRef::of($tenant['type'], $tenant['id']));
         }
         $model = new $authority['model'];
-        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), ModelIdentity::key($user)),
+        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), ModelKey::of($user)),
             $authority['permission'], $access->scope());
         $visible = [];
         foreach ($query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all() as $key) {
