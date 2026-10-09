@@ -87,8 +87,9 @@ super admin. In a `DecisionSet`, each decision keeps its own outcome. `failures(
 and `failure()` returns the most severe kind. `visibleTo()` throws `VisibilityNotSupportedException` with
 `source_error` or `consistency_error`; it never returns an empty list instead.
 
-`authorize()`, `azguard.can` and the Gate answer 403 for every denial. To answer differently, use
-`DecisionResponder::authorize($decision)`, the opt-in reference adapter. It throws `AuthorizationException` (403)
+`authorize()`, `azguard.can` and the Gate answer 403 for every denial, and this stays the default. To answer
+differently, use `DecisionResponder::authorize($decision)`, the opt-in reference adapter (one line at the call
+site: `DecisionResponder::authorize($access->decide($permission, $model))`). It throws `AuthorizationException` (403)
 for a denial and `DecisionFailedException` (503 or 500, generic message, no reason or component) for a
 failure. The final HTTP policy belongs to the host:
 
