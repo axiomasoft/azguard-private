@@ -372,6 +372,110 @@ Pro — обычные пакеты поверх публичного SPI. Яд�
 Оценка 1.x+2.0 целиком: 35–55 рабочих дней, из них тенанты 10–15. Порядок можно остановить на любом шаге: каждый
 шаг полезен сам по себе.
 
+## 6. Целевые пакеты
+
+Целевое состояние после 2.0 (раздел 5). В 1.x пакеты появляются по одному, а `axiomasoft/azguard` остаётся
+метапакетом, поэтому у пользователей ничего не ломается. Namespace при переносе не меняется, если не сказано иное.
+
+### 6.1. Список
+
+| Пакет (Composer) | Namespace | Лицензия | Одной строкой |
+|:--|:--|:--|:--|
+| `axiomasoft/azguard-core` | `AzGuard\` | MIT | решение, хранение и запись грантов, интеграция с Laravel |
+| `axiomasoft/azguard` | — (метапакет) | MIT | `core` + стандартные модули; точка входа для `composer require` |
+| `axiomasoft/azguard-tenancy` | `AzGuard\Scopes\` | MIT | области назначения, наследование, резолверы ресурсов |
+| `axiomasoft/azguard-sources` | `AzGuard\Sources\Relation\` | MIT | права из существующих таблиц хоста (`RelationSource`) |
+| `axiomasoft/azguard-audit` | `AzGuard\Plugins\Audit\` | MIT | журнал изменений в той же транзакции, ретеншн |
+| `axiomasoft/azguard-devtools` | `AzGuard\Laravel\Console\…`, `AzGuard\Testing\Contracts\` | MIT, `require-dev` | генераторы, stubs, контрактные сьюты |
+| `axiomasoft/azguard-filament` | `AzGuard\Filament\`, `AzGuard\Directories\` | MIT | авторизация Filament, редакторы грантов, справочники |
+| `axiomasoft/azguard-filament-pro` | `AzGuard\Pro\Filament\` | коммерческая | матрица ролей, массовые операции, импорт/экспорт, история |
+| `axiomasoft/azguard-audit-pro` | `AzGuard\Pro\Audit\` | коммерческая | outbox, выгрузка в SIEM, отчёты «кто имел доступ на дату» |
+| `axiomasoft/azguard-governance-pro` | `AzGuard\Pro\Governance\` | коммерческая | пересертификация прав, JIT/break-glass, симуляция «что если» |
+| `axiomasoft/azguard-connectors-pro` | `AzGuard\Pro\Connectors\` | коммерческая | LDAP/Entra ID/Okta (SCIM), мост в SpiceDB/OpenFGA |
+
+Свободные пакеты живут в публичном монорепо (`packages/*`, `split.yml`); pro — в отдельном приватном репозитории
+с тем же устройством. Pro зависит только от свободных пакетов и только через `@api`/`@spi`.
+
+### 6.2. Карточки пакетов
+
+**`azguard-core`.** Отвечает на вопрос «можно ли субъекту S действие P над ресурсом R в тенанте T» и хранит
+гранты, на которых строится ответ. Владеет значениями (`Kernel`), SPI (`Contracts`), конвейером решения,
+каталогом из кода, политиками, `DatabaseSource` и хранилищем со снимком чтения, записью грантов
+(`ChangePipeline`, `ChangeValidator`), тенантом как границей изоляции, событиями, базовой диагностикой и
+адаптером Laravel (Gate, middleware, команды эксплуатации, `AzGuard::fake()`). **Не должен:** знать о конкретных
+модулях (`instanceof` чужих классов, таблицы модулей), рисовать UI, ходить в сеть, проверять лицензии, иметь
+второй путь решения. **Зависит:** PHP, `illuminate/*`. **Точки расширения, которые предоставляет:** источники
+(`Contracts/Sources/*`), стадии Before/Restriction/After, `GrantCondition`, change pipes, `Plugin`, `DoctorCheck`,
+резолверы тенанта, события.
+
+**`azguard-tenancy`.** Отвечает за то, *где внутри тенанта* действует грант: области назначения (команда, проект),
+их иерархию и наследование ролей, определение области по ресурсу. **Владеет:** определениями областей, политикой
+областей, eligibility-запросами, резолверами области и ресурса. **Не должен:** решать изоляцию тенантов (это
+ядро) и выдавать `allow` сам — только сужать выбор грантов. **Зависит:** `core` (`AccessScope`, `AssignmentScopeRef`
+из `Kernel`, SPI стадии Boundary, `FiltersQueries`). **Точки расширения:** стадия Prepare/Boundary, фильтры
+`visibleTo`, `PanelBuilder::scopes()`/`scopeResolvers()`/`resourceScopes()` через `Plugin::register()`.
+
+**`azguard-sources`.** Права из таблиц, которые у хоста уже есть (членство в команде, владелец записи), без
+дублирования в `azg_*`. **Владеет:** `RelationSource` и SQL-предикатами отношений. **Не должен:** писать гранты,
+держать своё хранилище. **Зависит:** `core` (`Provides*`, `FiltersQueries`, `FencesReads`). **Точки расширения:**
+регистрация источника панели, doctor-проверка `PanelsRelations`.
+
+**`azguard-audit`.** Долговременный журнал каждого действующего изменения в той же транзакции, что и запись.
+**Владеет:** `AuditPlugin`, `RecordChange`, `ChangeJournal`, своей таблицей и миграцией, `azguard:audit:prune`.
+**Не должен:** влиять на результат изменения (кроме отказа при сбое записи журнала), читать гранты в обход
+`GrantManager`. **Зависит:** `core` (`Plugin`, change pipes, события, `StorageMutation`). **Точки расширения:**
+`changing` pipe, `doctorChecks`, расписание.
+
+**`azguard-devtools`.** Ускоряет разработку и не попадает в прод. **Владеет:** `azguard:make:*`, скаффолдингом,
+stubs, контрактными тест-сьютами для авторов расширений. **Не должен:** быть нужен в рантайме. **Зависит:** `core`
+`@api`/`@spi`.
+
+**`azguard-filament`.** Делает Filament-панель частью того же конвейера и даёт редакторы грантов. **Владеет:**
+авторизацией ресурсов/страниц/виджетов/экспорта, редакторами, справочниками выбора субъекта/тенанта/области.
+**Не должен:** принимать решения сам (только через `Decision` ядра), писать гранты мимо `GrantManager`
+(закреплено `tests/Arch/FilamentWritesArchTest.php`). **Зависит:** `core` (только манифест), `filament/filament`.
+
+**Pro-пакеты.** Каждый — `Plugin` + Filament-страницы + свои таблицы. **Не должны:** менять решение ядра,
+кроме явного сужения через `Restriction` (например, JIT-окно), подменять классы ядра, требовать
+лицензию в рантайме. **Зависят:** только от `@api`/`@spi` свободных пакетов; CI прогоняет контрактные сьюты.
+
+### 6.3. Перенос: текущий код → целевой пакет
+
+Пути — от `packages/core/src` (если не указано иное). «Ядро» = `azguard-core`.
+
+| Сейчас | Куда | Примечание |
+|:--|:--|:--|
+| `Kernel/**` | ядро `Kernel/` | без изменений; `AssignmentScopeRef`, `AccessScope` остаются: это формат идентичности |
+| `Exceptions/**` (51) | ядро `Exceptions/` | свернуть в иерархию (4.4); исключения модулей — в модули |
+| `Contracts/{Sources,Authorization,Plugins,Diagnostics,Catalog,Roles,Panels,Changes}/*` | ядро `Contracts/` (`@spi`) | DTO из `Changes`, `Catalog`, `Directories` → `Contracts/Values/` (4.5) |
+| `Contracts/Scopes/{TenantResolver,TenantMembership,TenantDirectory}.php` | ядро `Contracts/Tenancy/` | изоляция — ядро |
+| `Contracts/Scopes/{AssignmentScope*,QueryableAssignmentScopeDefinition,ConfigurableAssignmentScopeDefinition,ResolvedAssignmentScope,ResourceScopeResolver,ProvidesAccessScope,ProvidesAssignmentScope}.php` | `azguard-tenancy` `Contracts/` | SPI модуля |
+| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/*Directory.php` (кроме тенанта) | `azguard-filament` | справочники UI |
+| `Authorization/**` | ядро `Engine/` | 14 импортов `Sources\Database`, `Sources\Folder`, `PanelSources`, `Storage\*` заменить контрактами (7.3) |
+| `Authorization/ScopeEligibility.php`, `Scopes/Query/*` | `azguard-tenancy` | через SPI стадии Boundary |
+| `Panels/**`, `Catalog/**`, `Roles/**`, `Permissions/**`, `Attributes/**`, `Policies/**` | ядро `Definition/` | `Attributes/CheckPermission.php` импортирует middleware из `Laravel/` — развернуть зависимость |
+| `Schema/{Field,FieldTarget}.php` | ядро `Contracts/Values/` | используются хранилищем |
+| `Schema/*Schema.php`, `Schema/SchemaBuilder.php` | ядро `Definition/Schema/` | описания для CLI и UI, read-only |
+| `Directories/**` | `azguard-filament` `Directories/` | namespace `AzGuard\Directories\` сохранить |
+| `Storage/**`, `Sources/Database/**` | ядро `Storage/` | `Panels\Reads` → `Contracts/Values` |
+| `Sources/{Folder,Gate}/**`, `Sources/{SourceManager,PanelSources}.php` | ядро `Sources/` | `instanceof RelationSource` в `PanelSources.php:130`, `PanelRegistry.php:208` → контракт |
+| `Sources/Relation/**`, `Diagnostics/Checks/PanelsRelations.php` | `azguard-sources` | |
+| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,ContextAware,WithinContext,ModelIdentity}.php` | ядро `Tenancy/` | изоляция и текущий контекст |
+| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings}.php` | `azguard-tenancy` | |
+| `Changes/{ChangePipeline,ChangeValidator,Change*,Grant*,Permission*,EffectKind,OnceTerminal,ActingActor,PanelManagers,Scoped*Manager}.php` | ядро `Changes/` | значения → `Contracts/Values/` |
+| `Changes/RoleKeyMigration.php` | ядро `Changes/` | корректность ключей ролей |
+| `Changes/ChangeJournal.php`, `Plugins/Audit/**`, `Laravel/Console/Commands/AuditPruneCommand.php`, таблица `audit_log` из `Storage/Schema/StorageSchema.php:63` | `azguard-audit` | модуль владеет своей миграцией |
+| `Plugins/{BasePlugin,PluginContext}.php` | ядро `Contracts/Plugins/` + `Definition/` | `PluginContext` — значение SPI |
+| `Events/**` | ядро `Events/` | события модулей — в модулях |
+| `Diagnostics/{Doctor,DoctorContext,DoctorFinding,Severity,PanelOverview}.php`, проверки ядра | ядро `Diagnostics/` | |
+| `Diagnostics/Checks/{DecisionFieldsInMeta,GrantsDead,ModelColumns,RolesOrphaned}.php` | ядро, но регистрирует их `Storage`, а не `DatabaseSource` импортом | 4.9 |
+| `Laravel/{Gate,Http,Queue,About}/**`, `AzGuardServiceProvider.php`, `AzGuardManager.php`, `Facades/**`, `Concerns/**` | ядро `Laravel/` | `directories()` в `Concerns/ScopedPanelAccess.php` → Filament |
+| `Laravel/Console/Commands/*` (эксплуатация: doctor, explain, install, grants/roles/permissions/catalog/panels/sources/state/storage) | ядро `Laravel/Console/` | |
+| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `StubsCommand.php`, `packages/core/stubs/**` | `azguard-devtools` | `install` остаётся в ядре и использует stubs миграций ядра |
+| `Testing/{AzGuardFake,FakeSubject,FakeSubjectBuilder,FakeSource,InteractsWithAzGuard,RecordedChange,RecordedCheck,RefreshDatabaseBaseline}.php` | ядро `Testing/` | `AzGuard::fake()` работает без dev-пакета |
+| `Testing/Contracts/**` | `azguard-devtools` | контрактные сьюты |
+| `packages/filament/src/**` | `azguard-filament` | без изменений |
+
 ## 6. Нужно обсудить
 
 1. **Тенанты:** оставляем в ядре (вариант A) или идём к разделению «изоляция в ядре, иерархии в модуле»
