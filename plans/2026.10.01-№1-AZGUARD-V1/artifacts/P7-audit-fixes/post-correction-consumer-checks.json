@@ -1,0 +1,20 @@
+[
+  {
+    "name": "consumer-11",
+    "cmd": "bash bin/consumer-fixture.sh --laravel=11 --with-filament",
+    "exit": 0,
+    "elapsed": 38.00221920013428
+  },
+  {
+    "name": "consumer-12",
+    "cmd": "bash bin/consumer-fixture.sh --laravel=12 --with-filament",
+    "exit": 0,
+    "elapsed": 28.6483097076416
+  },
+  {
+    "name": "consumer-13",
+    "cmd": "bash bin/consumer-fixture.sh --laravel=13 --with-filament",
+    "exit": 0,
+    "elapsed": 28.71002507209778
+  }
+]
