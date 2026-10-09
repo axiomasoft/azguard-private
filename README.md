@@ -9,8 +9,6 @@
 
 **Code-first** role-based access control for Laravel. Roles, permissions and panels are PHP **enums and classes** — not magic strings — so authorization is refactor-safe, IDE-autocompletable and reviewable in pull requests.
 
-> 🇷🇺 Русская версия — [README.ru.md](README.ru.md).
-
 > **Status:** AzGuard is being rebuilt as 1.0 (PLAN2). The description below refers to 0.3; the 0.3 code was removed from the tree in P6.9 and stays readable in git history (`git show 491980a:legacy/0.3/<path>`).
 
 ---
