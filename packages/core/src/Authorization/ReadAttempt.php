@@ -72,7 +72,7 @@ final class ReadAttempt
     private array $pending = [];
 
     /** @param list<Attached> $sources */
-    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true) {}
+    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true, private readonly ?ReadSessions $shared = null) {}
 
     /** @var list<AccessScope>|null */
     private ?array $batchScopes = null;
@@ -241,7 +241,7 @@ final class ReadAttempt
                     foreach ($entries as $id => $byMember) {
                         $states += $sources[$id]->readObservedMany($session, $byMember);
                     }
-                    $read = [];
+                    [$seen, $missing, $fetched] = [[], [], []];
                     foreach ($members as $n => [$attempt, $source, $subject, $requests]) {
                         $observed = $states[$n];
                         $hits = [];
@@ -255,7 +255,22 @@ final class ReadAttempt
                                 $hits[$key] = $items;
                             }
                         }
-                        $read[$n] = [$observed, $hits, $miss ? $source->assignmentRows($session, $attempt->initial, $subject, $attempt->batchScopes ?? []) : null];
+                        $seen[$n] = [$observed, $hits];
+
+                        if ($miss) {
+                            // Subjects of one source, panel and scope list share their raw reads.
+                            $group = IdentityCodec::digest([spl_object_id($source), $attempt->initial->panel()->id(), $attempt->batchScopes ?? []]);
+                            $missing[$group][$n] = $subject;
+                        }
+                    }
+                    foreach ($missing as $byMember) {
+                        $n = array_key_first($byMember);
+                        [$attempt, $source] = $members[$n];
+                        $fetched += $source->assignmentRowsMany($session, $attempt->initial, $byMember, $attempt->batchScopes ?? []);
+                    }
+                    $read = [];
+                    foreach ($seen as $n => [$observed, $hits]) {
+                        $read[$n] = [$observed, $hits, $fetched[$n] ?? null];
                     }
 
                     return $read;
@@ -271,6 +286,9 @@ final class ReadAttempt
                 [$observed, $hits, $rows] = $read[$n];
 
                 try {
+                    if ($rows instanceof Throwable) {
+                        throw $rows;
+                    }
                     $attempt->observe($source, $observed);
                     $attempt->batchSlices = [...$attempt->batchSlices, ...$hits];
 
@@ -538,7 +556,8 @@ final class ReadAttempt
         }
 
         if ($source instanceof DatabaseSource) {
-            $this->sessions[$source->id()] = $source->openReadSession($this->initial);
+            $this->sessions[$source->id()] = $this->shared === null ? $source->openReadSession($this->initial)
+                : $this->shared->get($source, $this->initial->panel(), fn (): StorageReadSession => $source->openReadSession($this->initial));
             $this->transaction ??= $this->sessions[$source->id()]->transaction();
         }
         $authority = $source instanceof DatabaseSource
