@@ -137,13 +137,72 @@ it('rejects terminal operations before the callback can read or mutate the root 
             'nested delete' => $query->where(static fn (Builder $nested) => $nested->delete()),
             'whereHas delete' => $query->whereHas('members', static fn (Builder $nested) => $nested->delete()),
             'whereExists delete' => $query->whereExists(static fn (Illuminate\Database\Query\Builder $nested) => $nested->from('relation_members')->delete()),
+            'cursor' => iterator_to_array($query->cursor()),
+            'pluck' => $query->pluck('id'),
+            'paginate' => $query->paginate(),
+            'upsert' => $query->upsert([['id' => 7]], ['id']),
+            'increment' => $query->increment('id'),
+            'decrement' => $query->decrement('id'),
+            'incrementEach' => $query->incrementEach(['id' => 1]),
+            'decrementEach' => $query->decrementEach(['id' => 1]),
+            'forceDelete' => $query->forceDelete(),
         };
     });
     [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
     expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
         ->toThrow(InvalidSourceContributionException::class, 'terminal');
     expect(Project::query()->count())->toBe(1)->and(Project::query()->findOrFail(7)->getAttribute('enabled'))->toBeTruthy();
-})->with(['get', 'count', 'exists', 'update', 'delete', 'create', 'nested delete', 'whereHas delete', 'whereExists delete']);
+})->with(['get', 'count', 'exists', 'update', 'delete', 'create', 'nested delete', 'whereHas delete', 'whereExists delete',
+    'cursor', 'pluck', 'paginate', 'upsert', 'increment', 'decrement', 'incrementEach', 'decrementEach', 'forceDelete']);
+
+it('rejects a whereHas callback that changes the structure of the nested query', function (): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role',
+        static fn (Builder $query): Builder => $query->whereHas('members', static fn (Builder $nested) => $nested->getQuery()->limit(1)));
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(InvalidSourceContributionException::class, 'only narrow WHERE');
+});
+
+it('narrows by whereHas and whereDoesntHave predicates on a related model', function (string $method, array $expected): void {
+    RelationWorld::attach(RelationWorld::project(7));
+    RelationWorld::attach($shared = RelationWorld::project(8));
+    RelationWorld::attach($shared, 2);
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role',
+        static fn (Builder $query): Builder => $query->{$method}('members', static fn (Builder $nested) => $nested->whereKey(2)));
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
+    expect(array_map(fn ($ref): ?string => $ref->id(), $selection->refs()))->toBe($expected);
+})->with(['whereHas' => ['whereHas', ['8']], 'whereDoesntHave' => ['whereDoesntHave', ['7']]]);
+
+it('refuses terminal reads and writes on the underlying query builder of a scope callback', function (string $terminal): void {
+    RelationWorld::attach(RelationWorld::project());
+    $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role', static function (Builder $query) use ($terminal): void {
+        $base = $query->getQuery();
+        match ($terminal) {
+            'select' => $base->get(),
+            'exists' => $base->exists(),
+            'cursor' => iterator_to_array($base->cursor()),
+            'explain' => $base->explain(),
+            'insert' => $base->insert(['id' => 88]),
+            'insertOrIgnore' => $base->insertOrIgnore(['id' => 88]),
+            'insertOrIgnoreReturning' => $base->insertOrIgnoreReturning(['id' => 88]),
+            'insertGetId' => $base->insertGetId(['id' => 88]),
+            'insertUsing' => $base->insertUsing(['id'], 'select 88'),
+            'insertOrIgnoreUsing' => $base->insertOrIgnoreUsing(['id'], 'select 88'),
+            'update' => $base->update(['enabled' => false]),
+            'updateFrom' => $base->updateFrom(['enabled' => false]),
+            'upsert' => $base->upsert([['id' => 7]], ['id']),
+            'delete' => $base->delete(),
+            'truncate' => $base->truncate(),
+        };
+    });
+    [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
+    expect(fn () => $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame))
+        ->toThrow(InvalidSourceContributionException::class, 'terminal');
+    expect(Project::query()->count())->toBe(1)->and(Project::query()->findOrFail(7)->getAttribute('enabled'))->toBeTruthy();
+})->with(['select', 'exists', 'cursor', 'explain', 'insert', 'insertOrIgnore', 'insertOrIgnoreReturning', 'insertGetId', 'insertUsing',
+    'insertOrIgnoreUsing', 'update', 'updateFrom', 'upsert', 'delete', 'truncate']);
 
 it('bounds foreign-tenant and null-role roots before loading memberships', function (): void {
     $rows = [];

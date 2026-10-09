@@ -167,7 +167,7 @@ final class RelationScopeQuery extends Builder
     public function __call($method, $parameters): mixed
     {
         if (! str_starts_with(strtolower($method), 'where') && ! str_starts_with(strtolower($method), 'orwhere')
-            && ! in_array(strtolower($method), ['tosql', 'getbindings', 'getrawbindings'], true)) {
+            && ! in_array(strtolower($method), ['tosql', 'getbindings', 'getrawbindings', 'addwhereexistsquery', 'addwherecountquery'], true)) {
             $this->refuse();
         }
 
