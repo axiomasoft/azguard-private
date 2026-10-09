@@ -13,6 +13,7 @@ use AzGuard\Kernel\Grammar\PatternMatcher;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
@@ -134,7 +135,7 @@ final readonly class GrantInspection
             $this->state($query, $kind, $tenant, $origin, GrantFilter::ORPHANED, $now);
 
             foreach ($query->selectRaw($kind.' as name, count(*) as aggregate')->groupBy($kind)->orderBy($kind)->get() as $row) {
-                $found[$kind][(string) $row->name] = (int) $row->aggregate;
+                $found[$kind][Narrow::string($row->name, $kind)] = Narrow::int($row->aggregate, 'aggregate');
             }
         }
 

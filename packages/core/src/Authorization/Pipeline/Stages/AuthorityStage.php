@@ -287,7 +287,7 @@ final readonly class AuthorityStage
                     }
                 }
             } catch (Throwable $error) {
-                $component = isset($condition) ? $condition::class : $source::class;
+                $component = isset($condition) && is_object($condition) ? $condition::class : $source::class;
                 $trace->error('condition', 'condition_error', $component, $error);
 
                 return [$frame, Decision::deny(DecisionReason::ConditionError, $frame->state(), $frame->scope(), $component), 0];

@@ -37,6 +37,7 @@ use Filament\Panel as FilamentPanel;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Resources\RelationManagers\RelationManagerConfiguration;
+use Filament\Resources\Resource;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
@@ -468,7 +469,7 @@ final class AzGuardPlugin implements Plugin
             foreach ($classes as $class => $surface) {
                 self::assertAuthorized($panel, $surface, $class);
 
-                if ($surface === FilamentSurface::Resource) {
+                if ($surface === FilamentSurface::Resource && is_a($class, Resource::class, true)) {
                     self::assertRelations($class::getRelations());
                 }
             }
@@ -527,7 +528,9 @@ final class AzGuardPlugin implements Plugin
                 $livewire = $action->getLivewire();
                 $filament = $livewire instanceof HasActions ? $livewire->getDefaultActionIndividualRecordAuthorizationResponseResolver($action) : null;
 
-                return $filament === null ? Response::deny() : $filament($record);
+                $response = $filament === null ? null : $filament($record);
+
+                return $response instanceof Response ? $response : Response::deny();
             });
         });
 

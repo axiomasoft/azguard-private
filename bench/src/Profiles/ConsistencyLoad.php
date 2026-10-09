@@ -126,7 +126,7 @@ final class ConsistencyLoad extends BaseProfile
         if ($rate === 0) {
             return;
         }
-        $start ??= microtime(true);
+        $start = is_float($start) ? $start : microtime(true);
         $wait = $start + $i / $rate - microtime(true);
 
         if ($wait > 0) {

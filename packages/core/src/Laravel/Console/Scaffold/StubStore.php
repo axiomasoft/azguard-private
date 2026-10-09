@@ -66,7 +66,7 @@ final readonly class StubStore
         $written = $kept = [];
         $this->files->ensureDirectoryExists($this->published());
 
-        foreach ($this->files->glob(self::packaged().'/*.stub') ?: [] as $stub) {
+        foreach (array_filter($this->files->glob(self::packaged().'/*.stub') ?: [], is_string(...)) as $stub) {
             $target = $this->published().'/'.basename($stub);
 
             if ($this->files->exists($target) && ! $force) {

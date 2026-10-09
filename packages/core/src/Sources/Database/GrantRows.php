@@ -10,6 +10,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\FieldTarget;
@@ -62,7 +63,7 @@ final class GrantRows
         $fields = $this->fields($kind)->stored($model);
         $until = $model->expiresAt()?->toDateTimeImmutable();
         $updated = self::utc($row->updated_at ?? null);
-        $id = $kind.':'.$row->id;
+        $id = $kind.':'.Narrow::string($row->id ?? null, 'grant id');
 
         return new GrantRecord(
             id: $id, panel: $model->panel(), scope: AccessScope::in($model->tenantRef(), $model->assignmentScopeRef()),
@@ -83,7 +84,7 @@ final class GrantRows
     public function model(string $kind, stdClass $row): RoleGrant|PermissionGrant
     {
         $target = $kind === 'role' ? 'role_grant' : 'permission_grant';
-        $model = $this->storage->model($target, $this->models[$target] ?? null)->newFromBuilder((array) $row);
+        $model = $this->storage->model($target, $this->models[$target] ?? null)->newFromBuilder(Narrow::row($row));
 
         if ((! $model instanceof RoleGrant && ! $model instanceof PermissionGrant) || $model->panel() !== $this->panel->id()) {
             throw new InvalidSourceContributionException('Stored grant identity differs from its query.');

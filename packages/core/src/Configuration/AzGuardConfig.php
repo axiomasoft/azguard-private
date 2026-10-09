@@ -344,7 +344,7 @@ final readonly class AzGuardConfig
             if (! is_string($class) || ! class_exists($class)) {
                 throw self::invalidValue('defaults.models.'.$kind, $class, 'an existing model class');
             }
-            $parsed[$kind] = $class;
+            $parsed[(string) $kind] = $class;
         }
 
         return $parsed;

@@ -14,6 +14,7 @@ use AzGuard\Filament\Actions\ExplainAction;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Forms\SchemaFields;
+use AzGuard\Filament\Support\RecordValue;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -27,6 +28,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Resources\Resource;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Group;
@@ -111,14 +113,14 @@ abstract class ListGrants extends Page implements HasTable
         return $table
             ->records(fn (int $page, int $recordsPerPage): Paginator => $this->grantPage($page, $recordsPerPage))
             ->columns([
-                TextColumn::make('subject_label')->label('Subject')->description(static fn (array $record): string => $record['subject']),
-                TextColumn::make('key_label')->label($label)->description(static fn (array $record): string => $record['key']),
+                TextColumn::make('subject_label')->label('Subject')->description(static fn (array $record): string => RecordValue::string($record['subject'] ?? null, 'grant subject')),
+                TextColumn::make('key_label')->label($label)->description(static fn (array $record): string => RecordValue::string($record['key'] ?? null, 'grant key')),
                 TextColumn::make('context_label')->label('Context'),
                 TextColumn::make('origin')->label('Origin')->badge()->color('gray'),
                 TextColumn::make('until')->label('Until')->dateTime()->placeholder('never'),
                 TextColumn::make('granted_by')->label('Granted by')->placeholder('—'),
                 TextColumn::make('fields')->label('Fields')->placeholder('—')
-                    ->state(static fn (array $record): ?string => self::fieldsText($record['fields'])),
+                    ->state(static fn (array $record): ?string => self::fieldsText(RecordValue::map($record['fields'] ?? [], 'grant fields'))),
             ])
             ->filters([
                 Filter::make('grants')->columns(3)->schema($this->filterSchema($label)),
@@ -130,13 +132,13 @@ abstract class ListGrants extends Page implements HasTable
             ->selectCurrentPageOnly()
             ->headerActions([
                 $this->createAction($label),
-                ExplainAction::make()->visible(fn (): bool => static::getResource()::can('view') && $this->editor() !== null)
+                ExplainAction::make()->visible(fn (): bool => self::resourceCan('view') && $this->editor() !== null)
                     ->fillForm(fn (): array => ['subject' => null, 'permission' => null, 'context_type' => null])
                     ->schema(fn (): array => ExplainAction::form($this->editor()))
-                    ->action(fn (array $data) => $this->explain($data)),
+                    ->action(fn (array $data) => $this->explain(RecordValue::map($data, 'explain form'))),
             ])
             ->recordActions([
-                ExplainAction::make(ExplainAction::RECORD)->visible(fn (): bool => static::getResource()::can('view'))
+                ExplainAction::make(ExplainAction::RECORD)->visible(fn (): bool => self::resourceCan('view'))
                     ->fillForm(static fn (array $record): array => [
                         'subject' => $record['subject'],
                         'permission' => $kind === 'permission' ? $record['key'] : null,
@@ -144,27 +146,27 @@ abstract class ListGrants extends Page implements HasTable
                         'context' => $record['context'],
                     ])
                     ->schema(fn (): array => ExplainAction::form($this->editor()))
-                    ->action(fn (array $data) => $this->explain($data)),
+                    ->action(fn (array $data) => $this->explain(RecordValue::map($data, 'explain form'))),
                 Action::make('edit')->label('Edit')
-                    ->visible(static fn (): bool => static::getResource()::can('update'))
-                    ->fillForm(fn (array $record): array => $this->editForm($record))
+                    ->visible(static fn (): bool => self::resourceCan('update'))
+                    ->fillForm(fn (array $record): array => $this->editForm(RecordValue::map($record, 'grant row')))
                     ->schema(fn (): array => [
                         DateTimePicker::make('until')->label('Until'),
                         Group::make(fn (): array => $this->fieldComponents())->columns(2),
                     ])
                     ->action(fn (array $record, array $data, Schema $schema) => $this->write('update', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->update(
-                        $record['id'],
-                        $this->editingFingerprint($record['id']),
-                        $this->submitted($data, $schema),
+                        RecordValue::string($record['id'] ?? null, 'grant id'),
+                        $this->editingFingerprint(RecordValue::string($record['id'] ?? null, 'grant id')),
+                        $this->submitted(RecordValue::map($data, 'grant form'), $schema),
                         $user,
                     ), statePath: $schema->getStatePath())),
                 Action::make('revoke')->label('Revoke')->color('danger')->requiresConfirmation()
-                    ->visible(static fn (): bool => static::getResource()::can('delete'))
+                    ->visible(static fn (): bool => self::resourceCan('delete'))
                     ->action(fn (array $record) => $this->write('delete', static fn (GrantEditor $editor, Model $user): ChangeResult => $editor->revoke([$record['id']], $user))),
             ])
             ->toolbarActions([
                 BulkAction::make('revoke')->label('Revoke selected')->color('danger')->requiresConfirmation()
-                    ->visible(static fn (): bool => static::getResource()::can('delete'))
+                    ->visible(static fn (): bool => self::resourceCan('delete'))
                     ->fetchSelectedRecords(false)
                     ->action(fn () => $this->write('delete', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->revoke($this->selectedGrantIds(), $user))),
             ]);
@@ -174,7 +176,7 @@ abstract class ListGrants extends Page implements HasTable
     public function explanationAction(): Action
     {
         return ExplainAction::answer(fn (): ?array => $this->explanation)
-            ->authorize(static fn (): bool => static::getResource()::can('view'));
+            ->authorize(static fn (): bool => self::resourceCan('view'));
     }
 
     /**
@@ -351,10 +353,10 @@ abstract class ListGrants extends Page implements HasTable
     private function createAction(string $label): Action
     {
         return Action::make('create')->label('New grant')
-            ->visible(fn (): bool => static::getResource()::can('create') && self::selector()->panels() !== [])
+            ->visible(fn (): bool => self::resourceCan('create') && self::selector()->panels() !== [])
             ->fillForm(fn (): array => ['panel' => $this->filter('panel'), 'tenant' => $this->filter('tenant'), 'context_type' => null, 'fields' => []])
             ->schema(fn (): array => $this->grantForm($label))
-            ->action(fn (array $data, Schema $schema) => $this->write('create', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->grant($this->submitted($data, $schema), $user), $data, $schema->getStatePath()));
+            ->action(fn (array $data, Schema $schema) => $this->write('create', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->grant($this->submitted(RecordValue::map($data, 'grant form'), $schema), $user), RecordValue::map($data, 'grant form'), $schema->getStatePath()));
     }
 
     /**
@@ -367,7 +369,7 @@ abstract class ListGrants extends Page implements HasTable
     {
         $after = (static fn (array $fields): Closure => static function (Set $set) use ($fields): void {
             foreach ($fields as $field) {
-                $set($field, $field === 'fields' ? [] : null);
+                $set(RecordValue::string($field, 'form field'), $field === 'fields' ? [] : null);
             }
         });
         $editor = fn (Get $get): ?GrantEditor => $this->formEditor($get);
@@ -498,6 +500,14 @@ abstract class ListGrants extends Page implements HasTable
         return $ids;
     }
 
+    /** Whether the resource of this page allows the ability; a page without a Filament resource allows nothing. */
+    private static function resourceCan(string $ability): bool
+    {
+        $resource = static::getResource();
+
+        return is_a($resource, Resource::class, true) && $resource::can($ability);
+    }
+
     /**
      * Asks the panel why the subject has the permission, or not, and opens the answer.
      *
@@ -505,7 +515,7 @@ abstract class ListGrants extends Page implements HasTable
      */
     private function explain(array $data): void
     {
-        abort_unless(static::getResource()::can('view'), 403);
+        abort_unless(self::resourceCan('view'), 403);
         $editor = $this->editor() ?? abort(403);
 
         try {
@@ -539,7 +549,7 @@ abstract class ListGrants extends Page implements HasTable
      */
     private function write(string $ability, Closure $change, ?array $data = null, ?string $statePath = null): void
     {
-        abort_unless(static::getResource()::can($ability), 403);
+        abort_unless(self::resourceCan($ability), 403);
         $editor = $data === null ? ($this->editor() ?? abort(403))
             : ($this->editor(self::text($data['panel'] ?? null), self::text($data['tenant'] ?? null), fromFilter: false) ?? abort(403));
         $user = Filament::auth()->user();

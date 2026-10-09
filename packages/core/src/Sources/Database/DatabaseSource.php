@@ -47,6 +47,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\Reads;
@@ -269,7 +270,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $found = [];
         foreach ($this->resolvedStorage()->table('permissions')->where('panel', $panel->id())
             ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
-            $found[] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+            $found[] = self::tenantOf($row);
         }
 
         return $found;
@@ -298,8 +299,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $partitions = [];
         foreach (['role_grants', 'permission_grants'] as $table) {
             foreach ($storage->table($table)->where('panel', $panel->id())->select('tenant_key', 'tenant_type', 'tenant_id', 'origin')->distinct()->get() as $row) {
-                $partitions[$row->tenant_key."\0".$row->origin] = [
-                    $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id), (string) $row->origin,
+                $partitions[Narrow::string($row->tenant_key, 'tenant_key')."\0".Narrow::string($row->origin, 'origin')] = [
+                    self::tenantOf($row), Narrow::string($row->origin, 'origin'),
                 ];
             }
         }
@@ -333,7 +334,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         foreach (['role', 'permission'] as $kind) {
             foreach ($this->resolvedStorage()->table($kind.'_grants')->where('panel', $panel->id())->whereNotIn('subject_type', $accepted)
                 ->selectRaw('subject_type, count(*) as aggregate')->groupBy('subject_type')->orderBy('subject_type')->get() as $row) {
-                $found[] = ['kind' => $kind, 'type' => (string) $row->subject_type, 'rows' => (int) $row->aggregate];
+                $found[] = ['kind' => $kind, 'type' => Narrow::string($row->subject_type, 'subject_type'), 'rows' => Narrow::int($row->aggregate, 'aggregate')];
             }
         }
 
@@ -517,7 +518,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $rows = [];
         foreach ($session->table('permissions')->where('panel', $panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
-            $rows[] = (array) $row;
+            $rows[] = Narrow::row($row);
         }
 
         return $rows;
@@ -686,7 +687,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
                 $query->where('tenant_key', $tenant->key());
             }
             foreach ($query->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
-                $found[(string) $row->tenant_key] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+                $found[Narrow::string($row->tenant_key, 'tenant_key')] = self::tenantOf($row);
             }
         }
         ksort($found, SORT_STRING);
@@ -705,7 +706,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $found = [];
         foreach ($this->resolvedStorage()->table('role_grants')->where('panel', $panel->id())->where('role', $role)
             ->select('tenant_key', 'tenant_type', 'tenant_id')->distinct()->orderBy('tenant_key')->get() as $row) {
-            $found[(string) $row->tenant_key] = $row->tenant_type === null ? TenantRef::global() : TenantRef::of((string) $row->tenant_type, (string) $row->tenant_id);
+            $found[Narrow::string($row->tenant_key, 'tenant_key')] = self::tenantOf($row);
         }
 
         return array_values($found);
@@ -749,7 +750,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $counts = [];
         foreach ($storage->connection()->query()->useWritePdo()->fromSub($holders, 'holders')->select('role')->selectRaw('count(*) as holders')
             ->groupBy('role')->orderBy('role')->get() as $row) {
-            $counts[(string) $row->role] = (int) $row->holders;
+            $counts[Narrow::string($row->role, 'role')] = Narrow::int($row->holders, 'holders');
         }
 
         return $counts;
@@ -1151,6 +1152,15 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         throw new ConsistencyException('DatabaseSource authority changed during all three read attempts.');
     }
 
+    /** The tenant of a grant row: global without a tenant type. */
+    private static function tenantOf(object $row): TenantRef
+    {
+        $type = property_exists($row, 'tenant_type') ? $row->tenant_type : null;
+
+        return $type === null ? TenantRef::global()
+            : TenantRef::of(Narrow::string($type, 'tenant_type'), Narrow::string(property_exists($row, 'tenant_id') ? $row->tenant_id : null, 'tenant_id'));
+    }
+
     private function token(StorageReadSession $session, Panel $panel, string $fingerprint, ?SubjectRef $subject = null): StateToken
     {
         if ($subject === null) {
@@ -1202,7 +1212,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         if ($contextType === null) {
             // A stable order on every engine: contributions keep the order of their grants.
             foreach ($query->orderBy('id')->get() as $row) {
-                $rows[] = (array) $row;
+                $rows[] = Narrow::row($row);
             }
 
             return $rows;
@@ -1213,7 +1223,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
                 if (count($rows) >= 10000) {
                     throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
                 }
-                $rows[] = (array) $row;
+                $rows[] = Narrow::row($row);
             }
         });
 

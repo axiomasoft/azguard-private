@@ -6,6 +6,7 @@ namespace AzGuard\Authorization\Query;
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessPredicate;
+use AzGuard\Kernel\Support\Narrow;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -41,8 +42,8 @@ final class PredicateCompiler
         if ($effective->getQuery()->unions) {
             throw new DefinitionException('Exact predicates cannot constrain every arm of a UNION query.');
         }
-        foreach ($effective->getQuery()->wheres as $where) {
-            if (str_starts_with($where['boolean'], 'or')) {
+        foreach (self::wheres($effective->getQuery()) as $where) {
+            if (str_starts_with(self::part($where, 'boolean'), 'or')) {
                 throw new DefinitionException('Group host OR conditions before applying exact predicates.');
             }
         }
@@ -65,22 +66,22 @@ final class PredicateCompiler
     /** Native relation constraints and deferred scopes have been merged by whereHas at this point. */
     private function assertCorrelatedQueries(QueryBuilder $query): void
     {
-        foreach ($query->wheres as $where) {
+        foreach (self::wheres($query) as $where) {
             $nested = $where['query'] ?? null;
 
             if (! $nested instanceof QueryBuilder) {
                 continue;
             }
 
-            if (in_array(strtolower((string) $where['type']), ['exists', 'notexists'], true)) {
+            if (in_array(strtolower(self::part($where, 'type')), ['exists', 'notexists'], true)) {
                 if ($nested->unions) {
                     throw new DefinitionException('Exact relation predicates cannot constrain every arm of a UNION query.');
                 }
-                foreach ($nested->wheres as $constraint) {
-                    $constant = strtolower((string) $constraint['type']) === 'raw'
-                        && in_array($constraint['sql'], ['1 = 0', '1 = 1'], true);
+                foreach (self::wheres($nested) as $constraint) {
+                    $constant = strtolower(self::part($constraint, 'type')) === 'raw'
+                        && in_array($constraint['sql'] ?? null, ['1 = 0', '1 = 1'], true);
 
-                    if (str_starts_with(strtolower((string) $constraint['boolean']), 'or')
+                    if (str_starts_with(strtolower(self::part($constraint, 'boolean')), 'or')
                         || (! $constant && $this->mayCarryOr($constraint))) {
                         throw new DefinitionException('Group native relation OR and raw conditions before applying exact predicates.');
                     }
@@ -100,13 +101,33 @@ final class PredicateCompiler
     {
         $base = $query->getQuery();
 
-        if (array_filter($base->wheres, $this->mayCarryOr(...)) === []) {
+        if (array_filter(self::wheres($base), $this->mayCarryOr(...)) === []) {
             return;
         }
         $host = clone $base;
         $base->wheres = [];
         $base->setBindings([], 'where');
         $base->addNestedWhereQuery($host);
+    }
+
+    /**
+     * The where clauses of a query builder; Laravel declares them as an untyped array.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function wheres(QueryBuilder $query): array
+    {
+        return Narrow::maps($query->wheres, 'where clauses');
+    }
+
+    /**
+     * A string part of a where clause (`type`, `boolean`); a missing part is empty.
+     *
+     * @param  array<string, mixed>  $where
+     */
+    private static function part(array $where, string $name): string
+    {
+        return Narrow::string($where[$name] ?? '', 'where '.$name);
     }
 
     /** @param array<string, mixed> $where */

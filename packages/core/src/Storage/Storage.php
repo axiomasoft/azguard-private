@@ -15,8 +15,6 @@ use AzGuard\Storage\Models\Permission;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use Closure;
-use DateTimeImmutable;
-use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DetectsConcurrencyErrors;
 use Illuminate\Database\Eloquent\Attributes\Connection as ModelConnection;
@@ -443,7 +441,7 @@ final class Storage
             $row = $this->table('storage_state')->where('id', 1)->first();
 
             if ($row !== null) {
-                $found = json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR);
+                $found = is_string($row->schema) ? json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR) : null;
             }
         } catch (QueryException|JsonException $error) {
             throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; cannot read storage_state: '.$error->getMessage(), 0, $error);
@@ -474,7 +472,6 @@ final class Storage
 
     private function panelState(stdClass $row): PanelState
     {
-        return new PanelState($row->panel, (int) $row->version, $row->incarnation,
-            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
+        return PanelState::fromRow($row);
     }
 }

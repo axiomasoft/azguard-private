@@ -7,6 +7,7 @@ namespace AzGuard\Scopes\Query;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Policies\RuntimeInvoker;
 use AzGuard\Scopes\AssignmentScopeRuntime;
 use Closure;
@@ -89,7 +90,7 @@ final class EligibilityBuilder
             }
         }
         foreach ($query?->get() ?? [] as $row) {
-            $results[$keys[(int) $row->azguard_batch_witness]] = true;
+            $results[$keys[Narrow::int($row->azguard_batch_witness, 'batch witness')]] = true;
         }
 
         return $results;
@@ -140,7 +141,7 @@ final class EligibilityBuilder
      */
     public static function shape(Builder $builder): array
     {
-        $shape = get_object_vars($builder->getQuery());
+        $shape = Narrow::map(get_object_vars($builder->getQuery()), 'query state');
         unset($shape['wheres'], $shape['bindings']);
         $bindings = $builder->getQuery()->getRawBindings();
         unset($bindings['where']);

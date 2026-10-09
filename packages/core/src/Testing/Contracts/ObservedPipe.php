@@ -6,9 +6,11 @@ namespace AzGuard\Testing\Contracts;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Events\QueryExecuted;
+use LogicException;
 
 /**
  * @internal Runs the pipe of the author and counts the statements that change data which the pipe itself issued: the
@@ -50,7 +52,11 @@ final class ObservedPipe
         try {
             $pipe = is_string($this->pipe) ? app(Container::class)->make($this->pipe) : $this->pipe;
 
-            return $pipe instanceof Closure ? $pipe($change, $guarded) : $pipe->handle($change, $guarded);
+            if (! $pipe instanceof Closure && (! is_object($pipe) || ! method_exists($pipe, 'handle'))) {
+                throw new LogicException('The observed pipe must be a closure or an object with handle().');
+            }
+
+            return Narrow::instance($pipe instanceof Closure ? $pipe($change, $guarded) : $pipe->handle($change, $guarded), ChangeResult::class, 'the observed pipe result');
         } finally {
             foreach (array_slice($this->log, $start) as $offset => $sql) {
                 $index = $start + $offset;

@@ -7,6 +7,7 @@ namespace AzGuard\Filament\Authorization;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
+use Filament\Clusters\Cluster;
 use Filament\Pages\Page;
 use Filament\Panel as FilamentPanel;
 use Filament\Resources\Resource;
@@ -263,7 +264,7 @@ final class FilamentKeys
     }
 
     /**
-     * @param  class-string|null  $cluster
+     * @param  class-string<Cluster>|null  $cluster
      */
     private function clustered(?string $cluster, string $slug): string
     {

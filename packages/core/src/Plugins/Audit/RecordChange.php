@@ -8,6 +8,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEventPublisher;
 use AzGuard\Changes\ChangeJournal;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 
 /**
@@ -23,7 +24,7 @@ final readonly class RecordChange
 
     public function handle(Change $change, Closure $next): ChangeResult
     {
-        $result = $next($change);
+        $result = Narrow::instance($next($change), ChangeResult::class, 'the downstream change result');
 
         foreach ($this->events->events($change, $result) as $event) {
             $this->journal->append(ChangeJournal::row($event));

@@ -58,7 +58,7 @@ final class MakeModelsCommand extends MakeCommand
         $suffix = '_add_'.Str::snake($panel).'_columns_to_azguard_tables.php';
         $directory = $this->laravel->databasePath('migrations');
         $existing = $this->files->glob($directory.'/*'.$suffix);
-        $files[] = new GeneratedFile($existing[0] ?? $directory.'/'.date('Y_m_d_His').$suffix, $stubs->render('models-migration', [
+        $files[] = new GeneratedFile(is_string($existing[0] ?? null) ? $existing[0] : $directory.'/'.date('Y_m_d_His').$suffix, $stubs->render('models-migration', [
             'storage' => $storage,
             'panel' => $place->namespace,
         ]));

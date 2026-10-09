@@ -22,6 +22,7 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
+use AzGuard\Roles\BaseRole;
 use Closure;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
@@ -309,6 +310,10 @@ final readonly class BatchEvaluation
                 try {
                     $instance = $role === null ? null : $this->container->make($role['class']);
                 } catch (Throwable) {
+                    continue;
+                }
+
+                if ($instance !== null && ! $instance instanceof BaseRole) {
                     continue;
                 }
                 $branch = $frame->forContribution($item, $instance);

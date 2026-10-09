@@ -118,7 +118,7 @@ final readonly class StorageSchema
         $schema = $connection->getSchemaBuilder();
         $prefix = $storage->prefix();
         $row = $storage->table('storage_state')->where('id', 1)->first();
-        $stored = $row === null ? null : json_decode((string) $row->schema, true, flags: JSON_THROW_ON_ERROR);
+        $stored = $row === null || ! is_string($row->schema) ? null : json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR);
         $expected = $storage->schema();
 
         if (! is_array($stored) || ($stored['version'] ?? null) === $expected['version']) {

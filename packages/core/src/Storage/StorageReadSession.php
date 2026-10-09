@@ -8,10 +8,9 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Reads;
 use Closure;
-use DateTimeImmutable;
-use DateTimeZone;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
@@ -206,8 +205,7 @@ final class StorageReadSession
         $this->assertSchema();
         $row = $this->table('panel_state')->where('panel', $panel)->first();
 
-        return $row === null ? null : new PanelState($row->panel, (int) $row->version, $row->incarnation,
-            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
+        return $row === null ? null : PanelState::fromRow($row);
     }
 
     /**
@@ -229,8 +227,7 @@ final class StorageReadSession
             ->where('ps.panel', $panel)
             ->first(['ps.panel', 'ps.version', 'ps.incarnation', 'ps.updated_at', 'ps.epoch', 'sr.revision']);
 
-        return $row === null ? [null, 0] : [new PanelState($row->panel, (int) $row->version, $row->incarnation,
-            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch), (int) ($row->revision ?? 0)];
+        return $row === null ? [null, 0] : [PanelState::fromRow($row), Narrow::int($row->revision ?? 0, 'subject_revisions.revision')];
     }
 
     /**
@@ -261,11 +258,10 @@ final class StorageReadSession
                 ->where('ps.panel', $panel)
                 ->get(['ps.panel', 'ps.version', 'ps.incarnation', 'ps.updated_at', 'ps.epoch', 'sr.subject_id', 'sr.revision']);
             foreach ($rows as $row) {
-                $state ??= new PanelState($row->panel, (int) $row->version, $row->incarnation,
-                    new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
+                $state ??= PanelState::fromRow($row);
 
                 if ($row->subject_id !== null) {
-                    $revisions[(string) $row->subject_id] = (int) $row->revision;
+                    $revisions[Narrow::string($row->subject_id, 'subject_revisions.subject_id')] = Narrow::int($row->revision, 'subject_revisions.revision');
                 }
             }
         }
@@ -329,7 +325,7 @@ final class StorageReadSession
             $row = $this->table('storage_state')->where('id', 1)->first();
 
             if ($row !== null) {
-                $found = json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR);
+                $found = is_string($row->schema) ? json_decode($row->schema, true, flags: JSON_THROW_ON_ERROR) : null;
             }
         } catch (QueryException|JsonException $error) {
             throw new StorageMismatchException('Storage '.$this->storage->id().' expected '.json_encode($expected).'; cannot read storage_state: '.$error->getMessage(), 0, $error);
