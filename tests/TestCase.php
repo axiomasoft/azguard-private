@@ -6,11 +6,46 @@ namespace AzGuard\Tests;
 
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use Illuminate\Database\Connection;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RuntimeException;
 
 class TestCase extends Orchestra
 {
+    /**
+     * Every test starts from an empty database, as it does on SQLite :memory:. On PostgreSQL, MySQL and MariaDB the
+     * schema of the previous test would otherwise survive and the next `Schema::create()` fails with "already exists".
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $connection = $this->app['db']->connection();
+
+        if ($connection->getDriverName() !== 'sqlite') {
+            $connection->getSchemaBuilder()->dropAllTables();
+        }
+    }
+
+    /**
+     * Closes every connection the test opened: a server keeps a connection per PDO until the application is
+     * collected, and a full run otherwise exhausts it ("too many clients").
+     */
+    protected function tearDown(): void
+    {
+        // Taken before and closed after the parent: its callbacks (migration rollbacks) still use the connections, and
+        // closing an SQLite :memory: connection early would drop the database they read.
+        $open = isset($this->app) ? $this->app['db']->getConnections() : [];
+
+        parent::tearDown();
+
+        foreach ($open as $connection) {
+            if ($connection instanceof Connection) {
+                $connection->disconnect();
+            }
+        }
+    }
+
     protected function getPackageProviders($app): array
     {
         return [
