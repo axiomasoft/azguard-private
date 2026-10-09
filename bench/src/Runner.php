@@ -93,6 +93,7 @@ final class Runner
             DB::listen(static function () use (&$queries): void {
                 $queries++;
             });
+            Probe::listen();
             $profile->boot($stand, $tier, $stage, $worker);
             $out = fopen("{$directory}/w{$worker}.ndjson", 'wb') ?: throw new RuntimeException('Cannot write samples.');
 
@@ -104,6 +105,7 @@ final class Runner
                         file_put_contents("{$directory}/w{$worker}.err", 'warm-up: '.$e::class.': '.$e->getMessage()."\n", FILE_APPEND);
                     }
                 }
+                Probe::drain();
             }
 
             while (hrtime(true) < $start) {
@@ -128,6 +130,9 @@ final class Runner
                 }
                 $t1 = hrtime(true);
                 fwrite($out, json_encode(['op' => $op, 'us' => round(($t1 - $t0) / 1e3, 1), 'sql' => $queries - $before, 'ok' => $ok, 't' => $t1 - $from], JSON_THROW_ON_ERROR)."\n");
+                foreach (Probe::drain() as [$probe, $us]) {
+                    fwrite($out, json_encode(['op' => $probe, 'us' => round($us, 1), 'sql' => 0, 'ok' => true, 't' => $t1 - $from], JSON_THROW_ON_ERROR)."\n");
+                }
             }
             fclose($out);
             file_put_contents("{$directory}/w{$worker}.ok", json_encode(['from' => $from, 'to' => hrtime(true)], JSON_THROW_ON_ERROR));
