@@ -1,14 +1,14 @@
 # Upgrading
 
-## From 0.x to 1.0
+## From 0.3 to 1.0
 
-Versions 0.x (`axioma-studio/azguard-core`, `-context`, `-filament`, last tag `v0.3.0`) were never published on
-Packagist. 1.0 is a redesign under new package names. There is no in-place upgrade: install 1.0, port the code,
+Version 0.3 (`axioma-studio/azguard-core`, `-context`, `-filament`, tag `v0.3.0`) was never published on
+Packagist. Only upgrades from 0.3 are covered; upgrade an older install to 0.3 first. 1.0 is a redesign under new package names. There is no in-place upgrade: install 1.0, port the code,
 then copy the role assignments.
 
 ### What changed
 
-| 0.x | 1.0 |
+| 0.3 | 1.0 |
 |---|---|
 | `axioma-studio/azguard-core`, `-filament`, `-context` | `axiomasoft/azguard`, `axiomasoft/azguard-filament`. Tenants and scopes are in the core |
 | `config/az-guard.php` | `config/azguard.php` (`php artisan azguard:install`) |
@@ -29,7 +29,7 @@ then copy the role assignments.
 1. Require `axiomasoft/azguard` and run `php artisan azguard:install --panel=Admin --migrate`.
 2. Move permission enums into `app/Guards/{Panel}/Permissions` and roles into `Roles`. Give every role an
    explicit `#[Role('key')]`. Run `php artisan azguard:doctor` until it reports no errors.
-3. Copy role assignments. The script below was tested against a 0.x schema. Map every old role name to a
+3. Copy role assignments. The script below was tested against the 0.3 schema. Map every old role name to a
    1.0 role class explicitly, so an unknown name stops the migration instead of being dropped silently:
 
 ```php
@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\DB;
 
 $map = ['editor' => EditorRole::class, 'super-admin' => SuperAdminRole::class];
 
-AzGuard::actingAs('migration from 0.x', function () use ($map): void {
+AzGuard::actingAs('migration from 0.3', function () use ($map): void {
     DB::table('model_has_roles')
         ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
         ->select('roles.name', 'model_has_roles.model_type', 'model_has_roles.model_id')
