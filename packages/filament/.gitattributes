@@ -1,0 +1,3 @@
+# Composer dist of the split package: ship runtime files only.
+/api-manifest.json export-ignore
+/.gitattributes    export-ignore
