@@ -15,6 +15,15 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.
 
+## Storage schema
+
+Each storage records its schema in `storage_state`. AzGuard 1.0 uses schema 2, which adds the
+`subject_revisions` table and the `epoch` column of `panel_state` (see [Consistency](/advanced/consistency)).
+A default storage created by a pre-release at schema 1 is upgraded in place by the bundled migration when you run
+`php artisan migrate`. For a named storage, call `app(StorageSchema::class)->upgrade('name')` in a migration of
+your own. `azguard:doctor` reports `storage.schema` until the stored schema matches the configuration. The upgrade
+is not reversible: an older release refuses a storage at a schema it does not know.
+
 ## SQLite
 
 SQLite storages are supported. A decision reads its grants in one `BEGIN DEFERRED` read transaction. Without WAL,

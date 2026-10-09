@@ -6,7 +6,8 @@ Grants are written through the panel's **writer**, usually `DatabaseSource`. Eve
 1. validation;
 2. the `changing` pipes;
 3. a transaction;
-4. a state version bump, which invalidates caches;
+4. a bump of the panel version and of each affected subject's revision, which invalidates the cached grants
+   of those subjects only;
 5. events after commit.
 
 ## Roles and permissions

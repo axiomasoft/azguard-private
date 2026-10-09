@@ -27,8 +27,8 @@ $user->can('update', $post);                         // the same decision throug
 - **Typed definitions.** Permissions are backed enum cases and roles are classes, so renames are caught by your
   IDE and PHPStan. The package discovers both from the panel directory.
 - **Grants with context.** A grant can be tenant-wide or limited to one scope, such as a team or a project.
-  It can also expire (`until:`). Every change records an actor, publishes events and raises a state version
-  that invalidates caches.
+  It can also expire (`until:`). Every change records an actor, publishes events and raises the revision of
+  the affected subject, which invalidates that subject's cached grants.
 - **One decision pipeline.** The trait methods, the facade, the middleware, the Gate and the Filament
   plugin all reach the same engine. Policies can veto a granted permission. A failing component denies
   access instead of allowing it.

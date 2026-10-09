@@ -12,7 +12,7 @@ Code-first authorization for Laravel 11–13 with an optional Filament 5 plugin.
 - Permissions are backed enums and roles are PHP classes. Grants live in your database.
 - Every check goes through one decision pipeline: `hasPermission()`, `@can`, middleware, controller attributes,
   Filament and list queries.
-- An error denies. `azguard:explain` shows why.
+- An error denies, and the decision says whether it failed or was refused. `azguard:explain` shows why.
 
 ```php
 #[RequiresGrant]
@@ -73,8 +73,8 @@ For Filament: `composer require axiomasoft/azguard-filament`. See the
 | Concepts | [Panels](docs/concepts/panels.md) · [Permissions](docs/concepts/permissions.md) · [Roles](docs/concepts/roles.md) · [Policies](docs/concepts/policies.md) · [Decisions](docs/concepts/decisions.md) |
 | Guides | [Checking access](docs/guides/checking-access.md) · [Granting access](docs/guides/granting-access.md) · [Tenants and scopes](docs/guides/tenants-and-scopes.md) · [Filament](docs/guides/filament.md) · [Testing](docs/guides/testing.md) |
 | Reference | [Configuration](docs/reference/configuration.md) · [Commands](docs/reference/commands.md) · [Events](docs/reference/events.md) · [Exceptions](docs/reference/exceptions.md) |
-| Advanced | [Sources](docs/advanced/sources.md) · [Hooks and plugins](docs/advanced/hooks-and-plugins.md) · [Performance](docs/advanced/performance.md) · [Operations](docs/advanced/operations.md) |
-| More | [Upgrading](docs/upgrade.md) · [Comparison with Spatie, Bouncer, Laratrust, Casbin](docs/comparison.md) |
+| Advanced | [Sources](docs/advanced/sources.md) · [Hooks and plugins](docs/advanced/hooks-and-plugins.md) · [Performance](docs/advanced/performance.md) · [Consistency](docs/advanced/consistency.md) · [Operations](docs/advanced/operations.md) |
+| More | [Upgrading](docs/upgrade.md) · [Comparison with Spatie, Bouncer, Laratrust, Casbin](docs/comparison.md) · [Roadmap](ROADMAP.md) |
 
 ## Packages
 
