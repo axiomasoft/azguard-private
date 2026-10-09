@@ -9,6 +9,7 @@ use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Catalog\RoleCompiler;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\ConflictingPanelException;
@@ -47,7 +48,7 @@ use Illuminate\Support\Str;
 use Throwable;
 use UnitEnum;
 
-/** @phpstan-import-type CompiledRole from \AzGuard\Catalog\RoleCompiler */
+/** @phpstan-import-type CompiledRole from RoleCompiler */
 final class Authorizer
 {
     /** @var array<string,true> */

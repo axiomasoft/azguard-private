@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Console\Commands;
 
 use AzGuard\Changes\ChangePipeline;
+use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Panels\PanelResolver;
 use Illuminate\Console\Command;
@@ -31,7 +32,7 @@ final class StateResetCommand extends Command
         return $this->attempt(function () use ($pipeline, $resolver): int {
             $panel = $resolver->select(panels: [$this->stringArgument('panel')]);
             $this->confirmIrreversible('Resetting the state of panel '.$panel->id(), $this->option('force') === true);
-            $state = $this->asSystem(static fn () => $pipeline->reset($panel));
+            $state = $this->asSystem(static fn (): StateToken => $pipeline->reset($panel));
             $this->components->info('Panel '.$panel->id().' has a new state: incarnation '.$state->incarnation.', version '.$state->version.'.');
 
             return self::SUCCESS;

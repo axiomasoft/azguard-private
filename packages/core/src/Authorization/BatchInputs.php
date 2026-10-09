@@ -21,6 +21,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\Query\EligibilityBuilder;
+use AzGuard\Sources\PanelSources;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
@@ -29,7 +30,7 @@ use RuntimeException;
 use Throwable;
 
 /** @internal Fresh host inputs and eligibility witnesses of one batch attempt; never request memo.
- * @phpstan-import-type Attached from \AzGuard\Sources\PanelSources
+ * @phpstan-import-type Attached from PanelSources
  */
 final class BatchInputs
 {

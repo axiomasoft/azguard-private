@@ -56,9 +56,7 @@ final readonly class PolicyDecider
             $result = $this->invoker->invoke(callback: [$policy, 'before'], inputs: ['ability' => $ability, ...$inputs]);
         }
 
-        if ($result === null) {
-            $result = $this->invoker->invoke(callback: $callback, inputs: $inputs);
-        }
+        $result ??= $this->invoker->invoke(callback: $callback, inputs: $inputs);
         $message = $status = $code = null;
         $response = $result instanceof Response;
 

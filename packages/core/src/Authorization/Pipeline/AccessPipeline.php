@@ -105,7 +105,7 @@ final readonly class AccessPipeline
         $decision = $decision->allowed()
             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
-        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(static fn ($state): array => get_object_vars($state), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
+        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(get_object_vars(...), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;

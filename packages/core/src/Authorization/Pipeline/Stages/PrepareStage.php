@@ -115,7 +115,6 @@ final readonly class PrepareStage
         if ($boundaryDenial !== null || $denial !== null) {
             return [$catalog, $definition ?? new PermissionDefinition($request->permission()->local(), PermissionAuthority::Grants), $frame, $boundaryDenial ?? $denial];
         }
-        $panel = $frame->panel();
         $error = null;
 
         if ($definition === null && $catalog->isDynamic()) {

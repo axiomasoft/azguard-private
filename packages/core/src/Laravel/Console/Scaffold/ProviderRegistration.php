@@ -88,8 +88,9 @@ final readonly class ProviderRegistration
     {
         $depth = 1;
         $found = null;
+        $counter = count($tokens);
 
-        for ($index = $start + 1; $index < count($tokens); $index++) {
+        for ($index = $start + 1; $index < $counter; $index++) {
             $text = $tokens[$index]['text'];
 
             if ($depth === 1 && in_array($text, ["'".$key."'", '"'.$key.'"'], true)

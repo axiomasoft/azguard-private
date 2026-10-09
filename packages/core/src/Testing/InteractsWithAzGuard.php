@@ -39,7 +39,6 @@ trait InteractsWithAzGuard
      * Grants the permissions to the subject, tenant-wide or in the scope `$on`, and signs it in on the guard of the panel.
      *
      * @param  list<string|UnitEnum>  $permissions
-     * @return $this
      */
     public function actingAsWithPermissions(Model $subject, array $permissions, Model|AssignmentScopeRef|null $on = null, ?string $panel = null): static
     {
@@ -53,7 +52,6 @@ trait InteractsWithAzGuard
     /**
      * Grants the superadmin role of the panel to the subject and signs it in on the guard of the panel.
      *
-     * @return $this
      *
      * @throws UnknownRoleException when the panel has no superadmin role
      */
@@ -78,7 +76,6 @@ trait InteractsWithAzGuard
         return $this->azguardSignIn($subject, $selected->subject($subject)?->guard);
     }
 
-    /** @return $this */
     private function azguardSignIn(Model $subject, ?string $guard): static
     {
         if (! $subject instanceof Authenticatable) {

@@ -111,7 +111,7 @@ final class FilamentGenerateCommand extends Command
             $segments = explode('.', $key->local);
 
             if ($key->surface === FilamentSurface::Resource) {
-                $ability = (string) array_pop($segments);
+                $ability = array_pop($segments);
                 $nav = $key->group === null ? '' : Str::studly($key->group);
                 $path = implode('/', [...(preg_match('/\A[A-Z][A-Za-z0-9]*\z/', $nav) === 1 ? [$nav] : []), ...array_map(Str::studly(...), $segments)]);
                 $case = Str::studly($ability);

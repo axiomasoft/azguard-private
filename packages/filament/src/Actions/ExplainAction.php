@@ -60,7 +60,7 @@ final class ExplainAction
             Select::make('context_type')->label('Context type')
                 ->options([GrantEditor::TENANT_WIDE => 'Whole tenant', ...$editor->scopeTypes()])
                 ->live()
-                ->afterStateUpdated(static fn (Set $set) => $set('context', null)),
+                ->afterStateUpdated(static fn (Set $set): mixed => $set('context', null)),
             Select::make('context')->label('Context')
                 ->searchable()
                 ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor->inspectContexts($get('context_type'), (string) $search))

@@ -118,7 +118,7 @@ final class PanelCatalog implements PermissionCatalog
                 continue;
             }
 
-            foreach (self::untrusted($source->permissions($panel, null)) as $definition) {
+            foreach (self::untrusted($source->permissions($panel)) as $definition) {
                 if (! $definition instanceof PermissionDefinition) {
                     throw new InvalidSourceContributionException(
                         'Source "'.$source->id().'" of panel "'.$panel->id().'" returned '.get_debug_type($definition)

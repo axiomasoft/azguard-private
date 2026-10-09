@@ -168,7 +168,7 @@ final class PanelFingerprint
         if ($item instanceof PolicyBinding) {
             $permission = $item->permission instanceof UnitEnum
                 ? $item->permission::class.'::'.$item->permission->name
-                : (string) $item->permission;
+                : $item->permission;
 
             return [
                 'permission' => $permission,

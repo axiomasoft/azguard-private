@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use Illuminate\Console\Command;
 
@@ -41,7 +42,7 @@ final class PermissionsGrantCommand extends Command
             $fields = $this->fields((array) $this->option('field'));
 
             return $this->reportChange('Grant of permission '.$permission.' to '.$subject->key(),
-                $this->asSystem(static fn () => $access->grantPermission($permission, $context, $until, $fields)));
+                $this->asSystem(static fn (): ChangeResult => $access->grantPermission($permission, $context, $until, $fields)));
         });
     }
 }

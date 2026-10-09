@@ -64,7 +64,7 @@ final readonly class GrantFilter
         public ?DateTimeInterface $expiresBefore = null,
         public ?ActorRef $grantedBy = null,
     ) {
-        if ($kind !== null && $kind !== 'role' && $kind !== 'permission') {
+        if (! in_array($kind, [null, 'role', 'permission'], true)) {
             throw new InvalidArgumentException('A grant filter kind is "role", "permission" or null.');
         }
 

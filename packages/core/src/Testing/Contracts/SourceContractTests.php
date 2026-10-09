@@ -12,6 +12,7 @@ use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
@@ -97,7 +98,7 @@ trait SourceContractTests
     {
         $source = $this->azguardSource();
         $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $this->azguardAttach($builder, $source));
-        $ids = array_map(static fn ($description): string => $description->id, $panel->sources());
+        $ids = array_map(static fn (SourceDescription $description): string => $description->id, $panel->sources());
 
         $this->assertContains($source->id(), $ids, 'The panel does not list the source among its sources.');
     }

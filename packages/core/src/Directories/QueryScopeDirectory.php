@@ -37,9 +37,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
 {
-    public const CHUNK = 200;
+    public const int CHUNK = 200;
 
-    public const MAX_SCAN = 10000;
+    public const int MAX_SCAN = 10000;
 
     public function __construct(
         private Container $container,

@@ -12,6 +12,7 @@ use AzGuard\Laravel\Console\Scaffold\PolicyFile;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Permissions\PolicyOnly;
 use ReflectionEnum;
+use ReflectionEnumUnitCase;
 
 /**
  * The policy of a group, `Policies/{Group}/{Name}Policy.php`, for the one permission enum of the group, or for the enum
@@ -80,7 +81,7 @@ final class MakePolicyCommand extends MakeCommand
         if (! enum_exists($name) || (new ReflectionEnum($name))->getBackingType()?->getName() !== 'string') {
             throw new InvalidCommandInput('--enum must be a string-backed enum that can be loaded; "'.$name.'" is not.');
         }
-        $cases = array_values(array_map(static fn ($case): string => $case->getName(), (new ReflectionEnum($name))->getCases()));
+        $cases = array_values(array_map(static fn (ReflectionEnumUnitCase $case): string => $case->getName(), (new ReflectionEnum($name))->getCases()));
 
         if ($cases === []) {
             throw new InvalidCommandInput($name.' has no cases to decide.');

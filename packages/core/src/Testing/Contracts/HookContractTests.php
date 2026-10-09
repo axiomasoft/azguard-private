@@ -69,7 +69,7 @@ trait HookContractTests
             return;
         }
         $source = new FakeSource;
-        $panel = ContractWorld::panel(static fn (PanelBuilder $builder) => $builder->permissions([$source])->before([$hook]));
+        $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->before([$hook]));
         $subject = $this->azguardSubject();
         $decisions = [];
 
@@ -99,7 +99,7 @@ trait HookContractTests
             return;
         }
         $observed = new ObservedPipe($pipe);
-        $panel = ContractWorld::panel(static fn (PanelBuilder $builder) => $builder->permissions([DatabaseSource::make()])->changing([$observed]));
+        $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([DatabaseSource::make()])->changing([$observed]));
         $subject = $this->azguardSubject();
 
         try {
@@ -121,7 +121,7 @@ trait HookContractTests
 
             return;
         }
-        $panel = ContractWorld::panel(static fn (PanelBuilder $builder) => $builder->permissions([DatabaseSource::make()])->changing([$pipe, new CancellingPipe]));
+        $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([DatabaseSource::make()])->changing([$pipe, new CancellingPipe]));
         $subject = $this->azguardSubject();
         $before = ContractWorld::rowCounts();
 

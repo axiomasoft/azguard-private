@@ -67,7 +67,7 @@ final readonly class BatchEvaluation
 
             try {
                 $set = DecisionSet::of(...array_values($decisions));
-            } catch (ConsistencyException $error) {
+            } catch (ConsistencyException) {
                 if ($setAttempt < 2) {
                     continue;
                 }

@@ -10,6 +10,7 @@ use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Catalog\RoleCompiler;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -39,7 +40,7 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
-/** @phpstan-import-type CompiledRole from \AzGuard\Catalog\RoleCompiler */
+/** @phpstan-import-type CompiledRole from RoleCompiler */
 final readonly class AuthorityStage
 {
     public function __construct(private Container $container, private PanelRegistry $registry, private PolicyDecider $policies) {}
@@ -114,7 +115,7 @@ final readonly class AuthorityStage
         [$frame, $denial, $count] = $this->walk($request, $frame, $catalog, $trace,
             function (Source $source, Grant|RoleContribution $item, ?array $roleDefinition) use ($request, $trace, &$matching, &$superAdmin, &$qualified): void {
                 $admin = $item instanceof RoleContribution && $this->superAdmin($roleDefinition);
-                $covers = $item instanceof Grant ? PatternMatcher::covers($item->pattern->local(), $request->permission()->local()) : false;
+                $covers = $item instanceof Grant && PatternMatcher::covers($item->pattern->local(), $request->permission()->local());
 
                 if ($item instanceof RoleContribution && $roleDefinition !== null) {
                     foreach ($roleDefinition['permissions'] as $pattern) {

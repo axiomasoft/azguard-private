@@ -26,6 +26,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
+use AzGuard\Storage\PanelState;
 use AzGuard\Storage\StorageMutation;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -295,7 +296,7 @@ final readonly class ChangePipeline
 
         return $this->operate($panel, TenantRef::global(), static fn (LockedReads $reads, ?ActorRef $actor): array => [
             Change::touchPanel($panel->id(), 'reset', $actor),
-        ], $actor, static fn () => $storage->renewIncarnation($panel->id()))->state;
+        ], $actor, static fn (): PanelState => $storage->renewIncarnation($panel->id()))->state;
     }
 
     /**

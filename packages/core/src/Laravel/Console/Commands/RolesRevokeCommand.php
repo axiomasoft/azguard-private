@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use Illuminate\Console\Command;
 
@@ -37,7 +38,7 @@ final class RolesRevokeCommand extends Command
             $context = $this->contextOption();
 
             return $this->reportChange('Revocation of role '.$role.' from '.$subject->key(),
-                $this->asSystem(static fn () => $access->revokeRole($role, $context)));
+                $this->asSystem(static fn (): ChangeResult => $access->revokeRole($role, $context)));
         });
     }
 }

@@ -81,7 +81,7 @@ final readonly class Change
         }
 
         if ($type->isAction()) {
-            self::assertAction($type, $panel, $scope, $subject, $role, $permission, $until, $fields, $grantId, $expectedFingerprint, $name, $details);
+            self::assertAction($type, $scope, $subject, $role, $permission, $until, $fields, $grantId, $expectedFingerprint, $name, $details);
 
             return;
         }
@@ -348,7 +348,7 @@ final readonly class Change
      *
      * @throws InvalidIdentityException
      */
-    private static function assertAction(ChangeType $type, string $panel, AccessScope $scope, ?SubjectRef $subject, ?RoleKey $role,
+    private static function assertAction(ChangeType $type, AccessScope $scope, ?SubjectRef $subject, ?RoleKey $role,
         ?PermissionPattern $permission, ?DateTimeImmutable $until, array $fields, ?string $grantId, ?string $expectedFingerprint,
         ?string $name, ?PermissionDetails $details): void
     {

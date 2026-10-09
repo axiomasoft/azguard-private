@@ -142,9 +142,7 @@ final class AzGuardServiceProvider extends ServiceProvider
         $router->aliasMiddleware(CheckPermission::ALIAS, CheckPermission::class);
 
         if ($this->app->make(AzGuardConfig::class)->gateEnabled()) {
-            $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
-                return $this->app->make(GateBridge::class)($user, $ability, $arguments);
-            });
+            $this->app->make(Gate::class)->before(fn (?object $user, string $ability, array $arguments): ?Response => $this->app->make(GateBridge::class)($user, $ability, $arguments));
         }
 
         if ($this->app->runningInConsole()) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Panels\PanelResolver;
 use Illuminate\Console\Command;
@@ -36,7 +37,7 @@ final class PermissionsDeleteCommand extends Command
             $this->confirmIrreversible('Deleting permission '.$local.' and its grants', $this->option('force') === true);
 
             return $this->reportChange('Deletion of permission '.$local,
-                $this->asSystem(static fn () => $access->permissions()->delete($local)));
+                $this->asSystem(static fn (): ChangeResult => $access->permissions()->delete($local)));
         });
     }
 }

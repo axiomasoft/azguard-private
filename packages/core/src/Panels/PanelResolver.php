@@ -309,7 +309,7 @@ final class PanelResolver
 
         if (count($allowed) > 1) {
             throw new AmbiguousPanelException(
-                ucfirst((string) array_key_first($signals)).' is attached to panels '.self::listed($allowed)
+                ucfirst(array_key_first($signals)).' is attached to panels '.self::listed($allowed)
                 .': name the panel explicitly.',
             );
         }

@@ -327,9 +327,7 @@ final readonly class PanelSources
             return;
         }
 
-        $container->scoped($abstract, static function (Container $container) use ($name, $panel): Source {
-            return $container->make(SourceManager::class)->make($name, $panel);
-        });
+        $container->scoped($abstract, static fn (Container $container): Source => $container->make(SourceManager::class)->make($name, $panel));
     }
 
     private static function abstract(string $panel, string $name): string
