@@ -106,3 +106,38 @@ it('reads the subject again when the held model is not exactly the referenced st
     })->newQuery()->findOrFail(1),
     'not a model' => fn () => fn () => new stdClass,
 ]);
+
+it('resolves only the row whose key is the id as written and never queries an id an integer key cannot hold', function (): void {
+    [, $panel] = AuthorizationWorld::compile(new GeneratedSource);
+    $resolver = new ModelSubjectResolver;
+    $queries = [];
+    DB::listen(function ($query) use (&$queries): void {
+        $queries[] = $query->sql;
+    });
+
+    // SQLite and MySQL coerce '01' and ' 1' to the row 1, PostgreSQL rejects 'a/b' with an error: none of them is user 1.
+    foreach (['a/b', 'A:B', '1.0', '9223372036854775808'] as $id) {
+        expect($resolver->resolve($panel, SubjectRef::of('user', $id)))->toBeNull();
+    }
+    expect($queries)->toBe([]);
+    expect($resolver->resolve($panel, SubjectRef::of('user', '01')))->toBeNull()
+        ->and($resolver->resolve($panel, SubjectRef::of('user', '1'))?->getKey())->toBe(1);
+});
+
+it('keeps a batch whole when one subject id cannot be a key and reads no model for it', function (): void {
+    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource);
+    $seen = [];
+    RuntimePolicy::$callback = function ($user) use (&$seen): bool {
+        $seen[] = $user?->getKey();
+
+        return true;
+    };
+    $policy = PermissionKey::of('admin', 'orders.policy');
+    $set = $engine->decideMany([AccessRequest::for(SubjectRef::of('user', 'a/b'), $policy), AccessRequest::for(SubjectRef::of('user', '01'), $policy),
+        AccessRequest::for($request->subject(), $policy)]);
+
+    foreach ([0, 1, 2] as $index) {
+        expect($set->get($index)->reason)->not->toBe(DecisionReason::SourceError);
+    }
+    expect($seen)->toContain(1)->not->toContain('01');
+});
