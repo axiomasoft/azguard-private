@@ -12,20 +12,23 @@
 
 1. **Главная цель — правильное разделение функциональности**, а не пакеты ради пакетов: каждая граница
    обоснована ответственностью (цель, кто пользуется, причины изменений, направление зависимостей). Часть
-   уходит во встроенные плагины, часть — в отдельные пакеты, часть остаётся в ядре; критерии — раздел 2.
-2. **Свобода будущих решений.** Если понадобится вынести модуль или распространять часть иначе, это должно быть
-   переносом файлов без смены публичного API.
-3. **1.0 не выходит с нестабильным API.** Всё, что после 1.0 стало бы BC-break, решается до него (раздел 3).
+   остаётся в ядре, часть становится модулями внутри пакета, отдельный пакет — только самодостаточная
+   интеграция; критерии — раздел 2.
+2. **Свобода будущих решений.** Любая будущая перестройка — перенос файлов без смены публичного API и без
+   изменения данных; схема БД замораживается сейчас (раздел 6).
+3. **1.0 не выходит с нестабильным API.** Всё, что после 1.0 стало бы BC-break, решается до него (раздел 5).
 
 **Короткий вывод.** Ядро у пакета хорошее и почти всё должно остаться ядром: снимок чтения, конвейер, хранилище,
-изоляция тенанта — это корректность. По критериям из отдельной функциональности получается немного: **три
-встроенных плагина** (области назначения, `RelationSource`, аудит) и **один пакет** (Filament; новые — только при
-внешней зависимости, своём цикле релизов или лицензии). Прежнее предложение о пакетах `tenancy`, `sources`,
-`audit`, `devtools` критериям не прошло (2.3). Главная работа — не вынос, а **стабилизация до 1.0**: разметка
-и бюджет API (246 типов, 138 без маркера), контракты без реализаций (14 зон), способности SPI вместо 26
-`instanceof` в движке, namespace по будущим границам, формы `StateToken`/`Decision`, словари и хранимые форматы.
-Оценка — 34–57 рабочих дней. Порядок: стабилизировать в текущем пакете → 1.0 по критерию 3.1 → физический
-вынос потом и только по критериям, без смены API (раздел 4).
+изоляция тенанта, все источники — это корректность или общий язык. Отдельный Composer-пакет оправдан только для
+самодостаточной интеграции с другим продуктом — это **Filament**. Всё необязательное, что имеет смысл только внутри
+AzGuard, — **модули в том же пакете** со своими корнями namespace и каталогами: `AzGuard\Scopes` (области
+назначения), `AzGuard\Audit` (журнал), `AzGuard\DevTools` (генераторы) (разделы 2–3). Модули не знают друг
+друга и говорят с ядром через SPI, события и точки конвейера (раздел 4). Схема БД замораживается сейчас: она уже
+почти совпадает с границами, меняется только владелец `azg_audit_log` (раздел 6). Главная работа — **стабилизация
+до 1.0**: разметка и бюджет API (246 типов, 138 без маркера), контракты без реализаций (14 зон), способности SPI
+вместо 26 `instanceof` в движке, раскладка по финальным namespace, формы `StateToken`/`Decision`, словари. Оценка —
+42–60 рабочих дней. Порядок: схема → стабилизация в текущем пакете → 1.0 по критерию 5.1 → дальше без смены API и
+данных (раздел 7).
 
 ## 1. Что есть сейчас: инвентаризация
 
@@ -182,7 +185,7 @@
 | `RelationSource` как плагин | нет своих артефактов (М2) | источник ядра рядом с `DatabaseSource`, `FolderSource`, `GateSource` |
 | генераторы в ядре по конвенции Laravel | загромождают ядро; свои артефакты есть | модуль `AzGuard\DevTools`, команды регистрируются только в консоли |
 | `Directories/` → Filament | нужны любому UI | ядро, отдельный сервис |
-| критерий пакета «своя зависимость, цикл релизов или лицензия» | разрешал пакеты, которые без AzGuard бессмысленны | пакет — только самодостаточная интеграция с другим продуктом |
+| критерий пакета «своя зависимость или свой цикл релизов» | разрешал пакеты, которые без AzGuard бессмысленны | пакет — только самодостаточная интеграция с другим продуктом |
 
 ### 2.4. Минимальное ядро для новичка
 
@@ -210,7 +213,171 @@
 - **Не делать:** вынос тенантов целиком (ослабляет изоляцию в типах, меняет формат грантов) и слияние тенанта и
   области в одно понятие (тенант — граница безопасности, область — граница применимости гранта).
 
-## 3. Что стабилизировать до 1.0
+## 3. Итоговая раскладка
+
+### 3.1. Пакеты и модули
+
+| Единица | Категория | Namespace / каталог | Отвечает за |
+|:--|:--|:--|:--|
+| `axiomasoft/azguard` | пакет | — | всё ниже, кроме Filament; один `composer require` |
+| ядро | ядро | `AzGuard\<Зона>`, `src/` | решение, хранение и запись грантов, изоляция тенанта, источники, `visibleTo`, батч, события, диагностика, интеграция с Laravel, тестовый набор |
+| области назначения | модуль | `AzGuard\Scopes`, `modules/scopes/` | где внутри тенанта действует грант: типы областей, наследование ролей, резолверы, eligibility |
+| аудит | модуль | `AzGuard\Audit`, `modules/audit/` | журнал изменений в транзакции записи, ретеншн, чистка |
+| инструменты разработчика | модуль | `AzGuard\DevTools`, `modules/devtools/` | генераторы `azguard:make:*`, скаффолдинг, stubs |
+| `axiomasoft/azguard-filament` | пакет | `AzGuard\Filament`, `packages/filament/` | интеграция с Filament для пользователей Filament |
+
+Самодостаточный пакет вроде интеграции с Filament при необходимости может распространяться под своей лицензией;
+функциональность внутри пакета по такому признаку не делится.
+
+### 3.2. Дерево и автозагрузка
+
+```text
+packages/
+├── core/                               axiomasoft/azguard
+│   ├── composer.json                   psr-4: "AzGuard\\": "src/",
+│   │                                          "AzGuard\\Scopes\\": "modules/scopes/src/",
+│   │                                          "AzGuard\\Audit\\": "modules/audit/src/",
+│   │                                          "AzGuard\\DevTools\\": "modules/devtools/src/"
+│   │                                   laravel.providers: AzGuardServiceProvider,
+│   │                                          Audit\AuditServiceProvider, DevTools\DevToolsServiceProvider
+│   ├── config/ database/migrations/    только таблицы ядра
+│   ├── src/
+│   │   ├── Kernel/ Exceptions/ Contracts/{Sources,Authorization,Plugins,Diagnostics,Tenancy,Scopes,Changes,Values}/
+│   │   ├── Panels/ Catalog/ Roles/ Permissions/ Attributes/ Policies/ Schema/
+│   │   ├── Authorization/ Storage/ Sources/{Database,Folder,Gate,Relation}/ Changes/
+│   │   ├── Tenancy/                    TenantPolicy, ModelTenantDefinition, MembershipRestriction,
+│   │   │                               CurrentContext, WithinContext, GlobalScopeEvaluator
+│   │   ├── Events/ Diagnostics/ Directories/ Laravel/ Facades/ Concerns/ Testing/
+│   │   └── (нет Scopes/, Audit/, DevTools/, Plugins/Audit/, Laravel/Console/{Make,Scaffold}/)
+│   └── modules/
+│       ├── scopes/src/                 ScopesPlugin, ScopeEvaluator, Definitions/{BaseAssignmentScope,
+│       │                               ModelAssignmentScopeDefinition}, AssignmentScopePolicy, RoleBindings,
+│       │                               Query/{EligibilityBuilder,PredicateBuilder,…}, Diagnostics/
+│       ├── audit/                      src/{AuditPlugin,RecordChange,AuditJournal,AuditServiceProvider,
+│       │                               Console/AuditPruneCommand,Diagnostics/AuditTableExists}, database/migrations/
+│       └── devtools/                   src/{DevToolsServiceProvider,Console/Make/*,Console/Scaffold/*,
+│                                       Console/StubsCommand}, stubs/
+└── filament/                           axiomasoft/azguard-filament (как сейчас)
+```
+
+PSR-4 выбирает самый длинный префикс, поэтому `AzGuard\Audit\…` ищется только в `modules/audit/src`. Арх-тест
+запрещает каталоги `src/Scopes`, `src/Audit`, `src/DevTools`, чтобы префиксы не пересекались.
+
+### 3.3. Регистрация и включение
+
+| Модуль | Как включается | Что регистрирует | Стоимость, если не включён |
+|:--|:--|:--|:--|
+| `Scopes` | на панели: `->plugins([ScopesPlugin::make()->types([...])->resolvers([...])->resourceScopes([...])])` | в `Plugin::register()` — `ScopeEvaluator` как реализацию SPI `AssignmentScopeEvaluator` (раздел 4), свои doctor-проверки через `doctorChecks()` | ядро использует `Tenancy\GlobalScopeEvaluator`: только глобальная область; без провайдера и таблиц |
+| `Audit` | на панели: `->plugins([AuditPlugin::make()->retention(90)])` | `AuditServiceProvider`: команда `azguard:audit:prune`, публикация миграции (`vendor:publish --tag=azguard-audit-migrations`); плагин — change pipe `RecordChange` и проверка `AuditTableExists` | таблица не создаётся, пока миграция не опубликована; команда есть, но без плагина на панели ничего не делает |
+| `DevTools` | автоматически, только в консоли | `DevToolsServiceProvider`: команды `make:*` при `runningInConsole()`, публикация stubs | в HTTP-запросе — ноль |
+
+Все id плагинов модулей — с зарезервированным префиксом `azguard/` (`azguard/scopes`, `azguard/audit`).
+
+### 3.4. Перенос: текущий код → целевое место
+
+Пути — от `packages/core/src`.
+
+| Сейчас | Куда | Примечание |
+|:--|:--|:--|
+| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,WithinContext}.php` | `src/Tenancy/` | ядро |
+| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings,ContextAware,ModelIdentity}.php`, `Scopes/Query/*`, `Authorization/ScopeEligibility.php` | `modules/scopes/src/` | `AssignmentScopePhase`, `AssignmentScopeRuntime` — в `Contracts/Values/`: их используют `ChangeValidator`, `Directories`, Filament |
+| `Contracts/Scopes/{TenantResolver,TenantMembership}.php` | `Contracts/Tenancy/` | |
+| `Contracts/Scopes/*` (определения, разрешённая область, ресурсы, членство, резолверы) | остаются в `Contracts/Scopes/` | на них ссылаются роли, источники, ресурсы (2.5) |
+| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `Directories/Contracts/` | сервис справочников |
+| `Plugins/Audit/**`, `Changes/ChangeJournal.php`, `Laravel/Console/Commands/AuditPruneCommand.php`; `audit_log` из `Storage/Schema/StorageSchema.php:63`, запись `Sources/Database/DatabaseSource.php:669`, чистка `Changes/ChangePipeline.php:323`, колонки в `Sources/Database/StorageHealth.php:20` | `modules/audit/` | модуль пишет через `StorageMutation` (`@spi`) |
+| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `Laravel/Console/Commands/StubsCommand.php`, `packages/core/stubs/**` кроме `storage-migration.stub` | `modules/devtools/` | `azguard:install` и `azguard:storage:migration` (`StorageMigrationCommand`, его stub) остаются в ядре: это установка ядра, а не генерация кода |
+| `Plugins/{BasePlugin,PluginContext}.php` | `Contracts/Plugins/` + `Panels/` | SPI плагинов |
+| `Sources/Relation/**` | без изменений | `instanceof RelationSource` → способность SPI |
+| `Concerns/ScopedPanelAccess.php`, `Contracts/PanelAccess.php::directories()` | сервис `Directories` | |
+| остальное | без изменений | |
+
+## 4. Взаимодействие модулей
+
+### 4.1. Правила
+
+1. **Модуль ↔ ядро** — только через `@spi`/`@api`, события ядра и точки конвейера: источники
+   (`Contracts/Sources/*`), стадии `before`/`restrictions`/`after`, `grantConditions`, change pipes (`changing`),
+   `doctorChecks`, `Plugin::register()`/`boot()`.
+2. **Модуль ↔ модуль — напрямую никогда.** Общие данные идут значениями `Kernel` (`AssignmentScopeRef`,
+   `TenantRef`, `SubjectRef`) внутри объектов ядра (`Change`, `ChangeEffect`, события).
+3. **Пакет ↔ модуль** — через ядро. Если без прямой связи не обойтись, мост принадлежит **зависимой стороне**
+   (пакету), живёт в `AzGuard\Filament\Bridges\<Модуль>` и включается, только если на панели есть плагин модуля
+   (`Panel::pluginIds()` содержит `azguard/<модуль>`).
+4. **Ядро не знает модулей**: в `src/` нет `use AzGuard\Scopes|Audit|DevTools`, нет их таблиц и `instanceof`.
+   Для каждой нужной ядру способности модуля в ядре есть интерфейс и поведение по умолчанию.
+
+### 4.2. Что нужно ядру
+
+| Контракт | Статус | Зачем |
+|:--|:--|:--|
+| `Contracts/Scopes/AssignmentScopeEvaluator` | **новый** | одна точка, через которую движок, запись, видимость и Gate спрашивают об областях; реализация по умолчанию — `Tenancy\GlobalScopeEvaluator`, полная — `Scopes\ScopeEvaluator` |
+| `Contracts/Values/{AssignmentScopePhase,AssignmentScopeRuntime}` | перенос из `Scopes/` | значения, которые нужны `ChangeValidator`, `Directories` и Filament |
+| `Contracts/Scopes/{AssignmentScopeDefinition,QueryableAssignmentScopeDefinition,ResolvedAssignmentScope,ProvidesAssignmentScope,ProvidesAccessScope,AssignmentScopeMembership,ResourceScopeResolver,AssignmentScopeResolver}` | есть | на них ссылаются роли, источники, ресурсы, валидатор |
+| `Storage/StorageMutation` как `@spi` + помощник колонок хоста (`Storage/Schema/HostKeyColumns`) | пометить | модуль аудита пишет в своей таблице в транзакции записи и строит миграцию с теми же типами ключей |
+| `Panel::pluginIds()` | есть, пометить `@api` | мосты и команды модулей проверяют, включён ли модуль на панели |
+| способности источников вместо `instanceof` | **новые** | `RelationSource`, `DatabaseSource`, `FolderSource` без особых случаев в движке (раздел 5, п. 4) |
+
+Набросок `AssignmentScopeEvaluator` (имена уточняются): `current()` — текущая область запроса через
+`AssignmentScopeResolver`; `applicable()` — какие вклады ролей (`Kernel/Decision/RoleContribution`) действуют в
+области с учётом наследования, или причина отказа `context_*`; `predicate()` — `Kernel/Decision/AccessPredicate` для
+`visibleTo` и батча; `admit()` — допустимость выдачи или отзыва в области при записи; `resourceScope()` — область
+ресурса для Gate.
+
+### 4.3. Пары
+
+| Пара | Сейчас (по коду) | Целевой механизм | Контракты ядра |
+|:--|:--|:--|:--|
+| `Scopes` → решение | `Authorization/ScopeEligibility.php`, `Pipeline/Stages/{Boundary,Authority}Stage.php` используют классы областей | стадии Boundary/Authority вызывают `AssignmentScopeEvaluator::applicable()` | `AssignmentScopeEvaluator`, `RoleContribution`, `DecisionReason` |
+| `Scopes` → `visibleTo` и батч | `Authorization/Query/VisibilityScope.php`, `Scopes/Query/*`, `BatchInputs.php` | `predicate()` возвращает `AccessPredicate`; SQL строит модуль | `AccessPredicate`, `FiltersAccessQueries` |
+| `Scopes` ↔ роли | `BaseRole::scopes()` отдаёт `AssignmentScopeDefinition[]`; `Catalog/RoleCompiler.php` импортирует `Scopes\ScopeConfiguration` | роль объявляет типы областей через контракт; `RoleCompiler` хранит только алиасы; привязки (`RoleBindings`) строит модуль в `register()` | `AssignmentScopeDefinition` |
+| `Scopes` ↔ запись | `Changes/ChangeValidator.php` импортирует `Scopes\{AssignmentScopePhase,AssignmentScopeRuntime}` | валидатор вызывает `admit()`; фаза — значение ядра | `AssignmentScopeEvaluator`, `AssignmentScopeMembership`, `ResourceScopeResolver`, `Contracts/Values` |
+| `Scopes` ↔ тенант (ядро) | оба в `AzGuard\Scopes` | модуль зависит от `Tenancy` (владелец области — тенант в `ResolvedAssignmentScope`); `Tenancy` о модуле не знает | `AccessScope`, `TenantRef`, `ResolvedAssignmentScope` |
+| `Scopes` ↔ источники | `Sources/Relation/{RelationSource,RelationBinding}.php` используют `QueryableAssignmentScopeDefinition` | без изменений: только контракт | `QueryableAssignmentScopeDefinition`, `ResolvedAssignmentScope` |
+| `Scopes` ↔ Gate и HTTP | `Laravel/Gate/GateBridge.php` → `Scopes\ModelIdentity`; `Laravel/Http/Middleware/EnterPanel.php` → `Scopes\CurrentContext` | `GateBridge` спрашивает `resourceScope()`; `CurrentContext` переезжает в `Tenancy` | `AssignmentScopeEvaluator`, `ProvidesAssignmentScope` |
+| `Scopes` ↔ справочники | `Directories/QueryScopeDirectory.php`, `LookupContext` | определение области отдаёт свой `AssignmentScopeDirectory`; сервис справочников его вызывает | `AssignmentScopeDirectory`, `AssignmentScopePhase` |
+| `Scopes` ↔ события | события несут `AssignmentScopeRef $context` (`Events/RoleGranted.php`) | без изменений: значение `Kernel` | `AssignmentScopeRef` |
+| `Scopes` ↔ `Audit` | — | **напрямую нет**: аудит пишет область из `Change`/`ChangeEffect` как `AssignmentScopeRef` | `Change`, `ChangeEffect` |
+| `Audit` → запись | `Plugins/Audit/RecordChange.php` (change pipe), но хранение в ядре | `RecordChange` в `changing`, запись через `StorageMutation` в той же транзакции; ядро не знает `audit_log` | change pipes, `StorageMutation` |
+| `Audit` ↔ тенант | `StorageSchema.php:82` строит ограничения `audit_log` по тенанту | миграция модуля строит колонки тенанта помощником ядра | `HostKeyColumns`, `TenantRef` |
+| `Audit` ↔ диагностика и консоль | `AuditTableExists`, `AuditPruneCommand` в ядре | `doctorChecks()` из плагина; команда — из `AuditServiceProvider`, работает по `Panel::pluginIds()` | `DoctorCheck`, `Panel::pluginIds()` |
+| `DevTools` → ядро | генераторы в ядре | stubs генерируют код против `@api`/`@spi` (`source.stub`, `restriction.stub`, `plugin.stub`, `change-pipe.stub`); `make:models` читает `Schema` | `Schema`, контракты |
+| `DevTools` ↔ другие модули | — | **нет**: генератор для понятия модуля живёт в самом модуле | — |
+| Filament → ядро | только манифест (`tests/Arch/ApiManifestTest.php`); `FilamentTenantResolver implements TenantResolver` | без изменений | манифест |
+| Filament ↔ `Scopes` | `Editors/{GrantEditor,TargetSelector}.php` импортируют `Scopes\{AssignmentScopePhase,CurrentContext}` | через ядро: фаза из `Contracts/Values`, контекст из `Tenancy`, списки областей из сервиса справочников | `Directories`, `Contracts/Values` |
+| Filament ↔ `Audit` | — | если понадобится страница журнала — мост `AzGuard\Filament\Bridges\Audit`, только при `azguard/audit` на панели | `@api` модуля аудита |
+
+### 4.4. Схема
+
+```mermaid
+flowchart LR
+  subgraph pkg["axiomasoft/azguard"]
+    subgraph core["ядро (src/)"]
+      K["Kernel: AssignmentScopeRef, TenantRef, Decision"]
+      C["Contracts: AssignmentScopeEvaluator, Sources, changing, doctorChecks, Plugin"]
+      E["Authorization: конвейер, visibleTo, батч"]
+      W["Changes: ChangePipeline, ChangeValidator"]
+      S["Storage: StorageMutation, снимок"]
+      T["Tenancy: TenantPolicy, CurrentContext, GlobalScopeEvaluator"]
+      EV["Events"]
+    end
+    SC["модуль Scopes"]
+    AU["модуль Audit"]
+    DT["модуль DevTools"]
+  end
+  FI["пакет azguard-filament"]
+  E --> C
+  W --> C
+  SC -- "реализует AssignmentScopeEvaluator" --> C
+  SC --> T
+  AU -- "change pipe RecordChange" --> W
+  AU -- "пишет через" --> S
+  DT -- "генерирует код против" --> C
+  FI -- "@api / @spi" --> core
+  FI -. "мост, если включён" .-> AU
+  W -- "события после commit" --> EV
+```
+
+## 5. Что стабилизировать до 1.0
 
 Позиция владельца: **1.0 не может выйти с нестабильным API.** Пакет ещё не выпущен (последний тег `v0.3.0`,
 в `CHANGELOG.md` только `[Unreleased]`, 0.3 не публиковался на Packagist), поэтому сейчас ломать можно, а после
@@ -224,11 +391,11 @@
 | 2 | Бюджет API | 246 типов (51 исключение, 45 контрактов) | чем больше поверхность, тем дороже каждая будущая правка | ≤ 140 типов: `@api` ≤ 90, `@spi` ≤ 50 (оценка; основной выигрыш — исключения и внутренние помощники) | в п. 1, 10 | низкий | да |
 | 3 | Контракты зависят от реализаций | `Contracts` → 14 зон (1.3), 37 контрактов без маркера | SPI нельзя заморозить, пока сигнатуры тянут внутренние классы | `Contracts/Values/` для DTO (`ChangeResult`, `GrantRecord`, `PermissionDefinition`, `LookupContext`, `Field`, `Reads`…); в сигнатурах SPI — только `@spi`/`Kernel` | 4–6 | средний | да |
 | 4 | Движок знает конкретные источники | 26 `instanceof DatabaseSource`/`FolderSource` в `Authorization/` + 14 импортов `Sources`/`Storage`; `instanceof RelationSource` в `PanelSources.php:130`, `PanelRegistry.php:208` | снимок чтения, публикация после commit и «живые» роли доступны только встроенным источникам; новый источник или вынос — смена SPI | способности в SPI (например, «источник открывает снимок чтения», «публикует после commit», «отдаёт фильтр видимости»), которые реализуют `DatabaseSource`, `FolderSource`, `RelationSource` | 4–6 | **высокий** (согласованность); страховка — race-тесты и бенч | SPI |
-| 5 | Namespace = границы | тенант и области в одном `AzGuard\Scopes`; `ChangeJournal` в `Changes`; хранилище аудита в ядре (`StorageSchema.php:63`, `DatabaseSource.php:669`, `ChangePipeline.php:323`); справочники в `Contracts/PanelAccess.php` | иначе вынос плагина — переименование публичных классов | `Tenancy\` (ядро) отдельно от `Scopes\` (плагин); плагины владеют своим хранилищем, миграцией, командами; справочники — отдельный сервис (раздел 5.2) | 4–6 | средний | да |
-| 6 | Области назначения как плагин | DSL `PanelBuilder::scopes()`/`scopeResolvers()`/`resourceScopes()`; логика в 10 из 20 файлов `Authorization` | если DSL останется в `PanelBuilder`, ядро навсегда знает о плагине; перенос DSL после 1.0 — BC-break | **минимум до 1.0:** DSL у плагина (`ScopesPlugin::make()->…`) и SPI стадии Boundary/фильтра видимости (2–3 дня). **Полностью:** логика за SPI (ещё 4–7 дней, можно и после 1.0, если SPI заморожен) | 2–3 / 6–10 | высокий | да (DSL) |
-| 7 | Тенант в идентичности ядра | `AccessScope(TenantRef, AssignmentScopeRef)` в `Kernel`, в `Decision::$scope`, в событиях | поменять форму после 1.0 нельзя | ADR: тенант и ссылка на область остаются в `Kernel` как формат идентичности; логика областей — плагин | 0,5 | низкий | нет |
+| 5 | Namespace и каталоги = границы | тенант и области в одном `AzGuard\Scopes`; аудит в `Plugins/Audit` + `Changes/ChangeJournal.php` + хранилище в ядре (`StorageSchema.php:63`, `DatabaseSource.php:669`, `ChangePipeline.php:323`); генераторы в `Laravel/Console/{Commands/Make,Scaffold}`; Filament импортирует `AzGuard\Scopes\{AssignmentScopePhase,CurrentContext}`; справочники в `Contracts/PanelAccess.php` | после 1.0 перенос класса — смена его имени | раскладка 3.2 и перенос 3.4: `src/Tenancy`, `modules/{scopes,audit,devtools}` с корнями `AzGuard\Scopes`, `AzGuard\Audit`, `AzGuard\DevTools`; PSR-4 и провайдеры в `composer.json`; аудит владеет таблицей и миграцией (S1, раздел 6); `AssignmentScopePhase`/`AssignmentScopeRuntime` → `Contracts/Values`; справочники — сервис | 5–7 | средний | да |
+| 6 | Области назначения как модуль | DSL `PanelBuilder::scopes()`/`scopeResolvers()`/`resourceScopes()`; логика в 10 из 20 файлов `Authorization`, в `ChangeValidator`, `RoleCompiler`, `GateBridge`, `EnterPanel` | если DSL и вызовы останутся в ядре, ядро навсегда знает о модуле; перенос после 1.0 — BC-break | **минимум до 1.0:** SPI `AssignmentScopeEvaluator` + `Tenancy\GlobalScopeEvaluator`, DSL у `ScopesPlugin::make()->…`, вызовы ядра (стадии, валидатор, `GateBridge`) через SPI (раздел 4.2). **Полностью:** вся логика eligibility и SQL в модуле (можно после 1.0 за замороженным SPI) | 3–4 / 7–11 | высокий | да (DSL) |
+| 7 | Тенант в идентичности ядра | `AccessScope(TenantRef, AssignmentScopeRef)` в `Kernel`, в `Decision::$scope`, в событиях | поменять форму после 1.0 нельзя | ADR: тенант и ссылка на область остаются в `Kernel` как формат идентичности и колонки грантов (раздел 6); логика областей — модуль | 0,5 | низкий | нет |
 | 8 | Фасад знает тестовый набор | `AzGuardManager.php:31` → `Testing\AzGuardFake` | направление зависимостей; мешает границе `Testing` | `AzGuard::fake()` сохраняется, подмена через контейнер | 0,5 | низкий | нет |
-| 9 | Источник знает диагностику | `DatabaseSource.php:28-31`, `FolderSource.php:20` импортируют проверки | форма SPI регистрации проверок замёрзнет в 1.0 | область/плагин регистрирует проверки через `doctorChecks`/способность SPI | 1 | низкий | SPI |
+| 9 | Источник знает диагностику | `DatabaseSource.php:28-31`, `FolderSource.php:20` импортируют проверки | форма SPI регистрации проверок замёрзнет в 1.0 | источник отдаёт проверки через способность SPI; модуль — через `doctorChecks()` своего плагина | 1 | низкий | SPI |
 
 **P1 — формы и имена публичных типов.**
 
@@ -238,48 +405,50 @@
 | 11 | `GateMode` | enum с одним case `Authoritative`, `PanelBuilder::gate()`, ключ `defaults.gate.mode` | ручка без выбора навсегда в API | удалить (или записать в ADR, какой второй режим планируется) | 0,5 | низкий | да |
 | 12 | Форма `StateToken` | 8 публичных полей: `storageId`, `panel`, `incarnation`, `version`, `generation`, `fingerprint`, `epoch`, `subjectRevision` | любая смена хранилища (например, блокировка по субъекту из `ROADMAP.md`) ломает API | непрозрачное значение: `equals()`, `panel()`, сериализация для логов/квитанций; поля `@internal` | 1–2 | средний | да |
 | 13 | Форма `Decision` / `DecisionSet` | 9 публичных readonly-полей (`effect`, `reason`, `state`, `scope`, `component`, `grants`, `message`, `status`, `code`) | публичное поле нельзя убрать или сменить тип | ревизия полей; `grants` — `list<Grant>`; решить «поля или методы» один раз | 1 | низкий | да |
-| 14 | Словарь причин | `DecisionReason` 21 значение, `FailureKind` 2; case `AssignmentScope*` при значениях `context_*` | строки причин уходят в логи, JSON, HTTP | заморозить; одно слово (`context` или `assignment_scope`) в именах и значениях; причины плагина остаются в закрытом enum ядра (следствие п. 7) | 0,5–1 | низкий | да |
+| 14 | Словарь причин | `DecisionReason` 21 значение, `FailureKind` 2; case `AssignmentScope*` при значениях `context_*` | строки причин уходят в логи, JSON, HTTP | заморозить; одно слово (`context` или `assignment_scope`) в именах и значениях; причины модуля областей остаются в закрытом enum ядра (следствие п. 7) | 0,5–1 | низкий | да |
 | 15 | Неявная панель | квик-старт начинается с панели; `azguard:install --panel=Admin` | меняет поведение по умолчанию и установку | панель `default` без провайдера; многопанельность — расширенное использование | 2–3 | средний | меняет умолчания |
 | 16 | Ручки согласованности | `Reads` × `StateRefresh` × `cache(generation)` в DSL и конфиге | матрица ручек замёрзнет | заморозить как есть **или** свернуть в профили `strict`/`replica` | 1–2 | низкий | если сворачивать |
 | 17 | Методы на модели хоста | `HasAzGuard`: ~20 методов (`hasRole`, `hasAnyRole`, `hasAllRoles`, `syncRoles`, `syncPermissions`…, `azguard()`, `azguardRef()`) | имена на чужой модели менять дороже всего; часть совпадает с `spatie/laravel-permission`, обе библиотеки нельзя держать на одной модели при миграции | решить: оставить имена или префикс/доступ через `$user->azguard()`; добавить `visible()` сейчас | 1–2 | средний | да |
-| 18 | DSL и фасад | `PanelBuilder`: 31 метод; фасад `AzGuard`: 13 методов | DSL — самый используемый API | ревизия: убрать `gate()`, перенести DSL областей в плагин, пометить остальное `@api` | 1 | низкий | да |
+| 18 | DSL и фасад | `PanelBuilder`: 31 метод; фасад `AzGuard`: 13 методов | DSL — самый используемый API | ревизия: убрать `gate()`, перенести DSL областей в `ScopesPlugin`, пометить остальное `@api` | 1 | низкий | да |
 | 19 | API Filament-пакета | 21 публичный тип | тот же вопрос, что п. 1 | разметить; Filament уже пользуется только манифестом ядра | 1 | низкий | да |
 
 **P2 — данные и эксплуатационные контракты.**
 
 | # | Что | Сейчас | Почему блокирует | Предложение | Дни | Риск | Ломает |
 |:--|:--|:--|:--|:--|:--|:--|:--|
-| 20 | Схема БД | 2 миграции (`create` + `upgrade_to_schema_2`), `Storage::SCHEMA_VERSION = 2`; таблицы `azg_{permissions,role_grants,permission_grants,subject_revisions,panel_state,storage_state,audit_log}` | после 1.0 любая правка — миграция данных у пользователей | одна начальная миграция ядра для 1.0; `audit_log` — миграция плагина; ADR о хранимых форматах: `IdentityCodec::VERSION`, грамматика ключей прав, `resource_prefix` | 1–2 | средний | да (для dev-установок) |
+| 20 | Схема БД | 7 таблиц `azg_*`, 2 миграции, `Storage::SCHEMA_VERSION = 2`; `azg_audit_log` создаёт ядро | владелец уже пользуется текущей версией: после заморозки меняются только классы | раздел 6: S1–S7 — таблица аудита в миграцию модуля, помощники колонок `@spi`, резерв `azg_` в `Field`, снимок-тест схемы, ADR хранимых форматов; колонки ядра не меняются, миграции не сжимаются | 3–3,5 | низкий | нет (для данных) |
 | 21 | Ключи конфига | 11 секций, 221 строка | ключи — API | ревизия: убрать мёртвые (`defaults.gate.mode`), снимок ключей в тесте | 1 | низкий | да |
 | 22 | События | 12 типов `noun.verb_past`; конверт `eventId`, `occurredAt`, `panel`, `tenant`, `actor`, `correlationId`, `state` | имена и поля читают подписчики | заморозить; `panel.touched` — внутреннее, сделать `@internal` или убрать; `state` — непрозрачный токен (п. 12) | 0,5–1 | низкий | да |
-| 23 | Команды | 32 команды `azguard:<area>:<verb>` | имена в скриптах и CI | ревизия имён (`state:reset`, `storage:migration`, `stubs`); команды плагинов — в их namespace | 0,5 | низкий | да |
+| 23 | Команды | 32 команды `azguard:<area>:<verb>` | имена в скриптах и CI | ревизия имён (`state:reset`, `storage:migration`, `stubs`); команды модулей регистрирует их провайдер: `azguard:audit:prune` — `Audit`, `azguard:make:*` и `azguard:stubs` — `DevTools` | 0,5 | низкий | да |
 | 24 | Машиночитаемый вывод | id находок `doctor` (`consistency.reads`…), `--json`, вывод `explain` | CI пользователей парсит JSON | описать как API, снимок-тест формата | 0,5–1 | низкий | нет |
-| 25 | Префикс id плагинов | `azguard/` не защищён в коде | сторонний плагин может занять имя | зарезервировать `azguard/*` для первичных плагинов | 0,25 | низкий | нет |
+| 25 | Префикс id плагинов | `azguard/` не защищён в коде | сторонний плагин может занять имя | зарезервировать `azguard/*` для модулей первой стороны (`azguard/scopes`, `azguard/audit`); таблицы `azg_*` — тоже только им (раздел 6) | 0,25 | низкий | нет |
 
-**Итого:** P0 — 23–34 дня (из них 6–10 — области назначения; минимум до 1.0 — 2–3), P1 — 11–17, P2 — 4–6.
-Всего **38–57 дней**, при минимальном варианте п. 6 — **34–50**. Большая часть механическая и параллелится;
-рискованные пункты — 4 и 6.
+**Итого:** P0 — 25–36 дней (из них 7–11 — области назначения; минимум до 1.0 — 3–4), P1 — 11–17, P2 — 6–7.
+Всего **42–60 дней**, при минимальном варианте п. 6 — **38–53**. Большая часть механическая и параллелится;
+рискованные пункты — 4 и 6. Схема БД (п. 20) не ждёт остального: S1–S7 стоит сделать первыми, пока данных мало.
 
-### 3.1. Критерий «1.0 со стабильным API» (release gate)
+### 5.1. Критерий «1.0 со стабильным API» (release gate)
 
 1.0 выходит, только когда выполнено всё:
 
 - [ ] каждый тип в манифестах ядра и Filament помечен `@api`, `@spi` или `@internal`; манифест закрыт по умолчанию;
       бюджет соблюдён;
-- [ ] арх-тесты из раздела 7.3 зелёные **без храповика** для правил A2 (контракты), A3 (движок), A4 (источники),
-      A6 (ядро не знает плагинов);
-- [ ] каждый встроенный плагин держит всё своё в своём корне; тест: панель без плагина не создаёт его таблиц и не
-      делает его запросов;
+- [ ] раскладка 3.2 уже в коде: `src/Tenancy`, `modules/{scopes,audit,devtools}/src` с корнями `AzGuard\Scopes`,
+      `AzGuard\Audit`, `AzGuard\DevTools`; в `src/` нет `use AzGuard\Scopes|Audit|DevTools`; Filament не импортирует модули;
+- [ ] арх-тесты раздела 9.3 зелёные **без храповика** для A2 (контракты), A3 (движок), A4 (источники), A6 (ядро
+      не знает модулей), A8 (модули не знают друг друга);
+- [ ] тест на каждый модуль: панель без его плагина не создаёт его таблиц, не делает его запросов и не регистрирует
+      его DSL; без `Scopes` грант с неглобальной областью отклоняется при записи;
+- [ ] схема заморожена (раздел 6): S1–S7 сделаны, снимок-тест схемы зелёный на `sqlite`, `pgsql`, `mysql`;
 - [ ] снимок-тесты публичных словарей: значения `DecisionReason`/`FailureKind`, коды исключений, типы событий и
       поля конверта, имена команд, ключи конфига, id находок `doctor`, формат `--json`;
-- [ ] одна начальная миграция, версия схемы и формат идентичности записаны в ADR;
-- [ ] ADR приняты: политика API/SPI и устаревания; тенант в идентичности; критерии «ядро / плагин / пакет»;
-      хранимые форматы данных;
+- [ ] ADR приняты: политика API/SPI и устаревания; тенант в идентичности; критерии «ядро / модуль / пакет»;
+      хранимые форматы и правила эволюции схемы;
 - [ ] справочник в `docs/reference/` полный по всем словарям выше; `UPGRADING.md` с 0.3;
 - [ ] в CI после релиза — проверка обратной совместимости против последнего тега: diff манифеста плюс
       [`roave/backward-compatibility-check`](https://github.com/Roave/BackwardCompatibilityCheck).
 
-## 5c. Схема БД: заморозка до 1.0
+## 6. Схема БД: заморозка до 1.0
 
 Требование владельца: **схема замораживается сейчас.** Владелец начинает пользоваться текущей версией; всё, что
 делается потом (разметка API, переезд классов в `modules/`, `Tenancy\`), должно двигать классы, а не данные.
@@ -287,7 +456,7 @@
 по этому требованию. Источник: `Storage/Schema/StorageSchema.php`, `Storage/Schema/HostKeyColumns.php`,
 `database/migrations/`, `Sources/Database/StorageHealth.php`.
 
-### Что есть
+### 6.1. Что есть
 
 Префикс таблиц — `storages.<name>.table_prefix` (по умолчанию `azg_`), соединение — `storages.<name>.connection`,
 тип ключей хоста — `host_keys` (`string`, `bigint`, `uuid`, `ulid`; по умолчанию `ids.host_keys = string`).
@@ -310,7 +479,7 @@ collation `C` на PostgreSQL; ключи хоста (`*_id`) — по `host_key
 `2026_10_09_000000_upgrade_azguard_storage_to_schema_2.php` (`upgrade()`: идемпотентно добавляет `epoch` и
 `subject_revisions`). `Storage::SCHEMA_VERSION = 2`; несовпадение `storage_state` с конфигурацией ловит `doctor`.
 
-### Совпадает ли схема с границами модулей
+### 6.2. Совпадает ли схема с границами модулей
 
 - **Ядро.** Шесть таблиц из семи принадлежат ядру и ни одному модулю не нужно их менять.
 - **`Audit`.** Таблица одна и самостоятельная: ни одна таблица ядра на неё не ссылается, у неё нет FK на гранты
@@ -319,13 +488,13 @@ collation `C` на PostgreSQL; ключи хоста (`*_id`) — по `host_key
   в таблицах грантов; это формат `AssignmentScopeRef` из `Kernel` и часть уникального ключа гранта, поэтому колонки
   принадлежат ядру. Без модуля во всех строках `context_key = 'global'`, `context_type`/`context_id` — `NULL`;
   это гарантирует `*_context_pair`.
-- **`DevTools`.** Своих таблиц нет. `stubs/storage-migration.stub` остаётся в ядре (5.4).
+- **`DevTools`.** Своих таблиц нет. `stubs/storage-migration.stub` остаётся в ядре (3.4).
 - **Filament.** Своих таблиц нет.
 - **Хост.** Приложение может добавлять колонки в `*_grants` своей миграцией — это поля гранта (`Schema\Field`;
   `inMeta()` кладёт значение в `meta`). Имена ядра и префиксы `tenant_`, `subject_`, `context_`, `actor_`
   резервирует `Field.php`.
 
-### Тенант: свои таблицы или колонки в таблицах ядра
+### 6.3. Тенант: свои таблицы или колонки в таблицах ядра
 
 Владелец спрашивал, может ли тенантность подключать своё хранилище, как модуль. Проверка по коду:
 
@@ -373,7 +542,7 @@ erDiagram
   }
 ```
 
-### Что изменить до заморозки
+### 6.4. Что изменить до заморозки
 
 Владелец уже ставит текущую версию, поэтому изменения ниже либо не трогают данные, либо пустые для существующей
 установки. Колонки, типы и индексы таблиц ядра **не меняются**.
@@ -388,11 +557,11 @@ erDiagram
 | S6 | Снимок-тест схемы: колонки, типы, индексы, CHECK для `sqlite`, `pgsql`, `mysql` по `StorageSchema::create()` и миграции аудита | любая правка схемы видна в PR и требует bump версии | нет | 1 |
 | S7 | ADR «Хранимые форматы»: схема 2, `IdentityCodec::VERSION`, `'global'` как ключ глобального тенанта и области, грамматика ключей прав, UTC, ULID `event_id`, `payload` аудита = конверт события (п. 22) | хранимое — то же API | нет | 0,5 |
 
-Итого **3–3,5 дня**; это п. 20 раздела 3 в новой формулировке. Что **не** нужно менять до заморозки: индекс
+Итого **3–3,5 дня**; это п. 20 раздела 5 в новой формулировке. Что **не** нужно менять до заморозки: индекс
 `(panel, expires_at)` для `GrantsPruneCommand` (сейчас `rg_expiry(expires_at)` и фильтр по `panel`) и любые новые
 индексы — их можно добавить после 1.0 аддитивно.
 
-### Расширяемость для будущих модулей и плагинов
+### 6.5. Расширяемость для будущих модулей и плагинов
 
 | Вопрос | Правило |
 |:--|:--|
@@ -405,7 +574,7 @@ erDiagram
 | Миграции | ядро — `database/migrations` (`loadMigrationsFrom` + тег `azguard-migrations`, как сейчас). Модуль — свой каталог, **только публикация** по тегу (`azguard-audit-migrations`), без `loadMigrationsFrom`: иначе выключенный модуль создал бы таблицу. Для второго хранилища — `AuditSchema::create('<storage>')` в миграции приложения, как `StorageMigrationCommand` для ядра |
 | Версия схемы модуля | своя, в коде модуля; проверка — doctor-проверка модуля (`StorageHealth::missingColumns()`). В `azg_storage_state` модуль не пишет |
 
-### Правила эволюции после 1.0
+### 6.6. Правила эволюции после 1.0
 
 1. **В минорных версиях — только аддитивно:** новая таблица, новая колонка с `NULL` или default, новый индекс.
    Переименование, удаление, смена типа или длины, смена хранимого формата — только в мажорной версии, с
@@ -413,195 +582,32 @@ erDiagram
 2. **Каждое изменение — новый файл миграции,** идемпотентный (`hasTable`/`hasColumn`), плюс шаг в
    `StorageSchema::upgrade()` и `SCHEMA_VERSION + 1` — по образцу схемы 2. Старые файлы миграций не правятся.
 3. **Модуль меняет только свои таблицы** и версионирует их сам; таблицы ядра и других модулей не трогает и не
-   читает (к данным ядра — через `@spi`, к другим модулям — никак, правило 4.2).
+   читает (к данным ядра — через `@spi`, к другим модулям — никак, правило 2 из 4.1).
 4. **Новые колонки ядра** — только с зарезервированными префиксами (`tenant_`, `subject_`, `context_`, `actor_`,
    `azg_`) или именами из списка `Field.php`, чтобы не столкнуться с полями грантов приложения.
 5. **Снимок-тест схемы (S6) обязателен:** его diff в PR — сигнал «нужна новая миграция и bump версии».
 6. **Хранимые форматы (S7) — API:** `IdentityCodec::VERSION`, грамматика ключей, `'global'`, UTC, `payload`
    аудита меняются только в мажорной версии.
 
-## 4. Порядок работ
+## 7. Порядок работ
 
-1. **Стабилизация до 1.0, в текущем пакете (ломать можно).** P0 → P1 → P2 из раздела 3. Внутренние границы
-   оформляются namespace и арх-тестами; физически пакетов не прибавляется. Каждый шаг — отдельные коммиты с
-   тестами; после п. 4 и 6 — повтор бенча согласованности.
-2. **1.0** — только по критерию 3.1.
-3. **Физический вынос — потом и только по Р1–Р3**, без смены API: каталог плагина переезжает в
-   `packages/<name>`, namespace тот же, `split.yml` получает строку матрицы. Пользователь добавляет
-   `composer require`, импорты не меняются. Если вынос не нужен — его не делаем.
+1. **Сначала схема БД** (раздел 6, S1–S7, 3–3,5 дня): владелец уже ставит текущую версию, дальше данные не
+   трогаем.
+2. **Стабилизация до 1.0, в текущем пакете (ломать API можно).** P0 → P1 → P2 из раздела 5. Раскладка 3.2
+   появляется сразу в финальных namespace; физически прибавляется только каталог `modules/` внутри того же
+   Composer-пакета. Каждый шаг — отдельные коммиты с тестами; после п. 4 и 6 — повтор бенча согласованности.
+3. **1.0** — только по критерию 5.1.
+4. **После 1.0 — без смены API и данных.** Новый отдельный пакет появляется, только если выполнен П1 (2.1); для
+   модулей это не ожидается. Если когда-нибудь модуль всё же понадобится вынести, это перенос каталога
+   `modules/<name>` в `packages/<name>` с тем же namespace и строкой в `split.yml`: импорты и таблицы не меняются.
 
 Что можно и после 1.0 без смены API: полная развязка логики областей за уже замороженным SPI (вторая часть п. 6),
 компиляция панелей в неизменяемый артефакт (`ROADMAP.md`) при сохранении DSL, документация в два уровня,
-дополнительные короткие помощники (аддитивно). Не делать: отдельный пакет `Kernel` (нет второго адаптера),
-слияние тенанта и области в одно понятие (разные ответственности, раздел 2.5).
+дополнительные короткие помощники и индексы (аддитивно). Не делать: отдельный пакет `Kernel` (нет второго
+адаптера), слияние тенанта и области в одно понятие (разные ответственности, раздел 2.5), отдельную таблицу
+тенантности (раздел 6).
 
-## 5. Итоговая раскладка
-
-### 5.1. Пакеты и модули
-
-| Единица | Категория | Namespace / каталог | Отвечает за |
-|:--|:--|:--|:--|
-| `axiomasoft/azguard` | пакет | — | всё ниже, кроме Filament; один `composer require` |
-| ядро | ядро | `AzGuard\<Зона>`, `src/` | решение, хранение и запись грантов, изоляция тенанта, источники, `visibleTo`, батч, события, диагностика, интеграция с Laravel, тестовый набор |
-| области назначения | модуль | `AzGuard\Scopes`, `modules/scopes/` | где внутри тенанта действует грант: типы областей, наследование ролей, резолверы, eligibility |
-| аудит | модуль | `AzGuard\Audit`, `modules/audit/` | журнал изменений в транзакции записи, ретеншн, чистка |
-| инструменты разработчика | модуль | `AzGuard\DevTools`, `modules/devtools/` | генераторы `azguard:make:*`, скаффолдинг, stubs |
-| `axiomasoft/azguard-filament` | пакет | `AzGuard\Filament`, `packages/filament/` | интеграция с Filament для пользователей Filament |
-
-Самодостаточный пакет вроде интеграции с Filament при необходимости может распространяться под своей лицензией;
-функциональность внутри пакета по такому признаку не делится.
-
-### 5.2. Дерево и автозагрузка
-
-```text
-packages/
-├── core/                               axiomasoft/azguard
-│   ├── composer.json                   psr-4: "AzGuard\\": "src/",
-│   │                                          "AzGuard\\Scopes\\": "modules/scopes/src/",
-│   │                                          "AzGuard\\Audit\\": "modules/audit/src/",
-│   │                                          "AzGuard\\DevTools\\": "modules/devtools/src/"
-│   │                                   laravel.providers: AzGuardServiceProvider,
-│   │                                          Audit\AuditServiceProvider, DevTools\DevToolsServiceProvider
-│   ├── config/ database/migrations/    только таблицы ядра
-│   ├── src/
-│   │   ├── Kernel/ Exceptions/ Contracts/{Sources,Authorization,Plugins,Diagnostics,Tenancy,Scopes,Changes,Values}/
-│   │   ├── Panels/ Catalog/ Roles/ Permissions/ Attributes/ Policies/ Schema/
-│   │   ├── Authorization/ Storage/ Sources/{Database,Folder,Gate,Relation}/ Changes/
-│   │   ├── Tenancy/                    TenantPolicy, ModelTenantDefinition, MembershipRestriction,
-│   │   │                               CurrentContext, WithinContext, GlobalScopeEvaluator
-│   │   ├── Events/ Diagnostics/ Directories/ Laravel/ Facades/ Concerns/ Testing/
-│   │   └── (нет Scopes/, Audit/, DevTools/, Plugins/Audit/, Laravel/Console/{Make,Scaffold}/)
-│   └── modules/
-│       ├── scopes/src/                 ScopesPlugin, ScopeEvaluator, Definitions/{BaseAssignmentScope,
-│       │                               ModelAssignmentScopeDefinition}, AssignmentScopePolicy, RoleBindings,
-│       │                               Query/{EligibilityBuilder,PredicateBuilder,…}, Diagnostics/
-│       ├── audit/                      src/{AuditPlugin,RecordChange,AuditJournal,AuditServiceProvider,
-│       │                               Console/AuditPruneCommand,Diagnostics/AuditTableExists}, database/migrations/
-│       └── devtools/                   src/{DevToolsServiceProvider,Console/Make/*,Console/Scaffold/*,
-│                                       Console/StubsCommand}, stubs/
-└── filament/                           axiomasoft/azguard-filament (как сейчас)
-```
-
-PSR-4 выбирает самый длинный префикс, поэтому `AzGuard\Audit\…` ищется только в `modules/audit/src`. Арх-тест
-запрещает каталоги `src/Scopes`, `src/Audit`, `src/DevTools`, чтобы префиксы не пересекались.
-
-### 5.3. Регистрация и включение
-
-| Модуль | Как включается | Что регистрирует | Стоимость, если не включён |
-|:--|:--|:--|:--|
-| `Scopes` | на панели: `->plugins([ScopesPlugin::make()->types([...])->resolvers([...])->resourceScopes([...])])` | в `Plugin::register()` — `ScopeEvaluator` как реализацию SPI `AssignmentScopeEvaluator` (раздел 4), свои doctor-проверки через `doctorChecks()` | ядро использует `Tenancy\GlobalScopeEvaluator`: только глобальная область; без провайдера и таблиц |
-| `Audit` | на панели: `->plugins([AuditPlugin::make()->retention(90)])` | `AuditServiceProvider`: команда `azguard:audit:prune`, публикация миграции (`vendor:publish --tag=azguard-audit-migrations`); плагин — change pipe `RecordChange` и проверка `AuditTableExists` | таблица не создаётся, пока миграция не опубликована; команда есть, но без плагина на панели ничего не делает |
-| `DevTools` | автоматически, только в консоли | `DevToolsServiceProvider`: команды `make:*` при `runningInConsole()`, публикация stubs | в HTTP-запросе — ноль |
-
-Все id первичных плагинов — с зарезервированным префиксом `azguard/` (`azguard/scopes`, `azguard/audit`).
-
-### 5.4. Перенос: текущий код → целевое место
-
-Пути — от `packages/core/src`.
-
-| Сейчас | Куда | Примечание |
-|:--|:--|:--|
-| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,WithinContext}.php` | `src/Tenancy/` | ядро |
-| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings,ContextAware,ModelIdentity}.php`, `Scopes/Query/*`, `Authorization/ScopeEligibility.php` | `modules/scopes/src/` | `AssignmentScopePhase`, `AssignmentScopeRuntime` — в `Contracts/Values/`: их используют `ChangeValidator`, `Directories`, Filament |
-| `Contracts/Scopes/{TenantResolver,TenantMembership}.php` | `Contracts/Tenancy/` | |
-| `Contracts/Scopes/*` (определения, разрешённая область, ресурсы, членство, резолверы) | остаются в `Contracts/Scopes/` | на них ссылаются роли, источники, ресурсы (2.5) |
-| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `Directories/Contracts/` | сервис справочников |
-| `Plugins/Audit/**`, `Changes/ChangeJournal.php`, `Laravel/Console/Commands/AuditPruneCommand.php`; `audit_log` из `Storage/Schema/StorageSchema.php:63`, запись `Sources/Database/DatabaseSource.php:669`, чистка `Changes/ChangePipeline.php:323`, колонки в `Sources/Database/StorageHealth.php:20` | `modules/audit/` | модуль пишет через `StorageMutation` (`@spi`) |
-| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `Laravel/Console/Commands/StubsCommand.php`, `packages/core/stubs/**` кроме `storage-migration.stub` | `modules/devtools/` | `azguard:install` и `azguard:storage:migration` (`StorageMigrationCommand`, его stub) остаются в ядре: это установка ядра, а не генерация кода |
-| `Plugins/{BasePlugin,PluginContext}.php` | `Contracts/Plugins/` + `Panels/` | SPI плагинов |
-| `Sources/Relation/**` | без изменений | `instanceof RelationSource` → способность SPI |
-| `Concerns/ScopedPanelAccess.php`, `Contracts/PanelAccess.php::directories()` | сервис `Directories` | |
-| остальное | без изменений | |
-
-## 5b. Взаимодействие модулей
-
-### Правила
-
-1. **Модуль ↔ ядро** — только через `@spi`/`@api`, события ядра и точки конвейера: источники
-   (`Contracts/Sources/*`), стадии `before`/`restrictions`/`after`, `grantConditions`, change pipes (`changing`),
-   `doctorChecks`, `Plugin::register()`/`boot()`.
-2. **Модуль ↔ модуль — напрямую никогда.** Общие данные идут значениями `Kernel` (`AssignmentScopeRef`,
-   `TenantRef`, `SubjectRef`) внутри объектов ядра (`Change`, `ChangeEffect`, события).
-3. **Пакет ↔ модуль** — через ядро. Если без прямой связи не обойтись, мост принадлежит **зависимой стороне**
-   (пакету), живёт в `AzGuard\Filament\Bridges\<Модуль>` и включается, только если на панели есть плагин модуля
-   (`Panel::pluginIds()` содержит `azguard/<модуль>`).
-4. **Ядро не знает модулей**: в `src/` нет `use AzGuard\Scopes|Audit|DevTools`, нет их таблиц и `instanceof`.
-   Для каждой нужной ядру способности модуля в ядре есть интерфейс и поведение по умолчанию.
-
-### Что нужно ядру
-
-| Контракт | Статус | Зачем |
-|:--|:--|:--|
-| `Contracts/Scopes/AssignmentScopeEvaluator` | **новый** | одна точка, через которую движок, запись, видимость и Gate спрашивают об областях; реализация по умолчанию — `Tenancy\GlobalScopeEvaluator`, полная — `Scopes\ScopeEvaluator` |
-| `Contracts/Values/{AssignmentScopePhase,AssignmentScopeRuntime}` | перенос из `Scopes/` | значения, которые нужны `ChangeValidator`, `Directories` и Filament |
-| `Contracts/Scopes/{AssignmentScopeDefinition,QueryableAssignmentScopeDefinition,ResolvedAssignmentScope,ProvidesAssignmentScope,ProvidesAccessScope,AssignmentScopeMembership,ResourceScopeResolver,AssignmentScopeResolver}` | есть | на них ссылаются роли, источники, ресурсы, валидатор |
-| `Storage/StorageMutation` как `@spi` + помощник колонок хоста (`Storage/Schema/HostKeyColumns`) | пометить | модуль аудита пишет в своей таблице в транзакции записи и строит миграцию с теми же типами ключей |
-| `Panel::pluginIds()` | есть, пометить `@api` | мосты и команды модулей проверяют, включён ли модуль на панели |
-| способности источников вместо `instanceof` | **новые** | `RelationSource`, `DatabaseSource`, `FolderSource` без особых случаев в движке (раздел 3, п. 4) |
-
-Набросок `AssignmentScopeEvaluator` (имена уточняются): `current()` — текущая область запроса через
-`AssignmentScopeResolver`; `applicable()` — какие вклады ролей (`Kernel/Decision/RoleContribution`) действуют в
-области с учётом наследования, или причина отказа `context_*`; `predicate()` — `Kernel/Decision/AccessPredicate` для
-`visibleTo` и батча; `admit()` — допустимость выдачи или отзыва в области при записи; `resourceScope()` — область
-ресурса для Gate.
-
-### Пары
-
-| Пара | Сейчас (по коду) | Целевой механизм | Контракты ядра |
-|:--|:--|:--|:--|
-| `Scopes` → решение | `Authorization/ScopeEligibility.php`, `Pipeline/Stages/{Boundary,Authority}Stage.php` используют классы областей | стадии Boundary/Authority вызывают `AssignmentScopeEvaluator::applicable()` | `AssignmentScopeEvaluator`, `RoleContribution`, `DecisionReason` |
-| `Scopes` → `visibleTo` и батч | `Authorization/Query/VisibilityScope.php`, `Scopes/Query/*`, `BatchInputs.php` | `predicate()` возвращает `AccessPredicate`; SQL строит модуль | `AccessPredicate`, `FiltersAccessQueries` |
-| `Scopes` ↔ роли | `BaseRole::scopes()` отдаёт `AssignmentScopeDefinition[]`; `Catalog/RoleCompiler.php` импортирует `Scopes\ScopeConfiguration` | роль объявляет типы областей через контракт; `RoleCompiler` хранит только алиасы; привязки (`RoleBindings`) строит модуль в `register()` | `AssignmentScopeDefinition` |
-| `Scopes` ↔ запись | `Changes/ChangeValidator.php` импортирует `Scopes\{AssignmentScopePhase,AssignmentScopeRuntime}` | валидатор вызывает `admit()`; фаза — значение ядра | `AssignmentScopeEvaluator`, `AssignmentScopeMembership`, `ResourceScopeResolver`, `Contracts/Values` |
-| `Scopes` ↔ тенант (ядро) | оба в `AzGuard\Scopes` | модуль зависит от `Tenancy` (владелец области — тенант в `ResolvedAssignmentScope`); `Tenancy` о модуле не знает | `AccessScope`, `TenantRef`, `ResolvedAssignmentScope` |
-| `Scopes` ↔ источники | `Sources/Relation/{RelationSource,RelationBinding}.php` используют `QueryableAssignmentScopeDefinition` | без изменений: только контракт | `QueryableAssignmentScopeDefinition`, `ResolvedAssignmentScope` |
-| `Scopes` ↔ Gate и HTTP | `Laravel/Gate/GateBridge.php` → `Scopes\ModelIdentity`; `Laravel/Http/Middleware/EnterPanel.php` → `Scopes\CurrentContext` | `GateBridge` спрашивает `resourceScope()`; `CurrentContext` переезжает в `Tenancy` | `AssignmentScopeEvaluator`, `ProvidesAssignmentScope` |
-| `Scopes` ↔ справочники | `Directories/QueryScopeDirectory.php`, `LookupContext` | определение области отдаёт свой `AssignmentScopeDirectory`; сервис справочников его вызывает | `AssignmentScopeDirectory`, `AssignmentScopePhase` |
-| `Scopes` ↔ события | события несут `AssignmentScopeRef $context` (`Events/RoleGranted.php`) | без изменений: значение `Kernel` | `AssignmentScopeRef` |
-| `Scopes` ↔ `Audit` | — | **напрямую нет**: аудит пишет область из `Change`/`ChangeEffect` как `AssignmentScopeRef` | `Change`, `ChangeEffect` |
-| `Audit` → запись | `Plugins/Audit/RecordChange.php` (change pipe), но хранение в ядре | `RecordChange` в `changing`, запись через `StorageMutation` в той же транзакции; ядро не знает `audit_log` | change pipes, `StorageMutation` |
-| `Audit` ↔ тенант | `StorageSchema.php:82` строит ограничения `audit_log` по тенанту | миграция модуля строит колонки тенанта помощником ядра | `HostKeyColumns`, `TenantRef` |
-| `Audit` ↔ диагностика и консоль | `AuditTableExists`, `AuditPruneCommand` в ядре | `doctorChecks()` из плагина; команда — из `AuditServiceProvider`, работает по `Panel::pluginIds()` | `DoctorCheck`, `Panel::pluginIds()` |
-| `DevTools` → ядро | генераторы в ядре | stubs генерируют код против `@api`/`@spi` (`source.stub`, `restriction.stub`, `plugin.stub`, `change-pipe.stub`); `make:models` читает `Schema` | `Schema`, контракты |
-| `DevTools` ↔ другие модули | — | **нет**: генератор для понятия модуля живёт в самом модуле | — |
-| Filament → ядро | только манифест (`tests/Arch/ApiManifestTest.php`); `FilamentTenantResolver implements TenantResolver` | без изменений | манифест |
-| Filament ↔ `Scopes` | `Editors/{GrantEditor,TargetSelector}.php` импортируют `Scopes\{AssignmentScopePhase,CurrentContext}` | через ядро: фаза из `Contracts/Values`, контекст из `Tenancy`, списки областей из сервиса справочников | `Directories`, `Contracts/Values` |
-| Filament ↔ `Audit` | — | если понадобится страница журнала — мост `AzGuard\Filament\Bridges\Audit`, только при `azguard/audit` на панели | `@api` модуля аудита |
-
-### Схема
-
-```mermaid
-flowchart LR
-  subgraph pkg["axiomasoft/azguard"]
-    subgraph core["ядро (src/)"]
-      K["Kernel: AssignmentScopeRef, TenantRef, Decision"]
-      C["Contracts: AssignmentScopeEvaluator, Sources, changing, doctorChecks, Plugin"]
-      E["Authorization: конвейер, visibleTo, батч"]
-      W["Changes: ChangePipeline, ChangeValidator"]
-      S["Storage: StorageMutation, снимок"]
-      T["Tenancy: TenantPolicy, CurrentContext, GlobalScopeEvaluator"]
-      EV["Events"]
-    end
-    SC["модуль Scopes"]
-    AU["модуль Audit"]
-    DT["модуль DevTools"]
-  end
-  FI["пакет azguard-filament"]
-  E --> C
-  W --> C
-  SC -- "реализует AssignmentScopeEvaluator" --> C
-  SC --> T
-  AU -- "change pipe RecordChange" --> W
-  AU -- "пишет через" --> S
-  DT -- "генерирует код против" --> C
-  FI -- "@api / @spi" --> core
-  FI -. "мост, если включён" .-> AU
-  W -- "события после commit" --> EV
-```
-
-## 6. Слои ядра
-
-### 6.3. Слои внутри ядра
+## 8. Слои внутри ядра
 
 ```mermaid
 flowchart BT
@@ -635,26 +641,28 @@ flowchart BT
 снимок чтения»), которую реализует `DatabaseSource`. Тогда снимок остаётся в ядре, а внешние источники (в том
 числе будущие коннекторы) получают ту же гарантию через контракт, а не через особый случай.
 
-## 7. Философия и правила, которые не дают архитектуре деградировать
+## 9. Философия и правила, которые не дают архитектуре деградировать
 
-### 7.1. Принципы
+### 9.1. Принципы
 
-1. **Граница по ответственности.** Место кода определяют критерии К/П/Р (2.1): цель, кто пользуется, причины
+1. **Граница по ответственности.** Место кода определяют критерии К/М/П (2.1): цель, кто пользуется, причины
    изменений, направление зависимостей. Не размер и не удобство. Всё, что не проходит К1–К3,
    доказывает своё место в ядре, а не наоборот.
-2. **Зависимости — только к ядру.** Плагин и пакет знают ядро; ядро не знает их (ни `instanceof`, ни таблиц, ни
-   имён, ни DSL). Встроенный плагин владеет всем своим в своём корне namespace.
+2. **Зависимости — только к ядру.** Модуль и пакет знают ядро; ядро не знает их (ни `instanceof`, ни таблиц, ни
+   имён, ни DSL). Модули не знают друг друга (раздел 4). Модуль владеет всем своим в своём корне namespace и
+   каталоге `modules/<name>`, включая таблицы и миграции.
 3. **Корректность не опциональна.** Снимок чтения, fail closed, изоляция тенанта, сроки, валидация
-   записи не выключаются флагом и не продаются.
+   записи не выключаются флагом.
 4. **Один конвейер решения.** Любое расширение — стадия, источник, условие или pipe; второго `allow` нет.
-5. **Плагины вместо флагов.** Необязательное подключается `Plugin`-ом; ключ конфига — только для параметра уже
+5. **Плагины вместо флагов.** Необязательный модуль включается своим `Plugin` на панели; ключ конфига — только для параметра уже
    включённой возможности.
 6. **Явный SPI с обещанием BC.** Расширения пишутся против `@spi`, а не против того, что «случайно публично».
 7. **Без магии.** Нет глобального состояния вне `CurrentContext`, нет автообнаружения без кэша и `doctor`-проверки,
    нет скрытых запросов; всё, что влияет на решение, видно в `explain`.
-8. **Строгая типизация.** `strict_types`, PHPStan max без baseline, закрытые enum, неизменяемые значения — как сейчас.
+8. **Данные стабильнее кода.** Схема БД меняется только аддитивно (раздел 6); перестройка кода не трогает данные.
+9. **Строгая типизация.** `strict_types`, PHPStan max без baseline, закрытые enum, неизменяемые значения — как сейчас.
 
-### 7.2. Маркеры API
+### 9.2. Маркеры API
 
 | Маркер | Кому | Обещание | Что можно в минорной версии |
 |:--|:--|:--|:--|
@@ -665,7 +673,7 @@ flowchart BT
 Без маркера класс считается `@internal` (по умолчанию закрыто). Манифест отдельно перечисляет `@spi`; арх-тест
 проверяет, что каждый тип из сигнатур `@spi` сам `@spi` или из `Kernel`.
 
-### 7.3. Правила, проверяемые автоматически
+### 9.3. Правила, проверяемые автоматически
 
 Инструмент — Pest `arch()` и `SourceScan`, как в `tests/Arch/ZonesArchTest.php` (новый инструмент вроде deptrac не
 нужен, пока хватает Pest). Для существующих нарушений — «храповик»: список разрешённых сегодня связей, который
@@ -678,34 +686,37 @@ flowchart BT
 | A3 | `Engine` (`Authorization`) → не `Storage`, `Sources`, `Changes`, `Laravel` (+ храповик на 14 импортов) | частично есть (`Changes`, `Auth`, `Gate`) |
 | A4 | `Storage`, `Sources` → не `Diagnostics`, не `Engine` | частично есть (`Sources ↛ Authorization`) |
 | A5 | `Definition` → не `Laravel`, не `Engine` | новое |
-| A6 | Ядро не ссылается на корни плагинов и пакетов (`AzGuard\Scopes`, `AzGuard\Plugins\Audit`, `AzGuard\Sources\Relation`, `AzGuard\Filament`); исключение — регистрация первичных плагинов в одном месте сервис-провайдера | новое (обязательно к 1.0) |
-| A7 | Плагин и пакет используют из ядра только `@api`/`@spi` | есть для Filament (`ApiManifestTest.php`), распространить на плагины |
-| A8 | Плагины и пакеты не зависят друг от друга | новое |
+| A6 | `src/` не ссылается на `AzGuard\Scopes`, `AzGuard\Audit`, `AzGuard\DevTools`, `AzGuard\Filament`; каталогов `src/Scopes`, `src/Audit`, `src/DevTools` нет | новое (обязательно к 1.0) |
+| A7 | Модуль и пакет используют из ядра только `@api`/`@spi` | есть для Filament (`ApiManifestTest.php`), распространить на `modules/*` |
+| A8 | Модули не импортируют друг друга; пакет импортирует модуль только в `Bridges\<Модуль>` | новое |
 | A9 | Нет `config('azguard…')` вне `Configuration\`, нет фасадов `Auth`/`Gate` в `Engine` | есть (`SourceConventionsTest.php`, `AuthorizationArchTest.php`) |
 | A10 | Бюджет публичного API: `bin/api-manifest.php --check` падает, если число `@api`+`@spi` типов ядра выросло без строки в `CHANGELOG.md` | новое |
 | A11 | Сигнатуры `@spi` ссылаются только на `@spi`, `@api`-значения и `Kernel` | новое |
-| A12 | Панель без плагина не создаёт его таблиц и не выполняет его запросов | новое (тест на каждый плагин) |
+| A12 | Панель без плагина модуля не создаёт его таблиц, не выполняет его запросов, не знает его DSL | новое (тест на каждый модуль) |
 | A13 | Снимки публичных словарей: `DecisionReason`, `FailureKind`, коды исключений, события, команды, ключи конфига, id `doctor` | новое |
+| A14 | Снимок схемы БД по драйверам; миграции модулей не обращаются к таблицам ядра и других модулей | новое (S6) |
 
-### 7.4. «Ядро, плагин или пакет?»
+### 9.4. «Ядро, модуль или пакет?»
 
-Дерево применяет критерии 2.1; ответ записывается в PR (для ядра — в ADR).
+Дерево применяет критерии 2.1; ответ записывается в PR (для ядра и нового модуля — в ADR).
 
 ```mermaid
 flowchart TD
-  K1{"К1: без этого решение или запись неверны/небезопасны?"} -- да --> CORE["Ядро"]
+  P1{"П1: самодостаточная интеграция с другим продуктом, нужна его пользователям?"} -- да --> PKG["Отдельный пакет: только @api/@spi ядра, мосты к модулям у себя"]
+  P1 -- нет --> K1{"К1: без этого решение или запись неверны/небезопасны?"}
+  K1 -- да --> CORE["Ядро"]
   K1 -- нет --> K2{"К2: общий язык/SPI для ≥ 2 компонентов?"}
   K2 -- да --> CORE
   K2 -- нет --> K3{"К3: нужно большинству с первого дня и ничего не стоит без использования?"}
   K3 -- да --> CORE
-  K3 -- нет --> SPI{"Подключается только через существующий SPI?"}
+  K3 -- нет --> M2{"М2: свои артефакты — DSL, таблицы, команды, словарь, раздел документации?"}
+  M2 -- нет --> IMPL["Реализация понятия ядра рядом с соседями (как RelationSource)"]
+  M2 -- да --> SPI{"Подключается только через SPI, события и точки конвейера?"}
   SPI -- нет --> ADR["ADR: какой точки расширения не хватает → добавить её в ядро"] --> SPI
-  SPI -- да --> R{"Р1–Р3: своя внешняя зависимость, свой цикл релизов или своя лицензия?"}
-  R -- да --> PKG["Отдельный пакет (подключается как плагин)"]
-  R -- нет --> PLUG["Встроенный плагин со своим корнем namespace"]
+  SPI -- да --> MOD["Модуль: modules/<name>, корень AzGuard\\<Name>, свой Plugin и провайдер"]
 ```
 
-### 7.5. Процесс
+### 9.5. Процесс
 
 - **ADR обязателен** для изменений `Kernel`, `Contracts`/`@spi`, стадий конвейера, `DecisionReason`/`FailureKind`,
   схемы хранилища, гарантий согласованности и для нового пакета. ADR — в `docs/adr/` на английском (проверка
@@ -714,36 +725,40 @@ flowchart TD
   (`Deprecated`); удаление только в следующей мажорной; минимум одна минорная версия перекрытия. Перенос класса
   между пакетами — через `class_alias` на всё время мажорной версии.
 - **Бюджет API.** Рост числа публичных типов ядра — осознанное решение в PR, а не побочный эффект.
-- **Новый плагин или пакет** появляется только с: карточкой (как 5.2), арх-тестами A6–A8 и A12, контрактными
-  тестами, своим разделом документации с пометкой «нужно, если…».
+- **Новый модуль или пакет** появляется только с: строкой в 3.1 и 3.3, строками взаимодействий в 4.3, своими
+  таблицами по правилам раздела 6, арх-тестами A6–A8, A12, A14, контрактными тестами, своим разделом документации
+  с пометкой «нужно, если…».
 
-### 7.6. Чек-лист ревью PR (дополнение к `.github/pull_request_template.md`)
+### 9.6. Чек-лист ревью PR (дополнение к `.github/pull_request_template.md`)
 
-- [ ] Новая возможность прошла дерево 7.4 (ядро / плагин / пакет) с обоснованием по критериям 2.1.
-- [ ] Нет новых зависимостей против направлений 6.3 (арх-тесты зелёные, храповик не вырос).
+- [ ] Новая возможность прошла дерево 9.4 (ядро / модуль / пакет) с обоснованием по критериям 2.1.
+- [ ] Нет новых зависимостей против направлений раздела 8 и правил раздела 4 (арх-тесты зелёные, храповик не вырос).
+- [ ] Изменение схемы БД — новая миграция, аддитивное, со снимком схемы и bump версии (раздел 6).
 - [ ] Новые публичные типы помечены `@api`/`@spi`/`@internal`; diff `api-manifest.json` объяснён.
 - [ ] В `@spi`-интерфейс не добавлен абстрактный метод в минорной версии.
 - [ ] Нет нового ключа конфига там, где хватит плагина.
 - [ ] Решение по-прежнему проходит через один конвейер; `explain` показывает новую причину.
 - [ ] Отказ инфраструктуры даёт `Decision::failed()`, не `allow` и не обычный `deny`.
-- [ ] Для изменений из 7.5 есть ADR.
+- [ ] Для изменений из 9.5 есть ADR.
 - [ ] Документация: ядро — в базовых гайдах; модуль — в `advanced/` с «когда это нужно».
 
-## 9. Нужно обсудить
+## 10. Нужно обсудить
 
-1. **Критерии 2.1** (ядро / встроенный плагин / пакет) — принимаем как правило и оформляем ADR?
-2. **Состав:** области назначения, `RelationSource`, аудит — встроенные плагины; Filament — единственный пакет.
-   Согласен?
-3. **Объём стабилизации до 1.0** (раздел 3): делаем всё P0–P2 (38–57 дней) или минимальный вариант п. 6
-   (34–50 дней: DSL и SPI областей до 1.0, развязка логики после)?
-4. **`GateMode`** (п. 11): удаляем, или планируется второй режим?
-5. **Исключения** (п. 10): листья → коды при ~10 базовых классах?
-6. **Методы на модели** (п. 17): оставляем `hasRole`/`syncRoles`… как есть или уводим за `$user->azguard()`, чтобы
+1. **Критерии 2.1** (ядро / модуль внутри пакета / отдельный пакет) — принимаем как правило и оформляем ADR?
+2. **Раскладка 3.1:** модули `Scopes`, `Audit`, `DevTools` в `modules/` одного пакета; изоляция тенанта, все
+   источники, справочники и тестовый набор — ядро; Filament — единственный отдельный пакет. Согласен?
+3. **SPI `AssignmentScopeEvaluator`** (4.2) — одна способность вместо набора мелких интерфейсов; без модуля —
+   только глобальная область. Устраивает?
+4. **Заморозка схемы** (раздел 6): S1–S7 делаем первыми; миграции не сжимаем; колонки `tenant_*`/`context_*`
+   остаются в таблицах грантов. Согласен?
+5. **Объём стабилизации до 1.0** (раздел 5): всё P0–P2 (42–60 дней) или минимальный вариант п. 6 (38–53 дня:
+   SPI, DSL и вызовы ядра через SPI до 1.0, перенос остальной логики после)?
+6. **`GateMode`** (п. 11): удаляем, или планируется второй режим?
+7. **Исключения** (п. 10): листья → коды при ~10 базовых классах?
+8. **Методы на модели** (п. 17): оставляем `hasRole`/`syncRoles`… как есть или уводим за `$user->azguard()`, чтобы
    не конфликтовать со `spatie/laravel-permission`?
-7. **Неявная панель** (п. 15) — согласен, что многопанельность — расширенное использование?
-8. **Ручки согласованности** (п. 16): замораживаем матрицу или сворачиваем в профили `strict`/`replica`?
-9. **`StateToken` непрозрачный** (п. 12) — согласен?
-10. **Схема БД** (п. 20): одна начальная миграция для 1.0 — никто не установил dev-версию со схемой 2, которую
-    нужно сохранить?
-11. **SPI-обещание** (7.2): в минорных версиях в `@spi`-интерфейсы не добавляются методы — принимаем?
-12. **ADR обязательны** (7.5) для изменений ядра, включая мейнтейнера?
+9. **Неявная панель** (п. 15) — согласен, что многопанельность — расширенное использование?
+10. **Ручки согласованности** (п. 16): замораживаем матрицу или сворачиваем в профили `strict`/`replica`?
+11. **`StateToken` непрозрачный** (п. 12) — согласен?
+12. **SPI-обещание** (9.2): в минорных версиях в `@spi`-интерфейсы не добавляются методы — принимаем?
+13. **ADR обязательны** (9.5) для изменений ядра, включая мейнтейнера?
