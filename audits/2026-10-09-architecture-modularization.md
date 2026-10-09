@@ -476,6 +476,91 @@ stubs, контрактными тест-сьютами для авторов р
 | `Testing/Contracts/**` | `azguard-devtools` | контрактные сьюты |
 | `packages/filament/src/**` | `azguard-filament` | без изменений |
 
+## 7. Целевая структура
+
+### 7.1. Монорепо
+
+```text
+packages/
+├── core/                      axiomasoft/azguard-core
+│   ├── config/  database/migrations/  resources/
+│   └── src/
+│       ├── Kernel/            Identity/ Grammar/ Permissions/ Decision/ Support/
+│       ├── Exceptions/
+│       ├── Contracts/         Sources/ Authorization/ Plugins/ Diagnostics/ Tenancy/ Changes/ Values/
+│       ├── Definition/        Panels/ Catalog/ Roles/ Permissions/ Attributes/ Policies/ Schema/
+│       ├── Engine/            Pipeline/ Query/ Cache/ Batch/ Read/
+│       ├── Storage/           Database/ Models/ Schema/
+│       ├── Sources/           Folder/ Gate/
+│       ├── Tenancy/           изоляция, текущий контекст, членство
+│       ├── Changes/           pipeline, validator, managers
+│       ├── Events/
+│       ├── Diagnostics/       Doctor, Explain, Checks/
+│       ├── Laravel/           Gate/ Http/ Queue/ Console/ Concerns/ Facades/ ServiceProvider
+│       └── Testing/           Fake, InteractsWithAzGuard
+├── azguard/                   axiomasoft/azguard (метапакет, только composer.json)
+├── tenancy/src/               Contracts/ Definitions/ Query/ Resolvers/ TenancyPlugin.php
+├── sources/src/Relation/      RelationSource, предикаты
+├── audit/                     src/ (AuditPlugin, RecordChange, ChangeJournal, Console/) + database/migrations/
+├── devtools/src/              Console/Make/ Console/Scaffold/ Testing/Contracts/ + stubs/
+└── filament/src/              как сейчас + Directories/
+```
+
+Pro (отдельный приватный репо, та же схема): `packages/{filament-pro,audit-pro,governance-pro,connectors-pro}/src`.
+
+### 7.2. Направление зависимостей между пакетами
+
+```mermaid
+flowchart BT
+  core["azguard-core"]
+  tenancy["azguard-tenancy"] --> core
+  sources["azguard-sources"] --> core
+  audit["azguard-audit"] --> core
+  devtools["azguard-devtools (dev)"] --> core
+  filament["azguard-filament"] --> core
+  meta["azguard (метапакет)"] --> core & tenancy & sources & audit
+  fpro["filament-pro"] --> filament
+  apro["audit-pro"] --> audit
+  gpro["governance-pro"] --> core
+  cpro["connectors-pro"] --> core
+```
+
+Правило: стрелки только вниз, к ядру; модули не зависят друг от друга, кроме pro → своего свободного пакета.
+Filament может знать о `tenancy` только через `@spi` ядра (опциональная интеграция через `suggest`).
+
+### 7.3. Слои внутри ядра
+
+```mermaid
+flowchart BT
+  K["Kernel (pure PHP)"]
+  X["Exceptions"] --> K
+  C["Contracts = SPI + Values"] --> K & X
+  D["Definition: панели, каталог, роли, политики, схема"] --> C
+  E["Engine: конвейер, видимость, батч, кэш"] --> C & D
+  S["Storage + Sources (реализации SPI)"] --> C & D
+  T["Tenancy (изоляция)"] --> C & D
+  CH["Changes: запись грантов"] --> C & D & S
+  EV["Events"] --> K
+  DG["Diagnostics"] --> C & D & E & S
+  L["Laravel adapter"] --> E & CH & DG & S & T & EV
+  TS["Testing"] --> L
+```
+
+| Слой | Может зависеть от | Не может | Сейчас нарушено |
+|:--|:--|:--|:--|
+| `Kernel` | PHP, `Exceptions` | всё остальное, `Illuminate` | нет (арх-тест есть) |
+| `Contracts` | `Kernel`, `Exceptions` | реализации | 14 зон (1.3) |
+| `Definition` | `Contracts`, `Kernel` | `Engine`, `Storage`, `Laravel` | `Attributes/CheckPermission.php` → `Laravel\Http\Middleware`; `Policies/PolicyDecider.php` → `Authorization\EvaluationFrame` |
+| `Engine` | `Contracts`, `Definition`, `Kernel` | `Storage`, `Sources`, `Changes`, `Laravel` | 14 импортов: `Authorizer`, `ReadAttempt`, `Visibility`, `BatchInputs`, `EvaluationFrame`, стадии Prepare/Authority → `DatabaseSource`, `FolderSource`, `PanelSources`, `Storage\{AuthorityTransaction,StorageReadSession}` |
+| `Storage`, `Sources` | `Contracts`, `Definition` | `Engine`, `Laravel`, `Diagnostics` | `DatabaseSource` → 4 doctor-проверки; `FolderSource` → `DiscoveryCached` |
+| `Changes` | `Contracts`, `Definition`, `Storage` | `Engine` (кроме чтения через SPI) | запрет `Authorization → Changes` уже есть |
+| `Laravel` | всё ниже | — | — |
+
+Главное нарушение — `Engine` знает конкретные источники: снимок и забор чтения сейчас реализованы через
+`instanceof DatabaseSource`/`FolderSource`. Целевой вид — способность в SPI (например, «источник умеет открыть
+снимок чтения»), которую реализует `DatabaseSource`. Тогда снимок остаётся в ядре, а внешние источники (в том
+числе pro-коннекторы) получают ту же гарантию через контракт, а не через особый случай.
+
 ## 6. Нужно обсудить
 
 1. **Тенанты:** оставляем в ядре (вариант A) или идём к разделению «изоляция в ядре, иерархии в модуле»
