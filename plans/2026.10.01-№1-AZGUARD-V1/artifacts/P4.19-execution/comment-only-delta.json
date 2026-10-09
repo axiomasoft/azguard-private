@@ -1,9 +1,0 @@
-{
-  "from": "17af19e435e7bae9a28a0788a3f4b9519d7bf2c659196457039ef8eef55aa325",
-  "to": "533a6f4cbd74c460378b92f49df9a69a03bf805908b11f4101cb93bf60f66c49",
-  "files": [
-    "packages/core/src/Panels/CurrentPanel.php",
-    "packages/core/src/Scopes/CurrentContext.php"
-  ],
-  "change": "PHPDoc WeakMap uses actual object-key storage contract; get/set select only Fiber. No runtime changes. Previous V1/V2/V3 accepted; V4/V5/V6/V7/V9 rerun."
-}

@@ -1,2 +1,0 @@
-$ vendor/bin/pint --test
-{"tool":"pint","result":"passed"}

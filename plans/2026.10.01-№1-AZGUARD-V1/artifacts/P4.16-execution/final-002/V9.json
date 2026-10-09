@@ -1,8 +1,0 @@
-{
-  "id": "V9",
-  "cmd": "git diff --check",
-  "exit": 0,
-  "duration_s": 0.082,
-  "candidate": "7565a07257e70bcf62e0b43fbe8fee19d8a594e0799c2bf90575cdbf092f69db",
-  "stable": true
-}

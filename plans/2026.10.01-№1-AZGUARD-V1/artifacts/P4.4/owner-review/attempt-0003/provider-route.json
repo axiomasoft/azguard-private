@@ -1,8 +1,0 @@
-{
-  "context_tokens": 500000,
-  "cwd": "/home/vostrikov/projects/packages/azguard",
-  "effort": "high",
-  "model": "grok-4.7",
-  "session_id": "01a10829-74c2-7b00-ab4e-bc3e315e5a81",
-  "source": "/home/vostrikov/.grok/sessions/%2Fhome%2Fvostrikov%2Fprojects%2Fpackages%2Fazguard/01a10829-74c2-7b00-ab4e-bc3e315e5a81/summary.json"
-}

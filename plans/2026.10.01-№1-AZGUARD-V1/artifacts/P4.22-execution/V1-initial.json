@@ -1,6 +1,0 @@
-{
-  "id": "V1",
-  "command": "vendor/bin/pest tests/Unit/Kernel/Decision/AccessPredicateTest.php tests/Feature/Visibility/PredicateCompilerTest.php",
-  "exit_code": 0,
-  "elapsed_seconds": 0.346
-}

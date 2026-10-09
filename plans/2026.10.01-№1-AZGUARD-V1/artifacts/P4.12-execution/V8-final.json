@@ -1,6 +1,0 @@
-{
-  "id": "V8",
-  "command": "composer api:manifest",
-  "exit": 0,
-  "duration_seconds": 0.28
-}

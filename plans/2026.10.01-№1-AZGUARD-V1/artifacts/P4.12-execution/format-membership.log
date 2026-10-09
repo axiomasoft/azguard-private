@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"tests\/Feature\/Visibility\/MembershipReproTest.php","fixers":["single_space_around_construct","function_declaration","method_argument_space","blank_line_after_opening_tag","statement_indentation","ordered_imports","binary_operator_spaces"]}]}

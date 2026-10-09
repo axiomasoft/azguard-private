@@ -1,6 +1,0 @@
-{
-  "candidate": "e8f83686e08502f99dbc44033f60d5355bebfac822ca6e046cd2b2c1122d6542",
-  "additional_exact_runtime_identity_check": "failed: two external runtime sources changed on disk during review",
-  "canonical_current_admission": "allow; candidate, existing read witnesses and independent GREEN verified",
-  "resolution": "Independent semantic audit: cleanup only; missing-file ledger behavior unused by this57hashedexistingfile review; loaded modules not hot-reloaded. Owning current25tests GREEN. No review trust blocker."
-}

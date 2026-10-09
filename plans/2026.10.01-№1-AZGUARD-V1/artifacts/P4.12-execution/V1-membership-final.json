@@ -1,6 +1,0 @@
-{
-  "id": "V1",
-  "command": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Visibility tests/Regression/P04aTest.php tests/Regression/P04bTest.php tests/Regression/P04cTest.php tests/Regression/RegressionSpecsTest.php",
-  "exit": 0,
-  "duration_seconds": 1.05
-}

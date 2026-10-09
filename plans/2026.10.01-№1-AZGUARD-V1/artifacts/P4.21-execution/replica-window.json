@@ -1,8 +1,0 @@
-{
-    "commit_lsn": "0\/317BE78",
-    "replay_lsn": "0\/317BE78",
-    "controlled_window_ms": 7.647145,
-    "default_paused": "allow",
-    "primary_paused": "deny",
-    "default_caught_up": "deny"
-}

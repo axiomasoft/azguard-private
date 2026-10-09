@@ -1,7 +1,0 @@
-{
-  "candidate_commit": "a3f996563832861886fbe07fde90c2f705fd3fa5",
-  "exit_code": 1,
-  "expected_invariant_exit": 0,
-  "observed": "observed_grant_type=stdClass\n",
-  "executed_at": "2026-10-05T09:19:31.153978+00:00"
-}

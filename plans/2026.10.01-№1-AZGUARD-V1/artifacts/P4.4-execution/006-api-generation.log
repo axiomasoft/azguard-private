@@ -1,9 +1,0 @@
-> php bin/api-manifest.php --write
-
-Fatal error: Uncaught RuntimeException: AzGuard\Contracts\Sources\FiltersQueries: a contract needs an @api or @spi tag. in /home/vostrikov/projects/packages/azguard/bin/api-manifest.php:89
-Stack trace:
-#0 /home/vostrikov/projects/packages/azguard/bin/api-manifest.php(64): apiDescribe(Object(ReflectionClass))
-#1 /home/vostrikov/projects/packages/azguard/bin/api-manifest.php(248): apiManifest('/home/vostrikov...', 'packages/core')
-#2 {main}
-  thrown in /home/vostrikov/projects/packages/azguard/bin/api-manifest.php on line 89
-Script php bin/api-manifest.php --write handling the api:manifest event returned with error code 255

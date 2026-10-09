@@ -1,6 +1,0 @@
-{
-  "id": "V7",
-  "command": "php bin/api-manifest.php --check",
-  "exit_code": 0,
-  "elapsed_seconds": 0.05
-}

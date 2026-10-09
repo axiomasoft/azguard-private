@@ -1,2 +1,0 @@
-packages/core/composer.json is valid
-$ composer validate --strict packages/core/composer.json

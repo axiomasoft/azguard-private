@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"packages\/core\/src\/Authorization\/Pipeline\/AccessPipeline.php","fixers":["braces_position","single_line_empty_body","blank_line_before_statement"]}]}

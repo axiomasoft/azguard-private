@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fail","files":[{"path":"tests\/Acceptance\/Crm\/ContextRolesTest.php","fixers":["trailing_comma_in_multiline"]}]}

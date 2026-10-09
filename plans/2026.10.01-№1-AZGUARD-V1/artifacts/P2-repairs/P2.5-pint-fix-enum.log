@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"tests\/Feature\/Catalog\/CatalogCollisionTest.php","fixers":["no_extra_blank_lines","ordered_imports"]}]}

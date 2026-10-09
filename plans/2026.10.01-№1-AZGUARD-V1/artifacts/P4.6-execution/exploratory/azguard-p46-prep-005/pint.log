@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"tests\/Feature\/Catalog\/CatalogCacheTest.php","fixers":["unary_operator_spaces","not_operator_with_successor_space","ordered_imports"]}]}

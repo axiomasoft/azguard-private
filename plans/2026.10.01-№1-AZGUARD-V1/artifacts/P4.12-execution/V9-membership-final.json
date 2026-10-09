@@ -1,6 +1,0 @@
-{
-  "id": "V9",
-  "command": "git diff --check",
-  "exit": 0,
-  "duration_seconds": 0.06
-}

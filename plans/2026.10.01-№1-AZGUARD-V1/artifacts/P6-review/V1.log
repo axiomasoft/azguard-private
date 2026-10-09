@@ -1,2 +1,0 @@
-$ php -d memory_limit=1G vendor/bin/pest tests/Feature/Facade tests/Feature/Http tests/Feature/Configuration tests/Feature/Diagnostics tests/Feature/Console tests/Feature/Testing tests/Feature/Laravel tests/Contracts tests/Regression --compact --fail-on-skipped
-{"tool":"pest","result":"passed","tests":664,"passed":664,"assertions":3319,"duration_ms":18803}

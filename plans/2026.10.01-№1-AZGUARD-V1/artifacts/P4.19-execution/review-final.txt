@@ -1,9 +1,0 @@
-## Verdict: GREEN
-
-Finding 1 is withdrawn. The PHP 8.4 reproduction shows `$ambient->tenant ?? …` and `$resource->tenant ?? …` / `$resource->context ?? …` evaluate to null with exit 0 and no warning when those variables are null, including under an error handler that throws `ErrorException`. `??` uses isset-like semantics on a property of null, so `BoundaryStage` does not throw and does not turn a missing tenant, ambient scope, or resource into `AssignmentScopeFilterError`.
-
-`ResourceScopeTest` on the current code: 18 passed, 53 assertions, exit 0, including the missing tenant, ambient, and resource fallbacks. The `17af19e` → `533a6f4` delta is PHPDoc-only `WeakMap` key types in `CurrentPanel` and `CurrentContext`. No product change and no boundary runtime change.
-
-No other demonstrated defect remains in the reviewed scope. Owner, ref, and tenant stay AND-ed outside the filter group. Common eligibility runs before authority, policy, and superadmin. Role filters stay on the current contribution. `scopeRequired()` and empty `scopes()` match the contract. Fiber `finally` restores the previous scope. Fingerprints keep class configuration and exclude live models and callbacks. Native root shape and terminal operations are rejected.
-
-Reviewed file count: **70**.

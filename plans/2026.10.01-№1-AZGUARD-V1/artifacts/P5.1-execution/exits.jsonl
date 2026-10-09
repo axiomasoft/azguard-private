@@ -1,9 +1,0 @@
-{"id":"V1","exit":0,"started":"2026-10-07T18:29:23Z","finished":"2026-10-07T18:30:15Z","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Feature/Concerns tests/Acceptance/Crm/SubjectApiTest.php tests/Feature/Panels tests/Feature/Gate tests/Feature/Authorization --compact --fail-on-skipped"}
-{"id":"V2","exit":0,"started":"2026-10-07T18:30:15Z","finished":"2026-10-07T18:30:16Z","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Regression --compact --fail-on-skipped"}
-{"id":"V3","exit":0,"started":"2026-10-07T18:30:16Z","finished":"2026-10-07T18:30:29Z","cmd":"php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped"}
-{"id":"V4","exit":0,"started":"2026-10-07T18:30:29Z","finished":"2026-10-07T18:33:33Z","cmd":"composer test"}
-{"id":"V5","exit":0,"started":"2026-10-07T18:33:33Z","finished":"2026-10-07T18:33:34Z","cmd":"vendor/bin/pint --test"}
-{"id":"V6","exit":0,"started":"2026-10-07T18:33:34Z","finished":"2026-10-07T18:33:37Z","cmd":"vendor/bin/phpstan analyse --memory-limit=1G --no-progress"}
-{"id":"V7","exit":0,"started":"2026-10-07T18:33:37Z","finished":"2026-10-07T18:33:43Z","cmd":"composer test:types"}
-{"id":"V8","exit":0,"started":"2026-10-07T18:33:43Z","finished":"2026-10-07T18:33:43Z","cmd":"php bin/api-manifest.php --check"}
-{"id":"V9","exit":0,"started":"2026-10-07T18:33:43Z","finished":"2026-10-07T18:33:43Z","cmd":"git diff --check"}

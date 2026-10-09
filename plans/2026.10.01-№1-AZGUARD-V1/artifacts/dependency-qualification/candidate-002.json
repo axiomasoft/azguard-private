@@ -1,9 +1,0 @@
-{
-  "commit": "a3f996563832861886fbe07fde90c2f705fd3fa5",
-  "tree": "66cdc97b0a1b7da68f88d8ab86e270c463162f0e",
-  "parent": "fcbff0dbc3e6ec110d5f5902a7f89e5fac43fdb4",
-  "worktree": "/tmp/azguard-dependency-qualification/candidate",
-  "main_index_unchanged": true,
-  "main_head_unchanged": true,
-  "composer_lock_copied_from_main_ignored_file": true
-}

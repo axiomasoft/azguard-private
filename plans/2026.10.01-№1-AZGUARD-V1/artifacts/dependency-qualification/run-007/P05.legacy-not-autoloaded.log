@@ -1,2 +1,0 @@
-$ php -r require 'vendor/autoload.php'; foreach (['AzGuard\\Context\\ContextGuard','AzGuard\\Context\\ContextNotSetException'] as $c) { if (class_exists($c)) exit(1);} foreach (['legacy/0.3/packages/context/src/ContextGuard.php','legacy/0.3/packages/context/src/ContextNotSetException.php'] as $f) { if (!is_file($f)) exit(2);} echo "legacy_autoload=absent\n";
-legacy_autoload=absent

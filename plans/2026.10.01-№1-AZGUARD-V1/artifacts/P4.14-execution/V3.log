@@ -1,2 +1,0 @@
-> php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis
-{"tool":"pest","result":"passed","tests":2,"passed":2,"assertions":26,"duration_ms":152}

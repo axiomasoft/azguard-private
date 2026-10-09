@@ -1,2 +1,0 @@
-packages/filament/composer.json is valid
-$ composer validate --strict packages/filament/composer.json

@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"tests\/Fixtures\/Visibility\/VisibilityProject.php","fixers":["single_blank_line_at_eof"]}]}

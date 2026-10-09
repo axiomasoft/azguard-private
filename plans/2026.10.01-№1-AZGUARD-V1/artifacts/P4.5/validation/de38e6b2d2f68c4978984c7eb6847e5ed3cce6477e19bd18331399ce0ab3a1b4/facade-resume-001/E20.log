@@ -1,2 +1,0 @@
-bash: -c: line 1: syntax error near unexpected token `)'
-bash: -c: line 1: `1) `vendor/bin/pest tests/Feature/Sources/Relation` — GREEN; 2) `vendor/bin/pest tests/Feature/Authorization tests/Feature/Sources` — GREEN; 3) `vendor/bin/pest tests/Arch` — GREEN; 4) `php bin/api-manifest.php --check` — exit 0 после `composer api:manifest`; 5) `composer test`; 6) `vendor/bin/pint --test`; 7) `vendor/bin/phpstan analyse --memory-limit=1G`; 8) `php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98`; 9) `git diff --check`.'

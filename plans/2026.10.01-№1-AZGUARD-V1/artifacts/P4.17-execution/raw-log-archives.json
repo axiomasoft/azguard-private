@@ -1,6 +1,0 @@
-{
-  "reason": "exact raw failed Pest diagnostic contains trailing whitespace; gzip archive preserves raw bytes",
-  "archive_path": "plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.17-execution/before-probe.log.gz",
-  "uncompressed_sha256": "241dddb9eeee868173033497729b632d41ad42ccf91e6608911e7fa5d2b38daa",
-  "filesystem_hook_defect": "security.safe-dirs rejected an index-only operation and also a diagnostic description containing its literal text; reversible staging restore and gzip archival succeeded"
-}

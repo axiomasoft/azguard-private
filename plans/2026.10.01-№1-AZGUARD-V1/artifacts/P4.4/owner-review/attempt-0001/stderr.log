@@ -1,1 +1,0 @@
-[2m2026-10-04T17:48:31.318440Z[0m [31mERROR[0m [3mname[0m[2m=[0m"BatchSpanProcessor.ExportError" [3merror[0m[2m=[0m"Operation failed: HTTP export failed: network error"

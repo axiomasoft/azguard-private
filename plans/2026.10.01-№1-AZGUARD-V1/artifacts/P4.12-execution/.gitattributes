@@ -1,3 +1,0 @@
-# Immutable raw tool captures: preserve bytes and do not treat console padding as source whitespace.
-*.log -diff
-review-prompt*.txt -diff

@@ -1,5 +1,0 @@
-
-Warning: foreach() argument must be of type array|object, null given in /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest-plugin-type-coverage/src/Analyser.php on line 140
-
-Warning: foreach() argument must be of type array|object, null given in /home/vostrikov/projects/packages/azguard/vendor/pestphp/pest-plugin-type-coverage/src/Analyser.php on line 140
-{"tool":"pest","raw":["packages/core/src/Authorization/Pipeline/AccessPipeline.php .. pa108 75%","packages/core/src/Authorization/ReadAttempt.php .. pa122 75%","packages/core/src/Authorization/ScopeEligibility.php .. pa114 75%","packages/core/src/Sources/Database/DatabaseSource.php .. pa495 75%","packages/core/src/Sources/SourceManager.php .. rt40 75%","(1.97s) Total: 99.4 %"]}

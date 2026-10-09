@@ -1,6 +1,0 @@
-{
-  "attempt": "reviewer --path plan-directory itself",
-  "result": "PATH_INVALID; no mutation",
-  "reason": "Reviewer path requires a child pattern inside the plan, not the bare root directory",
-  "resolution": "Use plan/**; inspect each selected path and outside list before commit"
-}

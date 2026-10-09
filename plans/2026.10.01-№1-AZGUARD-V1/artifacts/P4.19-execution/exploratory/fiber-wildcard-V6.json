@@ -1,8 +1,0 @@
-{
-  "id": "V6",
-  "cmd": "env __PEST_PLUGIN_ENV=1 php -d variables_order=EGPCS -d memory_limit=1G vendor/bin/pest --configuration=/tmp/azguard-p419/type-coverage.xml --type-coverage --min=98 --no-cache --type-coverage-json=/tmp/azguard-p419/type-coverage.json",
-  "exit": 0,
-  "duration_s": 7.774,
-  "candidate": "576594de75b8dff44228c259716a948223d67bc1efb5a459490ce06380db6bdd",
-  "stable": true
-}

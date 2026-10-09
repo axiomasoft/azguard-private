@@ -1,7 +1,0 @@
-<?php
-declare(strict_types=1);
-use AzGuard\Tests\Arch\SourceScan;
-it('rejects forbidden mutation dependencies', function (): void {
-    $files = glob(__DIR__.'/src/*.php');
-    expect(SourceScan::restrictedReferencesIn($files, ['AzGuard\Storage\StorageMutation'], ['AzGuard\Storage', 'AzGuard\Sources\Database', 'AzGuard\Changes\ChangePipeline', 'AzGuard\Testing']))->toBe([]);
-});

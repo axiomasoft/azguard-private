@@ -1,6 +1,0 @@
-{
-  "id": "V6",
-  "command": "__PEST_PLUGIN_ENV=1 php -d memory_limit=1G vendor/bin/pest --type-coverage --min=98 --no-cache --configuration=/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.22-execution/type-coverage.xml --type-coverage-json=/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.22-execution/type-coverage.json",
-  "exit_code": 0,
-  "elapsed_seconds": 1.546
-}

@@ -1,4 +1,0 @@
-
-Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 4096 bytes) in /home/vostrikov/projects/packages/azguard/vendor/nikic/php-parser/lib/PhpParser/Parser/Php8.php on line 1956
-
-Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 32768 bytes) in /home/vostrikov/projects/packages/azguard/vendor/phpunit/phpunit/src/Event/Exception/NoTestCaseObjectOnCallStackException.php on line 1

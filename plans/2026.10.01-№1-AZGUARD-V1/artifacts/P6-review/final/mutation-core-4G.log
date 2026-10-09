@@ -1,2 +1,0 @@
-{"tool":"pest","result":"failed","tests":4403,"passed":4401,"assertions":410910,"duration_ms":169483,"errors":1,"error_details":[{"test":"P\\Tests\\Arch\\AuthorizationArchTest::__pest_evaluable_it_keeps_the_coordinator_provenance_exception_read_only","file":"/home/vostrikov/projects/packages/azguard/tests/Arch/AuthorizationArchTest.php","line":22,"message":"Call to undefined function azguardTransactionCalls()"}],"skipped":1}
-exit=2

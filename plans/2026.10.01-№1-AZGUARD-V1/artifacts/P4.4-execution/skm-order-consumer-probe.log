@@ -1,9 +1,0 @@
-runtime_source: /home/vostrikov/projects/packages/swissknifeman/packages/task/lib/task/plan_recovery.py
-runtime_sha256: ff4829339b6783d58780774fe1a4c95152262c9e60404d82aef438bee2b10c06
-P4_order: P4.1 -> P4.2 -> P4.3 -> P4.4 -> P4.17 -> P4.5 -> P4.6 -> P4.19 -> P4.7 -> P4.16 -> P4.18 -> P4.15 -> P4.13 -> P4.8 -> P4.20 -> P4.21 -> P4.9 -> P4.10 -> P4.11 -> P4.22 -> P4.12 -> P4.23 -> P4.14
-P4.17_dependencies: ["P2.1", "P2.3", "P2.4", "P2.5", "P2.7", "P2.8", "P3.3", "P4.2", "P4.3", "P4.4"]
-P4.17_pending: ["P4.4"]
-current_inspect: {"active_item": "P4.4", "allowed": false, "attempt": 1, "code": "OUT_OF_ORDER_REQUEST", "mode": "resume", "reason": "P4.17 depends on unfinished P4.4; resume P4.4 in the current invocation, then continue successor after terminal event", "requested_item": "P4.17", "run_id": "f2263a3b5418e36a4ec93852457cc5ba9a7f2f148d9123b75e5e8768b3e45456", "schema_version": "plan-recovery/v1"}
-hypothetical_P4.4_GREEN_inspect: {"active_item": "P4.17", "allowed": true, "attempt": 1, "code": "START_ITEM", "mode": "start", "reason": "P4.17: secure start to first product write", "requested_item": "P4.17", "run_id": null, "schema_version": "plan-recovery/v1"}
-hypothetical_materialize_selection: /home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/bundles/P4.17.json
-read_only_consumer_probe: GREEN; hypothetical positions/bundle calls mocked; no consumer writes

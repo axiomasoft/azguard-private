@@ -1,4 +1,0 @@
-[mutation-gate] === core (minimum 99%) ===
-PHP Fatal error:  Allowed memory size of 1073741824 bytes exhausted (tried to allocate 218021316 bytes) in /home/vostrikov/projects/packages/azguard/vendor/brianium/paratest/src/Coverage/CoverageMerger.php on line 27
-PHP Warning:  stream_filter_remove(): Unable to flush filter, not removing in /home/vostrikov/projects/packages/azguard/vendor/laravel/pao/src/Execution.php on line 81
-exit=255

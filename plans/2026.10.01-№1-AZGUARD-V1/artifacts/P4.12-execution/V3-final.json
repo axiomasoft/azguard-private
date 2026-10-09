@@ -1,6 +1,0 @@
-{
-  "id": "V3",
-  "command": "php -d memory_limit=1G vendor/bin/pest tests/Arch",
-  "exit": 0,
-  "duration_seconds": 4.5
-}

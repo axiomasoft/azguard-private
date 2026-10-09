@@ -1,9 +1,0 @@
-{
-  "command": "php /tmp/azguard-P4.22-union-probe.php",
-  "isolated_database": "SQLite :memory: Capsule",
-  "observed_ids": [
-    2
-  ],
-  "expected": "deny must return no rows or reject UNION before query mutation/execution",
-  "result": "RED: UNION second arm bypasses the appended predicate"
-}

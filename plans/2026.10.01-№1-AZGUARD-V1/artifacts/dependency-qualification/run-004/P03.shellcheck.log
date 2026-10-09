@@ -1,2 +1,0 @@
-shellcheck=not-applicable executable_absent=true (declared 'при наличии')
-$ python3 /tmp/azguard-dependency-qualification/candidate-004/plans/2026.10.01-№1-AZGUARD-V1/artifacts/dependency-qualification/P0/p0-adapter.py shellcheck

@@ -1,1 +1,0 @@
-{"tool":"pint","result":"fixed","files":[{"path":"tests\/Engines\/Support\/CacheEngineWorld.php","fixers":["unary_operator_spaces","not_operator_with_successor_space","blank_line_before_statement"]}]}

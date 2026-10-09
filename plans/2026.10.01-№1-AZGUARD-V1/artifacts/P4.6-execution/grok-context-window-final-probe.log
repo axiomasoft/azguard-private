@@ -1,7 +1,0 @@
-error: unexpected argument '--context-window' found
-
-  tip: a similar argument exists: '--continue'
-
-Usage: grok --continue [PROMPT]
-
-For more information, try '--help'.

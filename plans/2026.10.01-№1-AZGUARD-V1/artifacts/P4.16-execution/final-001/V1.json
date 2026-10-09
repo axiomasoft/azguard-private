@@ -1,8 +1,0 @@
-{
-  "id": "V1",
-  "cmd": "DB_CONNECTION=sqlite php -d memory_limit=1G vendor/bin/pest tests/Feature/Authorization/Properties",
-  "exit": 1,
-  "duration_s": 7.374,
-  "candidate": "16373512e1f519785e680eac430794bf037b7b59d56fbc6f31731c2c5645c517",
-  "stable": true
-}

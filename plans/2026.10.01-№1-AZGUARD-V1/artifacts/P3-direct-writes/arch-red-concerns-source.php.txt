@@ -1,4 +1,0 @@
-<?php
-namespace AzGuard\Laravel;
-use AzGuard\Storage\Concerns\BelongsToStorage;
-final class ForbiddenConcern { use BelongsToStorage; }
