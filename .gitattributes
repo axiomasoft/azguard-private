@@ -5,17 +5,13 @@
 /.github            export-ignore
 /docs               export-ignore
 /tests              export-ignore
-/workbench          export-ignore
 /.editorconfig      export-ignore
 /.gitattributes     export-ignore
 /.gitignore         export-ignore
 /phpstan.neon       export-ignore
-/phpstan-baseline.neon export-ignore
 /pint.json          export-ignore
 /rector.php         export-ignore
 /phpunit.xml        export-ignore
-/infection.json5    export-ignore
-/testbench.yaml     export-ignore
 /cliff.toml         export-ignore
 /package.json       export-ignore
 /package-lock.json  export-ignore
@@ -36,7 +32,3 @@
 /.serena            export-ignore
 /.swissknifeman     export-ignore
 /ideas              export-ignore
-
-# Preserve vendored upstream Markdown bytes; these references contain intentional hard breaks.
-.agents/skills/dev-engineering-super-skill/references/full.md whitespace=-trailing-space
-.agents/skills/docker/snippets/docker-expert.md whitespace=-trailing-space
