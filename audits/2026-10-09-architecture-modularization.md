@@ -448,9 +448,9 @@ stubs, контрактными тест-сьютами для авторов р
 | `Kernel/**` | ядро `Kernel/` | без изменений; `AssignmentScopeRef`, `AccessScope` остаются: это формат идентичности |
 | `Exceptions/**` (51) | ядро `Exceptions/` | свернуть в иерархию (4.4); исключения модулей — в модули |
 | `Contracts/{Sources,Authorization,Plugins,Diagnostics,Catalog,Roles,Panels,Changes}/*` | ядро `Contracts/` (`@spi`) | DTO из `Changes`, `Catalog`, `Directories` → `Contracts/Values/` (4.5) |
-| `Contracts/Scopes/{TenantResolver,TenantMembership,TenantDirectory}.php` | ядро `Contracts/Tenancy/` | изоляция — ядро |
+| `Contracts/Scopes/{TenantResolver,TenantMembership}.php` | ядро `Contracts/Tenancy/` | изоляция — ядро |
 | `Contracts/Scopes/{AssignmentScope*,QueryableAssignmentScopeDefinition,ConfigurableAssignmentScopeDefinition,ResolvedAssignmentScope,ResourceScopeResolver,ProvidesAccessScope,ProvidesAssignmentScope}.php` | `azguard-tenancy` `Contracts/` | SPI модуля |
-| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/*Directory.php` (кроме тенанта) | `azguard-filament` | справочники UI |
+| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `azguard-filament` | справочники UI (выбор записи в форме) |
 | `Authorization/**` | ядро `Engine/` | 14 импортов `Sources\Database`, `Sources\Folder`, `PanelSources`, `Storage\*` заменить контрактами (7.3) |
 | `Authorization/ScopeEligibility.php`, `Scopes/Query/*` | `azguard-tenancy` | через SPI стадии Boundary |
 | `Panels/**`, `Catalog/**`, `Roles/**`, `Permissions/**`, `Attributes/**`, `Policies/**` | ядро `Definition/` | `Attributes/CheckPermission.php` импортирует middleware из `Laravel/` — развернуть зависимость |
@@ -460,8 +460,8 @@ stubs, контрактными тест-сьютами для авторов р
 | `Storage/**`, `Sources/Database/**` | ядро `Storage/` | `Panels\Reads` → `Contracts/Values` |
 | `Sources/{Folder,Gate}/**`, `Sources/{SourceManager,PanelSources}.php` | ядро `Sources/` | `instanceof RelationSource` в `PanelSources.php:130`, `PanelRegistry.php:208` → контракт |
 | `Sources/Relation/**`, `Diagnostics/Checks/PanelsRelations.php` | `azguard-sources` | |
-| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,ContextAware,WithinContext,ModelIdentity}.php` | ядро `Tenancy/` | изоляция и текущий контекст |
-| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings}.php` | `azguard-tenancy` | |
+| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,WithinContext}.php` | ядро `Tenancy/` | изоляция и состояние области запроса |
+| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings,ContextAware,ModelIdentity}.php` | `azguard-tenancy` | |
 | `Changes/{ChangePipeline,ChangeValidator,Change*,Grant*,Permission*,EffectKind,OnceTerminal,ActingActor,PanelManagers,Scoped*Manager}.php` | ядро `Changes/` | значения → `Contracts/Values/` |
 | `Changes/RoleKeyMigration.php` | ядро `Changes/` | корректность ключей ролей |
 | `Changes/ChangeJournal.php`, `Plugins/Audit/**`, `Laravel/Console/Commands/AuditPruneCommand.php`, таблица `audit_log` из `Storage/Schema/StorageSchema.php:63` | `azguard-audit` | модуль владеет своей миграцией |
