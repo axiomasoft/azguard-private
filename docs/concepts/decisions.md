@@ -105,6 +105,8 @@ transaction: they join it, and their events are published after the root commit.
   expired.
 - **Not cached.** Policies, hooks, restrictions and conditions run on every check. Only grant sets are cached,
   keyed by the panel state version.
+- **The subject.** A check on a model uses that instance, as Laravel's Gate does. Call `$user->refresh()` to see
+  attribute changes made elsewhere. A check by `SubjectRef` reads the row every time.
 - **Already started checks.** A check that began before the revocation can still finish with the old set.
   Guard critical actions inside the action itself, for example by re-checking in the job that performs it.
 

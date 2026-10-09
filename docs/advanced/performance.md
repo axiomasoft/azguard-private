@@ -7,14 +7,17 @@ This page explains what costs time, how to configure caching, and what the bench
 
 | Situation | SQL per check | Why |
 |---|---|---|
-| First check of a subject in a request, no cache store | 6 | The subject, the storage and panel state versions, permission grants, role grants, and a second read of the panel state that confirms nothing changed during the read |
-| First check, with a cache store | 3 | The subject and the two state versions. The grants come from the store |
-| Every following check in the same request | 1 | The set is memoized. The subject row is re-read, see below |
-| A check with a policy over a list of N records | N + a few | The subject is re-read per check |
+| First check of a subject in a request, no cache store | 5 | The storage and panel state versions, permission grants, role grants, and a second read of the panel state that confirms nothing changed during the read |
+| First check, with a cache store | 2 | The two state versions. The grants come from the store |
+| Every following check in the same request | 0 | The set is memoized |
+| A check with a policy over a list of N records | 0 per record | The same set and the same user instance |
 
-- **The subject is re-read on every check.** `ModelSubjectResolver` loads the subject row again, so a
-  deactivated user or a changed attribute takes effect within the same request. That is about a third of the
-  time of a warm check, and it is why checking 100 records costs about 100 queries.
+- **The subject is the model you hold.** `$user->hasPermission()`, `$user->can()`, middleware, Filament and
+  `visibleTo($user)` pass the model instance to policies, restrictions and automatic roles, as Laravel's Gate
+  does. It is not read again. A change made elsewhere is visible after `$user->refresh()`, exactly as with
+  `Auth::user()`.
+- **A bare reference is read.** A check by `SubjectRef` (the console, `azguard:explain`, your own code) loads
+  the row on every check, because there is no instance to trust.
 - **Lists.** Do not check records one by one. `visibleTo()` adds the conditions to the SQL query instead: about
   9 queries for any number of rows. See [Filtering lists](/guides/checking-access#filtering-lists).
 - **Many abilities at once.** `abilities()` resolves the set once, but evaluates every permission through the
@@ -31,8 +34,8 @@ This page explains what costs time, how to configure caching, and what the bench
 
 Or per panel: `$panel->cache(store: 'redis')`.
 
-- **`cache.store`.** Without a store, every request resolves sets from the database (6 queries for the first
-  check). With a shared store such as Redis, it is 3. Any change through AzGuard bumps the state version, so
+- **`cache.store`.** Without a store, every request resolves sets from the database (5 queries for the first
+  check). With a shared store such as Redis, it is 2. Any change through AzGuard bumps the state version, so
   cached sets never outlive a grant or a revoke.
 - **`consistency.state_refresh`.** `StateRefresh::Request` (the default) reads the state version once per
   request or job. `StateRefresh::Check` reads it before every check. Use it only for long-running workers that
@@ -52,19 +55,19 @@ per scenario (30 for the slow ones).
 
 | Scenario | Median | p95 | SQL per op |
 |---|---|---|---|
-| Check, same request, 1 role | 0.67 ms | 0.99 ms | 1 |
-| Check, same request, 20 roles + 200 direct grants | 2.53 ms | 3.65 ms | 1 |
-| Check, same request, wildcard `g1.**` | 0.66 ms | 0.87 ms | 1 |
-| Check, new request, no store, 1 role | 4.28 ms | 6.03 ms | 6 |
-| Check, new request, no store, heavy | 18.26 ms | 24.71 ms | 6 |
-| Check, new request, array store, 1 role | 3.40 ms | 4.53 ms | 3 |
-| Check, new request, array store, heavy | 5.75 ms | 7.59 ms | 3 |
-| `abilities()` of 20 permissions, new request, heavy | 101 ms | 136 ms | 6 |
-| 100 records with a policy (one op = 100 checks) | 83.5 ms | 122 ms | 105 |
-| `visibleTo()`: first page of 10 000 posts | 4.81 ms | 5.80 ms | 9 |
-| `visibleTo()`: count of 10 000 posts | 4.78 ms | 5.06 ms | 9 |
-| `grantRole()` to a new subject | 2.04 ms | 2.25 ms | 6.8 |
-| Compile the panel registry (1 000 permissions, 40 roles) | 57.4 ms | 61.6 ms | 0 |
+| Check, same request, 1 role | 0.42 ms | 0.58 ms | 0 |
+| Check, same request, 20 roles + 200 direct grants | 2.02 ms | 2.21 ms | 0 |
+| Check, same request, wildcard `g1.**` | 0.39 ms | 0.58 ms | 0 |
+| Check, new request, no store, 1 role | 3.87 ms | 5.65 ms | 5 |
+| Check, new request, no store, heavy | 17.36 ms | 22.93 ms | 5 |
+| Check, new request, array store, 1 role | 3.16 ms | 3.91 ms | 2 |
+| Check, new request, array store, heavy | 5.41 ms | 7.27 ms | 2 |
+| `abilities()` of 20 permissions, new request, heavy | 97.48 ms | 116 ms | 5 |
+| 100 records with a policy (one op = 100 checks) | 63.93 ms | 76.57 ms | 5 |
+| `visibleTo()`: first page of 10 000 posts | 4.59 ms | 5.16 ms | 8 |
+| `visibleTo()`: count of 10 000 posts | 4.76 ms | 6.79 ms | 8 |
+| `grantRole()` to a new subject | 2.13 ms | 3.35 ms | 6.8 |
+| Compile the panel registry (1 000 permissions, 40 roles) | 62.65 ms | 66.58 ms | 0 |
 
 - **Compare runs, not thresholds.** The numbers are relative: OPcache, a real database server and the
   machine change them. Compare a change against `main` on the same machine.
