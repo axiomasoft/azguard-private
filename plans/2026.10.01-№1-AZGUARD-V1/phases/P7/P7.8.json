@@ -145,68 +145,68 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T03:10:30Z",
-    "finished_at": "2026-10-09T03:46:35Z",
+    "started_at": "2026-10-09T05:38:14Z",
+    "finished_at": "2026-10-09T06:13:33Z",
     "executor": {
       "provider": "claude",
-      "model": "claude-opus-5-5",
+      "model": "claude-sonnet-5-5",
       "effort": "high",
-      "session": "b24eddbc-4fcc-47d4-9630-e13c88415bdf"
+      "session": "a056841a-785a-4c2d-911f-8fc788344222"
     },
-    "notes": "Review P7 на grok/grok-4.7 (сессия 01a11ea6-29dd-7d92-a820-ebfbefe64620, read-only): ATTENTION; итог пункта RED по правилу пункта — 2 major подтверждены исполнителем. Документ knowledge/findings-P7-review, сырой отчёт knowledge/review-P7-8-2026-10-09, стрим artifacts/P7.8/grok-review.jsonl, прогоны artifacts/P7.8/checks-executor.txt. Все V1–V10 exit 0.",
-    "escalation": "Владелец: допустить repeat-admission P7.2 для F1/F2 (свои действия и inline editable columns на guarded-ресурсе пишут без права — обход авторизации), затем P7.3 (F3) и P7.4 (F6), по одному пункту за запуск; после исправлений — повторная приёмка P7.8. Фаза P7 не закрывается GREEN до этого.",
+    "notes": "Ревьюер grok-4.7 high, сессия 01a11f2b; F1,F2,F3,F6 закрыты; новые F7–F10 подтверждены пробниками; документ review-P7-8-2026-10-09-r2, раздел P7-verdict-2 в findings-P7-review",
+    "escalation": "Повторное ревью RED: F7–F10 (major, owning P7.2) и F12 (minor, P7.4); решение владельца: сводка с исправлениями, уже запушенными в origin/main (ed38e0a, 80974a8 и др.), и новый круг исправления P7.2",
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       },
       {
         "id": "V10",
         "exit": 0,
-        "at": "2026-10-09T03:46:35Z"
+        "at": "2026-10-09T06:13:33Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T03:46:35Z"
+  "updated_at": "2026-10-09T06:13:33Z"
 }

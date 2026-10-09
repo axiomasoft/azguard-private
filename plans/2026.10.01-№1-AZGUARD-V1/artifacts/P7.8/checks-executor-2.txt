@@ -1,0 +1,13 @@
+executor claude/claude-sonnet-5-5/high, HEAD d49d0c4, 2026-10-09
+V1 exit 0
+V2 exit 0
+V3 exit 0
+V4 exit 0
+V5 exit 0
+V6 exit 0
+V7 exit 0
+V8 exit 0
+V9 exit 0
+V10 exit 0
+V8: Total: 99.5 %
+probes: /tmp/p7-explicit-probe{,2,3}.php rerun by executor, F7-F10 reproduce on d49d0c4
