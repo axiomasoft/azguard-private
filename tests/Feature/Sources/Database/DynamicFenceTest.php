@@ -219,4 +219,4 @@ it('pins dynamic metadata and grants to Default while Primary reads its own comp
         ->and($frame->sourceStates['database']->version)->toBe(17)->and($frame->matchingGrants())->toBe([])->and($decision->reason)->toBe(DecisionReason::NotGranted);
     [$primary] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     expect(app(Authorizer::class)->decide($primary, $request)->allowed())->toBeTrue();
-});
+})->group('sqlite');
