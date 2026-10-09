@@ -13732,6 +13732,28 @@
                         }
                     ],
                     "return": "bool"
+                },
+                {
+                    "name": "coversValidated",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "pattern",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "local",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool"
                 }
             ],
             "stability": "api",
