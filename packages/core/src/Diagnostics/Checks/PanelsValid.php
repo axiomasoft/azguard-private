@@ -9,7 +9,9 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\DefaultPanelConflictException;
+use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelProvider;
@@ -18,7 +20,7 @@ use AzGuard\Sources\Database\DatabaseSource;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * `panels.valid`: the id and the provider of each panel, its subject models, the storage and models of its database
+ * `panels.valid`: the id and the provider of each panel, its subject models and their morph aliases, the storage and models of its database
  * sources, and one default panel per model across all panels.
  *
  * @internal
@@ -59,6 +61,16 @@ final readonly class PanelsValid implements DoctorCheck
         foreach ($panel->subjectModels() as $model) {
             if (! is_subclass_of($model, Model::class)) {
                 $findings[] = DoctorFinding::error('panels.valid', 'Panel '.$panel->id().' accepts '.$model.', which is not an Eloquent model.', $scope, ['model' => $model]);
+
+                continue;
+            }
+
+            try {
+                IdentityCodec::assertTypeAlias((new $model)->getMorphClass());
+            } catch (InvalidIdentityException $error) {
+                // Every check and grant of this model would fail on the same identity error.
+                $findings[] = DoctorFinding::error('panels.valid', 'Panel '.$panel->id().' accepts '.$model.' without a morph alias: '.$error->getMessage(),
+                    $scope, ['model' => $model]);
             }
         }
 

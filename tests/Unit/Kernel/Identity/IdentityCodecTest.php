@@ -151,3 +151,10 @@ it('gives distinct (panel, subject, contexts) tuples distinct digests', function
 
     fwrite(STDERR, sprintf("\nV04: 100000 distinct tuples in %.2f s\n", (hrtime(true) - $started) / 1e9));
 });
+
+it('names the missing morph alias when a model class reaches a type alias', function (): void {
+    expect(fn () => SubjectRef::of('App\Models\User', 1))->toThrow(
+        InvalidIdentityException::class,
+        "a model needs a morph alias, for example Relation::enforceMorphMap(['user' => App\\Models\\User::class])",
+    )->and(fn () => SubjectRef::of('Bad Alias', 1))->toThrow(InvalidIdentityException::class, 'Invalid type alias "Bad Alias": must match /\A[a-z0-9][a-z0-9_.-]{0,127}\z/.');
+});

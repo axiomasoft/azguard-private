@@ -48,6 +48,7 @@ use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Panels\Vendor;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -241,6 +242,17 @@ it('panels.valid passes registered panels and fails a missing storage, a foreign
         ->and(DoctorWorld::summary(PanelsValid::defaults([
             'admin' => handBuiltPanel('admin', default: true), 'cabinet' => handBuiltPanel('cabinet', default: true),
         ])))->toBe(['core panels.valid error']);
+});
+
+it('panels.valid fails a subject model without a morph alias before a check fails on it', function (): void {
+    checkedPanel();
+    Relation::morphMap([], false);
+
+    $findings = DoctorWorld::only(DoctorWorld::run(), 'panels.valid');
+
+    expect(DoctorWorld::summary($findings))->toBe(['panel:test panels.valid error'])
+        ->and($findings[0]->details)->toBe(['model' => User::class])
+        ->and($findings[0]->message)->toContain('without a morph alias')->toContain('Relation::enforceMorphMap');
 });
 
 it('panels.plugins passes attached dependencies and fails a missing dependency and conflicting plugin settings', function (): void {
