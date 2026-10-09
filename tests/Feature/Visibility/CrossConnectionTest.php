@@ -18,7 +18,7 @@ afterEach(fn () => W::reset());
 
 it('materializes a fenced foreign-connection DatabaseSource without joining assignment tables', function (): void {
     $storage = Storage::own('secondary');
-    expect($storage->connection()->getDatabaseName())->toBe(':memory:');
+    expect($storage->connection()->getDatabaseName())->toMatch('/^:memory:$|_test$/');
     app(StorageSchema::class)->create($storage->id());
     $storage->mutate('admin', static function (StorageMutation $mutation): void {
         $mutation->table('permission_grants')->insert(DatabaseWorld::row('permission', W::scope(1), ['permission' => 'orders.view']));

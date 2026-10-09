@@ -224,6 +224,7 @@ it('reports a storage whose connection is not configured instead of failing the 
     DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([OrderPermission::class])
         ->doctorChecks([ProbeCheck::finding('probe.after')])]);
 
+    DoctorWorld::withoutPasswordInMessages();
     $findings = DoctorWorld::run();
     $config = DoctorWorld::only($findings, 'config.valid');
 
