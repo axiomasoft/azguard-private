@@ -20,6 +20,13 @@ if ! azguard_coverage_php; then
     exit 1
 fi
 
+# ParaTest honours only the first --exclude-group (see tests/Pest.php), so the Redis stand tests ran
+# without a Redis service and failed the gate. A generated configuration excludes the stand groups for every worker.
+config=".phpunit.mutation.$$.xml"
+trap 'rm -f "$config"' EXIT
+sed 's#^\( *\)<source>#\1<groups>\n\1    <exclude>\n\1        <group>engines</group>\n\1        <group>redis</group>\n\1        <group>replica</group>\n\1    </exclude>\n\1</groups>\n\n\1<source>#' phpunit.xml >"$config"
+grep -q '<group>redis</group>' "$config" || { echo "[mutation-gate] could not derive $config from phpunit.xml" >&2; exit 2; }
+
 if (($# == 0)); then
     packages=(core filament)
 else
@@ -61,7 +68,9 @@ run_package() {
         passthru_php="${AZGUARD_COVERAGE_PHP_ARGS[*]} ${passthru_php}"
     fi
     local output status=0
-    output="$(XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=1G vendor/bin/pest \
+    # The parent merges the coverage of all workers: 1G ran out in CI (Allowed memory size exhausted), so it is unlimited.
+    output="$(XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=-1 vendor/bin/pest \
+        --configuration="$config" \
         --exclude-group=engines --exclude-group=redis --exclude-group=replica \
         --mutate \
         --parallel \

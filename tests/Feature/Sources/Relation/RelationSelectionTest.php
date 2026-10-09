@@ -72,7 +72,9 @@ it('groups scope callback OR clauses so they cannot broaden membership or tenant
     RelationWorld::attach(RelationWorld::project(9, 'A', ['enabled' => true]), 2);
     RelationWorld::attach(RelationWorld::project(10, 'A', ['enabled' => true]));
     $source = RelationSource::make(new ProjectDefinition, 'members', 'pivot.role',
-        static fn (Builder $query): Builder => $query->where('enabled', true)->orWhereKey(7)->orWhereKey(8)->orWhereKey(9));
+        // orWhereKey() exists only from Laravel 12; orWhere() on the qualified key is the same clause on 11.
+        static fn (Builder $query): Builder => $query->where('enabled', true)->orWhere($query->qualifyColumn('id'), 7)
+            ->orWhere($query->qualifyColumn('id'), 8)->orWhere($query->qualifyColumn('id'), 9));
     [, $frame] = RelationWorld::compile([$source], AccessScope::in(TenantRef::of('organization', 'A')));
     $selection = $source->contextsCovering(SubjectRef::of('user', 1), PermissionKey::of('admin', 'projects.edit'), 'project', $frame);
     $ids = array_map(fn ($ref): ?string => $ref->id(), $selection->refs());

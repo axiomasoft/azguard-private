@@ -55,3 +55,4 @@ plans/**/.plan-cache/*.lock
 
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/
+.phpunit.mutation.*.xml

@@ -37,3 +37,19 @@ it('loads a project once and refuses a reference of another type', function (): 
         ->and(fn () => $scope->resolve(AssignmentScopeRef::global()))
         ->toThrow(InvalidAssignmentScopeException::class, 'global');
 });
+
+it('resolves a context only by the exact key, the same way the batch path does', function (): void {
+    Model::unguarded(fn () => Project::query()->create(['organization_id' => 'acme']));
+    $scope = ConfiguredProjectScope::make();
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    // PostgreSQL rejects 'a/b' and '1.0' with an error; neither is ever sent to the database.
+    foreach (['a/b', '1.0', '9223372036854775808'] as $id) {
+        expect($scope->resolve(AssignmentScopeRef::of('crm.project', $id)))->toBeNull();
+    }
+    expect(DB::getQueryLog())->toBe([])
+        // SQLite and MySQL coerce '01' to the row 1: it is not project 1.
+        ->and($scope->resolve(AssignmentScopeRef::of('crm.project', '01')))->toBeNull()
+        ->and($scope->resolve(AssignmentScopeRef::of('crm.project', '1'))?->record?->getKey())->toBe(1);
+});

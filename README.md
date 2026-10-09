@@ -88,7 +88,8 @@ This repository is the development monorepo. The packages are split into read-on
 ## Requirements
 
 PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 11, 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
-PostgreSQL 16. CI runs every PHP × Laravel pair on SQLite, and the suite on each database server.
+PostgreSQL 16. The Filament plugin needs Filament 5.8.4 or later. CI runs every PHP × Laravel pair on SQLite, and
+the suite on each database server.
 
 ## Contributing and security
 
