@@ -53,7 +53,7 @@ it('AC5 decides every subject of a set at one snapshot while another connection 
 
         if (! $moved && str_starts_with($sql, 'select') && str_contains($event->sql, 'azg_subject_revisions')) {
             $moved = true;
-            // After the first subject's observed state: the grant moves from user 1 to user 2.
+            // After the observed states of the set: the grant moves from user 1 to user 2.
             ConcurrentWriter::commit(static function (Connection $connection): void {
                 $connection->table('azg_permission_grants')->where('subject_id', '1')->update(['subject_id' => '2']);
                 foreach (['1', '2'] as $id) {

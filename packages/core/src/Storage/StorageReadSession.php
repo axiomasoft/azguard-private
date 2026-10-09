@@ -233,6 +233,46 @@ final class StorageReadSession
             new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch), (int) ($row->revision ?? 0)];
     }
 
+    /**
+     * Subject ids per IN list of {@see observedMany()}: below the bound-parameter limit of every supported driver
+     * (SQLite before 3.32 allows 999, PostgreSQL and MySQL 65535) with room for the other bindings of the statement.
+     */
+    public const int OBSERVED_CHUNK = 500;
+
+    /**
+     * The panel state and the revisions of many subjects of one type: the statement of {@see observed()} with an IN
+     * list, one statement per {@see OBSERVED_CHUNK} subjects. Inside one snapshot every chunk sees the same state
+     * (audits/2026-10-09-consistency-design.md, step 5).
+     *
+     * @param  list<string>  $subjectIds
+     * @return array{?PanelState, array<string, int>} revisions by subject id; a missing id is revision 0
+     */
+    public function observedMany(string $panel, string $subjectType, array $subjectIds): array
+    {
+        PermissionGrammar::assertPanelId($panel);
+        $this->storage->authorityTransaction($panel);
+        $this->assertSchema();
+        [$state, $revisions] = [null, []];
+        foreach (array_chunk(array_values(array_unique($subjectIds)), self::OBSERVED_CHUNK) as $chunk) {
+            $rows = $this->table('panel_state as ps')
+                ->leftJoin($this->storage->prefix().'subject_revisions as sr', static function (JoinClause $join) use ($subjectType, $chunk): void {
+                    $join->on('sr.panel', '=', 'ps.panel')->where('sr.subject_type', '=', $subjectType)->whereIn('sr.subject_id', $chunk);
+                })
+                ->where('ps.panel', $panel)
+                ->get(['ps.panel', 'ps.version', 'ps.incarnation', 'ps.updated_at', 'ps.epoch', 'sr.subject_id', 'sr.revision']);
+            foreach ($rows as $row) {
+                $state ??= new PanelState($row->panel, (int) $row->version, $row->incarnation,
+                    new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
+
+                if ($row->subject_id !== null) {
+                    $revisions[(string) $row->subject_id] = (int) $row->revision;
+                }
+            }
+        }
+
+        return [$state, $revisions];
+    }
+
     /** The snapshot transaction on the pinned PDO is still the one this session opened. */
     private function assertOwnSnapshot(): void
     {
