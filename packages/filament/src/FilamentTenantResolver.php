@@ -6,8 +6,8 @@ namespace AzGuard\Filament;
 
 use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\ModelIdentity;
 use Filament\Facades\Filament;
 use Illuminate\Http\Request;
 
@@ -43,6 +43,6 @@ final class FilamentTenantResolver implements TenantResolver
             return null;
         }
 
-        return TenantRef::of($definition->type(), ModelIdentity::key($tenant));
+        return TenantRef::of($definition->type(), ModelKey::of($tenant));
     }
 }
