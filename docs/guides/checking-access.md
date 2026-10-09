@@ -54,6 +54,27 @@ DecisionResponder::authorize(AzGuard::panel('admin')->for($user)->decide(PostPer
 `AzGuard\Laravel\Http\DecisionResponder` keeps 403 for a real denial and never puts the reason in the body. See
 [Consistency](../advanced/consistency.md#failures) for the failure kinds.
 
+### Many subjects at once
+
+`decideMany()` answers a list of requests and reads the grants of all their subjects in one database snapshot, so
+the answers are consistent with each other:
+
+```php
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+
+$decisions = AzGuard::panel('admin')->decideMany(array_map(
+    static fn (int $id): AccessRequest => AccessRequest::for(SubjectRef::of('user', $id), PermissionKey::of('admin', 'posts.update')),
+    $userIds,
+));
+
+$decisions->failures(); // the decisions that could not be computed
+```
+
+One call takes at most `decision_sets.max_subjects` distinct subjects (500 by default). See
+[Consistency](../advanced/consistency.md#decisionset) for the limit and for splitting larger sets.
+
 ## Laravel Gate
 
 AzGuard registers a `Gate::before` callback, so `can()`, `@can`, `Gate::allows()`, `$this->authorize()` and

@@ -7,8 +7,8 @@ This page explains what costs time, how to configure caching, and what the bench
 
 | Situation | SQL per check | Why |
 |---|---|---|
-| First check of a subject in a request, no cache store | 5 | The storage and panel state versions, permission grants, role grants, and a second read of the panel state that confirms nothing changed during the read |
-| First check, with a cache store | 2 | The two state versions. The grants come from the store |
+| First check of a subject in a request, no cache store | 5 | The storage state and the observed panel state of the request, then one read-only transaction with the panel state, the permission grants and the role grants (see [Consistency](/advanced/consistency)) |
+| First check, with a cache store | 2 | The storage state and the observed panel state. The grants come from the store |
 | Every following check in the same request | 0 | The set is memoized |
 | A check with a policy over a list of N records | 0 per record | The same set and the same user instance |
 

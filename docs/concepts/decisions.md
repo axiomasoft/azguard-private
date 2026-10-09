@@ -42,6 +42,7 @@ $decision = $user->guard('admin')->decide(PostPermission::Update, $post);
 $decision->allowed();        // bool
 $decision->reason;           // DecisionReason::Policy
 $decision->message;          // 'Only your own posts.'
+$decision->failure();        // null, or FailureKind::Transient / ::Contract when the check could not be computed
 ```
 
 | Reason | Meaning |
@@ -49,10 +50,15 @@ $decision->message;          // 'Only your own posts.'
 | `granted`, `super_admin`, `policy` (allow) | Allowed |
 | `not_granted` | No qualifying grant |
 | `policy` (deny) | Vetoed or refused by the policy |
+| `hook` | Denied early by a before hook |
 | `restricted` | A restriction denied |
 | `tenant_required`, `tenant_mismatch`, `context_required`, `context_not_accepted`, `context_mismatch`, `context_ineligible`, `resource_scope_missing` | Tenant or scope boundary |
 | `source_error`, `policy_error`, `restriction_error`, `hook_error`, `condition_error`, `context_filter_error` | A component failed (fail closed) |
 | `consistency_error` | The grants could not be read at one consistent version |
+
+The `*_error` and `consistency_error` reasons are failures, not outcomes: `failure()` classifies them as
+`Transient` (retrying may help) or `Contract` (a component is broken). See
+[Consistency: failures](/advanced/consistency#failures) for the mapping and the opt-in 503/500 responder.
 
 ## Fail closed
 
@@ -73,8 +79,9 @@ Configuration errors behave differently depending on the caller:
 
 ## Checks inside database transactions
 
-AzGuard reads grants at a confirmed state version. An open application transaction on the **same connection**
-may hold an old snapshot or uncommitted grant rows, and the engine cannot tell them apart. So a check inside
+AzGuard reads grants in a read-only snapshot of its own (see [Consistency](/advanced/consistency)). An open
+application transaction on the **same connection** may hold an old snapshot or uncommitted grant rows, and the
+engine cannot tell them apart. So a check inside
 such a transaction **denies**:
 
 - the reason is `source_error`;
@@ -104,10 +111,10 @@ transaction: they join it, and their events are published after the root commit.
 - **Expiry.** Expired grants never apply, not even from a cache. A grant with `expiresAt = now` has already
   expired.
 - **Not cached.** Policies, hooks, restrictions and conditions run on every check. Only grant sets are cached,
-  keyed by the panel state version.
+  keyed by the subject's revision and the panel epoch, so a write to one subject does not evict the others.
 - **The subject.** A check on a model uses that instance, as Laravel's Gate does. Call `$user->refresh()` to see
   attribute changes made elsewhere. A check by `SubjectRef` reads the row every time.
 - **Already started checks.** A check that began before the revocation can still finish with the old set.
   Guard critical actions inside the action itself, for example by re-checking in the job that performs it.
 
-See [Performance and consistency](/advanced/performance).
+See [Performance](/advanced/performance) and [Consistency](/advanced/consistency).
