@@ -26,6 +26,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Scopes\ModelKey;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -178,7 +179,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         }
 
         $query = $this->query($binding, $subject);
-        $query->whereKey(array_map(static fn (AccessScope $scope): ?string => $scope->context->id(), array_values($resolved)));
+        ModelKey::where($query, array_map(static fn (AccessScope $scope): ?string => $scope->context->id(), array_values($resolved)));
 
         return $this->contributions($binding, $query, $subject, $context, $resolved);
     }
@@ -233,7 +234,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         }
 
         $query->whereHas($binding->via, static function (Builder $membership) use ($subject): void {
-            $membership->whereKey($subject->id());
+            ModelKey::where($membership, $subject->id());
         });
 
         if ($this->scope instanceof Closure) {
@@ -267,7 +268,7 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
             throw new InvalidSourceContributionException('RelationSource exceeds the 10000 related-root selection budget.');
         }
         $records->load([$binding->via => function (Relation $membership) use ($subject): void {
-            $membership->whereKey($subject->id());
+            ModelKey::where($membership->getQuery(), $subject->id());
             $membership->getQuery()->setEagerLoads([]);
             $membership->getQuery()->limit(10001);
 

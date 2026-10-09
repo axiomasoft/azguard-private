@@ -9,6 +9,7 @@ use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Policies\RuntimeInvoker;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\ModelKey;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -44,7 +45,7 @@ final class EligibilityBuilder
     public static function matches(QueryableAssignmentScopeDefinition $definition, ResolvedAssignmentScope $resolved, array $filters, AssignmentScopeRuntime $runtime, Container $container): bool
     {
         $query = self::structural($definition);
-        $query->whereKey($resolved->ref->id());
+        ModelKey::where($query, $resolved->ref->id());
 
         // Owner is defined by tenantOf(), not by a configurable column name or a filter.
         $record = (clone $query)->first();
@@ -79,7 +80,7 @@ final class EligibilityBuilder
                 $branch->getQuery()->wheres = [];
                 $branch->getQuery()->setBindings([], 'where');
                 $branch->getQuery()->addNestedWhereQuery($structural->getQuery());
-                $branch->whereKey($resolved->ref->id());
+                ModelKey::where($branch, $resolved->ref->id());
                 self::apply($definition, $branch, $filters, $runtime, $container);
                 // A witness tag prevents one passing role/field predicate from granting a sibling witness.
                 $branch->selectRaw('? as azguard_batch_witness', [$i]);

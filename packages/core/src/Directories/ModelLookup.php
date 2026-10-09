@@ -6,6 +6,7 @@ namespace AzGuard\Directories;
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Scopes\ModelKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
@@ -106,6 +107,6 @@ final class ModelLookup
     /** An integer key never equals free text; comparing them would fail on a strict engine. */
     private static function keyCanEqual(Model $model, string $term): bool
     {
-        return $model->getKeyType() !== 'int' || (ctype_digit($term) && strlen($term) <= 18);
+        return ! ModelKey::isInteger($model) || (ctype_digit($term) && strlen($term) <= 18);
     }
 }

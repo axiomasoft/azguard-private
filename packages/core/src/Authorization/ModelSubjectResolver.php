@@ -7,6 +7,7 @@ namespace AzGuard\Authorization;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Scopes\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 final class ModelSubjectResolver
@@ -29,33 +30,11 @@ final class ModelSubjectResolver
             $model = new $class;
 
             if ($model->getMorphClass() === $subject->type()) {
-                if (! self::keyCanHold($model, $subject->id())) {
-                    return null;
-                }
-                $found = $model->newQuery()->whereKey($subject->id())->first();
-
-                return $found !== null && self::keyOf($found) === $subject->id() ? $found : null;
+                return ModelKey::find($model->newQuery(), $subject->id());
             }
         }
 
         return null;
-    }
-
-    /** Whether the key column of the model can hold the id as written: any id for a string key, a canonical integer otherwise. */
-    public static function keyCanHold(Model $model, string $id): bool
-    {
-        if (! in_array($model->getKeyType(), ['int', 'integer'], true)) {
-            return true;
-        }
-
-        return preg_match('/^-?(0|[1-9][0-9]*)$/', $id) === 1 && (string) (int) $id === $id;
-    }
-
-    private static function keyOf(Model $model): ?string
-    {
-        $key = $model->getKey();
-
-        return is_int($key) || is_string($key) ? (string) $key : null;
     }
 
     /**
@@ -67,9 +46,8 @@ final class ModelSubjectResolver
         if (! $model instanceof Model || ! $model->exists || $model->getMorphClass() !== $subject->type()) {
             return null;
         }
-        $key = $model->getKey();
 
-        if ((! is_int($key) && ! is_string($key)) || (string) $key !== $subject->id()) {
+        if (ModelKey::of($model) !== $subject->id()) {
             return null;
         }
         foreach ($panel->subjectModels() as $class) {

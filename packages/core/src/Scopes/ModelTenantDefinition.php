@@ -58,6 +58,6 @@ final readonly class ModelTenantDefinition
             return null;
         }
 
-        return $this->model::query()->whereKey($ref->id())->first();
+        return ModelKey::find($this->model::query(), $ref->id());
     }
 }
