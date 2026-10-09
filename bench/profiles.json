@@ -7,6 +7,7 @@
         {"id": "visible-at-scale", "class": "AzGuardBench\\Load\\Profiles\\VisibleAtScale", "primary_op": "page"},
         {"id": "cache-cold-warm", "class": "AzGuardBench\\Load\\Profiles\\CacheColdWarm", "primary_op": "warm_store"},
         {"id": "grant-revoke-load", "class": "AzGuardBench\\Load\\Profiles\\GrantRevokeLoad", "primary_op": "check_under_writes"},
+        {"id": "consistency-load", "class": "AzGuardBench\\Load\\Profiles\\ConsistencyLoad", "primary_op": "check"},
         {"id": "multi-tenant", "class": "AzGuardBench\\Load\\Profiles\\MultiTenant", "primary_op": "member"}
     ]
 }
