@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes\Query;
 
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,7 +49,7 @@ final class PredicateBuilder extends Builder
     /** @return array<string,mixed> */
     public function configuration(): array
     {
-        $configuration = get_object_vars($this);
+        $configuration = Narrow::map(get_object_vars($this), 'predicate builder');
         unset($configuration['query'], $configuration['guard']);
 
         return $configuration;

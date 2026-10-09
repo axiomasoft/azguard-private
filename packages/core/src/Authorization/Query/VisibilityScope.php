@@ -8,6 +8,7 @@ use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
@@ -15,6 +16,7 @@ use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ModelIdentity;
@@ -97,10 +99,10 @@ final readonly class VisibilityScope
 
         if (! $common && $frame->role() !== null) {
             foreach ($frame->role()->scopes() as $declared) {
-                $binding = is_string($declared) ? $this->container->make($declared) : $declared;
+                $binding = Narrow::instance(is_string($declared) ? $this->container->make($declared) : $declared, AssignmentScopeDefinition::class, 'role scope');
 
                 if ($binding->type() === $this->definition->type()) {
-                    if ($binding::class !== $this->definition::class || $binding->model() !== $this->definition->model()) {
+                    if ($binding::class !== $this->definition::class || ! $binding instanceof QueryableAssignmentScopeDefinition || $binding->model() !== $this->definition->model()) {
                         throw new VisibilityNotSupportedException('role_scope_identity');
                     }
                     $definitions[] = $binding;

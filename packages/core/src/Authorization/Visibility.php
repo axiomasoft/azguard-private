@@ -8,9 +8,11 @@ use AzGuard\Authorization\Query\PredicateCompiler;
 use AzGuard\Authorization\Query\VisibilityScope;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
+use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\TenantMembership;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -27,9 +29,11 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
+use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\CurrentContext;
 use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\Folder\FolderSource;
@@ -110,7 +114,7 @@ final readonly class Visibility
         $declared = $panel->tenants()->membership();
 
         if ($declared !== null && ! $frame->scope()->tenant->isGlobal()) {
-            $member = is_string($declared) ? $this->container->make($declared) : $declared;
+            $member = Narrow::instance(is_string($declared) ? $this->container->make($declared) : $declared, TenantMembership::class, 'tenant membership');
 
             if (! $member->isMember($request->subject(), $frame->scope()->tenant)) {
                 $group->whereRaw('1 = 0');
@@ -172,7 +176,7 @@ final readonly class Visibility
                 $covers = $item instanceof Grant ? PatternMatcher::coversValidated($item->pattern->local(), $request->permission()->local())
                     : array_filter($roleDefinition['permissions'] ?? [], static fn (string $pattern): bool => PatternMatcher::coversValidated($pattern, $request->permission()->local())) !== [];
                 // Conditions and role eligibility qualify each live contribution before permission matching.
-                $role = $roleDefinition === null ? null : $this->container->make($roleDefinition['class']);
+                $role = $roleDefinition === null ? null : Narrow::instance($this->container->make($roleDefinition['class']), BaseRole::class, 'role');
                 $branchFrame = ($ref->isGlobal() ? $frame : $frame->withScope(AccessScope::in($frame->scope()->tenant, $ref)))->forContribution($item, $role);
                 $branch = $query->getModel()->newModelQuery();
 
@@ -276,7 +280,7 @@ final readonly class Visibility
             || $panel->resourceScopes() !== []) {
             throw new VisibilityNotSupportedException('resource_context_mapping');
         }
-        $type = $model->azguardContextType();
+        $type = Narrow::string($model->azguardContextType(), 'azguardContextType()');
         $definition = $panel->scopeDefinition($type);
 
         if (! $definition instanceof QueryableAssignmentScopeDefinition
@@ -284,7 +288,7 @@ final readonly class Visibility
             throw new VisibilityNotSupportedException('resource_context_type');
         }
 
-        return new VisibilityScope($query, $definition, $model->azguardContextRelation(), $this->container, $compiler);
+        return new VisibilityScope($query, $definition, Narrow::nullableString($model->azguardContextRelation(), 'azguardContextRelation()'), $this->container, $compiler);
     }
 
     private function predicate(mixed $component, AccessRequest $request, EvaluationFrame $frame, string $type, Grant|RoleContribution|null $contribution = null): P
@@ -312,7 +316,7 @@ final readonly class Visibility
     {
         $keys = [];
         foreach ($frame->panel()->restrictions() as $declared) {
-            $restriction = is_string($declared) ? $this->container->make($declared) : $declared;
+            $restriction = Narrow::instance(is_string($declared) ? $this->container->make($declared) : $declared, Restriction::class, 'restriction');
             $key = $restriction->key();
 
             if (isset($keys[$key])) {

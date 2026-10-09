@@ -80,9 +80,18 @@ final class PermissionSetCache
             $stored = $this->decode($this->stores->store($store)->get($key));
 
             if ($stored !== null && isset($stored['items'], $stored['validUntil']) && is_array($stored['items'])
-                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable
-                && count(array_filter($stored['items'], static fn (mixed $item): bool => $item instanceof Grant || $item instanceof RoleContribution)) === count($stored['items'])) {
-                $entry = ['items' => $stored['items'], 'validUntil' => $stored['validUntil']];
+                && array_is_list($stored['items']) && $stored['validUntil'] instanceof DateTimeImmutable) {
+                // Every item must be a contribution; one of another type discards the whole entry.
+                $items = [];
+                foreach ($stored['items'] as $item) {
+                    if (! $item instanceof Grant && ! $item instanceof RoleContribution) {
+                        $items = null;
+
+                        break;
+                    }
+                    $items[] = $item;
+                }
+                $entry = $items === null ? null : ['items' => $items, 'validUntil' => $stored['validUntil']];
             }
         }
 

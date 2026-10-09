@@ -17,7 +17,7 @@ parameters:
     - tests/Fixtures/Filament/Pages/ReportsPage.php
     - tests/Fixtures/Filament/Widgets/OrderCountWidget.php
 
-  level: 9
+  level: max
 
   checkModelProperties: true
   checkPhpDocMissingReturn: true

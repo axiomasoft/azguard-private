@@ -21,6 +21,7 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Roles\BaseRole;
@@ -458,7 +459,7 @@ final readonly class ChangePipeline
                 if (($row['panel'] ?? null) !== $panel->id()) {
                     throw new UnsupportedDirectWriteException('The journal of panel '.$panel->id().' takes only rows of that panel.');
                 }
-                $writer->appendJournal($panel, $row);
+                $writer->appendJournal($panel, Narrow::map($row, 'journal row'));
             };
             $results = $events = [];
             $effects = 0;

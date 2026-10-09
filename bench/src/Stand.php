@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Tests\TestCase;
 use AzGuardBench\Load\Profiles\DecisionSetSize;
 use Illuminate\Contracts\Console\Kernel;
@@ -88,7 +89,7 @@ final class Stand
         Relation::enforceMorphMap(['user' => Catalog::model('User'), 'post' => Catalog::model('Post'), 'team' => Catalog::model('Team')]);
         $app = $case->createApplication();
         $connection = config('database.connections.testbench');
-        DisposableDatabase::assertSafe(is_array($connection) ? $connection : []);
+        DisposableDatabase::assertSafe(is_array($connection) ? Narrow::map($connection, 'testbench connection') : []);
 
         return new self($app, $driver, $cache);
     }

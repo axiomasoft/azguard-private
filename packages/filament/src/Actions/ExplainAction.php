@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament\Actions;
 
 use AzGuard\Filament\Editors\GrantEditor;
+use AzGuard\Filament\Support\RecordValue;
 use AzGuard\Kernel\Decision\Explanation;
 use Closure;
 use Filament\Actions\Action;
@@ -125,7 +126,7 @@ final class ExplainAction
 
         return [
             'question' => $question,
-            'decision' => is_array($snapshot['decision'] ?? null) ? $snapshot['decision'] : [],
+            'decision' => is_array($snapshot['decision'] ?? null) ? RecordValue::map($snapshot['decision'], 'explanation decision') : [],
             'steps' => $steps,
         ];
     }

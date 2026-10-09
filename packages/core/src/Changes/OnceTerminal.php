@@ -68,8 +68,12 @@ final class OnceTerminal
                 return $downstream = $next($passed);
             };
 
-            $returned = $pipe instanceof Closure ? $pipe($change, $guardedNext)
-                : (is_string($pipe) ? $container->make($pipe) : $pipe)->handle($change, $guardedNext);
+            $resolved = is_string($pipe) ? $container->make($pipe) : $pipe;
+
+            if (! $resolved instanceof Closure && (! is_object($resolved) || ! method_exists($resolved, 'handle'))) {
+                throw self::broken('A changing pipe must be a closure or an object with handle().');
+            }
+            $returned = $resolved instanceof Closure ? $resolved($change, $guardedNext) : $resolved->handle($change, $guardedNext);
 
             if ($calls !== 1 || ! $downstream instanceof ChangeResult || $returned !== $downstream) {
                 throw self::broken('A changing pipe must call $next once and return its result.');

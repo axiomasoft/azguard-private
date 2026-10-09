@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Policies;
 
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Container\Container;
@@ -58,7 +59,7 @@ final readonly class NativeGateBinding
                 if (! is_string($class) || ! class_exists($class) || ! is_string($action) || $action === '') {
                     throw new RuntimeException('Mapped native policy callback is invalid.');
                 }
-                $policy = $this->container->make($class);
+                $policy = Narrow::instance($this->container->make($class), $class, 'native policy');
                 $callback = [$policy, $action];
 
                 if (! is_callable($callback)) {

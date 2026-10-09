@@ -33,10 +33,12 @@ final class RefusesEditableColumns
 
         try {
             // Use the same binding as Livewire: named, positional and mixed payloads must name the same column/row.
-            $bound = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params)['named'];
+            $resolved = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params);
         } catch (Throwable) {
             abort(403);
         }
+        // An unexpected binding shape names no column/row, which refuses the call below.
+        $bound = is_array($resolved) && is_array($resolved['named'] ?? null) ? $resolved['named'] : [];
         $name = $bound[$method === 'updateTableColumnState' ? 'column' : 'name'] ?? null;
         $key = $bound[$method === 'updateTableColumnState' ? 'record' : 'recordKey'] ?? null;
 

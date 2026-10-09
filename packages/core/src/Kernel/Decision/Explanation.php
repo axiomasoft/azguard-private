@@ -93,9 +93,12 @@ final readonly class Explanation
         }
     }
 
-    /** @param array<mixed> $data
+    /**
+     * @template TKey of array-key
+     *
+     * @param  array<TKey, mixed>  $data
      * @param  list<string>  $secrets
-     * @return array<mixed>
+     * @return array<TKey, mixed> the same keys
      */
     private static function redact(array $data, array $secrets): array
     {

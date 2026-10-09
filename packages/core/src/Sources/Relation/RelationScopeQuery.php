@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Sources\Relation;
 
 use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
@@ -186,7 +187,7 @@ final class RelationScopeQuery extends Builder
      */
     public static function structure(Builder $query): array
     {
-        $state = get_object_vars($query->getQuery());
+        $state = Narrow::map(get_object_vars($query->getQuery()), 'query state');
         unset($state['wheres']);
         $bindings = $query->getQuery()->getRawBindings();
         $bindings['where'] = [];

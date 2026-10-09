@@ -9,6 +9,7 @@ use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Kernel\Support\Narrow;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -127,7 +128,7 @@ final class ScopeConfiguration
     /** @return array<string, mixed> */
     private static function structure(AssignmentScopeDefinition $definition): array
     {
-        $properties = (array) $definition;
+        $properties = Narrow::map((array) $definition, 'assignment scope definition');
         foreach ($properties as $name => $value) {
             if ($value instanceof AssignmentScopeSettings || in_array($name, [
                 "\0".BaseAssignmentScope::class."\0filters",

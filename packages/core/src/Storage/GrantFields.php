@@ -6,6 +6,7 @@ namespace AzGuard\Storage;
 
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Storage\Models\PermissionGrant;
@@ -72,7 +73,7 @@ final readonly class GrantFields
         $unknown = array_diff(array_keys($values), array_keys($this->fields));
 
         if ($unknown !== []) {
-            throw new InvalidChangeFieldsException(array_fill_keys($unknown, ['Unknown grant field.']));
+            throw new InvalidChangeFieldsException(array_fill_keys(array_map(strval(...), $unknown), ['Unknown grant field.']));
         }
         $rules = [];
         foreach ($this->fields as $name => $field) {
@@ -90,7 +91,7 @@ final readonly class GrantFields
             throw new InvalidChangeFieldsException(array_map(array_values(...), $validator->errors()->messages()));
         }
 
-        return $validator->validated();
+        return Narrow::map($validator->validated(), 'validated grant fields');
     }
 
     /** @param array<mixed> $values  keys that name no declared field are rejected
@@ -138,6 +139,13 @@ final readonly class GrantFields
     {
         $meta = $model->getAttribute('meta');
         $meta = $meta instanceof Traversable ? iterator_to_array($meta) : (is_array($meta) ? $meta : []);
+        // Only named entries can be fields; a stored list carries none.
+        $named = [];
+        foreach ($meta as $key => $value) {
+            if (is_string($key)) {
+                $named[$key] = $value;
+            }
+        }
         $columns = [];
         foreach ($this->fields as $name => $field) {
             if (! $field->isInMeta()) {
@@ -145,7 +153,7 @@ final readonly class GrantFields
             }
         }
 
-        return $this->canonical(['columns' => $columns, 'meta' => $meta]);
+        return $this->canonical(['columns' => $columns, 'meta' => $named]);
     }
 
     /** @return list<Field> */

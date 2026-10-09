@@ -15,6 +15,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Storage\GrantFields;
@@ -94,7 +95,7 @@ final class LockedReads
         $model = $this->storage->model('permission', $this->models['permission'] ?? null);
         $definitions = [];
         foreach ($this->mutation->table('permissions')->where('panel', $this->panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
-            $permission = $model->newFromBuilder((array) $row);
+            $permission = $model->newFromBuilder(Narrow::row($row));
 
             if (! $permission instanceof Permission || $permission->panel() !== $this->panel->id() || ! $permission->tenantRef()->equals($tenant)) {
                 throw new InvalidSourceContributionException('Dynamic permission identity differs from its query.');
@@ -251,7 +252,7 @@ final class LockedReads
     /** @internal */
     public function actionRecord(stdClass $row): PermissionRecord
     {
-        $model = $this->storage->model('permission', $this->models['permission'] ?? null)->newFromBuilder((array) $row);
+        $model = $this->storage->model('permission', $this->models['permission'] ?? null)->newFromBuilder(Narrow::row($row));
 
         if (! $model instanceof Permission || $model->panel() !== $this->panel->id()) {
             throw new InvalidSourceContributionException('Stored dynamic permission identity differs from its query.');
@@ -259,9 +260,9 @@ final class LockedReads
         $fields = is_string($row->meta ?? null) ? json_decode($row->meta, true, flags: JSON_THROW_ON_ERROR) : [];
 
         return new PermissionRecord(
-            id: 'action:'.$row->id, panel: $model->panel(), tenant: $model->tenantRef(), key: $model->permissionKey(),
+            id: 'action:'.Narrow::string($row->id ?? null, 'action id'), panel: $model->panel(), tenant: $model->tenantRef(), key: $model->permissionKey(),
             label: $model->displayText('label'), group: $model->displayText('group'), description: $model->displayText('description'),
-            fields: is_array($fields) ? $fields : [], createdAt: GrantRows::utc($row->created_at ?? null), updatedAt: GrantRows::utc($row->updated_at ?? null),
+            fields: is_array($fields) ? Narrow::map($fields, 'permission meta') : [], createdAt: GrantRows::utc($row->created_at ?? null), updatedAt: GrantRows::utc($row->updated_at ?? null),
         );
     }
 
