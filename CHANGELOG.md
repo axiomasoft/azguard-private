@@ -28,6 +28,12 @@ The first public release. Earlier 0.x versions were never published; moving data
 - **core:** Testing kit: `InteractsWithAzGuard` (`actingAsWithRoles()`, `actingAsWithPermissions()`),
   `AzGuard::fake()`, contract tests for source and plugin authors.
 - **core:** Plugins, and an audit journal plugin (`AuditPlugin`).
+- **core:** Read consistency: database sources read state and grants in one read-only snapshot; a `DecisionSet`
+  reads in one snapshot per storage connection; cached sets are keyed by subject revision and epoch (storage
+  schema 2: `azg_subject_revisions`, `azg_panel_state.epoch`), so writes to other subjects keep them. Pre-release
+  storages at schema 1 are upgraded by the bundled migration. See the Consistency page of the docs.
+- **core:** Failure taxonomy (`FailureKind`, `Decision::failed()`, `DecisionSet::failures()`) and the opt-in
+  `DecisionResponder` HTTP mapping (403 deny, 503 transient, 500 contract); doctor check `storage.sqlite`.
 - **filament:** `AzGuardPlugin` for Filament 5: resources, relation managers, pages, widgets, bulk actions and
   exports are authorized by AzGuard; lists are filtered in SQL; `enforce()` refuses unprotected surfaces.
 - **filament:** Read-only role, panel and doctor pages; editors for role grants, permission grants and runtime
