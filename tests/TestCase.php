@@ -8,6 +8,7 @@ use AzGuard\AzGuardServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use Closure;
 use Illuminate\Database\Connection;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RuntimeException;
 
@@ -16,16 +17,20 @@ class TestCase extends Orchestra
     /**
      * Every test starts from an empty database, as it does on SQLite :memory:. On PostgreSQL, MySQL and MariaDB the
      * schema of the previous test would otherwise survive and the next `Schema::create()` fails with "already exists".
+     * The tables are dropped before the database traits run, so `DatabaseMigrations` and `RefreshDatabase` migrate
+     * from scratch (`migrate:fresh` wipes nothing without a `migrations` table). An application reloaded inside the
+     * test (`bootFilament()`, a catalog boot) starts empty too, as it gets a new :memory: database on SQLite.
      */
-    protected function setUp(): void
+    protected function setUpTraits()
     {
-        parent::setUp();
-
         $connection = $this->app['db']->connection();
 
         if ($connection->getDriverName() !== 'sqlite') {
             $connection->getSchemaBuilder()->dropAllTables();
+            RefreshDatabaseState::$migrated = false;
         }
+
+        return parent::setUpTraits();
     }
 
     /**
