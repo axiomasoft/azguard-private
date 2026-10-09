@@ -1,217 +1,98 @@
 # AzGuard
 
-[![Tests](https://github.com/axioma-studio/azguard/actions/workflows/tests.yml/badge.svg)](https://github.com/axioma-studio/azguard/actions/workflows/tests.yml)
-[![Code Style](https://github.com/axioma-studio/azguard/actions/workflows/code-style.yml/badge.svg)](https://github.com/axioma-studio/azguard/actions/workflows/code-style.yml)
-[![PHPStan](https://github.com/axioma-studio/azguard/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/axioma-studio/azguard/actions/workflows/static-analysis.yml)
-[![Latest Version](https://img.shields.io/packagist/v/axioma-studio/azguard-core.svg?style=flat-square)](https://packagist.org/packages/axioma-studio/azguard-core)
-[![Total Downloads](https://img.shields.io/packagist/dt/axioma-studio/azguard-core.svg?style=flat-square)](https://packagist.org/packages/axioma-studio/azguard-core)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Tests](https://github.com/axiomasoft/azguard-private/actions/workflows/tests.yml/badge.svg)](https://github.com/axiomasoft/azguard-private/actions/workflows/tests.yml)
+[![PHPStan](https://github.com/axiomasoft/azguard-private/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/axiomasoft/azguard-private/actions/workflows/static-analysis.yml)
+[![Latest Version](https://img.shields.io/packagist/v/axiomasoft/azguard.svg)](https://packagist.org/packages/axiomasoft/azguard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Code-first** role-based access control for Laravel. Roles, permissions and panels are PHP **enums and classes** — not magic strings — so authorization is refactor-safe, IDE-autocompletable and reviewable in pull requests.
+Code-first authorization for Laravel 11–13 with an optional Filament 5 plugin.
 
-> **Status:** AzGuard is being rebuilt as 1.0 (PLAN2). The description below refers to 0.3; the 0.3 code was removed from the tree in P6.9 and stays readable in git history (`git show 491980a:legacy/0.3/<path>`).
+- Permissions are backed enums and roles are PHP classes. Grants live in your database.
+- Every check goes through one decision pipeline: `hasPermission()`, `@can`, middleware, controller attributes,
+  Filament and list queries.
+- An error denies. `azguard:explain` shows why.
 
----
+```php
+#[RequiresGrant]
+enum PostPermission: string
+{
+    case View = 'posts.view';
+    case Update = 'posts.update';
+}
 
-## Why AzGuard, not Spatie?
+#[Role('editor')]
+final class EditorRole extends BaseRole
+{
+    public function permissions(): array
+    {
+        return [PostPermission::View, PostPermission::Update];
+    }
+}
 
-| | AzGuard | spatie/laravel-permission |
-|---|---|---|
-| Source of truth | **Code** (enums, classes) | Database rows |
-| Permissions | **Enum cases** / classes | Strings |
-| Refactor safety | ✅ rename = IDE refactor | ❌ grep magic strings |
-| Multi-panel scopes | ✅ built-in | ❌ |
-| PHP Attributes | ✅ `#[CheckPermission]`, `#[GateAbility]` | ❌ |
-| Policy autodiscovery | ✅ | ❌ |
-
----
+$user->grantRole(EditorRole::class, on: $team, until: now()->addWeek());
+$user->hasPermission(PostPermission::Update, $post);   // the grant, then PostPolicy may veto
+```
 
 ## Installation
 
 ```bash
-composer require axioma-studio/azguard-core
-php artisan guard:install
+composer require axiomasoft/azguard
+php artisan azguard:install --panel=Admin --migrate
 ```
 
-`guard:install` publishes the config, runs the migrations and prints the next steps. Then add the trait to your `User` model:
+Add `HasAzGuard` and `AzGuardSubject` to your `User` model and register a morph alias. Then follow the
+**[quick start](docs/getting-started/quick-start.md)**.
 
-```php
-use AzGuard\Concerns\HasAzGuard;
+For Filament: `composer require axiomasoft/azguard-filament`. See the
+[Filament guide](docs/guides/filament.md).
 
-class User extends Authenticatable
-{
-    use HasAzGuard;
-}
-```
+## Features
 
----
+- **Panels.** Isolated permission sets for an admin area, a cabinet or an API, each with its own subjects,
+  roles and settings.
+- **Authority modes.** `#[RequiresGrant]`: a grant is required and a policy may veto. `#[PolicyOnly]`: the
+  policy decides. `#[GrantedToAll]`.
+- **Grants.** Wildcards (`posts.*`, `posts.**`), expiry with pruning, custom grant fields, runtime
+  permissions.
+- **Tenants and assignment scopes.** A role on one team, inherited by its sub-scopes, with tenant membership
+  checks.
+- **Lists.** `visibleTo()` filters an Eloquent query to the records a user may see, in SQL.
+- **Extensibility.** Custom sources (LDAP, an existing membership table), before hooks, restrictions, change
+  pipes, plugins and an audit journal.
+- **Events.** Published after commit, with actor and reason.
+- **Testing.** `actingAsWithRoles()`, `AzGuard::fake()`, contract tests for extension authors.
+- **Operations.** `azguard:doctor` for CI, a catalog cache, Octane-safe request state.
 
-## Quick start (panel-first, enum-first)
+## Documentation
 
-### 1. Create a panel
-
-```bash
-php artisan make:guard-panel App Documents
-```
-
-A **panel** is an isolated authorization scope (`app`, `admin`, `api`…). This scaffolds `app/Guards/App/` — a panel provider, a permission enum, a policy and a role — and **registers the panel in `config/az-guard.php` for you**. The generated permission enum:
-
-```php
-namespace App\Guards\App\Documents\Permissions;
-
-enum DocumentsPermission: string
-{
-    case ViewAny = 'documents.view_any';
-    case View    = 'documents.view';
-    case Create  = 'documents.create';
-    case Update  = 'documents.update';
-    case Delete  = 'documents.delete';
-}
-```
-
-### 2. Declare a role with enum permissions
-
-```php
-namespace App\Guards\App\Roles;
-
-use App\Guards\App\Documents\Permissions\DocumentsPermission;
-use AzGuard\Roles\BaseRole;
-
-class EditorRole extends BaseRole
-{
-    public function permissions(): array
-    {
-        return [
-            DocumentsPermission::View,
-            DocumentsPermission::Create,
-            DocumentsPermission::Update,
-        ];
-    }
-}
-```
-
-No `"app.documents.view"` strings — the panel scopes each enum case automatically.
-
-### 3. Register the code roles in the database
-
-```bash
-php artisan guard:sync-roles
-```
-
-This mirrors your PHP role classes into the `roles` table so they can be assigned. Safe to run in CI/CD.
-
-### 4. Assign roles and check permissions — by class and enum
-
-```php
-// Assign by class — unambiguous and refactor-safe
-$user->assignRole(EditorRole::class);
-$user->hasRole(EditorRole::class);                 // true
-
-// Check with the enum case — scoped to the panel automatically
-$user->hasPermission(DocumentsPermission::View);   // true
-
-// In Blade — also enum-aware
-@azcan(DocumentsPermission::View)
-    <a href="/documents">Documents</a>
-@endazcan
-
-// Laravel's native Gate uses the full panel-prefixed key
-$user->can('app.documents.view');                  // true
-Gate::allows('app.documents.view');                // true
-```
-
-### 5. A super-admin in one command
-
-```bash
-php artisan guard:super-admin --user=1
-```
-
-Grants the wildcard role that short-circuits every check via `Gate::before()` — the fastest path to a working login.
-
----
-
-## Class-based permissions (open sets)
-
-For open or multi-module permission sets where a closed enum is too rigid, implement the `Permission` contract and reference it by `::class`:
-
-```php
-use AzGuard\Contracts\Permission;
-
-final class UpdatePost implements Permission
-{
-    public static function ability(): string
-    {
-        return 'posts.update';
-    }
-}
-
-$user->hasPermission(UpdatePost::class, 'app');    // -> "app.posts.update"
-```
-
----
-
-## Console commands
-
-| Command | Description |
+| | |
 |---|---|
-| `guard:install` | Publish config + run migrations (guided) |
-| `make:guard-panel {Panel} {Domain}` | Scaffold a panel (auto-registers in config) |
-| `make:guard-permission` | Generate a permission enum |
-| `make:guard-role` | Generate a role class |
-| `guard:sync-roles` | Mirror PHP role classes into the `roles` table |
-| `guard:super-admin --user=` | Promote a user to super-admin |
-| `guard:doctor` | Diagnose the configuration |
-| `guard:list-permissions {panel?}` | List registered permissions |
-| `guard:cache-reset` | Advance permission-state revision (does not flush the store) |
-
-`php artisan about` shows AzGuard's version, registered panels and cache store.
-
----
-
-## Caching
-
-Per-request, in-memory by default. For cross-request caching via Redis:
-
-```php
-// config/az-guard.php
-'cache' => [
-    'store'           => 'redis',
-    'expiration_time' => 3600,
-    'generation'      => 1,
-],
-```
-
-Reset with `php artisan guard:cache-reset`.
-
----
+| Getting started | [Introduction](docs/getting-started/introduction.md) · [Installation](docs/getting-started/installation.md) · [Quick start](docs/getting-started/quick-start.md) |
+| Concepts | [Panels](docs/concepts/panels.md) · [Permissions](docs/concepts/permissions.md) · [Roles](docs/concepts/roles.md) · [Policies](docs/concepts/policies.md) · [Decisions](docs/concepts/decisions.md) |
+| Guides | [Checking access](docs/guides/checking-access.md) · [Granting access](docs/guides/granting-access.md) · [Tenants and scopes](docs/guides/tenants-and-scopes.md) · [Filament](docs/guides/filament.md) · [Testing](docs/guides/testing.md) |
+| Reference | [Configuration](docs/reference/configuration.md) · [Commands](docs/reference/commands.md) · [Events](docs/reference/events.md) · [Exceptions](docs/reference/exceptions.md) |
+| Advanced | [Sources](docs/advanced/sources.md) · [Hooks and plugins](docs/advanced/hooks-and-plugins.md) · [Performance](docs/advanced/performance.md) · [Operations](docs/advanced/operations.md) |
+| More | [Upgrading](docs/upgrade.md) · [Comparison with Spatie, Bouncer, Laratrust, Casbin](docs/comparison.md) |
 
 ## Packages
 
-- **`axioma-studio/azguard-core`** — roles, permissions, panels, direct grants
-- **`axioma-studio/azguard-filament`** — Filament admin UI
-- **`axioma-studio/azguard-context`** — multi-workspace / multi-site context
+| Package | Contents |
+|---|---|
+| [`axiomasoft/azguard`](packages/core) | The core: panels, sources, decisions, storage, Laravel integration, CLI, testing kit |
+| [`axiomasoft/azguard-filament`](packages/filament) | Filament 5 plugin: resource/page/widget authorization, list filtering, grant editors |
 
----
+This repository is the development monorepo. The packages are split into read-only repositories on release.
 
-## Testing & quality
+## Requirements
 
-```bash
-composer test      # Pest
-composer check     # every CI gate locally: code style + static analysis + refactor + tests
-composer fix       # auto-fix code style and apply refactorings
-```
+PHP 8.3–8.5 (8.5 with Laravel 13), Laravel 11, 12 or 13, and SQLite, MySQL 8, MariaDB 10.11+ or
+PostgreSQL 16. CI runs every PHP × Laravel pair on SQLite, and the suite on each database server.
 
----
+## Contributing and security
 
-## Upgrading
-
-This is the initial `0.1` release. See [UPGRADING.md](UPGRADING.md) for migration
-notes as future versions ship.
-
-## Security
-
-If you discover a security vulnerability, please email dv.vostrikov@gmail.com instead of using the issue tracker. See [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md). Report vulnerabilities as described
+in [SECURITY.md](SECURITY.md), not in public issues.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
