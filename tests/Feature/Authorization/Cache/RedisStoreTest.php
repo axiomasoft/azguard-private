@@ -66,7 +66,7 @@ it('real Redis serializes raw sets across requests, obeys D44, and invalidates i
     expect($engine->decide($panel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
     [$newEngine, $newPanel] = CacheWorld::database(DatabaseSource::make(), configure: fn (PanelBuilder $p) => $p->cache('qualification', 60, generation: 2));
     expect($newEngine->decide($newPanel, DatabaseWorld::request())->reason)->toBe(DecisionReason::NotGranted);
-})->group('redis');
+})->group('redis', 'stand');
 
 it('real Redis rejects absolute expiry in request memo and a new incarnation after restore', function (): void {
     $expires = Carbon::now('UTC')->addSeconds(2);
@@ -87,4 +87,4 @@ it('real Redis rejects absolute expiry in request memo and a new incarnation aft
     expect($after->reason)->toBe(DecisionReason::NotGranted)
         ->and($after->state->incarnation)->not->toBe($before->state->incarnation)
         ->and($after->state->version)->toBeLessThan($before->state->version);
-})->group('redis');
+})->group('redis', 'stand');

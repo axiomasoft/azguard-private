@@ -24,7 +24,9 @@ uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())
         Relation::morphMap([], false);
     })->in('Acceptance/Crm');
 
-uses()->beforeEach(function (): void {
+// `stand` marks every test that needs an external service (database engines, replica, Redis): ParaTest honours only
+// the first --exclude-group, so the parallel run excludes this one umbrella group.
+uses()->group('stand')->beforeEach(function (): void {
     if (! in_array(env('DB_CONNECTION', 'sqlite'), ['pgsql', 'mysql', 'mariadb'], true)) {
         $this->markTestSkipped('Engine suite requires PostgreSQL, MySQL or MariaDB.');
     }
