@@ -76,6 +76,16 @@ it('is valid until the earliest expiry of a contribution that adds to it', funct
         ->and($member->permissionSet()->validUntil()?->format(DATE_ATOM))->toBe('2026-12-01T00:00:00+00:00');
 });
 
+it('merges exact and wildcard patterns once and bounds the set by a wildcard grant that only repeats them', function (): void {
+    SubjectWorld::compile();
+    $member = SubjectWorld::member();
+    $member->grantRole('manager');
+    $member->grantPermission('orders.**', until: Carbon::parse('2026-11-01T00:00:00Z'));
+
+    expect(setLocals($member))->toBe(['orders.refund', 'orders.update', 'orders.view'])
+        ->and($member->permissionSet()->validUntil()?->format(DATE_ATOM))->toBe('2026-11-01T00:00:00+00:00');
+});
+
 it('is not a decision: a restriction denies a permission the set still lists', function (): void {
     SubjectWorld::compile(admin: static fn (PanelBuilder $panel) => $panel->restrictions([new LockedRestriction]));
     $member = SubjectWorld::member();
