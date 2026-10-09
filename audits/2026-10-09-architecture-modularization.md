@@ -279,6 +279,147 @@
 - [ ] в CI после релиза — проверка обратной совместимости против последнего тега: diff манифеста плюс
       [`roave/backward-compatibility-check`](https://github.com/Roave/BackwardCompatibilityCheck).
 
+## 5c. Схема БД: заморозка до 1.0
+
+Требование владельца: **схема замораживается сейчас.** Владелец начинает пользоваться текущей версией; всё, что
+делается потом (разметка API, переезд классов в `modules/`, `Tenancy\`), должно двигать классы, а не данные.
+Обновление — `composer update` и, в худшем случае, пустая для его данных миграция. Ниже — проверка текущей схемы
+по этому требованию. Источник: `Storage/Schema/StorageSchema.php`, `Storage/Schema/HostKeyColumns.php`,
+`database/migrations/`, `Sources/Database/StorageHealth.php`.
+
+### Что есть
+
+Префикс таблиц — `storages.<name>.table_prefix` (по умолчанию `azg_`), соединение — `storages.<name>.connection`,
+тип ключей хоста — `host_keys` (`string`, `bigint`, `uuid`, `ulid`; по умолчанию `ids.host_keys = string`).
+Идентификаторы (`panel`, `role`, `*_type`, `*_key`, `origin`) — `binary` на MySQL/MariaDB, `varchar` с
+collation `C` на PostgreSQL; ключи хоста (`*_id`) — по `host_keys` через `HostKeyColumns::hostKey()`. Внешних
+ключей нет нигде; целостность пар — CHECK (на SQLite — триггеры) из `StorageSchema::scopeConstraints()`.
+Время — `dateTime` в UTC (запись `DatabaseSource.php:684`, `ChangeJournal.php:57`, чтение `GrantRows::utc()`).
+
+| Таблица | Колонки | Ключи и индексы | Кто владеет сейчас → цель |
+|:--|:--|:--|:--|
+| `azg_permissions` | `id`, `panel`(64), `tenant_key`(200)/`tenant_type`(128)/`tenant_id`, `name`(255), `label`, `group`, `description`, `meta` json, `created_at`, `updated_at` | unique `pm_identity(panel, tenant_key, name)`; CHECK `pm_tenant_pair` | ядро → ядро |
+| `azg_role_grants` | `id`, `panel`, `tenant_*`, `role`(64), `subject_type`(128)/`subject_id`, `context_key`(200)/`context_type`/`context_id`, `origin`(128, default `manual`), `expires_at`, `actor_type`/`actor_id`, `actor_reason`, `meta` json, `created_at`, `updated_at` | unique `rg_identity(panel, tenant_key, role, subject_type, subject_id, context_key, origin)`; `rg_subject`, `rg_context`, `rg_origin`, `rg_expiry(expires_at)`; CHECK `rg_tenant_pair`, `rg_context_pair` | ядро → ядро |
+| `azg_permission_grants` | как `role_grants`, вместо `role` — `permission`(255) | `pg_*` аналогично | ядро → ядро |
+| `azg_panel_state` | `panel` PK, `version`, `incarnation`(26), `updated_at`, `epoch` (схема 2) | `ps_pk` | ядро → ядро |
+| `azg_subject_revisions` (схема 2) | `panel`, `subject_type`, `subject_id`, `revision` | PK `sr_pk(panel, subject_type, subject_id)` | ядро → ядро |
+| `azg_storage_state` | `id` = 1, `schema` json (`version`, `identity_codec`, `storage_id`, `prefix`, `host_keys`) | `ss_pk`, CHECK `ss_singleton` | ядро → ядро |
+| `azg_audit_log` | `id`, `event_id`(26, ULID), `type`(64), `panel`, `tenant_*`, `subject_*` null, `actor_*` null, `actor_reason`, `correlation_id`(26), `payload` json, `occurred_at` | unique `al_event`; `al_time(panel, occurred_at)`, `al_subject`, `al_corr`; CHECK `al_tenant_pair` | **ядро** (`StorageSchema::create()`, `drop()`, `StorageHealth::HOST_KEY_COLUMNS`) → **модуль `Audit`** |
+
+Миграции: `2026_10_01_000000_create_azguard_storage.php` (`StorageSchema::create('default')`) и
+`2026_10_09_000000_upgrade_azguard_storage_to_schema_2.php` (`upgrade()`: идемпотентно добавляет `epoch` и
+`subject_revisions`). `Storage::SCHEMA_VERSION = 2`; несовпадение `storage_state` с конфигурацией ловит `doctor`.
+
+### Совпадает ли схема с границами модулей
+
+- **Ядро.** Шесть таблиц из семи принадлежат ядру и ни одному модулю не нужно их менять.
+- **`Audit`.** Таблица одна и самостоятельная: ни одна таблица ядра на неё не ссылается, у неё нет FK на гранты
+  (журнал переживает отзыв и чистку). Расхождение одно — её создаёт и удаляет ядро. Колонки менять не надо.
+- **`Scopes`.** Своих таблиц нет и не нужно. Область гранта — тройка `context_key`/`context_type`/`context_id`
+  в таблицах грантов; это формат `AssignmentScopeRef` из `Kernel` и часть уникального ключа гранта, поэтому колонки
+  принадлежат ядру. Без модуля во всех строках `context_key = 'global'`, `context_type`/`context_id` — `NULL`;
+  это гарантирует `*_context_pair`.
+- **`DevTools`.** Своих таблиц нет. `stubs/storage-migration.stub` остаётся в ядре (5.4).
+- **Filament.** Своих таблиц нет.
+- **Хост.** Приложение может добавлять колонки в `*_grants` своей миграцией — это поля гранта (`Schema\Field`;
+  `inMeta()` кладёт значение в `meta`). Имена ядра и префиксы `tenant_`, `subject_`, `context_`, `actor_`
+  резервирует `Field.php`.
+
+### Тенант: свои таблицы или колонки в таблицах ядра
+
+Владелец спрашивал, может ли тенантность подключать своё хранилище, как модуль. Проверка по коду:
+
+1. **Тенантности нечего хранить в своих таблицах.** Тенанты и членство — модели приложения:
+   `ModelTenantDefinition::resolve(TenantRef)` ищет модель хоста, членство отвечает `TenantMembership` хоста. У
+   AzGuard нет ни таблицы тенантов, ни таблицы членства, и они не нужны.
+2. **Свои данные тенанта в AzGuard — только тройка `tenant_key`/`tenant_type`/`tenant_id` в строке гранта или
+   права.** Она входит в уникальные ключи `pm_identity`, `rg_identity`, `pg_identity` и в первые колонки всех
+   индексов. Это и есть изоляция: два гранта в разных тенантах — разные строки; запрос без тенанта не находит
+   чужие строки по индексу.
+3. **Вариант «отдельная таблица тенантности»** (например, `azg_tenancy_grants(grant_kind, grant_id, tenant_type,
+   tenant_id)`) хуже по всем пунктам:
+   - уникальность «одна роль на субъекта в тенанте» уже не выражается одним индексом;
+   - каждое чтение и `visibleTo` получают JOIN;
+   - запись должна менять две таблицы атомарно;
+   - **отключённый модуль делает гранты тенантов «глобальными»** — это дыра в изоляции;
+   - вынос или отключение потребовали бы миграции данных.
+   Это ровно то, чего требование заморозки должно не допустить.
+4. **Ответ.** Колонки `tenant_*` — часть формата гранта ядра (`AccessScope` в `Kernel`), поэтому изоляция тенанта
+   — ядро (2.5). Таблицы грантов **одинаковы** с тенантами и без: без тенантов `tenant_key = 'global'`,
+   `tenant_type`/`tenant_id` — `NULL` (`TenantRef::global()`, CHECK `*_tenant_pair`). Цена для приложения без
+   тенантов — три колонки и общий префикс индекса, без лишних запросов. Перенос классов в `AzGuard\Tenancy` или
+   даже в отдельный пакет — перенос кода, не данных.
+5. **Модулям, которым своё хранилище действительно нужно, есть образец — `Audit`.** Своя таблица, своя миграция,
+   своя проверка `doctor`; колонки тенанта строятся тем же помощником ядра, что и в таблицах грантов. Так же
+   подключились бы будущие модули: например, если `Scopes` когда-нибудь понадобится кэш иерархии областей, это
+   будет `azg_scopes_*`, а не новые колонки в `*_grants`.
+
+```mermaid
+erDiagram
+  CORE_role_grants ||..o{ AUDIT_audit_log : "логически: event_id, subject, tenant (без FK)"
+  CORE_permission_grants ||..o{ AUDIT_audit_log : "логически"
+  CORE_permissions ||..o{ CORE_permission_grants : "panel, tenant_key, name (без FK)"
+  CORE_panel_state ||--o{ CORE_subject_revisions : "panel"
+  HOST_tenants ||..o{ CORE_role_grants : "tenant_type, tenant_id (без FK)"
+  HOST_scope_models ||..o{ CORE_role_grants : "context_type, context_id (без FK)"
+  CORE_role_grants {
+    string tenant_key "ядро: изоляция, есть всегда (global)"
+    string context_key "ядро: формат AssignmentScopeRef, без модуля Scopes = global"
+    json meta "поля гранта приложения"
+  }
+  AUDIT_audit_log {
+    string event_id
+    json payload "формат события ядра"
+  }
+```
+
+### Что изменить до заморозки
+
+Владелец уже ставит текущую версию, поэтому изменения ниже либо не трогают данные, либо пустые для существующей
+установки. Колонки, типы и индексы таблиц ядра **не меняются**.
+
+| # | Изменение | Зачем | Риск | Дни |
+|:--|:--|:--|:--|:--|
+| S1 | `azg_audit_log` создаёт миграция модуля (`modules/audit/database/migrations/2026_10_01_000001_create_azguard_audit_log.php`, `AuditSchema::create($storage)`, идемпотентно через `hasTable`); `StorageSchema::create()`/`drop()` и `StorageHealth::HOST_KEY_COLUMNS` её больше не знают; проверка колонок — в `AuditTableExists`. Имя таблицы и колонки те же | граница модуля; без аудита таблицы нет | низкий: на существующей установке таблица уже есть, миграция пропускает её | 1 |
+| S2 | Не сжимать миграции в одну (отменяет прежнее «одна начальная миграция» из п. 20): оба файла и `SCHEMA_VERSION = 2` замораживаются; `upgrade()` на свежей установке ничего не делает | владелец уже ставит версию; Laravel отслеживает миграции по имени файла | нет | 0 |
+| S3 | `HostKeyColumns` → `@spi`; приватные `StorageSchema::scopeColumns()`/`scopeConstraints()`/`constraint()` → публичный `@spi`-помощник (например, `Storage/Schema/ScopeColumns`) | миграция модуля строит `tenant_*` и CHECK так же, как ядро, на всех драйверах | низкий (только код) | 0,5 |
+| S4 | Имена колонок области остаются `context_*`; словарь п. 14 выбирает слово `context` | переименование колонок — миграция данных у всех | нет | 0 |
+| S5 | `Field` резервирует ещё префикс `azg_` для будущих колонок ядра | ядро может после 1.0 аддитивно добавить колонку, не столкнувшись с полем гранта приложения | низкий (имя поля с `azg_` вряд ли есть) | 0,25 |
+| S6 | Снимок-тест схемы: колонки, типы, индексы, CHECK для `sqlite`, `pgsql`, `mysql` по `StorageSchema::create()` и миграции аудита | любая правка схемы видна в PR и требует bump версии | нет | 1 |
+| S7 | ADR «Хранимые форматы»: схема 2, `IdentityCodec::VERSION`, `'global'` как ключ глобального тенанта и области, грамматика ключей прав, UTC, ULID `event_id`, `payload` аудита = конверт события (п. 22) | хранимое — то же API | нет | 0,5 |
+
+Итого **3–3,5 дня**; это п. 20 раздела 3 в новой формулировке. Что **не** нужно менять до заморозки: индекс
+`(panel, expires_at)` для `GrantsPruneCommand` (сейчас `rg_expiry(expires_at)` и фильтр по `panel`) и любые новые
+индексы — их можно добавить после 1.0 аддитивно.
+
+### Расширяемость для будущих модулей и плагинов
+
+| Вопрос | Правило |
+|:--|:--|
+| Свои данные | своя таблица. Таблицы ядра модули и плагины **не меняют** (ни колонок, ни индексов, ни CHECK) |
+| Имена | модули первой стороны — `{prefix}<модуль>_<сущность>` (`azg_audit_log`, будущие `azg_scopes_*`); сторонние плагины — свой префикс, не `azg_` (как `azguard/` для id плагинов, п. 25) |
+| Хранилище | таблица модуля живёт в том же хранилище, что и гранты: `Storage::prefix()` и `Storage::connection()` из `StorageRegistry`, а не `Schema::` по умолчанию; тогда запись идёт в той же транзакции (`StorageMutation`) |
+| Ссылки на ядро | логические, без FK: `panel` + `id` гранта или натуральный ключ (`subject_type`, `subject_id`, `tenant_key`). Причина: отдельное соединение, префикс и binary-колонки делают FK хрупкими, а гранты удаляются при отзыве и чистке. `id` гранта стабилен при обновлении (`GrantWriter.php:197`), но при слиянии ключей роли строка-источник удаляется (`GrantWriter.php:101`) — поэтому зависимые строки чистятся change pipe по `ChangeEffect` с `EffectKind::Deleted` в той же транзакции, а не слушателем после commit |
+| Колонки хоста | `tenant_*`, `subject_*`, `actor_*` в таблице модуля строятся `@spi`-помощниками (S3), чтобы тип ключа совпадал с `host_keys` и проверкой `StorageHealth::hostKeyMismatches()` |
+| `meta` | принадлежит полям гранта приложения (`Schema\Field::inMeta()`); модули и плагины в него не пишут |
+| Миграции | ядро — `database/migrations` (`loadMigrationsFrom` + тег `azguard-migrations`, как сейчас). Модуль — свой каталог, **только публикация** по тегу (`azguard-audit-migrations`), без `loadMigrationsFrom`: иначе выключенный модуль создал бы таблицу. Для второго хранилища — `AuditSchema::create('<storage>')` в миграции приложения, как `StorageMigrationCommand` для ядра |
+| Версия схемы модуля | своя, в коде модуля; проверка — doctor-проверка модуля (`StorageHealth::missingColumns()`). В `azg_storage_state` модуль не пишет |
+
+### Правила эволюции после 1.0
+
+1. **В минорных версиях — только аддитивно:** новая таблица, новая колонка с `NULL` или default, новый индекс.
+   Переименование, удаление, смена типа или длины, смена хранимого формата — только в мажорной версии, с
+   миграцией данных и `UPGRADING.md`.
+2. **Каждое изменение — новый файл миграции,** идемпотентный (`hasTable`/`hasColumn`), плюс шаг в
+   `StorageSchema::upgrade()` и `SCHEMA_VERSION + 1` — по образцу схемы 2. Старые файлы миграций не правятся.
+3. **Модуль меняет только свои таблицы** и версионирует их сам; таблицы ядра и других модулей не трогает и не
+   читает (к данным ядра — через `@spi`, к другим модулям — никак, правило 4.2).
+4. **Новые колонки ядра** — только с зарезервированными префиксами (`tenant_`, `subject_`, `context_`, `actor_`,
+   `azg_`) или именами из списка `Field.php`, чтобы не столкнуться с полями грантов приложения.
+5. **Снимок-тест схемы (S6) обязателен:** его diff в PR — сигнал «нужна новая миграция и bump версии».
+6. **Хранимые форматы (S7) — API:** `IdentityCodec::VERSION`, грамматика ключей, `'global'`, UTC, `payload`
+   аудита меняются только в мажорной версии.
+
 ## 4. Порядок работ
 
 1. **Стабилизация до 1.0, в текущем пакете (ломать можно).** P0 → P1 → P2 из раздела 3. Внутренние границы
