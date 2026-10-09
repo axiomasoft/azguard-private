@@ -29,7 +29,8 @@ The first public release. Earlier 0.x versions were never published; moving data
   `AzGuard::fake()`, contract tests for source and plugin authors.
 - **core:** Plugins, and an audit journal plugin (`AuditPlugin`).
 - **core:** Read consistency: database sources read state and grants in one read-only snapshot; a `DecisionSet`
-  reads in one snapshot per storage connection; cached sets are keyed by subject revision and epoch (storage
+  reads in one snapshot per storage connection (at most `decision_sets.max_subjects` distinct subjects, default
+  500; a larger set throws `DecisionSetTooLargeException`, never split silently); cached sets are keyed by subject revision and epoch (storage
   schema 2: `azg_subject_revisions`, `azg_panel_state.epoch`), so writes to other subjects keep them. Pre-release
   storages at schema 1 are upgraded by the bundled migration. See the Consistency page of the docs.
 - **core:** Failure taxonomy (`FailureKind`, `Decision::failed()`, `DecisionSet::failures()`) and the opt-in

@@ -10,10 +10,12 @@ use AzGuard\Authorization\Pipeline\Stages\PrepareStage;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\RoleCompiler;
+use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\EventObservers;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\DecisionSetTooLargeException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\RecursionDetectedException;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -55,7 +57,7 @@ final class Authorizer
     /** @var array<string,true> */
     private array $active = [];
 
-    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch, private readonly MembershipRestriction $membership) {}
+    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch, private readonly MembershipRestriction $membership, private readonly AzGuardConfig $config) {}
 
     /** @internal Joint host work on the panel's authority connection.
      * @template T
@@ -280,9 +282,21 @@ final class Authorizer
         return [$resolved['panel'], $resolved['key'] ?? throw InvalidConfigurationException::failing('permission', 'A permission key is required.')];
     }
 
-    /** @param list<AccessRequest> $requests */
+    /**
+     * @param  list<AccessRequest>  $requests
+     *
+     * @throws DecisionSetTooLargeException when the requests name more distinct subjects than decision_sets.max_subjects
+     */
     public function decideMany(array $requests, ?ActorRef $actor = null): DecisionSet
     {
+        $subjects = [];
+        foreach ($requests as $request) {
+            $subjects[$request->subject()->type()."\0".$request->subject()->id()] = true;
+        }
+
+        if (count($subjects) > $this->config->maxSetSubjects()) {
+            throw new DecisionSetTooLargeException(count($subjects), $this->config->maxSetSubjects());
+        }
         $selected = [];
         foreach ($requests as $request) {
             [$panel] = $this->resolve($request->subject(), $request->permission()->full());

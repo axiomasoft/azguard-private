@@ -71,6 +71,25 @@ The guarantee is weaker in these cases:
 - If the caller splits a large batch into several `decideMany()` calls, each chunk is consistent on its own,
   but the chunks are not consistent with each other.
 
+The observed states of all subjects are read with one statement per subject type, in IN lists of 500 ids.
+That is below the bound-parameter limit of every supported driver. All chunks of the IN list run in the same
+snapshot.
+
+A set may name at most `decision_sets.max_subjects` distinct subjects (default 500; repeated requests for one
+subject count once). A larger set throws `DecisionSetTooLargeException` before any hook runs or any row is
+read. The package never splits a set on its own, because that would quietly drop the one-snapshot guarantee.
+A longer snapshot also holds back PostgreSQL vacuum, InnoDB purge and SQLite WAL checkpoints. To decide more
+subjects, either raise the limit or split the set yourself and accept the weaker guarantee:
+
+```php
+// Each chunk matches one state; two chunks may see different states.
+foreach (array_chunk($requests, 500) as $chunk) {
+    foreach ($access->decideMany($chunk) as $decision) { /* ... */ }
+}
+```
+
+`array_chunk()` by request is safe when each request names a different subject. Otherwise, chunk by subject.
+
 ## Failures
 
 A decision that could not be computed is denied with a failure reason, never with a policy outcome

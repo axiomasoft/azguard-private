@@ -92,6 +92,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Decision sets
+    |--------------------------------------------------------------------------
+    |
+    | decideMany() reads the grants of all its subjects in one database
+    | snapshot, so its decisions match one state. max_subjects caps the
+    | distinct subjects of one set; a larger set throws
+    | DecisionSetTooLargeException instead of being split silently.
+    |
+    */
+
+    'decision_sets' => [
+        'max_subjects' => 500,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Scheduler
     |--------------------------------------------------------------------------
     |

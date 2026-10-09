@@ -98,6 +98,7 @@ try {
 | Exception | Code | When |
 |---|---|---|
 | `ConsistencyException` | `consistency` | Values of one decision contradict each other: a reason the effect cannot carry, or different state tokens in one set. |
+| `DecisionSetTooLargeException` | `decision_set_too_large` | A `decideMany()` names more distinct subjects than `decision_sets.max_subjects`. It is refused before any read; `subjects` and `limit` carry the counts. |
 | `InvalidSourceContributionException` | `invalid_source_contribution` | A grant, role contribution or restriction result supplied by an extension breaks the decision contract. |
 
 ## Outside the hierarchy

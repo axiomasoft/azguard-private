@@ -19,7 +19,7 @@ use ReflectionMethod;
 final readonly class AzGuardConfig
 {
     /** Keys of the root of `config/azguard.php`. */
-    private const array ROOT_KEYS = ['panels', 'storages', 'ids', 'sources', 'defaults', 'gate', 'schedule', 'catalog', 'discovery', 'scaffold'];
+    private const array ROOT_KEYS = ['panels', 'storages', 'ids', 'sources', 'defaults', 'gate', 'schedule', 'catalog', 'discovery', 'scaffold', 'decision_sets'];
 
     private const array PANELS_KEYS = ['providers'];
 
@@ -28,6 +28,11 @@ final readonly class AzGuardConfig
     private const array SCHEDULE_KEYS = ['enabled', 'prune_expired'];
 
     private const array SCAFFOLD_KEYS = ['namespace', 'path'];
+
+    private const array DECISION_SETS_KEYS = ['max_subjects'];
+
+    /** Default of `decision_sets.max_subjects`; bench/README.md, "DecisionSet size", gives the measurements. */
+    public const int DEFAULT_MAX_SET_SUBJECTS = 500;
 
     private const array STORAGE_KEYS = ['connection', 'table_prefix', 'host_keys'];
 
@@ -86,6 +91,7 @@ final readonly class AzGuardConfig
         private ?string $pruneExpiredFrequency,
         private string $scaffoldNamespace,
         private string $scaffoldPath,
+        private int $maxSetSubjects = self::DEFAULT_MAX_SET_SUBJECTS,
     ) {}
 
     /**
@@ -109,6 +115,8 @@ final readonly class AzGuardConfig
         self::assertKnownKeys('schedule', $schedule, self::SCHEDULE_KEYS);
         $scaffold = self::section('scaffold', $config->get('azguard.scaffold', []));
         self::assertKnownKeys('scaffold', $scaffold, self::SCAFFOLD_KEYS);
+        $sets = self::section('decision_sets', $config->get('azguard.decision_sets', []));
+        self::assertKnownKeys('decision_sets', $sets, self::DECISION_SETS_KEYS);
 
         return new self(
             self::panelProvidersFrom($panels['providers'] ?? []),
@@ -127,6 +135,7 @@ final readonly class AzGuardConfig
             self::frequencyFrom(array_key_exists('prune_expired', $schedule) ? $schedule['prune_expired'] : 'daily'),
             self::namespaceFrom($scaffold['namespace'] ?? 'App\\Guards'),
             self::pathFrom($scaffold['path'] ?? 'app/Guards'),
+            self::maxSetSubjectsFrom($sets['max_subjects'] ?? self::DEFAULT_MAX_SET_SUBJECTS),
         );
     }
 
@@ -160,6 +169,15 @@ final readonly class AzGuardConfig
     public function gateEnabled(): bool
     {
         return $this->gateEnabled;
+    }
+
+    /**
+     * The most distinct subjects one `decideMany()` may name: its database reads share one snapshot, and a longer
+     * snapshot holds back vacuum (PostgreSQL), purge (InnoDB) or WAL checkpoints (SQLite).
+     */
+    public function maxSetSubjects(): int
+    {
+        return $this->maxSetSubjects;
     }
 
     /** Whether the package registers its tasks in the Laravel scheduler. */
@@ -201,7 +219,7 @@ final readonly class AzGuardConfig
             'defaults.tenants.resolvers', 'defaults.scopes.resolvers'];
         $groups = [
             'ids' => ['host_keys'], 'catalog' => self::CATALOG_KEYS, 'discovery' => self::DISCOVERY_KEYS, 'gate' => self::GATE_KEYS,
-            'schedule' => self::SCHEDULE_KEYS, 'scaffold' => self::SCAFFOLD_KEYS, 'storages.*' => self::STORAGE_KEYS,
+            'schedule' => self::SCHEDULE_KEYS, 'scaffold' => self::SCAFFOLD_KEYS, 'storages.*' => self::STORAGE_KEYS, 'decision_sets' => self::DECISION_SETS_KEYS,
             'defaults.models' => self::MODEL_KEYS, 'defaults.gate' => self::DEFAULTS_KEYS['defaults.gate'],
             'defaults.cache' => self::DEFAULTS_KEYS['defaults.cache'], 'defaults.consistency' => self::DEFAULTS_KEYS['defaults.consistency'],
         ];
@@ -240,6 +258,16 @@ final readonly class AzGuardConfig
 
         /** @var list<class-string> $resolvers */
         return $resolvers;
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    private static function maxSetSubjectsFrom(mixed $value): int
+    {
+        $limit = self::integer('decision_sets.max_subjects', $value, false);
+
+        return $limit !== null && $limit >= 1 ? $limit : throw self::invalidValue('decision_sets.max_subjects', $value, 'a positive integer');
     }
 
     private static function flag(string $key, mixed $value): bool
