@@ -8,15 +8,15 @@
 
 ## Recently finished
 
+- P7.8 🟠 Done with deviations — Verdict GREEN после owning исправлений и независимого второго аудита Grok4.7 (full RED G1/G2, один correction cycle, focused GREEN findings=[] questions=[]). Все подтверждённые root/исходные/Grok находки закрыты. 4627 full,368 phase,95 Arch,types99.5%,consumers Laravel11/12/13 зелёные; product1383 hashes неизменны. Итог knowledge/findings-P7-review.json.
+- P7.4 🟠 Done with deviations — F10/G2/F6 закрыты: Assignment LookupContext для выбранных subject/definition/proposed, CRM custom directory UI write regression, R25/R34/R53/R63 и R49 owner уточнены. Raw fields сохранены для атомарной проверки core writer. Grants+Changes, phase368/full4627/Arch95, Pint/PHPStan/API/diff зелёные, types99.5%; final Grok GREEN.
+- P7.2 🟠 Done with deviations — F1/F2/F9/G1/F11 закрыты: custom actions/bulk, closure/inline columns, relation managers, preconstructed/cloned actions, Livewire positional/named/mixed payload. Gate+CRM 78; фазовый набор 368; full 4627; Arch95; fresh types99.5%; final Grok GREEN. Доказательства artifacts/P7-audit-fixes и knowledge/findings-P7-review.
+- P7.3 🟠 Done with deviations — F3 исправлен: resetPage/flushCachedTableRecords сохраняют target panel/tenant; тест проверяет create/edit/delete в team 8 и неизменность team 7. Все V1–V9 зелёные; full 4612, phase Filament+CRM 353, arch 95, PHPStan 0 ошибок, serial types 99.5%.
 - P7.7 🟢 Done — G5 в make:permission/make:policy, azguard:filament:generate, ForFilament, FilamentDefinitionsCheck; V75, снимки, doctor stale/missing; 10 из 10 проверок зелёные, consumer-fixture exit 0
-- P7.6 🟢 Done — PanelOverview (G3) в ядре, PanelsPage и DoctorPage в Filament; V63, снимки, доступ, redaction, doctor не на рендере; 9 из 9 проверок зелёные
-- P7.5 🟠 Done with deviations — FilamentFormExtension (@api), AzGuardPlugin::formExtensions(class|instance) + resolveFormExtensions() на каждую форму, SchemaFields с расширениями (неизвестное поле/не Field → InvalidConfigurationException), ошибки InvalidChangeFieldsException — ошибки открытой формы без записи и версии; 12 тестов Fields (V62, V96, расширения, две панели), CHANGELOG, findings P7.5; все 9 проверок exit 0 (composer test 4568, types 99.5%). Жёсткий риск: Livewire payload и публичный API filament — рекомендован task:review.
-- P7.4 🟠 Done with deviations — GrantFilter G2 (expiresBefore, grantedBy в conditions()), RoleGrantResource и PermissionGrantResource над курсорным GrantManager::page с серверной перепроверкой каждого id (GrantEditor), SchemaFields (базовый), «Почему?» = explain(); 22 теста Grants + 2 GrantManager + 6 CRM FilamentTest (V26, V63, V96, R24, R28, R36, R37 UI), README, CHANGELOG, roadmap, findings P7.4; все 9 проверок exit 0 (composer test 4556, types 99.5%). Жёсткий риск: IDOR/Livewire payload, публичный API (манифесты core и filament) — рекомендован task:review.
-- P7.3 🟠 Done with deviations — PanelDirectories (G1), TargetSelector, RoleResource read-only, PermissionResource с динамическими правами; V23/V61/V76/выбор цели покрыты tests/Feature/Filament/Roles; все 9 проверок exit 0 (composer test 4526). Жёсткий риск (Livewire payload, tenant) — рекомендуется task:review.
 
 ## Open friction
 
-- 2026-10-09T03:46:56Z deviation P7.8 — Коммит пункта включает --path knowledge/findings-P7-review.json (deliverable пункта) и knowledge/review-P7-8-2026-10-09.json (запись register-review). Чужие незакоммиченные D27, knowledge/P7-filament-model и сгенерированные views оставлены владельцу (--leave-outside).
+No open friction.
 
 ## Open questions
 
