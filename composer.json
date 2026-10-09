@@ -27,7 +27,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "AzGuard\\Tests\\": "tests/"
+            "AzGuard\\Tests\\": "tests/",
+            "AzGuardBench\\Load\\": "bench/src/"
         }
     },
     "repositories": [
@@ -76,6 +77,10 @@
         "mutate:core": "bash bin/mutation-gate.sh core",
         "mutate:filament": "bash bin/mutation-gate.sh filament",
         "bench": "php -d memory_limit=2G tests/Benchmarks/Suite.php --markdown",
+        "bench:load": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php -d memory_limit=2G -d opcache.enable_cli=1 -d opcache.jit_buffer_size=0 bench/bin/run.php"
+        ],
         "api:manifest": "php bin/api-manifest.php --write",
         "api:check": "php bin/api-manifest.php --check",
         "docs:language": "bash bin/docs-language-gate.sh",
@@ -115,6 +120,7 @@
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
         "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
-        "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300)."
+        "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300).",
+        "bench:load": "Load bench (bench/README.md)"
     }
 }

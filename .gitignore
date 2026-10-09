@@ -52,3 +52,6 @@ AGENTS.md
 # Process locks of the plan CLI: per-process state, never evidence.
 plans/.lock
 plans/**/.plan-cache/*.lock
+
+# Raw samples and the SQLite file of the load bench
+/bench/.runs/

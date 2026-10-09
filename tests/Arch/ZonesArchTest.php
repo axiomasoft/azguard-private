@@ -289,7 +289,8 @@ arch('code roles do not use storage, changes or authorization')
 arch('only storage and the database source touch the database layer')
     ->expect(AZGUARD_DATABASE_ACCESS)
     ->toOnlyBeUsedIn(['AzGuard\Storage', 'AzGuard\Sources\Database'])
-    ->ignoring('AzGuard\Tests');
+    // The tests and the load bench are applications of the package: they seed and query their own tables.
+    ->ignoring(['AzGuard\Tests', 'AzGuardBench']);
 
 it('only storage and database sources call storage models statically', function (): void {
     expect(SourceScan::modelStaticCallsIn(SourceScan::files()))->toBe([]);
