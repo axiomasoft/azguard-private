@@ -86,7 +86,9 @@ final readonly class StorageSchema
             $table->bigInteger('version')->default(0);
             HostKeyColumns::identifier($table, 'incarnation', 26, $driver);
             $table->dateTime('updated_at');
+            $table->bigInteger('epoch')->default(0);
         });
+        $this->subjectRevisions($storage);
         $schema->create($prefix.'storage_state', function (Blueprint $table) use ($prefix): void {
             $table->smallInteger('id');
             $table->primary('id', $prefix.'ss_pk');
@@ -99,9 +101,56 @@ final readonly class StorageSchema
     public function drop(string $storage): void
     {
         $storage = $this->storages->get($storage);
-        foreach (['audit_log', 'permission_grants', 'role_grants', 'permissions', 'panel_state', 'storage_state'] as $base) {
+        foreach (['audit_log', 'permission_grants', 'role_grants', 'permissions', 'subject_revisions', 'panel_state', 'storage_state'] as $base) {
             $storage->connection()->getSchemaBuilder()->dropIfExists($storage->prefix().$base);
         }
+    }
+
+    /**
+     * Upgrades a storage created by schema 1 to schema 2: the `subject_revisions` table and the `epoch` column of
+     * `panel_state`. Idempotent; a storage already at schema 2 is left as it is. Any other difference of the stored
+     * `storage_state` stays a mismatch for the doctor.
+     */
+    public function upgrade(string $storage): void
+    {
+        $storage = $this->storages->get($storage);
+        $connection = $storage->connection();
+        $schema = $connection->getSchemaBuilder();
+        $prefix = $storage->prefix();
+        $row = $storage->table('storage_state')->where('id', 1)->first();
+        $stored = $row === null ? null : json_decode((string) $row->schema, true, flags: JSON_THROW_ON_ERROR);
+        $expected = $storage->schema();
+
+        if (! is_array($stored) || ($stored['version'] ?? null) === $expected['version']) {
+            return;
+        }
+
+        if (! $schema->hasColumn($prefix.'panel_state', 'epoch')) {
+            $schema->table($prefix.'panel_state', static function (Blueprint $table): void {
+                $table->bigInteger('epoch')->default(0);
+            });
+        }
+
+        if (! $schema->hasTable($prefix.'subject_revisions')) {
+            $this->subjectRevisions($storage);
+        }
+
+        if (array_diff_key($stored, ['version' => true]) == array_diff_key($expected, ['version' => true])) {
+            $storage->table('storage_state')->where('id', 1)->update(['schema' => json_encode($expected, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)]);
+        }
+    }
+
+    private function subjectRevisions(Storage $storage): void
+    {
+        $prefix = $storage->prefix();
+        $driver = $storage->connection()->getDriverName();
+        $storage->connection()->getSchemaBuilder()->create($prefix.'subject_revisions', static function (Blueprint $table) use ($storage, $prefix, $driver): void {
+            HostKeyColumns::identifier($table, 'panel', 64, $driver);
+            HostKeyColumns::identifier($table, 'subject_type', 128, $driver);
+            HostKeyColumns::hostKey($table, 'subject_id', $storage->hostKeys(), $driver);
+            $table->bigInteger('revision')->default(0);
+            $table->primary(['panel', 'subject_type', 'subject_id'], $prefix.'sr_pk');
+        });
     }
 
     private function scopeColumns(Blueprint $table, Storage $storage, string $scope): void

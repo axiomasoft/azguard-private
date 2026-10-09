@@ -1027,6 +1027,17 @@
                     "auto_increment": false,
                     "comment": null,
                     "generation": null
+                },
+                {
+                    "name": "epoch",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "'0'::bigint",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
                 }
             ],
             "indexes": [
@@ -1034,6 +1045,69 @@
                     "name": "azg_panel_state_pkey",
                     "columns": [
                         "panel"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [],
+            "foreign_keys": []
+        },
+        "subject_revisions": {
+            "columns": [
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "revision",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "'0'::bigint",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_subject_revisions_pkey",
+                    "columns": [
+                        "panel",
+                        "subject_type",
+                        "subject_id"
                     ],
                     "type": "btree",
                     "unique": true,

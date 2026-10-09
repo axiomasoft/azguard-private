@@ -1051,6 +1051,17 @@
                     "auto_increment": false,
                     "comment": null,
                     "generation": null
+                },
+                {
+                    "name": "epoch",
+                    "type_name": "integer",
+                    "type": "integer",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "'0'",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
                 }
             ],
             "indexes": [
@@ -1058,6 +1069,69 @@
                     "name": "sqlite_autoindex_azg_panel_state_1",
                     "columns": [
                         "panel"
+                    ],
+                    "type": null,
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [],
+            "foreign_keys": []
+        },
+        "subject_revisions": {
+            "columns": [
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "varchar",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "varchar",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varchar",
+                    "type": "varchar",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "revision",
+                    "type_name": "integer",
+                    "type": "integer",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "'0'",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "sqlite_autoindex_azg_subject_revisions_1",
+                    "columns": [
+                        "panel",
+                        "subject_type",
+                        "subject_id"
                     ],
                     "type": null,
                     "unique": true,

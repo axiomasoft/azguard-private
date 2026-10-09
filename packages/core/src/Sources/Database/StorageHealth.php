@@ -19,6 +19,7 @@ final class StorageHealth
         'permission_grants' => ['tenant_id', 'subject_id', 'context_id', 'actor_id'],
         'audit_log' => ['tenant_id', 'subject_id', 'actor_id'],
         'panel_state' => [],
+        'subject_revisions' => ['subject_id'],
         'storage_state' => [],
     ];
 

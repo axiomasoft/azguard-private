@@ -427,18 +427,26 @@ final class ReadAttempt
 
     /**
      * Records the state a source was materialized at. Two reads of one source in one attempt (the dynamic catalog,
-     * then the contributions) must observe the same state; otherwise the attempt fails with ConsistencyException
-     * (a bounded consistency_error, nothing runs again).
+     * then the contributions) must agree, otherwise the attempt fails with ConsistencyException (a bounded
+     * consistency_error, nothing runs again). For the database source they agree when incarnation and epoch are
+     * equal: definitions change only with the epoch, and a grant of another subject moves the version alone. Another
+     * FencesReads source is opaque, so its states must be equal.
      */
     private function observe(Source $source, StateToken $state): void
     {
         $previous = $this->observed[$source->id()] ?? null;
 
-        if ($previous !== null && ! $previous->equals($state)) {
+        if ($previous !== null && ! ($source instanceof DatabaseSource ? self::sameEpoch($previous, $state) : $previous->equals($state))) {
             throw new ConsistencyException('The source changed between two reads of one operation.');
         }
         $this->observed[$source->id()] = $state;
         $this->states[$source->id()] = $state;
+    }
+
+    private static function sameEpoch(StateToken $a, StateToken $b): bool
+    {
+        return $a->storageId === $b->storageId && $a->panel === $b->panel && $a->incarnation === $b->incarnation
+            && $a->epoch === $b->epoch && $a->generation === $b->generation && $a->fingerprint === $b->fingerprint;
     }
 
     /**

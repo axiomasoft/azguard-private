@@ -41,6 +41,9 @@ use function Illuminate\Support\enum_value;
  */
 final class Storage
 {
+    /** 2: subject revisions and the panel epoch (audits/2026-10-09-consistency-design.md, step 3). */
+    public const int SCHEMA_VERSION = 2;
+
     use DetectsConcurrencyErrors;
 
     /** @var array<string, PanelState> */
@@ -285,6 +288,8 @@ final class Storage
         $parent = $this->current;
         $previousLocks = $this->locked;
         $previousTouches = $this->pendingTouches;
+        $previousEpochs = $this->pendingEpochs;
+        $previousSubjects = $this->pendingSubjects;
         $previousTransaction = $this->authorityTransaction;
         $mutation = null;
 
@@ -304,15 +309,20 @@ final class Storage
             foreach ($mutation->touched() as $panel) {
                 $this->pendingTouches[$panel] = true;
 
+                if ($mutation->touchesEpoch($panel)) {
+                    $this->pendingEpochs[$panel] = true;
+                }
+                $this->pendingSubjects[$panel] = ($this->pendingSubjects[$panel] ?? []) + $mutation->touchedSubjects($panel);
+
                 if ($parent?->holds($panel)) {
-                    $parent->touch($panel);
+                    $parent->absorb($panel, $mutation->touchesEpoch($panel), $mutation->touchedSubjects($panel));
                 }
             }
 
             if ($parent === null) {
                 $touched = array_keys($this->pendingTouches);
                 foreach ($touched as $panel) {
-                    $this->table('panel_state')->where('panel', $panel)->increment('version', 1, ['updated_at' => gmdate('Y-m-d H:i:s')]);
+                    $this->commitTouch($panel);
                 }
             }
 
@@ -327,6 +337,8 @@ final class Storage
         } catch (Throwable $error) {
             $this->locked = $previousLocks;
             $this->pendingTouches = $previousTouches;
+            $this->pendingEpochs = $previousEpochs;
+            $this->pendingSubjects = $previousSubjects;
 
             throw $error;
         } finally {
@@ -340,12 +352,37 @@ final class Storage
             if ($parent === null) {
                 $this->locked = [];
                 $this->pendingTouches = [];
+                $this->pendingEpochs = [];
+                $this->pendingSubjects = [];
             }
         }
     }
 
     /** @var array<string, true> */
     private array $pendingTouches = [];
+
+    /** @var array<string, true> */
+    private array $pendingEpochs = [];
+
+    /** @var array<string, array<string, array{string, string}>> */
+    private array $pendingSubjects = [];
+
+    /**
+     * The root commit of a touched panel, under its lock: the version always moves; the epoch moves for a change
+     * whose subjects are not named; each named subject's revision moves (a missing revision row is revision 0, rows
+     * are never deleted). Subjects are written in a canonical order.
+     */
+    private function commitTouch(string $panel): void
+    {
+        $this->table('panel_state')->where('panel', $panel)
+            ->incrementEach(isset($this->pendingEpochs[$panel]) ? ['version' => 1, 'epoch' => 1] : ['version' => 1], ['updated_at' => gmdate('Y-m-d H:i:s')]);
+        $subjects = $this->pendingSubjects[$panel] ?? [];
+        ksort($subjects, SORT_STRING);
+        foreach ($subjects as [$type, $id]) {
+            $this->table('subject_revisions')->insertOrIgnore(['panel' => $panel, 'subject_type' => $type, 'subject_id' => $id, 'revision' => 0]);
+            $this->table('subject_revisions')->where('panel', $panel)->where('subject_type', $type)->where('subject_id', $id)->increment('revision');
+        }
+    }
 
     /**
      * @internal A new incarnation of the panel state, the reset after a manual change or a restore of the database.
@@ -365,7 +402,7 @@ final class Storage
             throw InvalidConfigurationException::failing('panel_state', 'A reset of panel '.$panel.' runs in its own root mutation, not inside another transaction.');
         }
         $state = $mutation->state($panel);
-        $renewed = new PanelState($panel, $state->version, strtolower((string) Str::ulid()), $state->updatedAt);
+        $renewed = new PanelState($panel, $state->version, strtolower((string) Str::ulid()), $state->updatedAt, $state->epoch);
         $this->table('panel_state')->where('panel', $panel)->update(['incarnation' => $renewed->incarnation]);
         $this->locked[$panel] = $renewed;
         $mutation->renewed($renewed);
@@ -377,7 +414,7 @@ final class Storage
     /** @return array{version: int, identity_codec: int, storage_id: string, prefix: string, host_keys: string} */
     public function schema(): array
     {
-        return ['version' => 1, 'identity_codec' => IdentityCodec::VERSION,
+        return ['version' => self::SCHEMA_VERSION, 'identity_codec' => IdentityCodec::VERSION,
             'storage_id' => $this->id, 'prefix' => $this->prefix, 'host_keys' => $this->hostKeys];
     }
 
@@ -414,7 +451,10 @@ final class Storage
 
         if (! is_array($found) || count($found) !== count($expected)
             || array_filter($expected, static fn (int|string $value, string $key): bool => ($found[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH) !== []) {
-            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.');
+            $hint = is_array($found) && ($found['version'] ?? null) === 1
+                ? ' Schema 1 predates subject revisions and the panel epoch: publish and run the AzGuard schema 2 upgrade migration.' : '';
+
+            throw new StorageMismatchException('Storage '.$this->id.' expected '.json_encode($expected).'; found '.json_encode($found).'.'.$hint);
         }
     }
 
@@ -435,6 +475,6 @@ final class Storage
     private function panelState(stdClass $row): PanelState
     {
         return new PanelState($row->panel, (int) $row->version, $row->incarnation,
-            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')));
+            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
     }
 }

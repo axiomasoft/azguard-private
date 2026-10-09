@@ -28,7 +28,9 @@ it('rejects absent or incompatible storage state before work starts', function (
             $storage = app(StorageRegistry::class)->get('default');
         } else {
             $found = $storage->schema();
-            $found[$changed] = in_array($changed, ['version', 'identity_codec']) ? 2 : 'other';
+            $found[$changed] = match ($changed) {
+                'version' => 99, 'identity_codec' => 2, default => 'other',
+            };
             $storage->table('storage_state')->update(['schema' => json_encode($found)]);
         }
         $work = function () use (&$called): void {
