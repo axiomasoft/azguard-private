@@ -81,8 +81,8 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | P3 | Хранилище | detailed | 5/5 | 🟢 Done |
 | P4 | Проверка прав: пайплайн, источники, контексты, кэш, Gate, видимость | detailed | 23/23 | 🟠 Done with deviations |
 | P5 | Модель и изменения | detailed | 8/8 | 🟠 Done with deviations |
-| P6 | Laravel-поверхность и удаление legacy | detailed | 10/11 | 🟡 In progress |
-| P7 | Filament по схеме панели | skeleton | 0/7 | ⬜ Skeleton |
+| P6 | Laravel-поверхность и удаление legacy | detailed | 11/11 | 🟠 Done with deviations |
+| P7 | Filament по схеме панели | detailed | 7/8 | 🔴 Blocked |
 | P8 | Интеграции, документация, гейты, CRM-приёмка, выпуски | skeleton | 0/8 | ⬜ Skeleton |
 
 ## Decisions
@@ -115,3 +115,5 @@ D01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценари
 | D24 | Состав P6: порядок по владению кодом, адаптеры версий Laravel, fake-шпион, владельцы импорта и аудита | accepted | 2026-10-08 |
 | D25 | Уточнения аудита P1–P6: физические имена PK и изолированный RefreshDatabase baseline | accepted | 2026-10-08 |
 | D26 | Коррекция исторического владельца R08 по нормативной process map F21 | accepted | 2026-10-08 |
+| D27 | Состав P7: авторизация по идентичности ресурса, admission через EnterPanel, ключи, конфиг, контракты ядра | accepted | 2026-10-08 |
+| D28 | Мутационное тестирование не выполняется в этом плане | accepted | 2026-10-08 |

@@ -5,25 +5,19 @@ Source: [JSON](../../../phases/P7/phase.json). This view is for people; agents u
 
 ## Design
 
-skeleton
+detailed
 
 ## Goal
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P7`
-
-Плагин без глобального конфига, FilamentGate, read-only RoleResource и PermissionResource, редакторы выдач, свои поля из схемы, страницы и генерация; tenant-target authorization всех surfaces.
-Зависимость фаз: P6. Разделы досье: 13 F7; 11; D30, D54.
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+Filament-интеграция AzGuard 1.0 над публичным API ядра: плагин без глобального конфига (guardPanel/manages/enforce/definitions), авторизация всех поверхностей Filament по идентичности ресурса с fail-closed enforce и видимостью до count/page/export, read-only каталоги ролей и прав, редакторы назначений с серверной перепроверкой целевых panel/tenant/subject/context/fields и «Почему?», свои поля из схемы с FilamentFormExtension, страницы «Панели» и «Doctor», генератор enum прав. Своей логики прав и прямых записей в пакете нет.
 
 ## Context
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P7`
-
-Плагин без глобального конфига, FilamentGate, read-only RoleResource и PermissionResource, редакторы выдач, свои поля из схемы, страницы и генерация; tenant-target authorization всех surfaces.
-Зависимость фаз: P6. Разделы досье: 13 F7; 11; D30, D54.
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+Детализировано 2026-10-08 по досье 13 F7; 11; 02 D23, D30, D46, D54, D83; 07 §4; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24, R25, R28, R34, R36–R40; реальному коду HEAD 50eb32a (Filament 5.9.0, Livewire 4.4.7, Laravel 13.34, Testbench 11.3) и исходникам vendor/filament; лучшие практики — Perplexity (filamentphp.com/docs/5.x, filament-shield README), нормативна сверка с vendor.
+Модель фазы — [knowledge/P7-filament-model](../../knowledge/P7-filament-model.json): база кода, предпосылки Filament F1–F12 с путями исходников, внешний опыт, ключи, инварианты I1–I10, пробелы ядра G1–G5 с owning items, раскладка пакета, карта приёмки.
+Решение фазы — [D27](../../decisions/D27.json): состав и порядок (+P7.8 Review), авторизация по идентичности ресурса (трейты + FilamentGate, deny-only Gate::before), ключи, admission через EnterPanel, конфиг вместо черновика 07 §4, аддитивные контракты ядра, права самих редакторов, custom-data таблицы над курсорным GrantManager, тесты через Livewire::test.
+Принимает по D14/D18: UI/editor/autocomplete (P7.2–P7.5); по D26: полный Client/Call host workflow R40 — Filament-часть P7.2; по D24 п.7: справочник 0.3 — `git show 491980a:legacy/0.3/...` только как паттерн.
+Найденный при детализации дефект P6.8 (stub `view-any` против `view_any` каталога) записан в журнал P6.8 и является предусловием P7.7.
 
 ## Depends on
 
@@ -38,25 +32,79 @@ review-пункт и batch задаются там же.
 - P7.5
 - P7.6
 - P7.7
+- P7.8
 
 ## Batches
 
 ```json
 [
   {
-    "id": "B7",
+    "id": "BP7-1",
     "items": [
-      "P7.1",
-      "P7.2",
-      "P7.3",
-      "P7.4",
-      "P7.5",
-      "P7.6",
+      "P7.1"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-2",
+    "items": [
+      "P7.2"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-3",
+    "items": [
+      "P7.3"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-4",
+    "items": [
+      "P7.4"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-5",
+    "items": [
+      "P7.5"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-6",
+    "items": [
+      "P7.6"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-7",
+    "items": [
       "P7.7"
+    ],
+    "mode": "recommended"
+  },
+  {
+    "id": "BP7-8",
+    "items": [
+      "P7.8"
     ],
     "mode": "recommended"
   }
 ]
+```
+
+## Closed
+
+```json
+{
+  "at": "2026-10-09T03:46:35Z",
+  "result": "blocked",
+  "summary": "8 item(s): 2 done, 5 done_with_deviations, 1 blocked"
+}
 ```
 
 ## Orchestration
@@ -67,31 +115,37 @@ review-пункт и batch задаются там же.
 }
 ```
 
-## P7 — Filament по схеме панели
-
-
-
 ## Phase Context
 
-> SKELETON — not detailed, expands `design-phase: task:plan-design 2026.10.01-№1-AZGUARD-V1 P7`
+Детализировано 2026-10-08 по досье 13 F7; 11; 02 D23, D30, D46, D54, D83; 07 §4; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24, R25, R28, R34, R36–R40; реальному коду HEAD 50eb32a (Filament 5.9.0, Livewire 4.4.7, Laravel 13.34, Testbench 11.3) и исходникам vendor/filament; лучшие практики — Perplexity (filamentphp.com/docs/5.x, filament-shield README), нормативна сверка с vendor.
+Модель фазы — [knowledge/P7-filament-model](../../knowledge/P7-filament-model.json): база кода, предпосылки Filament F1–F12 с путями исходников, внешний опыт, ключи, инварианты I1–I10, пробелы ядра G1–G5 с owning items, раскладка пакета, карта приёмки.
+Решение фазы — [D27](../../decisions/D27.json): состав и порядок (+P7.8 Review), авторизация по идентичности ресурса (трейты + FilamentGate, deny-only Gate::before), ключи, admission через EnterPanel, конфиг вместо черновика 07 §4, аддитивные контракты ядра, права самих редакторов, custom-data таблицы над курсорным GrantManager, тесты через Livewire::test.
+Принимает по D14/D18: UI/editor/autocomplete (P7.2–P7.5); по D26: полный Client/Call host workflow R40 — Filament-часть P7.2; по D24 п.7: справочник 0.3 — `git show 491980a:legacy/0.3/...` только как паттерн.
+Найденный при детализации дефект P6.8 (stub `view-any` против `view_any` каталога) записан в журнал P6.8 и является предусловием P7.7.
 
-Плагин без глобального конфига, FilamentGate, read-only RoleResource и PermissionResource, редакторы выдач, свои поля из схемы, страницы и генерация; tenant-target authorization всех surfaces.
-Зависимость фаз: P6. Разделы досье: 13 F7; 11; D30, D54.
-Детализация читает эти разделы и реальный код предшествующих фаз (D3); финальный набор пунктов,
-review-пункт и batch задаются там же.
+## Order
 
-## Item index
+| Шаг | Пункт | Batch | Почему здесь |
+|---|---|---|---|
+| 1 | P7.1 | BP7-1 | плагин, конфиг, ключи, FilamentSource, admission-middleware, фикстуры — основа всех пунктов |
+| 2 | P7.2 | BP7-2 | авторизация поверхностей; редакторы P7.3/P7.4 закрываются этими трейтами |
+| 3 | P7.3 | BP7-3 | выбор цели и PanelDirectories (G1); каталоги ролей и прав |
+| 4 | P7.4 | BP7-4 | редакторы выдач на TargetSelector/директориях P7.3; GrantFilter G2; базовый SchemaFields |
+| 5 | P7.5 | BP7-5 | FilamentFormExtension поверх SchemaFields и форм P7.4 |
+| 6 | P7.6 | BP7-6 | страницы; PanelOverview (G3); V63 «панель видна, но не в редакторах» требует редакторов P7.3/P7.4 |
+| 7 | P7.7 | BP7-7 | генератор по ключам P7.1 для всех ресурсов, включая ресурсы/страницы P7.3–P7.6; G5; предусловие — исправленный stub P6.8 |
+| 8 | P7.8 | BP7-8 | read-only Review P7 (D3) |
 
-| ID | Title | Spec |
-|:--|:--|:--|
-| P7.1 | Filament-плагин, guardPanel, FilamentSource | [P7.1.md](P7.1.md) |
-| P7.2 | FilamentGate и ключи по slug | [P7.2.md](P7.2.md) |
-| P7.3 | RoleResource и PermissionResource по схеме | [P7.3.md](P7.3.md) |
-| P7.4 | RoleGrantResource, PermissionGrantResource, «Почему?» | [P7.4.md](P7.4.md) |
-| P7.5 | Свои поля из схемы, FilamentFormExtension | [P7.5.md](P7.5.md) |
-| P7.6 | PanelsPage, DoctorPage | [P7.6.md](P7.6.md) |
-| P7.7 | azguard:filament:generate | [P7.7.md](P7.7.md) |
+Все batches solo, стратегия sequential: пункты меняют `AzGuardPlugin`, провайдер пакета, общие фикстуры Filament и манифесты API — параллельные lanes конфликтовали бы.
+
+## Acceptance
+
+Нормативная карта V/R → owning item — раздел «Acceptance» `@plan/knowledge/P7-filament-model.json`. Фаза закрыта, когда P7.1–P7.7 done, каждая строка карты покрыта не-skipped тестом, CRM README честно показывает статусы R-кейсов P7, consumer-фикстура `--with-filament` зелёная на Laravel 11/12/13, verdict P7.8 — GREEN.
+
+## Validation strategy
+
+Каждый пункт: targeted Pest своих тестов (`tests/Feature/Filament/<Area>`, плюс затронутые тесты ядра), регрессия `tests/Feature/Filament`, `tests/Arch`, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`; P7.1/P7.7/P7.8 — `bin/consumer-fixture.sh --with-filament` (нет сети = blocker, не GREEN). Admission/маршруты — HTTP-тесты, компоненты — `Livewire::test()`. Итоги — разделы пунктов в `@plan/knowledge/findings-P7-execution.json`.
 
 ## Phase Handoff
 
-Фаза не детализирована.
+Фаза детализирована, не начата. Исполнение P7 начинается только после закрытия P6 (P6.11 Review GREEN, D3/D24) и исправления дефекта stub `view-any` в owning P6.8 до P7.7. Первый пункт — P7.1 (BP7-1).

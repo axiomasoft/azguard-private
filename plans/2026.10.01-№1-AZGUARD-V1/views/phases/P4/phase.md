@@ -315,9 +315,9 @@ docker test-базы и Redis
 
 ```json
 {
-  "at": "2026-10-07T06:26:22Z",
+  "at": "2026-10-08T15:40:39Z",
   "result": "done_with_deviations",
-  "summary": "23 item(s): 20 done, 3 done_with_deviations"
+  "summary": "23 item(s): 21 done, 2 done_with_deviations"
 }
 ```
 

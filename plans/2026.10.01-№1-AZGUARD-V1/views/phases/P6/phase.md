@@ -121,6 +121,16 @@ detailed
 ]
 ```
 
+## Closed
+
+```json
+{
+  "at": "2026-10-08T16:38:59Z",
+  "result": "done_with_deviations",
+  "summary": "11 item(s): 2 done, 9 done_with_deviations"
+}
+```
+
 ## Orchestration
 
 ```json

@@ -1,0 +1,97 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D27",
+  "title": "Состав P7: авторизация по идентичности ресурса, admission через EnterPanel, ключи, конфиг, контракты ядра",
+  "date": "2026-10-08",
+  "status": "accepted",
+  "question": "Как устроить P7: состав и порядок пунктов, модель авторизации Filament-поверхностей, ключи, admission, конфиг пакета, пробелы публичного API ядра и форма таблиц выдач?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Авторизация по идентичности ресурса (трейты + FilamentGate), admission через EnterPanel, аддитивные контракты ядра в owning items, порядок досье + P7.8 Review"
+    },
+    {
+      "id": "B",
+      "text": "Только Gate::before по модели (как 0.3 и filament-shield) и генерация policy на модель"
+    }
+  ],
+  "context": "Детализация P7 (D3) по досье 13 F7; 11; D23, D30, D46, D52, D54, D83; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24/R25/R28/R34/R36–R40; 07 §4 и коду HEAD 50eb32a. Найдено: (1) Filament 5.9 при отсутствии policy отдаёт before-колбэкам Gate только ability и модель, а `null` трактует как allow — Gate::before не различает два ресурса одной модели (V102) и не закрывает ресурс без policy; (2) relation managers, bulk `*Any`, inline-колонки и экспорт — отдельные поверхности, экспорт не переавторизуется при исполнении; (3) 07 §4 (`source: database|enum|policy`, `resource_segment: model`, `pages.ability`) противоречит D30/11 §3 (typed definitions, authority отдельно, модель не используется); (4) публичному API ядра не хватает директорий для UI (`DirectoryResolver` — internal), фильтров «истекает до»/«кто выдал» в `GrantFilter` и read-model страницы «Панели» (`PanelsListCommand` читает internal `PanelRecipe`), а arch `ApiManifestTest` пускает в пакет Filament только классы манифеста; (5) `GrantManager::page` курсорный, без total; (6) `pestphp/pest-plugin-livewire` не установлен; (7) D3 требует последний read-only пункт Review в каждой фазе P1–P7.",
+  "decision": "A. 1. **Состав и порядок.** Номера досье P7.1–P7.7 сохраняются; добавлен P7.8 — Review P7 (D3). Порядок P7.1 → P7.2 → P7.3 → P7.4 → P7.5 → P7.6 → P7.7 → P7.8; все batch solo, стратегия sequential: пункты делят `AzGuardPlugin`, провайдер пакета, фикстуры Filament и манифест API. P7.4 строит формы выдач с базовым рендером полей схемы; P7.5 добавляет `FilamentFormExtension` поверх него.\n2. **Авторизация по идентичности ресурса (вариант A).** Ресурсы, relation managers, страницы и виджеты guarded Filament-панели авторизуются трейтами `AuthorizesResource` (переопределяет `getAuthorizationResponse` и `getEloquentQuery`), `AuthorizesRelationManager`, `AuthorizesPage`, `AuthorizesWidget` через `FilamentGate` с ключом класса. Gate::before-хук `FilamentGate` — только deny-страховка для model-based проверок внутри guarded Filament-панели при `enforce`; ядро `GateBridge` отвечает раньше по модельной привязке каталога (неоднозначность → deny). Ресурс по модели не выбирается никогда. Bulk-действия guarded-ресурсов авторизуют каждую запись; экспорт — job `AuthorizedExportCsv` с повторной видимостью при исполнении. Под `enforce` guarded-ресурс без трейта → `ConfigurationException` при boot плагина.\n3. **Ключи.** Ресурс `{slug}.{ability}`: `getSlug(filamentPanel)` с `/`→`.`, ability — snake_case действия Filament (`view_any`, `delete_any`, `force_delete`, …). Страница `pages.{slug}`, виджет `widgets.{kebab(class_basename)}` — без суффикса ability. Override `protected static ?string $azguardKey`. Уникальность ключей проверяется при boot плагина → `ConfigurationException`.\n4. **Admission.** Плагин регистрирует `EnterPanel` (`azguard.panel:{guardPanel}`) persistent в `tenantMiddleware` (tenancy) или `authMiddleware`; один evaluator `PanelAdmission` (P6 I3). Tenant guardPanel берётся из `Filament::getTenant()` через `AzGuard\\Filament\\FilamentTenantResolver` (контракт `TenantResolver`), подключаемый приложением. `canAccessPanel()` остаётся методом пользователя приложения; AzGuard-admission — дополнительное AND.\n5. **Конфиг `config/azguard-filament.php`** (значения по умолчанию плагина): `guard_panel`, `manages` (null = все панели с DatabaseSource), `enforce` (true), `definitions` (`enums`|`resources`, default `enums`), `authority` (`grants`|`policy`, default `grants`; только для Resources), `abilities` (snake_case список), `exclude` (resources/pages/widgets). Ключи 07 §4 `source`, `key`, `resource_segment`, `pages.ability`, `widgets.ability` не вводятся: они противоречат D30/11 §3 (typed definitions, authority отдельно, модель не используется, ключ фиксирован).\n6. **Пробелы ядра — контракт в owning item.** P7.3: `@api Directories\\PanelDirectories` + `PanelAccess::directories()`; P7.4: `GrantFilter::$expiresBefore`, `GrantFilter::$grantedBy` (входят в `conditions()`). P7.6: `@api Diagnostics\\PanelOverview` — единый источник `azguard:panels:list` и `PanelsPage`, JSON команды без изменений. P7.7: `azguard:make:permission --authority=grants|policy --case=Name=local.key` — генератор Filament вызывает команду ядра, а не копирует раскладку; предусловие — исправленный в P6.8 stub `view-any` → `view_any` (журнал P6.8). Фильтр таблиц выдач по своим полям в 1.0 не делается (поле в `meta` не индексируется, D46); заметка — `roadmap/`.\n7. **Права самих редакторов (D23).** RoleResource/RoleGrantResource/PermissionGrantResource/PermissionResource и страницы PanelsPage/DoctorPage — обычные ресурсы/страницы guardPanel со slug `azguard-roles`, `azguard-role-grants`, `azguard-permission-grants`, `azguard-permissions`, `azguard-panels`, `azguard-doctor`. В режиме Resources их definitions даёт FilamentSource, в режиме Enums — `azguard:filament:generate`; отсутствие definition при `enforce` → отказ и doctor-находка (P7.7). Плагин не дописывает AzGuard-панели скрыто.\n8. **Таблицы выдач** — custom-data таблицы Filament над `GrantManager::page`: простой `Paginator` (page → cursor в состоянии компонента), `selectCurrentPageOnly()`, массовый отзыв — одна `revokeMany`, правка — `update(..., expectedFingerprint)`.\n9. **Тесты** — `Livewire::test()` и макросы Filament testing; новая dev-зависимость не добавляется. Admission и маршруты — HTTP-тестами.\n10. **Исполнение P7** начинается только после закрытия P6 (P6.11 GREEN); детализация этого не меняет.",
+  "rationale": "Вариант A — единственный, что выполняет V102 и «ресурсы без права закрыты» на Filament 5.9: идентичность ресурса доступна только в статических методах ресурса (vendor HasAuthorization), а Gate::before по модели повторяет дефект N18/N19 0.3 и коллизию, которую README filament-shield признаёт сам. EnterPanel даёт admission, текущую панель и tenant для Livewire update без второго evaluator (принцип одного источника истины). Пробелы ядра закрываются аддитивным `@api`, потому что arch-гейт манифеста запрещает пакету Filament внутренние классы, а копия логики в пакете нарушила бы правило «не хватает контракта — сначала контракт». Простой Paginator подтверждён источником Filament (`HasRecords::getTableRecords` принимает Paginator/CursorPaginator) и не требует total, которого у курсорного GrantManager нет. Ключи 07 §4, противоречащие D30, не вводятся — D30 и 11 нормативнее раннего черновика конфига. Владелец делегировал решения дизайна агенту («решения за тобой»), Perplexity — для подкрепления.",
+  "consequences": [
+    "Phase P7 получает P7.8 Review; batch B7 заменяется solo-batches BP7-1…BP7-8.",
+    "P7.4 и P7.6 меняют `packages/core` аддитивно и перегенерируют `packages/core/api-manifest.json`.",
+    "Конфиг `config/azguard-filament.php` 1.0 расходится с 07 §4 по D27 п.5; документация P8.2 описывает версию D27.",
+    "Фильтр выдач по своим полям — заметка в `roadmap/`, не 1.0.",
+    "Consumer-фикстура `bin/consumer-fixture.sh --with-filament` становится обязательной проверкой P7.1 и P7.7.",
+    "P7.7 зависит от исправления stub `view-any` в owning P6.8 (журнал P6.8 от 2026-10-08)."
+  ],
+  "applies_to": [
+    "P7",
+    "P7.1",
+    "P7.2",
+    "P7.3",
+    "P7.4",
+    "P7.5",
+    "P7.6",
+    "P7.7",
+    "P7.8"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php",
+      "note": "getAuthorizationResponse статический; checkPolicyExistence/skipAuthorization — static state"
+    },
+    {
+      "kind": "repo",
+      "ref": "vendor/filament/filament/src/helpers.php",
+      "note": "get_authorization_response: без policy → before-колбэки Gate с [model], null → allow"
+    },
+    {
+      "kind": "repo",
+      "ref": "vendor/filament/filament/src/Resources/RelationManagers/RelationManager.php",
+      "note": "canViewForRecord: relatedResource::canAccess или authorize('viewAny', related model)"
+    },
+    {
+      "kind": "repo",
+      "ref": "vendor/filament/actions/src/Exports/Exporter.php",
+      "note": "Exports do not perform per-record authorization; ExportCsv job с auth()->setUser"
+    },
+    {
+      "kind": "repo",
+      "ref": "vendor/filament/tables/src/Concerns/HasRecords.php",
+      "note": "records(): array|Paginator|CursorPaginator; ключи записей"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Arch/ApiManifestTest.php",
+      "note": "filament использует только классы манифеста ядра"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Directories/DirectoryResolver.php",
+      "note": "@internal — нет публичного доступа к директориям"
+    },
+    {
+      "kind": "rag",
+      "ref": "https://filamentphp.com/docs/5.x/resources/overview#authorization",
+      "note": "Perplexity 2026-10-08: policy-based по умолчанию, missing policy = allow, getEloquentQuery — старт list/record/global search"
+    },
+    {
+      "kind": "rag",
+      "ref": "https://github.com/bezhanSalleh/filament-shield",
+      "note": "Perplexity 2026-10-08: ключи Action:Model по умолчанию, коллизия ресурсов одной модели, buildPermissionKeyUsing"
+    },
+    {
+      "kind": "repo",
+      "ref": "knowledge/P7-filament-model",
+      "note": "предпосылки F1–F12, ключи, инварианты I1–I10, пробелы G1–G4, карта приёмки"
+    }
+  ],
+  "actor": {
+    "provider": "claude",
+    "model": "claude-opus-5-5"
+  },
+  "answered_by": "agent"
+}

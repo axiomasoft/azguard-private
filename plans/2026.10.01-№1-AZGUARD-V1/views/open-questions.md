@@ -2,3 +2,7 @@
 # Open questions — PLAN2 Plan №1 — AzGuard 1.0: перестройка по целевой архитектуре
 
 No open questions.
+
+## Blocked items
+
+- P7.8 — Review P7: независимая read-only проверка фазы: Владелец: допустить repeat-admission P7.2 для F1/F2 (свои действия и inline editable columns на guarded-ресурсе пишут без права — обход авторизации), затем P7.3 (F3) и P7.4 (F6), по одному пункту за запуск; после исправлений — повторная приёмка P7.8. Фаза P7 не закрывается GREEN до этого.
