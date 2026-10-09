@@ -44,8 +44,10 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 8, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
-| `composer mutate` | Pest mutate | Per-package mutation testing |
-| `composer check` | — | Run every CI gate (style + analysis + refactor + types + tests) |
+| `composer mutate` | Pest mutate | Per-package mutation testing (`composer mutate core` for one package) |
+| `composer check:coverage` | Pest / pcov or Xdebug | Line-coverage gate (`--min=85`) |
+| `composer bench` | — | Benchmarks of the public API, see `docs/advanced/performance.md` |
+| `composer check` | — | Run the local gates: style, analysis, refactor, types, tests, coverage, mutation |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
