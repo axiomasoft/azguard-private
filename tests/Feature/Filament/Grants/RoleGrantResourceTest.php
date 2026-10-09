@@ -166,6 +166,25 @@ it('grants a role through the form as the user who edits, with the expiry, in th
         ->and(DB::table('azg_role_grants')->where('panel', '!=', 'admin')->count())->toBe(0);
 });
 
+it('R25 grants only the role of the form: keys of a role definition in the payload change no role, no catalog and no permission', function (): void {
+    GrantWorld::editor();
+    $roles = static fn (): array => array_map(static fn ($role): string => $role->key->key().':'.$role->class, AzGuard::panel('admin')->roles()->all());
+    $before = $roles();
+    $permissionGrants = DB::table('azg_permission_grants')->count();
+
+    Livewire::test(ListRoleGrants::class)
+        ->callAction(TestAction::make('create')->table(), [
+            'panel' => 'admin', 'subject' => 'user:2', 'key' => 'member', 'context_type' => '-',
+            'class_name' => 'App\\Roles\\Forged', 'definition' => 'forged', 'permissions' => ['*'], 'superAdmin' => true,
+        ])
+        ->assertNotified('Saved');
+
+    expect($roles())->toBe($before)
+        ->and(DB::table('azg_role_grants')->where('subject_id', '2')->count())->toBe(1)
+        ->and(AzGuard::panel('admin')->for(User::query()->findOrFail(2))->hasRole('member'))->toBeTrue()
+        ->and(DB::table('azg_permission_grants')->count())->toBe($permissionGrants);
+});
+
 it('V96 clears the subject, the role, the context and the fields when the panel or the tenant of the form changes', function (): void {
     GrantWorld::editor();
 

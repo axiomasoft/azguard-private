@@ -265,69 +265,67 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-08T19:46:46Z",
-    "finished_at": "2026-10-08T20:22:49Z",
+    "started_at": "2026-10-09T05:30:31Z",
+    "finished_at": "2026-10-09T05:37:56Z",
     "executor": {
       "provider": "claude",
-      "model": "claude-opus-5-5",
+      "model": "claude-sonnet-5-5",
       "effort": "high",
-      "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      "session": "a056841a-785a-4c2d-911f-8fc788344222"
     },
-    "notes": "GrantFilter G2 (expiresBefore, grantedBy в conditions()), RoleGrantResource и PermissionGrantResource над курсорным GrantManager::page с серверной перепроверкой каждого id (GrantEditor), SchemaFields (базовый), «Почему?» = explain(); 22 теста Grants + 2 GrantManager + 6 CRM FilamentTest (V26, V63, V96, R24, R28, R36, R37 UI), README, CHANGELOG, roadmap, findings P7.4; все 9 проверок exit 0 (composer test 4556, types 99.5%). Жёсткий риск: IDOR/Livewire payload, публичный API (манифесты core и filament) — рекомендован task:review.",
+    "notes": "F6: README Crm — R25 без future P7.4 формы выдач (добавлен тест R25 в RoleGrantResourceTest: ключи определения роли в payload формы ничего не меняют), R34 без future P7.4 editor surfaces, ссылка на ExplicitSurfacesTest. R49 future P7.4 export не менялся: вне находок",
     "deviations": [
-      "Фикстуры CRM Filament вне task_files (CrmEditorPermission, manages crm+backoffice) — через --path",
-      "Bulk-отзыв по сырым ключам выбора: custom-data Filament молча отбрасывает чужой ключ, revokeMany должен отклонить операцию целиком",
-      "После записи — сброс курсоров/выбора/страницы вместо resetTable(), который сбрасывает фильтры; ListPermissions P7.3 оставлен как есть (кандидат P7.8)"
+      "Повтор по поручению владельца (Review P7 F6); route ROUTE_MODEL_UNKNOWN при start"
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-08T20:22:49Z"
+        "at": "2026-10-09T05:37:56Z"
       }
     ]
   },
-  "updated_at": "2026-10-08T20:22:49Z",
+  "updated_at": "2026-10-09T05:37:56Z",
   "sections": [
     {
       "id": "Intent",
