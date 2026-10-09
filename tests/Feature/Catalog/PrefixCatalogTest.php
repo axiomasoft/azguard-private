@@ -43,7 +43,7 @@ it('V81: accepts names whose first segment is no prefix', function (): void {
         ->and($registry->catalog('cabinet')->has('orders.view'))->toBeTrue();
 });
 
-it('D44: gives an unqualified ability to the candidate panel only when its catalog has it, without queries', function (): void {
+it('gives an unqualified ability to the candidate panel only when its catalog has it, without queries', function (): void {
     [$resolver] = PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
             ->permissions([StaticSource::names('app', 'orders.view')]),

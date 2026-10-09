@@ -67,8 +67,8 @@ the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
 
 ## Split and Packagist status — 2026-07-22
 
-Split repositories and Packagist publication are deferred for the private monorepo
-(D25). Release tags still create a GitHub Release; the `split` job is disabled by
+Split repositories and Packagist publication are deferred until the one-time setup below
+is done. Release tags still create a GitHub Release; the `split` job is disabled by
 default through the repository variable guard.
 
 ## One-time setup (before enabling split)

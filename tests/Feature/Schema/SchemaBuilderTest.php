@@ -213,7 +213,7 @@ it('rejects a tenant of a type the panel does not use', function (): void {
         ->toThrow(TenantMismatchException::class);
 });
 
-it('D20 takes the auth guard and the directory of subjects from the compiled descriptor, the defaults from the resolver', function (): void {
+it('takes the auth guard and the directory of subjects from the compiled descriptor, the defaults from the resolver', function (): void {
     $default = crmSchema(World::compile());
     Relation::morphMap(['crm.city' => City::class], false);
     $custom = crmSchema(World::compile(static function (PanelBuilder $panel): void {
@@ -248,7 +248,7 @@ it('R49 builds the same metadata twice for the same build', function (): void {
     }, [World::database(), new HrRoleSource('another-secret')]))));
 });
 
-it('D8 describes sources with a label and the grant fields of the writer models, without parameters', function (): void {
+it('describes sources with a label and the grant fields of the writer models, without parameters', function (): void {
     $panel = World::compile(null, [World::database(), new HrRoleSource(HrRoleSource::PASSWORD)]);
     $descriptions = [];
 

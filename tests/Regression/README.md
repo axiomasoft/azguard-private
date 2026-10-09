@@ -12,22 +12,19 @@
 | Поле | Смысл |
 |:--|:--|
 | `Probe` | id probe (`P01a`, `P06b`, ...), совпадает с именем файла |
-| `Finding` | находки досье `N##` / `C##` через запятую |
-| `Owning item` | пункт плана `PLAN2.Pn.m`, который обязан закрыть регрессию |
+| `Finding` | находки аудита 2026-09-29 `N##` / `C##` через запятую |
 | `Scenarios` | V-сценарии из `14-verification.md` (`V\d{2,3}`) |
 | `Defect in 0.3` | что доказывал probe, со ссылкой на файл и тест probe |
 | `Required behavior` | требуемое поведение на целевом API; код сценария — в блоке под полями |
 | `Status` | `pending` или `covered: <path>::<test>` |
-| `Owning rationale` | необязательно: почему owning item отличается от колонки Probe в досье |
 
 ## Правило закрытия
 
-Пункт плана, который владеет probe, не закрывается, пока регрессия не написана: тест на новом API лежит в
-`tests/Regression/` (или в suite своего слоя), а `Status` в spec заменён на `covered: <path>::<test>`.
-Путь и имя теста проверяет `RegressionSpecsTest.php`.
+Регрессия закрыта, когда тест на новом API лежит в `tests/Regression/` (или в suite своего слоя), а `Status` в
+spec заменён на `covered: <path>::<test>`. Путь и имя теста проверяет `RegressionSpecsTest.php`.
 
 ## Meta-тест
 
 `RegressionSpecsTest.php` не зависит от Laravel-контейнера и проверяет: файлы всех 19 probes есть; поля заполнены;
-owning item совпадает с таблицей в тесте и имеет форму `PLAN2.Pn.m`; V-ids встречаются в `14-verification.md`;
+V-ids встречаются в `14-verification.md`;
 ссылка на probe указывает на существующий тест; для `covered:` существуют путь и имя теста.

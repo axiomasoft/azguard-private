@@ -37,7 +37,7 @@ dataset('effect and reason', function (): array {
     return $rows;
 });
 
-it('keeps every reason of the dossier with its machine code', function (): void {
+it('keeps every documented reason with its machine code', function (): void {
     expect(array_map(static fn (DecisionReason $r): string => $r->value, DecisionReason::cases()))->toBe([
         'granted', 'super_admin', 'hook', 'policy', 'not_granted', 'not_applicable', 'context_required',
         'context_not_accepted', 'context_ineligible', 'context_filter_error', 'restricted', 'source_error',

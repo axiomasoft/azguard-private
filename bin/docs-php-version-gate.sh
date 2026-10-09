@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Docs PHP-version drift gate (F43).
+# Docs PHP-version drift gate.
 #
 # Ensures the docs never advertise a PHP version below the floor declared in the
 # root composer.json "php" constraint. Drift-proof: bump the composer floor and

@@ -70,7 +70,7 @@ it('F1 rejects a pipe that substitutes the identity or passes something else', f
     'not a change' => [fn (Change $c) => ['role' => 'analyst']],
 ]);
 
-it('F10 rejects an origin outside the source label grammar', function (): void {
+it('rejects an origin outside the source label grammar', function (): void {
     refusedWithoutWrites(fn () => W::grant(W::panel(), 'analyst', 2, 1, origin: 'Bad Origin'), InvalidIdentityException::class);
 });
 
