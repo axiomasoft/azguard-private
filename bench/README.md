@@ -100,3 +100,9 @@ What the bench found:
   but visible: with one writer about 20% of concurrent reads are denied, with two about 44%, on every driver.
 - **`abilities()` costs about 4 ms per permission for a heavy subject.** That is the cost of one decision over 220
   contributions, the same as a check in a warm request.
+
+## CI
+
+The smoke tier runs in the test suite (`tests/Feature/Bench/LoadBenchSmokeTest.php`), so the harness cannot rot.
+`.github/workflows/bench.yml` is advisory: run it by hand (tier input) or weekly, on sqlite, pgsql and pgsql + redis.
+It uploads the JSON and Markdown and never gates a merge, because shared runners are too noisy for thresholds.
