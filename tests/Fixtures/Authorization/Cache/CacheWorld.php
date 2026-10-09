@@ -52,7 +52,7 @@ final class CacheWorld
                 return;
             }
             foreach (['panel_state', 'permission_grants', 'role_grants'] as $table) {
-                if (str_contains($query->sql, 'azg_'.$table.'"')) {
+                if (preg_match('/azg_'.$table.'["`]/', $query->sql) === 1) {
                     $budget[$table === 'panel_state' ? 'state' : 'grants']++;
                     $budget['sequence'][] = $table;
                 }

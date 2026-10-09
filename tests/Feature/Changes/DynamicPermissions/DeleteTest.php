@@ -109,7 +109,7 @@ it('rolls back the grants, the permission and the version when a pipe cancels on
 it('deletes grants only through per-row statements by id, never by a name predicate', function (): void {
     $deletes = [];
     CrmWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$deletes): void {
-        if (preg_match('/\Adelete from "?azg_permission_grants"?/i', $event->sql) === 1) {
+        if (preg_match('/\Adelete from ["`]?azg_permission_grants["`]?/i', $event->sql) === 1) {
             $deletes[] = [$event->sql, $event->bindings];
         }
     });

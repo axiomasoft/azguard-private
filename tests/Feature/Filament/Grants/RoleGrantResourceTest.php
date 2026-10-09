@@ -129,7 +129,7 @@ it('V26 searches a subject among 10 000 users with one query of at most 50 rows 
         ->fillForm(['panel' => 'admin']);
     $queries = [];
     DB::listen(function (QueryExecuted $query) use (&$queries): void {
-        if (preg_match('/from\s+"users"/i', $query->sql) === 1) {
+        if (preg_match('/from\s+["`]users["`]/i', $query->sql) === 1) {
             $queries[] = $query->sql;
         }
     });
