@@ -234,66 +234,66 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-09T05:44:37Z",
-    "finished_at": "2026-10-09T05:57:55Z",
+    "started_at": "2026-10-09T06:19:19Z",
+    "finished_at": "2026-10-09T06:46:07Z",
     "executor": {
       "provider": "codex",
       "model": "gpt-6.1-sol",
       "effort": "high"
     },
-    "notes": "Исправлены F1/F2 и воспроизведённые обходы через raw column closure и relation manager без трейта. Разрешённые custom row/bulk и панели без плагина проверены. Full suite 4612/4612, Filament+CRM 190/190, arch 95/95, PHPStan 0 ошибок, Pint/API/diff зелёные, fresh serial type coverage 99.5%. Evidence: artifacts/P7-audit-fixes/*.log.",
+    "notes": "F1/F2/F9/G1/F11 закрыты: custom actions/bulk, closure/inline columns, relation managers, preconstructed/cloned actions, Livewire positional/named/mixed payload. Gate+CRM 78; фазовый набор 368; full 4627; Arch95; fresh types99.5%; final Grok GREEN. Доказательства artifacts/P7-audit-fixes и knowledge/findings-P7-review.",
     "deviations": [
-      "V7 выполнен свежим эквивалентным serial Pest type-coverage вместо ненадёжного fork-режима; docs/model Task projection stale, используется установленный canon v4."
+      "V2 покрыт более широким финальным Filament+CRM набором. V7 выполнен fresh serial uncached Pest с тем же min98 вместо forked composer test:types с null-chunk warnings; результат 99.5%. Финальный custom-directory regression интегрирован с owning P7.4; core contracts неизменны."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V3",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V4",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V5",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V6",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V7",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V8",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       },
       {
         "id": "V9",
         "exit": 0,
-        "at": "2026-10-09T05:57:55Z"
+        "at": "2026-10-09T06:46:07Z"
       }
     ]
   },
-  "updated_at": "2026-10-09T05:57:55Z",
+  "updated_at": "2026-10-09T06:46:07Z",
   "sections": [
     {
       "id": "Intent",

@@ -20,10 +20,8 @@ final class AuthorizesActions
 {
     public static function configure(Action $action): void
     {
-        if (FilamentContext::serving()?->enforced() !== true) {
-            return;
-        }
-        $action->authorize(static function () use ($action): Response {
+        // An action may be constructed before the request selects its panel. Decide at execution, not construction.
+        $action->authorize(static function (Action $action): Response {
             $livewire = $action->getHasActionsLivewire();
             $otherwise = $livewire?->getDefaultActionAuthorizationResponse($action);
             $context = FilamentContext::serving();
@@ -40,7 +38,7 @@ final class AuthorizesActions
                 $record instanceof Model && ! in_array($action->getName(), ['export', 'attach', 'associate'], true) ? $record : null);
         });
 
-        if (! $action instanceof BulkAction) {
+        if (! $action instanceof BulkAction || FilamentContext::serving()?->enforced() !== true) {
             return;
         }
         $action->authorizeIndividualRecords(static function (Model $record) use ($action): Response {

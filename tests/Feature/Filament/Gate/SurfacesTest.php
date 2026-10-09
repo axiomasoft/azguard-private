@@ -10,6 +10,7 @@ use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Tests\Fixtures\Filament\Exports\OrderExporter;
+use AzGuard\Tests\Fixtures\Filament\Fields\ExposedEditingColumn;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\GateWorld;
 use AzGuard\Tests\Fixtures\Filament\Models\Order;
@@ -19,12 +20,14 @@ use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
 use AzGuard\Tests\Fixtures\Filament\Resources\Pages\ListOrders;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\Exports\Jobs\ExportCompletion;
 use Filament\Actions\Exports\Jobs\PrepareCsvExport;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\TextInputColumn;
@@ -283,3 +286,66 @@ it('keeps inline editing in a Filament panel without the plugin', function (): v
 
     expect(Order::query()->findOrFail(1)->number)->toBe('PLAIN');
 });
+
+it('refuses hostile Livewire column payloads before saving a visible record', function (array $params): void {
+    FilamentFixture::$tableColumns = [TextInputColumn::make('number')];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    Livewire::test(ListOrders::class)->update([['method' => 'updateTableColumnState', 'params' => $params]])->assertForbidden();
+
+    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
+})->with([
+    'integer' => [['number', 1, 'HACKED']],
+    'float' => [['number', 1.0, 'HACKED']],
+    'boolean' => [['number', true, 'HACKED']],
+    'named' => [['column' => 'number', 'record' => '1', 'input' => 'HACKED']],
+    'mixed' => [['column' => 'number', 0 => 1, 'input' => 'HACKED']],
+    'malformed' => [['column' => 'number', 'record' => ['1'], 'input' => 'HACKED']],
+]);
+
+it('refuses raw column closures with integer or named record keys', function (array $params): void {
+    FilamentFixture::$tableColumns = [TextColumn::make('number')->action(static fn (Order $record) => $record->delete())];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnAction', 'params' => $params]])->assertForbidden();
+
+    expect(Order::query()->find(1))->not->toBeNull();
+})->with([
+    'integer' => [['number', 1]],
+    'named' => [['name' => 'number', 'recordKey' => 1]],
+    'mixed' => [['name' => 'number', 0 => 1]],
+]);
+
+it('denies a preconfigured custom action when its serving panel enforces', function (): void {
+    Filament::setCurrentPanel(null);
+    FilamentFixture::$recordActions = [Action::make('destroy')->action(static fn (Order $record) => $record->delete())];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    Livewire::test(ListOrders::class)->assertActionHidden(TestAction::make('destroy')->table(1))
+        ->call('mountAction', 'destroy', [], ['table' => true, 'recordKey' => '1'])->call('callMountedAction');
+
+    expect(Order::query()->find(1))->not->toBeNull();
+});
+
+it('runs a permitted preconfigured native action in the selected panel', function (): void {
+    Filament::setCurrentPanel(null);
+    FilamentFixture::$recordActions = [DeleteAction::make()];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view', 'orders.delete']));
+
+    Livewire::test(ListOrders::class)->callAction(TestAction::make('delete')->table(1));
+
+    expect(Order::query()->find(1))->toBeNull()->and(Order::query()->find(4))->not->toBeNull();
+});
+
+it('refuses exposed editable-column methods even on a disabled editor', function (array $params): void {
+    FilamentFixture::$tableColumns = [ExposedEditingColumn::make('number')->disabled()];
+    GateWorld::serve(GateWorld::grant(['orders.view_any', 'orders.view']));
+
+    Livewire::test(ListOrders::class)->update([['method' => 'callTableColumnMethod', 'params' => $params]])->assertForbidden();
+
+    expect(Order::query()->findOrFail(1)->number)->toBe('A-1');
+})->with([
+    'positional' => [['number', 1, 'replaceNumber', ['HACKED']]],
+    'named' => [['name' => 'number', 'recordKey' => 1, 'method' => 'replaceNumber', 'arguments' => ['HACKED']]],
+    'mixed' => [['name' => 'number', 0 => 1, 'method' => 'replaceNumber', 'arguments' => ['HACKED']]],
+]);

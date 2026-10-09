@@ -6,6 +6,9 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **filament:** Серверная проверка колонок использует фактическую привязку аргументов Livewire (числовые ключи, named и mixed payloads). Default authorizer действует в панели исполнения даже для заранее созданных actions и читает текущий экземпляр действия при клонировании строк. Custom directory получает выбранные subject/role и объявленные proposed fields при проверке контекста формы и сохранении выдачи.
+
+
 - **filament:** Закрыты обходы авторизации через custom actions/bulk, включённые inline-редакторы, raw column callbacks и relation managers без трейта. Enforced-панели проверяют bulk-записи до callback; обычные панели сохраняют поведение Filament. Редактор динамических прав сохраняет выбранные панель и tenant после create/update/delete. Тесты экспорта используют штатную цепочку заданий закреплённого Filament.
 
 

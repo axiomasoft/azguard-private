@@ -8,6 +8,8 @@ use Closure;
 use Filament\Tables\Columns\Contracts\Editable;
 use Filament\Tables\Contracts\HasTable;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\ImplicitlyBoundMethod;
+use Throwable;
 
 /**
  * Inline editing is unsupported in guarded tables. Check the final column settings before a Livewire call can write.
@@ -28,13 +30,18 @@ final class RefusesEditableColumns
         if ($context?->enforced() !== true || $resource === null || $context->excludes('resources', $resource)) {
             return;
         }
-        $name = $params[0] ?? null;
-        $key = $params[1] ?? null;
 
-        if (! is_string($name) || ! is_string($key)) {
-            return;
+        try {
+            // Use the same binding as Livewire: named, positional and mixed payloads must name the same column/row.
+            $bound = ImplicitlyBoundMethod::resolveMethodDependencies(app(), [$component, $method], $params)['named'];
+        } catch (Throwable) {
+            abort(403);
         }
-        $column = $component->getTable()->getColumn($name);
+        $name = $bound[$method === 'updateTableColumnState' ? 'column' : 'name'] ?? null;
+        $key = $bound[$method === 'updateTableColumnState' ? 'record' : 'recordKey'] ?? null;
+
+        abort_unless(is_scalar($name) && is_scalar($key), 403);
+        $column = $component->getTable()->getColumn((string) $name);
 
         if ($method === 'callTableColumnAction') {
             // A raw closure never reaches ActionCalling; use an explicitly authorized Action instead.
@@ -46,7 +53,7 @@ final class RefusesEditableColumns
         if (! $column instanceof Editable) {
             return;
         }
-        $record = $component->getTableRecord($key);
+        $record = $component->getTableRecord((string) $key);
 
         if (! $record instanceof Model) {
             return;
