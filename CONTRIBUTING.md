@@ -1,59 +1,51 @@
 # Contributing to AzGuard
 
-## Git Workflow
+Thank you for helping. Development setup, scripts and the database matrix are in [DEVELOPMENT.md](DEVELOPMENT.md);
+releases are in [RELEASING.md](RELEASING.md). Report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md).
 
-1. Создайте ветку от `develop`:
-   - Новая возможность: `feature/short-description`
-   - Исправление: `fix/short-description`
-   - Документация: `docs/short-description`
+## Workflow
 
-2. Напишите код и тесты (обязательно!).
+1. Branch from `main`: `feat/…`, `fix/…`, `docs/…`.
+2. Write the code and its tests. A bug fix starts with a failing test.
+3. Run `composer check` (style, static analysis, Rector, type coverage, tests, line coverage, mutation). It fails
+   without a coverage driver; install pcov or Xdebug.
+4. After a change to an `@api` or `@spi` symbol, run `composer api:manifest` and commit the manifest.
+5. Open a pull request to `main`. All CI checks must be green; one approval is required.
 
-3. Убедитесь, что все проверки проходят:
+## Code standards
 
-```bash
-composer test        # Все тесты
-composer lint        # Стиль кода
-composer analyse     # Статический анализ
-composer api:check   # Манифест публичного API; после изменения @api/@spi — composer api:manifest
-```
+- Pint with `pint.json`, PHPStan at the configured level without a baseline, Rector clean.
+- `declare(strict_types=1)` in every PHP file (enforced by Pint).
+- Native types everywhere; PHPDoc only for what native types cannot express.
+- `final` and `readonly` by default; enums instead of string constants; no magic methods.
+- Comments explain why, in one or two lines; never refer to tickets or plans.
 
-4. Создайте Pull Request в ветку `develop`.
+## Commit messages
 
-## Стандарты кода
-
-- **PSR-12** + стиль Laravel (Pint с конфигом `pint.json`)
-- `declare(strict_types=1)` в каждом PHP-файле
-- Типизация всех параметров и возвращаемых значений
-- PHPDoc только там, где тип нельзя выразить нативно
-
-## Тесты
-
-- Каждая новая возможность **обязана** иметь тесты
-- Unit-тесты для изолированной логики — `tests/Unit/`
-- Feature-тесты для интеграции с Laravel — `tests/Feature/`
-- Минимальное покрытие: **80%**
-
-## Conventional Commits
+Every commit and every pull request title follows [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
-feat: добавить поддержку wildcard permissions
-fix: исправить сброс кэша при detach роли
-docs: обновить README раздел установки
-test: добавить Unit тесты для Authorizer
-refactor: убрать дублирование BaseRole
-chore: обновить зависимости
+<type>(<scope>)!: <subject>
+
+<body: why the change is needed and why this way>
+
+BREAKING CHANGE: <what breaks and how to migrate>
 ```
 
-## Версионирование
+- **Types:** `feat`, `fix`, `perf`, `refactor`, `docs`, `test`, `build`, `ci`, `style`, `chore`, `revert`.
+- **Scope:** optional, kebab-case: `core`, `filament`, `sources`, `docs`, `deps`…
+- **Subject:** English, imperative, printable ASCII, no trailing period; the whole header is at most 100
+  characters.
+- **Breaking change:** `!` after the type or scope and a `BREAKING CHANGE:` footer.
 
-Проект следует [Semantic Versioning](https://semver.org/):
-- `MAJOR` — несовместимые изменения API
-- `MINOR` — новые возможности с обратной совместимостью
-- `PATCH` — исправления багов
+`bin/check-commits.sh origin/main` checks the commits of a branch; the `PR Check` workflow runs it and checks the
+pull request title. Pull requests are squash-merged, so the title becomes the commit on `main`.
 
-## Code Review
+## Changelog and versions
 
-- Минимум 1 approve перед merge
-- Все CI-проверки должны быть зелёными
-- Конфликты разрешает автор PR
+- A user-visible change adds a line to `## [Unreleased]` in `CHANGELOG.md` in the same pull request, under
+  `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed` or `Security`. Internal changes (tests, CI, refactoring)
+  do not.
+- Versions follow [SemVer](https://semver.org/): `feat` → minor, `fix`/`perf` → patch, `!` → major. Both packages
+  share one version.

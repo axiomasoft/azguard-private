@@ -12,13 +12,10 @@
 
 ## Checklist
 
-- [ ] `composer test` passes
-- [ ] `composer lint:check` passes
-- [ ] `composer analyse` passes
-- [ ] `composer refactor:check` passes
+- [ ] `composer check` passes
 - [ ] New behavior is covered by tests
-- [ ] Docs / CHANGELOG updated if user-facing
-- [ ] Commit messages follow [Conventional Commits](https://www.conventionalcommits.org)
+- [ ] Docs and `CHANGELOG.md` `[Unreleased]` updated if user-facing
+- [ ] Title and commits follow [CONTRIBUTING.md](../CONTRIBUTING.md#commit-messages) (English Conventional Commits)
 
 ## Related issues
 

@@ -77,15 +77,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate CHANGELOG for this release
-        id: changelog
-        uses: orhun/git-cliff-action@v4
-        with:
-          config: cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: CHANGES.md
-          GITHUB_REPO: ${{ github.repository }}
+      - name: Release notes from the CHANGELOG section of this version
+        run: bash bin/release-notes.sh "${GITHUB_REF_NAME#v}" "${GITHUB_SHA}" > CHANGES.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
