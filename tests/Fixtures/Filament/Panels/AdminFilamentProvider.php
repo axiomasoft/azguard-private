@@ -22,6 +22,8 @@ final class AdminFilamentProvider extends PanelProvider
                 roleGrants: FilamentFixture::$editors['role_grants'] ?? false,
                 permissionGrants: FilamentFixture::$editors['permission_grants'] ?? false,
                 permissions: FilamentFixture::$editors['permissions'] ?? false,
+                panels: FilamentFixture::$packagePages['panels'] ?? false,
+                doctor: FilamentFixture::$packagePages['doctor'] ?? false,
             )
             ->definitions(FilamentFixture::$definitions)
             ->enforce(FilamentFixture::$enforce)

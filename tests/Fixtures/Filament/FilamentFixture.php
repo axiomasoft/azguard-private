@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament;
 
+use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Tests\Fixtures\Filament\Guards\AdminMemberRole;
@@ -80,6 +81,12 @@ final class FilamentFixture
     /** Where `azguard:catalog:cache` writes, with the build id; null leaves the configuration alone. */
     public static ?string $catalogCachePath;
 
+    /** @var list<DoctorCheck> doctor checks of the `admin` guard panel */
+    public static array $doctorChecks;
+
+    /** @var array{panels?: bool, doctor?: bool} the pages of the package in the `admin` Filament panel; none by default */
+    public static array $packagePages;
+
     /** @var list<array{guard: ?string, filament: ?string}> */
     public static array $seen;
 
@@ -114,6 +121,8 @@ final class FilamentFixture
         self::$members = [1];
         self::$memberPermissions = ['pages.*'];
         self::$editors = [];
+        self::$doctorChecks = [];
+        self::$packagePages = [];
         self::$sellerPermissions = [];
         self::$sellerPolicies = [];
         self::$manages = ['admin', 'seller'];

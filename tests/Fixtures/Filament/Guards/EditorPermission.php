@@ -27,4 +27,6 @@ enum EditorPermission: string
     case PermissionGrantsCreate = 'azguard-permission-grants.create';
     case PermissionGrantsUpdate = 'azguard-permission-grants.update';
     case PermissionGrantsDelete = 'azguard-permission-grants.delete';
+    case PanelsPage = 'pages.azguard-panels';
+    case DoctorPage = 'pages.azguard-doctor';
 }

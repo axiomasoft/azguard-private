@@ -4,15 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
-use AzGuard\AzGuardManager;
-use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Diagnostics\PanelOverview;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
-use AzGuard\Panels\Panel;
-use AzGuard\Panels\PanelRecipe;
-use AzGuard\Panels\PanelRegistry;
-use AzGuard\Sources\Database\DatabaseSource;
-use BackedEnum;
 use Illuminate\Console\Command;
 
 /**
@@ -33,27 +26,10 @@ final class PanelsListCommand extends Command
     /** @var string */
     protected $description = 'List the AzGuard panels with their settings, sources and schema';
 
-    public function handle(PanelRegistry $registry, AzGuardManager $azguard): int
+    public function handle(PanelOverview $overview): int
     {
-        return $this->attempt(function () use ($registry, $azguard): int {
-            $panels = [];
-            foreach ($registry->all() as $panel) {
-                $entry = $this->describe($panel);
-
-                if ($this->option('settings') === true) {
-                    $entry['settings'] = $panel->settings()->toArray();
-                }
-
-                if ($this->option('sources') === true) {
-                    $entry['sources'] = $this->sources($panel, $registry->recipe($panel->id()));
-                }
-
-                if ($this->option('schema') === true) {
-                    // The tenant-independent schema: static permissions and the code roles.
-                    $entry['schema'] = $azguard->panel($panel->id())->inTenant(TenantRef::global())->schema()->toArray();
-                }
-                $panels[] = $entry;
-            }
+        return $this->attempt(function () use ($overview): int {
+            $panels = $overview->all($this->option('settings') === true, $this->option('sources') === true, $this->option('schema') === true);
 
             if ($this->option('json') === true) {
                 $this->printJson($panels);
@@ -64,55 +40,6 @@ final class PanelsListCommand extends Command
 
             return self::SUCCESS;
         });
-    }
-
-    /** @return array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>} */
-    private function describe(Panel $panel): array
-    {
-        $writer = $panel->writer();
-
-        return [
-            'id' => $panel->id(),
-            'label' => $panel->label(),
-            'default' => $panel->isDefault(),
-            'prefix' => $panel->prefix(),
-            'tenants' => $panel->tenants()->mode(),
-            'subjects' => $panel->subjectModels(),
-            'writer' => $writer === null ? null : $writer->id(),
-            'storage' => $writer instanceof DatabaseSource ? $writer->boundStorage()->id() : null,
-            'plugins' => $panel->pluginIds(),
-        ];
-    }
-
-    /**
-     * Each source of the panel with the capabilities it brings, the named sources of the factory the panel uses, and
-     * the plugins with where they were attached.
-     *
-     * @return array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
-     */
-    private function sources(Panel $panel, PanelRecipe $recipe): array
-    {
-        $named = [];
-        foreach ($recipe->layered(PanelRecipe::PERMISSIONS) as $record) {
-            foreach (is_array($record['value']) ? $record['value'] : [] as $definition) {
-                if (is_string($definition) && ! is_subclass_of($definition, BackedEnum::class)) {
-                    $origin = $record['origin'];
-                    $named[] = ['name' => $definition, 'origin' => $origin['plugin'] === null ? $origin['kind'] : $origin['kind'].':'.$origin['plugin']];
-                }
-            }
-        }
-
-        return [
-            'sources' => array_map(static fn (SourceDescription $source): array => [
-                'id' => $source->id,
-                'label' => $source->label,
-                'class' => $source->class,
-                'capabilities' => array_map(class_basename(...), $source->capabilities),
-                'dynamic' => $source->dynamic,
-            ], $panel->sources()),
-            'named' => $named,
-            'plugins' => $panel->pluginIds(),
-        ];
     }
 
     /** @param list<array<string, mixed>> $panels */

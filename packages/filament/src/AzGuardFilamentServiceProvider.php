@@ -24,6 +24,7 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'azguard-filament');
         $this->publishes([__DIR__.'/../config/azguard-filament.php' => config_path('azguard-filament.php')], 'azguard-filament-config');
 
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);

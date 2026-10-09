@@ -1,0 +1,1673 @@
+[
+    {
+        "id": "admin",
+        "label": "admin",
+        "default": false,
+        "prefix": "admin",
+        "tenants": "none",
+        "subjects": [
+            "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User"
+        ],
+        "writer": "database",
+        "storage": "default",
+        "plugins": [],
+        "settings": {
+            "resource_prefix": {
+                "value": "admin",
+                "origin": "default"
+            },
+            "gate.mode": {
+                "value": "authoritative",
+                "origin": "default"
+            },
+            "cache.store": {
+                "value": null,
+                "origin": "default"
+            },
+            "cache.ttl": {
+                "value": 3600,
+                "origin": "default"
+            },
+            "cache.generation": {
+                "value": 1,
+                "origin": "default"
+            },
+            "consistency.reads": {
+                "value": "primary",
+                "origin": "default"
+            },
+            "consistency.state_refresh": {
+                "value": "request",
+                "origin": "default"
+            },
+            "trace_decisions": {
+                "value": false,
+                "origin": "default"
+            }
+        },
+        "sources": {
+            "sources": [
+                {
+                    "id": "folder",
+                    "label": "Folder",
+                    "class": "AzGuard\\Sources\\Folder\\FolderSource",
+                    "capabilities": [
+                        "ProvidesPermissions",
+                        "ProvidesRoles",
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPolicies",
+                        "DescribesSchema",
+                        "FiltersQueries"
+                    ],
+                    "dynamic": false
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "class": "AzGuard\\Sources\\Database\\DatabaseSource",
+                    "capabilities": [
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPermissions",
+                        "StoresGrants",
+                        "FencesReads",
+                        "FiltersQueries",
+                        "DescribesSchema"
+                    ],
+                    "dynamic": false
+                }
+            ],
+            "named": [],
+            "plugins": []
+        },
+        "schema": {
+            "panel": "admin",
+            "label": "admin",
+            "writable": true,
+            "tenant": {
+                "key": "global",
+                "type": null,
+                "id": null
+            },
+            "permissions": [
+                {
+                    "key": "admin:archived-orders.view",
+                    "local": "archived-orders.view",
+                    "name": "admin.archived-orders.view",
+                    "label": "archived-orders.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:archived-orders.view_any",
+                    "local": "archived-orders.view_any",
+                    "name": "admin.archived-orders.view_any",
+                    "label": "archived-orders.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permission-grants.create",
+                    "local": "azguard-permission-grants.create",
+                    "name": "admin.azguard-permission-grants.create",
+                    "label": "azguard-permission-grants.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permission-grants.delete",
+                    "local": "azguard-permission-grants.delete",
+                    "name": "admin.azguard-permission-grants.delete",
+                    "label": "azguard-permission-grants.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permission-grants.update",
+                    "local": "azguard-permission-grants.update",
+                    "name": "admin.azguard-permission-grants.update",
+                    "label": "azguard-permission-grants.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permission-grants.view",
+                    "local": "azguard-permission-grants.view",
+                    "name": "admin.azguard-permission-grants.view",
+                    "label": "azguard-permission-grants.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permission-grants.view_any",
+                    "local": "azguard-permission-grants.view_any",
+                    "name": "admin.azguard-permission-grants.view_any",
+                    "label": "azguard-permission-grants.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permissions.create",
+                    "local": "azguard-permissions.create",
+                    "name": "admin.azguard-permissions.create",
+                    "label": "azguard-permissions.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permissions.delete",
+                    "local": "azguard-permissions.delete",
+                    "name": "admin.azguard-permissions.delete",
+                    "label": "azguard-permissions.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permissions.update",
+                    "local": "azguard-permissions.update",
+                    "name": "admin.azguard-permissions.update",
+                    "label": "azguard-permissions.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permissions.view",
+                    "local": "azguard-permissions.view",
+                    "name": "admin.azguard-permissions.view",
+                    "label": "azguard-permissions.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-permissions.view_any",
+                    "local": "azguard-permissions.view_any",
+                    "name": "admin.azguard-permissions.view_any",
+                    "label": "azguard-permissions.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-role-grants.create",
+                    "local": "azguard-role-grants.create",
+                    "name": "admin.azguard-role-grants.create",
+                    "label": "azguard-role-grants.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-role-grants.delete",
+                    "local": "azguard-role-grants.delete",
+                    "name": "admin.azguard-role-grants.delete",
+                    "label": "azguard-role-grants.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-role-grants.update",
+                    "local": "azguard-role-grants.update",
+                    "name": "admin.azguard-role-grants.update",
+                    "label": "azguard-role-grants.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-role-grants.view",
+                    "local": "azguard-role-grants.view",
+                    "name": "admin.azguard-role-grants.view",
+                    "label": "azguard-role-grants.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-role-grants.view_any",
+                    "local": "azguard-role-grants.view_any",
+                    "name": "admin.azguard-role-grants.view_any",
+                    "label": "azguard-role-grants.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-roles.view",
+                    "local": "azguard-roles.view",
+                    "name": "admin.azguard-roles.view",
+                    "label": "azguard-roles.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:azguard-roles.view_any",
+                    "local": "azguard-roles.view_any",
+                    "name": "admin.azguard-roles.view_any",
+                    "label": "azguard-roles.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:entry.enter",
+                    "local": "entry.enter",
+                    "name": "admin.entry.enter",
+                    "label": "entry.enter",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:orders.delete",
+                    "local": "orders.delete",
+                    "name": "admin.orders.delete",
+                    "label": "orders.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Filament\\Guards\\OrderRulesPolicy@delete",
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:orders.delete_any",
+                    "local": "orders.delete_any",
+                    "name": "admin.orders.delete_any",
+                    "label": "orders.delete_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:orders.update",
+                    "local": "orders.update",
+                    "name": "admin.orders.update",
+                    "label": "orders.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:orders.view",
+                    "local": "orders.view",
+                    "name": "admin.orders.view",
+                    "label": "orders.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Filament\\Guards\\OrderRulesPolicy@view",
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:orders.view_any",
+                    "local": "orders.view_any",
+                    "name": "admin.orders.view_any",
+                    "label": "orders.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:pages.azguard-doctor",
+                    "local": "pages.azguard-doctor",
+                    "name": "admin.pages.azguard-doctor",
+                    "label": "pages.azguard-doctor",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:pages.azguard-panels",
+                    "local": "pages.azguard-panels",
+                    "name": "admin.pages.azguard-panels",
+                    "label": "pages.azguard-panels",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:pages.probe",
+                    "local": "pages.probe",
+                    "name": "admin.pages.probe",
+                    "label": "pages.probe",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:pages.reports",
+                    "local": "pages.reports",
+                    "name": "admin.pages.reports",
+                    "label": "pages.reports",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:products.view",
+                    "local": "products.view",
+                    "name": "admin.products.view",
+                    "label": "products.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Filament\\Guards\\OrderRulesPolicy@viewProduct",
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:products.view_any",
+                    "local": "products.view_any",
+                    "name": "admin.products.view_any",
+                    "label": "products.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "admin:widgets.order-count",
+                    "local": "widgets.order-count",
+                    "name": "admin.widgets.order-count",
+                    "label": "widgets.order-count",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                }
+            ],
+            "groups": {
+                "": [
+                    "admin:archived-orders.view",
+                    "admin:archived-orders.view_any",
+                    "admin:azguard-permission-grants.create",
+                    "admin:azguard-permission-grants.delete",
+                    "admin:azguard-permission-grants.update",
+                    "admin:azguard-permission-grants.view",
+                    "admin:azguard-permission-grants.view_any",
+                    "admin:azguard-permissions.create",
+                    "admin:azguard-permissions.delete",
+                    "admin:azguard-permissions.update",
+                    "admin:azguard-permissions.view",
+                    "admin:azguard-permissions.view_any",
+                    "admin:azguard-role-grants.create",
+                    "admin:azguard-role-grants.delete",
+                    "admin:azguard-role-grants.update",
+                    "admin:azguard-role-grants.view",
+                    "admin:azguard-role-grants.view_any",
+                    "admin:azguard-roles.view",
+                    "admin:azguard-roles.view_any",
+                    "admin:entry.enter",
+                    "admin:orders.delete",
+                    "admin:orders.delete_any",
+                    "admin:orders.update",
+                    "admin:orders.view",
+                    "admin:orders.view_any",
+                    "admin:pages.azguard-doctor",
+                    "admin:pages.azguard-panels",
+                    "admin:pages.probe",
+                    "admin:pages.reports",
+                    "admin:products.view",
+                    "admin:products.view_any",
+                    "admin:widgets.order-count"
+                ]
+            },
+            "roles": [
+                {
+                    "key": "member",
+                    "label": "member",
+                    "class": "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\GrantedMemberRole",
+                    "editable": false,
+                    "grantable": true,
+                    "automatic": false,
+                    "scope_required": false,
+                    "context_types": [],
+                    "context_bindings": [],
+                    "super_admin": false,
+                    "permissions": [
+                        "entry.enter"
+                    ]
+                }
+            ],
+            "fields": {
+                "role_grant": [],
+                "permission_grant": []
+            },
+            "tenants": [],
+            "scopes": [],
+            "subjects": [
+                {
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User",
+                    "type": "user",
+                    "label": "User",
+                    "guard": "web",
+                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                }
+            ]
+        }
+    },
+    {
+        "id": "backoffice",
+        "label": "backoffice",
+        "default": false,
+        "prefix": "backoffice",
+        "tenants": "none",
+        "subjects": [
+            "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User"
+        ],
+        "writer": "database",
+        "storage": "default",
+        "plugins": [],
+        "settings": {
+            "resource_prefix": {
+                "value": "backoffice",
+                "origin": "default"
+            },
+            "gate.mode": {
+                "value": "authoritative",
+                "origin": "default"
+            },
+            "cache.store": {
+                "value": null,
+                "origin": "default"
+            },
+            "cache.ttl": {
+                "value": 3600,
+                "origin": "default"
+            },
+            "cache.generation": {
+                "value": 1,
+                "origin": "default"
+            },
+            "consistency.reads": {
+                "value": "primary",
+                "origin": "default"
+            },
+            "consistency.state_refresh": {
+                "value": "request",
+                "origin": "default"
+            },
+            "trace_decisions": {
+                "value": false,
+                "origin": "default"
+            }
+        },
+        "sources": {
+            "sources": [
+                {
+                    "id": "folder",
+                    "label": "Folder",
+                    "class": "AzGuard\\Sources\\Folder\\FolderSource",
+                    "capabilities": [
+                        "ProvidesPermissions",
+                        "ProvidesRoles",
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPolicies",
+                        "DescribesSchema",
+                        "FiltersQueries"
+                    ],
+                    "dynamic": false
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "class": "AzGuard\\Sources\\Database\\DatabaseSource",
+                    "capabilities": [
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPermissions",
+                        "StoresGrants",
+                        "FencesReads",
+                        "FiltersQueries",
+                        "DescribesSchema"
+                    ],
+                    "dynamic": false
+                }
+            ],
+            "named": [],
+            "plugins": []
+        },
+        "schema": {
+            "panel": "backoffice",
+            "label": "backoffice",
+            "writable": true,
+            "tenant": {
+                "key": "global",
+                "type": null,
+                "id": null
+            },
+            "permissions": [
+                {
+                    "key": "backoffice:entry.enter",
+                    "local": "entry.enter",
+                    "name": "backoffice.entry.enter",
+                    "label": "entry.enter",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "folder",
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "backoffice:pages.probe",
+                    "local": "pages.probe",
+                    "name": "backoffice.pages.probe",
+                    "label": "pages.probe",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                }
+            ],
+            "groups": {
+                "": [
+                    "backoffice:entry.enter",
+                    "backoffice:pages.probe"
+                ]
+            },
+            "roles": [
+                {
+                    "key": "member",
+                    "label": "member",
+                    "class": "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\BackofficeMemberRole",
+                    "editable": false,
+                    "grantable": false,
+                    "automatic": true,
+                    "scope_required": false,
+                    "context_types": [],
+                    "context_bindings": [],
+                    "super_admin": false,
+                    "permissions": [
+                        "entry.enter"
+                    ]
+                }
+            ],
+            "fields": {
+                "role_grant": [],
+                "permission_grant": []
+            },
+            "tenants": [],
+            "scopes": [],
+            "subjects": [
+                {
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User",
+                    "type": "user",
+                    "label": "User",
+                    "guard": "web",
+                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                }
+            ]
+        }
+    },
+    {
+        "id": "seller",
+        "label": "seller",
+        "default": false,
+        "prefix": "seller",
+        "tenants": "none",
+        "subjects": [
+            "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User"
+        ],
+        "writer": "database",
+        "storage": "default",
+        "plugins": [],
+        "settings": {
+            "resource_prefix": {
+                "value": "seller",
+                "origin": "default"
+            },
+            "gate.mode": {
+                "value": "authoritative",
+                "origin": "default"
+            },
+            "cache.store": {
+                "value": null,
+                "origin": "default"
+            },
+            "cache.ttl": {
+                "value": 3600,
+                "origin": "default"
+            },
+            "cache.generation": {
+                "value": 1,
+                "origin": "default"
+            },
+            "consistency.reads": {
+                "value": "primary",
+                "origin": "default"
+            },
+            "consistency.state_refresh": {
+                "value": "request",
+                "origin": "default"
+            },
+            "trace_decisions": {
+                "value": false,
+                "origin": "default"
+            }
+        },
+        "sources": {
+            "sources": [
+                {
+                    "id": "folder",
+                    "label": "Folder",
+                    "class": "AzGuard\\Sources\\Folder\\FolderSource",
+                    "capabilities": [
+                        "ProvidesPermissions",
+                        "ProvidesRoles",
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPolicies",
+                        "DescribesSchema",
+                        "FiltersQueries"
+                    ],
+                    "dynamic": false
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "class": "AzGuard\\Sources\\Database\\DatabaseSource",
+                    "capabilities": [
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPermissions",
+                        "StoresGrants",
+                        "FencesReads",
+                        "FiltersQueries",
+                        "DescribesSchema"
+                    ],
+                    "dynamic": true
+                }
+            ],
+            "named": [],
+            "plugins": []
+        },
+        "schema": {
+            "panel": "seller",
+            "label": "seller",
+            "writable": true,
+            "tenant": {
+                "key": "global",
+                "type": null,
+                "id": null
+            },
+            "permissions": [
+                {
+                    "key": "seller:archived-orders.view",
+                    "local": "archived-orders.view",
+                    "name": "seller.archived-orders.view",
+                    "label": "archived-orders.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "policy",
+                    "grantable": false,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Filament\\Guards\\ArchivedOrderPolicy@view",
+                    "sources": [],
+                    "context_types": []
+                },
+                {
+                    "key": "seller:archived-orders.view_any",
+                    "local": "archived-orders.view_any",
+                    "name": "seller.archived-orders.view_any",
+                    "label": "archived-orders.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "policy",
+                    "grantable": false,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": "policy:AzGuard\\Tests\\Fixtures\\Filament\\Guards\\ArchivedOrderPolicy@viewAny",
+                    "sources": [],
+                    "context_types": []
+                },
+                {
+                    "key": "seller:entry.enter",
+                    "local": "entry.enter",
+                    "name": "seller.entry.enter",
+                    "label": "entry.enter",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "folder",
+                        "database"
+                    ],
+                    "context_types": []
+                }
+            ],
+            "groups": {
+                "": [
+                    "seller:archived-orders.view",
+                    "seller:archived-orders.view_any",
+                    "seller:entry.enter"
+                ]
+            },
+            "roles": [
+                {
+                    "key": "member",
+                    "label": "member",
+                    "class": "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\SellerMemberRole",
+                    "editable": false,
+                    "grantable": false,
+                    "automatic": true,
+                    "scope_required": false,
+                    "context_types": [],
+                    "context_bindings": [],
+                    "super_admin": false,
+                    "permissions": [
+                        "entry.enter"
+                    ]
+                }
+            ],
+            "fields": {
+                "role_grant": [],
+                "permission_grant": []
+            },
+            "tenants": [],
+            "scopes": [],
+            "subjects": [
+                {
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User",
+                    "type": "user",
+                    "label": "User",
+                    "guard": "web",
+                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                }
+            ]
+        }
+    },
+    {
+        "id": "teams",
+        "label": "teams",
+        "default": false,
+        "prefix": "teams",
+        "tenants": "required",
+        "subjects": [
+            "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User"
+        ],
+        "writer": "database",
+        "storage": "default",
+        "plugins": [],
+        "settings": {
+            "resource_prefix": {
+                "value": "teams",
+                "origin": "default"
+            },
+            "gate.mode": {
+                "value": "authoritative",
+                "origin": "default"
+            },
+            "cache.store": {
+                "value": null,
+                "origin": "default"
+            },
+            "cache.ttl": {
+                "value": 3600,
+                "origin": "default"
+            },
+            "cache.generation": {
+                "value": 1,
+                "origin": "default"
+            },
+            "consistency.reads": {
+                "value": "primary",
+                "origin": "default"
+            },
+            "consistency.state_refresh": {
+                "value": "request",
+                "origin": "default"
+            },
+            "trace_decisions": {
+                "value": false,
+                "origin": "default"
+            }
+        },
+        "sources": {
+            "sources": [
+                {
+                    "id": "folder",
+                    "label": "Folder",
+                    "class": "AzGuard\\Sources\\Folder\\FolderSource",
+                    "capabilities": [
+                        "ProvidesPermissions",
+                        "ProvidesRoles",
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPolicies",
+                        "DescribesSchema",
+                        "FiltersQueries"
+                    ],
+                    "dynamic": false
+                },
+                {
+                    "id": "database",
+                    "label": "Database",
+                    "class": "AzGuard\\Sources\\Database\\DatabaseSource",
+                    "capabilities": [
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPermissions",
+                        "StoresGrants",
+                        "FencesReads",
+                        "FiltersQueries",
+                        "DescribesSchema"
+                    ],
+                    "dynamic": true
+                }
+            ],
+            "named": [],
+            "plugins": []
+        },
+        "schema": {
+            "panel": "teams",
+            "label": "teams",
+            "writable": true,
+            "tenant": {
+                "key": "global",
+                "type": null,
+                "id": null
+            },
+            "permissions": [
+                {
+                    "key": "teams:azguard-permission-grants.create",
+                    "local": "azguard-permission-grants.create",
+                    "name": "teams.azguard-permission-grants.create",
+                    "label": "azguard-permission-grants.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permission-grants.delete",
+                    "local": "azguard-permission-grants.delete",
+                    "name": "teams.azguard-permission-grants.delete",
+                    "label": "azguard-permission-grants.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permission-grants.update",
+                    "local": "azguard-permission-grants.update",
+                    "name": "teams.azguard-permission-grants.update",
+                    "label": "azguard-permission-grants.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permission-grants.view",
+                    "local": "azguard-permission-grants.view",
+                    "name": "teams.azguard-permission-grants.view",
+                    "label": "azguard-permission-grants.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permission-grants.view_any",
+                    "local": "azguard-permission-grants.view_any",
+                    "name": "teams.azguard-permission-grants.view_any",
+                    "label": "azguard-permission-grants.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permissions.create",
+                    "local": "azguard-permissions.create",
+                    "name": "teams.azguard-permissions.create",
+                    "label": "azguard-permissions.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permissions.delete",
+                    "local": "azguard-permissions.delete",
+                    "name": "teams.azguard-permissions.delete",
+                    "label": "azguard-permissions.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permissions.update",
+                    "local": "azguard-permissions.update",
+                    "name": "teams.azguard-permissions.update",
+                    "label": "azguard-permissions.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permissions.view",
+                    "local": "azguard-permissions.view",
+                    "name": "teams.azguard-permissions.view",
+                    "label": "azguard-permissions.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-permissions.view_any",
+                    "local": "azguard-permissions.view_any",
+                    "name": "teams.azguard-permissions.view_any",
+                    "label": "azguard-permissions.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-role-grants.create",
+                    "local": "azguard-role-grants.create",
+                    "name": "teams.azguard-role-grants.create",
+                    "label": "azguard-role-grants.create",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-role-grants.delete",
+                    "local": "azguard-role-grants.delete",
+                    "name": "teams.azguard-role-grants.delete",
+                    "label": "azguard-role-grants.delete",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-role-grants.update",
+                    "local": "azguard-role-grants.update",
+                    "name": "teams.azguard-role-grants.update",
+                    "label": "azguard-role-grants.update",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-role-grants.view",
+                    "local": "azguard-role-grants.view",
+                    "name": "teams.azguard-role-grants.view",
+                    "label": "azguard-role-grants.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-role-grants.view_any",
+                    "local": "azguard-role-grants.view_any",
+                    "name": "teams.azguard-role-grants.view_any",
+                    "label": "azguard-role-grants.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-roles.view",
+                    "local": "azguard-roles.view",
+                    "name": "teams.azguard-roles.view",
+                    "label": "azguard-roles.view",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:azguard-roles.view_any",
+                    "local": "azguard-roles.view_any",
+                    "name": "teams.azguard-roles.view_any",
+                    "label": "azguard-roles.view_any",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:entry.enter",
+                    "local": "entry.enter",
+                    "name": "teams.entry.enter",
+                    "label": "entry.enter",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:pages.azguard-doctor",
+                    "local": "pages.azguard-doctor",
+                    "name": "teams.pages.azguard-doctor",
+                    "label": "pages.azguard-doctor",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                },
+                {
+                    "key": "teams:pages.azguard-panels",
+                    "local": "pages.azguard-panels",
+                    "name": "teams.pages.azguard-panels",
+                    "label": "pages.azguard-panels",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [
+                        "database"
+                    ],
+                    "context_types": []
+                }
+            ],
+            "groups": {
+                "": [
+                    "teams:azguard-permission-grants.create",
+                    "teams:azguard-permission-grants.delete",
+                    "teams:azguard-permission-grants.update",
+                    "teams:azguard-permission-grants.view",
+                    "teams:azguard-permission-grants.view_any",
+                    "teams:azguard-permissions.create",
+                    "teams:azguard-permissions.delete",
+                    "teams:azguard-permissions.update",
+                    "teams:azguard-permissions.view",
+                    "teams:azguard-permissions.view_any",
+                    "teams:azguard-role-grants.create",
+                    "teams:azguard-role-grants.delete",
+                    "teams:azguard-role-grants.update",
+                    "teams:azguard-role-grants.view",
+                    "teams:azguard-role-grants.view_any",
+                    "teams:azguard-roles.view",
+                    "teams:azguard-roles.view_any",
+                    "teams:entry.enter",
+                    "teams:pages.azguard-doctor",
+                    "teams:pages.azguard-panels"
+                ]
+            },
+            "roles": [
+                {
+                    "key": "member",
+                    "label": "member",
+                    "class": "AzGuard\\Tests\\Fixtures\\Filament\\Guards\\GrantedMemberRole",
+                    "editable": false,
+                    "grantable": true,
+                    "automatic": false,
+                    "scope_required": false,
+                    "context_types": [],
+                    "context_bindings": [],
+                    "super_admin": false,
+                    "permissions": [
+                        "entry.enter"
+                    ]
+                }
+            ],
+            "fields": {
+                "role_grant": [],
+                "permission_grant": []
+            },
+            "tenants": [
+                {
+                    "type": "team",
+                    "label": "Team",
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\Team",
+                    "directory": "AzGuard\\Directories\\ModelTenantDirectory"
+                }
+            ],
+            "scopes": [],
+            "subjects": [
+                {
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User",
+                    "type": "user",
+                    "label": "User",
+                    "guard": "web",
+                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                }
+            ]
+        }
+    },
+    {
+        "id": "readonly",
+        "label": "readonly",
+        "default": false,
+        "prefix": "readonly",
+        "tenants": "none",
+        "subjects": [
+            "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User"
+        ],
+        "writer": null,
+        "storage": null,
+        "plugins": [],
+        "settings": {
+            "resource_prefix": {
+                "value": "readonly",
+                "origin": "default"
+            },
+            "gate.mode": {
+                "value": "authoritative",
+                "origin": "default"
+            },
+            "cache.store": {
+                "value": null,
+                "origin": "default"
+            },
+            "cache.ttl": {
+                "value": 3600,
+                "origin": "default"
+            },
+            "cache.generation": {
+                "value": 1,
+                "origin": "default"
+            },
+            "consistency.reads": {
+                "value": "primary",
+                "origin": "default"
+            },
+            "consistency.state_refresh": {
+                "value": "request",
+                "origin": "default"
+            },
+            "trace_decisions": {
+                "value": false,
+                "origin": "default"
+            }
+        },
+        "sources": {
+            "sources": [
+                {
+                    "id": "folder",
+                    "label": "Folder",
+                    "class": "AzGuard\\Sources\\Folder\\FolderSource",
+                    "capabilities": [
+                        "ProvidesPermissions",
+                        "ProvidesRoles",
+                        "ProvidesGrants",
+                        "ProvidesRoleGrants",
+                        "ProvidesPolicies",
+                        "DescribesSchema",
+                        "FiltersQueries"
+                    ],
+                    "dynamic": false
+                }
+            ],
+            "named": [],
+            "plugins": []
+        },
+        "schema": {
+            "panel": "readonly",
+            "label": "readonly",
+            "writable": false,
+            "tenant": {
+                "key": "global",
+                "type": null,
+                "id": null
+            },
+            "permissions": [
+                {
+                    "key": "readonly:entry.enter",
+                    "local": "entry.enter",
+                    "name": "readonly.entry.enter",
+                    "label": "entry.enter",
+                    "group": null,
+                    "description": null,
+                    "authority": "grants",
+                    "grantable": true,
+                    "dynamic": false,
+                    "owner": "folder",
+                    "decided_by": null,
+                    "sources": [],
+                    "context_types": []
+                }
+            ],
+            "groups": {
+                "": [
+                    "readonly:entry.enter"
+                ]
+            },
+            "roles": [],
+            "fields": {
+                "role_grant": [],
+                "permission_grant": []
+            },
+            "tenants": [],
+            "scopes": [],
+            "subjects": [
+                {
+                    "model": "AzGuard\\Tests\\Fixtures\\Filament\\Models\\User",
+                    "type": "user",
+                    "label": "User",
+                    "guard": "web",
+                    "directory": "AzGuard\\Directories\\ModelSubjectDirectory"
+                }
+            ]
+        }
+    }
+]

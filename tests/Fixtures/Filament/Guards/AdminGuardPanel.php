@@ -36,6 +36,10 @@ final class AdminGuardPanel extends PanelProvider
             $panel->plugins([ReasonPlugin::make()]);
         }
 
+        if (FilamentFixture::$doctorChecks !== []) {
+            $panel->doctorChecks(FilamentFixture::$doctorChecks);
+        }
+
         return FilamentFixture::$guardPolicies === [] ? $panel : $panel->policies(FilamentFixture::$guardPolicies);
     }
 }

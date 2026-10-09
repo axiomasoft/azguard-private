@@ -1081,6 +1081,115 @@
             "via": "tag"
         },
         {
+            "name": "AzGuard\\Filament\\Pages\\DoctorPage",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Pages\\Page",
+            "interfaces": [
+                "Filament\\Actions\\Contracts\\HasActions",
+                "Filament\\Schemas\\Contracts\\HasRenderHookScopes",
+                "Filament\\Schemas\\Contracts\\HasSchemas"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "findings",
+                    "type": "array",
+                    "readonly": false,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "canAccess",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "check",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "mount",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                },
+                {
+                    "name": "severities",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "severity",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "severity",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Filament\\Pages\\PanelsPage",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Filament\\Pages\\Page",
+            "interfaces": [
+                "Filament\\Actions\\Contracts\\HasActions",
+                "Filament\\Schemas\\Contracts\\HasRenderHookScopes",
+                "Filament\\Schemas\\Contracts\\HasSchemas"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "panels",
+                    "type": "array",
+                    "readonly": false,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "canAccess",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "bool"
+                },
+                {
+                    "name": "mount",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "void"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
             "name": "AzGuard\\Filament\\Resources\\PermissionGrantResource",
             "kind": "class",
             "final": true,

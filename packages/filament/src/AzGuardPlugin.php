@@ -14,6 +14,8 @@ use AzGuard\Filament\Concerns\AuthorizesPage;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
+use AzGuard\Filament\Pages\DoctorPage;
+use AzGuard\Filament\Pages\PanelsPage;
 use AzGuard\Filament\Resources\PermissionGrantResource;
 use AzGuard\Filament\Resources\PermissionResource;
 use AzGuard\Filament\Resources\RoleGrantResource;
@@ -406,6 +408,19 @@ final class AzGuardPlugin implements Plugin
 
         if ($editors !== []) {
             $panel->resources($editors);
+        }
+        $pages = [];
+
+        if ($this->hasEditor('panels')) {
+            $pages[] = PanelsPage::class;
+        }
+
+        if ($this->hasEditor('doctor')) {
+            $pages[] = DoctorPage::class;
+        }
+
+        if ($pages !== []) {
+            $panel->pages($pages);
         }
     }
 

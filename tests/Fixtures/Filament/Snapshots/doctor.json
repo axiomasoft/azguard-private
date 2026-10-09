@@ -1,0 +1,18 @@
+[
+    {
+        "key": "probe.page",
+        "severity": "error",
+        "scope": "panel:admin",
+        "message": "Cannot connect with password [redacted].",
+        "details": {
+            "note": "plain"
+        }
+    },
+    {
+        "key": "probe.page.slow",
+        "severity": "warning",
+        "scope": "panel:admin",
+        "message": "A slow thing.",
+        "details": []
+    }
+]
