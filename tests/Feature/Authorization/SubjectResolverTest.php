@@ -17,6 +17,7 @@ use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 it('resolves morph aliases to existing models and missing rows to null', function (): void {
@@ -57,3 +58,51 @@ it('fails closed on a subject query failure and observes the denial', function (
     $decision = $engine->decide($panel, $request);
     expect($decision->reason)->toBe(DecisionReason::SourceError)->and($seen)->toBe($decision);
 });
+
+it('uses the subject model the caller holds and reads a bare reference again', function (): void {
+    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource);
+    $held = User::query()->findOrFail(1);
+    $seen = [];
+    RuntimePolicy::$callback = function ($user) use (&$seen): bool {
+        $seen[] = $user;
+
+        return true;
+    };
+    $policy = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
+    $reads = 0;
+    DB::listen(function ($query) use (&$reads): void {
+        $reads += str_contains($query->sql, '"users"') ? 1 : 0;
+    });
+
+    foreach (range(1, 5) as $ignored) {
+        $engine->decide($panel, $policy->withSubjectModel($held));
+    }
+    expect($reads)->toBe(0)->and($seen)->each->toBe($held);
+
+    $engine->decide($panel, $policy);
+    expect($reads)->toBe(1)->and(end($seen))->not->toBe($held);
+});
+
+it('reads the subject again when the held model is not exactly the referenced stored row', function (Closure $model): void {
+    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource);
+    $given = $model();
+    $seen = null;
+    RuntimePolicy::$callback = function ($user) use (&$seen): bool {
+        $seen = $user;
+
+        return true;
+    };
+    $engine->decide($panel, AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'))->withSubjectModel($given));
+    expect($seen)->toBeInstanceOf(User::class)->not->toBe($given)->and($seen->getKey())->toBe(1);
+})->with([
+    'unsaved' => fn () => fn () => (new User)->forceFill(['id' => 1]),
+    'another key' => fn () => fn () => tap(User::query()->findOrFail(1), fn (User $user) => $user->setAttribute('id', 2)),
+    'a subclass with the same alias' => fn () => fn () => (new class extends User
+    {
+        public function getMorphClass(): string
+        {
+            return (new User)->getMorphClass();
+        }
+    })->newQuery()->findOrFail(1),
+    'not a model' => fn () => fn () => new stdClass,
+]);

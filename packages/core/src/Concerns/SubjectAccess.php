@@ -367,6 +367,10 @@ final readonly class SubjectAccess
         [, $key] = $this->authorizer()->resolve($this->subject, $permission, $this->panel->id());
         $request = AccessRequest::for($this->ref, $key);
 
+        if ($this->subject instanceof Model) {
+            $request = $request->withSubjectModel($this->subject);
+        }
+
         if ($this->tenant !== null) {
             $request = $request->inTenant($this->tenant);
         }

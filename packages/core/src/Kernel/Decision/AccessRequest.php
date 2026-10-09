@@ -24,6 +24,7 @@ final readonly class AccessRequest
         private ?AssignmentScopeRef $context = null,
         private ?object $resource = null,
         private bool $traced = false,
+        private ?object $subjectModel = null,
     ) {}
 
     public static function for(SubjectRef $subject, PermissionKey $permission): self
@@ -33,7 +34,7 @@ final readonly class AccessRequest
 
     public function inTenant(TenantRef $tenant): self
     {
-        return new self($this->subject, $this->permission, $tenant, $this->context, $this->resource, $this->traced);
+        return new self($this->subject, $this->permission, $tenant, $this->context, $this->resource, $this->traced, $this->subjectModel);
     }
 
     /**
@@ -41,17 +42,31 @@ final readonly class AccessRequest
      */
     public function on(?AssignmentScopeRef $context, ?object $resource = null): self
     {
-        return new self($this->subject, $this->permission, $this->tenant, $context, $resource, $this->traced);
+        return new self($this->subject, $this->permission, $this->tenant, $context, $resource, $this->traced, $this->subjectModel);
     }
 
     public function inScope(AccessScope $scope, ?object $resource = null): self
     {
-        return new self($this->subject, $this->permission, $scope->tenant, $scope->context, $resource, $this->traced);
+        return new self($this->subject, $this->permission, $scope->tenant, $scope->context, $resource, $this->traced, $this->subjectModel);
     }
 
     public function traced(bool $trace = true): self
     {
-        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $trace);
+        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $trace, $this->subjectModel);
+    }
+
+    /**
+     * The subject model the caller already holds. Checks use it instead of reading the row again, as Laravel's Gate
+     * uses the user instance it is given. Call refresh() on the model to see changes made elsewhere.
+     */
+    public function withSubjectModel(object $model): self
+    {
+        return new self($this->subject, $this->permission, $this->tenant, $this->context, $this->resource, $this->traced, $model);
+    }
+
+    public function subjectModel(): ?object
+    {
+        return $this->subjectModel;
     }
 
     public function subject(): SubjectRef

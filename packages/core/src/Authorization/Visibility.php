@@ -253,7 +253,7 @@ final readonly class Visibility
             || (! $scope->context->isGlobal() && ($panel->scopes()->mode() === 'none' || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
             throw new VisibilityNotSupportedException('selected_scope');
         }
-        $model = $this->subjects->resolve($panel, $ref);
+        $model = ModelSubjectResolver::given($panel, $subject, $ref) ?? $this->subjects->resolve($panel, $ref);
         $frame = new EvaluationFrame($panel, $scope, CodeStateToken::of($panel->id(), $this->registry->buildId(), $this->registry->fingerprint($panel->id())), $now,
             ActorRef::of($ref->type(), $ref->id()), $model, $model);
 

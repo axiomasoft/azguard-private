@@ -86,7 +86,7 @@ final readonly class PrepareStage
         $error = null;
 
         try {
-            $subject = $batch === null ? $this->resolver->resolve($panel, $request->subject()) : $batch->subject($panel, $request->subject());
+            $subject = $batch === null ? $this->resolver->forRequest($panel, $request) : $batch->subject($panel, $request->subject());
             $actorModel = $actor->id === null ? null : ($actor->type === $request->subject()->type() && $actor->id === $request->subject()->id() ? $subject
                 : ($batch === null ? $this->resolver->resolve($panel, SubjectRef::of($actor->type, $actor->id)) : $batch->subject($panel, SubjectRef::of($actor->type, $actor->id))));
         } catch (Throwable $caught) {
