@@ -13,7 +13,7 @@ return new class extends Migration
         $storage = app(StorageRegistry::class)->get('{{ storage }}');
         $schema = $storage->connection()->getSchemaBuilder();
 
-        // One column for each Field of {{ panel }}\Models: Field::string('reason') is $table->string('reason')->nullable().
+        // One column for each Field of the grant models in {{ panel }}: Field::string('reason') is $table->string('reason')->nullable().
         $schema->table($storage->prefix().'role_grants', function (Blueprint $table): void {
             //
         });
