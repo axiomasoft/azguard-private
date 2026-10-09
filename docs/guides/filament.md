@@ -108,6 +108,7 @@ Filtering a list means turning every rule that decides `{slug}.view` into SQL. T
 | `missing_exact_adapter (…PostPolicy)` | A policy method `#[Decides(PostPermission::View)]` | Remove the `view`/`viewAny` methods if they only return `true`, or implement `FiltersAccessQueries` on the policy |
 | `resource_context_mapping` | The panel has assignment scopes, and the model does not say which scope a row belongs to | Implement `ProvidesAssignmentScope` with the `ContextAware` trait on the model; `resourceScopes()` cannot filter queries |
 | `unsupported_selection (…FolderSource)` | The panel has a `GrantedAutomatically` role | Automatic roles cannot be turned into SQL; keep them out of panels with Filament lists |
+| `missing_exact_adapter (Closure)` / `source_error (…)` | A closure before hook, a restriction without `FiltersAccessQueries`, or a custom source without `FiltersQueries` | See [Filtering lists](/guides/checking-access#filtering-lists) |
 
 A model that maps itself to a scope:
 
