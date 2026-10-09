@@ -599,8 +599,8 @@ final class PanelDiscovery
     }
 
     /**
-     * @param  list<mixed>  $tokens
-     * @return array<int, mixed>|string|null
+     * @param  array<int, array{0: int, 1: string, 2: int}|string>  $tokens  as token_get_all() returns them
+     * @return array{0: int, 1: string, 2: int}|string|null
      */
     private static function previous(array $tokens, int $index): array|string|null
     {

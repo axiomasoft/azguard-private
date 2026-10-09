@@ -14,6 +14,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Scopes\ModelIdentity;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -65,7 +66,7 @@ final readonly class GateBridge
             if ($model !== null && $definition?->resourceModel !== null && ! is_a($model, $definition->resourceModel, true)) {
                 throw new InvalidArgumentException('Resource class does not match the permission binding.');
             }
-            $ref = $subject instanceof SubjectRef ? $subject : SubjectRef::of($subject->getMorphClass(), $subject->getKey());
+            $ref = $subject instanceof SubjectRef ? $subject : SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject));
             $context = $arguments[1] ?? null;
             $request = AccessRequest::for($ref, $key);
 

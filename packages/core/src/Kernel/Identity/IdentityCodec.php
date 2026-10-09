@@ -115,25 +115,26 @@ final readonly class IdentityCodec
     public static function decode(array $encoded): PermissionKey|PermissionPattern|RoleKey|SubjectRef|TenantRef|AssignmentScopeRef|AccessScope|ActorRef
     {
         $parts = array_values($encoded);
-        $shape = array_map(get_debug_type(...), $parts);
+        [$kind, $first, $second] = count($parts) === 3 ? $parts : [null, null, null];
+        $ref = null;
 
-        $ref = match ($shape) {
-            ['string', 'string', 'string'] => match ($parts[0]) {
-                'permission' => PermissionKey::of($parts[1], $parts[2]),
-                'pattern' => PermissionPattern::of($parts[1], $parts[2]),
-                'role' => RoleKey::of($parts[1], $parts[2]),
-                'subject' => SubjectRef::of($parts[1], $parts[2]),
-                'tenant' => TenantRef::of($parts[1], $parts[2]),
-                'context' => AssignmentScopeRef::of($parts[1], $parts[2]),
+        if (is_string($kind) && is_string($first) && is_string($second)) {
+            $ref = match ($kind) {
+                'permission' => PermissionKey::of($first, $second),
+                'pattern' => PermissionPattern::of($first, $second),
+                'role' => RoleKey::of($first, $second),
+                'subject' => SubjectRef::of($first, $second),
+                'tenant' => TenantRef::of($first, $second),
+                'context' => AssignmentScopeRef::of($first, $second),
                 default => null,
-            },
-            ['string', 'null', 'null'] => match ($parts[0]) {
+            };
+        } elseif ($first === null && $second === null) {
+            $ref = match ($kind) {
                 'tenant' => TenantRef::global(),
                 'context' => AssignmentScopeRef::global(),
                 default => null,
-            },
-            default => null,
-        };
+            };
+        }
 
         return $ref ?? self::decodeComposite($parts) ?? throw new InvalidIdentityException(
             'Cannot decode '.self::describe($parts).' as an identity reference.',

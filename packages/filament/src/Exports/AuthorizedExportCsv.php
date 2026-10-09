@@ -6,6 +6,7 @@ namespace AzGuard\Filament\Exports;
 
 use AzGuard\Contracts\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use Filament\Actions\Exports\Jobs\ExportCsv;
@@ -57,10 +58,15 @@ class AuthorizedExportCsv extends ExportCsv
             $access = $access->inTenant(TenantRef::of($tenant['type'], $tenant['id']));
         }
         $model = new $authority['model'];
-        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), $user->getKey()),
+        $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), ModelKey::of($user)),
             $authority['permission'], $access->scope());
-        $visible = array_map(strval(...), $query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all());
+        $visible = [];
+        foreach ($query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all() as $key) {
+            if (is_int($key) || is_string($key)) {
+                $visible[] = (string) $key;
+            }
+        }
 
-        return array_values(array_filter($this->records, static fn (mixed $key): bool => in_array((string) $key, $visible, true)));
+        return array_values(array_filter($this->records, static fn (mixed $key): bool => (is_int($key) || is_string($key)) && in_array((string) $key, $visible, true)));
     }
 }

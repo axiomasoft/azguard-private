@@ -54,7 +54,7 @@ final class ExplainCommand extends Command
             if ($this->option('json')) {
                 $this->line(json_encode($explanation->toArray(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
             } else {
-                $this->line($explanation->toArray()['decision']['effect'].': '.$explanation->toArray()['decision']['reason']);
+                $this->line($explanation->decision()->effect->value.': '.$explanation->decision()->reason->value);
                 $this->table(['Stage', 'Component', 'Outcome', 'Detail'], array_map(static fn (array $step): array => [
                     $step['stage'], $step['component'] ?? '', $step['outcome'],
                     json_encode($step['detail'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),

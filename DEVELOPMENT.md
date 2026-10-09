@@ -40,7 +40,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer test` | Pest | Run the test suite |
 | `composer test:parallel` | Pest / ParaTest | Run the SQLite suite in parallel with random order intact |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
-| `composer analyse` | PHPStan / Larastan | Static analysis (level 8, no baseline) |
+| `composer analyse` | PHPStan / Larastan | Static analysis (level 9, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
 | `composer mutate` | Pest mutate | Per-package mutation testing (`composer mutate core` for one package) |
@@ -115,7 +115,7 @@ is a hard failure, not a silent pass.
 
 ## Conventions
 
-- `declare(strict_types=1)` in every PHP file; PHPStan level 8; Pest 4.
+- `declare(strict_types=1)` in every PHP file; PHPStan level 9; Pest 4.
 - Permission references support enum cases and validated names; roles are PHP
   classes with stable keys declared by `#[Role]` or `key()`.
 - Role definitions live in the panel catalog. The database stores assignments

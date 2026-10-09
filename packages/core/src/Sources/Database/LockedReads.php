@@ -100,7 +100,7 @@ final class LockedReads
                 throw new InvalidSourceContributionException('Dynamic permission identity differs from its query.');
             }
             $definitions[] = new PermissionDefinition(local: $permission->permissionKey()->local(), authority: PermissionAuthority::Grants,
-                label: $permission->getAttribute('label'), group: $permission->getAttribute('group'), description: $permission->getAttribute('description'));
+                label: $permission->displayText('label'), group: $permission->displayText('group'), description: $permission->displayText('description'));
         }
 
         return $catalog->withDynamic($added === null ? $definitions : [...$definitions, $added]);
@@ -260,7 +260,7 @@ final class LockedReads
 
         return new PermissionRecord(
             id: 'action:'.$row->id, panel: $model->panel(), tenant: $model->tenantRef(), key: $model->permissionKey(),
-            label: $model->getAttribute('label'), group: $model->getAttribute('group'), description: $model->getAttribute('description'),
+            label: $model->displayText('label'), group: $model->displayText('group'), description: $model->displayText('description'),
             fields: is_array($fields) ? $fields : [], createdAt: GrantRows::utc($row->created_at ?? null), updatedAt: GrantRows::utc($row->updated_at ?? null),
         );
     }

@@ -112,7 +112,7 @@ final class PredicateCompiler
     /** @param array<string, mixed> $where */
     private function mayCarryOr(array $where): bool
     {
-        if (strtolower((string) $where['type']) === 'raw') {
+        if (is_string($where['type'] ?? null) && strtolower($where['type']) === 'raw') {
             return true;
         }
 

@@ -508,8 +508,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             }
             $definitions[] = new PermissionDefinition(
                 local: $permission->permissionKey()->local(), authority: PermissionAuthority::Grants,
-                label: $permission->getAttribute('label'), group: $permission->getAttribute('group'),
-                description: $permission->getAttribute('description'),
+                label: $permission->displayText('label'), group: $permission->displayText('group'),
+                description: $permission->displayText('description'),
             );
         }
 
@@ -735,7 +735,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             foreach ($storage->table($table)->where('panel', $panel->id())->where('tenant_key', $tenant->key())
                 ->where('subject_type', $subject->type())->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()))
                 ->distinct()->pluck('origin') as $origin) {
-                $origins[(string) $origin] = true;
+                if (is_string($origin)) {
+                    $origins[$origin] = true;
+                }
             }
         }
         $origins = array_keys($origins);

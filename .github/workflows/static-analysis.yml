@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   larastan:
-    name: Larastan (PHPStan level 8)
+    name: Larastan (PHPStan level 9)
     runs-on: ubuntu-latest
 
     steps:

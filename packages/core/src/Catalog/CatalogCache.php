@@ -39,7 +39,8 @@ final readonly class CatalogCache
             return null;
         }
 
-        $entry = $file['panels'][$panel] ?? null;
+        $panels = $file['panels'] ?? null;
+        $entry = is_array($panels) ? $panels[$panel] ?? null : null;
 
         return is_array($entry) && ($entry['fingerprint'] ?? null) === $fingerprint && is_array($entry['catalog'] ?? null)
             ? $entry['catalog']

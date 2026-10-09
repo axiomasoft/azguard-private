@@ -130,7 +130,9 @@ final class InstallCommand extends Command
         $given = $this->stringOption('panel');
 
         if ($given === null && $this->input->isInteractive() && $this->confirm('Create the first panel now?', true)) {
-            return $this->ask('Name of the panel', 'Admin');
+            $name = $this->ask('Name of the panel', 'Admin');
+
+            return is_string($name) ? $name : null;
         }
 
         return $given;

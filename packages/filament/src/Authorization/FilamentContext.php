@@ -10,6 +10,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\AzGuardPlugin;
 use AzGuard\Filament\Concerns\AuthorizesResource;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -127,7 +128,7 @@ final readonly class FilamentContext
         if (! $user instanceof Model || ! $user instanceof AzGuardSubject) {
             return null;
         }
-        $subject = SubjectRef::of($user->getMorphClass(), $user->getKey());
+        $subject = SubjectRef::of($user->getMorphClass(), ModelKey::of($user));
 
         return $access->definition()->accepts($subject) ? $subject : null;
     }

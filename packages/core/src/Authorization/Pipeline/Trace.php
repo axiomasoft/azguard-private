@@ -51,8 +51,9 @@ final class Trace
             return;
         }
         $resource = $frame->resource();
+        $key = $resource instanceof Model ? $resource->getKey() : null;
         $this->resource = $resource === null ? null : ['class' => $resource::class,
-            'id' => $resource instanceof Model ? $resource->getKey() : null];
+            'id' => is_int($key) || is_string($key) ? $key : null];
     }
 
     /** @return array{class: string, id: int|string|null}|null */

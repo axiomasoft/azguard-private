@@ -167,9 +167,9 @@ final class PanelCatalog implements PermissionCatalog
             foreach ($snapshot['policy_bindings'] as $local => $row) {
                 $permission = is_array($row['permission']) ? constant($row['permission']['enum'].'::'.$row['permission']['name']) : $row['permission'];
 
-                if ($row['kind'] === 'php' && $row['policy'] !== null) {
+                if ($row['kind'] === 'php' && $row['policy'] !== null && (is_string($permission) || $permission instanceof UnitEnum)) {
                     $binding = PolicyBinding::for($permission, $row['policy'], $row['method']);
-                } elseif ($row['kind'] === 'gate' && $row['ability'] !== null) {
+                } elseif ($row['kind'] === 'gate' && $row['ability'] !== null && (is_string($permission) || $permission instanceof BackedEnum)) {
                     $binding = PolicyBinding::gate($permission, $row['ability'], $row['resource_model']);
                 } else {
                     return null;
@@ -304,9 +304,9 @@ final class PanelCatalog implements PermissionCatalog
     /**
      * The catalog with the dynamic permissions of one tenant over its static part; the catalog itself is unchanged.
      *
-     * @param  iterable<PermissionDefinition>  $definitions
+     * @param  iterable<mixed>  $definitions  permission definitions from dynamic sources; anything else is rejected
      *
-     * @throws InvalidSourceContributionException when a dynamic permission is not decided by grants
+     * @throws InvalidSourceContributionException when an item is not a permission definition decided by grants
      * @throws DuplicatePermissionException when a dynamic name repeats a static one
      * @throws PrefixConflictException when a dynamic name starts with the panel prefix
      */

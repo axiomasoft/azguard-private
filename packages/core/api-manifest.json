@@ -21807,6 +21807,21 @@
                     "return": "never"
                 },
                 {
+                    "name": "displayText",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "column",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?string"
+                },
+                {
                     "name": "forceDelete",
                     "static": false,
                     "abstract": false,

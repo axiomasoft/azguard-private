@@ -108,9 +108,9 @@ final class AzGuardPlugin implements Plugin
         $this->guardPanel = self::optionalString($values['guard_panel'] ?? null, 'guard_panel');
         $this->manages = isset($values['manages']) ? self::strings($values['manages'], 'manages') : null;
         $this->enforce = (bool) ($values['enforce'] ?? true);
-        $this->definitions = FilamentDefinitions::tryFrom((string) ($values['definitions'] ?? 'enums'))
+        $this->definitions = FilamentDefinitions::tryFrom(self::optionalString($values['definitions'] ?? null, 'definitions') ?? 'enums')
             ?? throw self::invalid('definitions must be "enums" or "resources".');
-        $this->authority = PermissionAuthority::tryFrom((string) ($values['authority'] ?? 'grants'))
+        $this->authority = PermissionAuthority::tryFrom(self::optionalString($values['authority'] ?? null, 'authority') ?? 'grants')
             ?? throw self::invalid('authority must be "grants" or "policy".');
         $this->abilities = self::abilityNames($values['abilities'] ?? []);
 

@@ -10,6 +10,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Authorization\FilamentContext;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -194,7 +195,7 @@ final readonly class TargetSelector
         return new LookupContext(
             panel: $panel,
             scope: AccessScope::in(TenantRef::global()),
-            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), $actor->getKey()),
+            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), ModelKey::of($actor)),
             actorModel: $actor,
             subject: null,
             user: null,

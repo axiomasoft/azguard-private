@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace AzGuard\Scopes\Query;
 
 use Closure;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /** @extends Builder<Model> */
 final class PredicateBuilder extends Builder
@@ -52,6 +54,10 @@ final class PredicateBuilder extends Builder
         return $configuration;
     }
 
+    /**
+     * @param  array<int|string, mixed>|(Closure(static|QueryBuilder): mixed)|Expression|string  $column
+     * @param  string  $boolean
+     */
     public function where($column, $operator = null, $value = null, $boolean = 'and'): static
     {
         if ($column instanceof Closure && $operator === null) {
@@ -66,7 +72,8 @@ final class PredicateBuilder extends Builder
             return $this;
         }
 
-        return parent::where(...func_get_args());
+        // Two arguments mean "equals": the query builder tells them from an explicit null operator by their count.
+        return func_num_args() === 2 ? parent::where($column, $operator) : parent::where($column, $operator, $value, $boolean);
     }
 
     public function has($relation, $operator = '>=', $count = 1, $boolean = 'and', ?Closure $callback = null): static

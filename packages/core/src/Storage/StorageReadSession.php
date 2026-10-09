@@ -82,10 +82,10 @@ final class StorageReadSession
     /** Stable route namespace; credentials are never retained in a cache entry. */
     public function authorityIdentity(): string
     {
-        $connection = $this->storage->connection();
+        $config = $this->storage->connection()->getConfig();
 
         $identity = [$this->storage->id(), $this->storage->connectionName(), $this->storage->prefix(),
-            $this->storage->hostKeys(), $this->reads->value, json_encode(array_intersect_key($connection->getConfig(),
+            $this->storage->hostKeys(), $this->reads->value, json_encode(array_intersect_key(is_array($config) ? $config : [],
                 array_flip(['driver', 'database', 'host', 'port', 'unix_socket', 'read', 'write'])), JSON_THROW_ON_ERROR)];
 
         if ($this->baselineIdentity !== null) {

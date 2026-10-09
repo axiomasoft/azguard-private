@@ -24,6 +24,8 @@ use UnitEnum;
  * and `azguard-roles.view` in the guard panel.
  *
  * @api
+ *
+ * @phpstan-type Row array{key: string, label: string, class: string, grantable: bool, automatic: bool, super_admin: bool, scope_required: bool, contexts: list<string>, filters: list<string>, permissions: list<array{name: string, authority: ?string, grantable: bool}>}
  */
 final class RoleResource extends Resource
 {
@@ -53,7 +55,7 @@ final class RoleResource extends Resource
      * A role as a row of the catalogue; the permissions carry the authority of the panel schema when it has them.
      *
      * @param  array<string, PermissionSchema>  $permissions  by local name
-     * @return array{key: string, label: string, class: string, grantable: bool, automatic: bool, super_admin: bool, scope_required: bool, contexts: list<string>, filters: list<string>, permissions: list<array{name: string, authority: ?string, grantable: bool}>} the authority is `grants`, `policy` or `pattern`
+     * @return Row the authority is `grants`, `policy` or `pattern`
      */
     public static function row(RoleSchema $role, array $permissions = []): array
     {

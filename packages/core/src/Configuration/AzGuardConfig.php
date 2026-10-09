@@ -488,7 +488,15 @@ final readonly class AzGuardConfig
                 );
             }
 
-            $parsed[$name] = $parameters;
+            $parsed[$name] = [];
+            foreach ($parameters as $parameter => $value) {
+                if (! is_string($parameter)) {
+                    throw new InvalidConfigurationException(
+                        'azguard.sources.'.$name.' must be keyed by parameter name, got '.get_debug_type($parameter).'.',
+                    );
+                }
+                $parsed[$name][$parameter] = $value;
+            }
         }
 
         return $parsed;

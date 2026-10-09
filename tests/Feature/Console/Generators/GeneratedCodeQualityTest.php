@@ -55,7 +55,7 @@ it('gives code PHPStan accepts at the level of the project', function (): void {
     $project = dirname(__DIR__, 4);
     file_put_contents($this->generated->path('phpstan.neon'), "includes:\n  - ".$project."/vendor/larastan/larastan/extension.neon\n\nparameters:\n  paths:\n    - "
         .$this->generated->path('app')."\n    - ".$this->generated->path('database')."\n  scanDirectories:\n    - ".$this->generated->path('app')
-        ."\n  level: 8\n  checkModelProperties: true\n  checkPhpDocMissingReturn: true\n  tmpDir: ".$this->generated->path('phpstan-cache')."\n");
+        ."\n  level: 9\n  checkModelProperties: true\n  checkPhpDocMissingReturn: true\n  tmpDir: ".$this->generated->path('phpstan-cache')."\n");
 
     [$exit, $output] = runTool(PHP_BINARY.' vendor/bin/phpstan analyse --memory-limit=1G --no-progress -c '.escapeshellarg($this->generated->path('phpstan.neon')));
 
