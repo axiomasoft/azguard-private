@@ -138,6 +138,10 @@ final class Stand
     public function database(): array
     {
         $connection = DB::connection();
+
+        if ($connection->getRawPdo() === null) {
+            $connection->reconnect();
+        }
         $pdo = $connection->getPdo();
         $version = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
