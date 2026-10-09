@@ -6,6 +6,7 @@ namespace AzGuard\Filament;
 
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Filament\Authorization\ExplicitAuthorization;
 use AzGuard\Filament\Authorization\FilamentContext;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Authorization\FilamentKeys;
@@ -23,6 +24,7 @@ use AzGuard\Filament\Resources\RoleResource;
 use AzGuard\Filament\Sources\FilamentSource;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Panels\Panel;
+use Filament\Actions\Action;
 use Filament\Actions\AssociateAction;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkAction;
@@ -33,6 +35,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Contracts\Plugin;
 use Filament\Facades\Filament;
 use Filament\Panel as FilamentPanel;
+use Filament\Tables\Columns\Column;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Builder;
@@ -495,7 +498,9 @@ final class AzGuardPlugin implements Plugin
 
     /**
      * Inside a Filament panel with the plugin, a bulk action that deletes, force-deletes or restores decides every
-     * selected record, and the records offered to attach or associate are the ones the user may view.
+     * selected record, and the records offered to attach or associate are the ones the user may view. A panel that
+     * enforces also refuses the action of the application that says nothing about who may run it, and disables an inline
+     * editable column until the user may update its record.
      */
     private static function authorizeRecordsOfActions(): void
     {
@@ -507,7 +512,13 @@ final class AzGuardPlugin implements Plugin
                 default => null,
             };
 
-            if ($ability === null || FilamentContext::serving() === null) {
+            if ($ability === null) {
+                ExplicitAuthorization::bulkAction($action);
+
+                return;
+            }
+
+            if (FilamentContext::serving() === null) {
                 return;
             }
             $action->fetchSelectedRecords()->authorizeIndividualRecords(static function (Model $record) use ($action, $ability): Response {
@@ -522,6 +533,9 @@ final class AzGuardPlugin implements Plugin
                 return $filament === null ? Response::deny() : $filament($record);
             });
         });
+
+        Action::configureUsing(ExplicitAuthorization::action(...));
+        Column::configureUsing(ExplicitAuthorization::column(...));
 
         $visible = static function (AttachAction|AssociateAction $action): void {
             if (FilamentContext::serving()?->enforced() !== true) {

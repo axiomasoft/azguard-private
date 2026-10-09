@@ -17,6 +17,7 @@ use AzGuard\Tests\Fixtures\Filament\Models\Product;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
 use AzGuard\Tests\Fixtures\Filament\Pages\ReportsPage;
+use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
 use AzGuard\Tests\Fixtures\Filament\Widgets\OrderCountWidget;
 use Filament\Facades\Filament;
 
@@ -30,6 +31,7 @@ final class GateWorld
     /** Sets the fixture up; the test boots the application with it. */
     public static function prepare(): void
     {
+        OrderResource::$extras = ['columns' => [], 'recordActions' => [], 'toolbarActions' => []];
         FilamentFixture::$adminRoles = [GrantedMemberRole::class];
         FilamentFixture::$guardPermissions = [OrderPermission::class, ArchivedOrderPermission::class];
         FilamentFixture::$guardPolicies = [OrderRulesPolicy::class];
