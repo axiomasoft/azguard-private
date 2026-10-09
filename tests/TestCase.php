@@ -6,6 +6,7 @@ namespace AzGuard\Tests;
 
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use Closure;
 use Illuminate\Database\Connection;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RuntimeException;
@@ -33,11 +34,27 @@ class TestCase extends Orchestra
      */
     protected function tearDown(): void
     {
-        // Taken before and closed after the parent: its callbacks (migration rollbacks) still use the connections, and
-        // closing an SQLite :memory: connection early would drop the database they read.
+        $this->closingConnections(fn () => parent::tearDown());
+    }
+
+    /** A reloaded application (`bootFilament()`) leaves the connections of the previous one behind the same way. */
+    protected function reloadApplication(): void
+    {
+        $this->closingConnections(fn () => parent::reloadApplication());
+    }
+
+    /**
+     * Runs the teardown of the current application, then closes its connections. They are taken before and closed
+     * after: its callbacks (migration rollbacks) still use them, and closing an SQLite :memory: connection early would
+     * drop the database they read.
+     *
+     * @param  Closure(): void  $teardown
+     */
+    private function closingConnections(Closure $teardown): void
+    {
         $open = isset($this->app) ? $this->app['db']->getConnections() : [];
 
-        parent::tearDown();
+        $teardown();
 
         foreach ($open as $connection) {
             if ($connection instanceof Connection) {
