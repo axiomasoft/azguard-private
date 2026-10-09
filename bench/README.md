@@ -139,8 +139,8 @@ every driver (it was 14-22% under closed-loop writers). With a cache, writes to 
 entries (`disjoint`: 100% hits). The hot subject is written all the time, so its misses are correct. The earlier
 97% / 63% (*) counted hits that ignored the write. SQL per check: 5 on a miss, 2 on a hit (the observed-state
 statement included). The box was under heavy shared load during the after run (load average 8-20), so the latency
-columns are only indicative. Snapshot duration and panel lock wait/hold are not instrumented separately. Write
-latency (p50 3-17 ms, p95 4-50 ms; mysql hot p95 86 ms) bounds lock wait plus hold.
+columns are only indicative. The final run below measures the snapshot span and the panel lock wait/hold
+directly and replaces these latencies.
 
 | driver | stage | consistency_error before → after | hit ratio before → after | check p95 ms before → after |
 |---|---|---|---|---|
@@ -160,6 +160,53 @@ latency (p50 3-17 ms, p95 4-50 ms; mysql hot p95 86 ms) bounds lock wait plus ho
 | mysql | disjoint | 42 (14%) → 0 | 0% → 0% | 22.15 → 25.89 |
 | mysql | paced200 | 49 (16%) → 0 | 0% → 0% | 20.73 → 10.57 |
 | mariadb | all four stages | — → 0 | — | 9.9–18.7 |
+
+## Final results (2026-10-09, mini tier, low load)
+
+Files `results/2026-10-09-final-*`, commit `c04529e8`, one host (8 vCPU Xeon, PHP 8.4.26, OPcache on), nothing else
+running (load average 1.4-3.7). PostgreSQL 16, MySQL 8.4, MariaDB and Redis 7 from `docker-compose.yml`. Profiles
+`checks-concurrent`, `cache-cold-warm`, `decision-set`, `large-sets` and `consistency-load`. Unlike the runs above,
+these latencies are clean.
+
+| driver | check p50 / p95 ms (4 workers) | checks/s (4 workers) | warm request / warm store p50 ms | DecisionSet of 500 subjects, p50 ms (SQL) | its snapshot p50 ms |
+|---|---|---|---|---|---|
+| sqlite | 4.48 / 5.91 | 828 | 0.58 / 5.19 | 1708 (1506) | 167 |
+| sqlite+array | 4.44 / 6.10 | 879 | 0.53 / 3.29 | 1434 (506) | 1.81 |
+| pgsql | 8.04 / 9.99 | 482 | 0.64 / 8.30 | 2708 (1506) | 813 |
+| pgsql+redis | 5.27 / 6.89 | 697 | 0.61 / 5.05 | 1708 (506) | 3.95 |
+| mysql | 6.97 / 9.22 | 545 | 0.67 / 7.94 | 2209 (1506) | 477 |
+| mariadb | 8.09 / 13.34 | 444 | 0.71 / 8.17 | 2263 (1506) | 511 |
+
+Under concurrent writes (`consistency-load`, 4 workers, stages `disjoint`, `hot`, `paced50`, `paced200`; ranges are
+over the stages). `probe.lock_wait` is the wait for the panel lock of a write, `probe.lock_hold` the time a write
+holds it, `probe.snapshot` the span of the read snapshot of one check (a cache hit opens none).
+
+| driver | consistency_error | final-state check | cache hits disjoint / hot | check p95 ms disjoint / hot | lock wait p50 / p95 / p99 µs | lock hold p50 / p95 ms | snapshot p50 / p95 µs |
+|---|---|---|---|---|---|---|---|
+| sqlite | 0 | pass | 0% / 0% | 6.39 / 6.60 | 30–100 / 50–130 / 70–150 | 2.26–3.09 / 3.32–4.11 | 442–465 / 631–698 |
+| sqlite+array | 0 | pass | 100% / 43% | 4.63 / 6.83 | 30–100 / 50–130 / 70–140 | 2.32–3.16 / 3.28–4.26 | 459–481 / 665–698 |
+| pgsql | 0 | pass | 0% / 0% | 10.59 / 13.11 | 380–550 / 640–950 / 860–1860 | 6.86–7.72 / 9.36–10.24 | 2250–2326 / 2832–4055 |
+| pgsql+redis | 0 | pass | 100% / 20% | 6.81 / 13.25 | 400–630 / 640–1050 / 810–1590 | 6.94–8.12 / 8.99–11.83 | 2414–2596 / 3008–3721 |
+| mysql | 0 | pass | 0% / 0% | 9.09 / 9.31 | 310–550 / 480–840 / 730–980 | 5.70–6.86 / 7.41–9.01 | 1561–1594 / 2125–2234 |
+| mariadb | 0 | pass | 0% / 0% | 9.01 / 10.44 | 310–620 / 470–970 / 590–1090 | 5.34–6.48 / 6.80–8.43 | 1622–1695 / 2124–2482 |
+
+- `consistency_error` is 0 in every stage on every driver, and every written subject ends in the state of its last
+  write.
+- The panel lock is short: writers wait 30-100 µs on SQLite and 0.3-0.6 ms on the servers (p99 under 2 ms) and hold
+  it 2-8 ms, the length of one grant transaction. A check's snapshot stays open 0.4-0.5 ms on SQLite and 1.6-2.6 ms
+  on the servers.
+- With a cache, writes to other subjects keep 100% hits (`disjoint`); the subject written all the time (`hot`) misses
+  correctly.
+- A `DecisionSet` reads its subjects inside one snapshot, so that snapshot spans the whole set: 167 ms on SQLite and
+  0.5-0.8 s on the servers for 500 subjects without a cache, 2-4 ms with one. The set issues 3 SQL per subject
+  (1 506 for 500) because subject revisions are read one statement per subject; batching them is the open
+  proposal. The 5 001-subject set is refused by `decision_sets.max_subjects`.
+- `abilities()` of 50 for the heavy subject: 102-131 ms p50 on every driver (2-2.6 ms per permission, was about 4).
+
+Micro suite (`tests/Benchmarks/Suite.php`, SQLite, OPcache off, `results/2026-10-09-final-suite-sqlite.md`): a check
+in the same request 595 µs (1 role) / 2.03 ms (20 roles + 200 direct grants); in a new request without a cache store
+4.82 ms / 21.55 ms with 5 SQL, with an array store 3.58 ms / 6.03 ms with 2 SQL; `visibleTo()` first page of 10 000
+posts 6.93 ms; `grantRole()` 3.19 ms.
 
 ## CI
 
