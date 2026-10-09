@@ -15,6 +15,14 @@ php artisan azguard:doctor --production    # also checks the catalog cache and t
 - **CI.** Run `php artisan azguard:doctor` in CI. It exits with `1` on errors and checks the configuration,
   panels, storages, sources, plugins and morph aliases.
 
+## SQLite
+
+SQLite storages are supported. A decision reads its grants in one `BEGIN DEFERRED` read transaction. Without WAL,
+that read and a write block each other. `azguard:doctor` warns (`storage.sqlite`) when a file database is not in WAL
+mode or has `busy_timeout = 0`. AzGuard never changes the journal mode itself, because WAL changes the database
+files. Turn it on in the connection config (`'journal_mode' => 'wal'`, `'busy_timeout' => 5000`) when the database
+is used concurrently.
+
 ## Scheduled maintenance
 
 | Task | How |
