@@ -24,6 +24,7 @@ use AzGuard\Tests\Fixtures\Schema\SchemaAssertions;
 use AzGuard\Tests\Fixtures\Storage\Department;
 use AzGuard\Tests\Fixtures\Storage\Weekday;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 function schemaPermission(string $local, ?string $group, PermissionAuthority $authority = PermissionAuthority::Grants): PermissionSchema
 {
@@ -44,10 +45,12 @@ it('V72 describes a field with scalars and class names only, whatever rule objec
         ->rules(['max:200', 5, Rule::in(['a', 'b']), Rule::enum(Weekday::class), static fn (): bool => $secret !== '', new stdClass])
         ->withContribution('plugin:acme/reasons');
     $schema = FieldSchema::of($field);
+    // Laravel 12+ renders the enum rule as `in:...`; Laravel 11's Enum rule is not Stringable, so only its class is kept.
+    $enumRule = Rule::enum(Weekday::class) instanceof Stringable ? 'in:"1","5"' : Enum::class;
 
     expect($schema->toArray())->toBe([
         'name' => 'reason', 'label' => 'Причина', 'type' => 'string',
-        'rules' => ['required', 'array', 'max:200', '5', 'in:"a","b"', 'in:"1","5"', Closure::class, stdClass::class],
+        'rules' => ['required', 'array', 'max:200', '5', 'in:"a","b"', $enumRule, Closure::class, stdClass::class],
         'options' => null, 'in_meta' => true, 'contributed_by' => 'plugin:acme/reasons',
     ])->and(SchemaAssertions::nonScalars($schema->toArray()))->toBe([])
         ->and(json_encode($schema))->not->toContain($secret);
