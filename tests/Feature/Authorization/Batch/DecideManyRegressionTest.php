@@ -84,7 +84,7 @@ it('permits a policy to check another permission scheduled later in the same bat
     Log::shouldNotHaveReceived('warning');
 });
 
-it('fails conflicting stable subject groups after three batch attempts and observes only final results', function (): void {
+it('runs a writing hook once and fails subject groups read at different states without evaluating again', function (): void {
     app(StorageSchema::class)->create('default');
     User::query()->insert(['id' => 2]);
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission'), DatabaseWorld::row('permission', overrides: ['subject_id' => '2'])]);
@@ -105,7 +105,7 @@ it('fails conflicting stable subject groups after three batch attempts and obser
     $one = DatabaseWorld::request();
     $two = AccessRequest::for(SubjectRef::of('user', 2), $one->permission());
     $set = $engine->decideMany([$one, $two, DatabaseWorld::request(DatabasePermission::Policy)]);
-    expect($touches)->toBe(3)->and($set)->toHaveCount(3)->and($observed)->toHaveCount(3)
+    expect($touches)->toBe(1)->and($set)->toHaveCount(3)->and($observed)->toHaveCount(3)
         ->and($set->get(0)->reason)->toBe(DecisionReason::ConsistencyError)->and($set->get(1)->reason)->toBe(DecisionReason::ConsistencyError)
         ->and($set->get(2)->allowed())->toBeTrue()->and($set->get(2)->reason)->toBe(DecisionReason::Policy);
 

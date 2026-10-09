@@ -166,12 +166,14 @@ it('does not consume a fence source with no assignment capabilities', function (
     expect($decision->reason)->toBe(DecisionReason::NotGranted)->and($source->stateCalls)->toBe(0);
 });
 
-it('fences and retries all capabilities of an external source as a whole set', function (): void {
+it('fences and retries only the reads of an external source, as a whole set', function (): void {
     DatabaseWorld::seedSubject();
     $source = new FencedContributions;
     [$panel] = DatabaseWorld::compile($source);
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
     expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::NotGranted)
-        ->and($source->grantCalls)->toBe(2)->and($source->roleCalls)->toBe(2)->and($source->stateCalls)->toBe(4);
+        ->and($source->grantCalls)->toBe(2)->and($source->roleCalls)->toBe(2)
+        // The read that keys the cache lookup starts the first fence; the retry reads the state before and after.
+        ->and($source->stateCalls)->toBe(4);
 });

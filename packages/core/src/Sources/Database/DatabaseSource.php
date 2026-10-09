@@ -63,6 +63,7 @@ use AzGuard\Storage\StorageRegistry;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Str;
 use ReflectionClass;
@@ -464,16 +465,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $this->bindPanel($panel->id());
         $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
         $fingerprint = app(PanelRegistry::class)->fingerprint($panel->id());
-        for ($attempt = 0; $attempt < 3; $attempt++) {
-            $before = $this->token($session, $panel, $fingerprint);
-            $definitions = $this->readPermissions($session, $panel, $tenant);
+        [, $rows] = $this->consistently($session, $panel, $fingerprint, fn (): array => $this->permissionRows($session, $panel, $tenant));
 
-            if ($before->equals($this->token($session, $panel, $fingerprint))) {
-                return $definitions;
-            }
-        }
-
-        throw new ConsistencyException('DatabaseSource definitions changed during all three read attempts.');
+        return $this->definitions($session, $panel, $tenant, $rows);
     }
 
     /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
@@ -498,10 +492,50 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         if (! $this->dynamic) {
             return [];
         }
+
+        return $this->definitions($session, $panel, $tenant, $this->permissionRows($session, $panel, $tenant));
+    }
+
+    /**
+     * @internal The dynamic catalog of the tenant at one state of the panel: raw rows read consistently, definitions
+     * built after the read.
+     *
+     * @return array{StateToken, list<PermissionDefinition>}
+     */
+    public function materializePermissions(StorageReadSession $session, EvaluationContext $context, TenantRef $tenant, ?StateToken $before = null): array
+    {
+        if (! $this->dynamic) {
+            return [$this->readState($session, $context), []];
+        }
+        [$state, $rows] = $this->readConsistently($session, $context, fn (): array => $this->permissionRows($session, $context->panel(), $tenant), $before);
+
+        return [$state, $this->definitions($session, $context->panel(), $tenant, $rows)];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function permissionRows(StorageReadSession $session, Panel $panel, TenantRef $tenant): array
+    {
+        $rows = [];
+        foreach ($session->table('permissions')->where('panel', $panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
+            $rows[] = (array) $row;
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @return list<PermissionDefinition>
+     */
+    private function definitions(StorageReadSession $session, Panel $panel, TenantRef $tenant, array $rows): array
+    {
+        if ($rows === []) {
+            return [];
+        }
         $model = $session->model('permission', $this->selectedModels['permission'] ?? null);
         $definitions = [];
-        foreach ($session->table('permissions')->where('panel', $panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
-            $permission = $model->newFromBuilder((array) $row);
+        foreach ($rows as $row) {
+            $permission = $model->newFromBuilder($row);
 
             if (! $permission instanceof Permission || $permission->panel() !== $panel->id() || ! $permission->tenantRef()->equals($tenant)) {
                 throw new InvalidSourceContributionException('Dynamic permission identity differs from its query.');
@@ -856,7 +890,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             return [];
         }
 
-        return $this->fenced($context, fn (StorageReadSession $session): array => $this->read($session, 'permission_grant', $subject, $scopes, $context));
+        return $this->readContributions($subject, $scopes, $context)['grants'];
     }
 
     /** @param list<AccessScope> $scopes
@@ -868,7 +902,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             return [];
         }
 
-        return $this->fenced($context, fn (StorageReadSession $session): array => $this->read($session, 'role_grant', $subject, $scopes, $context));
+        return $this->readContributions($subject, $scopes, $context)['roles'];
     }
 
     /** @internal one whole-set fence for both capabilities.
@@ -877,22 +911,45 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
     {
-        return $this->fenced($context, fn (StorageReadSession $session, StateToken $before): array => [
-            'state' => $before,
-            ...$this->readAssignments($session, $subject, $scopes, $context),
-        ]);
+        $this->bindPanel($context->panel()->id());
+        [$state, $items] = $this->materializeAssignments($this->resolvedStorage()->readSession($context->panel()->settings()->reads()), $context, $subject, $scopes);
+
+        return ['state' => $state, ...$items];
     }
 
-    /** @internal Unfenced capabilities on the engine's pinned attempt handle.
+    /**
+     * @internal Both capabilities at one state of the panel: raw rows read consistently, contributions hydrated once
+     * after the read.
+     *
      * @param  list<AccessScope>  $scopes
-     * @return array{grants: list<Grant>, roles: list<RoleContribution>}
+     * @return array{StateToken, array{grants: list<Grant>, roles: list<RoleContribution>}}
      */
-    public function readAssignments(StorageReadSession $session, SubjectRef $subject, array $scopes, EvaluationContext $context): array
+    public function materializeAssignments(StorageReadSession $session, EvaluationContext $context, SubjectRef $subject, array $scopes, ?StateToken $before = null): array
     {
-        return [
-            'grants' => $this->onlyRoles || $scopes === [] ? [] : $this->read($session, 'permission_grant', $subject, $scopes, $context),
-            'roles' => $scopes === [] ? [] : $this->read($session, 'role_grant', $subject, $scopes, $context),
-        ];
+        if (! $this->onlyRoles) {
+            $this->hydrator($session, 'permission_grant', $context);
+        }
+        $this->hydrator($session, 'role_grant', $context);
+        // Scopes are read in chunks of 100 pairs, every chunk inside the same consistent read.
+        $chunks = array_chunk($scopes, 100);
+        [$state, $rows] = $this->readConsistently($session, $context, function () use ($session, $subject, $context, $chunks): array {
+            $rows = ['permission_grant' => [], 'role_grant' => []];
+            foreach (['permission_grant', 'role_grant'] as $kind) {
+                if ($kind === 'permission_grant' && $this->onlyRoles) {
+                    continue;
+                }
+                foreach ($chunks as $chunk) {
+                    $rows[$kind] = [...$rows[$kind], ...$this->rows($session, $kind, $subject, $chunk, $context)];
+                }
+            }
+
+            return $rows;
+        }, $before);
+
+        return [$state, [
+            'grants' => $this->hydrate($session, 'permission_grant', $rows['permission_grant'], $subject, $context),
+            'roles' => $this->hydrate($session, 'role_grant', $rows['role_grant'], $subject, $context),
+        ]];
     }
 
     public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): AssignmentScopeSelection
@@ -903,24 +960,37 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             throw new InvalidSourceContributionException('Selection permission belongs to another panel.');
         }
 
-        return $this->fenced($context, fn (StorageReadSession $session): AssignmentScopeSelection => $this->readSelection($session, $subject, $key, $contextType, $context));
+        $this->bindPanel($context->panel()->id());
+
+        return $this->materializeSelection($this->resolvedStorage()->readSession($context->panel()->settings()->reads()), $subject, $key, $contextType, $context)[1];
     }
 
-    /** @internal Selection on the operation's pinned whole-source fence. */
-    public function readSelection(StorageReadSession $session, SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): AssignmentScopeSelection
+    /**
+     * @internal The selection at one state of the panel: raw witnesses read consistently, hydrated after the read.
+     *
+     * @return array{StateToken, AssignmentScopeSelection}
+     */
+    public function materializeSelection(StorageReadSession $session, SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context, ?StateToken $before = null): array
     {
         IdentityCodec::assertTypeAlias($contextType);
 
         if ($key->panel() !== $context->panel()->id()) {
             throw new InvalidSourceContributionException('Selection permission belongs to another panel.');
         }
+        [$state, $rows] = $this->readConsistently($session, $context, function () use ($session, $subject, $contextType, $context): array {
+            $roles = $this->rows($session, 'role_grant', $subject, [], $context, $contextType);
+            $grants = $this->onlyRoles ? [] : $this->rows($session, 'permission_grant', $subject, [], $context, $contextType);
 
-        return (function () use ($session, $subject, $contextType, $context): AssignmentScopeSelection {
-            $contributions = $this->read($session, 'role_grant', $subject, [], $context, $contextType);
-
-            if (! $this->onlyRoles) {
-                $contributions = [...$contributions, ...$this->read($session, 'permission_grant', $subject, [], $context, $contextType)];
+            if (count($roles) + count($grants) > 10000) {
+                throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
             }
+
+            return ['role_grant' => $roles, 'permission_grant' => $grants];
+        }, $before);
+
+        return [$state, (function () use ($session, $subject, $context, $rows): AssignmentScopeSelection {
+            $contributions = [...$this->hydrate($session, 'role_grant', $rows['role_grant'], $subject, $context),
+                ...$this->hydrate($session, 'permission_grant', $rows['permission_grant'], $subject, $context)];
 
             if (count($contributions) > 10000) {
                 throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
@@ -943,7 +1013,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             }
 
             return $everywhere ? AssignmentScopeSelection::everywhere($contributions) : AssignmentScopeSelection::in(array_values($refs), $contributions);
-        })();
+        })()];
     }
 
     /** @param array<mixed> $scopes
@@ -968,21 +1038,38 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return $this->selectedStorage instanceof Storage ? $this->selectedStorage : app(StorageRegistry::class)->get($this->selectedStorage);
     }
 
-    /** @template T
-     * @param  Closure(StorageReadSession, StateToken): T  $callback
-     * @return T
+    /**
+     * @internal Raw rows read at one state of the panel, with that state. `$rows` reads plain rows on the session and
+     * nothing else (no model, event or host code), so a repeat repeats source reads only. Up to three attempts, then
+     * ConsistencyException (audits/2026-10-09-consistency-design.md, steps 1-2).
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $rows
+     * @param  ?StateToken  $before  a state read on this session earlier, the start of the first attempt's fence
+     * @return array{StateToken, T}
      */
-    private function fenced(EvaluationContext $context, Closure $callback): mixed
+    public function readConsistently(StorageReadSession $session, EvaluationContext $context, Closure $rows, ?StateToken $before = null): array
     {
         $this->bindPanel($context->panel()->id());
-        $session = $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
-        for ($attempt = 0; $attempt < 3; $attempt++) {
-            $before = $this->token($session, $context->panel(), $context->state()->fingerprint);
-            $result = $callback($session, $before);
-            $after = $this->token($session, $context->panel(), $context->state()->fingerprint);
 
-            if ($before->equals($after)) {
-                return $result;
+        return $this->consistently($session, $context->panel(), $context->state()->fingerprint, $rows, $before);
+    }
+
+    /**
+     * @template T
+     *
+     * @param  Closure(): T  $rows
+     * @return array{StateToken, T}
+     */
+    private function consistently(StorageReadSession $session, Panel $panel, string $fingerprint, Closure $rows, ?StateToken $earlier = null): array
+    {
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $attempt === 0 && $earlier !== null ? $earlier : $this->token($session, $panel, $fingerprint);
+            $result = $rows();
+
+            if ($before->equals($this->token($session, $panel, $fingerprint))) {
+                return [$before, $result];
             }
         }
 
@@ -996,10 +1083,14 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0, $panel->settings()->cacheGeneration(), $fingerprint);
     }
 
-    /** @param list<AccessScope> $scopes
-     * @return ($kind is 'role_grant' ? list<RoleContribution> : list<Grant>)
+    /**
+     * Raw rows of one kind of assignment: plain arrays, no model, cast, event or host code. A consistent read repeats
+     * or snapshots only this part (audits/2026-10-09-consistency-design.md, step 1).
+     *
+     * @param  list<AccessScope>  $scopes
+     * @return list<array<string, mixed>>
      */
-    private function read(StorageReadSession $session, string $kind, SubjectRef $subject, array $scopes, EvaluationContext $context, ?string $contextType = null): array
+    private function rows(StorageReadSession $session, string $kind, SubjectRef $subject, array $scopes, EvaluationContext $context, ?string $contextType = null): array
     {
         $scopes = self::validatedScopes($scopes);
         $storage = $this->resolvedStorage();
@@ -1017,18 +1108,66 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
                 $query->whereNull('context_type')->orWhere('context_type', $contextType);
             });
         } else {
+            if ($scopes === []) {
+                return [];
+            }
             $query->where(function (Builder $query) use ($scopes): void {
                 foreach ($scopes as $scope) {
                     $query->orWhere(fn (Builder $pair): Builder => $pair->where('tenant_key', $scope->tenant->key())->where('context_key', $scope->context->key()));
                 }
             });
         }
+        $rows = [];
+
+        if ($contextType === null) {
+            foreach ($query->get() as $row) {
+                $rows[] = (array) $row;
+            }
+
+            return $rows;
+        }
+        // Visibility enumeration has an explicit budget; every raw witness survives ref deduplication.
+        $query->orderBy('id')->chunkById(500, function ($chunk) use (&$rows): void {
+            foreach ($chunk as $row) {
+                if (count($rows) >= 10000) {
+                    throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
+                }
+                $rows[] = (array) $row;
+            }
+        });
+
+        return $rows;
+    }
+
+    /**
+     * The model and the decision fields of a kind, resolved (and validated) before any row is read.
+     *
+     * @return array{Model, GrantFields}
+     */
+    private function hydrator(StorageReadSession $session, string $kind, EvaluationContext $context): array
+    {
         $model = $session->model($kind, $this->selectedModels[$kind] ?? null);
         $target = $kind === 'role_grant' ? FieldTarget::RoleGrant : FieldTarget::PermissionGrant;
-        $fields = GrantFields::for($session, $target, $model::class, $context->panel()->fields($target), $this->fields[$kind]);
+
+        return [$model, GrantFields::for($session, $target, $model::class, $context->panel()->fields($target), $this->fields[$kind])];
+    }
+
+    /**
+     * Contributions of raw rows, after the consistent read: models, casts and `retrieved` listeners run here once and
+     * never cause a re-read; an exception here is a source error, not a consistency error.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @return ($kind is 'role_grant' ? list<RoleContribution> : list<Grant>)
+     */
+    private function hydrate(StorageReadSession $session, string $kind, array $rows, SubjectRef $subject, EvaluationContext $context): array
+    {
+        if ($rows === []) {
+            return [];
+        }
+        [$model, $fields] = $this->hydrator($session, $kind, $context);
         $items = [];
-        $consume = function (object $row) use ($model, $subject, $context, $fields, &$items): void {
-            $assignment = $model->newFromBuilder((array) $row);
+        foreach ($rows as $row) {
+            $assignment = $model->newFromBuilder($row);
 
             if (! $assignment instanceof RoleGrant && ! $assignment instanceof PermissionGrant) {
                 throw new InvalidSourceContributionException('Invalid assignment model.');
@@ -1041,24 +1180,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
             $items[] = $assignment instanceof RoleGrant
                 ? RoleContribution::of($assignment->roleKey(), $scope, $this->id(), $assignment->origin(), $assignment->expiresAt(), $fields->decisionValues($assignment))
                 : Grant::of(PermissionPattern::of($assignment->panel(), $assignment->permissionKey()->local()), $this->id(), $scope, origin: $assignment->origin(), expiresAt: $assignment->expiresAt(), fields: $fields->decisionValues($assignment));
-        };
-
-        if ($contextType === null) {
-            foreach ($query->get() as $row) {
-                $consume($row);
-            }
-
-            return $items;
         }
-        // Visibility enumeration has an explicit budget; every raw witness survives ref deduplication.
-        $query->orderBy('id')->chunkById(500, function ($rows) use ($consume, &$items): void {
-            foreach ($rows as $row) {
-                if (count($items) >= 10000) {
-                    throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
-                }
-                $consume($row);
-            }
-        });
 
         return $items;
     }

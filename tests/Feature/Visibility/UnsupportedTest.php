@@ -106,7 +106,7 @@ it('rejects an unsupported, throwing or malformed source after another source al
     expect($query->toSql())->toBe($sql);
 })->with(['null', 'throws', 'malformed']);
 
-it('retries the entire consumed fence at the same now and fails closed after all changes', function (): void {
+it('retries only the selection read of a changing source and fails closed after all attempts', function (): void {
     $source = new VisibilityChangingSource(direct: [W::grant(1)]);
     [$visibility, $panel] = W::compile($source);
     expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))->toThrow(VisibilityNotSupportedException::class, 'consistency_error');

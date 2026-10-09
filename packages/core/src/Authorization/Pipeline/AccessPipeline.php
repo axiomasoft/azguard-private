@@ -10,7 +10,6 @@ use AzGuard\Authorization\Pipeline\Stages\AuthorityStage;
 use AzGuard\Authorization\Pipeline\Stages\BeforeStage;
 use AzGuard\Authorization\Pipeline\Stages\BoundaryStage;
 use AzGuard\Authorization\Pipeline\Stages\RestrictionStage;
-use AzGuard\Authorization\ReadAttemptChanged;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\Restriction;
@@ -90,12 +89,11 @@ final readonly class AccessPipeline
         if ($confirm && $frame->readAttempt !== null) {
             try {
                 $frame = $frame->readAttempt->confirm($frame);
+                // A read that stayed inconsistent consumed no state.
+                $frame = $decision->reason === DecisionReason::ConsistencyError ? $frame->readAttempt?->discardedFrame($frame) ?? $frame : $frame;
                 $decision = $decision->allowed()
                     ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
                     : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
-            } catch (ReadAttemptChanged $changed) {
-                // The root retries every stage; no observer sees a discarded decision.
-                throw $changed;
             } catch (Throwable $error) {
                 $confirmed = false;
                 $trace->error('state', 'source_error', 'dynamic_sources', $error);
@@ -106,14 +104,6 @@ final readonly class AccessPipeline
             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
         $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(get_object_vars(...), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
-        $this->after->observe($request, $frame, $decision, $trace);
-
-        return $decision;
-    }
-
-    public function inconsistent(AccessRequest $request, EvaluationFrame $frame, Trace $trace): Decision
-    {
-        $decision = Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
         $this->after->observe($request, $frame, $decision, $trace);
 
         return $decision;
