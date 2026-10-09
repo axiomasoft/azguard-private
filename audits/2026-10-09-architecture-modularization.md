@@ -128,87 +128,93 @@
 Вывод по разделу: архитектура не «плохая», она **плотная**. Много правильных механизмов, но их границы видны
 только по коду, а не по пакетам, документации и SPI.
 
-## 2. Предлагаемое деление: ядро и модули
+## 2. Как делить: критерии и решение по каждой области
 
-### 2.1. Принципы
+### 2.1. Три категории и критерии
 
-1. **Делим по направлению зависимостей, а не по маркетинговым фичам.** Модуль зависит от ядра через контракты и
-   значения `Kernel`; ядро о модуле не знает (кроме точки расширения).
-2. **Один конвейер решения.** Модуль добавляет стадию, источник или хук; второго пути `allow/deny` не появляется.
-3. **Корректность не опциональна.** Снимок чтения, fail closed, изоляция тенанта, сроки грантов — свойства ядра,
-   даже если их ручки спрятаны в «продвинутый» раздел.
-4. **Выключенный модуль ничего не стоит**: нет таблиц, запросов, конфигурации и понятий в документации.
-5. **Сначала граница, потом пакет.** Пакет выделяем только когда граница закреплена арх-тестом и прожила минорную
-   версию.
+Граница проводится по **ответственности**: за какой вопрос отвечает код, кто им пользуется, по каким причинам он
+меняется и куда направлены его зависимости. Размер, удобство и монетизация — не критерии.
 
-### 2.2. Минимальное ядро: что входит
-
-| В ядре | Почему |
-|:--|:--|
-| `Kernel` целиком (идентичности, `Decision`, `PermissionSet`, `StateToken`) | язык всех модулей, уже без фреймворка |
-| Конвейер решения со всеми стадиями (стадии без хуков — пустые) | один путь решения |
-| Панели, но с **неявной панелью по умолчанию** (см. 4.1) | многопанельность — расширенное использование, не первый шаг |
-| Каталог из кода: enum прав, классы ролей, атрибуты `RequiresGrant`/`PolicyOnly`/`GrantedToAll`, wildcard | суть пакета |
-| Политики-вето и мост Gate (`@can`, `can()`, middleware, `DecisionResponder`) | интеграция с Laravel |
-| `DatabaseSource` + `Storage` со **снимком чтения и блокировкой панели** | корректность записи и чтения |
-| Сроки грантов и `azguard:grants:prune` | безопасность (отзыв по времени) |
-| Супер-админ | 38 строк, нужен почти всем |
-| Тенант как **обязательное измерение идентичности** (без резолверов и областей) | изоляция — безопасность; см. 2.4 |
-| Кэш наборов прав на запрос + опциональный Laravel store | производительность без новых понятий |
-| События после commit | точка расширения для аудита и интеграций |
-| `doctor` (базовые проверки), `explain`, `install`, `grant/revoke/list` | эксплуатация и обучение |
-| `AzGuardFake`, `actingAsWithRoles()` | тесты приложения |
-
-**Что должен выучить новичок (цель):** enum прав, класс роли, трейт `HasAzGuard` + morph alias, `grantRole()` /
-`revokeRole()`, `hasPermission()` / `@can` / middleware, политика-вето, `azguard:doctor` и `azguard:explain`.
-Это 7 понятий вместо нынешних «панели, источники, контексты, решения, токены…» в первом же гайде
-(`docs/getting-started/quick-start.md` начинается с «1. The panel»).
-
-**Целевая поверхность API ядра** (оценка): ~60–80 публичных типов против 246 сейчас. Основной выигрыш не в
-удалении кода, а в переносе в модули/`@internal` того, что новичку не нужно видеть: 51 исключение (свести к
-иерархии по кодам), справочники и схемы UI, контракты источников и областей, ручки согласованности.
-
-### 2.3. Модули
-
-Оценка трудозатрат — для вынесения в отдельный пакет с сохранением BC в 1.x (см. раздел 5), в рабочих днях.
-
-| Модуль (пакет) | Назначение | Что берёт из ядра | Нужно в ядре (точки расширения) | Трудозатраты | Риск |
-|:--|:--|:--|:--|:--|:--|
-| **`azguard-audit`** | журнал изменений, ретеншн, `azguard:audit:prune`; позже outbox | `Plugin`, события изменений, `ChangeJournal` | уже есть (`AuditPlugin`, `azguard/audit`) | 1–2 | низкий: уже плагин |
-| **`azguard-filament`** | UI (уже отдельный пакет) + справочники `Directories/` | манифест API, `Schema` (описания) | заменить `directories()` в `Contracts/PanelAccess.php` | 3–5 | средний: `Contracts/PanelAccess.php` и `Concerns/ScopedPanelAccess.php` ссылаются на `Directories` |
-| **`azguard-tenancy`** (резолверы, области, наследование, членство) | мультитенант и иерархии областей | `AccessScope`, `TenantRef` из `Kernel` | стадия Boundary/Prepare с SPI резолверов; причины `context_*` из ядра в модуль | 10–15 | **высокий**: 141 файл, 6 причин решения, `visibleTo` и батч знают про области |
-| **`azguard-sources`** (Relation, внешние источники с `FencesReads`, Gate-источник) | права из существующих таблиц, LDAP, внешние системы | контракты `Provides*`, `FencesReads`, `FiltersQueries` | контракты уже в ядре; убрать `Sources → Diagnostics` | 3–5 | средний: `visibleTo` использует `Relation*` |
-| **`azguard-devtools`** (require-dev) | `make:*`, скаффолдинг, stubs, контрактные сьюты | всё публичное | ничего | 2–3 | низкий; но `AzGuard::fake()` должен остаться в ядре |
-| **`azguard-kernel`** (pure PHP) | значения без Laravel | — | уже изолирован | 2–3 | низкий технически, но мало пользы (см. 4.4) |
-
-Что **не** выносится: согласованность (снимок, ревизии, эпоха), fail closed, сроки, `visibleTo` для
-`DatabaseSource`, батч. Это не «навороты», а то, на чём держится правильность. Прятать надо **ручки**
-(`Reads`, `StateRefresh`, `cache(generation:)`) и **объяснения** (`docs/advanced/consistency.md`), а не механизм.
-
-### 2.4. Тенанты: отдельный разговор
-
-Тенанты — главный кандидат «на вынос» по ощущению и самый дорогой по факту. Варианты:
-
-- **A. Оставить в ядре, сделать бесплатными по нулю.** Без тенантов работает `TenantRef::global()` и пустые резолверы (так и сейчас);
-  документация упоминает тенанты только в гайде. Стоимость — только документация и doctor. **Рекомендую для 1.x.**
-- **B. Разделить «изоляцию» и «иерархии».** Тенант как измерение идентичности — в ядре (безопасность);
-  области назначения с наследованием, резолверы ресурсов, членство — модуль. Стоимость 10–15 дней, риск средний.
-  **Кандидат на 2.0.**
-- **C. Вынести целиком.** Ядро без тенантов, модуль добавляет измерение. Требует generic «измерений» в `Kernel`
-  (`AccessScope` → набор ключей), меняет формат грантов и ключей кэша. **Не рекомендую**: дорого и ослабляет
-  гарантию изоляции, которая сейчас выражена в типах.
-
-### 2.5. Раскладка пакетов: варианты
-
-| Вариант | Как | Плюсы | Минусы |
+| Категория | Что это | Критерии (достаточно одного) | Обязательные свойства |
 |:--|:--|:--|:--|
-| **1. Один пакет, слои внутри** | namespace-границы + арх-тесты + `@internal`; модули включаются плагинами; документация «ядро / расширенное» | ноль churn для пользователей; один релиз; уже почти так | `composer require` тянет всё |
-| **2. Монорепо, несколько пакетов** | `packages/{core,audit,tenancy,sources,devtools,filament}` через существующий `split.yml` (матрица `package`), `self.version` | видимые границы; можно не ставить лишнее; так делают Symfony, Illuminate, Filament | больше релизной механики; надо договориться о BC пакетов; пользователь выбирает из N пакетов |
-| **3. Метапакет** | `axiomasoft/azguard` становится метапакетом, требующим `azguard-core` + стандартные модули (как `laravel/framework` → `illuminate/*`) | пользователи 1.x ничего не замечают; продвинутые ставят только `core` | ещё один уровень; Packagist-имена надо зарезервировать заранее |
+| **Ядро** | всегда активно, часть `axiomasoft/azguard` | **К1** без этого решение или запись неверны либо небезопасны; **К2** общий язык или SPI, которым пользуются ≥ 2 компонента; **К3** нужно большинству приложений с первого дня и ничего не стоит, когда не используется | меняется по тем же причинам, что и движок; не знает о плагинах и пакетах |
+| **Встроенный плагин** | опциональная возможность в том же пакете, включается на панели через `Plugin` / SPI | **П1** нужна части приложений; **П2** подключается к конвейеру решения или записи только через точки расширения; **П3** имеет свои причины изменений (своя предметная область) | свой корневой namespace; свои таблицы, миграции, конфиг, doctor-проверки; выключенный — ноль запросов, таблиц и понятий; может сузить доступ или добавить гранты через источник, но не обойти конвейер |
+| **Отдельный пакет** | отдельный Composer-пакет | **Р1** требует зависимость, которую ядро не должно навязывать (Filament, LDAP, SDK внешней системы); **Р2** свой цикл релизов, привязанный к чужому продукту; **Р3** другая лицензия или канал распространения | пользуется только `@api`/`@spi`; во время работы — плагин или чистый потребитель API |
 
-**Рекомендация:** 1 → 3 (+2 внутри монорепо). Пространства имён при выносе
-**не меняются** (`AzGuard\Plugins\Audit\…` может жить в пакете `azguard-audit`, PSR-4 это позволяет), поэтому
-вынос в 1.x не ломает импорты пользователей, если `axiomasoft/azguard` в 1.x продолжает `require` вынесенный пакет.
+Следствия: пакет — это способ **поставки**, плагин — способ **подключения**. Любой пакет подключается как
+плагин; встроенный плагин становится пакетом переносом файлов, когда появляется Р1–Р3. «Нужно только
+разработчикам» само по себе не причина для пакета: генераторы `make:*` в Laravel живут в основном пакете
+(Spatie, Filament), и их стоимость при неиспользовании — ноль.
+
+### 2.2. Решение по каждой области
+
+| Область | Категория | Обоснование | Что не так сейчас |
+|:--|:--|:--|:--|
+| `Kernel`: идентичности, ключи, `Decision`, `StateToken` | ядро (К2) | язык всех компонентов, без фреймворка | `StateToken` раскрывает внутренние поля хранилища (раздел 4) |
+| `Contracts` / SPI | ядро (К2) | договор с расширениями | зависит от 14 зон реализации (1.3) |
+| Конвейер решения, стадии, хуки, `Restriction`, `GrantCondition` | ядро (К1, К2) | единственный путь `allow`; хуки — точки расширения, а не функции | `Engine` знает конкретные источники: 26 `instanceof` (7.3) |
+| Панели и DSL, реестр, резолвер | ядро (К1, К3) | панель — область видимости каталога и грантов; без неё нет решения | первый шаг квик-старта; нет неявной панели (раздел 4) |
+| Каталог из кода, роли, права, атрибуты, политики-вето, мост Gate | ядро (К1, К3) | суть пакета, нужна всем | `Attributes/CheckPermission.php` → `Laravel\Http\Middleware` |
+| Супер-админ | ядро (К1, К3) | меняет решение, 38 строк, нужен почти всем | — |
+| `DatabaseSource`, хранилище, снимок чтения, ревизии, блокировка панели | ядро (К1) | корректность чтения и записи | импортирует 4 doctor-проверки; пишет в `audit_log` |
+| `FolderSource` (discovery), `GateSource` | ядро (К3) | стандартный способ описать роли и права; мост к существующим abilities Laravel | `FolderSource` → `Diagnostics\Checks\DiscoveryCached` |
+| Запись грантов: `ChangePipeline`, `ChangeValidator`, менеджеры, `RoleKeyMigration`; change pipes как SPI | ядро (К1) | блокировка панели и валидация — корректность записи | `ChangePipeline.php:323` чистит `audit_log` |
+| Тенант как граница изоляции, членство, текущий контекст | ядро (К1) | изоляция — безопасность, выражена в типах (`AccessScope`) | смешан в `AzGuard\Scopes` с областями назначения |
+| Области назначения: иерархия, наследование ролей, резолверы ресурсов, eligibility | **встроенный плагин** (П1–П3) | нужны SaaS с командами/проектами; своя предметная область; должны влиять на решение только через стадию Boundary и фильтры `visibleTo` | вплетены в движок (10 из 20 файлов `Authorization`), DSL — методы `PanelBuilder` |
+| `visibleTo()` и `DecisionSet` | ядро (К1, К3) | фильтр списка обязан совпадать с решением; батч читает один снимок | `Visibility.php` знает `FolderSource`, `PanelSources` |
+| `RelationSource` (права из таблиц хоста) | **встроенный плагин** (П1, П2) | нужен части приложений, подключается как источник; зависимостей нет | `instanceof RelationSource` в `PanelSources.php:130`, `PanelRegistry.php:208` |
+| Аудит-журнал | **встроенный плагин** (П1–П3) | compliance нужен не всем; своя предметная область (хранение, ретеншн) | плагин только по названию: таблица в `Storage/Schema/StorageSchema.php:63`, запись в `DatabaseSource.php:669`, чистка в `ChangePipeline.php:323`, `ChangeJournal` в `AzGuard\Changes` |
+| Кэш наборов прав (array / любой store Laravel) | ядро (К3) | производительность без новых понятий; Redis — через Laravel cache, без зависимостей | — |
+| События после commit | ядро (К2) | точка расширения для интеграций и плагинов | `panel.touched` раскрывает внутреннее состояние (раздел 4) |
+| Схемы (`Schema/`): поля грантов и описания панели/ролей/прав | ядро (К1, К2) | `Field`/`FieldTarget` использует хранилище; описания — CLI и любой UI | — |
+| Справочники для UI (`Directories/`) | ядро, отдельный сервис (К2) | нужны **любому** административному UI (Filament, Nova, свой Livewire), а не только Filament | отдаются через `Contracts/PanelAccess.php::directories()` — UI-забота в контракте доступа |
+| `doctor`, `explain` | ядро (К3) | эксплуатация и CI; каждая область/плагин приносит свои проверки | проверки источников импортируются источниками, а не регистрируются |
+| Консоль: эксплуатационные команды и `make:*` | ядро (К3) | конвенция Laravel; ноль стоимости | — |
+| HTTP: middleware, `DecisionResponder`, маппинг 403/503; очередь | ядро (К3) | интеграция с Laravel | — |
+| Тестовый набор: `AzGuardFake`, `InteractsWithAzGuard`, контрактные сьюты | ядро (К2, К3) | тесты приложений и расширений; PHPUnit нужен только в тестах | фасад импортирует `Testing\AzGuardFake` (`AzGuardManager.php:31`) |
+| Filament-интеграция | **отдельный пакет** (Р1, Р2) | зависимость `filament/filament`, цикл релизов Filament | — (уже так) |
+| Будущие коннекторы (LDAP, SCIM, внешние PDP), экспорт аудита во внешние системы | **отдельный пакет** при появлении (Р1) | внешние SDK и протоколы | — |
+
+### 2.3. Где прежнее предложение не прошло критерии (исправлено)
+
+| Было | Почему неверно | Стало |
+|:--|:--|:--|
+| пакет `azguard-tenancy` | нет Р1–Р3: зависимостей нет, цикл релизов и лицензия те же | области назначения — встроенный плагин; изоляция тенанта — ядро |
+| пакет `azguard-sources` | нет Р1–Р3 | `RelationSource` — встроенный плагин-источник |
+| пакет `azguard-audit` | нет Р1–Р3; зато не выполнено свойство плагина (хранилище журнала в ядре) | встроенный плагин, который владеет своей таблицей, миграцией, записью и чисткой |
+| пакет `azguard-devtools` | «только для разработки» — не критерий; конвенция Laravel | генераторы и контрактные сьюты остаются в ядре |
+| `Directories/` → в Filament | справочники нужны любому UI, не только Filament | остаются в ядре отдельным сервисом, уходят из контракта доступа |
+| метапакет `axiomasoft/azguard` | нужен только при нескольких пакетах ядра | не нужен: пакет один, плюс Filament |
+| пакет `azguard-kernel` | нет второго адаптера фреймворка | нет |
+
+### 2.4. Минимальное ядро для новичка
+
+**Что должен выучить новичок:** enum прав, класс роли, трейт `HasAzGuard` + morph alias, `grantRole()` /
+`revokeRole()`, `hasPermission()` / `@can` / middleware, политика-вето, `azguard:doctor` и `azguard:explain`.
+Панели, источники, области, решения как объекты, токены и ручки согласованности — «расширенное использование».
+Сейчас квик-старт (`docs/getting-started/quick-start.md`) начинается с «1. The panel».
+
+Корректность при этом не прячется: снимок чтения, fail closed, сроки и изоляция тенанта работают всегда; в
+«расширенное» уходят только **ручки** (`Reads`, `StateRefresh`, `cache(generation:)`) и **объяснения**
+(`docs/advanced/consistency.md`).
+
+### 2.5. Тенанты и области назначения
+
+Тенанты — главный кандидат «на вынос» по ощущению и самый дорогой по факту. Решение по критериям:
+
+- **Изоляция тенанта — ядро (К1).** `TenantRef` в `AccessScope`, проверка членства, причины `tenant_*`. Без
+  тенантов работает `TenantRef::global()`; стоимость для приложения без тенантов — ноль.
+- **Области назначения — встроенный плагин (П1–П3).** Иерархия, наследование ролей, резолверы области и ресурса,
+  eligibility-запросы. В движок — только через SPI стадии Boundary и фильтров видимости.
+- **Не делать:** вынос тенантов целиком (нужны generic «измерения» в `Kernel`, меняется формат грантов и ключей
+  кэша, ослабляется гарантия изоляции в типах) и слияние тенанта и области в одно понятие (тенант — граница
+  безопасности, область — граница применимости гранта; это разные ответственности).
+
+### 2.6. Физическая раскладка
+
+Сейчас и в 1.0: **один пакет ядра + `azguard-filament`**. Границы внутри ядра — namespace и арх-тесты, так что
+встроенный плагин становится пакетом переносом каталога (PSR-4 позволяет одному namespace жить в другом пакете).
+Новый пакет появляется только по Р1–Р3 через существующий `split.yml`.
 
 ## 3. Возможное будущее: распространение (не решено)
 
@@ -288,100 +294,69 @@
 Оценка 1.x+2.0 целиком: 35–55 рабочих дней, из них тенанты 10–15. Порядок можно остановить на любом шаге: каждый
 шаг полезен сам по себе.
 
-## 6. Целевые пакеты
+## 6. Целевое размещение кода
 
-Целевое состояние после 2.0 (раздел 5). В 1.x пакеты появляются по одному, а `axiomasoft/azguard` остаётся
-метапакетом, поэтому у пользователей ничего не ломается. Namespace при переносе не меняется, если не сказано иное.
+### 6.1. Единицы
 
-### 6.1. Список
-
-| Пакет (Composer) | Namespace | Лицензия | Одной строкой |
+| Единица | Категория | Namespace | Отвечает за |
 |:--|:--|:--|:--|
-| `axiomasoft/azguard-core` | `AzGuard\` | MIT | решение, хранение и запись грантов, интеграция с Laravel |
-| `axiomasoft/azguard` | — (метапакет) | MIT | `core` + стандартные модули; точка входа для `composer require` |
-| `axiomasoft/azguard-tenancy` | `AzGuard\Scopes\` | MIT | области назначения, наследование, резолверы ресурсов |
-| `axiomasoft/azguard-sources` | `AzGuard\Sources\Relation\` | MIT | права из существующих таблиц хоста (`RelationSource`) |
-| `axiomasoft/azguard-audit` | `AzGuard\Plugins\Audit\` | MIT | журнал изменений в той же транзакции, ретеншн |
-| `axiomasoft/azguard-devtools` | `AzGuard\Laravel\Console\…`, `AzGuard\Testing\Contracts\` | MIT, `require-dev` | генераторы, stubs, контрактные сьюты |
-| `axiomasoft/azguard-filament` | `AzGuard\Filament\`, `AzGuard\Directories\` | MIT | авторизация Filament, редакторы грантов, справочники |
+| `axiomasoft/azguard` | ядро | `AzGuard\` | решение, хранение и запись грантов, изоляция тенанта, интеграция с Laravel |
+| области назначения | встроенный плагин | `AzGuard\Scopes\` | где внутри тенанта действует грант |
+| `RelationSource` | встроенный плагин | `AzGuard\Sources\Relation\` | права из существующих таблиц хоста |
+| аудит | встроенный плагин | `AzGuard\Plugins\Audit\` | журнал изменений, ретеншн |
+| справочники UI | ядро, отдельный сервис | `AzGuard\Directories\` | поиск субъектов, тенантов, областей для форм |
+| `axiomasoft/azguard-filament` | отдельный пакет | `AzGuard\Filament\` | Filament: авторизация ресурсов, редакторы грантов |
 
-Пакеты живут в публичном монорепо (`packages/*`, `split.yml`) и зависят друг от друга только через `@api`/`@spi`.
+### 6.2. Карточки
 
-### 6.2. Карточки пакетов
+**Ядро.** Отвечает на вопрос «можно ли субъекту S действие P над ресурсом R в тенанте T» и хранит гранты, на
+которых строится ответ. **Владеет:** `Kernel`, `Contracts`, конвейером, каталогом, политиками, хранилищем со
+снимком чтения, записью грантов, изоляцией тенанта, событиями, `doctor`/`explain`, адаптером Laravel, тестовым
+набором. **Не должен:** знать о плагинах (`instanceof`, их таблицы, имена), рисовать UI, ходить в сеть, иметь
+второй путь решения. **Точки расширения:** источники (`Contracts/Sources/*`), стадии Before/Restriction/After,
+`GrantCondition`, change pipes, `Plugin`, `DoctorCheck`, резолверы тенанта, события.
 
-**`azguard-core`.** Отвечает на вопрос «можно ли субъекту S действие P над ресурсом R в тенанте T» и хранит
-гранты, на которых строится ответ. Владеет значениями (`Kernel`), SPI (`Contracts`), конвейером решения,
-каталогом из кода, политиками, `DatabaseSource` и хранилищем со снимком чтения, записью грантов
-(`ChangePipeline`, `ChangeValidator`), тенантом как границей изоляции, событиями, базовой диагностикой и
-адаптером Laravel (Gate, middleware, команды эксплуатации, `AzGuard::fake()`). **Не должен:** знать о конкретных
-модулях (`instanceof` чужих классов, таблицы модулей), рисовать UI, ходить в сеть, проверять лицензии, иметь
-второй путь решения. **Зависит:** PHP, `illuminate/*`. **Точки расширения, которые предоставляет:** источники
-(`Contracts/Sources/*`), стадии Before/Restriction/After, `GrantCondition`, change pipes, `Plugin`, `DoctorCheck`,
-резолверы тенанта, события.
+**Области назначения.** **Владеет:** определениями и политикой областей, наследованием ролей, резолверами области
+и ресурса, eligibility-запросами, своими причинами отказа (`context_*`). **Не должен:** решать изоляцию тенанта и
+выдавать `allow` сам — только сужать применимость грантов. **Подключается:** `Plugin` + SPI стадии Boundary +
+фильтр `visibleTo`; DSL — у плагина, а не у `PanelBuilder`.
 
-**`azguard-tenancy`.** Отвечает за то, *где внутри тенанта* действует грант: области назначения (команда, проект),
-их иерархию и наследование ролей, определение области по ресурсу. **Владеет:** определениями областей, политикой
-областей, eligibility-запросами, резолверами области и ресурса. **Не должен:** решать изоляцию тенантов (это
-ядро) и выдавать `allow` сам — только сужать выбор грантов. **Зависит:** `core` (`AccessScope`, `AssignmentScopeRef`
-из `Kernel`, SPI стадии Boundary, `FiltersQueries`). **Точки расширения:** стадия Prepare/Boundary, фильтры
-`visibleTo`, `PanelBuilder::scopes()`/`scopeResolvers()`/`resourceScopes()` через `Plugin::register()`.
+**`RelationSource`.** **Владеет:** источником и SQL-предикатами отношений, проверкой `PanelsRelations`. **Не
+должен:** писать гранты и держать своё хранилище. **Подключается:** как источник (`Provides*`, `FiltersQueries`).
 
-**`azguard-sources`.** Права из таблиц, которые у хоста уже есть (членство в команде, владелец записи), без
-дублирования в `azg_*`. **Владеет:** `RelationSource` и SQL-предикатами отношений. **Не должен:** писать гранты,
-держать своё хранилище. **Зависит:** `core` (`Provides*`, `FiltersQueries`, `FencesReads`). **Точки расширения:**
-регистрация источника панели, doctor-проверка `PanelsRelations`.
+**Аудит.** **Владеет:** `AuditPlugin`, `RecordChange`, `ChangeJournal`, таблицей `audit_log` и её миграцией,
+записью и чисткой, `azguard:audit:prune`, `AuditTableExists`. **Не должен:** менять результат изменения (кроме
+отказа при сбое записи журнала). **Подключается:** change pipe в транзакции записи (`StorageMutation` как `@spi`).
 
-**`azguard-audit`.** Долговременный журнал каждого действующего изменения в той же транзакции, что и запись.
-**Владеет:** `AuditPlugin`, `RecordChange`, `ChangeJournal`, своей таблицей и миграцией, `azguard:audit:prune`.
-**Не должен:** влиять на результат изменения (кроме отказа при сбое записи журнала), читать гранты в обход
-`GrantManager`. **Зависит:** `core` (`Plugin`, change pipes, события, `StorageMutation`). **Точки расширения:**
-`changing` pipe, `doctorChecks`, расписание.
+**Справочники UI.** **Владеет:** поиском и пагинацией кандидатов для форм. **Не должен:** участвовать в решении.
+**Подключается:** отдельный сервис (`AzGuard::directories($panel)` или через контейнер), не метод `PanelAccess`.
 
-**`azguard-devtools`.** Ускоряет разработку и не попадает в прод. **Владеет:** `azguard:make:*`, скаффолдингом,
-stubs, контрактными тест-сьютами для авторов расширений. **Не должен:** быть нужен в рантайме. **Зависит:** `core`
-`@api`/`@spi`.
+**`azguard-filament`.** **Владеет:** авторизацией ресурсов/страниц/виджетов/экспорта, редакторами грантов,
+страницами doctor и панелей. **Не должен:** решать сам (только `Decision` ядра), писать мимо `GrantManager`
+(закреплено `tests/Arch/FilamentWritesArchTest.php`). **Зависит:** только от манифеста ядра.
 
-**`azguard-filament`.** Делает Filament-панель частью того же конвейера и даёт редакторы грантов. **Владеет:**
-авторизацией ресурсов/страниц/виджетов/экспорта, редакторами, справочниками выбора субъекта/тенанта/области.
-**Не должен:** принимать решения сам (только через `Decision` ядра), писать гранты мимо `GrantManager`
-(закреплено `tests/Arch/FilamentWritesArchTest.php`). **Зависит:** `core` (только манифест), `filament/filament`.
+### 6.3. Перенос: текущий код → целевое место
 
-### 6.3. Перенос: текущий код → целевой пакет
-
-Пути — от `packages/core/src` (если не указано иное). «Ядро» = `azguard-core`.
+Пути — от `packages/core/src`. Переносы внутри одного пакета; пакетов, кроме Filament, не появляется.
 
 | Сейчас | Куда | Примечание |
 |:--|:--|:--|
-| `Kernel/**` | ядро `Kernel/` | без изменений; `AssignmentScopeRef`, `AccessScope` остаются: это формат идентичности |
-| `Exceptions/**` (51) | ядро `Exceptions/` | свернуть в иерархию (4.4); исключения модулей — в модули |
-| `Contracts/{Sources,Authorization,Plugins,Diagnostics,Catalog,Roles,Panels,Changes}/*` | ядро `Contracts/` (`@spi`) | DTO из `Changes`, `Catalog`, `Directories` → `Contracts/Values/` (4.5) |
-| `Contracts/Scopes/{TenantResolver,TenantMembership}.php` | ядро `Contracts/Tenancy/` | изоляция — ядро |
-| `Contracts/Scopes/{AssignmentScope*,QueryableAssignmentScopeDefinition,ConfigurableAssignmentScopeDefinition,ResolvedAssignmentScope,ResourceScopeResolver,ProvidesAccessScope,ProvidesAssignmentScope}.php` | `azguard-tenancy` `Contracts/` | SPI модуля |
-| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `azguard-filament` | справочники UI (выбор записи в форме) |
-| `Authorization/**` | ядро `Engine/` | 14 импортов `Sources\Database`, `Sources\Folder`, `PanelSources`, `Storage\*` заменить контрактами (7.3) |
-| `Authorization/ScopeEligibility.php`, `Scopes/Query/*` | `azguard-tenancy` | через SPI стадии Boundary |
-| `Panels/**`, `Catalog/**`, `Roles/**`, `Permissions/**`, `Attributes/**`, `Policies/**` | ядро `Definition/` | `Attributes/CheckPermission.php` импортирует middleware из `Laravel/` — развернуть зависимость |
-| `Schema/{Field,FieldTarget}.php` | ядро `Contracts/Values/` | используются хранилищем |
-| `Schema/*Schema.php`, `Schema/SchemaBuilder.php` | ядро `Definition/Schema/` | описания для CLI и UI, read-only |
-| `Directories/**` | `azguard-filament` `Directories/` | namespace `AzGuard\Directories\` сохранить |
-| `Storage/**`, `Sources/Database/**` | ядро `Storage/` | `Panels\Reads` → `Contracts/Values` |
-| `Sources/{Folder,Gate}/**`, `Sources/{SourceManager,PanelSources}.php` | ядро `Sources/` | `instanceof RelationSource` в `PanelSources.php:130`, `PanelRegistry.php:208` → контракт |
-| `Sources/Relation/**`, `Diagnostics/Checks/PanelsRelations.php` | `azguard-sources` | |
-| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,WithinContext}.php` | ядро `Tenancy/` | изоляция и состояние области запроса |
-| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings,ContextAware,ModelIdentity}.php` | `azguard-tenancy` | |
-| `Changes/{ChangePipeline,ChangeValidator,Change*,Grant*,Permission*,EffectKind,OnceTerminal,ActingActor,PanelManagers,Scoped*Manager}.php` | ядро `Changes/` | значения → `Contracts/Values/` |
-| `Changes/RoleKeyMigration.php` | ядро `Changes/` | корректность ключей ролей |
-| `Changes/ChangeJournal.php`, `Plugins/Audit/**`, `Laravel/Console/Commands/AuditPruneCommand.php`, таблица `audit_log` из `Storage/Schema/StorageSchema.php:63` | `azguard-audit` | модуль владеет своей миграцией |
-| `Plugins/{BasePlugin,PluginContext}.php` | ядро `Contracts/Plugins/` + `Definition/` | `PluginContext` — значение SPI |
-| `Events/**` | ядро `Events/` | события модулей — в модулях |
-| `Diagnostics/{Doctor,DoctorContext,DoctorFinding,Severity,PanelOverview}.php`, проверки ядра | ядро `Diagnostics/` | |
-| `Diagnostics/Checks/{DecisionFieldsInMeta,GrantsDead,ModelColumns,RolesOrphaned}.php` | ядро, но регистрирует их `Storage`, а не `DatabaseSource` импортом | 4.9 |
-| `Laravel/{Gate,Http,Queue,About}/**`, `AzGuardServiceProvider.php`, `AzGuardManager.php`, `Facades/**`, `Concerns/**` | ядро `Laravel/` | `directories()` в `Concerns/ScopedPanelAccess.php` → Filament |
-| `Laravel/Console/Commands/*` (эксплуатация: doctor, explain, install, grants/roles/permissions/catalog/panels/sources/state/storage) | ядро `Laravel/Console/` | |
-| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `StubsCommand.php`, `packages/core/stubs/**` | `azguard-devtools` | `install` остаётся в ядре и использует stubs миграций ядра |
-| `Testing/{AzGuardFake,FakeSubject,FakeSubjectBuilder,FakeSource,InteractsWithAzGuard,RecordedChange,RecordedCheck,RefreshDatabaseBaseline}.php` | ядро `Testing/` | `AzGuard::fake()` работает без dev-пакета |
-| `Testing/Contracts/**` | `azguard-devtools` | контрактные сьюты |
-| `packages/filament/src/**` | `azguard-filament` | без изменений |
+| `Kernel/**` | без изменений | `StateToken` — непрозрачный (раздел 4) |
+| `Exceptions/**` (51) | иерархия по кодам | исключения плагинов — в namespace плагина |
+| `Contracts/**` | `Contracts/` (`@spi`) + `Contracts/Values/` | DTO из `Changes`, `Catalog`, `Directories`, `Schema\Field*`, `Panels\Reads` |
+| `Contracts/Scopes/{TenantResolver,TenantMembership}.php` | `Contracts/Tenancy/` | изоляция — ядро |
+| `Contracts/Scopes/{AssignmentScope*,QueryableAssignmentScopeDefinition,ConfigurableAssignmentScopeDefinition,ResolvedAssignmentScope,ResourceScopeResolver,ProvidesAccessScope,ProvidesAssignmentScope}.php` | `Scopes/Contracts/` | SPI плагина |
+| `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `Directories/Contracts/` | |
+| `Scopes/{TenantPolicy,ModelTenantDefinition,MembershipRestriction,CurrentContext,WithinContext}.php` | `Tenancy/` | ядро |
+| `Scopes/{AssignmentScope*,BaseAssignmentScope,ModelAssignmentScopeDefinition,ScopeConfiguration,RoleBindings,ContextAware,ModelIdentity}.php`, `Scopes/Query/*`, `Authorization/ScopeEligibility.php` | `Scopes/` | плагин |
+| `Authorization/**` | без изменений | 26 `instanceof` → способности SPI |
+| `Sources/Relation/**`, `Diagnostics/Checks/PanelsRelations.php` | `Sources/Relation/` | плагин; `instanceof` в `PanelSources`/`PanelRegistry` → контракт |
+| `Changes/ChangeJournal.php`, `Plugins/Audit/**`, `Laravel/Console/Commands/AuditPruneCommand.php`, `audit_log` из `StorageSchema.php:63`, запись `DatabaseSource.php:669`, чистка `ChangePipeline.php:323`, `StorageHealth.php:20` | `Plugins/Audit/` | плагин владеет таблицей и миграцией |
+| `Diagnostics/Checks/{DecisionFieldsInMeta,GrantsDead,ModelColumns,RolesOrphaned,DiscoveryCached}.php` | без изменений | регистрируются областью через `doctorChecks`, а не импортом из источника |
+| `AzGuardManager.php:31` → `Testing\AzGuardFake` | без изменений | `fake()` через подмену в контейнере |
+| `Attributes/CheckPermission.php` → `Laravel\Http\Middleware` | без изменений | развернуть зависимость: middleware читает атрибут |
+| `Concerns/ScopedPanelAccess.php`, `Contracts/PanelAccess.php` `directories()` | сервис `Directories` | |
+| остальное | без изменений | |
 
 ## 7. Целевая структура
 
