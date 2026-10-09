@@ -372,6 +372,92 @@ PSR-4 выбирает самый длинный префикс, поэтому 
 | `Concerns/ScopedPanelAccess.php`, `Contracts/PanelAccess.php::directories()` | сервис `Directories` | |
 | остальное | без изменений | |
 
+## 5b. Взаимодействие модулей
+
+### Правила
+
+1. **Модуль ↔ ядро** — только через `@spi`/`@api`, события ядра и точки конвейера: источники
+   (`Contracts/Sources/*`), стадии `before`/`restrictions`/`after`, `grantConditions`, change pipes (`changing`),
+   `doctorChecks`, `Plugin::register()`/`boot()`.
+2. **Модуль ↔ модуль — напрямую никогда.** Общие данные идут значениями `Kernel` (`AssignmentScopeRef`,
+   `TenantRef`, `SubjectRef`) внутри объектов ядра (`Change`, `ChangeEffect`, события).
+3. **Пакет ↔ модуль** — через ядро. Если без прямой связи не обойтись, мост принадлежит **зависимой стороне**
+   (пакету), живёт в `AzGuard\Filament\Bridges\<Модуль>` и включается, только если на панели есть плагин модуля
+   (`Panel::pluginIds()` содержит `azguard/<модуль>`).
+4. **Ядро не знает модулей**: в `src/` нет `use AzGuard\Scopes|Audit|DevTools`, нет их таблиц и `instanceof`.
+   Для каждой нужной ядру способности модуля в ядре есть интерфейс и поведение по умолчанию.
+
+### Что нужно ядру
+
+| Контракт | Статус | Зачем |
+|:--|:--|:--|
+| `Contracts/Scopes/AssignmentScopeEvaluator` | **новый** | одна точка, через которую движок, запись, видимость и Gate спрашивают об областях; реализация по умолчанию — `Tenancy\GlobalScopeEvaluator`, полная — `Scopes\ScopeEvaluator` |
+| `Contracts/Values/{AssignmentScopePhase,AssignmentScopeRuntime}` | перенос из `Scopes/` | значения, которые нужны `ChangeValidator`, `Directories` и Filament |
+| `Contracts/Scopes/{AssignmentScopeDefinition,QueryableAssignmentScopeDefinition,ResolvedAssignmentScope,ProvidesAssignmentScope,ProvidesAccessScope,AssignmentScopeMembership,ResourceScopeResolver,AssignmentScopeResolver}` | есть | на них ссылаются роли, источники, ресурсы, валидатор |
+| `Storage/StorageMutation` как `@spi` + помощник колонок хоста (`Storage/Schema/HostKeyColumns`) | пометить | модуль аудита пишет в своей таблице в транзакции записи и строит миграцию с теми же типами ключей |
+| `Panel::pluginIds()` | есть, пометить `@api` | мосты и команды модулей проверяют, включён ли модуль на панели |
+| способности источников вместо `instanceof` | **новые** | `RelationSource`, `DatabaseSource`, `FolderSource` без особых случаев в движке (раздел 3, п. 4) |
+
+Набросок `AssignmentScopeEvaluator` (имена уточняются): `current()` — текущая область запроса через
+`AssignmentScopeResolver`; `applicable()` — какие вклады ролей (`Kernel/Decision/RoleContribution`) действуют в
+области с учётом наследования, или причина отказа `context_*`; `predicate()` — `Kernel/Decision/AccessPredicate` для
+`visibleTo` и батча; `admit()` — допустимость выдачи или отзыва в области при записи; `resourceScope()` — область
+ресурса для Gate.
+
+### Пары
+
+| Пара | Сейчас (по коду) | Целевой механизм | Контракты ядра |
+|:--|:--|:--|:--|
+| `Scopes` → решение | `Authorization/ScopeEligibility.php`, `Pipeline/Stages/{Boundary,Authority}Stage.php` используют классы областей | стадии Boundary/Authority вызывают `AssignmentScopeEvaluator::applicable()` | `AssignmentScopeEvaluator`, `RoleContribution`, `DecisionReason` |
+| `Scopes` → `visibleTo` и батч | `Authorization/Query/VisibilityScope.php`, `Scopes/Query/*`, `BatchInputs.php` | `predicate()` возвращает `AccessPredicate`; SQL строит модуль | `AccessPredicate`, `FiltersAccessQueries` |
+| `Scopes` ↔ роли | `BaseRole::scopes()` отдаёт `AssignmentScopeDefinition[]`; `Catalog/RoleCompiler.php` импортирует `Scopes\ScopeConfiguration` | роль объявляет типы областей через контракт; `RoleCompiler` хранит только алиасы; привязки (`RoleBindings`) строит модуль в `register()` | `AssignmentScopeDefinition` |
+| `Scopes` ↔ запись | `Changes/ChangeValidator.php` импортирует `Scopes\{AssignmentScopePhase,AssignmentScopeRuntime}` | валидатор вызывает `admit()`; фаза — значение ядра | `AssignmentScopeEvaluator`, `AssignmentScopeMembership`, `ResourceScopeResolver`, `Contracts/Values` |
+| `Scopes` ↔ тенант (ядро) | оба в `AzGuard\Scopes` | модуль зависит от `Tenancy` (владелец области — тенант в `ResolvedAssignmentScope`); `Tenancy` о модуле не знает | `AccessScope`, `TenantRef`, `ResolvedAssignmentScope` |
+| `Scopes` ↔ источники | `Sources/Relation/{RelationSource,RelationBinding}.php` используют `QueryableAssignmentScopeDefinition` | без изменений: только контракт | `QueryableAssignmentScopeDefinition`, `ResolvedAssignmentScope` |
+| `Scopes` ↔ Gate и HTTP | `Laravel/Gate/GateBridge.php` → `Scopes\ModelIdentity`; `Laravel/Http/Middleware/EnterPanel.php` → `Scopes\CurrentContext` | `GateBridge` спрашивает `resourceScope()`; `CurrentContext` переезжает в `Tenancy` | `AssignmentScopeEvaluator`, `ProvidesAssignmentScope` |
+| `Scopes` ↔ справочники | `Directories/QueryScopeDirectory.php`, `LookupContext` | определение области отдаёт свой `AssignmentScopeDirectory`; сервис справочников его вызывает | `AssignmentScopeDirectory`, `AssignmentScopePhase` |
+| `Scopes` ↔ события | события несут `AssignmentScopeRef $context` (`Events/RoleGranted.php`) | без изменений: значение `Kernel` | `AssignmentScopeRef` |
+| `Scopes` ↔ `Audit` | — | **напрямую нет**: аудит пишет область из `Change`/`ChangeEffect` как `AssignmentScopeRef` | `Change`, `ChangeEffect` |
+| `Audit` → запись | `Plugins/Audit/RecordChange.php` (change pipe), но хранение в ядре | `RecordChange` в `changing`, запись через `StorageMutation` в той же транзакции; ядро не знает `audit_log` | change pipes, `StorageMutation` |
+| `Audit` ↔ тенант | `StorageSchema.php:82` строит ограничения `audit_log` по тенанту | миграция модуля строит колонки тенанта помощником ядра | `HostKeyColumns`, `TenantRef` |
+| `Audit` ↔ диагностика и консоль | `AuditTableExists`, `AuditPruneCommand` в ядре | `doctorChecks()` из плагина; команда — из `AuditServiceProvider`, работает по `Panel::pluginIds()` | `DoctorCheck`, `Panel::pluginIds()` |
+| `DevTools` → ядро | генераторы в ядре | stubs генерируют код против `@api`/`@spi` (`source.stub`, `restriction.stub`, `plugin.stub`, `change-pipe.stub`); `make:models` читает `Schema` | `Schema`, контракты |
+| `DevTools` ↔ другие модули | — | **нет**: генератор для понятия модуля живёт в самом модуле | — |
+| Filament → ядро | только манифест (`tests/Arch/ApiManifestTest.php`); `FilamentTenantResolver implements TenantResolver` | без изменений | манифест |
+| Filament ↔ `Scopes` | `Editors/{GrantEditor,TargetSelector}.php` импортируют `Scopes\{AssignmentScopePhase,CurrentContext}` | через ядро: фаза из `Contracts/Values`, контекст из `Tenancy`, списки областей из сервиса справочников | `Directories`, `Contracts/Values` |
+| Filament ↔ `Audit` | — | если понадобится страница журнала — мост `AzGuard\Filament\Bridges\Audit`, только при `azguard/audit` на панели | `@api` модуля аудита |
+
+### Схема
+
+```mermaid
+flowchart LR
+  subgraph pkg["axiomasoft/azguard"]
+    subgraph core["ядро (src/)"]
+      K["Kernel: AssignmentScopeRef, TenantRef, Decision"]
+      C["Contracts: AssignmentScopeEvaluator, Sources, changing, doctorChecks, Plugin"]
+      E["Authorization: конвейер, visibleTo, батч"]
+      W["Changes: ChangePipeline, ChangeValidator"]
+      S["Storage: StorageMutation, снимок"]
+      T["Tenancy: TenantPolicy, CurrentContext, GlobalScopeEvaluator"]
+      EV["Events"]
+    end
+    SC["модуль Scopes"]
+    AU["модуль Audit"]
+    DT["модуль DevTools"]
+  end
+  FI["пакет azguard-filament"]
+  E --> C
+  W --> C
+  SC -- "реализует AssignmentScopeEvaluator" --> C
+  SC --> T
+  AU -- "change pipe RecordChange" --> W
+  AU -- "пишет через" --> S
+  DT -- "генерирует код против" --> C
+  FI -- "@api / @spi" --> core
+  FI -. "мост, если включён" .-> AU
+  W -- "события после commit" --> EV
+```
+
 ## 6. Слои ядра
 
 ### 6.3. Слои внутри ядра
