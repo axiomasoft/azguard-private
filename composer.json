@@ -51,8 +51,8 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica",
-        "test:parallel": "vendor/bin/pest --exclude-group=stand --parallel --passthru-php='-d memory_limit=1G'",
+        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica",
+        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --passthru-php='-d memory_limit=1G'",
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
         "test:pgsql": [
@@ -111,7 +111,7 @@
         ]
     },
     "scripts-descriptions": {
-        "check": "Run every CI gate locally: code style, static analysis, refactor dry-run, tests, coverage and mutation (both honest-skip without a coverage driver — see bin/*-gate.sh).",
+        "check": "Run every local gate: style, static analysis, Rector, type coverage, tests, line coverage and mutation. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
         "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
