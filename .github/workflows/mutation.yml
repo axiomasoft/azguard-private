@@ -1,7 +1,7 @@
 name: Mutation Testing
 
-# Native Pest mutation testing is blocking in every mode: P4.5 ratchets from
-# actual per-package scores, so an advisory success would hide a regression.
+# Native Pest mutation testing is blocking in every mode: thresholds ratchet from
+# actual per-package scores (DEVELOPMENT.md), so an advisory success would hide a regression.
 on:
   pull_request:
     branches: [main]
