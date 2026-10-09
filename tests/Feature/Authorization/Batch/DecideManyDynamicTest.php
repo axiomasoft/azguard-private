@@ -54,7 +54,7 @@ it('retries stale request state before reading the dynamic catalog and consumes 
     });
     $catalogReads = 0;
     $storage->connection()->listen(function (QueryExecuted $query) use (&$catalogReads): void {
-        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_permissions"')) {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && preg_match('/azg_permissions["`]/', $query->sql) === 1) {
             $catalogReads++;
         }
     });
@@ -74,7 +74,7 @@ it('reads the dynamic grants of a batch in one snapshot while another connection
     [$engine] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions());
     $attempts = 0;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $query) use (&$attempts): void {
-        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_role_grants"')) {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && preg_match('/azg_role_grants["`]/', $query->sql) === 1) {
             $attempts++;
             ConcurrentWriter::commit(fn (Connection $connection) => ConcurrentWriter::touch($connection));
         }

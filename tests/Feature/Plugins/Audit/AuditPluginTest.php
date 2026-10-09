@@ -67,7 +67,8 @@ it('writes one row per effect with the id, envelope and payload of the published
         ->and($rows[0]['actor_type'])->toBe('crm.user')->and($rows[0]['actor_id'])->toBe('3')->and($rows[0]['actor_reason'])->toBe('onboarding')
         ->and($rows[0]['correlation_id'])->toBe($result->correlationId)
         ->and($rows[0]['occurred_at'])->toBe('2026-10-06 12:00:00')
-        ->and(json_decode($rows[0]['payload'], true))->toBe(json_decode(json_encode($event->toArray(), JSON_THROW_ON_ERROR), true));
+        // A MySQL JSON column stores the keys of an object in its own order.
+        ->and(sortedKeys(json_decode($rows[0]['payload'], true)))->toBe(sortedKeys(json_decode(json_encode($event->toArray(), JSON_THROW_ON_ERROR), true)));
 });
 
 it('writes a row for every change of an operation with one correlation id, and none for a repeat', function (): void {
@@ -207,3 +208,16 @@ it('never leaves a journal write to an update of an existing storage root: neste
 
     expect(EventWorld::auditRows())->toHaveCount(2)->and(array_unique(array_column(EventWorld::auditRows(), 'correlation_id')))->toHaveCount(2);
 });
+
+function sortedKeys(mixed $value): mixed
+{
+    if (! is_array($value)) {
+        return $value;
+    }
+
+    if (! array_is_list($value)) {
+        ksort($value);
+    }
+
+    return array_map(sortedKeys(...), $value);
+}

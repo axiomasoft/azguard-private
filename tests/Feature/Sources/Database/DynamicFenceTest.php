@@ -60,7 +60,7 @@ it('prepares once and decides at one state when another connection commits durin
             return;
         }
         foreach (['panel_state', 'permissions', 'permission_grants', 'role_grants'] as $table) {
-            if (str_contains($event->sql, 'azg_'.$table.'"')) {
+            if (preg_match('/azg_'.$table.'["`]/', $event->sql) === 1) {
                 $reads[] = $table;
             }
         }
@@ -91,7 +91,7 @@ it('fails closed when the catalog changes between its snapshot and the assignmen
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     $changed = false;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$changed): void {
-        if (! $changed && str_starts_with(strtolower(ltrim($event->sql)), 'select') && str_contains($event->sql, 'azg_permissions"')) {
+        if (! $changed && str_starts_with(strtolower(ltrim($event->sql)), 'select') && preg_match('/azg_permissions["`]/', $event->sql) === 1) {
             $changed = true;
             ConcurrentWriter::commit(static function (Connection $connection): void {
                 $connection->table('azg_permissions')->delete();

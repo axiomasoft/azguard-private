@@ -188,7 +188,7 @@ it('V104 overlays the dynamic permissions of the selected tenant only', function
     $a = crmSchema($panel, 1);
     $listening = false;
     // One read of the definitions of the tenant; the state reads around it fence that read.
-    $reads = array_values(array_filter($queries, static fn (string $sql): bool => preg_match('/\bfrom\s+"?[a-z_]*permissions"?(\s|$)/i', $sql) === 1));
+    $reads = array_values(array_filter($queries, static fn (string $sql): bool => preg_match('/\bfrom\s+["`]?[a-z_]*permissions["`]?(\s|$)/i', $sql) === 1));
     $b = crmSchema($panel, 2);
     $dynamic = static fn (PanelSchema $schema): array => array_values(array_map(
         static fn (PermissionSchema $permission): string => $permission->key->local(),

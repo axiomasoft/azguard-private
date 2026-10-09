@@ -71,7 +71,7 @@ it('uses the subject model the caller holds and reads a bare reference again', f
     $policy = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
     $reads = 0;
     DB::listen(function ($query) use (&$reads): void {
-        $reads += str_contains($query->sql, '"users"') ? 1 : 0;
+        $reads += preg_match('/["`]users["`]/', $query->sql);
     });
 
     foreach (range(1, 5) as $ignored) {
