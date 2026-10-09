@@ -12722,6 +12722,50 @@
                     "return": "self"
                 },
                 {
+                    "name": "failed",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "reason",
+                            "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "state",
+                            "type": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "component",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self"
+                },
+                {
+                    "name": "failure",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Kernel\\Decision\\FailureKind"
+                },
+                {
                     "name": "notApplicable",
                     "static": true,
                     "abstract": false,
@@ -12930,6 +12974,20 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "int"
+                },
+                {
+                    "name": "failure",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Kernel\\Decision\\FailureKind"
+                },
+                {
+                    "name": "failures",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
                 },
                 {
                     "name": "get",
@@ -13157,6 +13215,99 @@
                     "abstract": false,
                     "parameters": [],
                     "return": "array"
+                }
+            ],
+            "stability": "api",
+            "via": "location"
+        },
+        {
+            "name": "AzGuard\\Kernel\\Decision\\FailureKind",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "cases": [
+                {
+                    "name": "Transient",
+                    "value": "transient"
+                },
+                {
+                    "name": "Contract",
+                    "value": "contract"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [],
+                    "return": "array"
+                },
+                {
+                    "name": "from",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static"
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "reason",
+                            "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?self"
+                },
+                {
+                    "name": "tryFrom",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static"
                 }
             ],
             "stability": "api",
@@ -14996,6 +15147,128 @@
                         }
                     ],
                     "return": "Illuminate\\Auth\\Access\\Response"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Laravel\\Http\\DecisionFailedException",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Symfony\\Component\\HttpKernel\\Exception\\HttpException",
+            "interfaces": [
+                "Stringable",
+                "Symfony\\Component\\HttpKernel\\Exception\\HttpExceptionInterface",
+                "Throwable"
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "failure",
+                    "type": "AzGuard\\Kernel\\Decision\\FailureKind",
+                    "readonly": true,
+                    "static": false
+                },
+                {
+                    "name": "reason",
+                    "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                    "readonly": true,
+                    "static": false
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "failure",
+                            "type": "AzGuard\\Kernel\\Decision\\FailureKind",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "reason",
+                            "type": "AzGuard\\Kernel\\Decision\\DecisionReason",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "retryAfter",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "5"
+                        }
+                    ],
+                    "return": null
+                },
+                {
+                    "name": "of",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "decision",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?self"
+                }
+            ],
+            "stability": "api",
+            "via": "tag"
+        },
+        {
+            "name": "AzGuard\\Laravel\\Http\\DecisionResponder",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "authorize",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "decision",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
+                },
+                {
+                    "name": "status",
+                    "static": true,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "decision",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?int"
                 }
             ],
             "stability": "api",

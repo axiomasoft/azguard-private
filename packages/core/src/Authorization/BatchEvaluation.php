@@ -98,7 +98,7 @@ final readonly class BatchEvaluation
                     $frame = $finished[$i]['frame'];
                     $frame = $frame->readAttempt?->discardedFrame($frame) ?? $frame;
                     $finished[$i] = array_replace($finished[$i], ['frame' => $frame]);
-                    $decisions[$i] = Decision::deny(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
+                    $decisions[$i] = Decision::failed(DecisionReason::ConsistencyError, $frame->state(), $frame->scope(), 'dynamic_sources');
                 }
             }
             $set = DecisionSet::of(...array_values($decisions));
@@ -271,7 +271,7 @@ final readonly class BatchEvaluation
             foreach ($entries as $i => $entry) {
                 $entry['trace']->error('state', $reason->value, 'dynamic_sources', $error);
                 $decisions[$i] = ($started[$i][0] ?? null) !== null && ! $entry['frame']->dynamicRead ? $started[$i][0]
-                    : Decision::deny($reason, $entry['frame']->state(), $entry['frame']->scope(), 'dynamic_sources');
+                    : Decision::failed($reason, $entry['frame']->state(), $entry['frame']->scope(), 'dynamic_sources');
             }
 
             return [$decisions, $entries];

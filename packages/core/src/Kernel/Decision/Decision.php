@@ -64,6 +64,20 @@ final readonly class Decision
         return self::make(Effect::Deny, $reason, $state, $scope, $component, [], $message, $status, $code);
     }
 
+    /**
+     * A decision that could not be computed: a denial whose reason is a failure (FailureKind), never a policy outcome.
+     *
+     * @throws ConsistencyException when the reason is not a failure
+     */
+    public static function failed(DecisionReason $reason, CodeStateToken|StateToken $state, AccessScope $scope, ?string $component = null): self
+    {
+        if (FailureKind::of($reason) === null) {
+            throw new ConsistencyException(sprintf('Decision reason "%s" is not a failure.', $reason->value));
+        }
+
+        return self::make(Effect::Deny, $reason, $state, $scope, $component, []);
+    }
+
     public static function notApplicable(CodeStateToken|StateToken $state, AccessScope $scope, ?string $component = null): self
     {
         return self::make(Effect::NotApplicable, DecisionReason::NotApplicable, $state, $scope, $component, []);
@@ -85,6 +99,12 @@ final readonly class Decision
     public function allowed(): bool
     {
         return $this->effect === Effect::Allow;
+    }
+
+    /** The kind of failure when the decision could not be computed; null for an allow, a deny or not applicable. */
+    public function failure(): ?FailureKind
+    {
+        return FailureKind::of($this->reason);
     }
 
     /**

@@ -55,6 +55,26 @@ final readonly class DecisionSet implements Countable, IteratorAggregate
     }
 
     /**
+     * Indexes of the decisions that could not be computed. A set never turns a failure into a denial of the others:
+     * each decision keeps its own outcome, and a caller that needs all of them treats any failure as the failure of
+     * the set.
+     *
+     * @return list<int>
+     */
+    public function failures(): array
+    {
+        return array_keys(array_filter($this->decisions, static fn (Decision $decision): bool => $decision->failure() !== null));
+    }
+
+    /** The most severe failure of the set: Contract over Transient; null when every decision was computed. */
+    public function failure(): ?FailureKind
+    {
+        $kinds = array_map(static fn (Decision $decision): ?FailureKind => $decision->failure(), $this->decisions);
+
+        return in_array(FailureKind::Contract, $kinds, true) ? FailureKind::Contract : (in_array(FailureKind::Transient, $kinds, true) ? FailureKind::Transient : null);
+    }
+
+    /**
      * @throws OutOfRangeException
      */
     public function get(int $i): Decision
