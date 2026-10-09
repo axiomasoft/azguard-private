@@ -70,7 +70,5 @@ Execution sheet: run the batches in order. Route is the maximum class/effort of 
 | 63 | P7 | BP7-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.7` | implementation/medium | done |
 | 64 | P7 | BP7-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P7.8` | frontier/high | done |
 | 65 | P8 | B8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.1 P8.2 P8.3 P8.4` | frontier/high | design-required |
-| 66 | P8 | BP8-5 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.5` | implementation/medium | design-required |
-| 67 | P8 | BP8-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.6` | implementation/medium | design-required |
-| 68 | P8 | BP8-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.7` | frontier/high | design-required |
-| 69 | P8 | BP8-8 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.8` | implementation/medium | design-required |
+| 66 | P8 | BP8-6 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.6` | implementation/medium | design-required |
+| 67 | P8 | BP8-7 | `task:plan-run 2026.10.01-№1-AZGUARD-V1 P8.7` | frontier/high | design-required |
