@@ -1,6 +1,6 @@
 # Filament
 
-`axiomasoft/azguard-filament` connects a Filament 5 panel to an AzGuard panel:
+`axiomasoft/azguard-filament` connects a Filament 5 panel (5.8.4 or later) to an AzGuard panel:
 
 - resources, pages and widgets are authorized by AzGuard permissions;
 - resource lists show only the records the user may view;
