@@ -51,4 +51,4 @@ it('matches SQLite DDL including pair triggers and host key columns', function (
         $this->markTestSkipped('SQLite DDL is verified by the SQLite suite; server DDL is in engines.');
     }
     DdlSnapshot::verify();
-});
+})->group('sqlite');

@@ -161,7 +161,7 @@ it('pins Default schema state and both grants to the configured read PDO despite
     $snapshot = $primary->readContributions(SubjectRef::of('user', 1), [$primaryFrame->scope()], $primaryFrame);
     expect($snapshot['state']->version)->toBe(2)->and($snapshot['roles'][0]->role->key())->toBe('primary')
         ->and($snapshot['grants'][0]->pattern->local())->toBe('documents.edit');
-});
+})->group('sqlite');
 
 it('does not consume a fence source with no assignment capabilities', function (): void {
     DatabaseWorld::seedSubject();
