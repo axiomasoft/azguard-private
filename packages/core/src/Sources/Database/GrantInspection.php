@@ -256,8 +256,8 @@ final readonly class GrantInspection
             }
             $patterns = $this->partition('permission', $tenant, $origin)->where('permission', 'like', '%*%')->distinct()->pluck('permission');
             foreach ($patterns as $pattern) {
-                if (self::coversAny((string) $pattern, $grants)) {
-                    $names[] = (string) $pattern;
+                if (is_string($pattern) && self::coversAny($pattern, $grants)) {
+                    $names[] = $pattern;
                 }
             }
         }

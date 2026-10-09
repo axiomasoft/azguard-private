@@ -6,9 +6,11 @@ namespace AzGuard\Sources\Relation;
 
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use Closure;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * A predicate builder for trusted host callbacks, with terminal operations disabled.
@@ -32,6 +34,10 @@ final class RelationScopeQuery extends Builder
      * @param  mixed  $value
      * @param  string  $boolean
      */
+    /**
+     * @param  array<int|string, mixed>|(Closure(static|QueryBuilder): mixed)|Expression|string  $column
+     * @param  string  $boolean
+     */
     public function where($column, $operator = null, $value = null, $boolean = 'and'): static
     {
         if ($column instanceof Closure && $operator === null) {
@@ -48,9 +54,9 @@ final class RelationScopeQuery extends Builder
     }
 
     /** @param string|Relation<Model, Model, mixed> $relation
-     * @param  mixed  $operator
-     * @param  mixed  $count
-     * @param  mixed  $boolean
+     * @param  string  $operator
+     * @param  Expression|int  $count
+     * @param  string  $boolean
      */
     public function has($relation, $operator = '>=', $count = 1, $boolean = 'and', ?Closure $callback = null): static
     {

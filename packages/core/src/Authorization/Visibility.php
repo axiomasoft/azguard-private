@@ -31,6 +31,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Scopes\CurrentContext;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use DateTimeImmutable;
@@ -235,7 +236,7 @@ final readonly class Visibility
     /** @return array{AccessRequest, EvaluationFrame, PanelCatalog} */
     private function inputs(Panel $panel, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): array
     {
-        $ref = $subject instanceof Model ? SubjectRef::of($subject->getMorphClass(), $subject->getKey()) : $subject;
+        $ref = $subject instanceof Model ? SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)) : $subject;
 
         if (! $panel->accepts($ref)) {
             throw new SubjectNotAcceptedException('Selected panel does not accept this subject.');

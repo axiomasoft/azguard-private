@@ -75,9 +75,9 @@ final class ListPermissions extends Page implements HasTable
                         ->afterStateUpdated(static fn (Set $set): mixed => $set('tenant', null)),
                     Select::make('tenant')->label('Tenant')
                         ->searchable()
-                        ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get('panel'), (string) $search))
-                        ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get('panel'), $value))
-                        ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get('panel'))),
+                        ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get->string('panel', isNullable: true), (string) $search))
+                        ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get->string('panel', isNullable: true), $value))
+                        ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get->string('panel', isNullable: true))),
                 ]),
             ])
             ->deferFilters(false)
@@ -171,7 +171,8 @@ final class ListPermissions extends Page implements HasTable
 
     private function filter(string $name): ?string
     {
-        $value = $this->tableFilters['target'][$name] ?? null;
+        $filters = $this->tableFilters['target'] ?? null;
+        $value = is_array($filters) ? $filters[$name] ?? null : null;
 
         if ($name === 'panel' && ($value === null || $value === '')) {
             return self::selector()->defaultPanel();

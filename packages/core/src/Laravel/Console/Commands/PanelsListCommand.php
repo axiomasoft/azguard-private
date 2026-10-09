@@ -11,6 +11,8 @@ use Illuminate\Console\Command;
 /**
  * Lists the registered panels; with options also their effective settings and where each value came from, their
  * sources and plugins, and the schema of their permissions and roles. Reads only.
+ *
+ * @phpstan-import-type Entry from PanelOverview
  */
 final class PanelsListCommand extends Command
 {
@@ -42,7 +44,7 @@ final class PanelsListCommand extends Command
         });
     }
 
-    /** @param list<array<string, mixed>> $panels */
+    /** @param list<Entry> $panels */
     private function print(array $panels): void
     {
         if ($panels === []) {

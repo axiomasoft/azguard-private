@@ -14,6 +14,7 @@ use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Forms\SchemaFields;
+use AzGuard\Filament\Support\ModelKey;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Explanation;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -26,11 +27,13 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Scopes\AssignmentScopePhase;
+use Closure;
 use DateTimeImmutable;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
 use Throwable;
+use UnexpectedValueException;
 
 /**
  * The grants of one kind, role or permission, in the target panel and tenant of an editor, as the user who edits sees
@@ -288,7 +291,7 @@ final readonly class GrantEditor
         $fields = SchemaFields::values($this->schema, $this->fieldTarget(), $state);
         $access = $this->access->for($subject);
 
-        return AzGuard::actingAs($user, fn (): ChangeResult => $this->kind === 'role'
+        return self::actingAs($user, fn (): ChangeResult => $this->kind === 'role'
             ? $access->grantRole((string) $key, on: $on, until: $until, fields: $fields)
             : $access->grantPermission((string) $key, on: $on, until: $until, fields: $fields));
     }
@@ -307,7 +310,7 @@ final readonly class GrantEditor
         $details = new GrantDetails(self::moment($data['until'] ?? null),
             SchemaFields::values($this->schema, $this->fieldTarget(), is_array($data['fields'] ?? null) ? $data['fields'] : null));
 
-        return AzGuard::actingAs($user, fn (): ChangeResult => $this->access->grants()->update($id, $details, expectedFingerprint: $fingerprint));
+        return self::actingAs($user, fn (): ChangeResult => $this->access->grants()->update($id, $details, expectedFingerprint: $fingerprint));
     }
 
     /**
@@ -325,7 +328,7 @@ final readonly class GrantEditor
             }
         }
 
-        return AzGuard::actingAs($user, fn (): ChangeResult => $this->access->grants()->revokeMany(array_values($ids)));
+        return self::actingAs($user, fn (): ChangeResult => $this->access->grants()->revokeMany(array_values($ids)));
     }
 
     /** A grant of this kind in the partition, found by the grant manager; null for any other id. */
@@ -413,7 +416,7 @@ final readonly class GrantEditor
         return new LookupContext(
             panel: $this->access->definition(),
             scope: $this->access->scope(),
-            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), $actor->getKey()),
+            actor: $actor === null ? null : ActorRef::of($actor->getMorphClass(), ModelKey::of($actor)),
             actorModel: $actor,
             subject: $subject,
             user: $subject === null ? null : $this->subjectModel($subject),
@@ -546,5 +549,17 @@ final readonly class GrantEditor
     private static function refused(string $field, string $message): ValidationException
     {
         return ValidationException::withMessages([$field => $message]);
+    }
+
+    /**
+     * The change written in the name of the user; the facade returns what the callback returns, typed here.
+     *
+     * @param  Closure(): ChangeResult  $change
+     */
+    private static function actingAs(Model $user, Closure $change): ChangeResult
+    {
+        $result = AzGuard::actingAs($user, $change);
+
+        return $result instanceof ChangeResult ? $result : throw new UnexpectedValueException('A grant change returned no change result.');
     }
 }

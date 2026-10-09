@@ -36,7 +36,9 @@ final readonly class DiscoveryCached implements DoctorCheck
         if ($panel === null || ($file['version'] ?? null) !== CatalogCache::VERSION || ($file['build_id'] ?? null) !== $this->registry->buildId()) {
             return;
         }
-        $cached = $file['panels'][$panel->id()]['discovery'] ?? null;
+        $panels = $file['panels'] ?? null;
+        $entry = is_array($panels) ? $panels[$panel->id()] ?? null : null;
+        $cached = is_array($entry) ? $entry['discovery'] ?? null : null;
 
         if (! is_array($cached)) {
             return;

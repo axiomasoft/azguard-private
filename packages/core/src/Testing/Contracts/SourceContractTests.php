@@ -27,6 +27,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\PanelSources;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
@@ -149,7 +150,7 @@ trait SourceContractTests
         }
         $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $this->azguardAttach($builder, $source));
         $source = $this->azguardAttached($panel, $source);
-        $ref = SubjectRef::of($this->azguardSubject()->getMorphClass(), $this->azguardSubject()->getKey());
+        $ref = SubjectRef::of($this->azguardSubject()->getMorphClass(), ModelIdentity::key($this->azguardSubject()));
         $now = new DateTimeImmutable('2026-01-01T00:00:00Z');
         $contexts = [AccessScope::in(TenantRef::global()), AccessScope::in(TenantRef::global(), AssignmentScopeRef::of('store', '1'))];
 
@@ -186,7 +187,7 @@ trait SourceContractTests
             $this->assertSame($source::class, $description->class, 'describe() names another class than the source.');
             $this->assertEqualsCanonicalizing($capabilities, $description->capabilities, 'describe() lists capabilities the source does not have, or leaves out ones it has.');
         }
-        $ref = SubjectRef::of($this->azguardSubject()->getMorphClass(), $this->azguardSubject()->getKey());
+        $ref = SubjectRef::of($this->azguardSubject()->getMorphClass(), ModelIdentity::key($this->azguardSubject()));
         $context = new ContractContext($panel, AccessScope::in(TenantRef::global()), new DateTimeImmutable('2026-01-01T00:00:00Z'));
 
         if ($source instanceof ProvidesGrants) {
@@ -235,7 +236,7 @@ trait SourceContractTests
             $this->fail('The panel does not give the writer back.');
         }
         $change = Change::grant($panel->id(), AccessScope::in(TenantRef::global()),
-            SubjectRef::of($this->azguardSubject()->getMorphClass(), $this->azguardSubject()->getKey()),
+            SubjectRef::of($this->azguardSubject()->getMorphClass(), ModelIdentity::key($this->azguardSubject())),
             PermissionPattern::of($panel->id(), ContractPermission::View->value), IdentityCodec::DEFAULT_ORIGIN, ActorRef::system('contract'));
 
         try {

@@ -12,7 +12,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Contracts\Support\Htmlable;
 use Livewire\Attributes\Locked;
 
 /**
@@ -20,6 +19,8 @@ use Livewire\Attributes\Locked;
  * page has no form, property or method that writes.
  *
  * @internal
+ *
+ * @phpstan-import-type Row from RoleResource
  */
 final class ViewRole extends Page
 {
@@ -39,7 +40,7 @@ final class ViewRole extends Page
         $this->row();
     }
 
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string
     {
         return $this->row()['label'];
     }
@@ -75,7 +76,7 @@ final class ViewRole extends Page
     /**
      * The role, found again in the checked panel on every render.
      *
-     * @return array<string, mixed>
+     * @return Row
      */
     private function row(): array
     {

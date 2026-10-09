@@ -20,6 +20,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\BaseAssignmentScope;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Sources\PanelSources;
 use Closure;
@@ -83,7 +84,7 @@ final class BatchInputs
         foreach ($groups as $class => $refs) {
             foreach (array_chunk($refs, 100, true) as $chunk) {
                 try {
-                    $models = (new $class)->newQuery()->whereKey(array_map(static fn (SubjectRef $ref): string => $ref->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) $model->getKey());
+                    $models = (new $class)->newQuery()->whereKey(array_map(static fn (SubjectRef $ref): string => $ref->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
                     foreach ($chunk as $key => $ref) {
                         $this->subjects[$key] = $models->get($ref->id());
                     }
@@ -140,7 +141,7 @@ final class BatchInputs
             }
             foreach (array_chunk($frames, 100, true) as $chunk) {
                 try {
-                    $records = $definition->query()->whereKey(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) $model->getKey());
+                    $records = $definition->query()->whereKey(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
                     foreach ($chunk as $key => $frame) {
                         try {
                             $record = $records->get($frame->scope()->context->id());

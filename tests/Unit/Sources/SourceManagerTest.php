@@ -30,6 +30,11 @@ it('rejects source parameters that are not an array', function (): void {
         ->toThrow(InvalidConfigurationException::class, 'azguard.sources.ldap');
 });
 
+it('rejects source parameters that are a list instead of named values', function (): void {
+    expect(fn () => AzGuardConfig::fromRepository(new Repository(['azguard' => ['sources' => ['ldap' => ['memberOf']]]])))
+        ->toThrow(InvalidConfigurationException::class, 'azguard.sources.ldap must be keyed by parameter name, got int.');
+});
+
 it('builds a new object on every make and reads the source configuration', function (): void {
     $config = app('config');
     $config->set('azguard.sources', ['ldap' => ['group_attribute' => 'memberOf']]);

@@ -19,6 +19,9 @@ use BackedEnum;
  * and the panels page of the Filament package print it. It only reads.
  *
  * @api
+ *
+ * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
+ * @phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}
  */
 final readonly class PanelOverview
 {
@@ -30,7 +33,7 @@ final readonly class PanelOverview
      * @param  bool  $settings  the effective settings with their origins
      * @param  bool  $sources  the sources, the named sources and the plugins
      * @param  bool  $schema  the tenant-independent schema of permissions and roles
-     * @return list<array<string, mixed>>
+     * @return list<Entry>
      */
     public function all(bool $settings = false, bool $sources = false, bool $schema = false): array
     {
@@ -46,7 +49,7 @@ final readonly class PanelOverview
     /**
      * One panel; see `all()` for the parts that the arguments add.
      *
-     * @return array<string, mixed>
+     * @return Entry
      */
     public function panel(Panel $panel, bool $settings = false, bool $sources = false, bool $schema = false): array
     {
@@ -90,7 +93,7 @@ final readonly class PanelOverview
      * Each source of the panel with the capabilities it brings, the named sources of the factory the panel uses, and
      * the plugins with where they were attached.
      *
-     * @return array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
+     * @return Sources
      */
     private function sources(Panel $panel, PanelRecipe $recipe): array
     {

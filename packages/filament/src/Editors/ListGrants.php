@@ -27,6 +27,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Utilities\Get;
@@ -292,7 +293,7 @@ abstract class ListGrants extends Page implements HasTable
     }
 
     /**
-     * @return list<mixed>
+     * @return list<Component>
      */
     private function filterSchema(string $label): array
     {
@@ -311,9 +312,9 @@ abstract class ListGrants extends Page implements HasTable
                 ->afterStateUpdated($clearTarget),
             Select::make('tenant')->label('Tenant')
                 ->searchable()
-                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get('panel'), (string) $search))
-                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get('panel'), $value))
-                ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get('panel')))
+                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get->string('panel', isNullable: true), (string) $search))
+                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get->string('panel', isNullable: true), $value))
+                ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get->string('panel', isNullable: true)))
                 ->live()
                 ->afterStateUpdated(static function (Set $set): void {
                     foreach (['subject', 'context', 'granted_by'] as $field) {
@@ -332,8 +333,8 @@ abstract class ListGrants extends Page implements HasTable
                 ->afterStateUpdated(static fn (Set $set): mixed => $set('context', null)),
             Select::make('context')->label('Context')
                 ->searchable()
-                ->getSearchResultsUsing(fn (Get $get, ?string $search): array => $this->editor()?->inspectContexts($get('context_type'), (string) $search) ?? [])
-                ->getOptionLabelUsing(fn (Get $get, ?string $value): ?string => $this->editor()?->contextLabel($get('context_type'), $value))
+                ->getSearchResultsUsing(fn (Get $get, ?string $search): array => $this->editor()?->inspectContexts($get->string('context_type', isNullable: true), (string) $search) ?? [])
+                ->getOptionLabelUsing(fn (Get $get, ?string $value): ?string => $this->editor()?->contextLabel($get->string('context_type', isNullable: true), $value))
                 ->visible(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE),
             Select::make('state')->label('State')
                 ->options([GrantFilter::ACTIVE => 'active', GrantFilter::EXPIRED => 'expired', GrantFilter::ORPHANED => 'orphaned', GrantFilter::ANY => 'any'])
@@ -378,10 +379,10 @@ abstract class ListGrants extends Page implements HasTable
                 ->afterStateUpdated($after(['tenant', 'subject', 'key', 'context_type', 'context', 'fields'])),
             Select::make('tenant')->label('Tenant')
                 ->searchable()
-                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get('panel'), (string) $search))
-                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get('panel'), $value))
-                ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get('panel')))
-                ->required(static fn (Get $get): bool => self::selector()->choosesTenant($get('panel')))
+                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => self::selector()->searchTenants($get->string('panel', isNullable: true), (string) $search))
+                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => self::selector()->tenantLabel($get->string('panel', isNullable: true), $value))
+                ->visible(static fn (Get $get): bool => self::selector()->choosesTenant($get->string('panel', isNullable: true)))
+                ->required(static fn (Get $get): bool => self::selector()->choosesTenant($get->string('panel', isNullable: true)))
                 ->live()
                 ->afterStateUpdated($after(['subject', 'key', 'context_type', 'context', 'fields'])),
             Select::make('subject')->label('Subject')->required()
@@ -395,16 +396,16 @@ abstract class ListGrants extends Page implements HasTable
                 ->live()
                 ->afterStateUpdated($after(['context_type', 'context'])),
             Select::make('context_type')->label('Context type')->required()
-                ->options(static fn (Get $get): array => $editor($get)?->contextTypes($get('key')) ?? [])
+                ->options(static fn (Get $get): array => $editor($get)?->contextTypes($get->string('key', isNullable: true)) ?? [])
                 ->live()
                 ->afterStateUpdated($after(['context'])),
             Select::make('context')->label('Context')
                 ->searchable()
                 ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor($get)?->searchContexts(
-                    $get('context_type'), (string) $search, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
+                    $get->string('context_type', isNullable: true), (string) $search, $get->string('subject', isNullable: true), $get->string('key', isNullable: true), is_array($get('fields')) ? $get('fields') : [],
                 ) ?? [])
                 ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor($get)?->contextLabel(
-                    $get('context_type'), $value, $get('subject'), $get('key'), is_array($get('fields')) ? $get('fields') : [],
+                    $get->string('context_type', isNullable: true), $value, $get->string('subject', isNullable: true), $get->string('key', isNullable: true), is_array($get('fields')) ? $get('fields') : [],
                 ))
                 ->visible(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE)
                 ->required(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE),
@@ -443,7 +444,7 @@ abstract class ListGrants extends Page implements HasTable
     private function editForm(array $record): array
     {
         $editor = $this->editor();
-        $id = (string) ($record['id'] ?? '');
+        $id = is_string($record['id'] ?? null) ? $record['id'] : '';
         $stored = $editor?->record($id);
         abort_if($editor === null || $stored === null, 403);
         $this->editing = ['id' => $id, 'fingerprint' => $stored->fingerprint];
@@ -632,7 +633,8 @@ abstract class ListGrants extends Page implements HasTable
 
     private function filter(string $name): ?string
     {
-        $value = $this->tableFilters['grants'][$name] ?? null;
+        $filters = $this->tableFilters['grants'] ?? null;
+        $value = is_array($filters) ? $filters[$name] ?? null : null;
 
         if ($name === 'panel' && ($value === null || $value === '')) {
             return self::selector()->defaultPanel();

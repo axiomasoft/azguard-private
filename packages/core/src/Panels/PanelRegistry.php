@@ -534,7 +534,9 @@ final class PanelRegistry implements PanelRegistryContract
             return null;
         }
 
-        $discovery = $file['panels'][$panel]['discovery'] ?? null;
+        $panels = $file['panels'] ?? null;
+        $entry = is_array($panels) ? $panels[$panel] ?? null : null;
+        $discovery = is_array($entry) ? $entry['discovery'] ?? null : null;
 
         return is_array($discovery) ? $discovery : null;
     }

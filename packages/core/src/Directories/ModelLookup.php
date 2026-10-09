@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Directories;
 
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Scopes\ModelIdentity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Expression;
@@ -30,7 +31,7 @@ final class ModelLookup
             }
         }
 
-        return (string) $record->getKey();
+        return (string) ModelIdentity::key($record);
     }
 
     /**

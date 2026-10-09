@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,7 +29,15 @@ trait ContextAware
     {
         $relation = $this->azguardContextRelation();
 
-        return $relation === null ? $this : $this->getRelationValue($relation);
+        if ($relation === null) {
+            return $this;
+        }
+
+        $context = $this->getRelationValue($relation);
+
+        return $context === null || $context instanceof Model ? $context : throw new DefinitionException(
+            static::class.'::'.$relation.' must be a to-one relation to the context model.',
+        );
     }
 
     /** Non-tenant shortcut, exposed by models implementing ProvidesAssignmentScope. */
@@ -36,6 +45,6 @@ trait ContextAware
     {
         $record = $this->azguardContext();
 
-        return $record === null ? null : AssignmentScopeRef::of($this->azguardContextType(), $record->getKey());
+        return $record === null ? null : AssignmentScopeRef::of($this->azguardContextType(), ModelIdentity::key($record));
     }
 }

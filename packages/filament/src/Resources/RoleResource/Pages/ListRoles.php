@@ -61,7 +61,8 @@ final class ListRoles extends Page implements HasTable
     /** The panel of the filter, checked again; the first managed panel when none is chosen. */
     private function panel(): ?string
     {
-        $panel = $this->tableFilters['target']['panel'] ?? null;
+        $filters = $this->tableFilters['target'] ?? null;
+        $panel = is_array($filters) ? $filters['panel'] ?? null : null;
 
         return is_string($panel) && $panel !== '' ? $panel : TargetSelector::current()->defaultPanel();
     }

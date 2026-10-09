@@ -63,8 +63,8 @@ final class ExplainAction
                 ->afterStateUpdated(static fn (Set $set): mixed => $set('context', null)),
             Select::make('context')->label('Context')
                 ->searchable()
-                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor->inspectContexts($get('context_type'), (string) $search))
-                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor->contextLabel($get('context_type'), $value))
+                ->getSearchResultsUsing(static fn (Get $get, ?string $search): array => $editor->inspectContexts($get->string('context_type', isNullable: true), (string) $search))
+                ->getOptionLabelUsing(static fn (Get $get, ?string $value): ?string => $editor->contextLabel($get->string('context_type', isNullable: true), $value))
                 ->visible(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE)
                 ->required(static fn (Get $get): bool => filled($get('context_type')) && $get('context_type') !== GrantEditor::TENANT_WIDE),
         ];
@@ -120,7 +120,7 @@ final class ExplainAction
                 }
             }
             $component = is_string($step['component'] ?? null) ? ' · '.class_basename($step['component']) : '';
-            $steps[] = $step['stage'].': '.$step['outcome'].' ('.$step['result'].')'.$component.($detail === [] ? '' : ' — '.implode(', ', $detail));
+            $steps[] = self::text($step['stage'] ?? null).': '.self::text($step['outcome'] ?? null).' ('.self::text($step['result'] ?? null).')'.$component.($detail === [] ? '' : ' — '.implode(', ', $detail));
         }
 
         return [
@@ -128,5 +128,11 @@ final class ExplainAction
             'decision' => is_array($snapshot['decision'] ?? null) ? $snapshot['decision'] : [],
             'steps' => $steps,
         ];
+    }
+
+    /** A trace step keeps its names as strings; anything else (a redacted value) prints as nothing. */
+    private static function text(mixed $value): string
+    {
+        return is_string($value) ? $value : '';
     }
 }

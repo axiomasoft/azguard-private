@@ -14,6 +14,7 @@ use AzGuard\Exceptions\DirectoryScanLimitException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
 use Illuminate\Contracts\Container\Container;
@@ -34,6 +35,8 @@ use Illuminate\Database\Eloquent\Model;
  * without either outcome raises `DirectoryScanLimitException` instead of returning a partial list.
  *
  * @api
+ *
+ * @phpstan-import-type Filter from \AzGuard\Scopes\AssignmentScopeSettings
  */
 final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
 {
@@ -106,7 +109,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             }
 
             foreach ($this->adapted($adapter, $type, $owned, $lookup) as $record) {
-                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, (string) $record->getKey()), ModelLookup::label($record));
+                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, (string) ModelIdentity::key($record)), ModelLookup::label($record));
 
                 if (count($options) >= $limit) {
                     return $options;
@@ -144,7 +147,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
      * The filters of the common check with no role and of every binding of the role, each with its own runtime;
      * null when the role is not granted in this type.
      *
-     * @return list<array{list<mixed>, AssignmentScopeRuntime}>|null
+     * @return list<array{list<Filter>, AssignmentScopeRuntime}>|null
      */
     private function stages(QueryableAssignmentScopeDefinition $definition, LookupContext $lookup): ?array
     {
@@ -167,7 +170,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
         return $stages;
     }
 
-    /** @return list<mixed> */
+    /** @return list<Filter> */
     private function filters(AssignmentScopeDefinition $definition): array
     {
         return $definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->filters : [];
@@ -210,7 +213,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             if ($records === []) {
                 break;
             }
-            $refs = array_map(static fn (Model $record): AssignmentScopeRef => AssignmentScopeRef::of($type, (string) $record->getKey()), $records);
+            $refs = array_map(static fn (Model $record): AssignmentScopeRef => AssignmentScopeRef::of($type, (string) ModelIdentity::key($record)), $records);
             $allowed = $adapter->allowsMany($refs, $this->runtime($lookup, $withRole));
             $records = array_values(array_filter($records, static fn (Model $record, int $i): bool => $allowed[$refs[$i]->key()] ?? false, ARRAY_FILTER_USE_BOTH));
         }

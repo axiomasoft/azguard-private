@@ -19,6 +19,14 @@ class Permission extends Model
         return PermissionKey::of($this->panel(), $this->identityString('name'));
     }
 
+    /** A display column (label, group, description); null when it is empty or not text. */
+    final public function displayText(string $column): ?string
+    {
+        $value = $this->getAttribute($column);
+
+        return is_string($value) ? $value : null;
+    }
+
     /** @return array<string, string> */
     final protected function casts(): array
     {

@@ -43,7 +43,7 @@ return RectorConfig::configure()
         // DefinitionException::code() is the machine code. Copying Throwable::getCode() into the int code of
         // RuntimeException changes the thrown code and can receive a string — everywhere, not only in two files.
         ThrowWithPreviousExceptionRector::class,
-        // `$x === null` reads as the intent for a nullable value; PHPStan level 8 already proves the type, so
+        // `$x === null` reads as the intent for a nullable value; PHPStan level 9 already proves the type, so
         // `! $x instanceof Foo` adds churn (87 files with Rector 2.7) and no safety.
         FlipTypeControlToUseExclusiveTypeRector::class,
         FlipNegatedTernaryInstanceofRector::class,

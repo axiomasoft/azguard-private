@@ -64,7 +64,7 @@ final readonly class GrantFields
         return new self($fields, array_values(array_unique($decisionFields)));
     }
 
-    /** @param array<string, mixed> $values
+    /** @param array<mixed> $values  keys that name no declared field are rejected
      * @return array<string, mixed>
      */
     public function validate(array $values): array
@@ -93,7 +93,7 @@ final readonly class GrantFields
         return $validator->validated();
     }
 
-    /** @param array<string, mixed> $values
+    /** @param array<mixed> $values  keys that name no declared field are rejected
      * @return array{columns: array<string, mixed>, meta: array<string, mixed>}
      */
     public function toRow(array $values): array
@@ -101,7 +101,7 @@ final readonly class GrantFields
         $row = ['columns' => [], 'meta' => []];
         foreach ($this->validate($values) as $name => $value) {
             $field = $this->fields[$name];
-            $row[$field->isInMeta() ? 'meta' : 'columns'][$name] = $value === null ? null : ($field->isMultiple()
+            $row[$field->isInMeta() ? 'meta' : 'columns'][$name] = $value === null ? null : ($field->isMultiple() && is_array($value)
                 ? array_map(fn (mixed $item): mixed => $this->rowValue($field, $item), $value)
                 : $this->rowValue($field, $value));
         }
@@ -220,13 +220,19 @@ final readonly class GrantFields
             return $value->value;
         }
 
+        // Values come from validate(): a date is a date or a parsable string, an int is numeric.
         if ($field->type() === 'date') {
-            return ($value instanceof DateTimeInterface ? CarbonImmutable::instance($value) : CarbonImmutable::parse($value))
-                ->utc()->toIso8601String();
+            $date = match (true) {
+                $value instanceof DateTimeInterface => CarbonImmutable::instance($value),
+                is_string($value) => CarbonImmutable::parse($value),
+                default => throw new InvalidChangeFieldsException([$field->name() => ['The field must be a date.']]),
+            };
+
+            return $date->utc()->toIso8601String();
         }
 
         return match ($field->type()) {
-            'int' => (int) $value,
+            'int' => is_numeric($value) ? (int) $value : throw new InvalidChangeFieldsException([$field->name() => ['The field must be an integer.']]),
             'bool' => (bool) $value,
             default => $value,
         };

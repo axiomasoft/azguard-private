@@ -27,7 +27,9 @@ class VisibilityProject extends Model implements ProvidesAccessScope, ProvidesAs
 
     public function azguardScope(): AccessScope
     {
-        return AccessScope::in(VisibilityWorld::tenant((string) $this->getAttribute('org')), $this->azguardAssignmentScope());
+        $org = $this->getAttribute('org');
+
+        return AccessScope::in(VisibilityWorld::tenant(is_int($org) || is_string($org) ? (string) $org : ''), $this->azguardAssignmentScope());
     }
 
     /** @return BelongsToMany<User, $this> */

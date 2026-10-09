@@ -9,6 +9,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Testing\FakeSource;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
@@ -66,7 +67,7 @@ trait RestrictionContractTests
         $source = new FakeSource;
         $panel = ContractWorld::panel(fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->restrictions([$this->azguardRestriction()]));
         $subject = $this->azguardSubject();
-        $ref = SubjectRef::of($subject->getMorphClass(), $subject->getKey());
+        $ref = SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject));
 
         foreach ($this->azguardPermissions() as $permission) {
             $source->grantPermission($ref, app(PanelResolver::class)->pattern($panel, $permission));
@@ -85,8 +86,8 @@ trait RestrictionContractTests
         $source = new FakeSource;
         $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source]));
         $subject = $this->azguardSubject();
-        $source->grantPermission(SubjectRef::of($subject->getMorphClass(), $subject->getKey()), app(PanelResolver::class)->pattern($panel, ContractPermission::View));
-        $source->grantPermission(SubjectRef::of($subject->getMorphClass(), $subject->getKey()), app(PanelResolver::class)->pattern($panel, ContractPermission::Edit));
+        $source->grantPermission(SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)), app(PanelResolver::class)->pattern($panel, ContractPermission::View));
+        $source->grantPermission(SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)), app(PanelResolver::class)->pattern($panel, ContractPermission::Edit));
         $restricted = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->restrictions([$restriction]));
 
         foreach ($this->azguardPermissions() as $permission) {
@@ -108,7 +109,7 @@ trait RestrictionContractTests
         $subject = $this->azguardSubject();
 
         foreach ($this->azguardPermissions() as $permission) {
-            $source->grantPermission(SubjectRef::of($subject->getMorphClass(), $subject->getKey()), app(PanelResolver::class)->pattern($panel, $permission));
+            $source->grantPermission(SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)), app(PanelResolver::class)->pattern($panel, $permission));
         }
 
         $writes = ContractWorld::writesDuring(function () use ($panel, $subject): void {
