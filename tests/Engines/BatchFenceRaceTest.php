@@ -108,9 +108,10 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
         foreach ($seen as [$panel, $observedReason, $completedReads]) {
             if ($panel === 'admin') {
                 expect($observedReason)->toBe($reason)
-                    ->and($completedReads)->toBe(6 * $attempts);
+                    ->and($completedReads)->toBe(5 * $attempts);
             } else {
-                expect($completedReads)->toBe(4);
+                // No confirming state read after evaluation (step 1): every read of the set precedes its after hooks.
+                expect($completedReads)->toBe(3);
             }
         }
     } finally {
