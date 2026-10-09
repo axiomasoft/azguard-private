@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Guards\Admin\Permissions\Sales\Orders;
+
+use AzGuard\Filament\Attributes\ForFilament;
+use AzGuard\Permissions\Describe;
+use AzGuard\Permissions\RequiresGrant;
+use AzGuard\Permissions\Resource;
+use AzGuard\Tests\Fixtures\Filament\Models\Order;
+use AzGuard\Tests\Fixtures\Filament\Resources\OrderResource;
+
+#[Resource(label: 'Orders', model: Order::class)]
+#[RequiresGrant]
+#[ForFilament(OrderResource::class)]
+enum OrderPermission: string
+{
+    #[Describe('View Any')]
+    case ViewAny = 'orders.view_any';
+
+    #[Describe('View')]
+    case View = 'orders.view';
+
+    #[Describe('Create')]
+    case Create = 'orders.create';
+
+    #[Describe('Update')]
+    case Update = 'orders.update';
+
+    #[Describe('Delete')]
+    case Delete = 'orders.delete';
+
+    #[Describe('Delete Any')]
+    case DeleteAny = 'orders.delete_any';
+
+    #[Describe('Force Delete')]
+    case ForceDelete = 'orders.force_delete';
+
+    #[Describe('Force Delete Any')]
+    case ForceDeleteAny = 'orders.force_delete_any';
+
+    #[Describe('Restore')]
+    case Restore = 'orders.restore';
+
+    #[Describe('Restore Any')]
+    case RestoreAny = 'orders.restore_any';
+
+    #[Describe('Replicate')]
+    case Replicate = 'orders.replicate';
+
+    #[Describe('Reorder')]
+    case Reorder = 'orders.reorder';
+}

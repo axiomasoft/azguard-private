@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Guards\Admin\Permissions\ArchivedOrders;
+
+use AzGuard\Filament\Attributes\ForFilament;
+use AzGuard\Permissions\Describe;
+use AzGuard\Permissions\RequiresGrant;
+use AzGuard\Permissions\Resource;
+use AzGuard\Tests\Fixtures\Filament\Models\Order;
+use AzGuard\Tests\Fixtures\Filament\Resources\ArchivedOrderResource;
+
+#[Resource(label: 'Archived Orders', model: Order::class)]
+#[RequiresGrant]
+#[ForFilament(ArchivedOrderResource::class)]
+enum ArchivedOrderPermission: string
+{
+    #[Describe('View Any')]
+    case ViewAny = 'archived-orders.view_any';
+
+    #[Describe('View')]
+    case View = 'archived-orders.view';
+
+    #[Describe('Create')]
+    case Create = 'archived-orders.create';
+
+    #[Describe('Update')]
+    case Update = 'archived-orders.update';
+
+    #[Describe('Delete')]
+    case Delete = 'archived-orders.delete';
+
+    #[Describe('Delete Any')]
+    case DeleteAny = 'archived-orders.delete_any';
+
+    #[Describe('Force Delete')]
+    case ForceDelete = 'archived-orders.force_delete';
+
+    #[Describe('Force Delete Any')]
+    case ForceDeleteAny = 'archived-orders.force_delete_any';
+
+    #[Describe('Restore')]
+    case Restore = 'archived-orders.restore';
+
+    #[Describe('Restore Any')]
+    case RestoreAny = 'archived-orders.restore_any';
+
+    #[Describe('Replicate')]
+    case Replicate = 'archived-orders.replicate';
+
+    #[Describe('Reorder')]
+    case Reorder = 'archived-orders.reorder';
+}

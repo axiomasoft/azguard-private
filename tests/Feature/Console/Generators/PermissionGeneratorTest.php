@@ -121,3 +121,57 @@ it('refuses a model that is not a class name', function (): void {
     expect(Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Orders', '--model' => 'Order; drop']))->toBe(2)
         ->and($this->generated->files())->toBe([]);
 });
+
+it('declares a policy-only enum with --authority=policy and always writes its policy, which denies', function (): void {
+    expect(Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Orders', '--authority' => 'policy']))->toBe(0);
+    $enum = $this->generated->read('app/Guards/Admin/Permissions/Orders/OrderPermission.php');
+    $policy = $this->generated->read('app/Guards/Admin/Policies/Orders/OrderPolicy.php');
+
+    expect($enum)->toContain('#[PolicyOnly]', 'use AzGuard\Permissions\PolicyOnly;')->not->toContain('RequiresGrant')
+        ->and(substr_count($policy, '#[Decides('))->toBe(5)
+        ->and(substr_count($policy, 'return false;'))->toBe(5)
+        ->and($policy)->not->toContain('return true;');
+});
+
+it('keeps the grants authority and a policy that only passes by default', function (): void {
+    Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Orders', '--policy' => true]);
+    $policy = $this->generated->read('app/Guards/Admin/Policies/Orders/OrderPolicy.php');
+
+    expect($this->generated->read('app/Guards/Admin/Permissions/Orders/OrderPermission.php'))->toContain('#[RequiresGrant]')->not->toContain('PolicyOnly')
+        ->and(substr_count($policy, 'return true;'))->toBe(5);
+});
+
+it('refuses an authority that is neither grants nor policy', function (): void {
+    expect(Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Orders', '--authority' => 'both']))->toBe(2)
+        ->and($this->generated->files())->toBe([]);
+});
+
+it('replaces the CRUD cases with --case and describes each by its name', function (): void {
+    expect(Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Reports', '--case' => ['Export=reports.export', 'ViewAny=reports.view_any']]))->toBe(0);
+    $enum = $this->generated->read('app/Guards/Admin/Permissions/Reports/ReportPermission.php');
+
+    expect($enum)->toContain("#[Describe('Export')]\n    case Export = 'reports.export';", "#[Describe('View Any')]\n    case ViewAny = 'reports.view_any';")
+        ->and($enum)->not->toContain('case Create')
+        ->and(substr_count($enum, 'case '))->toBe(2);
+});
+
+it('gives a policy method to each --case and denies them for a policy-only enum', function (): void {
+    Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Reports', '--authority' => 'policy', '--case' => ['Export=reports.export']]);
+    $policy = $this->generated->read('app/Guards/Admin/Policies/Reports/ReportPolicy.php');
+
+    expect(substr_count($policy, '#[Decides(ReportPermission::Export)]'))->toBe(1)
+        ->and(substr_count($policy, '#[Decides('))->toBe(1)
+        ->and($policy)->toContain('return false;');
+});
+
+it('refuses a malformed or repeated --case before it writes anything', function (array $cases): void {
+    expect(Artisan::call('azguard:make:permission', ['panel' => 'Admin', 'group' => 'Reports', '--case' => $cases]))->toBe(2)
+        ->and(Artisan::output())->toContain('--case')
+        ->and($this->generated->files())->toBe([]);
+})->with([
+    'no key' => [['Export']],
+    'a lowercase name' => [['export=reports.export']],
+    'an invalid key' => [['Export=Reports Export']],
+    'a name twice' => [['Export=reports.export', 'Export=reports.other']],
+    'a key twice' => [['Export=reports.export', 'Other=reports.export']],
+]);

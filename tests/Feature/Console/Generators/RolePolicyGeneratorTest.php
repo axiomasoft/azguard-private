@@ -129,3 +129,27 @@ it('does not overwrite a policy without --force', function (): void {
     expect(Artisan::call('azguard:make:policy', ['panel' => 'Admin', 'group' => 'Orders']))->toBe(1)
         ->and($this->generated->read('app/Guards/Admin/Policies/Orders/OrderPolicy.php'))->toBe('owner policy');
 });
+
+it('writes a policy that denies for a policy-only enum found in the group', function (): void {
+    mkdir($this->generated->path('app/Guards/Admin/Permissions/Orders'), 0o755, true);
+    file_put_contents($this->generated->path('app/Guards/Admin/Permissions/Orders/OrderPermission.php'), <<<'PHP'
+        <?php
+
+        declare(strict_types=1);
+
+        namespace Fixture\Guards\Admin\Permissions\Orders;
+
+        use AzGuard\Permissions\PolicyOnly;
+
+        #[PolicyOnly]
+        enum OrderPermission: string
+        {
+            case View = 'orders.view';
+        }
+        PHP);
+
+    expect(Artisan::call('azguard:make:policy', ['panel' => 'Admin', 'group' => 'Orders']))->toBe(0);
+    $policy = $this->generated->read('app/Guards/Admin/Policies/Orders/OrderPolicy.php');
+
+    expect($policy)->toContain('return false;')->not->toContain('return true;');
+});

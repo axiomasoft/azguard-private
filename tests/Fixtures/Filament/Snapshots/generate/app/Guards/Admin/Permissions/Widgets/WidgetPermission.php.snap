@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Guards\Admin\Permissions\Widgets;
+
+use AzGuard\Filament\Attributes\ForFilament;
+use AzGuard\Permissions\Describe;
+use AzGuard\Permissions\RequiresGrant;
+use AzGuard\Permissions\Resource;
+use AzGuard\Tests\Fixtures\Filament\Widgets\OrderCountWidget;
+
+#[Resource(label: 'Widgets')]
+#[RequiresGrant]
+#[ForFilament(OrderCountWidget::class)]
+enum WidgetPermission: string
+{
+    #[Describe('Order Count')]
+    case OrderCount = 'widgets.order-count';
+}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Filament;
 
 use AzGuard\Filament\Authorization\FilamentGate;
+use AzGuard\Filament\Commands\FilamentGenerateCommand;
 use AzGuard\Filament\Exports\AuthorizesExports;
 use Filament\Actions\Events\ActionCalling;
 use Illuminate\Contracts\Auth\Access\Gate;
@@ -26,6 +27,10 @@ final class AzGuardFilamentServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'azguard-filament');
         $this->publishes([__DIR__.'/../config/azguard-filament.php' => config_path('azguard-filament.php')], 'azguard-filament-config');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([FilamentGenerateCommand::class]);
+        }
 
         $this->app->make(Dispatcher::class)->listen(ActionCalling::class, AuthorizesExports::class);
         $this->app->booted($this->repeatPanelEntryOnLivewireUpdates(...));

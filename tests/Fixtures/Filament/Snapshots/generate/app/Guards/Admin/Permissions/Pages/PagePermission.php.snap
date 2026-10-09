@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Guards\Admin\Permissions\Pages;
+
+use AzGuard\Filament\Attributes\ForFilament;
+use AzGuard\Permissions\Describe;
+use AzGuard\Permissions\RequiresGrant;
+use AzGuard\Permissions\Resource;
+use AzGuard\Tests\Fixtures\Filament\Pages\ProbePage;
+use AzGuard\Tests\Fixtures\Filament\Pages\ReportsPage;
+
+#[Resource(label: 'Pages')]
+#[RequiresGrant]
+#[ForFilament(ProbePage::class)]
+#[ForFilament(ReportsPage::class)]
+enum PagePermission: string
+{
+    #[Describe('Probe')]
+    case Probe = 'pages.probe';
+
+    #[Describe('Reports')]
+    case Reports = 'pages.reports';
+}

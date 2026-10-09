@@ -81,7 +81,7 @@ final class FilamentFixture
     /** Where `azguard:catalog:cache` writes, with the build id; null leaves the configuration alone. */
     public static ?string $catalogCachePath;
 
-    /** @var list<DoctorCheck> doctor checks of the `admin` guard panel */
+    /** @var list<DoctorCheck|class-string<DoctorCheck>> doctor checks of the `admin` guard panel */
     public static array $doctorChecks;
 
     /** @var array{panels?: bool, doctor?: bool} the pages of the package in the `admin` Filament panel; none by default */

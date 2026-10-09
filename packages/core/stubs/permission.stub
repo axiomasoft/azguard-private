@@ -7,21 +7,8 @@ namespace {{ namespace }};
 {{ imports }}
 
 #[Resource(label: '{{ label }}'{{ model }})]
-#[RequiresGrant]
+{{ authority }}
 enum {{ class }}: string
 {
-    #[Describe('View list')]
-    case ViewAny = '{{ key }}.view_any';
-
-    #[Describe('View')]
-    case View = '{{ key }}.view';
-
-    #[Describe('Create')]
-    case Create = '{{ key }}.create';
-
-    #[Describe('Update')]
-    case Update = '{{ key }}.update';
-
-    #[Describe('Delete')]
-    case Delete = '{{ key }}.delete';
+{{ cases }}
 }
