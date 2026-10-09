@@ -26,6 +26,7 @@ use AzGuard\Diagnostics\Checks\RolesKeys;
 use AzGuard\Diagnostics\Checks\RoutesChecks;
 use AzGuard\Diagnostics\Checks\StorageMigrated;
 use AzGuard\Diagnostics\Checks\StorageSchema;
+use AzGuard\Diagnostics\Checks\StorageSqlite;
 use AzGuard\Exceptions\ConfigurationException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPanelException;
@@ -53,7 +54,7 @@ final readonly class Doctor
 {
     /** @var list<class-string<DoctorCheck>> checks of the core in the order of the catalog of checks */
     private const array CORE = [
-        ConfigValid::class, StorageSchema::class, StorageMigrated::class, PanelsValid::class, PanelsPlugins::class,
+        ConfigValid::class, StorageSchema::class, StorageMigrated::class, StorageSqlite::class, PanelsValid::class, PanelsPlugins::class,
         PanelsSources::class, PanelsPolicies::class, PoliciesComplete::class, RolesKeys::class, RoutesChecks::class, PanelsRelations::class,
         CatalogCollisions::class, CatalogCached::class, MembershipConfigured::class, ConsistencyReads::class,
         CacheStore::class, GateModeCheck::class, DirectWrites::class, CatalogBuildId::class,

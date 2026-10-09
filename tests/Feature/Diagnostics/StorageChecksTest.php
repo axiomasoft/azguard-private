@@ -13,6 +13,7 @@ use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
@@ -101,4 +102,34 @@ it('audit.table passes a migrated journal and fails a missing journal or a panel
     DoctorWorld::panels([TestPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([OrderPermission::class])
         ->plugins([AuditPlugin::make()])]);
     expect(storageFindings('audit.table'))->toBe(['plugin:azguard/audit error Panel test has the audit plugin but no database source that stores its grants, so no journal is written.']);
+});
+
+it('storage.sqlite warns about an SQLite file outside WAL or without a busy timeout and never changes it', function (): void {
+    $file = tempnam(sys_get_temp_dir(), 'azg-sqlite-');
+    config([
+        'database.connections.sqlfile' => ['driver' => 'sqlite', 'database' => $file, 'prefix' => '', 'foreign_key_constraints' => true, 'busy_timeout' => null, 'journal_mode' => null],
+        'azguard.storages' => ['default' => [], 'file' => ['connection' => 'sqlfile']],
+    ]);
+    app()->forgetInstance(AzGuardConfig::class);
+    app()->forgetInstance(StorageRegistry::class);
+    storagePanel();
+
+    try {
+        $findings = DoctorWorld::only(DoctorWorld::run(), 'storage.sqlite');
+        expect(DoctorWorld::summary($findings))->toBe(['storage:file storage.sqlite warning'])
+            ->and($findings[0]->message)->toContain('journal_mode is delete')->not->toContain('busy_timeout is')
+            ->and(DB::connection('sqlfile')->selectOne('PRAGMA journal_mode')->journal_mode)->toBe('delete');
+
+        DB::connection('sqlfile')->statement('PRAGMA journal_mode = wal');
+        DB::connection('sqlfile')->statement('PRAGMA busy_timeout = 0');
+        expect(storageFindings('storage.sqlite'))->toBe(['storage:file warning Storage file uses SQLite with busy_timeout is 0: a check that meets a write fails with SQLITE_BUSY at once. Supported, but enable WAL (journal_mode=wal) and set busy_timeout for concurrent use.']);
+
+        DB::connection('sqlfile')->statement('PRAGMA busy_timeout = 5000');
+        expect(storageFindings('storage.sqlite'))->toBe([]);
+    } finally {
+        DB::purge('sqlfile');
+        @unlink($file);
+        @unlink($file.'-wal');
+        @unlink($file.'-shm');
+    }
 });
