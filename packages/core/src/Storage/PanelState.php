@@ -13,5 +13,6 @@ final readonly class PanelState
         public int $version,
         public string $incarnation,
         public DateTimeImmutable $updatedAt,
+        public int $epoch = 0,
     ) {}
 }

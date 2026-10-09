@@ -206,7 +206,7 @@ final class StorageReadSession
         $row = $this->table('panel_state')->where('panel', $panel)->first();
 
         return $row === null ? null : new PanelState($row->panel, (int) $row->version, $row->incarnation,
-            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')));
+            new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')), (int) $row->epoch);
     }
 
     /** The snapshot transaction on the pinned PDO is still the one this session opened. */

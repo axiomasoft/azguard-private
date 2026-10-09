@@ -1027,6 +1027,17 @@
                     "auto_increment": false,
                     "comment": null,
                     "generation": null
+                },
+                {
+                    "name": "epoch",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
                 }
             ],
             "indexes": [
@@ -1034,6 +1045,69 @@
                     "name": "primary",
                     "columns": [
                         "panel"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [],
+            "foreign_keys": []
+        },
+        "subject_revisions": {
+            "columns": [
+                {
+                    "name": "panel",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varbinary",
+                    "type": "varbinary(128)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varbinary",
+                    "type": "varbinary(64)",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "revision",
+                    "type_name": "bigint",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "0",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "primary",
+                    "columns": [
+                        "panel",
+                        "subject_type",
+                        "subject_id"
                     ],
                     "type": "btree",
                     "unique": true,

@@ -53,7 +53,8 @@ final readonly class GrantWriter
         };
 
         if ($effects !== []) {
-            $this->mutation->touch($this->reads->panel()->id());
+            // A grant change is one subject's: its revision and the panel version move, the epoch does not.
+            $this->mutation->touchSubject($this->reads->panel()->id(), $subject);
         }
 
         return ChangeResult::written($record, $effects, $this->reads->token($effects === [] ? 0 : 1),

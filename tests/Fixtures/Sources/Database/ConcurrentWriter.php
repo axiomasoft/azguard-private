@@ -55,9 +55,10 @@ final class ConcurrentWriter
     }
 
     /** Raises the panel version as the write protocol does at the root commit. */
-    public static function touch(Connection $connection, string $panel = 'admin'): void
+    /** Raises the panel version as a grant write does; with `$epoch` also the epoch, as a definition write does. */
+    public static function touch(Connection $connection, string $panel = 'admin', bool $epoch = false): void
     {
-        $connection->table('azg_panel_state')->where('panel', $panel)->increment('version');
+        $connection->table('azg_panel_state')->where('panel', $panel)->incrementEach($epoch ? ['version' => 1, 'epoch' => 1] : ['version' => 1]);
     }
 
     public static function close(): void

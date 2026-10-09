@@ -13616,6 +13616,12 @@
             "constants": [],
             "properties": [
                 {
+                    "name": "epoch",
+                    "type": "int",
+                    "readonly": true,
+                    "static": false
+                },
+                {
                     "name": "fingerprint",
                     "type": "string",
                     "readonly": true,
@@ -13714,6 +13720,14 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "epoch",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "0"
                         }
                     ],
                     "return": "self"
@@ -23552,6 +23566,21 @@
                         }
                     ],
                     "return": "void"
+                },
+                {
+                    "name": "upgrade",
+                    "static": false,
+                    "abstract": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void"
                 }
             ],
             "stability": "api",
@@ -23565,7 +23594,9 @@
             "readonly": false,
             "parent": null,
             "interfaces": [],
-            "constants": [],
+            "constants": [
+                "SCHEMA_VERSION"
+            ],
             "properties": [],
             "methods": [
                 {

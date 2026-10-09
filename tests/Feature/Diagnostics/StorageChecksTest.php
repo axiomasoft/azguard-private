@@ -40,7 +40,7 @@ function storageFindings(string $key): array
 
 it('storage.migrated passes a migrated storage and fails one without its tables', function (): void {
     storagePanel();
-    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables permissions, role_grants, permission_grants, audit_log, panel_state, storage_state (prefix "azg_"): publish and run the AzGuard migrations.']);
+    expect(storageFindings('storage.migrated'))->toBe(['storage:default error Storage default lacks the tables permissions, role_grants, permission_grants, audit_log, panel_state, subject_revisions, storage_state (prefix "azg_"): publish and run the AzGuard migrations.']);
 
     DoctorWorld::migrate();
     expect(storageFindings('storage.migrated'))->toBe([]);

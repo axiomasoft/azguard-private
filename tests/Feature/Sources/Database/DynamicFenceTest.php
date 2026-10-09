@@ -95,7 +95,7 @@ it('fails closed when the catalog changes between its snapshot and the assignmen
             $changed = true;
             ConcurrentWriter::commit(static function (Connection $connection): void {
                 $connection->table('azg_permissions')->delete();
-                ConcurrentWriter::touch($connection);
+                ConcurrentWriter::touch($connection, epoch: true);
             });
         }
     });

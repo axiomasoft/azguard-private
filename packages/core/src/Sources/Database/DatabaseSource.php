@@ -1088,7 +1088,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
     {
         $state = $session->state($panel->id());
 
-        return StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0, $panel->settings()->cacheGeneration(), $fingerprint);
+        return StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0,
+            $panel->settings()->cacheGeneration(), $fingerprint, $state->epoch ?? 0);
     }
 
     /**
