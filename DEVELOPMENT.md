@@ -70,8 +70,8 @@ The first native Pest measurement was 100.00% for every package, and an Xdebug r
 2026-09-24 confirmed it, so the native Pest gates enforce 99%.
 Line coverage on that run was 87.1%, so `composer check:coverage` and the CI
 coverage job enforce `--min=85` (`floor(87.1) - 2`). Local runs use PATH `php`,
-then `php8.4`, and skip only when neither binary has pcov/Xdebug; CI supplies
-Xdebug and remains blocking.
+then `php8.4`, and fail when neither binary has pcov/Xdebug. `AZGUARD_ALLOW_NO_COVERAGE=1`
+is the only opt-out; it prints `NOT VERIFIED`. CI supplies Xdebug.
 
 ## Local database matrix
 

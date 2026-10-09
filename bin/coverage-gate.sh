@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Coverage gate for `composer check`. Honest-skip twin of
-# bin/mutation-gate.sh — see that file for the driver-detection rationale.
+# Coverage gate for `composer check`: fails without a coverage driver unless AZGUARD_ALLOW_NO_COVERAGE=1.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -9,13 +8,12 @@ cd "$(dirname "$0")/.."
 source "$(dirname "$0")/coverage-driver.sh"
 
 if ! azguard_coverage_php; then
-    cat >&2 <<'EOF'
-[coverage-gate] SKIPPED — no coverage driver (pcov/xdebug) available in this
-PHP runtime. CI (tests.yml `coverage` job) enforces --min=85 with Xdebug;
-this is an infra gap locally, not a code-quality signal. Install pcov or
-xdebug to run this gate before pushing.
-EOF
-    exit 0
+    if [[ "${AZGUARD_ALLOW_NO_COVERAGE:-}" == "1" ]]; then
+        echo "[coverage-gate] NOT VERIFIED — no pcov/Xdebug and AZGUARD_ALLOW_NO_COVERAGE=1; CI still enforces this gate." >&2
+        exit 0
+    fi
+    echo "[coverage-gate] FAIL — no coverage driver (pcov or Xdebug) in this PHP runtime. Install one, or opt out explicitly with AZGUARD_ALLOW_NO_COVERAGE=1." >&2
+    exit 1
 fi
 
 # Invoke PHP explicitly: vendor/bin/pest's shebang is `/usr/bin/env php`

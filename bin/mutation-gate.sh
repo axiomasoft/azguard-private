@@ -12,12 +12,12 @@ cd "$(dirname "$0")/.."
 source "$(dirname "$0")/coverage-driver.sh"
 
 if ! azguard_coverage_php; then
-    cat >&2 <<'EOF'
-[mutation-gate] SKIPPED — no coverage driver (pcov/xdebug) is available in this
-PHP runtime. CI runs this gate with Xdebug; install pcov or xdebug locally to
-obtain an enforced native Pest mutation score.
-EOF
-    exit 0
+    if [[ "${AZGUARD_ALLOW_NO_COVERAGE:-}" == "1" ]]; then
+        echo "[mutation-gate] NOT VERIFIED — no pcov/Xdebug and AZGUARD_ALLOW_NO_COVERAGE=1; CI still enforces this gate." >&2
+        exit 0
+    fi
+    echo "[mutation-gate] FAIL — no coverage driver (pcov or Xdebug) in this PHP runtime. Install one, or opt out explicitly with AZGUARD_ALLOW_NO_COVERAGE=1." >&2
+    exit 1
 fi
 
 if (($# == 0)); then
