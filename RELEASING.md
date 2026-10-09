@@ -8,6 +8,15 @@ packages:
 | `axiomasoft/azguard` | `packages/core` | panel-based authorization core |
 | `axiomasoft/azguard-filament` | `packages/filament` | Filament editors |
 
+## Release notes: the curated CHANGELOG
+
+The `CHANGELOG.md` section of a version is the only source of release notes. Commit
+messages are checked for the Conventional Commits format (`bin/check-commits.sh`, see
+[CONTRIBUTING.md](CONTRIBUTING.md)) and suggest the SemVer bump, but they are not
+copied into the notes: a commit log mixes internal work (tests, CI, refactoring) with
+user-visible changes, and one change often spans several commits. Each pull request
+with a user-visible change edits `[Unreleased]`; the release moves it under the version.
+
 ## Versioning: lockstep
 
 Both packages share **one version**. A release tags the monorepo and
@@ -53,8 +62,8 @@ Composer derives the version from the git tag the split action pushes.
 5. CI takes over:
    - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
      every package manifest (`composer validate --strict`), re-runs analyse + style +
-     tests, then creates the GitHub release (release notes body still comes from
-     `git-cliff` for the tag).
+     tests, then creates the GitHub release. Its notes are the version's CHANGELOG
+     section, printed by `bin/release-notes.sh x.y.z REF` (try it before tagging).
    - **`split.yml`** is called only after release validation succeeds. Its split
      job is skipped until its one-time setup is complete.
 

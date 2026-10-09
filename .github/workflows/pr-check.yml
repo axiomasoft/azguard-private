@@ -20,15 +20,30 @@ jobs:
           types: |
             feat
             fix
-            docs
-            style
-            refactor
             perf
+            refactor
+            docs
             test
+            build
             ci
+            style
             chore
             revert
           requireScope: false
+          # Same header rule as bin/check-commits.sh: a lower-case type and an English subject.
+          subjectPattern: '^[ -~]*[^.\s]$'
+          subjectPatternError: 'The subject must be printable ASCII (English) without a trailing period.'
+
+  commits:
+    name: Conventional Commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check every commit of the pull request
+        run: bash bin/check-commits.sh "origin/${GITHUB_BASE_REF}" HEAD
 
   size:
     name: PR size check

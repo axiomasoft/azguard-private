@@ -71,4 +71,54 @@ git -C "$fixture" rm --quiet CHANGELOG.md
 git -C "$fixture" commit --quiet -m 'fixture: missing changelog'
 expect_fail 1.0.0
 
+# Release notes are the body of the version section, nothing before or after it.
+notes_script="$(dirname "$script")/release-notes.sh"
+cat > "$fixture/CHANGELOG.md" <<'EOF'
+# Changelog
+
+## [Unreleased]
+
+- Next.
+
+## [1.1.0] - 2026-10-01
+
+### Added
+
+- Feature.
+
+```markdown
+## [1.0.0] - fenced
+```
+
+## [1.0.0] - 2026-09-23
+
+## [0.9.0] - 2026-09-01
+
+- Old.
+EOF
+git -C "$fixture" add CHANGELOG.md
+git -C "$fixture" commit --quiet -m 'fixture: release notes'
+notes="$(cd "$fixture" && bash "$notes_script" 1.1.0 HEAD)"
+expected="$(printf '%s\n' '### Added' '' '- Feature.' '' '```markdown' '## [1.0.0] - fenced' '```')"
+if [[ "$notes" != "$expected" ]]; then
+    printf 'unexpected release notes:\n%s\n' "$notes" >&2
+    exit 1
+fi
+for empty in 1.0.0 2.0.0; do
+    if (cd "$fixture" && bash "$notes_script" "$empty" HEAD >/dev/null 2>&1); then
+        echo "unexpected release notes for $empty" >&2
+        exit 1
+    fi
+done
+
+# Commit headers.
+commits_script="$(dirname "$script")/check-commits.sh"
+bash "$commits_script" --header 'feat(core): add a wildcard depth limit' 'fix!: drop the legacy cache key' 'build(deps): bump pest' >/dev/null
+for bad in 'docs(readme): README для 1.0' 'Feat: add x' 'feat: add x.' 'wip' 'feat(Core): add x' 'feature: add x' "feat: $(printf 'x%.0s' {1..100})"; do
+    if bash "$commits_script" --header "$bad" >/dev/null 2>&1; then
+        echo "unexpected commit header pass: $bad" >&2
+        exit 1
+    fi
+done
+
 echo 'release-preflight fixtures: PASS'
