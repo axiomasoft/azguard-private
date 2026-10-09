@@ -41,6 +41,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopeRuntime;
+use AzGuard\Scopes\ModelKey;
 use AzGuard\Sources\Database\LockedReads;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -539,7 +540,7 @@ final class ChangeValidator
         if (! $resolver instanceof ResourceScopeResolver) {
             throw new InvalidChangeFieldsException([$name => ['The panel cannot tell the tenant of '.$class.'.']]);
         }
-        $record = is_a($class, Model::class, true) && (is_int($id) || is_string($id)) ? $class::query()->find($id) : null;
+        $record = is_a($class, Model::class, true) && (is_int($id) || is_string($id)) ? ModelKey::find($class::query(), (string) $id) : null;
 
         if (! $record instanceof Model || ! $resolver->resolve($record, AccessScope::in($scope->tenant))->tenant->equals($scope->tenant)) {
             throw new InvalidChangeFieldsException([$name => ['The selected record does not belong to tenant '.$scope->tenant->key().'.']]);

@@ -7,6 +7,7 @@ namespace AzGuard\Directories;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Scopes\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -57,7 +58,7 @@ final readonly class ModelSubjectDirectory implements SubjectDirectory
             if ((new $model)->getMorphClass() !== $subject->type()) {
                 continue;
             }
-            $record = $model::query()->whereKey($subject->id())->first();
+            $record = ModelKey::find($model::query(), $subject->id());
 
             return $record === null ? null : new SubjectOption($subject, ModelLookup::label($record));
         }

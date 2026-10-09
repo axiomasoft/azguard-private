@@ -18,6 +18,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Scopes\ModelKey;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
@@ -86,7 +87,7 @@ final readonly class VisibilityScope
             $compiler->constrain($query, $this->owner($query, $request, $frame));
 
             if (! $frame->scope()->context->isGlobal()) {
-                $query->whereKey($frame->scope()->context->id());
+                ModelKey::where($query, $frame->scope()->context->id());
             }
 
             return $query;
@@ -111,7 +112,7 @@ final readonly class VisibilityScope
         $compiler->constrain($query, $this->owner($query, $request, $frame, $requiresRecord));
 
         if (! $frame->scope()->context->isGlobal()) {
-            $query->whereKey($frame->scope()->context->id());
+            ModelKey::where($query, $frame->scope()->context->id());
         }
         $declared = $frame->panel()->scopes()->adapters()[$this->definition->type()] ?? null;
 
@@ -191,7 +192,7 @@ final readonly class VisibilityScope
         }
 
         if (! $frame->scope()->context->isGlobal()) {
-            $probe->whereKey($frame->scope()->context->id());
+            ModelKey::where($probe, $frame->scope()->context->id());
         }
         $records = $probe->limit(1001)->get();
 
