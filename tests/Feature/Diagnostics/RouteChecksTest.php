@@ -84,6 +84,7 @@ it('fails a #[CheckPermission] outside a panel that the router of this Laravel v
 
     app('router')->setRoutes(new RouteCollection);
 
+    DoctorWorld::withoutPasswordInMessages();
     doctorRoute('older', ReportController::class, 'rebuild', [], OlderRouterRoute::class);
     $finding = DoctorWorld::only(DoctorWorld::run(), 'routes.checks');
     expect(routeFindings())->toBe(['core GET|HEAD /older'])

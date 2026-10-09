@@ -271,8 +271,10 @@ final class VisibilityWorld
         Carbon::setTestNow(Carbon::parse('2026-10-06 12:00:00', 'UTC'));
         Relation::morphMap(['user' => User::class, 'org' => Organization::class], false);
 
-        if (DB::connection()->getDatabaseName() !== ':memory:') {
-            throw new RuntimeException('Visibility tests require isolated SQLite :memory:.');
+        $database = (string) DB::connection()->getDatabaseName();
+
+        if ($database !== ':memory:' && ! str_ends_with($database, '_test')) {
+            throw new RuntimeException('Visibility tests require an isolated database: SQLite :memory: or *_test.');
         }
         Schema::create('users', fn (Blueprint $table) => $table->id());
         User::query()->insert(['id' => 1]);

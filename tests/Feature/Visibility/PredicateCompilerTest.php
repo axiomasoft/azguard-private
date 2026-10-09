@@ -129,7 +129,7 @@ class PredicateMember extends Model
 }
 
 beforeEach(function (): void {
-    expect(DB::connection()->getDatabaseName())->toBe(':memory:');
+    expect(DB::connection()->getDatabaseName())->toMatch('/^:memory:$|_test$/');
     Schema::create('predicate_resources', function (Blueprint $table): void {
         $table->id();
         $table->integer('tenant_id');

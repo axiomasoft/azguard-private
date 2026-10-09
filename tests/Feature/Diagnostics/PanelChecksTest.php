@@ -137,7 +137,7 @@ it('cache.store passes a store with a ttl or no store, and fails a persistent st
 
 it('consistency.reads passes primary reads and warns about default reads on a connection with read hosts', function (): void {
     config([
-        'database.connections.replicated' => [...config('database.connections.testbench'), 'read' => ['database' => ':memory:'], 'write' => []],
+        'database.connections.replicated' => [...config('database.connections.testbench'), 'read' => ['database' => config('database.connections.testbench.database')], 'write' => []],
         'azguard.storages' => ['default' => [], 'replicated' => ['connection' => 'replicated']],
     ]);
     app()->forgetInstance(AzGuardConfig::class);

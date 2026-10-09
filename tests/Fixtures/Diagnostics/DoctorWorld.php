@@ -17,12 +17,24 @@ use AzGuard\Tests\Fixtures\Diagnostics\Guards\Notes\NotesGuardPanelProvider;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use Closure;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Compiles fixture panels into the registry of the application and runs the doctor over them.
  */
 final class DoctorWorld
 {
+    /**
+     * The doctor redacts every database password wherever it occurs; the password of the server test databases is
+     * `azguard`, which would also be cut out of `azguard.storages…` or `azguard.can:…` in a message. The connection
+     * is opened first, then the password leaves the configuration the doctor reads.
+     */
+    public static function withoutPasswordInMessages(): void
+    {
+        DB::connection()->getPdo();
+        config(['database.connections.testbench.password' => null, 'database.connections.secondary.password' => null]);
+    }
+
     /**
      * @param  array<class-string<FixturePanel>, Closure(PanelBuilder): mixed>  $panels
      */

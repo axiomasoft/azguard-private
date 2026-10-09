@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 beforeEach(function (): void {
-    expect(config('database.connections.testbench.database'))->toBe(':memory:');
+    expect(config('database.connections.testbench.database'))->toMatch('/^:memory:$|_test$/');
     Schema::create('native_projects', function (Blueprint $table): void {
         $table->id();
         $table->string('owner');
