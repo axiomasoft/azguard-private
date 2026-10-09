@@ -42,6 +42,11 @@ final class StorageReadSession
         $this->baselineIdentity = $this->baseline?->identity($storage);
         $this->assertNoTransaction();
         $authority = $storage->connection();
+
+        // A connection closed by DB::disconnect() (before a fork, between Octane requests) reopens as a query would.
+        if ($authority->getRawPdo() === null) {
+            $authority->reconnect();
+        }
         $pdo = $this->transaction !== null || $this->baselineIdentity !== null || $reads === Reads::Primary ? $authority->getPdo() : $authority->getRawReadPdo();
 
         if ($reads === Reads::Default && $pdo === null) {
