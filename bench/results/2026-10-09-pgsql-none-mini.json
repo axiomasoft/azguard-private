@@ -1,0 +1,2862 @@
+{
+    "schema": "urn:azguard:bench:result:1",
+    "date": "2026-10-09T09:27:51Z",
+    "commit": "f956510cb270",
+    "dirty": true,
+    "tier": "mini",
+    "driver": "pgsql",
+    "cache": "none",
+    "environment": {
+        "php": "8.4.26",
+        "laravel": "13.35.0",
+        "database": "pgsql",
+        "database_server": "16.15",
+        "opcache": true,
+        "xdebug": false,
+        "cpu": "Intel(R) Xeon(R) Processor",
+        "cpus": 8,
+        "os": "Linux 6.12.94+"
+    },
+    "dataset": {
+        "tier": {
+            "name": "mini",
+            "users": 200,
+            "heavy_roles": 20,
+            "heavy_direct": 200,
+            "posts": 10000,
+            "tenants": 20,
+            "members_per_tenant": 10,
+            "iterations": 200,
+            "warmup": 20,
+            "ladder": [
+                1,
+                2,
+                4
+            ],
+            "reps": 3
+        },
+        "rows": {
+            "users": 200,
+            "posts": 10000,
+            "teams": 20,
+            "team_user": 200,
+            "azg_role_grants": 509,
+            "azg_permission_grants": 220
+        },
+        "digest": "97bdddcaad4f0b3be0fb6da9c77dc5cee0b639a4d164a88488767425eb08ba4e"
+    },
+    "profiles": [
+        {
+            "id": "checks-concurrent",
+            "description": "First check of a request, random user and permission, 1..N concurrent workers",
+            "primary_op": "check",
+            "stages": [
+                {
+                    "name": "check:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.344,
+                        1.503,
+                        1.451
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 200,
+                                "errors": 0,
+                                "p50_us": 6650.1,
+                                "p95_us": 7755.3,
+                                "p99_us": 8294.3,
+                                "max_us": 10338.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 148.8
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 200,
+                                "errors": 0,
+                                "p50_us": 7357,
+                                "p95_us": 9124.3,
+                                "p99_us": 9963.5,
+                                "max_us": 21238.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 133.1
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 200,
+                                "errors": 0,
+                                "p50_us": 6891.4,
+                                "p95_us": 9110.3,
+                                "p99_us": 9593.5,
+                                "max_us": 10834.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 137.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 6891.4,
+                            "p95_us": 9110.3,
+                            "p99_us": 9593.5,
+                            "sql_per_op": 5,
+                            "ops_per_s": 137.8,
+                            "errors": 0,
+                            "p95_cv": 0.074,
+                            "stable": true
+                        }
+                    },
+                    "checks": []
+                },
+                {
+                    "name": "check:w2",
+                    "workers": 2,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.375,
+                        1.349,
+                        1.564
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 400,
+                                "errors": 0,
+                                "p50_us": 6445.6,
+                                "p95_us": 8467.9,
+                                "p99_us": 11933.5,
+                                "max_us": 27566.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 290.8
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 400,
+                                "errors": 0,
+                                "p50_us": 6383,
+                                "p95_us": 7985.9,
+                                "p99_us": 9010.5,
+                                "max_us": 24197.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 296.5
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 400,
+                                "errors": 0,
+                                "p50_us": 6550.3,
+                                "p95_us": 8767.7,
+                                "p99_us": 18929.8,
+                                "max_us": 163158.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 255.7
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 6445.6,
+                            "p95_us": 8467.9,
+                            "p99_us": 11933.5,
+                            "sql_per_op": 5,
+                            "ops_per_s": 290.8,
+                            "errors": 0,
+                            "p95_cv": 0.038,
+                            "stable": true
+                        }
+                    },
+                    "checks": []
+                },
+                {
+                    "name": "check:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.424,
+                        1.481,
+                        1.621,
+                        1.677,
+                        1.61
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6742.9,
+                                "p95_us": 8452.7,
+                                "p99_us": 9822.2,
+                                "max_us": 23063.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 561.8
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6937.4,
+                                "p95_us": 8903.7,
+                                "p99_us": 10974.8,
+                                "max_us": 14233.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 540
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 7247.7,
+                                "p95_us": 11442.4,
+                                "p99_us": 16321.5,
+                                "max_us": 33452.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 493.6
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6774.8,
+                                "p95_us": 16961.9,
+                                "p99_us": 23593.6,
+                                "max_us": 115929.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 477.1
+                            }
+                        },
+                        {
+                            "check": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 7124.9,
+                                "p95_us": 12640.7,
+                                "p99_us": 15979,
+                                "max_us": 25777.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 496.9
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 6937.4,
+                            "p95_us": 11442.4,
+                            "p99_us": 15979,
+                            "sql_per_op": 5,
+                            "ops_per_s": 496.9,
+                            "errors": 0,
+                            "p95_cv": 0.262,
+                            "stable": false
+                        }
+                    },
+                    "checks": []
+                }
+            ]
+        },
+        {
+            "id": "large-sets",
+            "description": "Heavy subject: many roles and direct grants over 1 000 permissions",
+            "primary_op": "miss",
+            "stages": [
+                {
+                    "name": "heavy:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        1.189,
+                        1.35,
+                        1.19,
+                        1.138,
+                        1.182
+                    ],
+                    "reps": [
+                        {
+                            "abilities50": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 208558,
+                                "p95_us": 235208.3,
+                                "p99_us": 235208.3,
+                                "max_us": 235208.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "hit": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21386.1,
+                                "p95_us": 27433.2,
+                                "p99_us": 27433.2,
+                                "max_us": 27433.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "miss": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21948.2,
+                                "p95_us": 26864.5,
+                                "p99_us": 26864.5,
+                                "max_us": 26864.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "permission_set": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 27085,
+                                "p95_us": 35270.9,
+                                "p99_us": 35270.9,
+                                "max_us": 35270.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 3.4
+                            },
+                            "same_request": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 2537.4,
+                                "p95_us": 3439,
+                                "p99_us": 3439,
+                                "max_us": 3439,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.4
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 249202,
+                                "p95_us": 269258,
+                                "p99_us": 269258,
+                                "max_us": 269258,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3
+                            },
+                            "hit": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 23626,
+                                "p95_us": 36780.1,
+                                "p99_us": 36780.1,
+                                "max_us": 36780.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3
+                            },
+                            "miss": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21904.4,
+                                "p95_us": 31156,
+                                "p99_us": 31156,
+                                "max_us": 31156,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3
+                            },
+                            "permission_set": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 23411.4,
+                                "p95_us": 43022.3,
+                                "p99_us": 43022.3,
+                                "max_us": 43022.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 3
+                            },
+                            "same_request": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 2370.3,
+                                "p95_us": 3668.7,
+                                "p99_us": 3668.7,
+                                "max_us": 3668.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 213658.8,
+                                "p95_us": 243806.7,
+                                "p99_us": 243806.7,
+                                "max_us": 243806.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "hit": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21828.6,
+                                "p95_us": 25518.2,
+                                "p99_us": 25518.2,
+                                "max_us": 25518.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "miss": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21502,
+                                "p95_us": 24759.4,
+                                "p99_us": 24759.4,
+                                "max_us": 24759.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "permission_set": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 25685.4,
+                                "p95_us": 27733,
+                                "p99_us": 27733,
+                                "max_us": 27733,
+                                "sql_per_op": 6,
+                                "ops_per_s": 3.4
+                            },
+                            "same_request": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 2533.9,
+                                "p95_us": 3366.5,
+                                "p99_us": 3366.5,
+                                "max_us": 3366.5,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.4
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 210817.5,
+                                "p95_us": 217306.9,
+                                "p99_us": 217306.9,
+                                "max_us": 217306.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.5
+                            },
+                            "hit": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 20218.6,
+                                "p95_us": 24274.3,
+                                "p99_us": 24274.3,
+                                "max_us": 24274.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.5
+                            },
+                            "miss": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21254,
+                                "p95_us": 25744.1,
+                                "p99_us": 25744.1,
+                                "max_us": 25744.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.5
+                            },
+                            "permission_set": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 23517,
+                                "p95_us": 27244.6,
+                                "p99_us": 27244.6,
+                                "max_us": 27244.6,
+                                "sql_per_op": 6,
+                                "ops_per_s": 3.5
+                            },
+                            "same_request": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 2443.7,
+                                "p95_us": 2639.9,
+                                "p99_us": 2639.9,
+                                "max_us": 2639.9,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.5
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 223768.5,
+                                "p95_us": 224756.4,
+                                "p99_us": 224756.4,
+                                "max_us": 224756.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "hit": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 21321.4,
+                                "p95_us": 22501.6,
+                                "p99_us": 22501.6,
+                                "max_us": 22501.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "miss": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 20993.4,
+                                "p95_us": 22875.1,
+                                "p99_us": 22875.1,
+                                "max_us": 22875.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 3.4
+                            },
+                            "permission_set": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 23280.6,
+                                "p95_us": 28689.7,
+                                "p99_us": 28689.7,
+                                "max_us": 28689.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 3.4
+                            },
+                            "same_request": {
+                                "count": 4,
+                                "errors": 0,
+                                "p50_us": 2450,
+                                "p95_us": 2692.3,
+                                "p99_us": 2692.3,
+                                "max_us": 2692.3,
+                                "sql_per_op": 0,
+                                "ops_per_s": 3.4
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "abilities50": {
+                            "p50_us": 213658.8,
+                            "p95_us": 235208.3,
+                            "p99_us": 235208.3,
+                            "sql_per_op": 5,
+                            "ops_per_s": 3.4,
+                            "errors": 0,
+                            "p95_cv": 0.076,
+                            "stable": true
+                        },
+                        "hit": {
+                            "p50_us": 21386.1,
+                            "p95_us": 25518.2,
+                            "p99_us": 25518.2,
+                            "sql_per_op": 5,
+                            "ops_per_s": 3.4,
+                            "errors": 0,
+                            "p95_cv": 0.183,
+                            "stable": false
+                        },
+                        "miss": {
+                            "p50_us": 21502,
+                            "p95_us": 25744.1,
+                            "p99_us": 25744.1,
+                            "sql_per_op": 5,
+                            "ops_per_s": 3.4,
+                            "errors": 0,
+                            "p95_cv": 0.105,
+                            "stable": false
+                        },
+                        "permission_set": {
+                            "p50_us": 23517,
+                            "p95_us": 28689.7,
+                            "p99_us": 28689.7,
+                            "sql_per_op": 6,
+                            "ops_per_s": 3.4,
+                            "errors": 0,
+                            "p95_cv": 0.187,
+                            "stable": false
+                        },
+                        "same_request": {
+                            "p50_us": 2450,
+                            "p95_us": 3366.5,
+                            "p99_us": 3366.5,
+                            "sql_per_op": 0,
+                            "ops_per_s": 3.4,
+                            "errors": 0,
+                            "p95_cv": 0.132,
+                            "stable": false
+                        }
+                    },
+                    "checks": []
+                },
+                {
+                    "name": "heavy:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 20,
+                    "warmup_per_worker": 5,
+                    "windows_s": [
+                        1.355,
+                        1.197,
+                        1.157,
+                        1.409,
+                        1.235
+                    ],
+                    "reps": [
+                        {
+                            "abilities50": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 227684.9,
+                                "p95_us": 292747.4,
+                                "p99_us": 292747.4,
+                                "max_us": 292747.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.8
+                            },
+                            "hit": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 24886.5,
+                                "p95_us": 86542.9,
+                                "p99_us": 86542.9,
+                                "max_us": 86542.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.8
+                            },
+                            "miss": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 21898.9,
+                                "p95_us": 35061.3,
+                                "p99_us": 35061.3,
+                                "max_us": 35061.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.8
+                            },
+                            "permission_set": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 22863.5,
+                                "p95_us": 67887.4,
+                                "p99_us": 67887.4,
+                                "max_us": 67887.4,
+                                "sql_per_op": 6,
+                                "ops_per_s": 11.8
+                            },
+                            "same_request": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 2382.1,
+                                "p95_us": 4457.7,
+                                "p99_us": 4457.7,
+                                "max_us": 4457.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 11.8
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 217922.7,
+                                "p95_us": 233722.9,
+                                "p99_us": 233722.9,
+                                "max_us": 233722.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.4
+                            },
+                            "hit": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 20555.2,
+                                "p95_us": 24012.7,
+                                "p99_us": 24012.7,
+                                "max_us": 24012.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.4
+                            },
+                            "miss": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 21771.5,
+                                "p95_us": 35538.8,
+                                "p99_us": 35538.8,
+                                "max_us": 35538.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.4
+                            },
+                            "permission_set": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 22074,
+                                "p95_us": 48038.7,
+                                "p99_us": 48038.7,
+                                "max_us": 48038.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 13.4
+                            },
+                            "same_request": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 2398.9,
+                                "p95_us": 6470,
+                                "p99_us": 6470,
+                                "max_us": 6470,
+                                "sql_per_op": 0,
+                                "ops_per_s": 13.4
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 209518.4,
+                                "p95_us": 253314.3,
+                                "p99_us": 253314.3,
+                                "max_us": 253314.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.8
+                            },
+                            "hit": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 20392.3,
+                                "p95_us": 26411.3,
+                                "p99_us": 26411.3,
+                                "max_us": 26411.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.8
+                            },
+                            "miss": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 20404.4,
+                                "p95_us": 26896.6,
+                                "p99_us": 26896.6,
+                                "max_us": 26896.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13.8
+                            },
+                            "permission_set": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 21659,
+                                "p95_us": 24067.3,
+                                "p99_us": 24067.3,
+                                "max_us": 24067.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 13.8
+                            },
+                            "same_request": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 2250.6,
+                                "p95_us": 3036.9,
+                                "p99_us": 3036.9,
+                                "max_us": 3036.9,
+                                "sql_per_op": 0,
+                                "ops_per_s": 13.8
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 227686.5,
+                                "p95_us": 319092.3,
+                                "p99_us": 319092.3,
+                                "max_us": 319092.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.4
+                            },
+                            "hit": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 22859.1,
+                                "p95_us": 46187.2,
+                                "p99_us": 46187.2,
+                                "max_us": 46187.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.4
+                            },
+                            "miss": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 21384.8,
+                                "p95_us": 69264.3,
+                                "p99_us": 69264.3,
+                                "max_us": 69264.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 11.4
+                            },
+                            "permission_set": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 23604.3,
+                                "p95_us": 45202.1,
+                                "p99_us": 45202.1,
+                                "max_us": 45202.1,
+                                "sql_per_op": 6,
+                                "ops_per_s": 11.4
+                            },
+                            "same_request": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 2435.5,
+                                "p95_us": 3615.5,
+                                "p99_us": 3615.5,
+                                "max_us": 3615.5,
+                                "sql_per_op": 0,
+                                "ops_per_s": 11.4
+                            }
+                        },
+                        {
+                            "abilities50": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 223135.2,
+                                "p95_us": 273718.4,
+                                "p99_us": 273718.4,
+                                "max_us": 273718.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13
+                            },
+                            "hit": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 21104.4,
+                                "p95_us": 27135.5,
+                                "p99_us": 27135.5,
+                                "max_us": 27135.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13
+                            },
+                            "miss": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 22323.2,
+                                "p95_us": 28645.8,
+                                "p99_us": 28645.8,
+                                "max_us": 28645.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 13
+                            },
+                            "permission_set": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 22055.3,
+                                "p95_us": 29526.2,
+                                "p99_us": 29526.2,
+                                "max_us": 29526.2,
+                                "sql_per_op": 6,
+                                "ops_per_s": 13
+                            },
+                            "same_request": {
+                                "count": 16,
+                                "errors": 0,
+                                "p50_us": 2301.4,
+                                "p95_us": 3200.6,
+                                "p99_us": 3200.6,
+                                "max_us": 3200.6,
+                                "sql_per_op": 0,
+                                "ops_per_s": 13
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "abilities50": {
+                            "p50_us": 223135.2,
+                            "p95_us": 273718.4,
+                            "p99_us": 273718.4,
+                            "sql_per_op": 5,
+                            "ops_per_s": 13,
+                            "errors": 0,
+                            "p95_cv": 0.108,
+                            "stable": false
+                        },
+                        "hit": {
+                            "p50_us": 21104.4,
+                            "p95_us": 27135.5,
+                            "p99_us": 27135.5,
+                            "sql_per_op": 5,
+                            "ops_per_s": 13,
+                            "errors": 0,
+                            "p95_cv": 0.562,
+                            "stable": false
+                        },
+                        "miss": {
+                            "p50_us": 21771.5,
+                            "p95_us": 35061.3,
+                            "p99_us": 35061.3,
+                            "sql_per_op": 5,
+                            "ops_per_s": 13,
+                            "errors": 0,
+                            "p95_cv": 0.396,
+                            "stable": false
+                        },
+                        "permission_set": {
+                            "p50_us": 22074,
+                            "p95_us": 45202.1,
+                            "p99_us": 45202.1,
+                            "sql_per_op": 6,
+                            "ops_per_s": 13,
+                            "errors": 0,
+                            "p95_cv": 0.359,
+                            "stable": false
+                        },
+                        "same_request": {
+                            "p50_us": 2382.1,
+                            "p95_us": 3615.5,
+                            "p99_us": 3615.5,
+                            "sql_per_op": 0,
+                            "ops_per_s": 13,
+                            "errors": 0,
+                            "p95_cv": 0.302,
+                            "stable": false
+                        }
+                    },
+                    "checks": []
+                }
+            ]
+        },
+        {
+            "id": "visible-at-scale",
+            "description": "visibleTo() first page and count over the posts table",
+            "primary_op": "page",
+            "stages": [
+                {
+                    "name": "visible:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 50,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.627,
+                        0.502,
+                        0.489,
+                        0.541,
+                        0.513
+                    ],
+                    "reps": [
+                        {
+                            "count": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 9842.4,
+                                "p95_us": 25884.5,
+                                "p99_us": 40586.8,
+                                "max_us": 40586.8,
+                                "sql_per_op": 7,
+                                "ops_per_s": 39.9
+                            },
+                            "page": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 11027.9,
+                                "p95_us": 13380.4,
+                                "p99_us": 70637.8,
+                                "max_us": 70637.8,
+                                "sql_per_op": 7,
+                                "ops_per_s": 39.9
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 9273.5,
+                                "p95_us": 10450.4,
+                                "p99_us": 11255.9,
+                                "max_us": 11255.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 49.8
+                            },
+                            "page": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 10100.9,
+                                "p95_us": 12358.3,
+                                "p99_us": 23136.6,
+                                "max_us": 23136.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 49.8
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 9207.2,
+                                "p95_us": 10896.7,
+                                "p99_us": 12217.9,
+                                "max_us": 12217.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 51.1
+                            },
+                            "page": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 9885,
+                                "p95_us": 12670.3,
+                                "p99_us": 12702.9,
+                                "max_us": 12702.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 51.1
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 10291.6,
+                                "p95_us": 11581.9,
+                                "p99_us": 11810.4,
+                                "max_us": 11810.4,
+                                "sql_per_op": 7,
+                                "ops_per_s": 46.2
+                            },
+                            "page": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 11169.1,
+                                "p95_us": 12573.3,
+                                "p99_us": 13013.6,
+                                "max_us": 13013.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 46.2
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 9023.8,
+                                "p95_us": 11500.7,
+                                "p99_us": 26944.9,
+                                "max_us": 26944.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 48.7
+                            },
+                            "page": {
+                                "count": 25,
+                                "errors": 0,
+                                "p50_us": 10421.5,
+                                "p95_us": 12677.5,
+                                "p99_us": 13761.2,
+                                "max_us": 13761.2,
+                                "sql_per_op": 7,
+                                "ops_per_s": 48.7
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "count": {
+                            "p50_us": 9273.5,
+                            "p95_us": 11500.7,
+                            "p99_us": 12217.9,
+                            "sql_per_op": 7,
+                            "ops_per_s": 48.7,
+                            "errors": 0,
+                            "p95_cv": 0.421,
+                            "stable": false
+                        },
+                        "page": {
+                            "p50_us": 10421.5,
+                            "p95_us": 12670.3,
+                            "p99_us": 13761.2,
+                            "sql_per_op": 7,
+                            "ops_per_s": 48.7,
+                            "errors": 0,
+                            "p95_cv": 0.027,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "user 10 sees exactly its own posts",
+                            "ok": true,
+                            "detail": "50 of 50"
+                        }
+                    ]
+                },
+                {
+                    "name": "visible:w2",
+                    "workers": 2,
+                    "iterations_per_worker": 50,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.52,
+                        0.513,
+                        0.576,
+                        0.69,
+                        0.487
+                    ],
+                    "reps": [
+                        {
+                            "count": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 9585.4,
+                                "p95_us": 11907.4,
+                                "p99_us": 15164.9,
+                                "max_us": 15164.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 96.1
+                            },
+                            "page": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 10086.4,
+                                "p95_us": 13125.7,
+                                "p99_us": 14617.5,
+                                "max_us": 14617.5,
+                                "sql_per_op": 7,
+                                "ops_per_s": 96.1
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 9303.2,
+                                "p95_us": 12921.2,
+                                "p99_us": 15497.3,
+                                "max_us": 15497.3,
+                                "sql_per_op": 7,
+                                "ops_per_s": 97.5
+                            },
+                            "page": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 10408.4,
+                                "p95_us": 14278.9,
+                                "p99_us": 15933.3,
+                                "max_us": 15933.3,
+                                "sql_per_op": 7,
+                                "ops_per_s": 97.5
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 9605.8,
+                                "p95_us": 29720.3,
+                                "p99_us": 31321.9,
+                                "max_us": 31321.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 86.7
+                            },
+                            "page": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 10328.2,
+                                "p95_us": 19353.8,
+                                "p99_us": 23547.9,
+                                "max_us": 23547.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 86.7
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 9566.7,
+                                "p95_us": 21468.4,
+                                "p99_us": 98113.2,
+                                "max_us": 98113.2,
+                                "sql_per_op": 7,
+                                "ops_per_s": 72.5
+                            },
+                            "page": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 10359.9,
+                                "p95_us": 28565.7,
+                                "p99_us": 89440.7,
+                                "max_us": 89440.7,
+                                "sql_per_op": 7,
+                                "ops_per_s": 72.5
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 8827,
+                                "p95_us": 18572.6,
+                                "p99_us": 22690.4,
+                                "max_us": 22690.4,
+                                "sql_per_op": 7,
+                                "ops_per_s": 102.6
+                            },
+                            "page": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 9125.1,
+                                "p95_us": 12971.9,
+                                "p99_us": 16365.1,
+                                "max_us": 16365.1,
+                                "sql_per_op": 7,
+                                "ops_per_s": 102.6
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "count": {
+                            "p50_us": 9566.7,
+                            "p95_us": 18572.6,
+                            "p99_us": 22690.4,
+                            "sql_per_op": 7,
+                            "ops_per_s": 96.1,
+                            "errors": 0,
+                            "p95_cv": 0.341,
+                            "stable": false
+                        },
+                        "page": {
+                            "p50_us": 10328.2,
+                            "p95_us": 14278.9,
+                            "p99_us": 16365.1,
+                            "sql_per_op": 7,
+                            "ops_per_s": 96.1,
+                            "errors": 0,
+                            "p95_cv": 0.336,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "user 10 sees exactly its own posts",
+                            "ok": true,
+                            "detail": "50 of 50"
+                        }
+                    ]
+                },
+                {
+                    "name": "visible:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 50,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.525,
+                        0.491,
+                        0.474
+                    ],
+                    "reps": [
+                        {
+                            "count": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9574.5,
+                                "p95_us": 11360.1,
+                                "p99_us": 14990.3,
+                                "max_us": 15333.2,
+                                "sql_per_op": 7,
+                                "ops_per_s": 190.6
+                            },
+                            "page": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 10290.7,
+                                "p95_us": 12345.7,
+                                "p99_us": 20614.4,
+                                "max_us": 34509.1,
+                                "sql_per_op": 7,
+                                "ops_per_s": 190.6
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9041.3,
+                                "p95_us": 10782.5,
+                                "p99_us": 14031.8,
+                                "max_us": 15692.2,
+                                "sql_per_op": 7,
+                                "ops_per_s": 203.6
+                            },
+                            "page": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9894,
+                                "p95_us": 12095.6,
+                                "p99_us": 13687.8,
+                                "max_us": 13940.5,
+                                "sql_per_op": 7,
+                                "ops_per_s": 203.6
+                            }
+                        },
+                        {
+                            "count": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 8793.6,
+                                "p95_us": 10382,
+                                "p99_us": 10891.1,
+                                "max_us": 12367.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 211
+                            },
+                            "page": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9605.9,
+                                "p95_us": 11543.2,
+                                "p99_us": 12089.5,
+                                "max_us": 12821.5,
+                                "sql_per_op": 7,
+                                "ops_per_s": 211
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "count": {
+                            "p50_us": 9041.3,
+                            "p95_us": 10782.5,
+                            "p99_us": 14031.8,
+                            "sql_per_op": 7,
+                            "ops_per_s": 203.6,
+                            "errors": 0,
+                            "p95_cv": 0.037,
+                            "stable": true
+                        },
+                        "page": {
+                            "p50_us": 9894,
+                            "p95_us": 12095.6,
+                            "p99_us": 13687.8,
+                            "sql_per_op": 7,
+                            "ops_per_s": 203.6,
+                            "errors": 0,
+                            "p95_cv": 0.028,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "user 10 sees exactly its own posts",
+                            "ok": true,
+                            "detail": "50 of 50"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "cache-cold-warm",
+            "description": "First check with a flushed store, with a primed store, and in the same request",
+            "primary_op": "warm_store",
+            "stages": [
+                {
+                    "name": "coldwarm:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 198,
+                    "warmup_per_worker": 18,
+                    "windows_s": [
+                        1.144,
+                        0.92,
+                        0.966,
+                        0.897,
+                        0.919
+                    ],
+                    "reps": [
+                        {
+                            "cold": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6735.5,
+                                "p95_us": 11260.6,
+                                "p99_us": 86701.6,
+                                "max_us": 86701.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 57.7
+                            },
+                            "warm_request": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 690.2,
+                                "p95_us": 917,
+                                "p99_us": 2300.7,
+                                "max_us": 2300.7,
+                                "sql_per_op": 0,
+                                "ops_per_s": 57.7
+                            },
+                            "warm_store": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 7161.3,
+                                "p95_us": 12498.8,
+                                "p99_us": 20109.7,
+                                "max_us": 20109.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 57.7
+                            }
+                        },
+                        {
+                            "cold": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6314.6,
+                                "p95_us": 7926,
+                                "p99_us": 9400.8,
+                                "max_us": 9400.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 71.8
+                            },
+                            "warm_request": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 609.2,
+                                "p95_us": 834.4,
+                                "p99_us": 12268.2,
+                                "max_us": 12268.2,
+                                "sql_per_op": 0,
+                                "ops_per_s": 71.8
+                            },
+                            "warm_store": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6341.9,
+                                "p95_us": 8010.6,
+                                "p99_us": 8344.1,
+                                "max_us": 8344.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 71.8
+                            }
+                        },
+                        {
+                            "cold": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6750.2,
+                                "p95_us": 8033.7,
+                                "p99_us": 16922.1,
+                                "max_us": 16922.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 68.3
+                            },
+                            "warm_request": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 614.5,
+                                "p95_us": 795.7,
+                                "p99_us": 1384.8,
+                                "max_us": 1384.8,
+                                "sql_per_op": 0,
+                                "ops_per_s": 68.3
+                            },
+                            "warm_store": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6648.2,
+                                "p95_us": 8715.5,
+                                "p99_us": 8931.1,
+                                "max_us": 8931.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 68.3
+                            }
+                        },
+                        {
+                            "cold": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6122.5,
+                                "p95_us": 8658.4,
+                                "p99_us": 10361.2,
+                                "max_us": 10361.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 73.5
+                            },
+                            "warm_request": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 578.5,
+                                "p95_us": 764.6,
+                                "p99_us": 941.3,
+                                "max_us": 941.3,
+                                "sql_per_op": 0,
+                                "ops_per_s": 73.5
+                            },
+                            "warm_store": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6118,
+                                "p95_us": 8199.7,
+                                "p99_us": 11971.4,
+                                "max_us": 11971.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 73.5
+                            }
+                        },
+                        {
+                            "cold": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6152.1,
+                                "p95_us": 9182.8,
+                                "p99_us": 12373.3,
+                                "max_us": 12373.3,
+                                "sql_per_op": 5,
+                                "ops_per_s": 71.8
+                            },
+                            "warm_request": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 597.4,
+                                "p95_us": 821,
+                                "p99_us": 967,
+                                "max_us": 967,
+                                "sql_per_op": 0,
+                                "ops_per_s": 71.8
+                            },
+                            "warm_store": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 6283.5,
+                                "p95_us": 8268,
+                                "p99_us": 9359.1,
+                                "max_us": 9359.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 71.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "cold": {
+                            "p50_us": 6314.6,
+                            "p95_us": 8658.4,
+                            "p99_us": 12373.3,
+                            "sql_per_op": 5,
+                            "ops_per_s": 71.8,
+                            "errors": 0,
+                            "p95_cv": 0.135,
+                            "stable": false
+                        },
+                        "warm_request": {
+                            "p50_us": 609.2,
+                            "p95_us": 821,
+                            "p99_us": 1384.8,
+                            "sql_per_op": 0,
+                            "ops_per_s": 71.8,
+                            "errors": 0,
+                            "p95_cv": 0.062,
+                            "stable": true
+                        },
+                        "warm_store": {
+                            "p50_us": 6341.9,
+                            "p95_us": 8268,
+                            "p99_us": 9359.1,
+                            "sql_per_op": 5,
+                            "ops_per_s": 71.8,
+                            "errors": 0,
+                            "p95_cv": 0.186,
+                            "stable": false
+                        }
+                    },
+                    "checks": []
+                },
+                {
+                    "name": "warm:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.605,
+                        1.325,
+                        1.381,
+                        1.447,
+                        1.725
+                    ],
+                    "reps": [
+                        {
+                            "warm_store": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6827.2,
+                                "p95_us": 13949.4,
+                                "p99_us": 27333.5,
+                                "max_us": 116501.1,
+                                "sql_per_op": 5,
+                                "ops_per_s": 498.3
+                            }
+                        },
+                        {
+                            "warm_store": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6326.2,
+                                "p95_us": 8170.9,
+                                "p99_us": 9536.3,
+                                "max_us": 13619.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 603.8
+                            }
+                        },
+                        {
+                            "warm_store": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6491.8,
+                                "p95_us": 8465.6,
+                                "p99_us": 10780.4,
+                                "max_us": 14548,
+                                "sql_per_op": 5,
+                                "ops_per_s": 579.5
+                            }
+                        },
+                        {
+                            "warm_store": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 6832.6,
+                                "p95_us": 9524.7,
+                                "p99_us": 12452.7,
+                                "max_us": 15717.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 552.8
+                            }
+                        },
+                        {
+                            "warm_store": {
+                                "count": 800,
+                                "errors": 0,
+                                "p50_us": 7176.6,
+                                "p95_us": 13502.5,
+                                "p99_us": 24349.1,
+                                "max_us": 99244.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 463.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "warm_store": {
+                            "p50_us": 6827.2,
+                            "p95_us": 9524.7,
+                            "p99_us": 12452.7,
+                            "sql_per_op": 5,
+                            "ops_per_s": 552.8,
+                            "errors": 0,
+                            "p95_cv": 0.233,
+                            "stable": false
+                        }
+                    },
+                    "checks": []
+                }
+            ]
+        },
+        {
+            "id": "grant-revoke-load",
+            "description": "Writers grant and revoke while readers check the same subjects",
+            "primary_op": "check_under_writes",
+            "stages": [
+                {
+                    "name": "writes:w2",
+                    "workers": 2,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.974,
+                        0.916,
+                        0.993,
+                        1.095,
+                        1.043
+                    ],
+                    "reps": [
+                        {
+                            "check_inconsistent": {
+                                "count": 17,
+                                "errors": 0,
+                                "p50_us": 19050.6,
+                                "p95_us": 22473.9,
+                                "p99_us": 22473.9,
+                                "max_us": 22473.9,
+                                "sql_per_op": 15,
+                                "ops_per_s": 17.5
+                            },
+                            "check_under_writes": {
+                                "count": 83,
+                                "errors": 0,
+                                "p50_us": 6774.5,
+                                "p95_us": 16212.5,
+                                "p99_us": 20595.9,
+                                "max_us": 20595.9,
+                                "sql_per_op": 5.84,
+                                "ops_per_s": 85.2
+                            },
+                            "grant": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 4981.6,
+                                "p95_us": 6223.3,
+                                "p99_us": 6975.1,
+                                "max_us": 6975.1,
+                                "sql_per_op": 6,
+                                "ops_per_s": 51.3
+                            },
+                            "revoke": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 6362,
+                                "p95_us": 7584.9,
+                                "p99_us": 8501.9,
+                                "max_us": 8501.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 51.3
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 18,
+                                "errors": 0,
+                                "p50_us": 17709.4,
+                                "p95_us": 21835.7,
+                                "p99_us": 21835.7,
+                                "max_us": 21835.7,
+                                "sql_per_op": 15,
+                                "ops_per_s": 19.6
+                            },
+                            "check_under_writes": {
+                                "count": 82,
+                                "errors": 0,
+                                "p50_us": 6070.1,
+                                "p95_us": 13176.4,
+                                "p99_us": 18305.5,
+                                "max_us": 18305.5,
+                                "sql_per_op": 5.79,
+                                "ops_per_s": 89.5
+                            },
+                            "grant": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 4988.6,
+                                "p95_us": 6286.7,
+                                "p99_us": 7999.7,
+                                "max_us": 7999.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 54.6
+                            },
+                            "revoke": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 6401.5,
+                                "p95_us": 7888.1,
+                                "p99_us": 8497.1,
+                                "max_us": 8497.1,
+                                "sql_per_op": 7,
+                                "ops_per_s": 54.6
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 23,
+                                "errors": 0,
+                                "p50_us": 17717.2,
+                                "p95_us": 20425.1,
+                                "p99_us": 21472.2,
+                                "max_us": 21472.2,
+                                "sql_per_op": 15,
+                                "ops_per_s": 23.2
+                            },
+                            "check_under_writes": {
+                                "count": 77,
+                                "errors": 0,
+                                "p50_us": 6860.1,
+                                "p95_us": 11972.6,
+                                "p99_us": 17341,
+                                "max_us": 17341,
+                                "sql_per_op": 5.45,
+                                "ops_per_s": 77.5
+                            },
+                            "grant": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 4742.3,
+                                "p95_us": 6272.4,
+                                "p99_us": 7857,
+                                "max_us": 7857,
+                                "sql_per_op": 6,
+                                "ops_per_s": 50.3
+                            },
+                            "revoke": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 6028.4,
+                                "p95_us": 7615.5,
+                                "p99_us": 8421.1,
+                                "max_us": 8421.1,
+                                "sql_per_op": 7,
+                                "ops_per_s": 50.3
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 17,
+                                "errors": 0,
+                                "p50_us": 19801.3,
+                                "p95_us": 29672.9,
+                                "p99_us": 29672.9,
+                                "max_us": 29672.9,
+                                "sql_per_op": 15,
+                                "ops_per_s": 15.5
+                            },
+                            "check_under_writes": {
+                                "count": 83,
+                                "errors": 0,
+                                "p50_us": 7084.8,
+                                "p95_us": 18736.5,
+                                "p99_us": 26786.5,
+                                "max_us": 26786.5,
+                                "sql_per_op": 5.84,
+                                "ops_per_s": 75.8
+                            },
+                            "grant": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 4879.6,
+                                "p95_us": 7910.2,
+                                "p99_us": 38558.2,
+                                "max_us": 38558.2,
+                                "sql_per_op": 6,
+                                "ops_per_s": 45.7
+                            },
+                            "revoke": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 7175.1,
+                                "p95_us": 12346.6,
+                                "p99_us": 20899.5,
+                                "max_us": 20899.5,
+                                "sql_per_op": 7,
+                                "ops_per_s": 45.7
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 21,
+                                "errors": 0,
+                                "p50_us": 19421.8,
+                                "p95_us": 22572.1,
+                                "p99_us": 58938.2,
+                                "max_us": 58938.2,
+                                "sql_per_op": 15,
+                                "ops_per_s": 20.1
+                            },
+                            "check_under_writes": {
+                                "count": 79,
+                                "errors": 0,
+                                "p50_us": 6770.9,
+                                "p95_us": 13789.4,
+                                "p99_us": 20399.1,
+                                "max_us": 20399.1,
+                                "sql_per_op": 5.63,
+                                "ops_per_s": 75.8
+                            },
+                            "grant": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 5537.6,
+                                "p95_us": 7551.2,
+                                "p99_us": 18206.9,
+                                "max_us": 18206.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 47.9
+                            },
+                            "revoke": {
+                                "count": 50,
+                                "errors": 0,
+                                "p50_us": 6355.1,
+                                "p95_us": 7969.4,
+                                "p99_us": 8329.8,
+                                "max_us": 8329.8,
+                                "sql_per_op": 7,
+                                "ops_per_s": 47.9
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check_inconsistent": {
+                            "p50_us": 19050.6,
+                            "p95_us": 22473.9,
+                            "p99_us": 22473.9,
+                            "sql_per_op": 15,
+                            "ops_per_s": 19.6,
+                            "errors": 0,
+                            "p95_cv": 0.138,
+                            "stable": false
+                        },
+                        "check_under_writes": {
+                            "p50_us": 6774.5,
+                            "p95_us": 13789.4,
+                            "p99_us": 20399.1,
+                            "sql_per_op": 5.79,
+                            "ops_per_s": 77.5,
+                            "errors": 0,
+                            "p95_cv": 0.163,
+                            "stable": false
+                        },
+                        "grant": {
+                            "p50_us": 4981.6,
+                            "p95_us": 6286.7,
+                            "p99_us": 7999.7,
+                            "sql_per_op": 6,
+                            "ops_per_s": 50.3,
+                            "errors": 0,
+                            "p95_cv": 0.106,
+                            "stable": false
+                        },
+                        "revoke": {
+                            "p50_us": 6362,
+                            "p95_us": 7888.1,
+                            "p99_us": 8497.1,
+                            "sql_per_op": 7,
+                            "ops_per_s": 50.3,
+                            "errors": 0,
+                            "p95_cv": 0.212,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 50 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "writes:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.287,
+                        1.413,
+                        1.234,
+                        1.281,
+                        1.515
+                    ],
+                    "reps": [
+                        {
+                            "check_inconsistent": {
+                                "count": 88,
+                                "errors": 0,
+                                "p50_us": 18296.8,
+                                "p95_us": 21368.5,
+                                "p99_us": 22786.3,
+                                "max_us": 22786.3,
+                                "sql_per_op": 15,
+                                "ops_per_s": 68.4
+                            },
+                            "check_under_writes": {
+                                "count": 112,
+                                "errors": 0,
+                                "p50_us": 6368.6,
+                                "p95_us": 19492.3,
+                                "p99_us": 21367.4,
+                                "max_us": 25407.6,
+                                "sql_per_op": 6.47,
+                                "ops_per_s": 87
+                            },
+                            "grant": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 8950.4,
+                                "p95_us": 10325.1,
+                                "p99_us": 12641.6,
+                                "max_us": 12666.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 77.7
+                            },
+                            "revoke": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 11876.8,
+                                "p95_us": 14501.6,
+                                "p99_us": 30266.5,
+                                "max_us": 31191.9,
+                                "sql_per_op": 7,
+                                "ops_per_s": 77.7
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 89,
+                                "errors": 0,
+                                "p50_us": 18690.5,
+                                "p95_us": 24460.1,
+                                "p99_us": 32212.9,
+                                "max_us": 32212.9,
+                                "sql_per_op": 15,
+                                "ops_per_s": 63
+                            },
+                            "check_under_writes": {
+                                "count": 111,
+                                "errors": 0,
+                                "p50_us": 6790.8,
+                                "p95_us": 19564.2,
+                                "p99_us": 22790.6,
+                                "max_us": 30825.5,
+                                "sql_per_op": 6.17,
+                                "ops_per_s": 78.5
+                            },
+                            "grant": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9540.7,
+                                "p95_us": 14366.9,
+                                "p99_us": 37670.1,
+                                "max_us": 37843.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 70.8
+                            },
+                            "revoke": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 11260.7,
+                                "p95_us": 15980.8,
+                                "p99_us": 19301.7,
+                                "max_us": 19332.6,
+                                "sql_per_op": 7,
+                                "ops_per_s": 70.8
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 86,
+                                "errors": 0,
+                                "p50_us": 17719.4,
+                                "p95_us": 20884.5,
+                                "p99_us": 21376.9,
+                                "max_us": 21376.9,
+                                "sql_per_op": 15,
+                                "ops_per_s": 69.7
+                            },
+                            "check_under_writes": {
+                                "count": 114,
+                                "errors": 0,
+                                "p50_us": 6346.8,
+                                "p95_us": 18718,
+                                "p99_us": 20073.7,
+                                "max_us": 20326.1,
+                                "sql_per_op": 6.27,
+                                "ops_per_s": 92.4
+                            },
+                            "grant": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 8902.1,
+                                "p95_us": 10415.2,
+                                "p99_us": 11428.8,
+                                "max_us": 11773.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 81
+                            },
+                            "revoke": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 11055,
+                                "p95_us": 13102.9,
+                                "p99_us": 13704.2,
+                                "max_us": 13806.2,
+                                "sql_per_op": 7,
+                                "ops_per_s": 81
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 86,
+                                "errors": 0,
+                                "p50_us": 18303.7,
+                                "p95_us": 21507,
+                                "p99_us": 22632.9,
+                                "max_us": 22632.9,
+                                "sql_per_op": 15,
+                                "ops_per_s": 67.1
+                            },
+                            "check_under_writes": {
+                                "count": 114,
+                                "errors": 0,
+                                "p50_us": 6669.4,
+                                "p95_us": 17947.8,
+                                "p99_us": 19841.9,
+                                "max_us": 22133.2,
+                                "sql_per_op": 6.36,
+                                "ops_per_s": 89
+                            },
+                            "grant": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 8901.6,
+                                "p95_us": 10776.9,
+                                "p99_us": 11254.2,
+                                "max_us": 11611.2,
+                                "sql_per_op": 6,
+                                "ops_per_s": 78.1
+                            },
+                            "revoke": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 11596.9,
+                                "p95_us": 13017.2,
+                                "p99_us": 13829.4,
+                                "max_us": 14581,
+                                "sql_per_op": 7,
+                                "ops_per_s": 78.1
+                            }
+                        },
+                        {
+                            "check_inconsistent": {
+                                "count": 89,
+                                "errors": 0,
+                                "p50_us": 19117,
+                                "p95_us": 36665.3,
+                                "p99_us": 121109.5,
+                                "max_us": 121109.5,
+                                "sql_per_op": 15,
+                                "ops_per_s": 58.7
+                            },
+                            "check_under_writes": {
+                                "count": 111,
+                                "errors": 0,
+                                "p50_us": 6566.5,
+                                "p95_us": 18627.5,
+                                "p99_us": 20958.4,
+                                "max_us": 21479.6,
+                                "sql_per_op": 6.22,
+                                "ops_per_s": 73.2
+                            },
+                            "grant": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 9409.8,
+                                "p95_us": 23090,
+                                "p99_us": 26756.8,
+                                "max_us": 30753,
+                                "sql_per_op": 6,
+                                "ops_per_s": 66
+                            },
+                            "revoke": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 11637.3,
+                                "p95_us": 22388.6,
+                                "p99_us": 26248.8,
+                                "max_us": 26489.3,
+                                "sql_per_op": 7,
+                                "ops_per_s": 66
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check_inconsistent": {
+                            "p50_us": 18303.7,
+                            "p95_us": 21507,
+                            "p99_us": 22786.3,
+                            "sql_per_op": 15,
+                            "ops_per_s": 67.1,
+                            "errors": 0,
+                            "p95_cv": 0.239,
+                            "stable": false
+                        },
+                        "check_under_writes": {
+                            "p50_us": 6566.5,
+                            "p95_us": 18718,
+                            "p99_us": 20958.4,
+                            "sql_per_op": 6.27,
+                            "ops_per_s": 87,
+                            "errors": 0,
+                            "p95_cv": 0.032,
+                            "stable": true
+                        },
+                        "grant": {
+                            "p50_us": 8950.4,
+                            "p95_us": 10776.9,
+                            "p99_us": 12641.6,
+                            "sql_per_op": 6,
+                            "ops_per_s": 77.7,
+                            "errors": 0,
+                            "p95_cv": 0.354,
+                            "stable": false
+                        },
+                        "revoke": {
+                            "p50_us": 11596.9,
+                            "p95_us": 14501.6,
+                            "p99_us": 19301.7,
+                            "sql_per_op": 7,
+                            "ops_per_s": 77.7,
+                            "errors": 0,
+                            "p95_cv": 0.22,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 100 wrong"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "multi-tenant",
+            "description": "Checks in a random tenant: member, outsider and admin, with membership",
+            "primary_op": "member",
+            "stages": [
+                {
+                    "name": "tenant:w1",
+                    "workers": 1,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.992,
+                        0.908,
+                        0.913,
+                        0.898,
+                        0.906
+                    ],
+                    "reps": [
+                        {
+                            "admin_update": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4805.4,
+                                "p95_us": 9065.7,
+                                "p99_us": 12811.7,
+                                "max_us": 12811.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 67.5
+                            },
+                            "member": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4607.7,
+                                "p95_us": 7699.1,
+                                "p99_us": 10219.7,
+                                "max_us": 10219.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 67.5
+                            },
+                            "outsider": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 4118.9,
+                                "p95_us": 6201.1,
+                                "p99_us": 7083.9,
+                                "max_us": 7083.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 66.5
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4587.9,
+                                "p95_us": 5758.6,
+                                "p99_us": 6676,
+                                "max_us": 6676,
+                                "sql_per_op": 6,
+                                "ops_per_s": 73.8
+                            },
+                            "member": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4569.8,
+                                "p95_us": 6469,
+                                "p99_us": 9817.3,
+                                "max_us": 9817.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 73.8
+                            },
+                            "outsider": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 3962.3,
+                                "p95_us": 5034.2,
+                                "p99_us": 5741.6,
+                                "max_us": 5741.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 72.7
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4638.8,
+                                "p95_us": 6685.2,
+                                "p99_us": 8919.4,
+                                "max_us": 8919.4,
+                                "sql_per_op": 6,
+                                "ops_per_s": 73.3
+                            },
+                            "member": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4605,
+                                "p95_us": 6310.3,
+                                "p99_us": 6766.8,
+                                "max_us": 6766.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 73.3
+                            },
+                            "outsider": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 3851.9,
+                                "p95_us": 5354.2,
+                                "p99_us": 5765.6,
+                                "max_us": 5765.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 72.3
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4581.1,
+                                "p95_us": 5786.2,
+                                "p99_us": 6563.8,
+                                "max_us": 6563.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 74.6
+                            },
+                            "member": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4497.9,
+                                "p95_us": 5765.9,
+                                "p99_us": 6646.8,
+                                "max_us": 6646.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 74.6
+                            },
+                            "outsider": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 3906.2,
+                                "p95_us": 5662.9,
+                                "p99_us": 9499.9,
+                                "max_us": 9499.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 73.5
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4618.2,
+                                "p95_us": 5868.4,
+                                "p99_us": 6363.6,
+                                "max_us": 6363.6,
+                                "sql_per_op": 6,
+                                "ops_per_s": 74
+                            },
+                            "member": {
+                                "count": 67,
+                                "errors": 0,
+                                "p50_us": 4510,
+                                "p95_us": 6395.3,
+                                "p99_us": 9899.7,
+                                "max_us": 9899.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 74
+                            },
+                            "outsider": {
+                                "count": 66,
+                                "errors": 0,
+                                "p50_us": 3860.7,
+                                "p95_us": 5050.6,
+                                "p99_us": 5787.8,
+                                "max_us": 5787.8,
+                                "sql_per_op": 5,
+                                "ops_per_s": 72.9
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "admin_update": {
+                            "p50_us": 4618.2,
+                            "p95_us": 5868.4,
+                            "p99_us": 6676,
+                            "sql_per_op": 6,
+                            "ops_per_s": 73.8,
+                            "errors": 0,
+                            "p95_cv": 0.191,
+                            "stable": false
+                        },
+                        "member": {
+                            "p50_us": 4569.8,
+                            "p95_us": 6395.3,
+                            "p99_us": 9817.3,
+                            "sql_per_op": 6,
+                            "ops_per_s": 73.8,
+                            "errors": 0,
+                            "p95_cv": 0.097,
+                            "stable": true
+                        },
+                        "outsider": {
+                            "p50_us": 3906.2,
+                            "p95_us": 5354.2,
+                            "p99_us": 5787.8,
+                            "sql_per_op": 5,
+                            "ops_per_s": 72.7,
+                            "errors": 0,
+                            "p95_cv": 0.08,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "members, admins and outsiders get their answers",
+                            "ok": true,
+                            "detail": "0 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "tenant:w2",
+                    "workers": 2,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        0.965,
+                        1.051,
+                        0.944,
+                        0.937,
+                        0.934
+                    ],
+                    "reps": [
+                        {
+                            "admin_update": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4603.3,
+                                "p95_us": 6950.5,
+                                "p99_us": 11827.3,
+                                "max_us": 19776.7,
+                                "sql_per_op": 6,
+                                "ops_per_s": 138.9
+                            },
+                            "member": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4583.7,
+                                "p95_us": 6228.6,
+                                "p99_us": 6612.2,
+                                "max_us": 10275,
+                                "sql_per_op": 6,
+                                "ops_per_s": 138.9
+                            },
+                            "outsider": {
+                                "count": 132,
+                                "errors": 0,
+                                "p50_us": 4088.4,
+                                "p95_us": 5352,
+                                "p99_us": 9138,
+                                "max_us": 10590.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 136.8
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4582.6,
+                                "p95_us": 9956.7,
+                                "p99_us": 14239.1,
+                                "max_us": 17420.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 127.5
+                            },
+                            "member": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4500.3,
+                                "p95_us": 9727.9,
+                                "p99_us": 12746.5,
+                                "max_us": 15695.4,
+                                "sql_per_op": 6,
+                                "ops_per_s": 127.5
+                            },
+                            "outsider": {
+                                "count": 132,
+                                "errors": 0,
+                                "p50_us": 3985.7,
+                                "p95_us": 8416.5,
+                                "p99_us": 16422.5,
+                                "max_us": 78144.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 125.6
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4688.6,
+                                "p95_us": 6598.3,
+                                "p99_us": 10075.6,
+                                "max_us": 13079.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 141.9
+                            },
+                            "member": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4546.4,
+                                "p95_us": 5804.4,
+                                "p99_us": 7957.2,
+                                "max_us": 9779,
+                                "sql_per_op": 6,
+                                "ops_per_s": 141.9
+                            },
+                            "outsider": {
+                                "count": 132,
+                                "errors": 0,
+                                "p50_us": 3947.9,
+                                "p95_us": 5285.7,
+                                "p99_us": 7369,
+                                "max_us": 8288,
+                                "sql_per_op": 5,
+                                "ops_per_s": 139.8
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4713.9,
+                                "p95_us": 5904.5,
+                                "p99_us": 6540.4,
+                                "max_us": 6698.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 142.9
+                            },
+                            "member": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4718.4,
+                                "p95_us": 5850,
+                                "p99_us": 7069,
+                                "max_us": 7643.2,
+                                "sql_per_op": 6,
+                                "ops_per_s": 142.9
+                            },
+                            "outsider": {
+                                "count": 132,
+                                "errors": 0,
+                                "p50_us": 4126.7,
+                                "p95_us": 5455.6,
+                                "p99_us": 10535.1,
+                                "max_us": 10802.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 140.8
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4631.2,
+                                "p95_us": 5897.3,
+                                "p99_us": 6447.8,
+                                "max_us": 7167.1,
+                                "sql_per_op": 6,
+                                "ops_per_s": 143.4
+                            },
+                            "member": {
+                                "count": 134,
+                                "errors": 0,
+                                "p50_us": 4724.9,
+                                "p95_us": 6130.9,
+                                "p99_us": 9418.2,
+                                "max_us": 10785.3,
+                                "sql_per_op": 6,
+                                "ops_per_s": 143.4
+                            },
+                            "outsider": {
+                                "count": 132,
+                                "errors": 0,
+                                "p50_us": 4037.5,
+                                "p95_us": 5229.6,
+                                "p99_us": 5524.7,
+                                "max_us": 5642.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 141.3
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "admin_update": {
+                            "p50_us": 4631.2,
+                            "p95_us": 6598.3,
+                            "p99_us": 10075.6,
+                            "sql_per_op": 6,
+                            "ops_per_s": 141.9,
+                            "errors": 0,
+                            "p95_cv": 0.213,
+                            "stable": false
+                        },
+                        "member": {
+                            "p50_us": 4583.7,
+                            "p95_us": 6130.9,
+                            "p99_us": 7957.2,
+                            "sql_per_op": 6,
+                            "ops_per_s": 141.9,
+                            "errors": 0,
+                            "p95_cv": 0.222,
+                            "stable": false
+                        },
+                        "outsider": {
+                            "p50_us": 4037.5,
+                            "p95_us": 5352,
+                            "p99_us": 9138,
+                            "sql_per_op": 5,
+                            "ops_per_s": 139.8,
+                            "errors": 0,
+                            "p95_cv": 0.208,
+                            "stable": false
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "members, admins and outsiders get their answers",
+                            "ok": true,
+                            "detail": "0 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "tenant:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 200,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.063,
+                        0.971,
+                        1.004,
+                        1.104,
+                        1.07
+                    ],
+                    "reps": [
+                        {
+                            "admin_update": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5180,
+                                "p95_us": 9144,
+                                "p99_us": 13360.2,
+                                "max_us": 16074.6,
+                                "sql_per_op": 6,
+                                "ops_per_s": 252.2
+                            },
+                            "member": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5086.5,
+                                "p95_us": 7547.3,
+                                "p99_us": 12480.3,
+                                "max_us": 14454.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 252.2
+                            },
+                            "outsider": {
+                                "count": 264,
+                                "errors": 0,
+                                "p50_us": 4437,
+                                "p95_us": 6277.7,
+                                "p99_us": 10743.3,
+                                "max_us": 14105.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 248.4
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 4794.7,
+                                "p95_us": 6725.2,
+                                "p99_us": 8259.9,
+                                "max_us": 8970.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 276.1
+                            },
+                            "member": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 4766.6,
+                                "p95_us": 6363.1,
+                                "p99_us": 9962.4,
+                                "max_us": 12266.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 276.1
+                            },
+                            "outsider": {
+                                "count": 264,
+                                "errors": 0,
+                                "p50_us": 4127.8,
+                                "p95_us": 5622.6,
+                                "p99_us": 9517.8,
+                                "max_us": 11555.5,
+                                "sql_per_op": 5,
+                                "ops_per_s": 271.9
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 4997.4,
+                                "p95_us": 6418.6,
+                                "p99_us": 8313.1,
+                                "max_us": 28940.6,
+                                "sql_per_op": 6,
+                                "ops_per_s": 266.8
+                            },
+                            "member": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5115.3,
+                                "p95_us": 6463.7,
+                                "p99_us": 7280.4,
+                                "max_us": 7965.9,
+                                "sql_per_op": 6,
+                                "ops_per_s": 266.8
+                            },
+                            "outsider": {
+                                "count": 264,
+                                "errors": 0,
+                                "p50_us": 4293.6,
+                                "p95_us": 5485.8,
+                                "p99_us": 7488.3,
+                                "max_us": 8246.4,
+                                "sql_per_op": 5,
+                                "ops_per_s": 262.9
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5045.9,
+                                "p95_us": 8961,
+                                "p99_us": 11737.7,
+                                "max_us": 107316.4,
+                                "sql_per_op": 6,
+                                "ops_per_s": 242.8
+                            },
+                            "member": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5088.9,
+                                "p95_us": 8113,
+                                "p99_us": 10347.1,
+                                "max_us": 13707.2,
+                                "sql_per_op": 6,
+                                "ops_per_s": 242.8
+                            },
+                            "outsider": {
+                                "count": 264,
+                                "errors": 0,
+                                "p50_us": 4341.5,
+                                "p95_us": 7003.8,
+                                "p99_us": 9284.7,
+                                "max_us": 9899.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 239.1
+                            }
+                        },
+                        {
+                            "admin_update": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5237.4,
+                                "p95_us": 7964.7,
+                                "p99_us": 13012.2,
+                                "max_us": 19287.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 250.5
+                            },
+                            "member": {
+                                "count": 268,
+                                "errors": 0,
+                                "p50_us": 5127.3,
+                                "p95_us": 7436.2,
+                                "p99_us": 9495.1,
+                                "max_us": 19029.8,
+                                "sql_per_op": 6,
+                                "ops_per_s": 250.5
+                            },
+                            "outsider": {
+                                "count": 264,
+                                "errors": 0,
+                                "p50_us": 4469.4,
+                                "p95_us": 6310.5,
+                                "p99_us": 16052.7,
+                                "max_us": 19732.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 246.7
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "admin_update": {
+                            "p50_us": 5045.9,
+                            "p95_us": 7964.7,
+                            "p99_us": 11737.7,
+                            "sql_per_op": 6,
+                            "ops_per_s": 252.2,
+                            "errors": 0,
+                            "p95_cv": 0.142,
+                            "stable": false
+                        },
+                        "member": {
+                            "p50_us": 5088.9,
+                            "p95_us": 7436.2,
+                            "p99_us": 9962.4,
+                            "sql_per_op": 6,
+                            "ops_per_s": 252.2,
+                            "errors": 0,
+                            "p95_cv": 0.093,
+                            "stable": true
+                        },
+                        "outsider": {
+                            "p50_us": 4341.5,
+                            "p95_us": 6277.7,
+                            "p99_us": 9517.8,
+                            "sql_per_op": 5,
+                            "ops_per_s": 248.4,
+                            "errors": 0,
+                            "p95_cv": 0.089,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "members, admins and outsiders get their answers",
+                            "ok": true,
+                            "detail": "0 wrong"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

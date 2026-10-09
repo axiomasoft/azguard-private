@@ -66,3 +66,37 @@ correctness checks next to the timings.
 
 Not taken: k6 and the HTTP layer, host profiles, paired-commit qualification and the PostgreSQL statistics collector.
 AzGuard is a library, so the workers call the public API in-process.
+
+## Published results (2026-10-09, mini tier)
+
+One host (8 vCPU Xeon, PHP 8.4.26, OPcache on), PostgreSQL 16.15, MySQL 8.4.11 and Redis 7 from `docker-compose.yml`.
+p50 of one operation and queries per operation; the full tables are the files next to this one.
+
+| Operation | sqlite | sqlite + array | pgsql | pgsql + redis | mysql |
+|---|---|---|---|---|---|
+| check, new request, 1 worker | 3.70 ms, 5 SQL | 3.79 ms, 3.7 | 6.89 ms, 5 | 4.42 ms, 2 | 5.62 ms, 5 |
+| check, 4 workers, throughput | 943/s | 1 002/s | 497/s | 855/s | 675/s |
+| heavy subject, missing permission | 16.9 ms | 5.6 ms | 21.5 ms | 8.2 ms | 20.9 ms |
+| heavy subject, `permissionSet()` | 17.6 ms | 7.3 ms | 23.5 ms | 9.8 ms | 21.8 ms |
+| heavy subject, `abilities()` of 50 | 197 ms | 177 ms | 214 ms | 185 ms | 204 ms |
+| `visibleTo()` page of 10 000 posts | 5.03 ms | 4.88 ms | 10.4 ms | 9.7 ms | 8.5 ms |
+| check, warm request | 0.52 ms, 0 SQL | 0.49 ms | 0.61 ms | 0.55 ms | 0.58 ms |
+| tenant member check, 4 workers | 2.19 ms | 2.22 ms | 5.09 ms | 3.08 ms | 4.75 ms |
+| grant under read load | 2.42 ms | 2.27 ms | 8.95 ms | 9.34 ms | 7.96 ms |
+| reads denied by `consistency_error`, 1 / 2 writers | 20% / 43% | 21% / 42% | 20% / 44% | 19% / 45% | 18% / 45% |
+
+The server versions, CPU and commit are in each result file. Check the database version printed by your run before
+you compare against these numbers.
+
+What the bench found:
+
+- **`permissionSet()` of a heavy subject took 2.17 s.** Every pattern was matched and re-validated against every
+  catalog permission. Exact patterns are now a lookup: 18 ms (`d531525f` is the baseline, compare it with
+  `compare.php`).
+- **A connection closed by `DB::disconnect()` made every check fail closed with `source_error`.** That happens
+  before a fork, or between Octane requests. The storage now reconnects as a query would.
+- **Reads that overlap writes are denied.** The state version is per panel, so any grant or revoke in the panel
+  makes a concurrent read retry, and after 3 retries it denies with `consistency_error`. That is safe (fail closed)
+  but visible: with one writer about 20% of concurrent reads are denied, with two about 44%, on every driver.
+- **`abilities()` costs about 4 ms per permission for a heavy subject.** That is the cost of one decision over 220
+  contributions, the same as a check in a warm request.
