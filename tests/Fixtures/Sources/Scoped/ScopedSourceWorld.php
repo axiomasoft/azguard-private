@@ -38,6 +38,7 @@ use AzGuard\Tests\Fixtures\Scopes\Membership;
 use AzGuard\Tests\Fixtures\Scopes\Organization;
 use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
 use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseRoleGrant;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Relation\EditorRole;
@@ -47,6 +48,7 @@ use AzGuard\Tests\Fixtures\Sources\Relation\RelationPermission;
 use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
 use AzGuard\Tests\Fixtures\Sources\Relation\Store;
 use Closure;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -81,6 +83,7 @@ final class ScopedSourceWorld
 
     public static function reset(): void
     {
+        ConcurrentWriter::close();
         app(StorageSchema::class)->drop('default');
         DatabaseWorld::storage()->connection()->getSchemaBuilder()->dropIfExists('users');
         foreach (['relation_project_user', 'relation_memberships', 'relation_projects', 'relation_stores', 'relation_teams', 'relation_members', 'relation_vendors'] as $table) {
@@ -308,6 +311,8 @@ final class ScopedSourceWorld
         $panel = self::database(DatabaseSource::make()->dynamicPermissions(), after: static function (EvaluationContext $context) use (&$observed): void {
             $observed = $context;
         });
+        ConcurrentWriter::open();
+        $version = DatabaseWorld::storage()->state('admin')->version;
         $changed = false;
         $reads = 0;
         DatabaseWorld::storage()->connection()->listen(static function (QueryExecuted $event) use (&$changed, &$reads): void {
@@ -318,18 +323,18 @@ final class ScopedSourceWorld
 
             if (! $changed && str_contains($event->sql, 'role_grants')) {
                 $changed = true;
-                DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
-                    $mutation->table('permission_grants')->delete();
-                    $mutation->table('permissions')->update(['label' => 'After']);
-                    $mutation->touch('admin');
+                ConcurrentWriter::commit(static function (Connection $connection): void {
+                    $connection->table('azg_permission_grants')->delete();
+                    $connection->table('azg_permissions')->update(['label' => 'After']);
+                    ConcurrentWriter::touch($connection);
                 });
             }
         });
         $decision = app(Authorizer::class)->decide($panel, self::request('reports.export', $scope));
-        // The assignment read retries locally; it then sees a newer state than the prepared catalog: fail closed.
-        expect($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($changed)->toBeTrue()->and($reads)->toBe(4)
+        // Another connection revokes during the assignment read: the snapshot keeps the state the read started at.
+        expect($decision->reason)->toBe(DecisionReason::Granted)->and($changed)->toBeTrue()->and($reads)->toBe(2)
             ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Before')
-            ->and($decision->state)->not->toBeInstanceOf(StateToken::class);
+            ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($decision->state->version)->toBe($version);
     }
 
     private static function relations(): void

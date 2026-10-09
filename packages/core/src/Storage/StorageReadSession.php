@@ -18,6 +18,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\QueryException;
 use JsonException;
 use PDO;
+use Throwable;
 
 /** @internal One consumed authority fence, including schema validation, on one pinned PDO. */
 final class StorageReadSession
@@ -33,6 +34,8 @@ final class StorageReadSession
     private readonly ?AuthorityReadBaseline $baseline;
 
     private readonly ?string $baselineIdentity;
+
+    private bool $inSnapshot = false;
 
     /** @param Closure(string, ?string): Model $models */
     public function __construct(private readonly Storage $storage, private readonly Reads $reads, private readonly Closure $models)
@@ -75,6 +78,75 @@ final class StorageReadSession
         $this->connection->setReconnector(static function (): never {
             throw InvalidConfigurationException::failing('authority_read', 'A pinned authority read cannot reconnect during its fence.');
         });
+    }
+
+    /**
+     * Whether reads can run in a read-only snapshot transaction on the pinned handle: no transaction of the package
+     * (tentative authority) or of a test baseline is open there. Those keep their own handling.
+     */
+    public function canSnapshot(): bool
+    {
+        return $this->transaction === null && $this->baselineIdentity === null && ! $this->inSnapshot;
+    }
+
+    /**
+     * Runs `$read` in one read-only snapshot transaction on the pinned PDO (audits/2026-10-09-consistency-design.md,
+     * step 2), so every row it reads belongs to one committed state:
+     *
+     * - PostgreSQL: REPEATABLE READ READ ONLY, one snapshot from the first statement
+     *   (https://www.postgresql.org/docs/16/transaction-iso.html);
+     * - MySQL/MariaDB: SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, then START TRANSACTION READ ONLY: a consistent
+     *   read view (https://dev.mysql.com/doc/refman/8.4/en/innodb-consistent-read.html);
+     * - SQLite: BEGIN DEFERRED; a read transaction sees one snapshot (https://sqlite.org/isolation.html). Without WAL a
+     *   writer waits for the reader to finish; the doctor warns about it, WAL is never enabled here.
+     *
+     * `$read` must read plain rows only: no model, event, cache or host callback runs inside. The transaction is
+     * committed after `$read` returns and rolled back when it throws; when that cleanup fails the connection is
+     * disconnected (never reused in an unknown transaction state, never reconnected here).
+     *
+     * @template T
+     *
+     * @param  Closure(): T  $read
+     * @return T
+     */
+    public function snapshot(Closure $read): mixed
+    {
+        if (! $this->canSnapshot()) {
+            throw InvalidConfigurationException::failing('authority_transaction', 'A snapshot read needs a handle without an open transaction.');
+        }
+        $this->assertNoTransaction($this->pdo);
+        $driver = $this->connection->getDriverName();
+        match ($driver) {
+            'pgsql' => $this->pdo->exec('START TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY'),
+            'mysql', 'mariadb' => $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ') === false ? false : $this->pdo->exec('START TRANSACTION READ ONLY'),
+            'sqlite' => $this->pdo->exec('BEGIN DEFERRED'),
+            default => throw InvalidConfigurationException::failing('authority_read', 'Snapshot reads are not supported on driver '.$driver.'.'),
+        };
+        $this->inSnapshot = true;
+        $committed = false;
+
+        try {
+            $result = $read();
+            $this->assertOwnSnapshot();
+            $this->pdo->exec('COMMIT');
+            $committed = true;
+
+            return $result;
+        } finally {
+            $this->inSnapshot = false;
+
+            try {
+                if (! $committed && $this->pdo->inTransaction()) {
+                    $this->pdo->exec('ROLLBACK');
+                }
+            } catch (Throwable) {
+                // Reported by the discard below; the original exception of the read stays the one thrown.
+            }
+
+            if ($this->pdo->inTransaction()) {
+                $this->storage->connection()->disconnect();
+            }
+        }
     }
 
     public function table(string $base): Builder
@@ -137,8 +209,21 @@ final class StorageReadSession
             new DateTimeImmutable($row->updated_at, new DateTimeZone('UTC')));
     }
 
+    /** The snapshot transaction on the pinned PDO is still the one this session opened. */
+    private function assertOwnSnapshot(): void
+    {
+        if (! $this->pdo->inTransaction() || $this->storage->connection()->transactionLevel() > 0) {
+            throw InvalidConfigurationException::failing('authority_transaction', 'The snapshot read was ended or joined by another transaction.');
+        }
+    }
+
     private function assertNoTransaction(?PDO $readPdo = null): void
     {
+        if ($this->inSnapshot) {
+            $this->assertOwnSnapshot();
+
+            return;
+        }
         $connection = $this->storage->connection();
         $write = $connection->getRawPdo();
 

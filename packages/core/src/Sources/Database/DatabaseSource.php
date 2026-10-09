@@ -1040,8 +1040,9 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
 
     /**
      * @internal Raw rows read at one state of the panel, with that state. `$rows` reads plain rows on the session and
-     * nothing else (no model, event or host code), so a repeat repeats source reads only. Up to three attempts, then
-     * ConsistencyException (audits/2026-10-09-consistency-design.md, steps 1-2).
+     * nothing else (no model, event or host code). Without an open transaction the state and the rows are read in one
+     * snapshot transaction and never retried; inside tentative authority or a test baseline a bounded fence repeats
+     * the raw reads up to three times, then ConsistencyException (audits/2026-10-09-consistency-design.md, steps 1-2).
      *
      * @template T
      *
@@ -1064,6 +1065,13 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
      */
     private function consistently(StorageReadSession $session, Panel $panel, string $fingerprint, Closure $rows, ?StateToken $earlier = null): array
     {
+        if ($session->canSnapshot()) {
+            // One snapshot: the state is read inside it, never taken from an earlier autocommit read.
+            return $session->snapshot(fn (): array => [$this->token($session, $panel, $fingerprint), $rows()]);
+        }
+
+        // Tentative authority (the panel is locked by this root) and a test baseline read inside an open transaction
+        // of their own; they keep the bounded fence.
         for ($attempt = 0; $attempt < 3; $attempt++) {
             $before = $attempt === 0 && $earlier !== null ? $earlier : $this->token($session, $panel, $fingerprint);
             $result = $rows();
@@ -1120,7 +1128,8 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         $rows = [];
 
         if ($contextType === null) {
-            foreach ($query->get() as $row) {
+            // A stable order on every engine: contributions keep the order of their grants.
+            foreach ($query->orderBy('id')->get() as $row) {
                 $rows[] = (array) $row;
             }
 

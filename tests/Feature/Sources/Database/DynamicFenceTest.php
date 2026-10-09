@@ -16,13 +16,16 @@ use AzGuard\Panels\Reads;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Storage\StorageMutation;
+use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use AzGuard\Tests\Fixtures\Sources\Database\InterferingSource;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\SQLiteConnection;
 
 beforeEach(function (): void {
+    ConcurrentWriter::open();
     app(StorageSchema::class)->create('default');
     DatabaseWorld::seedSubject();
     DatabaseWorld::define(label: 'Old');
@@ -30,12 +33,13 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    ConcurrentWriter::close();
     app(StorageSchema::class)->drop('default');
     DatabaseWorld::storage()->connection()->getSchemaBuilder()->dropIfExists('users');
     Relation::morphMap([], false);
 });
 
-it('prepares once and fails closed when the catalog changes before the assignments are read', function (): void {
+it('prepares once and decides at one state when another connection commits during the assignment read', function (): void {
     $observed = null;
     $beforeTimes = [];
     $afterCalls = 0;
@@ -63,35 +67,35 @@ it('prepares once and fails closed when the catalog changes before the assignmen
 
         if (! $changed && str_contains($event->sql, 'azg_role_grants')) {
             $changed = true;
-            DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
-                $mutation->table('permissions')->update(['label' => 'New']);
-                $mutation->table('permission_grants')->delete();
-                $mutation->touch('admin');
+            ConcurrentWriter::commit(static function (Connection $connection): void {
+                $connection->table('azg_permissions')->update(['label' => 'New']);
+                $connection->table('azg_permission_grants')->delete();
+                ConcurrentWriter::touch($connection);
             });
         }
     });
+    $version = DatabaseWorld::storage()->state('admin')->version;
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $decision = app(Authorizer::class)->decide($panel, $request);
-    // Host hooks ran once with the catalog of the first read; the assignment read retried locally and saw a newer
-    // state of the panel than the catalog, so the decision is consistency_error, not a mix of both states.
+    // Hooks ran once; the catalog snapshot and the assignment snapshot saw the same state (the write committed
+    // inside the second one), so the decision is that state's: granted, with the old label.
     expect($observed)->toBeInstanceOf(EvaluationFrame::class)
         ->and($observed->readAttempt->catalog()->get('reports.export')->label)->toBe('Old')
         ->and($beforeTimes)->toHaveCount(1)->and($afterCalls)->toBe(1)
-        ->and($reads)->toBe(['panel_state', 'permissions', 'panel_state',
-            'panel_state', 'permission_grants', 'role_grants', 'panel_state', 'panel_state', 'permission_grants', 'role_grants', 'panel_state'])
-        ->and($decision->reason)->toBe(DecisionReason::ConsistencyError)->and($decision->state)->not->toBeInstanceOf(StateToken::class);
+        ->and($reads)->toBe(['panel_state', 'panel_state', 'permissions', 'panel_state', 'permission_grants', 'role_grants'])
+        ->and($decision->reason)->toBe(DecisionReason::Granted)->and($decision->state->version)->toBe($version);
 
 });
 
-it('fails closed instead of authorizing a stale action when the definition disappears during the read', function (): void {
+it('fails closed when the catalog changes between its snapshot and the assignment snapshot', function (): void {
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     $changed = false;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$changed): void {
-        if (! $changed && str_starts_with(strtolower(ltrim($event->sql)), 'select') && str_contains($event->sql, 'azg_role_grants')) {
+        if (! $changed && str_starts_with(strtolower(ltrim($event->sql)), 'select') && str_contains($event->sql, 'azg_permissions"')) {
             $changed = true;
-            DatabaseWorld::storage()->mutate('admin', static function (StorageMutation $mutation): void {
-                $mutation->table('permissions')->delete();
-                $mutation->touch('admin');
+            ConcurrentWriter::commit(static function (Connection $connection): void {
+                $connection->table('azg_permissions')->delete();
+                ConcurrentWriter::touch($connection);
             });
         }
     });
@@ -99,19 +103,19 @@ it('fails closed instead of authorizing a stale action when the definition disap
     expect(app(Authorizer::class)->decide($panel, $request)->reason)->toBe(DecisionReason::ConsistencyError)->and($changed)->toBeTrue();
 });
 
-it('returns ConsistencyError after exactly three unstable dynamic attempts', function (): void {
+it('never retries a dynamic snapshot read while another connection writes on every read', function (): void {
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions());
     $attempts = 0;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $event) use (&$attempts): void {
         if (str_starts_with(strtolower(ltrim($event->sql)), 'select') && str_contains($event->sql, 'azg_role_grants')) {
             $attempts++;
-            DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
+            ConcurrentWriter::commit(fn (Connection $connection) => ConcurrentWriter::touch($connection));
         }
     });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $decision = app(Authorizer::class)->decide($panel, $request);
-    expect($decision->allowed())->toBeFalse()->and($decision->reason)->toBe(DecisionReason::ConsistencyError)
-        ->and($decision->state)->not->toBeInstanceOf(StateToken::class)->and($attempts)->toBe(3);
+    expect($decision->allowed())->toBeTrue()->and($decision->reason)->toBe(DecisionReason::Granted)
+        ->and($decision->state)->toBeInstanceOf(StateToken::class)->and($attempts)->toBe(1);
 });
 
 it('keeps rolesOnly from consuming direct grants for a dynamic action', function (): void {
@@ -186,6 +190,10 @@ it('reads every source once; a write by a later source does not discard the data
 it('pins dynamic metadata and grants to Default while Primary reads its own complete snapshot', function (): void {
     $storage = DatabaseWorld::storage();
     $connection = $storage->connection();
+
+    if ($connection->getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('Independent in-memory read route fixture uses SQLite.');
+    }
     $readPdo = new PDO('sqlite::memory:');
     $replica = new SQLiteConnection($readPdo, ':memory:');
     foreach ($connection->getPdo()->query("SELECT sql FROM sqlite_master WHERE type = 'table' AND name LIKE 'azg_%'")->fetchAll(PDO::FETCH_COLUMN) as $ddl) {

@@ -44,8 +44,9 @@ it('fences all 250 contexts and reuses raw sets with the configured refresh mode
     $set = $engine->decideMany($requests);
     expect($set)->toHaveCount(250)->and(BatchPolicy::$calls)->toBe(250)
         ->and($budget['state'])->toBe(2)->and($budget['grants'])->toBeLessThanOrEqual(6)
-        ->and($budget['grants'])->toBeGreaterThan(0)->and($budget['sequence'][0])->toBe('panel_state')
-        ->and($budget['sequence'][array_key_last($budget['sequence'])])->toBe('panel_state');
+        // The state keys the cache lookup, then the snapshot reads it again before every chunk of grants.
+        ->and($budget['grants'])->toBeGreaterThan(0)->and(array_slice($budget['sequence'], 0, 2))->toBe(['panel_state', 'panel_state'])
+        ->and($budget['sequence'][array_key_last($budget['sequence'])])->toBe('role_grants');
 
     foreach ($set as $i => $decision) {
         expect($decision->allowed())->toBeTrue()->and($decision->scope->context->id())->toBe((string) ($i + 1));

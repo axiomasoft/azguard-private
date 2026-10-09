@@ -13,17 +13,21 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
-use AzGuard\Storage\StorageMutation;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheWorld;
+use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabasePermission;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 
 beforeEach(function (): void {
+    ConcurrentWriter::open();
     app(StorageSchema::class)->create('default');
     DatabaseWorld::define(label: 'Old');
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'reports.export'])]);
 });
+
+afterEach(fn () => ConcurrentWriter::close());
 
 uses()->group('batch');
 
@@ -65,20 +69,20 @@ it('retries stale request state before reading the dynamic catalog and consumes 
     }
 });
 
-it('fails three changing dynamic grant attempts while an unrelated policy survives', function (): void {
+it('reads the dynamic grants of a batch in one snapshot while another connection writes on every read', function (): void {
     [$engine] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions());
     $attempts = 0;
     DatabaseWorld::storage()->connection()->listen(function (QueryExecuted $query) use (&$attempts): void {
         if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && str_contains($query->sql, 'azg_role_grants"')) {
             $attempts++;
-            DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
+            ConcurrentWriter::commit(fn (Connection $connection) => ConcurrentWriter::touch($connection));
         }
     });
     $dynamic = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $set = $engine->decideMany([$dynamic, DatabaseWorld::request(DatabasePermission::Policy), $dynamic]);
-    expect($attempts)->toBe(3)->and($set->get(0)->reason)->toBe(DecisionReason::ConsistencyError)
-        ->and($set->get(2)->reason)->toBe(DecisionReason::ConsistencyError)->and($set->get(1)->allowed())->toBeTrue()
-        ->and($set->get(0)->state)->toBeInstanceOf(CodeStateToken::class)->and($set->get(1)->state)->toBeInstanceOf(CodeStateToken::class);
+    expect($attempts)->toBe(1)->and($set->get(0)->reason)->toBe(DecisionReason::Granted)
+        ->and($set->get(2)->reason)->toBe(DecisionReason::Granted)->and($set->get(1)->allowed())->toBeTrue()
+        ->and($set->get(0)->state)->toBeInstanceOf(StateToken::class)->and($set->get(1)->state)->toBeInstanceOf(CodeStateToken::class);
 });
 
 it('throws for an originally missing dynamic permission instead of inventing a definition', function (): void {
