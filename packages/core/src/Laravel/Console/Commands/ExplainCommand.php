@@ -17,7 +17,13 @@ use Throwable;
 final class ExplainCommand extends Command
 {
     /** @var string */
-    protected $signature = 'azguard:explain {subject : type:id} {permission} {--panel=} {--tenant= : type:id} {--context= : type:id} {--json}';
+    protected $signature = 'azguard:explain
+        {subject : type:id}
+        {permission : The permission in any accepted form: posts.view, admin.posts.view or admin:posts.view}
+        {--panel= : The panel; otherwise the panel resolver decides}
+        {--tenant= : type:id of the tenant, required for a panel with tenants}
+        {--context= : type:id of an assignment scope}
+        {--json : Print JSON}';
 
     /** @var string */
     protected $description = 'Explain one AzGuard authorization decision with secrets redacted';
