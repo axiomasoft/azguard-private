@@ -9,6 +9,8 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Tests\Fixtures\Filament\Fields\ReasonPlugin;
+use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\Models\Team;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 
@@ -25,6 +27,10 @@ final class TeamsGuardPanel extends PanelProvider
 
     public function panel(PanelBuilder $panel): PanelBuilder
     {
+        if (FilamentFixture::$grantFields) {
+            $panel->plugins([ReasonPlugin::make()]);
+        }
+
         return $panel->for(User::class, guard: 'web')
             ->roles([GrantedMemberRole::class])
             ->permissions([EntryPermission::class, EditorPermission::class, DatabaseSource::make()->dynamicPermissions()])

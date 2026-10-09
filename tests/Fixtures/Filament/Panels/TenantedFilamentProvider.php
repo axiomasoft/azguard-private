@@ -17,6 +17,7 @@ final class TenantedFilamentProvider extends PanelProvider
     {
         $panel->id('tenanted')->path('tenanted')->authGuard('web');
         $plugin = AzGuardPlugin::make()->guardPanel('teams')
+            ->formExtensions(...FilamentFixture::$formExtensions['tenanted'] ?? [])
             ->resources(
                 roles: FilamentFixture::$editors['roles'] ?? false,
                 roleGrants: FilamentFixture::$editors['role_grants'] ?? false,

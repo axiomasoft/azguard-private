@@ -209,7 +209,7 @@ final readonly class GrantEditor
             return [];
         }
         $options = [];
-        $lookup = $this->lookup($target, $this->definition($key), SchemaFields::values($this->schema, $this->fieldTarget(), $proposed));
+        $lookup = $this->lookup($target, $this->definition($key), SchemaFields::declared($this->schema, $this->fieldTarget(), $proposed));
 
         foreach ($this->access->directories()->scopes($type)->search($type, $term, $lookup, self::LIMIT) as $option) {
             $options[(string) $option->scope->id()] = $option->label;

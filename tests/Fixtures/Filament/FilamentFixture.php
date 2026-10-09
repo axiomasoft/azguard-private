@@ -68,6 +68,12 @@ final class FilamentFixture
     /** @var list<string>|null the AzGuard panels the `admin` Filament panel manages; null manages every panel */
     public static ?array $manages;
 
+    /** Whether the `admin` guard panel stores role grants in `Fields\AdminRoleGrant` and `admin` and `teams` have the `Fields\ReasonPlugin` fields. */
+    public static bool $grantFields;
+
+    /** @var array<string, list<mixed>> form extensions of the plugin, by Filament panel `admin` or `tenanted` */
+    public static array $formExtensions;
+
     /** Whether the `tenanted` Filament panel registers the plugin before it calls `tenant()`. */
     public static bool $tenantAfterPlugin;
 
@@ -112,6 +118,8 @@ final class FilamentFixture
         self::$sellerPolicies = [];
         self::$manages = ['admin', 'seller'];
         self::$tenantAfterPlugin = false;
+        self::$grantFields = false;
+        self::$formExtensions = [];
         self::$catalogCachePath = null;
         self::$seen = [];
     }

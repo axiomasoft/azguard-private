@@ -13,6 +13,7 @@ use AzGuard\Filament\Authorization\FilamentSurface;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Concerns\AuthorizesWidget;
+use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Resources\PermissionGrantResource;
 use AzGuard\Filament\Resources\PermissionResource;
 use AzGuard\Filament\Resources\RoleGrantResource;
@@ -85,7 +86,7 @@ final class AzGuardPlugin implements Plugin
     /** @var array<string, bool> */
     private array $editors;
 
-    /** @var list<string> */
+    /** @var list<class-string<FilamentFormExtension>|FilamentFormExtension> */
     private array $formExtensions = [];
 
     private ?bool $middlewareWithTenancy = null;
@@ -255,13 +256,18 @@ final class AzGuardPlugin implements Plugin
     }
 
     /**
-     * Classes that add fields to the grant forms.
+     * Components of their own for the declared fields of the grant forms; for a field that several extensions give a
+     * component, the first one registered wins. A class is resolved from the container every time a form is built.
      *
-     * @param  class-string  ...$extensions
+     * @param  class-string<FilamentFormExtension>|FilamentFormExtension  ...$extensions
      */
-    public function formExtensions(string ...$extensions): static
+    public function formExtensions(string|FilamentFormExtension ...$extensions): static
     {
-        $this->formExtensions = array_values(array_unique([...$this->formExtensions, ...$extensions]));
+        foreach ($extensions as $extension) {
+            if (! in_array($extension, $this->formExtensions, true)) {
+                $this->formExtensions[] = $extension;
+            }
+        }
 
         return $this;
     }
@@ -322,11 +328,40 @@ final class AzGuardPlugin implements Plugin
     }
 
     /**
-     * @return list<string>
+     * @return list<class-string<FilamentFormExtension>|FilamentFormExtension>
      */
     public function getFormExtensions(): array
     {
         return $this->formExtensions;
+    }
+
+    /**
+     * The form extensions for one form: each class is resolved from the container again.
+     *
+     * @return list<FilamentFormExtension>
+     *
+     * @throws InvalidConfigurationException when a registered class is not a form extension
+     */
+    public function resolveFormExtensions(): array
+    {
+        $resolved = [];
+
+        foreach ($this->formExtensions as $extension) {
+            if (! is_string($extension)) {
+                $resolved[] = $extension;
+
+                continue;
+            }
+
+            if (! is_subclass_of($extension, FilamentFormExtension::class)) {
+                throw self::invalid('The form extension '.$extension.' does not implement '.FilamentFormExtension::class.'.');
+            }
+            $instance = app($extension);
+            $resolved[] = $instance instanceof FilamentFormExtension ? $instance
+                : throw self::invalid('The container did not resolve the form extension '.$extension.' to '.FilamentFormExtension::class.'.');
+        }
+
+        return $resolved;
     }
 
     /**

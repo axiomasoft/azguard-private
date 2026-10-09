@@ -8,8 +8,11 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantPage;
 use AzGuard\Exceptions\AzGuardException;
+use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Filament\Actions\ExplainAction;
+use AzGuard\Filament\AzGuardPlugin;
+use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Filament\Forms\SchemaFields;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -148,12 +151,12 @@ abstract class ListGrants extends Page implements HasTable
                         DateTimePicker::make('until')->label('Until'),
                         Group::make(fn (): array => $this->fieldComponents())->columns(2),
                     ])
-                    ->action(fn (array $record, array $data) => $this->write('update', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->update(
+                    ->action(fn (array $record, array $data, Schema $schema) => $this->write('update', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->update(
                         $record['id'],
                         $this->editingFingerprint($record['id']),
-                        $data,
+                        $this->submitted($data, $schema),
                         $user,
-                    ))),
+                    ), statePath: $schema->getStatePath())),
                 Action::make('revoke')->label('Revoke')->color('danger')->requiresConfirmation()
                     ->visible(static fn (): bool => static::getResource()::can('delete'))
                     ->action(fn (array $record) => $this->write('delete', static fn (GrantEditor $editor, Model $user): ChangeResult => $editor->revoke([$record['id']], $user))),
@@ -349,7 +352,7 @@ abstract class ListGrants extends Page implements HasTable
             ->visible(fn (): bool => static::getResource()::can('create') && self::selector()->panels() !== [])
             ->fillForm(fn (): array => ['panel' => $this->filter('panel'), 'tenant' => $this->filter('tenant'), 'context_type' => null, 'fields' => []])
             ->schema(fn (): array => $this->grantForm($label))
-            ->action(fn (array $data) => $this->write('create', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->grant($data, $user), $data));
+            ->action(fn (array $data, Schema $schema) => $this->write('create', fn (GrantEditor $editor, Model $user): ChangeResult => $editor->grant($this->submitted($data, $schema), $user), $data, $schema->getStatePath()));
     }
 
     /**
@@ -408,7 +411,7 @@ abstract class ListGrants extends Page implements HasTable
             Group::make(static function (Get $get) use ($editor): array {
                 $target = $editor($get);
 
-                return $target === null ? [] : SchemaFields::for($target->schema(), $target->fieldTarget());
+                return $target === null ? [] : SchemaFields::for($target->schema(), $target->fieldTarget(), self::extensions());
             })->columns(2),
         ];
     }
@@ -466,7 +469,7 @@ abstract class ListGrants extends Page implements HasTable
     {
         $editor = $this->editor();
 
-        return $editor === null ? [] : SchemaFields::for($editor->schema(), $editor->fieldTarget());
+        return $editor === null ? [] : SchemaFields::for($editor->schema(), $editor->fieldTarget(), self::extensions());
     }
 
     /**
@@ -523,12 +526,16 @@ abstract class ListGrants extends Page implements HasTable
 
     /**
      * Writes as the user who edits after the permission of the editor and the target are checked again; a refusal of a
-     * check or of the writer is shown and nothing is written.
+     * check or of the writer is shown and nothing is written. Fields the writer refuses are errors of the open form,
+     * which stays open.
      *
      * @param  Closure(GrantEditor, Model): ChangeResult  $change
      * @param  array<string, mixed>|null  $data  the form of a new grant, which names its own target
+     * @param  string|null  $statePath  the state path of the open form
+     *
+     * @throws ValidationException when the writer refuses the fields of the open form
      */
-    private function write(string $ability, Closure $change, ?array $data = null): void
+    private function write(string $ability, Closure $change, ?array $data = null, ?string $statePath = null): void
     {
         abort_unless(static::getResource()::can($ability), 403);
         $editor = $data === null ? ($this->editor() ?? abort(403))
@@ -539,22 +546,69 @@ abstract class ListGrants extends Page implements HasTable
         try {
             $change($editor, $user);
         } catch (ValidationException $error) {
+            $this->editing = null;
             Notification::make()->danger()->title('The grant was not saved')->body($error->validator->errors()->first())->send();
 
             return;
         } catch (AzGuardException $error) {
+            if ($error instanceof InvalidChangeFieldsException && $statePath !== null) {
+                throw ValidationException::withMessages(self::fieldErrors($error, $statePath));
+            }
+            $this->editing = null;
             Notification::make()->danger()->title('The grant was not saved')->body($error->getMessage())->send();
 
             return;
-        } finally {
-            $this->editing = null;
         }
+        $this->editing = null;
         Notification::make()->success()->title('Saved')->send();
         // The filters stay; the pages start again, because a change moves the grants between them.
         $this->grantCursors = [];
         $this->deselectAllTableRecords();
         $this->resetPage($this->getTablePaginationPageName());
         $this->flushCachedTableRecords();
+    }
+
+    /**
+     * The data of the open form with its grant fields as they were submitted: the values Filament validated and every
+     * other key of the payload under the fields, which Filament would drop and the writer refuses.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function submitted(array $data, Schema $schema): array
+    {
+        $fields = is_array($data[SchemaFields::PATH] ?? null) ? $data[SchemaFields::PATH] : [];
+        $payload = data_get($this, $schema->getStatePath().'.'.SchemaFields::PATH);
+
+        return [...$data, SchemaFields::PATH => is_array($payload) ? $fields + $payload : $fields];
+    }
+
+    /**
+     * The errors of the writer at the fields of the open form: the expiry at its own field, every other name under the
+     * grant fields.
+     *
+     * @return array<string, list<string>>
+     */
+    private static function fieldErrors(InvalidChangeFieldsException $error, string $statePath): array
+    {
+        $messages = [];
+
+        foreach ($error->errors() as $name => $errors) {
+            $path = $name === 'until' ? 'until' : SchemaFields::PATH.'.'.$name;
+            $messages[$statePath.'.'.$path] = $errors;
+        }
+
+        return $messages;
+    }
+
+    /**
+     * The form extensions of the plugin of the current Filament panel, resolved for this form.
+     *
+     * @return list<FilamentFormExtension>
+     */
+    private static function extensions(): array
+    {
+        return AzGuardPlugin::get()->resolveFormExtensions();
     }
 
     private function actor(?string $value): ?ActorRef

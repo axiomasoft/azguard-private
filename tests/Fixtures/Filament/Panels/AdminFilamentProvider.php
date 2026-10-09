@@ -25,6 +25,7 @@ final class AdminFilamentProvider extends PanelProvider
             )
             ->definitions(FilamentFixture::$definitions)
             ->enforce(FilamentFixture::$enforce)
+            ->formExtensions(...FilamentFixture::$formExtensions['admin'] ?? [])
             ->exclude(
                 FilamentFixture::$exclude['resources'] ?? [],
                 FilamentFixture::$exclude['pages'] ?? [],

@@ -8,6 +8,8 @@ use AzGuard\Filament\FilamentDefinitions;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Tests\Fixtures\Filament\Fields\AdminRoleGrant;
+use AzGuard\Tests\Fixtures\Filament\Fields\ReasonPlugin;
 use AzGuard\Tests\Fixtures\Filament\FilamentFixture;
 use AzGuard\Tests\Fixtures\Filament\Models\User;
 
@@ -24,11 +26,15 @@ final class AdminGuardPanel extends PanelProvider
             ->roles(FilamentFixture::$adminRoles)
             ->permissions([
                 EntryPermission::class,
-                DatabaseSource::make(),
+                FilamentFixture::$grantFields ? DatabaseSource::make()->models(roleGrant: AdminRoleGrant::class) : DatabaseSource::make(),
                 // With Resources definitions FilamentSource defines the key of the page.
                 ...(FilamentFixture::$definitions === FilamentDefinitions::Enums ? [PagePermission::class] : []),
                 ...FilamentFixture::$guardPermissions,
             ]);
+
+        if (FilamentFixture::$grantFields) {
+            $panel->plugins([ReasonPlugin::make()]);
+        }
 
         return FilamentFixture::$guardPolicies === [] ? $panel : $panel->policies(FilamentFixture::$guardPolicies);
     }
