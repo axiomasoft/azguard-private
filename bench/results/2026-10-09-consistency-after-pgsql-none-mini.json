@@ -1,0 +1,305 @@
+{
+    "schema": "urn:azguard:bench:result:1",
+    "date": "2026-10-09T14:27:17Z",
+    "commit": "d43592958e5c",
+    "dirty": true,
+    "tier": "mini",
+    "driver": "pgsql",
+    "cache": "none",
+    "environment": {
+        "php": "8.4.26",
+        "laravel": "13.35.0",
+        "database": "pgsql",
+        "database_server": "16.15",
+        "opcache": true,
+        "xdebug": false,
+        "cpu": "Intel(R) Xeon(R) Processor",
+        "cpus": 8,
+        "os": "Linux 6.12.94+"
+    },
+    "dataset": {
+        "tier": {
+            "name": "mini",
+            "users": 200,
+            "heavy_roles": 20,
+            "heavy_direct": 200,
+            "posts": 10000,
+            "tenants": 20,
+            "members_per_tenant": 10,
+            "iterations": 200,
+            "warmup": 20,
+            "ladder": [
+                1,
+                2,
+                4
+            ],
+            "reps": 3
+        },
+        "rows": {
+            "users": 200,
+            "posts": 10000,
+            "teams": 20,
+            "team_user": 200,
+            "azg_role_grants": 509,
+            "azg_permission_grants": 220
+        },
+        "digest": "97bdddcaad4f0b3be0fb6da9c77dc5cee0b639a4d164a88488767425eb08ba4e"
+    },
+    "profiles": [
+        {
+            "id": "consistency-load",
+            "description": "Readers on other subjects, a hot subject and an open-loop writer: false conflicts and cache hits",
+            "primary_op": "check",
+            "stages": [
+                {
+                    "name": "disjoint:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.717
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 300,
+                                "errors": 0,
+                                "p50_us": 13317.3,
+                                "p95_us": 21892.1,
+                                "p99_us": 27301.7,
+                                "max_us": 30448.7,
+                                "sql_per_op": 5,
+                                "ops_per_s": 174.7
+                            },
+                            "write": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 12873.7,
+                                "p95_us": 25318.2,
+                                "p99_us": 35685.8,
+                                "max_us": 35941,
+                                "sql_per_op": 8.5,
+                                "ops_per_s": 58.2
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 13317.3,
+                            "p95_us": 21892.1,
+                            "p99_us": 27301.7,
+                            "sql_per_op": 5,
+                            "ops_per_s": 174.7,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 12873.7,
+                            "p95_us": 25318.2,
+                            "p99_us": 35685.8,
+                            "sql_per_op": 8.5,
+                            "ops_per_s": 58.2,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every written subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 50 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "hot:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.944
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 300,
+                                "errors": 0,
+                                "p50_us": 13193.9,
+                                "p95_us": 23784.1,
+                                "p99_us": 34078.7,
+                                "max_us": 112207.9,
+                                "sql_per_op": 5,
+                                "ops_per_s": 154.3
+                            },
+                            "write": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 14774.1,
+                                "p95_us": 41936.8,
+                                "p99_us": 90264.1,
+                                "max_us": 145369.7,
+                                "sql_per_op": 8.5,
+                                "ops_per_s": 51.4
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 13193.9,
+                            "p95_us": 23784.1,
+                            "p99_us": 34078.7,
+                            "sql_per_op": 5,
+                            "ops_per_s": 154.3,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 14774.1,
+                            "p95_us": 41936.8,
+                            "p99_us": 90264.1,
+                            "sql_per_op": 8.5,
+                            "ops_per_s": 51.4,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every written subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 1 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "paced50:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        1.939
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 300,
+                                "errors": 0,
+                                "p50_us": 13282.3,
+                                "p95_us": 23919.4,
+                                "p99_us": 29558.4,
+                                "max_us": 44792.2,
+                                "sql_per_op": 5,
+                                "ops_per_s": 154.7
+                            },
+                            "write": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 16957.4,
+                                "p95_us": 26802.3,
+                                "p99_us": 35686.6,
+                                "max_us": 219973,
+                                "sql_per_op": 8.5,
+                                "ops_per_s": 51.6
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 13282.3,
+                            "p95_us": 23919.4,
+                            "p99_us": 29558.4,
+                            "sql_per_op": 5,
+                            "ops_per_s": 154.7,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 16957.4,
+                            "p95_us": 26802.3,
+                            "p99_us": 35686.6,
+                            "sql_per_op": 8.5,
+                            "ops_per_s": 51.6,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every written subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 50 wrong"
+                        }
+                    ]
+                },
+                {
+                    "name": "paced200:w4",
+                    "workers": 4,
+                    "iterations_per_worker": 100,
+                    "warmup_per_worker": 20,
+                    "windows_s": [
+                        2.233
+                    ],
+                    "reps": [
+                        {
+                            "check": {
+                                "count": 300,
+                                "errors": 0,
+                                "p50_us": 14434,
+                                "p95_us": 31315.2,
+                                "p99_us": 53140.4,
+                                "max_us": 76076.6,
+                                "sql_per_op": 5,
+                                "ops_per_s": 134.3
+                            },
+                            "write": {
+                                "count": 100,
+                                "errors": 0,
+                                "p50_us": 16004.8,
+                                "p95_us": 50519.1,
+                                "p99_us": 128251.6,
+                                "max_us": 218417.1,
+                                "sql_per_op": 8.5,
+                                "ops_per_s": 44.8
+                            }
+                        }
+                    ],
+                    "summary": {
+                        "check": {
+                            "p50_us": 14434,
+                            "p95_us": 31315.2,
+                            "p99_us": 53140.4,
+                            "sql_per_op": 5,
+                            "ops_per_s": 134.3,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        },
+                        "write": {
+                            "p50_us": 16004.8,
+                            "p95_us": 50519.1,
+                            "p99_us": 128251.6,
+                            "sql_per_op": 8.5,
+                            "ops_per_s": 44.8,
+                            "errors": 0,
+                            "p95_cv": 0,
+                            "stable": true
+                        }
+                    },
+                    "checks": [
+                        {
+                            "name": "every written subject ends in the state of its last write",
+                            "ok": true,
+                            "detail": "0 of 50 wrong"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
