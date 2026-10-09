@@ -22,12 +22,15 @@ use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ListClients;
 use AzGuard\Tests\Fixtures\Crm\Filament\Pages\ViewClient;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
-use AzGuard\Tests\Fixtures\Filament\Exports\ExportSpy;
 use AzGuard\Tests\Fixtures\Http\EntryPermission;
-use Filament\Actions\Exports\ExportDispatcher;
+use Filament\Actions\ExportAction;
+use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Jobs\ExportCompletion;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Actions\Testing\TestAction;
 use Filament\Forms\Components\Select;
+use Illuminate\Bus\PendingBatch;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -148,16 +151,23 @@ it('R34 deletes in bulk only own clients: a foreign id in the selection is not e
 
 it('R34 exports only the clients the caller may still view, in its organization', function (): void {
     filamentCaller();
-    $spy = new ExportSpy;
-    app()->instance(ExportDispatcher::class, $spy);
+    $dispatcher = Bus::getFacadeRoot();
+    Bus::fake();
+    ExportAction::configureUsing(static fn (ExportAction $action) => $action->formats([ExportFormat::Csv]));
     $this->serveCrm(4);
 
     Livewire::test(ListClients::class)->callAction(TestAction::make('export')->table());
 
-    $options = $spy->dispatched[0]['options'][AuthorizedExportCsv::OPTION];
-    expect($spy->dispatched[0]['job'])->toBe(AuthorizedPrepareCsvExport::class)
-        ->and($options)->toBe(['panel' => 'crm', 'permission' => 'clients.view', 'tenant' => ['type' => 'crm.organization', 'id' => '1'], 'model' => Client::class]);
+    $options = null;
+    Bus::assertChained([Bus::chainedBatch(static function (PendingBatch $batch) use (&$options): bool {
+        $job = $batch->jobs->first();
+        $options = (new ReflectionProperty($job, 'options'))->getValue($job)[AuthorizedExportCsv::OPTION];
 
+        return $job instanceof AuthorizedPrepareCsvExport;
+    }), ExportCompletion::class]);
+    expect($options)->toBe(['panel' => 'crm', 'permission' => 'clients.view', 'tenant' => ['type' => 'crm.organization', 'id' => '1'], 'model' => Client::class]);
+
+    Bus::swap($dispatcher);
     Storage::fake('local');
     $export = new Export;
     $export->user()->associate(CrmFilamentUser::query()->findOrFail(4));
