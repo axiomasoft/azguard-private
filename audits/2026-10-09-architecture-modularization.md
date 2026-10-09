@@ -366,7 +366,7 @@ PSR-4 выбирает самый длинный префикс, поэтому 
 | `Contracts/Scopes/*` (определения, разрешённая область, ресурсы, членство, резолверы) | остаются в `Contracts/Scopes/` | на них ссылаются роли, источники, ресурсы (2.5) |
 | `Contracts/Subjects/SubjectDirectory.php`, `Contracts/Scopes/{TenantDirectory,AssignmentScopeDirectory}.php` | `Directories/Contracts/` | сервис справочников |
 | `Plugins/Audit/**`, `Changes/ChangeJournal.php`, `Laravel/Console/Commands/AuditPruneCommand.php`; `audit_log` из `Storage/Schema/StorageSchema.php:63`, запись `Sources/Database/DatabaseSource.php:669`, чистка `Changes/ChangePipeline.php:323`, колонки в `Sources/Database/StorageHealth.php:20` | `modules/audit/` | модуль пишет через `StorageMutation` (`@spi`) |
-| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `Laravel/Console/Commands/StubsCommand.php`, `packages/core/stubs/**` | `modules/devtools/` | `azguard:install` остаётся в ядре и использует только миграции ядра |
+| `Laravel/Console/Commands/Make/**`, `Laravel/Console/Scaffold/**`, `Laravel/Console/Commands/StubsCommand.php`, `packages/core/stubs/**` кроме `storage-migration.stub` | `modules/devtools/` | `azguard:install` и `azguard:storage:migration` (`StorageMigrationCommand`, его stub) остаются в ядре: это установка ядра, а не генерация кода |
 | `Plugins/{BasePlugin,PluginContext}.php` | `Contracts/Plugins/` + `Panels/` | SPI плагинов |
 | `Sources/Relation/**` | без изменений | `instanceof RelationSource` → способность SPI |
 | `Concerns/ScopedPanelAccess.php`, `Contracts/PanelAccess.php::directories()` | сервис `Directories` | |
