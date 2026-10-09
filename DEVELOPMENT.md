@@ -46,6 +46,7 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer mutate` | Pest mutate | Per-package mutation testing (`composer mutate core` for one package) |
 | `composer check:coverage` | Pest / pcov or Xdebug | Line-coverage gate (`--min=85`) |
 | `composer bench` | — | Benchmarks of the public API, see `docs/advanced/performance.md` |
+| `composer bench:load` | — | Load bench with concurrent workers, see `bench/README.md` |
 | `composer check` | — | Run the local gates: style, analysis, refactor, types, tests, coverage, mutation |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
