@@ -54,6 +54,10 @@ it('I7 holds over the populated 0.7.0 default database or fails exactly as allow
 it('I7 allowlists only known cases of 0.7.0, each owned by P2', function (): void {
     $entries = i7Allowlist();
 
-    expect(array_diff(array_keys($entries), array_keys(NoScopeWorld::cases())))->toBe([])
-        ->and(array_unique(array_column($entries, 'owner_phase')))->toBeIn([[], ['P2']]);
+    expect(array_diff(array_keys($entries), array_keys(NoScopeWorld::cases())))->toBe([]);
+
+    foreach ($entries as $case => $entry) {
+        expect($entry)->toHaveKeys(['case', 'observed', 'owner_phase'], 'I7 allowlist entry "'.$case.'" is incomplete')
+            ->and($entry['owner_phase'])->toBe('P2');
+    }
 });

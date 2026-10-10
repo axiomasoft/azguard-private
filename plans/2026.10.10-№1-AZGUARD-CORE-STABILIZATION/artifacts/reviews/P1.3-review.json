@@ -78,5 +78,46 @@
    "text": "I'll review the parity and no-scope harness against the P1.3 contract and invariants I7 and I9, starting with the plan and the fixed runner.The contract is loaded. Next I’ll pull I7 and I9 wording, then read the harness and the runner fixes.The expiry and flat-panel snapshots look like the places a disagreement could still be dropped. I’ll check validation order and how `visibleTo` classifies those cases.The two Round 1 fixes hold, and the rest of the harness does not hide a disagreement.\n\nNon-member assignments are always compared. `ChangeValidator::tenancy()` throws `tenant_mismatch` before the `until` check, so `fieldErrors` stays empty and the directory result is a real verdict. That is the 54 F2 rows.\n\n`until: past` is `Unsupported` only when final validation's field errors include `until`. On the flat panel, `mode === 'none'` rejects the context first (`context_not_accepted`), so those cases stay in the comparison and show up as F1. F1 matches the code: `PanelCompiler` still merges definitions from the earlier `inherit(ProjectScope)` record while the effective mode is `none()`, and `QueryScopeDirectory::search()` never reads that mode.\n\nI7's checks, write rejections, revoke, and prune hit the stated clauses. The scope probe is on the panel's real `ProjectScope::query()` / `ActiveProjects` path, and the inherit and tenant-wide controls are live. A new unsupported case, a stale snapshot line, a new disagreement, and a stale finding all fail the equality checks.\n\nVERDICT: GREEN"
   }
  ],
- "final_verdict": "GREEN"
+ "final_verdict": "GREEN",
+ "additional_reviews": [
+  {
+   "owner_request": "сделай еще 1 ревью на codex gpt-6.1-sol high",
+   "reviewer": {
+    "provider": "codex",
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "cli": "codex-cli 0.162.1",
+    "resolved_model": "not reported by the CLI",
+    "mode": "codex exec -s read-only, -c model_reasoning_effort=high, prompt from stdin; no tests, no writes"
+   },
+   "candidate": "e7a930e",
+   "rounds": [
+    {
+     "n": 1,
+     "status": "completed",
+     "completed": true,
+     "verdict": "FINDINGS",
+     "findings": [
+      {
+       "severity": "low",
+       "file": "tests/Feature/Parity/NoScopeDeclarationTest.php",
+       "line": 58,
+       "summary": "The ownership check accepted allowlist entries without owner_phase: array_column() omits missing fields and [] was accepted.",
+       "failure_scenario": "An I7 case allowlisted with observed but no owner_phase passes both the case and the ownership assertions.",
+       "resolution": "fixed: every entry must have case, observed and owner_phase P2; verified by an entry without owner failing"
+      }
+     ],
+     "thread_id": "01a12716-6b30-7422-b268-d1982595c7a7",
+     "usage": {
+      "input_tokens": 2505531,
+      "cached_input_tokens": 2346624,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 7482,
+      "reasoning_output_tokens": 3666
+     },
+     "text": "- **Low — [NoScopeDeclarationTest.php:58](/home/vostrikov/projects/packages/azguard/tests/Feature/Parity/NoScopeDeclarationTest.php:58):** The ownership check accepts allowlist entries missing the required `owner_phase`, because `array_column()` omits missing fields and `[]` is accepted.\n  **Failure scenario:** A scoped role grant incorrectly succeeds; its case is allowlisted with `observed: \"applied\"` but no owner. The case assertion and ownership assertion both pass, accepting an unowned I7 violation.\n\nVERDICT: FINDINGS"
+    }
+   ]
+  }
+ ]
 }
