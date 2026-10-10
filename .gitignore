@@ -49,9 +49,8 @@ AGENTS.md
 .swissknife/
 .swissknife.json
 .mcp.json.example
-# Process locks of the plan CLI: per-process state, never evidence.
-plans/.lock
-plans/**/.plan-cache/*.lock
+# Local planning, agent receipts and run logs are development infrastructure.
+/plans/
 
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/
