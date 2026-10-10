@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P1.5",
   "title": "Blocking consumer qualification",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "The built-archive consumer check (core, core+Filament in a clean Laravel 13 application) is a blocking job in the tests workflow and a required step of the release validate job, so neither a merge nor a tag release can pass with a broken archive or an unreachable Packagist.",
   "why": "I19 moves from non-blocking to blocking in P1; release-gate condition 9 says a tag release cannot bypass it (owner amendment D14). Packagist unavailability (exit 3) is 'proves nothing' and must never be green.",
   "scope": {
@@ -124,12 +124,49 @@
   },
   "result": {
     "started_at": "2026-10-10T12:29:57Z",
+    "finished_at": "2026-10-10T12:48:50Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "0b994a41-73a4-4675-93f4-3f65113a6ef0"
-    }
+    },
+    "notes": "tests.yml consumer-fixture job is blocking (continue-on-error and stale PLAN2.P8.3 comment removed). release.yml validate: extensions zip, pdo_sqlite, sqlite3; consumer steps core and core+Filament with --version=${GITHUB_REF_NAME#v} after Tests, before changelog preflight. bin/consumer-fixture.sh unchanged: local run with --version=1.0.0-rc.1 --with-filament exits 0. Owner-requested grok/grok-4.7/high review GREEN (artifacts/reviews/P1.5-review.json).",
+    "deviations": [
+      "V4 as authored exits 1 on the untouched Codecov upload step (tests.yml coverage job; its continue-on-error predates P1.5 and changing it would alter another job). Scoped equivalent passes: the consumer-fixture job has no continue-on-error; release.yml has exactly 2 consumer-fixture.sh steps."
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-10T12:48:50Z",
+        "evidence": "@plan/artifacts/evidence/P1.5/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-10T12:48:50Z",
+        "evidence": "@plan/artifacts/evidence/P1.5/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-10T12:48:50Z",
+        "evidence": "@plan/artifacts/evidence/P1.5/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 1,
+        "at": "2026-10-10T12:48:50Z",
+        "evidence": "@plan/artifacts/evidence/P1.5/V4.json"
+      }
+    ],
+    "evidence": [
+      "@plan/artifacts/evidence/P1.5/V1.json",
+      "@plan/artifacts/evidence/P1.5/V2.json",
+      "@plan/artifacts/evidence/P1.5/V3.json",
+      "@plan/artifacts/evidence/P1.5/V4.json"
+    ]
   },
-  "updated_at": "2026-10-10T12:46:46Z"
+  "updated_at": "2026-10-10T12:48:50Z"
 }
