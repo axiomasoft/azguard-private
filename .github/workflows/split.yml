@@ -3,8 +3,8 @@ name: Split packages
 # Publishes the monorepo's packages to their standalone, read-only repositories
 # after the release workflow validates a tag. Packagist watches those repos (via webhook) and picks up
 # the new version automatically. The split repos are what users `composer require`.
-# Split is deferred until the one-time setup in RELEASING.md is complete. Enable it
-# by creating the repository variable SPLIT_ENABLED=true.
+# The public release requires the one-time setup in RELEASING.md. Missing setup fails
+# the workflow instead of silently creating a release without its Composer packages.
 #
 # One-time setup (see RELEASING.md):
 #   1. Create the two target repos under the org (azguard, azguard-filament).
@@ -20,7 +20,6 @@ permissions:
 jobs:
   split:
     name: Split ${{ matrix.package.name }}
-    if: ${{ vars.SPLIT_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -30,6 +29,16 @@ jobs:
           - { dir: filament, name: azguard-filament }
 
     steps:
+      - name: Require package publishing configuration
+        env:
+          SPLIT_ENABLED: ${{ vars.SPLIT_ENABLED }}
+          MONOREPO_SPLIT_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
+        run: |
+          if [[ "$SPLIT_ENABLED" != 'true' || -z "$MONOREPO_SPLIT_TOKEN" ]]; then
+            echo '::error::Complete RELEASING.md setup: SPLIT_ENABLED=true and MONOREPO_SPLIT_TOKEN are required.'
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v6
         with:

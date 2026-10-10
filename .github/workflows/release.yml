@@ -68,7 +68,7 @@ jobs:
 
   release:
     name: Create GitHub Release
-    needs: validate
+    needs: [validate, split]
     runs-on: ubuntu-latest
 
     steps:
