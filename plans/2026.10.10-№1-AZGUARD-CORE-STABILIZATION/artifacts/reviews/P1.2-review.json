@@ -1,0 +1,81 @@
+{
+ "item": "P1.2",
+ "owner_request": "ревью на grok 4.7, 1 или 2 прохода, на твое усмотрение",
+ "reviewer": {
+  "provider": "grok",
+  "model": "grok-4.7",
+  "effort": "high",
+  "cli": "grok 1.0.50",
+  "resolved_model": "grok-4.7-build",
+  "mode": "headless --prompt-file, --tools read_file,grep,list_dir (no write/bash tools), --no-subagents, --disable-web-search, bypassPermissions"
+ },
+ "executor": {
+  "provider": "claude-code",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "session": "c42d0d53-b140-4268-99f1-4f8ee7b6c988"
+ },
+ "rounds": [
+  {
+   "n": 1,
+   "status": "completed",
+   "completed": true,
+   "verdict": "FINDINGS",
+   "findings": [
+    {
+     "severity": "medium",
+     "file": "tests/Regression/Baseline070/ExplainSnapshotTest.php",
+     "line": 35,
+     "summary": "The explain JSON shape types only the first element of each list, so later step detail objects are outside the freeze.",
+     "failure_scenario": "Changing the detail keys on the contribution or authority step leaves explain.json and this test green, because the stored shape is the empty detail of the prepare step."
+    },
+    {
+     "severity": "medium",
+     "file": "tests/Regression/Baseline070/InventoriesSnapshotTest.php",
+     "line": 99,
+     "summary": "The type-map cross-check compares each fixture target to that same row's fqcn and only requires a non-empty note on reported rows.",
+     "failure_scenario": "A reported target can be any other string, and a type-map target or phase change leaves the test green; the notes already say P3 for AssignmentScopePhase and InvalidCommandInput while target-map.json schedules both moves in P2."
+    },
+    {
+     "severity": "medium",
+     "file": "tests/Regression/Baseline070/DoctorSnapshotTest.php",
+     "line": 16,
+     "summary": "The doctor and reserved-prefix snapshots call CrmWorld::seed() and their afterEach only runs CrmWorld::resetRuntime().",
+     "failure_scenario": "After those tests, Carbon::now() stays 2026-10-06 and Relation still maps crm.user to the CRM user for later tests in the same process; ResourcesSnapshotTest.php:113 does the same."
+    },
+    {
+     "severity": "low",
+     "file": "tests/Fixtures/Baseline070/Formats/FormatSnapshot.php",
+     "line": 34,
+     "summary": "Writer mode overwrites the fixture and the assertion then reads that write back, with no check that packages/ still matches commit 09612160.",
+     "failure_scenario": "AZGUARD_BASELINE_WRITE=1 on a tree whose production code has already moved rewrites the I17 JSON and the snapshot tests pass; CommandsSnapshotTest.php:277 rewrites commands.json the same way."
+    },
+    {
+     "severity": "low",
+     "file": "tests/Regression/Baseline070/ResourcesSnapshotTest.php",
+     "line": 97,
+     "summary": "absent_at_070 omits the P3 generated migration pattern <date>_create_azguard_<storage>_audit_log.php from knowledge/identities.",
+     "failure_scenario": "Adding that filename from an existing command leaves every recorded absent_at_070 flag false and the resources snapshot stays green."
+    }
+   ],
+   "sessionId": "01a12664-5a02-73f0-8a67-c66c47ff207a",
+   "requestId": "c4c6a0f2-6d86-4dd2-bf5c-c23efa64cff5",
+   "stopReason": "end_turn",
+   "num_turns": 42,
+   "modelUsage": {
+    "grok-4.7-build": {
+     "inputTokens": 185114,
+     "outputTokens": 44731,
+     "cacheReadInputTokens": 4237696,
+     "cacheCreationInputTokens": 0,
+     "modelCalls": 42,
+     "costUSD": 0.93753708
+    }
+   },
+   "text": "I'll review P1.2 as a read-only check of the frozen 0.7.0 snapshots against the committed code and the identities document.The plan item and fixture helper are in place. Next I’ll read the snapshot tests and compare them to the identity rows.P1.2 pins the 0.7.0 formats from running code, and the exit codes checked against the command classes match the fixtures (`explain` input failures 1, `doctor` unknown panel/storage 2, `storage:migration` failures 1). Five holes are in the snapshots themselves.\n\n{\"verdict\":\"FINDINGS\",\"findings\":[{\"severity\":\"medium\",\"file\":\"tests/Regression/Baseline070/ExplainSnapshotTest.php\",\"line\":35,\"summary\":\"The explain JSON shape types only the first element of each list, so later step detail objects are outside the freeze.\",\"failure_scenario\":\"Changing the detail keys on the contribution or authority step leaves explain.json and this test green, because the stored shape is the empty detail of the prepare step.\"},{\"severity\":\"medium\",\"file\":\"tests/Regression/Baseline070/InventoriesSnapshotTest.php\",\"line\":99,\"summary\":\"The type-map cross-check compares each fixture target to that same row's fqcn and only requires a non-empty note on reported rows.\",\"failure_scenario\":\"A reported target can be any other string, and a type-map target or phase change leaves the test green; the notes already say P3 for AssignmentScopePhase and InvalidCommandInput while target-map.json schedules both moves in P2.\"},{\"severity\":\"medium\",\"file\":\"tests/Regression/Baseline070/DoctorSnapshotTest.php\",\"line\":16,\"summary\":\"The doctor and reserved-prefix snapshots call CrmWorld::seed() and their afterEach only runs CrmWorld::resetRuntime().\",\"failure_scenario\":\"After those tests, Carbon::now() stays 2026-10-06 and Relation still maps crm.user to the CRM user for later tests in the same process; ResourcesSnapshotTest.php:113 does the same.\"},{\"severity\":\"low\",\"file\":\"tests/Fixtures/Baseline070/Formats/FormatSnapshot.php\",\"line\":34,\"summary\":\"Writer mode overwrites the fixture and the assertion then reads that write back, with no check that packages/ still matches commit 09612160.\",\"failure_scenario\":\"AZGUARD_BASELINE_WRITE=1 on a tree whose production code has already moved rewrites the I17 JSON and the snapshot tests pass; CommandsSnapshotTest.php:277 rewrites commands.json the same way.\"},{\"severity\":\"low\",\"file\":\"tests/Regression/Baseline070/ResourcesSnapshotTest.php\",\"line\":97,\"summary\":\"absent_at_070 omits the P3 generated migration pattern <date>_create_azguard_<storage>_audit_log.php from knowledge/identities.\",\"failure_scenario\":\"Adding that filename from an existing command leaves every recorded absent_at_070 flag false and the resources snapshot stays green.\"}]}",
+   "resolution": "Item already finished and committed (d1a20c6) before the review: findings are recommendations, not repaired here. Executor check: F1 (explain shape types only list[0]), F2 (type-map cross-check self-referential), F4 (writer mode without baseline guard), F5 (audit_log generated-migration pattern not in absent_at_070) confirmed in code; F3 partially: Relation morph map leaks, Carbon is reset by Laravel TestCase teardown."
+  }
+ ],
+ "completed_rounds": 1,
+ "verdict": "FINDINGS (recommendations)"
+}
