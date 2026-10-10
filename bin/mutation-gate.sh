@@ -20,6 +20,9 @@ if ! azguard_coverage_php; then
     exit 1
 fi
 
+# Verify and apply the development-only upstream compatibility fix before Pest loads the runner.
+"$AZGUARD_COVERAGE_PHP" bin/prepare-mutation-runner.php
+
 # One generated configuration applies the stand exclusions to every worker. Passing --exclude-group on the CLI
 # again replaces these exclusions and can accidentally admit the replica lane to a SQLite coverage run.
 config=".phpunit.mutation.$$.xml"
