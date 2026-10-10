@@ -43,11 +43,11 @@ Mount or symlink the package directory into the app, then `composer update`.
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 9, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
 | `composer refactor` / `refactor:check` | Rector | Apply / preview refactorings |
-| `composer mutate` | Pest mutate | Per-package mutation testing (`composer mutate core` for one package) |
+| `composer mutate` | Pest mutate | Optional per-package mutation testing (`composer mutate:core` or `composer mutate:filament`) |
 | `composer check:coverage` | Pest / pcov or Xdebug | Line-coverage gate (`--min=85`) |
 | `composer bench` | — | Benchmarks of the public API, see `docs/advanced/performance.md` |
 | `composer bench:load` | — | Load bench with concurrent workers, see `bench/README.md` |
-| `composer check` | — | Run the local gates: style, analysis, refactor, types, tests, coverage, mutation |
+| `composer check` | — | Run the local gates: style, analysis, refactor, API manifest, types, tests, coverage |
 | `composer fix` | — | Auto-fix style and apply refactorings |
 
 Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
@@ -58,10 +58,18 @@ same 1G memory limit to every ParaTest worker. It is intentionally limited to
 the SQLite lane; run PostgreSQL and MySQL lanes sequentially with their
 dedicated commands below.
 
-## Mutation-ratchet policy
+## Optional mutation testing
+
+The owner has deferred mutation testing while the API is unstable before 1.0. Mutation is not an
+acceptance or release gate for 0.7.0 and is excluded from `composer check`. The workflow runs only via
+`workflow_dispatch`; `composer mutate`, `composer mutate:core` and `composer mutate:filament` remain
+available with their existing thresholds and fail on errors. Further validation of the existing
+mutation-runner compatibility patch is a separate task.
+
+### Mutation-ratchet policy
 
 Pest's native mutator reports one covered mutation score per package. Raise a
-blocking threshold only from a fresh, successful Xdebug measurement: each new
+per-package threshold only from a fresh, successful Xdebug measurement: each new
 threshold is `floor(measured score) - 2` and must never be below the previous
 threshold. Do not lower a threshold to make a red gate pass. Exclusions live
 next to the package settings in `bin/mutation-gate.sh`, carry an inline

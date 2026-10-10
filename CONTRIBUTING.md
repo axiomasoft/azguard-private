@@ -8,10 +8,16 @@ releases are in [RELEASING.md](RELEASING.md). Report vulnerabilities privately a
 
 1. Branch from `main`: `feat/…`, `fix/…`, `docs/…`.
 2. Write the code and its tests. A bug fix starts with a failing test.
-3. Run `composer check` (style, static analysis, Rector, type coverage, tests, line coverage, mutation). It fails
+3. Run `composer check` (style, static analysis, Rector, API manifest, type coverage, tests, line coverage). It fails
    without a coverage driver; install pcov or Xdebug.
 4. After a change to an `@api` or `@spi` symbol, run `composer api:manifest` and commit the manifest.
 5. Open a pull request to `main`. All CI checks must be green; one approval is required.
+
+Mutation testing is optional and deferred by the owner while the API is unstable before 1.0.
+It is not an acceptance or release gate for 0.7.0. The separate `composer mutate`,
+`composer mutate:core` and `composer mutate:filament` commands retain their thresholds and fail on errors;
+the mutation workflow runs only via `workflow_dispatch`. Further validation of the existing
+mutation-runner compatibility patch is a separate task.
 
 ## Code standards
 

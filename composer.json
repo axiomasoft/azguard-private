@@ -96,8 +96,7 @@
             "@api:check",
             "@test:types",
             "@test",
-            "@check:coverage",
-            "@mutate"
+            "@check:coverage"
         ],
         "fix": [
             "@lint",
@@ -122,7 +121,7 @@
         ]
     },
     "scripts-descriptions": {
-        "check": "Run every local gate: style, static analysis, Rector, type coverage, tests, line coverage and mutation. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
+        "check": "Run required local gates: style, static analysis, Rector, API manifest, type coverage, tests and line coverage. Mutation is optional. Fails on a skipped test or a missing coverage driver (opt out only with AZGUARD_ALLOW_NO_COVERAGE=1).",
         "fix": "Auto-fix code style (Pint) and apply Rector refactorings.",
         "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",

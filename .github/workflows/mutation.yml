@@ -1,12 +1,8 @@
 name: Mutation Testing
 
-# Native Pest mutation testing is blocking in every mode: thresholds ratchet from
-# actual per-package scores (DEVELOPMENT.md), so an advisory success would hide a regression.
+# Optional manual mutation testing; deferred by the owner while the API is unstable.
+# A requested run still fails on runner errors or unmet per-package thresholds.
 on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
