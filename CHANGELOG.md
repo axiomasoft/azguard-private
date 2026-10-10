@@ -11,6 +11,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **core:** Completed and failed decision batches release pinned database handles immediately, including when
+  observers retain evaluation contexts or PHP cycle collection is disabled.
 - **core:** Batch authorization preserves each supplied subject model and qualifies scope access against that
   instance, even when adjacent requests use the same primary key or a database fallback.
 

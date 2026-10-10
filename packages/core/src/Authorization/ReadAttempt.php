@@ -74,6 +74,13 @@ final class ReadAttempt
     /** @param list<Attached> $sources */
     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true, private readonly ?ReadSessions $shared = null) {}
 
+    /** Releases operation-owned PDO pins; consumed state remains available to observer frames. */
+    public function close(): void
+    {
+        $this->sessions = [];
+        $this->pending = [];
+    }
+
     /** @var list<AccessScope>|null */
     private ?array $batchScopes = null;
 

@@ -84,7 +84,8 @@ final class StorageReadSession
      * Drops the pinned handle from the private connection when the session ends. Since Laravel 12 a cloned connection
      * and its grammar reference each other, so the clone is only freed by the cycle collector; until then it would keep
      * the PDO, and with it the server connection, open after the host closed it with `DB::disconnect()` (before a fork,
-     * between Octane requests, at the end of a test). The session itself is not in a cycle and ends deterministically.
+     * between Octane requests, at the end of a test). Batch owners explicitly release their session references in
+     * finally: a batch and its observer frames can otherwise retain the session through a cycle.
      */
     public function __destruct()
     {

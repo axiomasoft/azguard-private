@@ -58,6 +58,17 @@ final class BatchInputs
         $this->sessions = new ReadSessions;
     }
 
+    /** Ends operation ownership even when observer frames retain the batch's attempts. */
+    public function close(): void
+    {
+        foreach ($this->attempts as $attempt) {
+            $attempt->close();
+        }
+        $this->sessions->close();
+        $this->attempts = [];
+        $this->witnesses = [];
+    }
+
     /** @param list<array{Panel, AccessRequest}> $requests */
     public function loadSubjects(array $requests, ?ActorRef $actor): void
     {

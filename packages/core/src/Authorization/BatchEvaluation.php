@@ -41,12 +41,27 @@ final readonly class BatchEvaluation
      */
     public function evaluate(array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): DecisionSet
     {
+        $batch = new BatchInputs($this->container);
+
+        try {
+            return $this->evaluateBatch($batch, $requests, $actor, $now, $enter, $leave);
+        } finally {
+            $batch->close();
+        }
+    }
+
+    /** @param list<array{Panel, AccessRequest}> $requests
+     * @param  Closure(Panel, AccessRequest): void  $enter
+     * @param  Closure(Panel, AccessRequest): void  $leave
+     */
+    private function evaluateBatch(BatchInputs $batch, array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): DecisionSet
+    {
         if ($requests === []) {
             return DecisionSet::of();
         }
         // Different subjects may consume the same storage/panel revision. Preserve DecisionSet's frozen contract.
         // Host inputs are prepared once; every group reads its sources consistently and is evaluated once.
-        $prepared = $this->prepare($requests, $actor, $now, $enter, $leave);
+        $prepared = $this->prepare($batch, $requests, $actor, $now, $enter, $leave);
         $groups = [];
         foreach ($prepared as $i => $entry) {
             $attempt = $entry['frame']->readAttempt;
@@ -123,9 +138,8 @@ final readonly class BatchEvaluation
      * @param  Closure(Panel, AccessRequest): void  $leave
      * @return array<int, Prepared>
      */
-    private function prepare(array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): array
+    private function prepare(BatchInputs $batch, array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): array
     {
-        $batch = new BatchInputs($this->container);
         $batch->loadSubjects($requests, $actor);
         $raw = [];
         $witnesses = [];

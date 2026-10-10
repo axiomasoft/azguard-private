@@ -19,6 +19,11 @@ final class ReadSessions
     /** @var array<string, StorageReadSession> */
     private array $sessions = [];
 
+    public function close(): void
+    {
+        $this->sessions = [];
+    }
+
     /** @param Closure(): StorageReadSession $open */
     public function get(DatabaseSource $source, Panel $panel, Closure $open): StorageReadSession
     {
