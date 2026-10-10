@@ -1,0 +1,34 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D6",
+  "title": "Physical extraction follows demonstrated independent purpose",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "Must every optional module become a separate Composer package before 1.0?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Complete logical separation and qualify relocation safety before 1.0. Keep AzGuard-only modules internal. Open a separate future extraction plan only for an independently useful integration/adapter, retaining FQCNs, public/machine identities, migration history and populated data with one autoload owner.",
+  "rationale": "Logical ownership and optional activation deliver a smaller runtime without package multiplication. Composer PSR-4 can change archive ownership later; that movement must not create an API, schema or data migration. Separate licensing belongs to a self-contained integration and cannot split authorization semantics.",
+  "applies_to": [
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/composer.json"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/filament/composer.json"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}

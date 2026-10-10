@@ -1,0 +1,72 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P2",
+  "title": "Freeze API and extension boundaries",
+  "design": "skeleton",
+  "goal": "Choose the final supported consumer/implementer surface and typed seams that let modules supply behavior without importing core internals.",
+  "context": "Architecture phase B. Approximate size: L. This is the single planned pre-1.0 contract transition, including mixed namespaces, entry point, scope semantics, typing and publication. Detailed PHP signatures, tasks and exact check commands are authored in a separate phase-design session from the fixed semantics.",
+  "contract": {
+    "consumes": [
+      "The qualified persistence and safety contract from the preceding phase",
+      "knowledge/architecture#ownership",
+      "knowledge/architecture#extension-system",
+      "knowledge/architecture#api-compatibility"
+    ],
+    "produces": [
+      "Explicit API/SPI type/member/override ownership map",
+      "Typed core scope/query, change-pipe and participant semantics",
+      "Narrow module-table and identity-schema capabilities",
+      "One coherent 0.7.0-to-candidate API/namespace/config upgrade map"
+    ],
+    "boundaries": [
+      "Core owns mandatory decision and write stages",
+      "Modules exchange only core contracts/values, with no sibling bridges or plugin-ID dependencies",
+      "No public coordinator/session/mutation leakage and no dynamic macro API"
+    ]
+  },
+  "scope": {
+    "include": [
+      "AzGuard entry point and facade",
+      "Contracts, Context, Tenancy and mixed Scopes signatures",
+      "Plugin compilation, immutable options and capability compatibility",
+      "State token serialization, finite enums and API manifest coverage"
+    ],
+    "exclude": [
+      "New workflow/plugin engine",
+      "One interface or Composer package per internal service",
+      "Repeated naming redesign after the candidate boundary"
+    ]
+  },
+  "depends_on": [
+    "P1"
+  ],
+  "pitfalls": [
+    "Consumer compatibility differs from implementer/subclass compatibility",
+    "Readonly runtime inputs may still borrow mutable host models",
+    "A module-table capability returning a raw connection defeats its boundary",
+    "A facade without declared methods evades the present manifest"
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "procedure": "Classify every supported type/member/override point and verify signature closure; compile valid built-in and independent consumer contributions through the same slots; reject duplicates, invalid types, unsupported capabilities, unchecked context writes and invariant-bypassing continuation/results.",
+      "expect": "Every supported symbol has one stable owner; external extensions need no internal/core-to-module dependency and cannot bypass final validation through supported slots.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "API/SPI and namespace ownership map",
+    "Typed extension semantics and compatibility rules",
+    "Member-aware manifest generator and frozen candidate surface",
+    "Single upgrade map and non-PHP contract inventory"
+  ],
+  "items": [],
+  "batches": [],
+  "sections": [
+    {
+      "id": "exit",
+      "title": "Exit criterion",
+      "text": "All supported signatures and extension semantics have a stable owner; scope behavior, audit persistence and tools can be moved without inventing another public mechanism during implementation."
+    }
+  ]
+}

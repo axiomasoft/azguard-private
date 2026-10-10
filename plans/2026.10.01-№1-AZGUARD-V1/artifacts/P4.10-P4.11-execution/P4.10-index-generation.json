@@ -1,0 +1,10 @@
+{
+  "command": [
+    "php",
+    "/tmp/azguard-b4e-first-i5tywd61/bin/api-manifest.php",
+    "--write"
+  ],
+  "exit_code": 0,
+  "purpose": "Owning generator applied to the first item source projection excluding the not-yet-committed GateBridge; no working product file modified. Supports one coherent scoped commit per item.",
+  "filament_identical": true
+}

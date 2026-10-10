@@ -50,7 +50,7 @@ AGENTS.md
 .swissknife.json
 .mcp.json.example
 # Local planning, agent receipts and run logs are development infrastructure.
-/plans/
+# /plans/
 
 # Raw samples and the SQLite file of the load bench
 /bench/.runs/

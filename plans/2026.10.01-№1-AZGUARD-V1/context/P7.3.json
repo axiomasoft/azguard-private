@@ -1,0 +1,2097 @@
+{
+  "ref": "PLAN2.P7.3",
+  "plan": {
+    "$schema": "urn:swissknifeman:task:plan:plan:v1",
+    "id": "2026.10.01-№1-AZGUARD-V1",
+    "short_id": "PLAN2",
+    "title": "Plan №1 — AzGuard 1.0: перестройка по целевой архитектуре",
+    "status": "active",
+    "created": "2026-10-01",
+    "updated_at": "2026-10-07T07:58:49Z",
+    "repository": "azguard",
+    "owner": "Дмитрий Востриков",
+    "authoring": {
+      "provider": "legacy",
+      "model": "claude-opus-5-5/unknown"
+    },
+    "goal": "Вход — целевая архитектура AzGuard 1.0 `audits/2026-09-29-audit/opus/` (далее «досье»): решения\nD01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценарии V01–V120 (`14`), CRM-приёмка R01–R68\n(`17`), сквозные процессы F01–F24 (`20`), probes 0.3 (`evidence/`). Вход владельца — `@plan/brief.json`.\n\nПакет 0.3 не в эксплуатации (D01): старый код не патчится, версия 1.0 строится с нуля по досье,\nбез алиасов, нормализатора конфига и миграции данных. Дефекты N01–N24 и probes P01–P14 становятся\nрегрессионными тестами нового API с обратным ожиданием. Результат — `axiomasoft/azguard` и\n`axiomasoft/azguard-filament` 1.0.0-beta.1, затем 1.0.0 с блокирующими гейтами совместимости.\n\nДосье — нормативный источник смысла и имён; фактическая раскладка, сигнатуры и порядок шагов\nуточняются при детализации фазы по реальному коду. Расхождение досье с кодом или внутри досье —\nзапись в `@plan/plan.json` и решение `D#`, а не импровизация. Q30–Q33 исполняются с defaults\n(`15-owner-questions.md`): встроены Folder/Database/Relation/Gate sources; метаданные ролей —\nатрибуты с методом-эквивалентом; FolderSource не отключается; Laravel 11/12/13.",
+    "context": "Вход — целевая архитектура AzGuard 1.0 `audits/2026-09-29-audit/opus/` (далее «досье»): решения\nD01–D84 (`02`), фазы F0–F8 и пункты `Pn.m` (`13`), сценарии V01–V120 (`14`), CRM-приёмка R01–R68\n(`17`), сквозные процессы F01–F24 (`20`), probes 0.3 (`evidence/`). Вход владельца — `@plan/brief.json`.\n\nПакет 0.3 не в эксплуатации (D01): старый код не патчится, версия 1.0 строится с нуля по досье,\nбез алиасов, нормализатора конфига и миграции данных. Дефекты N01–N24 и probes P01–P14 становятся\nрегрессионными тестами нового API с обратным ожиданием. Результат — `axiomasoft/azguard` и\n`axiomasoft/azguard-filament` 1.0.0-beta.1, затем 1.0.0 с блокирующими гейтами совместимости.\n\nДосье — нормативный источник смысла и имён; фактическая раскладка, сигнатуры и порядок шагов\nуточняются при детализации фазы по реальному коду. Расхождение досье с кодом или внутри досье —\nзапись в `@plan/plan.json` и решение `D#`, а не импровизация. Q30–Q33 исполняются с defaults\n(`15-owner-questions.md`): встроены Folder/Database/Relation/Gate sources; метаданные ролей —\nатрибуты с методом-эквивалентом; FolderSource не отключается; Laravel 11/12/13.",
+    "rules": [
+      "Протокол Task `plan-protocol-v2`; executor читает plan → Phase Context → item → bundle → state.",
+      "Перед детализацией фазы прочитать её разделы досье и реальный код предшествующих фаз; фаза\n  исполняется только после детализации всех её item (D3).",
+      "Номера пунктов досье сохраняются; новые пункты получают следующий свободный номер фазы.",
+      "Каждая фаза реализации P1–P7 заканчивается read-only пунктом `Review Pn` (verdict-файл в `findings/`);\n  P4 дополнительно получает срез-review между группами. Item Review по умолчанию `none`.",
+      "Код 1.0 пишется в `packages/core` и `packages/filament`; legacy 0.3 — только справочник\n  `legacy/0.3/`, не автозагружается и удаляется в P6.9 (D2). Код Vaulter и других пакетов не меняется.",
+      "Probe из колонки «Probe» досье переписывается в owning item как регрессия с обратным ожиданием;\n  item без него не закрыт. V-сценарий owning item — его acceptance.",
+      "Имена — только из `03-glossary-and-renames.md`; внутренние коды задач в docblock `src` запрещены.",
+      "Гейты каждого item: targeted Pest + полный набор `composer test`, `vendor/bin/pint --test`,\n  `vendor/bin/phpstan analyse` (уровень проекта), arch-тесты. Падение/пропуск ≠ успех.",
+      "SQLite `:memory:` — по умолчанию; PG/MySQL/Redis — только docker compose test DB (`*_test`);\n  SQLite green не доказывает PG/MySQL DDL, блокировки и конкурентность (D4).",
+      "Built-in sources пишутся только через публичные контракты; не хватает контракта — сначала контракт.",
+      "Без новых runtime-зависимостей сверх досье (`illuminate/*`, Filament 5 для UI-пакета).",
+      "Release-visible изменения — `CHANGELOG.md` `[Unreleased]`; коммиты — Russian Conventional Commits.",
+      "Push, теги, релизы, Packagist, чужие репозитории — только owner-gated пункты P8."
+    ],
+    "phases": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7",
+      "P8"
+    ],
+    "settings": {
+      "design_audit": "none",
+      "scout": "off",
+      "language": "ru"
+    },
+    "orchestration": {
+      "strategy": "dag"
+    },
+    "sections": [
+      {
+        "id": "section",
+        "title": "Целевые инварианты (проверяются во всех фазах)",
+        "text": "1. Одно правило выбора панели (`PanelResolver`) для всех входов; неразрешимая панель — исключение.\n2. Идентичность субъекта/tenant/scope/роли одна в SQL, кэше и событиях; без склейки строк (D07).\n3. Ошибка любого шага проверки = отказ; Before/Restriction только запрещают (D17, D20, D55).\n4. Явный authority mode права: PolicyOnly не читает назначения; RequiresGrant не обходится policy true (D53, D83).\n5. Роли — только PHP-классы; БД хранит назначения, не definitions (D13, D80).\n6. Единственный путь записи — ChangePipeline с транзакцией, версией панели и событиями после commit (D22, D49).\n7. Kernel без Laravel; зоны и `@api/@spi` границы держат arch-тесты и `api-manifest.json` (D02, D12)."
+      }
+    ]
+  },
+  "brief": {
+    "$schema": "urn:swissknifeman:task:plan:brief:v1",
+    "messages": [
+      {
+        "id": "M1",
+        "date": "2026-10-01",
+        "text": "# Вход владельца и принятая граница\n\n2026-10-01, `/task:plan-design`, дословно:\n\n> сформируй план на основании  audits/2026-09-29-audit/opus . Сначала проектируем верхний слой, далее\n> детализация фазы и сразу исполнение и так далее. Важно качественно выполнить работу\n\nВ `plans/ACTIVE.md` активного плана не было (PLAN1 архивирован 2026-09-24).\n\n## Интерпретация\n\n- Источник — целевая архитектура AzGuard 1.0 в `audits/2026-09-29-audit/opus/` (00–20, evidence).\n  Это нормативное досье: решения D01–D84, фазы F0–F8 и пункты `Pn.m` (13), сценарии V01–V120 (14),\n  CRM-приёмка R01–R68 (17), процессы F01–F24 (20). Досье — вход дизайна, не готовые item-контракты.\n- Режим: верхний слой (этот дизайн) → детализация одной фазы по реальному коду → её исполнение →\n  детализация следующей. Владелец разрешил исполнение фаз в этой же сессии.\n- «Качественно» → каждая фаза реализации заканчивается независимым read-only review-пунктом;\n  probes 0.3 становятся регрессионными тестами с обратным ожиданием.\n- Открытые вопросы Q30–Q33 досье исполняются с решениями по умолчанию из `15-owner-questions.md`.\n\n## Среда (наблюдено 2026-10-01)\n\n- HEAD `f6d33cc49fb7f66e5e835ef9b355765c55efd04a`, ветка `main`; неотслеживаемый `.swissknife/` — чужой, не трогать.\n- PHP 8.4.1 CLI; установлены Laravel 13.21.1, Testbench 11.1, Pest 4.7.5, PHPStan 2.2.5, Larastan 3.10,\n  Filament 5.7.1. Тег `v0.3.0` существует.\n- `docker-compose.yml` содержит postgres:16, mysql:8, redis:7 (сейчас не запущены; `make up`).\n- mAInd: `maind health --cwd` → `connected`.\n- Автор дизайна: Claude Opus 5.5 (`claude-opus-5-5`), effort сессии не аттестован.\n\n## Вне границы без отдельного согласия владельца\n\nPush, теги и релизы, Packagist/abandoned-пометки, изменения в репозиториях Vaulter и других пакетов,\nрассылка ADR внешним владельцам. В плане они — owner-gated пункты P8.\n",
+        "channel": "legacy source record brief/00-brief.md; not asserted verbatim",
+        "kind": "record"
+      },
+      {
+        "id": "M3",
+        "date": "2026-10-01",
+        "text": "# Owner request — P2 owning repairs — 2026-10-03\n\nДословное сообщение владельца в текущей сессии; это provenance запроса, не готовый repeat-admission и не принятый decision marker.\n\n> По @plan/knowledge/findings-P2-review.json добей хвосты RED Review P2 на HEAD после 298da2b. Ревью уже сделано, P2.10 не перезапускай и код review не переписывай. Исправь R1 в owning item P2.8, R2 и R3 в P2.5, синхронизируй R4: убери отменённый префикс плагина из контекста P4. Повтор закрытого пункта только штатным repeat-admission, ровно один пункт за запуск; маркер допуска не выдумывай. Пробники R1–R3 из отчёта должны стать зелёными. P2 не закрывай GREEN и P3 не начинай, пока R1–R3 не закрыты и гейты пункта зелёные. Не пушь. Чужие .gitignore, .swissknife.json и .grok/ не трогай.\n\n\nПоследующее сообщение владельца в той же сессии:\n\n> ну ты можешь это доделать?\n",
+        "channel": "legacy source record brief/P2-owning-repairs-owner-message.md; not asserted verbatim",
+        "kind": "record"
+      },
+      {
+        "id": "M4",
+        "date": "2026-10-01",
+        "text": "# P3.2 — решение владельца 2026-10-04\n\nВопрос: D12 требует VARCHAR ascii_bin, реальный MySQL 8.4 сравнивает `a` и `a ` как равные (PAD SPACE), а приёмка требует различать.\n\nОтвет владельца: «Использовать VARBINARY(n) для ID и строковых HK; канон ASCII проверяет кодек (рекомендую).»\n\nПрименяется к MySQL/MariaDB ID(n), строковым HK и идентификаторам ULID/UUID, если они хранятся строкой.\nPG и SQLite сохраняют collation C / BINARY. Область команды — P3.1 P3.2; ревью исключено отдельным сообщением владельца.\n",
+        "channel": "legacy source record brief/P3-binary-identifiers-owner-message.md; not asserted verbatim",
+        "kind": "record"
+      }
+    ],
+    "requirements": [],
+    "sections": []
+  },
+  "phase": {
+    "$schema": "urn:swissknifeman:task:plan:phase:v1",
+    "id": "P7",
+    "title": "Filament по схеме панели",
+    "design": "detailed",
+    "goal": "Filament-интеграция AzGuard 1.0 над публичным API ядра: плагин без глобального конфига (guardPanel/manages/enforce/definitions), авторизация всех поверхностей Filament по идентичности ресурса с fail-closed enforce и видимостью до count/page/export, read-only каталоги ролей и прав, редакторы назначений с серверной перепроверкой целевых panel/tenant/subject/context/fields и «Почему?», свои поля из схемы с FilamentFormExtension, страницы «Панели» и «Doctor», генератор enum прав. Своей логики прав и прямых записей в пакете нет.",
+    "context": "Детализировано 2026-10-08 по досье 13 F7; 11; 02 D23, D30, D46, D54, D83; 07 §4; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24, R25, R28, R34, R36–R40; реальному коду HEAD 50eb32a (Filament 5.9.0, Livewire 4.4.7, Laravel 13.34, Testbench 11.3) и исходникам vendor/filament; лучшие практики — Perplexity (filamentphp.com/docs/5.x, filament-shield README), нормативна сверка с vendor.\nМодель фазы — [knowledge/P7-filament-model](../../knowledge/P7-filament-model.json): база кода, предпосылки Filament F1–F12 с путями исходников, внешний опыт, ключи, инварианты I1–I10, пробелы ядра G1–G5 с owning items, раскладка пакета, карта приёмки.\nРешение фазы — [D27](../../decisions/D27.json): состав и порядок (+P7.8 Review), авторизация по идентичности ресурса (трейты + FilamentGate, deny-only Gate::before), ключи, admission через EnterPanel, конфиг вместо черновика 07 §4, аддитивные контракты ядра, права самих редакторов, custom-data таблицы над курсорным GrantManager, тесты через Livewire::test.\nПринимает по D14/D18: UI/editor/autocomplete (P7.2–P7.5); по D26: полный Client/Call host workflow R40 — Filament-часть P7.2; по D24 п.7: справочник 0.3 — `git show 491980a:legacy/0.3/...` только как паттерн.\nНайденный при детализации дефект P6.8 (stub `view-any` против `view_any` каталога) записан в журнал P6.8 и является предусловием P7.7.",
+    "depends_on": [
+      "P6"
+    ],
+    "items": [
+      "P7.1",
+      "P7.2",
+      "P7.3",
+      "P7.4",
+      "P7.5",
+      "P7.6",
+      "P7.7",
+      "P7.8"
+    ],
+    "batches": [
+      {
+        "id": "BP7-1",
+        "items": [
+          "P7.1"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-2",
+        "items": [
+          "P7.2"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-3",
+        "items": [
+          "P7.3"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-4",
+        "items": [
+          "P7.4"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-5",
+        "items": [
+          "P7.5"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-6",
+        "items": [
+          "P7.6"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-7",
+        "items": [
+          "P7.7"
+        ],
+        "mode": "recommended"
+      },
+      {
+        "id": "BP7-8",
+        "items": [
+          "P7.8"
+        ],
+        "mode": "recommended"
+      }
+    ],
+    "closed": null,
+    "orchestration": {
+      "strategy": "sequential"
+    },
+    "sections": [
+      {
+        "id": "Phase-Context",
+        "title": "Phase Context",
+        "text": "Детализировано 2026-10-08 по досье 13 F7; 11; 02 D23, D30, D46, D54, D83; 07 §4; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24, R25, R28, R34, R36–R40; реальному коду HEAD 50eb32a (Filament 5.9.0, Livewire 4.4.7, Laravel 13.34, Testbench 11.3) и исходникам vendor/filament; лучшие практики — Perplexity (filamentphp.com/docs/5.x, filament-shield README), нормативна сверка с vendor.\nМодель фазы — [knowledge/P7-filament-model](../../knowledge/P7-filament-model.json): база кода, предпосылки Filament F1–F12 с путями исходников, внешний опыт, ключи, инварианты I1–I10, пробелы ядра G1–G5 с owning items, раскладка пакета, карта приёмки.\nРешение фазы — [D27](../../decisions/D27.json): состав и порядок (+P7.8 Review), авторизация по идентичности ресурса (трейты + FilamentGate, deny-only Gate::before), ключи, admission через EnterPanel, конфиг вместо черновика 07 §4, аддитивные контракты ядра, права самих редакторов, custom-data таблицы над курсорным GrantManager, тесты через Livewire::test.\nПринимает по D14/D18: UI/editor/autocomplete (P7.2–P7.5); по D26: полный Client/Call host workflow R40 — Filament-часть P7.2; по D24 п.7: справочник 0.3 — `git show 491980a:legacy/0.3/...` только как паттерн.\nНайденный при детализации дефект P6.8 (stub `view-any` против `view_any` каталога) записан в журнал P6.8 и является предусловием P7.7."
+      },
+      {
+        "id": "Order",
+        "title": "Order",
+        "text": "| Шаг | Пункт | Batch | Почему здесь |\n|---|---|---|---|\n| 1 | P7.1 | BP7-1 | плагин, конфиг, ключи, FilamentSource, admission-middleware, фикстуры — основа всех пунктов |\n| 2 | P7.2 | BP7-2 | авторизация поверхностей; редакторы P7.3/P7.4 закрываются этими трейтами |\n| 3 | P7.3 | BP7-3 | выбор цели и PanelDirectories (G1); каталоги ролей и прав |\n| 4 | P7.4 | BP7-4 | редакторы выдач на TargetSelector/директориях P7.3; GrantFilter G2; базовый SchemaFields |\n| 5 | P7.5 | BP7-5 | FilamentFormExtension поверх SchemaFields и форм P7.4 |\n| 6 | P7.6 | BP7-6 | страницы; PanelOverview (G3); V63 «панель видна, но не в редакторах» требует редакторов P7.3/P7.4 |\n| 7 | P7.7 | BP7-7 | генератор по ключам P7.1 для всех ресурсов, включая ресурсы/страницы P7.3–P7.6; G5; предусловие — исправленный stub P6.8 |\n| 8 | P7.8 | BP7-8 | read-only Review P7 (D3) |\n\nВсе batches solo, стратегия sequential: пункты меняют `AzGuardPlugin`, провайдер пакета, общие фикстуры Filament и манифесты API — параллельные lanes конфликтовали бы."
+      },
+      {
+        "id": "Acceptance",
+        "title": "Acceptance",
+        "text": "Нормативная карта V/R → owning item — раздел «Acceptance» `@plan/knowledge/P7-filament-model.json`. Фаза закрыта, когда P7.1–P7.7 done, каждая строка карты покрыта не-skipped тестом, CRM README честно показывает статусы R-кейсов P7, consumer-фикстура `--with-filament` зелёная на Laravel 11/12/13, verdict P7.8 — GREEN."
+      },
+      {
+        "id": "Validation-strategy",
+        "title": "Validation strategy",
+        "text": "Каждый пункт: targeted Pest своих тестов (`tests/Feature/Filament/<Area>`, плюс затронутые тесты ядра), регрессия `tests/Feature/Filament`, `tests/Arch`, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check`, `git diff --check`; P7.1/P7.7/P7.8 — `bin/consumer-fixture.sh --with-filament` (нет сети = blocker, не GREEN). Admission/маршруты — HTTP-тесты, компоненты — `Livewire::test()`. Итоги — разделы пунктов в `@plan/knowledge/findings-P7-execution.json`."
+      },
+      {
+        "id": "Phase-Handoff",
+        "title": "Phase Handoff",
+        "text": "Фаза детализирована, не начата. Исполнение P7 начинается только после закрытия P6 (P6.11 Review GREEN, D3/D24) и исправления дефекта stub `view-any` в owning P6.8 до P7.7. Первый пункт — P7.1 (BP7-1)."
+      }
+    ]
+  },
+  "item": {
+    "$schema": "urn:swissknifeman:task:plan:item:v1",
+    "id": "P7.3",
+    "title": "RoleResource и PermissionResource по схеме",
+    "status": "in_progress",
+    "summary": "Каталоги по схеме панели: общий выбор цели редактора (панель ∈ `manages` ∩ writable → tenant) и контракт ядра G1 (`@api Directories\\PanelDirectories`, `PanelAccess::directories()`); `RoleResource` — read-only каталог ролей-классов из `PanelSchema::roles()` (ключ, подпись, класс, grantable/automatic, контексты и фильтры, superAdmin, права; PolicyOnly-badge); `PermissionResource` — все права панели (статичные только чтение с доменом и подсказкой политики; динамические — создание/подпись/группа/удаление с выдачами через `PermissionManager`) для панелей с динамическими правами. Acceptance: V23, V61, V76, R38 UI, R25 UI.",
+    "why": "D30/D80/D83: definitions только в PHP. Жёсткие риски: Livewire-payload с `class_name`/`definition`/`permissions` меняет роль (N02, V23); галочка выдачи PolicyOnly-права; редактор показывает панель вне `manages` или чужой tenant (выбор tenant из payload); динамическое право удаляется, а выдачи остаются; tenant целевой панели выбирается без перепроверки директорией.",
+    "scope": {
+      "include": [
+        "Ядро (G1): `packages/core/src/Directories/PanelDirectories.php` (`@api`, final readonly: `subjects(?string $type = null): SubjectDirectory`, `tenants(): TenantDirectory`, `scopes(string $type): AssignmentScopeDirectory`), `PanelAccess::directories(): PanelDirectories` в интерфейсе и `ScopedPanelAccess` (делегирует `DirectoryResolver`); тест в `tests/Feature/Directories/**`; манифест ядра; CHANGELOG.",
+        "`packages/filament/src/Editors/TargetSelector.php` (или трейт страниц): опции панели = `manages` ∩ `AzGuard::panel($id)->schema()->writable`; tenant: если целевая панель = guardPanel → scoped tenant запроса (Locked, не выбирается); если tenancy целевой панели отсутствует → глобальный; иначе поиск `directories()->tenants()->search(term, LookupContext(actor), 50)` и перепроверка `describe()` на каждом действии; смена панели/tenant очищает зависимые поля.",
+        "`packages/filament/src/Resources/RoleResource/**`: custom-data таблица по `schema()->roles()` выбранной панели, фильтр панели, страница просмотра (infolist): права роли с authority-badge, контекстные привязки и фильтры, автоматическая/выдаётся вручную, superAdmin; ни create/edit/delete страниц, ни действий записи; slug `azguard-roles`; `AuthorizesResource`; регистрация по `resources(roles: true)`.",
+        "`packages/filament/src/Resources/PermissionResource/**`: список `schema()->permissions()` (статичные — только чтение: домен/группа, описание, authority, `decidedBy`; динамические — действия create/edit(label, group через `PermissionDetails`)/delete); запись `AzGuard::actingAs($user, fn () => AzGuard::panel($id)->inTenant($tenant)->permissions()->create/update/delete(...))`; ресурс показывает только панели, где каталог динамический; slug `azguard-permissions`; регистрация по `resources(permissions: true)`.",
+        "Тесты `tests/Feature/Filament/Roles/**`: V23 (Livewire-вызовы с полями `class_name`/`definition`/`permissions`/`superAdmin` на страницах RoleResource не меняют ни класс, ни хранилище: нет методов записи, payload отклоняется, версия панели не меняется); V61 (code roles read-only; PolicyOnly-право — badge без галочки; динамические — только при opt-in); V76 (создать динамическое право в PermissionResource → выдать через `SubjectAccess::grantPermission` → `hasPermission` true → удалить в PermissionResource → выдачи удалены → false); панель вне `manages` и non-writable панель не видны; поддельный tenant B в форме при tenant A → отказ; `PanelDirectories` возвращает те же директории, что резолвер.",
+        "CRM README: R38 UI и R25 UI (definition endpoints отклоняются) — статусы."
+      ],
+      "exclude": [
+        "Выдачи ролей и прав, «Почему?» — P7.4; свои поля — P7.4/P7.5.",
+        "Создание/изменение ролей из UI — не существует в 1.0 (D80)."
+      ]
+    },
+    "depends_on": [
+      "P7.2"
+    ],
+    "related": [],
+    "decisions": [
+      "D27"
+    ],
+    "skills": [],
+    "reads": [
+      {
+        "path": "audits/2026-09-29-audit/opus/11-filament.md",
+        "why": "RoleResource, PermissionResource, тенанты",
+        "required": true,
+        "section": "§5, §5.1, §5.3, §9"
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+        "why": "схема панели; definitions read-only",
+        "required": true,
+        "section": "D54, D30, D83"
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/14-verification.md",
+        "why": "V23, V61, V76",
+        "required": true,
+        "section": "V23, V61, V76"
+      },
+      {
+        "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+        "why": "R25, R38",
+        "required": true,
+        "section": "R25, R38"
+      },
+      {
+        "path": "packages/core/src/Schema/PanelSchema.php",
+        "why": "writable, roles, permissions",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Schema/RoleSchema.php",
+        "why": "поля роли",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Schema/PermissionSchema.php",
+        "why": "authority, grantable, dynamic, decidedBy",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Contracts/PanelAccess.php",
+        "why": "добавляемый метод directories()",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Directories/DirectoryResolver.php",
+        "why": "внутренний резолвер, которому делегирует G1",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Directories/LookupContext.php",
+        "why": "входы поиска",
+        "required": true
+      },
+      {
+        "path": "packages/core/src/Changes/ScopedPermissionManager.php",
+        "why": "create/update/delete динамических",
+        "required": true
+      },
+      {
+        "path": "vendor/filament/tables/docs/09-custom-data.md",
+        "why": "records(), ключи записей, действия с array $record",
+        "required": true
+      }
+    ],
+    "task_files": [
+      {
+        "path": "packages/core/src/Directories/PanelDirectories.php",
+        "change": "create"
+      },
+      {
+        "path": "packages/core/src/Contracts/PanelAccess.php",
+        "change": "modify"
+      },
+      {
+        "path": "packages/core/src/Concerns/ScopedPanelAccess.php",
+        "change": "modify"
+      },
+      {
+        "path": "packages/core/api-manifest.json",
+        "change": "modify"
+      },
+      {
+        "path": "tests/Feature/Directories/**",
+        "change": "any"
+      },
+      {
+        "path": "packages/filament/src/Editors/**",
+        "change": "create"
+      },
+      {
+        "path": "packages/filament/src/Resources/RoleResource/**",
+        "change": "create"
+      },
+      {
+        "path": "packages/filament/src/Resources/RoleResource.php",
+        "change": "create"
+      },
+      {
+        "path": "packages/filament/src/Resources/PermissionResource/**",
+        "change": "create"
+      },
+      {
+        "path": "packages/filament/src/Resources/PermissionResource.php",
+        "change": "create"
+      },
+      {
+        "path": "packages/filament/src/AzGuardPlugin.php",
+        "change": "any",
+        "note": "Создаёт P7.1; пункт добавляет регистрацию своих ресурсов/страниц/настроек."
+      },
+      {
+        "path": "packages/filament/api-manifest.json",
+        "change": "modify"
+      },
+      {
+        "path": "tests/Fixtures/Filament/**",
+        "change": "any"
+      },
+      {
+        "path": "tests/Feature/Filament/Roles/**",
+        "change": "create"
+      },
+      {
+        "path": "tests/Acceptance/Crm/README.md",
+        "change": "modify"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "change": "modify"
+      }
+    ],
+    "rules": [
+      "Гейты плана: targeted Pest, `tests/Arch`, полный `composer test`, Pint, PHPStan (уровень проекта), type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; недоступный engine/сеть блокирует пункт, а не даёт GREEN.",
+      "Писать только в `packages/filament`, `tests`, `CHANGELOG.md`, `roadmap/` (если названо) и plan-артефакты пункта; `packages/core` — только файлы, названные в task_files. Код Vaulter и других пакетов не трогать. Новых runtime- и dev-зависимостей нет.",
+      "Пакет Filament использует только классы ядра из манифеста (`tests/Arch/ApiManifestTest.php`); не хватает — аддитивный `@api`-контракт в ядре в owning item (D27 п.6), а не обход и не копия логики.",
+      "Своей логики прав, ролей, выбора панели и tenant в пакете нет; решения — `SubjectAccess`/`PanelAccess`/`Visibility`, записи — только `SubjectAccess::grant*/revoke*`, `GrantManager`, `PermissionManager` (I1).",
+      "Состояние плагина — свойства экземпляра `AzGuardPlugin`; `config()` не пишется; статические свойства классов Filament (`checkPolicyExistence`, `skipAuthorization`) не меняются (I9).",
+      "Payload Livewire недоверенный: серверные значения — `#[Locked]`, каждый id из формы перепроверяется сервером на каждом действии (I5, F12).",
+      "Имена — из досье `03`, D27 и knowledge P7-filament-model; внутренние коды задач (`P7.2`, `V96`, `R37`) в docblock `src` запрещены, в тестах и findings допустимы.",
+      "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+      "RoleResource не имеет путей записи; состав роли, класс, фильтры и authority из UI не меняются (I8).",
+      "Целевая панель — только из `manages` ∩ writable; tenant guardPanel — только scoped tenant запроса; иной tenant — только через директорию с перепроверкой (I5)."
+    ],
+    "guidance": "Custom-data таблица ролей — массивы с ключом `key` роли; схема строится один раз на рендер (`schema()` неизменяема). `PanelDirectories` — тонкая обёртка: никакой новой логики поиска. Для V23 вызвать на Livewire-компоненте страницы просмотра `set('data.class_name', ...)`/`call('save')` и убедиться, что метод/свойство отсутствует (исключение Livewire) и что журнал изменений пуст.",
+    "validation": [
+      {
+        "id": "V1",
+        "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament/Roles tests/Feature/Directories --compact --fail-on-skipped",
+        "expect": "exit 0; V23, V61, V76, выбор цели, PanelDirectories",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V2",
+        "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped",
+        "expect": "exit 0; P7.1–P7.2 и CRM не сломаны",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V3",
+        "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+        "expect": "exit 0; зоны, манифест (filament → только @api ядра), запрет прямых записей соблюдены",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V4",
+        "cmd": "composer test",
+        "expect": "exit 0; полный набор без групп engines/redis/replica",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V5",
+        "cmd": "vendor/bin/pint --test",
+        "expect": "exit 0",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V6",
+        "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+        "expect": "exit 0; 0 ошибок на уровне проекта",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V7",
+        "cmd": "composer test:types",
+        "expect": "exit 0; type coverage >= 98%",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V8",
+        "cmd": "php bin/api-manifest.php --check",
+        "expect": "exit 0; манифесты `packages/core` и `packages/filament` перегенерированы `php bin/api-manifest.php --write` и совпадают с публичными именами пункта",
+        "kind": "acceptance"
+      },
+      {
+        "id": "V9",
+        "cmd": "git diff --check",
+        "expect": "exit 0",
+        "kind": "acceptance"
+      }
+    ],
+    "deliverables": [
+      "PanelDirectories, TargetSelector, RoleResource, PermissionResource, тесты, CRM README, CHANGELOG; раздел «P7.3» в `@plan/knowledge/findings-P7-execution.json`."
+    ],
+    "route": {
+      "class": "frontier",
+      "effort": "medium"
+    },
+    "review": {
+      "mode": "none"
+    },
+    "authority": {
+      "kind": "routine"
+    },
+    "rag": {
+      "need": "none",
+      "status": "not_needed"
+    },
+    "result": {
+      "started_at": "2026-10-09T05:57:56Z",
+      "executor": {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      }
+    },
+    "updated_at": "2026-10-09T05:57:56Z",
+    "sections": [
+      {
+        "id": "Intent",
+        "title": "Intent",
+        "text": "—"
+      },
+      {
+        "id": "Why",
+        "title": "Why",
+        "text": "—"
+      },
+      {
+        "id": "Scope-Included",
+        "title": "Scope Included",
+        "text": "—"
+      },
+      {
+        "id": "Scope-Excluded",
+        "title": "Scope Excluded",
+        "text": "—"
+      },
+      {
+        "id": "Inputs",
+        "title": "Inputs",
+        "text": "—"
+      },
+      {
+        "id": "Files",
+        "title": "Files",
+        "text": "—"
+      },
+      {
+        "id": "Required-Reads",
+        "title": "Required Reads",
+        "text": "—"
+      },
+      {
+        "id": "Implementation-Rules",
+        "title": "Implementation Rules",
+        "text": "—"
+      },
+      {
+        "id": "Code-Guidance",
+        "title": "Code Guidance",
+        "text": "—"
+      },
+      {
+        "id": "Validation",
+        "title": "Validation",
+        "text": "—"
+      },
+      {
+        "id": "Deliverables",
+        "title": "Deliverables",
+        "text": ""
+      }
+    ]
+  },
+  "decisions": [
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D27",
+      "title": "Состав P7: авторизация по идентичности ресурса, admission через EnterPanel, ключи, конфиг, контракты ядра",
+      "date": "2026-10-08",
+      "status": "accepted",
+      "question": "Как устроить P7: состав и порядок пунктов, модель авторизации Filament-поверхностей, ключи, admission, конфиг пакета, пробелы публичного API ядра и форма таблиц выдач?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Авторизация по идентичности ресурса (трейты + FilamentGate), admission через EnterPanel, аддитивные контракты ядра в owning items, порядок досье + P7.8 Review"
+        },
+        {
+          "id": "B",
+          "text": "Только Gate::before по модели (как 0.3 и filament-shield) и генерация policy на модель"
+        }
+      ],
+      "context": "Детализация P7 (D3) по досье 13 F7; 11; D23, D30, D46, D52, D54, D83; 14 V23–V26, V61–V63, V75, V76, V94–V96, V102; 17 R24/R25/R28/R34/R36–R40; 07 §4 и коду HEAD 50eb32a. Найдено: (1) Filament 5.9 при отсутствии policy отдаёт before-колбэкам Gate только ability и модель, а `null` трактует как allow — Gate::before не различает два ресурса одной модели (V102) и не закрывает ресурс без policy; (2) relation managers, bulk `*Any`, inline-колонки и экспорт — отдельные поверхности, экспорт не переавторизуется при исполнении; (3) 07 §4 (`source: database|enum|policy`, `resource_segment: model`, `pages.ability`) противоречит D30/11 §3 (typed definitions, authority отдельно, модель не используется); (4) публичному API ядра не хватает директорий для UI (`DirectoryResolver` — internal), фильтров «истекает до»/«кто выдал» в `GrantFilter` и read-model страницы «Панели» (`PanelsListCommand` читает internal `PanelRecipe`), а arch `ApiManifestTest` пускает в пакет Filament только классы манифеста; (5) `GrantManager::page` курсорный, без total; (6) `pestphp/pest-plugin-livewire` не установлен; (7) D3 требует последний read-only пункт Review в каждой фазе P1–P7.",
+      "decision": "A. 1. **Состав и порядок.** Номера досье P7.1–P7.7 сохраняются; добавлен P7.8 — Review P7 (D3). Порядок P7.1 → P7.2 → P7.3 → P7.4 → P7.5 → P7.6 → P7.7 → P7.8; все batch solo, стратегия sequential: пункты делят `AzGuardPlugin`, провайдер пакета, фикстуры Filament и манифест API. P7.4 строит формы выдач с базовым рендером полей схемы; P7.5 добавляет `FilamentFormExtension` поверх него.\n2. **Авторизация по идентичности ресурса (вариант A).** Ресурсы, relation managers, страницы и виджеты guarded Filament-панели авторизуются трейтами `AuthorizesResource` (переопределяет `getAuthorizationResponse` и `getEloquentQuery`), `AuthorizesRelationManager`, `AuthorizesPage`, `AuthorizesWidget` через `FilamentGate` с ключом класса. Gate::before-хук `FilamentGate` — только deny-страховка для model-based проверок внутри guarded Filament-панели при `enforce`; ядро `GateBridge` отвечает раньше по модельной привязке каталога (неоднозначность → deny). Ресурс по модели не выбирается никогда. Bulk-действия guarded-ресурсов авторизуют каждую запись; экспорт — job `AuthorizedExportCsv` с повторной видимостью при исполнении. Под `enforce` guarded-ресурс без трейта → `ConfigurationException` при boot плагина.\n3. **Ключи.** Ресурс `{slug}.{ability}`: `getSlug(filamentPanel)` с `/`→`.`, ability — snake_case действия Filament (`view_any`, `delete_any`, `force_delete`, …). Страница `pages.{slug}`, виджет `widgets.{kebab(class_basename)}` — без суффикса ability. Override `protected static ?string $azguardKey`. Уникальность ключей проверяется при boot плагина → `ConfigurationException`.\n4. **Admission.** Плагин регистрирует `EnterPanel` (`azguard.panel:{guardPanel}`) persistent в `tenantMiddleware` (tenancy) или `authMiddleware`; один evaluator `PanelAdmission` (P6 I3). Tenant guardPanel берётся из `Filament::getTenant()` через `AzGuard\\Filament\\FilamentTenantResolver` (контракт `TenantResolver`), подключаемый приложением. `canAccessPanel()` остаётся методом пользователя приложения; AzGuard-admission — дополнительное AND.\n5. **Конфиг `config/azguard-filament.php`** (значения по умолчанию плагина): `guard_panel`, `manages` (null = все панели с DatabaseSource), `enforce` (true), `definitions` (`enums`|`resources`, default `enums`), `authority` (`grants`|`policy`, default `grants`; только для Resources), `abilities` (snake_case список), `exclude` (resources/pages/widgets). Ключи 07 §4 `source`, `key`, `resource_segment`, `pages.ability`, `widgets.ability` не вводятся: они противоречат D30/11 §3 (typed definitions, authority отдельно, модель не используется, ключ фиксирован).\n6. **Пробелы ядра — контракт в owning item.** P7.3: `@api Directories\\PanelDirectories` + `PanelAccess::directories()`; P7.4: `GrantFilter::$expiresBefore`, `GrantFilter::$grantedBy` (входят в `conditions()`). P7.6: `@api Diagnostics\\PanelOverview` — единый источник `azguard:panels:list` и `PanelsPage`, JSON команды без изменений. P7.7: `azguard:make:permission --authority=grants|policy --case=Name=local.key` — генератор Filament вызывает команду ядра, а не копирует раскладку; предусловие — исправленный в P6.8 stub `view-any` → `view_any` (журнал P6.8). Фильтр таблиц выдач по своим полям в 1.0 не делается (поле в `meta` не индексируется, D46); заметка — `roadmap/`.\n7. **Права самих редакторов (D23).** RoleResource/RoleGrantResource/PermissionGrantResource/PermissionResource и страницы PanelsPage/DoctorPage — обычные ресурсы/страницы guardPanel со slug `azguard-roles`, `azguard-role-grants`, `azguard-permission-grants`, `azguard-permissions`, `azguard-panels`, `azguard-doctor`. В режиме Resources их definitions даёт FilamentSource, в режиме Enums — `azguard:filament:generate`; отсутствие definition при `enforce` → отказ и doctor-находка (P7.7). Плагин не дописывает AzGuard-панели скрыто.\n8. **Таблицы выдач** — custom-data таблицы Filament над `GrantManager::page`: простой `Paginator` (page → cursor в состоянии компонента), `selectCurrentPageOnly()`, массовый отзыв — одна `revokeMany`, правка — `update(..., expectedFingerprint)`.\n9. **Тесты** — `Livewire::test()` и макросы Filament testing; новая dev-зависимость не добавляется. Admission и маршруты — HTTP-тестами.\n10. **Исполнение P7** начинается только после закрытия P6 (P6.11 GREEN); детализация этого не меняет.",
+      "rationale": "Вариант A — единственный, что выполняет V102 и «ресурсы без права закрыты» на Filament 5.9: идентичность ресурса доступна только в статических методах ресурса (vendor HasAuthorization), а Gate::before по модели повторяет дефект N18/N19 0.3 и коллизию, которую README filament-shield признаёт сам. EnterPanel даёт admission, текущую панель и tenant для Livewire update без второго evaluator (принцип одного источника истины). Пробелы ядра закрываются аддитивным `@api`, потому что arch-гейт манифеста запрещает пакету Filament внутренние классы, а копия логики в пакете нарушила бы правило «не хватает контракта — сначала контракт». Простой Paginator подтверждён источником Filament (`HasRecords::getTableRecords` принимает Paginator/CursorPaginator) и не требует total, которого у курсорного GrantManager нет. Ключи 07 §4, противоречащие D30, не вводятся — D30 и 11 нормативнее раннего черновика конфига. Владелец делегировал решения дизайна агенту («решения за тобой»), Perplexity — для подкрепления.",
+      "consequences": [
+        "Phase P7 получает P7.8 Review; batch B7 заменяется solo-batches BP7-1…BP7-8.",
+        "P7.4 и P7.6 меняют `packages/core` аддитивно и перегенерируют `packages/core/api-manifest.json`.",
+        "Конфиг `config/azguard-filament.php` 1.0 расходится с 07 §4 по D27 п.5; документация P8.2 описывает версию D27.",
+        "Фильтр выдач по своим полям — заметка в `roadmap/`, не 1.0.",
+        "Consumer-фикстура `bin/consumer-fixture.sh --with-filament` становится обязательной проверкой P7.1 и P7.7.",
+        "P7.7 зависит от исправления stub `view-any` в owning P6.8 (журнал P6.8 от 2026-10-08)."
+      ],
+      "applies_to": [
+        "P7",
+        "P7.1",
+        "P7.2",
+        "P7.3",
+        "P7.4",
+        "P7.5",
+        "P7.6",
+        "P7.7",
+        "P7.8"
+      ],
+      "evidence": [
+        {
+          "kind": "repo",
+          "ref": "vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php",
+          "note": "getAuthorizationResponse статический; checkPolicyExistence/skipAuthorization — static state"
+        },
+        {
+          "kind": "repo",
+          "ref": "vendor/filament/filament/src/helpers.php",
+          "note": "get_authorization_response: без policy → before-колбэки Gate с [model], null → allow"
+        },
+        {
+          "kind": "repo",
+          "ref": "vendor/filament/filament/src/Resources/RelationManagers/RelationManager.php",
+          "note": "canViewForRecord: relatedResource::canAccess или authorize('viewAny', related model)"
+        },
+        {
+          "kind": "repo",
+          "ref": "vendor/filament/actions/src/Exports/Exporter.php",
+          "note": "Exports do not perform per-record authorization; ExportCsv job с auth()->setUser"
+        },
+        {
+          "kind": "repo",
+          "ref": "vendor/filament/tables/src/Concerns/HasRecords.php",
+          "note": "records(): array|Paginator|CursorPaginator; ключи записей"
+        },
+        {
+          "kind": "repo",
+          "ref": "tests/Arch/ApiManifestTest.php",
+          "note": "filament использует только классы манифеста ядра"
+        },
+        {
+          "kind": "repo",
+          "ref": "packages/core/src/Directories/DirectoryResolver.php",
+          "note": "@internal — нет публичного доступа к директориям"
+        },
+        {
+          "kind": "rag",
+          "ref": "https://filamentphp.com/docs/5.x/resources/overview#authorization",
+          "note": "Perplexity 2026-10-08: policy-based по умолчанию, missing policy = allow, getEloquentQuery — старт list/record/global search"
+        },
+        {
+          "kind": "rag",
+          "ref": "https://github.com/bezhanSalleh/filament-shield",
+          "note": "Perplexity 2026-10-08: ключи Action:Model по умолчанию, коллизия ресурсов одной модели, buildPermissionKeyUsing"
+        },
+        {
+          "kind": "repo",
+          "ref": "knowledge/P7-filament-model",
+          "note": "предпосылки F1–F12, ключи, инварианты I1–I10, пробелы G1–G4, карта приёмки"
+        }
+      ],
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5"
+      },
+      "answered_by": "agent"
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D1",
+      "title": "Досье Opus — нормативный вход; внешние действия только через owner gate",
+      "date": "2026-10-01",
+      "status": "accepted",
+      "decision": "План реализует целевую архитектуру AzGuard 1.0 из `audits/2026-09-29-audit/opus/`. Фазы P0–P8\nсоответствуют F0–F8 досье, пункты сохраняют номера `Pn.m` из `13-workstreams.md`. Решения досье\nD01–D84 нормативны по смыслу и именам; сигнатуры и раскладка уточняются детализацией фазы по\nреальному коду. Открытые Q30–Q33 исполняются с defaults досье. Push, теги, выпуск, Packagist,\nabandoned-пометки и записи в чужие репозитории (Vaulter) — только owner-gated пункты P8.5/P8.6/P8.8.",
+      "rationale": "Владелец явно указал досье как основание. Досье прошло пять проходов и ответы владельца Q1–Q29;\nперепроверять его решения целиком — повторная работа. Вместе с тем досье само говорит, что это\nспецификация, а не runtime: конкретный код может выявить противоречия, поэтому смысл фиксирован, а\nформа — нет. Альтернатива «перенести досье в item-контракты целиком сейчас» заморозила бы\nнепроверенные детали девяти фаз до появления кода P1–P3.",
+      "applies_to": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "supersedes": [],
+      "actor": {
+        "provider": "legacy",
+        "model": "plan-designer / Claude Opus 5.5 (frontier)"
+      },
+      "sections": [
+        {
+          "id": "Preamble",
+          "title": "Preamble",
+          "text": "---\nid: D1\ndate: 2026-10-01\nstatus: accepted\nitem: P0\nitems: [P0, P1, P2, P3, P4, P5, P6, P7, P8]\nsupersedes: []\nsuperseded_by: null\n---"
+        },
+        {
+          "id": "D1-Opus-owner-gate",
+          "title": "D1 — Досье Opus — нормативный вход; внешние действия только через owner gate",
+          "text": "**Actor:** plan-designer / Claude Opus 5.5 (frontier)\n**Evidence:** RAG:— `@plan/brief.json` (запрос владельца); `audits/2026-09-29-audit/opus/README.md` «Как превратить в план»; `15-owner-questions.md` Q30–Q33."
+        },
+        {
+          "id": "Solution",
+          "title": "Solution",
+          "text": "План реализует целевую архитектуру AzGuard 1.0 из `audits/2026-09-29-audit/opus/`. Фазы P0–P8\nсоответствуют F0–F8 досье, пункты сохраняют номера `Pn.m` из `13-workstreams.md`. Решения досье\nD01–D84 нормативны по смыслу и именам; сигнатуры и раскладка уточняются детализацией фазы по\nреальному коду. Открытые Q30–Q33 исполняются с defaults досье. Push, теги, выпуск, Packagist,\nabandoned-пометки и записи в чужие репозитории (Vaulter) — только owner-gated пункты P8.5/P8.6/P8.8."
+        },
+        {
+          "id": "Why",
+          "title": "Why",
+          "text": "Владелец явно указал досье как основание. Досье прошло пять проходов и ответы владельца Q1–Q29;\nперепроверять его решения целиком — повторная работа. Вместе с тем досье само говорит, что это\nспецификация, а не runtime: конкретный код может выявить противоречия, поэтому смысл фиксирован, а\nформа — нет. Альтернатива «перенести досье в item-контракты целиком сейчас» заморозила бы\nнепроверенные детали девяти фаз до появления кода P1–P3."
+        },
+        {
+          "id": "Consequences",
+          "title": "Consequences",
+          "text": "Противоречие досье и кода → `@plan/plan.json` + новый `D#`, без молчаливого отклонения.\nP8.5/P8.6/P8.8 получают `Authority` owner gate при детализации P8."
+        }
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D3",
+      "title": "Фаза за фазой: детализация по коду → исполнение; review в конце каждой фазы реализации",
+      "date": "2026-10-01",
+      "status": "accepted",
+      "decision": "Верхний слой оставляет P0–P8 скелетами. Каждая фаза детализируется (`task:plan-design <ID> Pn`)\nпосле закрытия предыдущей, по реальному коду, и сразу исполняется. Design finish и plan-wide\ndesign audit не требуются (`Design Audit: not-required`). Каждая фаза реализации P1–P7 получает\nпоследний read-only пункт `Review Pn` (frontier/high; deliverable — verdict в `findings/`); P4\nполучает дополнительно срез-review после пайплайна и источников. Найденное review исправляется\nв owning item этой фазы до закрытия фазы. Item Review по умолчанию `none`.",
+      "rationale": "Девять фаз с ~65 пунктами нельзя честно детализировать заранее: контракты P4–P8 зависят от\nфактических сигнатур P1–P3. Владелец выбрал инкрементальный режим и подчеркнул качество;\nнезависимый review в конце фазы дешевле, чем review каждого item, и ловит межпунктовые швы.",
+      "applies_to": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "supersedes": [],
+      "actor": {
+        "provider": "legacy",
+        "model": "owner-request / plan-designer Claude Opus 5.5"
+      },
+      "sections": [
+        {
+          "id": "Preamble",
+          "title": "Preamble",
+          "text": "---\nid: D3\ndate: 2026-10-01\nstatus: accepted\nitem: P0\nitems: [P0, P1, P2, P3, P4, P5, P6, P7, P8]\nsupersedes: []\nsuperseded_by: null\n---"
+        },
+        {
+          "id": "D3-review",
+          "title": "D3 — Фаза за фазой: детализация по коду → исполнение; review в конце каждой фазы реализации",
+          "text": "**Actor:** owner-request / plan-designer Claude Opus 5.5\n**Evidence:** RAG:— `@plan/brief.json`: «Сначала проектируем верхний слой, далее детализация фазы и сразу исполнение и так далее. Важно качественно выполнить работу»."
+        },
+        {
+          "id": "Solution",
+          "title": "Solution",
+          "text": "Верхний слой оставляет P0–P8 скелетами. Каждая фаза детализируется (`task:plan-design <ID> Pn`)\nпосле закрытия предыдущей, по реальному коду, и сразу исполняется. Design finish и plan-wide\ndesign audit не требуются (`Design Audit: not-required`). Каждая фаза реализации P1–P7 получает\nпоследний read-only пункт `Review Pn` (frontier/high; deliverable — verdict в `findings/`); P4\nполучает дополнительно срез-review после пайплайна и источников. Найденное review исправляется\nв owning item этой фазы до закрытия фазы. Item Review по умолчанию `none`."
+        },
+        {
+          "id": "Why",
+          "title": "Why",
+          "text": "Девять фаз с ~65 пунктами нельзя честно детализировать заранее: контракты P4–P8 зависят от\nфактических сигнатур P1–P3. Владелец выбрал инкрементальный режим и подчеркнул качество;\nнезависимый review в конце фазы дешевле, чем review каждого item, и ловит межпунктовые швы."
+        },
+        {
+          "id": "Consequences",
+          "title": "Consequences",
+          "text": "Номер review-пункта — следующий свободный в фазе. Детализация фазы может разбить или объединить\nпункты досье только через `D#` с сохранением трассировки на исходные номера."
+        }
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D4",
+      "title": "Гейты item и честная граница СУБД",
+      "date": "2026-10-01",
+      "status": "accepted",
+      "decision": "Каждый item проходит: targeted Pest, полный `composer test` нового набора, `vendor/bin/pint --test`,\n`vendor/bin/phpstan analyse` на уровне проекта для `packages/*/src`, arch-набор. P0.5 вводит\nэти гейты для пустого каркаса. SQLite `:memory:` — среда по умолчанию. PG/MySQL/Redis запускаются\nчерез `docker compose` на выделенных test-базах в пунктах, где досье требует реальной СУБД\n(DDL, блокировки, повторы, конкурентность, кэш-store): P3.1, P3.2, P4.8, P8.4, P8.7. Если СУБД\nнедоступна, результат фиксируется как `unavailable`, не GREEN, и пункт не закрывается 🟢.",
+      "rationale": "Досье требует «падение или пропуск ≠ успех» и прямо говорит, что SQLite green не доказывает\nPostgreSQL/MySQL concurrency/DDL. Среда позволяет поднять реальные СУБД локально.",
+      "applies_to": [
+        "P0.5",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "supersedes": [],
+      "actor": {
+        "provider": "legacy",
+        "model": "plan-designer / Claude Opus 5.5 (frontier)"
+      },
+      "sections": [
+        {
+          "id": "Preamble",
+          "title": "Preamble",
+          "text": "---\nid: D4\ndate: 2026-10-01\nstatus: accepted\nitem: P0.5\nitems: [P0.5, P1, P2, P3, P4, P5, P6, P7, P8]\nsupersedes: []\nsuperseded_by: null\n---"
+        },
+        {
+          "id": "D4-item",
+          "title": "D4 — Гейты item и честная граница СУБД",
+          "text": "**Actor:** plan-designer / Claude Opus 5.5 (frontier)\n**Evidence:** RAG:— `composer.json` scripts (`test`, `test:pgsql`, `test:mysql`, `test:redis`), `docker-compose.yml` (postgres:16, mysql:8, redis:7), `13-workstreams.md` §0 п.5, `17-crm-acceptance-tests.md` §3; установлены PHPStan 2.2.5/Larastan 3.10 (в исходной проработке не запускались)."
+        },
+        {
+          "id": "Solution",
+          "title": "Solution",
+          "text": "Каждый item проходит: targeted Pest, полный `composer test` нового набора, `vendor/bin/pint --test`,\n`vendor/bin/phpstan analyse` на уровне проекта для `packages/*/src`, arch-набор. P0.5 вводит\nэти гейты для пустого каркаса. SQLite `:memory:` — среда по умолчанию. PG/MySQL/Redis запускаются\nчерез `docker compose` на выделенных test-базах в пунктах, где досье требует реальной СУБД\n(DDL, блокировки, повторы, конкурентность, кэш-store): P3.1, P3.2, P4.8, P8.4, P8.7. Если СУБД\nнедоступна, результат фиксируется как `unavailable`, не GREEN, и пункт не закрывается 🟢."
+        },
+        {
+          "id": "Why",
+          "title": "Why",
+          "text": "Досье требует «падение или пропуск ≠ успех» и прямо говорит, что SQLite green не доказывает\nPostgreSQL/MySQL concurrency/DDL. Среда позволяет поднять реальные СУБД локально."
+        },
+        {
+          "id": "Consequences",
+          "title": "Consequences",
+          "text": "Детализация P3/P4/P8 называет точные команды для СУБД. Snapshot-гейты (API manifest, DDL, events,\nconfig, commands) вводятся owning items; в P0 только каркас."
+        }
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D5",
+      "title": "CRM-приёмка растёт вместе с owning items; P8.7 — итоговая квалификация",
+      "date": "2026-10-01",
+      "status": "accepted",
+      "decision": "Начиная с P4, in-repo CRM-фикстура (панель `crm`, ProjectScope, CallerRole/AnalystRole, tenant A/B)\nживёт в `tests/Fixtures/Crm` и `tests/Acceptance/Crm`; каждый owning item добавляет реальные кейсы\nR01–R68, которые стали выполнимы его возможностью, с заранее заданными ожидаемыми ids. P8.7 строит\nнезависимый consumer из собранных архивов, прогоняет все обязательные кейсы на объявленной матрице\nи публикует evidence matrix с ограничениями.",
+      "rationale": "Досье требует поднимать fixture рано, чтобы дефекты исправлялись в owning items, а не маскировались\nожидаемым deny в конце. Отдельная ранняя фаза невозможна: кейсам нужен API P2–P4.",
+      "applies_to": [
+        "P4",
+        "P5",
+        "P6",
+        "P7",
+        "P8.4",
+        "P8.7"
+      ],
+      "supersedes": [],
+      "actor": {
+        "provider": "legacy",
+        "model": "plan-designer / Claude Opus 5.5 (frontier)"
+      },
+      "sections": [
+        {
+          "id": "Preamble",
+          "title": "Preamble",
+          "text": "---\nid: D5\ndate: 2026-10-01\nstatus: accepted\nitem: P8.7\nitems: [P4, P5, P6, P7, P8.4, P8.7]\nsupersedes: []\nsuperseded_by: null\n---"
+        },
+        {
+          "id": "D5-CRM--owning-items-P8.7",
+          "title": "D5 — CRM-приёмка растёт вместе с owning items; P8.7 — итоговая квалификация",
+          "text": "**Actor:** plan-designer / Claude Opus 5.5 (frontier)\n**Evidence:** RAG:— `13-workstreams.md` «P8.7 поднимает fixture рано»; `17-crm-acceptance-tests.md` §4 п.1–5."
+        },
+        {
+          "id": "Solution",
+          "title": "Solution",
+          "text": "Начиная с P4, in-repo CRM-фикстура (панель `crm`, ProjectScope, CallerRole/AnalystRole, tenant A/B)\nживёт в `tests/Fixtures/Crm` и `tests/Acceptance/Crm`; каждый owning item добавляет реальные кейсы\nR01–R68, которые стали выполнимы его возможностью, с заранее заданными ожидаемыми ids. P8.7 строит\nнезависимый consumer из собранных архивов, прогоняет все обязательные кейсы на объявленной матрице\nи публикует evidence matrix с ограничениями."
+        },
+        {
+          "id": "Why",
+          "title": "Why",
+          "text": "Досье требует поднимать fixture рано, чтобы дефекты исправлялись в owning items, а не маскировались\nожидаемым deny в конце. Отдельная ранняя фаза невозможна: кейсам нужен API P2–P4."
+        },
+        {
+          "id": "Consequences",
+          "title": "Consequences",
+          "text": "Детализация P4 создаёт фикстуру; P5–P7 расширяют её. Skipped/UI-not-wired кейс ≠ passed."
+        }
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D19",
+      "title": "Привязка знаний и сокращение context pack без потери источников",
+      "date": "2026-10-07",
+      "status": "accepted",
+      "context": "Измерение после сохранения дизайна P5 в 6b72182: P5.2 = 1393561 байт, P8.7 = 1016771 байт. Task collect() включает knowledge с пустым applies_to в любой pack, brief и plan целиком. Это authoring-правка плана, без исполнения P5 и без изменения Task.",
+      "decision": "1. Все 29 knowledge без applies_to привязаны через plan.py link к владельцу по provenance.path и содержимому: P2-repairs → P2, P3-* → P3, P4.n-* → P4.n. dependency-qualification/P0/clause-map → P0; continuation-prompt квалификации/ремонта P4.5 → P4.5. decisions-_index/_current/_archive → закрытая P0: исторические проекции D1–D17, не общий вход. Канон — decisions/D*.json; 16 строк совпадают после нормализации whitespace, D15 — сокращённая проекция нормативных пунктов; исходный текст всех трёх индексов сохранён. Общих knowledge без привязки не осталось.\n2. brief.messages остаётся каноном входных сообщений M1/M3/M4 с неизменными text/date/channel/kind. Семь brief.sections удалены как доказанные дословные дубли messages. Record M2 → knowledge/brief-P2-dossier-decisions (P2), M5 → knowledge/brief-P3-dossier-decisions (P3), M6 → knowledge/brief-P4-acceptance-matrix (P4), M7 → knowledge/brief-P4-dossier-decisions (P4): section id/title/text перенесены дословно, исходный path, дата, channel и SHA-256 UTF-8 текста записаны в provenance.\n3. Из plan.sections удалён 2.-Execution-Rules — точный дубль plan.rules, и пустой заголовок — дубль plan.id/title без тела. Routing, Execution map, Decision Log и пять Legacy-* перенесены целыми sections в knowledge/legacy-plan-projections (P0), provenance указывает исходный plan.json из 6b72182 и его SHA-256. Это исторические routing/status/roadmap/handoff/index, канон текущего состояния — JSON фаз/пунктов/решений и views. В plan.sections оставлены семь действующих целевых инвариантов (section), отсутствующие в plan.rules.\n4. Проверены все открытые P5.1–P5.8, P6.*, P7.*, P8.*: ссылок на удаляемые brief/plan sections нет; reads и контракты не менялись. Закрытые пункты, result, фазы, D1–D18 и P5-change-model неизменны. Таблица по каждому ключу pack, перечень привязок/переносов, доказательства сохранения и остаток Task — knowledge/findings-plan-context-budget (P5).",
+      "rationale": "Пустая привязка исторических evidence и legacy-проекции ошибочно делала их обязательным общим контекстом. Область применения должна соответствовать владельцу. Архивирование сохраняет всю историю; удалены только проверенные дубли. M1/M3/M4 нужны как вход владельца, целевые инварианты действуют для всего плана, остальные фазовые материалы выбираются по applies_to/reads.",
+      "consequences": [
+        "Тексты и provenance knowledge сохранены; новые архивные документы исключены из документов открытых фаз. Итоговый report учитывает собственный вклад в P5 pack.",
+        "Остаток для swissknifeman 2026.10.05-№2-ORCH-PREP P12: явный признак общего знания; check пустых applies_to, дублей brief и legacy plan.sections; замер после design-done/plan-design; инструкции протокола. collect() всё ещё включает phase_dependencies целиком и дублирует выбранный документ при его полном read. Дубли goal/context и внутренние section/decision-проекции также остаются поведением Task; здесь генератор не менялся.",
+        "Actor указан по наблюдаемым настройкам Codex config.toml: gpt-6.1-sol/xhigh; это автор изменений, execution route P5 не запускался."
+      ],
+      "applies_to": [
+        "P5",
+        "P6",
+        "P7",
+        "P8"
+      ],
+      "evidence": [
+        {
+          "kind": "owner",
+          "ref": "current-session/context-budget-request",
+          "note": "Прямое поручение сократить PLAN2 context pack, сохранить тексты и закрытые результаты; без push."
+        },
+        {
+          "kind": "repo",
+          "ref": "knowledge/findings-plan-context-budget",
+          "note": "Сопоставимые замеры 33 открытых пунктов и инвентаризация переносов."
+        },
+        {
+          "kind": "repo",
+          "ref": "swissknifeman/packages/task/lib/task/plan/context.py",
+          "note": "collect(), read_entry(), selected_decisions(); schema brief/document/decision через plan.py schema."
+        }
+      ],
+      "actor": {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "xhigh"
+      }
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D24",
+      "title": "Состав P6: порядок по владению кодом, адаптеры версий Laravel, fake-шпион, владельцы импорта и аудита",
+      "date": "2026-10-08",
+      "status": "accepted",
+      "context": "Детализация P6 (D3). Скелет фазы перечисляет P6.1–P6.10 по досье 13 F6 и принимает остатки по D8/D12/D14/D18. При чтении кода и первичных источников найдены: неверная предпосылка D58 об `optimizes()` для пола `^11.0`, отсутствие родительских атрибутов контроллеров в Laravel 13.0–13.4, зависимость P6.5 (установка предлагает первую панель) от генератора P6.8, конфликт владельца внешнего импорта (матрица P4 → P6.10, process map 20 F21 → P8.1), не названная досье команда очистки журнала аудита (D18 → P6.6), и потеря справочника 0.3 для P7 при удалении `legacy/` в P6.9.",
+      "decision": "1. **Состав и порядок.** Номера досье сохраняются; добавляется `P6.11` — Review P6 (правило плана о read-only review фазы). Порядок исполнения: P6.1 → P6.2 → P6.3 → P6.4 → P6.6 → P6.7 → P6.8 → P6.5 → P6.9 → P6.10 → P6.11; все batch solo, стратегия sequential. P6.5 идёт после P6.8, потому что `azguard:install` вызывает `azguard:make:panel`; P6.10 — после P6.2 (`EnterPanel` пишет Context) и P6.4 (общий признак свежести кэша каталога для doctor и about).\n2. **Адаптеры версий Laravel (проверено по тегам, knowledge/P6-surface-model#Laravel-premises).** `optimizes()` вызывается при `method_exists` (есть с v11.27.1); пол `^11.0` не поднимается. `#[CheckPermission]` — один FQCN: наследник `Illuminate\\Routing\\Attributes\\Controllers\\Middleware` на 13, самостоятельный класс на 11/12. `EnterPanel` дополняет недостающие `azguard.can` по общему сборщику `Laravel\\Http\\RouteChecks` (11/12 — все, 13.0–13.4 — с родительских контроллеров, 13.5+ — ни одной), doctor `routes.checks` использует тот же сборщик. `AboutCommand::add()` — при `class_exists`. Пакет `illuminate/log` добавляется в `require` ядра для Context.\n3. **Fake и контрактные наборы.** `AzGuardFake` — шпион поверх настоящего пайплайна (записывает проверки и изменения, решения не подменяет). Контрактные наборы — PHP-трейты `AzGuard\\Testing\\Contracts\\*ContractTests` с `#[Test]`-методами и абстрактными фабриками; репозиторий исполняет их классовыми тестами `tests/Contracts/**` (Pest запускает PHPUnit-классы). `IntegrationContractTests` остаётся P8.1.\n4. **Владельцы.** Полный протокол внешнего импорта/sync (R43) и import-lifecycle внешнего origin (R42) принадлежат P8.1 по process map 20 F21; строки матрицы `knowledge/brief-P4-acceptance-matrix` «P6.10 external sync/import» этим заменяются. P6.10 сохраняет R53/R54 (queue/Octane) и V84/V103 (queue/sync).\n5. **Очистка журнала аудита.** Команда `azguard:audit:prune [--panel=] [--before=] [--force]` по формату D38 `azguard:<area>:<verb>` удаляет записи старше `AuditPlugin::make(retentionDays:)`; владелец — P6.6. Регистрируется ядром, работает только для панелей с подключённым плагином аудита.\n6. **`azguard:install` exit code.** Без `--migrate`: миграции не запускаются, doctor выполняется и печатается, код выхода отражает только шаги установки (публикация, ответы, генерация панели). С `--migrate`: ненулевой код `migrate` возвращается как есть и doctor не запускается; при успехе код выхода = код doctor.\n7. **Справочник 0.3 после P6.9.** P6.9 удаляет `legacy/` и фиксирует в `knowledge/findings-P6-execution` (раздел P6.9) SHA последнего коммита со справочником; P7 читает его через `git show <sha>:legacy/0.3/...`. `docs/` не удаляется в P6.9 — он переписывается в P8.2 (D2, Consequences).",
+      "rationale": "Порядок следует владению кодом: каждый пункт стоит на уже написанном (принцип D8). Адаптеры закрывают проверенные различия версий без подъёма пола поддержки и без второго сканера маршрутов. Шпион вместо заглушки не даёт тестам приложения зеленеть на решении, которого живая система не примет (урок IAM Policy Simulator: симуляция может расходиться с живой средой). Владелец импорта по process map — нормативная карта процессов досье, матрица P4 была предварительной. Команда аудита и коды выхода установки — пробелы досье, заполненные по существующим соглашениям D38/D40.",
+      "consequences": [
+        "Phase P6 items переупорядочены; P6.11 — последний пункт фазы.",
+        "P6.2 добавляет `Laravel\\Http\\RouteChecks` и расширяет `bin/consumer-fixture.sh` проверкой атрибута на Laravel 11/12/13.",
+        "P8.1 принимает R42 import-lifecycle и R43; матрица P4 в части P6.10 считается заменённой.",
+        "P7 использует SHA справочника 0.3 из findings P6.9."
+      ],
+      "applies_to": [
+        "P6",
+        "P6.1",
+        "P6.2",
+        "P6.3",
+        "P6.4",
+        "P6.5",
+        "P6.6",
+        "P6.7",
+        "P6.8",
+        "P6.9",
+        "P6.10",
+        "P6.11",
+        "P7",
+        "P8.1"
+      ],
+      "evidence": [
+        {
+          "kind": "rag",
+          "ref": "https://raw.githubusercontent.com/laravel/framework/v11.27.1/src/Illuminate/Support/ServiceProvider.php",
+          "note": "optimizes() появляется в v11.27.1; в v11.27.0 отсутствует"
+        },
+        {
+          "kind": "rag",
+          "ref": "https://raw.githubusercontent.com/laravel/framework/v13.5.0/src/Illuminate/Routing/Route.php",
+          "note": "цикл getParentClass() в attributeProvidedControllerMiddleware с 13.5.0; в 13.4.0 нет"
+        },
+        {
+          "kind": "rag",
+          "ref": "https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html",
+          "note": "симуляция не выполняет операции и может расходиться с живой средой"
+        },
+        {
+          "kind": "repo",
+          "ref": "audits/2026-09-29-audit/opus/20-process-map.md",
+          "note": "F21 External import → P8.1"
+        },
+        {
+          "kind": "repo",
+          "ref": "packages/core/src/AzGuardServiceProvider.php",
+          "note": "текущие команды и привязки"
+        }
+      ],
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5"
+      },
+      "answered_by": "agent"
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:decision:v1",
+      "id": "D28",
+      "title": "Мутационное тестирование не выполняется в этом плане",
+      "date": "2026-10-08",
+      "status": "accepted",
+      "question": "Запускать ли мутационное тестирование (pest --mutate, bin/mutation-gate.sh, composer mutate*) в этом плане?",
+      "context": "Мутационный гейт — длинный прогон (4 процесса, 2–4 ГБ на процесс; при лимите 1G падает по памяти на слиянии coverage). Владелец 2026-10-08 в сессии: «в этом плане их вообще не делать».",
+      "decision": "В плане 2026.10.01-№1-AZGUARD-V1 мутационное тестирование не выполняется ни в одном пункте и ни в одной фазе: не запускать pest --mutate, bin/mutation-gate.sh, composer mutate/mutate:*, mutation в composer check. Порог mutation ≥99 не является гейтом плана; отсутствие прогона не считается пропущенным или упавшим гейтом и не блокирует GREEN. CI-джоб mutation и скрипт в репозитории не удаляются: решение действует только на исполнение этого плана.",
+      "rationale": "Прямое указание владельца: прогон слишком длинный и дорогой для этого плана.",
+      "consequences": [
+        "P6.11 остаётся GREEN: mutation ≥99 снят из Remaining как не требуемый.",
+        "Coverage ≥85, Pint, PHPStan, type coverage, arch, composer test остаются гейтами.",
+        "Изменение этого решения — только владельцем."
+      ],
+      "global": true,
+      "actor": {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "medium"
+      }
+    }
+  ],
+  "upstream": [
+    {
+      "$schema": "urn:swissknifeman:task:plan:item:v1",
+      "id": "P7.2",
+      "title": "FilamentGate, ключи по slug и авторизация всех поверхностей",
+      "status": "done_with_deviations",
+      "summary": "Авторизация всех Filament-поверхностей по идентичности ресурса (D27 п.2): `FilamentGate` и трейты `AuthorizesResource` (`getAuthorizationResponse`, `getEloquentQuery` с exact visibility `{key}.view`), `AuthorizesRelationManager`, `AuthorizesPage` (`canAccess`), `AuthorizesWidget` (`canView`); deny-only Gate::before-страховка в guarded Filament-панели; поштучная авторизация bulk-действий; `AuthorizedExportCsv` с повторной видимостью при исполнении; boot-проверка enforce (guarded ресурс без трейта → `ConfigurationException`). Acceptance: V25, V95 (Filament-часть), V96 (bulk/attach/search/widgets/export), V102, R34, R39 Filament, R40 Filament-часть.",
+      "why": "Главная граница безопасности UI. Filament 5.9 открывает ресурс без policy (F2), видит в Gate только модель (два ресурса одной модели неразличимы, V102), проверяет bulk один раз (`*Any`, F5), а экспорт выгружает сериализованный запрос без авторизации (F6). Жёсткие риски: allow по умолчанию при enforce; угадывание ресурса по модели; один Allow на все строки bulk; count/page/global search до фильтра видимости (утечка количества и записей); job экспорта, выгружающий строки после снятия права; Gate::before пакета, который возвращает allow и перебивает policy-вето приложения; глобальные `configureUsing`, влияющие на Filament-панели без плагина.",
+      "scope": {
+        "include": [
+          "`packages/filament/src/Authorization/FilamentGate.php`: `resource(string $resourceClass, string $action, ?Model $record)`, `relationManager(...)`, `page(string $class)`, `widget(string $class)` → `Response`; ключ из `FilamentKeys`, решение `AzGuard::panel(guardPanel)->decide(AccessRequest::for($subjectRef, PermissionKey::of(guardPanel, $key))->on(null, $record))` — запись передаётся как ресурс решения, контекст выводят scope resolvers ядра (`SubjectAccess::decide(on:)` не годится: там модель — контекст назначения), `GateBridge::toGateResult` для ответа; субъект — `Filament::auth()->user()`; нет субъекта/не принят панелью при enforce → deny; `UnknownPermissionException` при enforce → deny (и лог предупреждения без секретов), без enforce → поведение Filament (`get_authorization_response`).",
+          "`Concerns/AuthorizesResource`: переопределяет `getAuthorizationResponse` (через FilamentGate, все `can*`/`authorize`), `getEloquentQuery()` (при enforce `Visibility::visibleTo(panel, query, user, '{key}.view')` до пагинации; `VisibilityNotSupportedException` пробрасывается как ошибка настройки) — global search, списки, relation counts берут этот запрос; `canGloballySearch` учитывает `view_any`.",
+          "`Concerns/AuthorizesRelationManager`: `canViewForRecord` и действия — через related resource (если задан) либо `protected static ?string $azguardResource` (класс ресурса с трейтом); иначе при enforce → deny.",
+          "`Concerns/AuthorizesPage::canAccess()`, `Concerns/AuthorizesWidget::canView()` → `FilamentGate::page/widget`.",
+          "Gate::before-хук в провайдере пакета (регистрируется после ядра): отвечает только в запросе, где `Filament::getCurrentPanel()` содержит плагин с `enforce`, только для abilities из `abilities` плагина (camelCase Filament) и только `false` или `null`; allow не возвращает никогда; ядро `GateBridge` уже ответило по модельной привязке каталога (неоднозначность → deny).",
+          "Bulk: в `boot` плагина `BulkAction::configureUsing(...)` (замыкание проверяет текущую Filament-панель с плагином и ресурс с трейтом) → `authorizeIndividualRecords(fn (Model $record) => FilamentGate::resource($resource, <поштучный ability>, $record)->allowed())`; `delete_any`→`delete`, `force_delete_any`→`force_delete`, `restore_any`→`restore`. Inline editable columns в guarded ресурсах документировать как неподдержанные без явного `disabled()`.",
+          "`Exports/AuthorizedExportCsv` (наследник `Filament\\Actions\\Exports\\Jobs\\ExportCsv`): в `handle()` к десериализованному запросу повторно применяется видимость `{key}.view` для `export->user` в панели из скрытого Context `azguard.panel` (P6.10), до выборки строк; `ExportAction::configureUsing` в guarded панелях подставляет `->job(AuthorizedExportCsv::class)`.",
+          "Boot-проверка enforce: каждый ресурс guarded Filament-панели (кроме `exclude`) использует `AuthorizesResource` → иначе `ConfigurationException` с именем класса; страницы/виджеты пакета и фикстур — свои трейты.",
+          "Тесты `tests/Feature/Filament/Gate/**`: V25 (HTTP: страница с `AuthorizesPage` при enforce — пользователь без права → 403; пользователь-модель без `AzGuardSubject` → 403); V102 (`orders.view_any` выдан → `OrderResource` открыт, `ArchivedOrderResource` закрыт; `Gate::check('viewAny', Order::class)` в guarded панели → deny как неоднозначный; ресурс не угадывается); V95 Filament (список, count, global search, relation count, виджет-счётчик, экспорт — только видимые записи, фильтр до LIMIT/OFFSET; PolicyOnly-ресурс решается политикой без чтения назначений — счётчик запросов к таблицам выдач = 0); V96 (bulk delete смешанного выбора — запрещённая строка не удалена и действие сообщает отказ; attach/associate в relation manager чужой записи → отказ; global search не находит невидимые; export job после снятия права не выгружает строки); enforce boot без трейта → `ConfigurationException`; Gate::before без плагина в текущей панели → `null` (Filament-панели без плагина не затронуты).",
+          "CRM `tests/Acceptance/Crm/FilamentTest.php` + README: R34 (export/widgets/search/attach/bulk), R39 Filament (без роли admission 403 даже с direct grant/PolicyOnly allow права входа; действия решаются в своём project), R40 Filament-часть (список клиентов → карточка → действие разрешено только в своём project; отказ не создаёт записи/события); статусы README честные."
+        ],
+        "exclude": [
+          "Ресурсы-редакторы AzGuard — P7.3/P7.4 (используют эти трейты).",
+          "Ранний сторонний Gate::before приложения (R39) — consumer-тест P8.7.",
+          "Inline editable columns как авторизованная поверхность — не поддерживаются (документировано), не реализуются."
+        ]
+      },
+      "depends_on": [
+        "P7.1"
+      ],
+      "related": [],
+      "decisions": [
+        "D27"
+      ],
+      "skills": [],
+      "reads": [
+        {
+          "path": "audits/2026-09-29-audit/opus/11-filament.md",
+          "why": "проверки доступа и все UI-входы",
+          "required": true,
+          "section": "§3–§4, §9"
+        },
+        {
+          "path": "audits/2026-09-29-audit/opus/14-verification.md",
+          "why": "V25, V95, V96, V102",
+          "required": true,
+          "section": "V25, V95, V96, V102"
+        },
+        {
+          "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+          "why": "R34, R39, R40",
+          "required": true,
+          "section": "R34, R39, R40"
+        },
+        {
+          "path": "vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php",
+          "why": "точка переопределения",
+          "required": true
+        },
+        {
+          "path": "vendor/filament/filament/src/helpers.php",
+          "why": "get_authorization_response",
+          "required": true
+        },
+        {
+          "path": "vendor/filament/filament/src/Resources/RelationManagers/RelationManager.php",
+          "why": "canViewForRecord, действия",
+          "required": true
+        },
+        {
+          "path": "vendor/filament/actions/src/Concerns/CanBeAuthorized.php",
+          "why": "authorizeIndividualRecords",
+          "required": true
+        },
+        {
+          "path": "vendor/filament/actions/src/Exports/Jobs/ExportCsv.php",
+          "why": "job экспорта",
+          "required": true
+        },
+        {
+          "path": "packages/core/src/Laravel/Gate/GateBridge.php",
+          "why": "модельная привязка, toGateResult",
+          "required": true
+        },
+        {
+          "path": "packages/core/src/Authorization/Visibility.php",
+          "why": "visibleTo/bounded",
+          "required": true
+        },
+        {
+          "path": "packages/core/src/Laravel/Queue/PanelContext.php",
+          "why": "скрытый Context azguard.panel",
+          "required": false
+        },
+        {
+          "path": "tests/Acceptance/Crm/README.md",
+          "why": "статусы R34/R39/R40",
+          "required": true
+        }
+      ],
+      "task_files": [
+        {
+          "path": "packages/filament/src/Authorization/**",
+          "change": "any"
+        },
+        {
+          "path": "packages/filament/src/Concerns/**",
+          "change": "create"
+        },
+        {
+          "path": "packages/filament/src/Exports/**",
+          "change": "create"
+        },
+        {
+          "path": "packages/filament/src/AzGuardPlugin.php",
+          "change": "any",
+          "note": "Создаёт P7.1; пункт добавляет регистрацию своих ресурсов/страниц/настроек."
+        },
+        {
+          "path": "packages/filament/src/AzGuardFilamentServiceProvider.php",
+          "change": "modify"
+        },
+        {
+          "path": "packages/filament/api-manifest.json",
+          "change": "modify"
+        },
+        {
+          "path": "tests/Fixtures/Filament/**",
+          "change": "any"
+        },
+        {
+          "path": "tests/Feature/Filament/Gate/**",
+          "change": "create"
+        },
+        {
+          "path": "tests/Acceptance/Crm/{FilamentTest.php,README.md}",
+          "change": "any"
+        },
+        {
+          "path": "tests/Fixtures/Crm/**",
+          "change": "modify",
+          "note": "только Filament-ресурсы CRM-фикстуры"
+        },
+        {
+          "path": "CHANGELOG.md",
+          "change": "modify"
+        }
+      ],
+      "rules": [
+        "Гейты плана: targeted Pest, `tests/Arch`, полный `composer test`, Pint, PHPStan (уровень проекта), type coverage ≥ 98, API manifest; падение или пропуск ≠ успех; недоступный engine/сеть блокирует пункт, а не даёт GREEN.",
+        "Писать только в `packages/filament`, `tests`, `CHANGELOG.md`, `roadmap/` (если названо) и plan-артефакты пункта; `packages/core` — только файлы, названные в task_files. Код Vaulter и других пакетов не трогать. Новых runtime- и dev-зависимостей нет.",
+        "Пакет Filament использует только классы ядра из манифеста (`tests/Arch/ApiManifestTest.php`); не хватает — аддитивный `@api`-контракт в ядре в owning item (D27 п.6), а не обход и не копия логики.",
+        "Своей логики прав, ролей, выбора панели и tenant в пакете нет; решения — `SubjectAccess`/`PanelAccess`/`Visibility`, записи — только `SubjectAccess::grant*/revoke*`, `GrantManager`, `PermissionManager` (I1).",
+        "Состояние плагина — свойства экземпляра `AzGuardPlugin`; `config()` не пишется; статические свойства классов Filament (`checkPolicyExistence`, `skipAuthorization`) не меняются (I9).",
+        "Payload Livewire недоверенный: серверные значения — `#[Locked]`, каждый id из формы перепроверяется сервером на каждом действии (I5, F12).",
+        "Имена — из досье `03`, D27 и knowledge P7-filament-model; внутренние коды задач (`P7.2`, `V96`, `R37`) в docblock `src` запрещены, в тестах и findings допустимы.",
+        "Release-visible изменения — запись в `CHANGELOG.md` `[Unreleased]`; коммит — Russian Conventional Commit.",
+        "Ресурс по модели не выбирается никогда; Gate::before пакета возвращает только `false` или `null`.",
+        "При `enforce` любой отказ инфраструктуры (нет субъекта, плагина, definition, exact adapter) — deny или `ConfigurationException`, не allow (I3).",
+        "Видимость применяется в запросе до count/page/export; один Allow не распространяется на несколько строк (I6, I7).",
+        "Глобальные `configureUsing` проверяют текущую Filament-панель и не меняют панели без плагина."
+      ],
+      "guidance": "Решение с записью: `AccessRequest::for(SubjectRef::of($user->getMorphClass(), $user->getKey()), PermissionKey::of($guard, $key))->on(null, $record)` и `PanelAccess::decide()` — так же, как `GateBridge` передаёт ресурс; scope resolvers ядра (P4.6) выводят контекст из записи. Для ответа Filament вернуть `GateBridge::toGateResult($decision)`. Число запросов к таблицам выдач в тесте PolicyOnly — `DB::listen` с фильтром по префиксу таблиц хранилища. V25 и R39 — HTTP-тесты (Livewire-тест не проходит панельный middleware, F11). Bulk в тестах: `selectTableRecords([...])` + `callAction(TestAction::make('delete')->table()->bulk())`. Экспорт: запустить job синхронно (`Bus::fake` не годится — нужен настоящий `handle()`), снять право между постановкой и исполнением.",
+      "validation": [
+        {
+          "id": "V1",
+          "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament/Gate tests/Acceptance/Crm/FilamentTest.php --compact --fail-on-skipped",
+          "expect": "exit 0; V25, V95 Filament, V96 bulk/attach/search/widgets/export, V102, enforce boot, R34, R39, R40 Filament",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V2",
+          "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament --compact --fail-on-skipped",
+          "expect": "exit 0; тесты P7.1 не сломаны",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V3",
+          "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped",
+          "expect": "exit 0; зоны, манифест (filament → только @api ядра), запрет прямых записей соблюдены",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V4",
+          "cmd": "composer test",
+          "expect": "exit 0; полный набор без групп engines/redis/replica",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V5",
+          "cmd": "vendor/bin/pint --test",
+          "expect": "exit 0",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V6",
+          "cmd": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress",
+          "expect": "exit 0; 0 ошибок на уровне проекта",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V7",
+          "cmd": "composer test:types",
+          "expect": "exit 0; type coverage >= 98%",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V8",
+          "cmd": "php bin/api-manifest.php --check",
+          "expect": "exit 0; манифесты `packages/core` и `packages/filament` перегенерированы `php bin/api-manifest.php --write` и совпадают с публичными именами пункта",
+          "kind": "acceptance"
+        },
+        {
+          "id": "V9",
+          "cmd": "git diff --check",
+          "expect": "exit 0",
+          "kind": "acceptance"
+        }
+      ],
+      "deliverables": [
+        "FilamentGate, трейты, Gate::before-страховка, bulk-авторизация, AuthorizedExportCsv, тесты, CRM FilamentTest/README, CHANGELOG; раздел «P7.2» в `@plan/knowledge/findings-P7-execution.json`."
+      ],
+      "route": {
+        "class": "frontier",
+        "effort": "high"
+      },
+      "review": {
+        "mode": "none"
+      },
+      "authority": {
+        "kind": "routine"
+      },
+      "rag": {
+        "need": "none",
+        "status": "not_needed"
+      },
+      "result": {
+        "started_at": "2026-10-09T05:44:37Z",
+        "finished_at": "2026-10-09T05:57:55Z",
+        "executor": {
+          "provider": "codex",
+          "model": "gpt-6.1-sol",
+          "effort": "high"
+        },
+        "notes": "Исправлены F1/F2 и воспроизведённые обходы через raw column closure и relation manager без трейта. Разрешённые custom row/bulk и панели без плагина проверены. Full suite 4612/4612, Filament+CRM 190/190, arch 95/95, PHPStan 0 ошибок, Pint/API/diff зелёные, fresh serial type coverage 99.5%. Evidence: artifacts/P7-audit-fixes/*.log.",
+        "deviations": [
+          "V7 выполнен свежим эквивалентным serial Pest type-coverage вместо ненадёжного fork-режима; docs/model Task projection stale, используется установленный canon v4."
+        ],
+        "checks": [
+          {
+            "id": "V1",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V2",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V3",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V4",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V5",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V6",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V7",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V8",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          },
+          {
+            "id": "V9",
+            "exit": 0,
+            "at": "2026-10-09T05:57:55Z"
+          }
+        ]
+      },
+      "updated_at": "2026-10-09T05:57:55Z",
+      "sections": [
+        {
+          "id": "Intent",
+          "title": "Intent",
+          "text": "—"
+        },
+        {
+          "id": "Why",
+          "title": "Why",
+          "text": "—"
+        },
+        {
+          "id": "Scope-Included",
+          "title": "Scope Included",
+          "text": "—"
+        },
+        {
+          "id": "Scope-Excluded",
+          "title": "Scope Excluded",
+          "text": "—"
+        },
+        {
+          "id": "Inputs",
+          "title": "Inputs",
+          "text": "—"
+        },
+        {
+          "id": "Files",
+          "title": "Files",
+          "text": "—"
+        },
+        {
+          "id": "Required-Reads",
+          "title": "Required Reads",
+          "text": "—"
+        },
+        {
+          "id": "Implementation-Rules",
+          "title": "Implementation Rules",
+          "text": "—"
+        },
+        {
+          "id": "Code-Guidance",
+          "title": "Code Guidance",
+          "text": "—"
+        },
+        {
+          "id": "Validation",
+          "title": "Validation",
+          "text": "—"
+        },
+        {
+          "id": "Deliverables",
+          "title": "Deliverables",
+          "text": ""
+        }
+      ]
+    }
+  ],
+  "phase_dependencies": [
+    {
+      "$schema": "urn:swissknifeman:task:plan:phase:v1",
+      "id": "P6",
+      "title": "Laravel-поверхность и удаление legacy",
+      "design": "detailed",
+      "goal": "Публичная Laravel-поверхность AzGuard 1.0 над ядром P1–P5: фасад и `PanelAccess`, middleware `azguard.panel`/`azguard.can` с атрибутами контроллеров и строгим режимом, полный конфиг с проверками при загрузке, doctor, команды, установка, тестовый kit и контрактные наборы, генераторы структуры D72, механизмы Laravel (optimize/about/Context), удаление справочника 0.3. Семантика решения и записи не меняется: каждый вход — адаптер над `Authorizer`/`PanelResolver`/`ChangePipeline`.",
+      "context": "Детализировано 2026-10-08 по досье 13 F6; 07; 12 §1–§3, §7; 05 §2–§3; D09, D32, D33, D38–D40, D56, D58, D72, D73; 09 §3.1, §12; 20 F18/F21 и реальному коду HEAD b9af206.\nМодель фазы — [knowledge/P6-surface-model](../../knowledge/P6-surface-model.json): база кода, проверенные предпосылки Laravel (optimizes с v11.27.1, родительские атрибуты контроллеров с 13.5), паттерны AWS/S3 с источниками, инварианты I1–I9, адаптер маршрутов, модель doctor, карта приёмки.\nРешение фазы — [D24](../../decisions/D24.json): порядок по владению кодом, P6.11 Review, адаптеры версий, fake-шпион и форма контрактных наборов, владелец внешнего импорта P8.1, `azguard:audit:prune`, коды выхода install, SHA справочника 0.3 для P7.\nПринимает по D8: остальные методы фасада (P6.1); чтение entry/onDenied/middleware/requireRouteChecks и V64 middleware (P6.2); полный конфиг с catalog.build_id и таблица 07 §5 (P6.3); ChecksHealth/DoctorCheck/doctorChecks и production без build id (P6.4); panels:list, sources:list (P6.6); SourceContractTests/PluginContractTests (P6.7); генераторы D72 (P6.8); optimizes и Context (P6.10).\nПринимает по D12: doctor-сверку storage_state и fields.meta (P6.4); reset с новой incarnation (P6.6); storages/ids/defaults.models в полном конфиге (P6.3). По D18: PanelAccess/фасад (P6.1), rename-key/prune/audit (P6.6), AuditTableExists (P6.4).",
+      "depends_on": [
+        "P5"
+      ],
+      "items": [
+        "P6.1",
+        "P6.2",
+        "P6.3",
+        "P6.4",
+        "P6.6",
+        "P6.7",
+        "P6.8",
+        "P6.5",
+        "P6.9",
+        "P6.10",
+        "P6.11"
+      ],
+      "batches": [
+        {
+          "id": "BP6-1",
+          "items": [
+            "P6.1"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-2",
+          "items": [
+            "P6.2"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-3",
+          "items": [
+            "P6.3"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-4",
+          "items": [
+            "P6.4"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-6",
+          "items": [
+            "P6.6"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-7",
+          "items": [
+            "P6.7"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-8",
+          "items": [
+            "P6.8"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-5",
+          "items": [
+            "P6.5"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-9",
+          "items": [
+            "P6.9"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-10",
+          "items": [
+            "P6.10"
+          ],
+          "mode": "recommended"
+        },
+        {
+          "id": "BP6-11",
+          "items": [
+            "P6.11"
+          ],
+          "mode": "recommended"
+        }
+      ],
+      "closed": {
+        "at": "2026-10-08T16:38:59Z",
+        "result": "done_with_deviations",
+        "summary": "11 item(s): 2 done, 9 done_with_deviations"
+      },
+      "orchestration": {
+        "strategy": "sequential"
+      },
+      "sections": [
+        {
+          "id": "Phase-Context",
+          "title": "Phase Context",
+          "text": "Детализировано 2026-10-08 по досье 13 F6; 07; 12 §1–§3, §7; 05 §2–§3; D09, D32, D33, D38–D40, D56, D58, D72, D73; 09 §3.1, §12; 20 F18/F21 и реальному коду HEAD b9af206.\nМодель фазы — [knowledge/P6-surface-model](../../knowledge/P6-surface-model.json): база кода, проверенные предпосылки Laravel (optimizes с v11.27.1, родительские атрибуты контроллеров с 13.5), паттерны AWS/S3 с источниками, инварианты I1–I9, адаптер маршрутов, модель doctor, карта приёмки.\nРешение фазы — [D24](../../decisions/D24.json): порядок по владению кодом, P6.11 Review, адаптеры версий, fake-шпион и форма контрактных наборов, владелец внешнего импорта P8.1, `azguard:audit:prune`, коды выхода install, SHA справочника 0.3 для P7.\nПринимает по D8: остальные методы фасада (P6.1); чтение entry/onDenied/middleware/requireRouteChecks и V64 middleware (P6.2); полный конфиг с catalog.build_id и таблица 07 §5 (P6.3); ChecksHealth/DoctorCheck/doctorChecks и production без build id (P6.4); panels:list, sources:list (P6.6); SourceContractTests/PluginContractTests (P6.7); генераторы D72 (P6.8); optimizes и Context (P6.10).\nПринимает по D12: doctor-сверку storage_state и fields.meta (P6.4); reset с новой incarnation (P6.6); storages/ids/defaults.models в полном конфиге (P6.3). По D18: PanelAccess/фасад (P6.1), rename-key/prune/audit (P6.6), AuditTableExists (P6.4)."
+        },
+        {
+          "id": "Order",
+          "title": "Order",
+          "text": "| Шаг | Пункт | Batch | Почему здесь |\n|---|---|---|---|\n| 1 | P6.1 | BP6-1 | фасад и PanelAccess — проводка готового ядра, база для HTTP/CLI |\n| 2 | P6.2 | BP6-2 | HTTP-вход и общий сборщик RouteChecks; нужен строке 07 §5 missing_permission_check и doctor |\n| 3 | P6.3 | BP6-3 | полный конфиг и V36 после того, как последняя строка 07 §5 (P6.2) существует |\n| 4 | P6.4 | BP6-4 | doctor читает конфиг P6.3 и RouteChecks P6.2 |\n| 5 | P6.6 | BP6-6 | команды; reset/prune/audit/rename поверх пайплайна; снимок команд |\n| 6 | P6.7 | BP6-7 | kit и контрактные наборы против встроенных реализаций |\n| 7 | P6.8 | BP6-8 | генераторы проверяются наборами P6.7 |\n| 8 | P6.5 | BP6-5 | install вызывает make:panel (P6.8) и doctor (P6.4) — D24 п.1 |\n| 9 | P6.9 | BP6-9 | удаление legacy после того, как генераторы перестали в нём нуждаться |\n| 10 | P6.10 | BP6-10 | Context пишет EnterPanel (P6.2); about делит признак свежести с doctor (P6.4) |\n| 11 | P6.11 | BP6-11 | read-only Review P6 |\n\nВсе batches solo, стратегия sequential: каждый пункт меняет `AzGuardServiceProvider` и общие снимки, параллельные lanes конфликтовали бы."
+        },
+        {
+          "id": "Acceptance",
+          "title": "Acceptance",
+          "text": "Нормативная карта V/R/probe → owning item — раздел «Acceptance» `@plan/knowledge/P6-surface-model.json`. Фаза закрыта, когда P6.1–P6.10 done, P01c/P03 фасадные и `azguard.can` строки covered, каждая строка 07 §5 имеет тест, CRM README честно показывает статусы R-кейсов P6, consumer-фикстура 11/12/13 зелёная, и verdict P6.11 — GREEN."
+        },
+        {
+          "id": "Validation-strategy",
+          "title": "Validation strategy",
+          "text": "Каждый пункт: targeted Pest своих тестов, `tests/Arch`, полный `composer test`, Pint, PHPStan, type coverage ≥ 98, `php bin/api-manifest.php --check` (где меняется публичный API), `git diff --check`; P6.6 — engine-гонка `StateResetRaceTest` на PG/MySQL/MariaDB; P6.2/P6.10 — `bin/consumer-fixture.sh` на Laravel 11/12/13 (нет сети = blocker, не GREEN). Итоги исполнения — разделы пунктов в `@plan/knowledge/findings-P6-execution.json`."
+        },
+        {
+          "id": "Phase-Handoff",
+          "title": "Phase Handoff",
+          "text": "Актуальный Next: приёмка исправленного снимка P6.11, read-only. P6.1–P6.10 исторически реализованы, найденные дефекты исправляются owning items. P6.11 остаётся todo: полные V1–V15 и affected owning qualification не завершены; последнее поручение владельца запрещает долгие прогоны. P7 не начинать, READY не объявлять. Реестр, журналы всех попыток и native launch для будущего продолжения: knowledge/findings-P1-P6-closure-2026-10-08."
+        }
+      ]
+    }
+  ],
+  "reads": [
+    {
+      "path": "audits/2026-09-29-audit/opus/11-filament.md",
+      "why": "RoleResource, PermissionResource, тенанты",
+      "required": true,
+      "section": "§5, §5.1, §5.3, §9",
+      "exists": true,
+      "content": "Все редакторы работают с **выбранной панелью AzGuard** из `manages`. Панель выбирается фильтром в таблицах и первым\nполем в формах. Всё остальное форма берёт из `AzGuard::panel($id)->inTenant($tenant)->schema()` ([D54](02-decisions.md#d54)): группы\nправ, какие права выдаются галочкой, какие роли редактируются, какие поля заполнять. При смене панели форма\nперестраивается. Панели без `DatabaseSource` в `manages` не показываются (редактировать нечего), но видны на странице\n«Панели».\n\n### 5.1 `RoleResource`\n\n| Объект | Что показывает UI | Что разрешено менять |\n|---|---|---|\n| BaseRole class | key/label/permissions/context filters/superAdmin из schema | ничего: code review/deploy |\n| RoleGrant | subject/роль/tenant/project/origin/expiry/declared fields | назначить/обновить поля/отозвать через GrantManager |\n| Enum permission | immutable key/authority/policy metadata | назначения только RequiresGrant |\n| PolicyOnly action | badge «решает PHP policy», current capability | grant checkbox отсутствует; raw grant payload rejected |\n| Opt-in dynamic action | tenant scoped key/label, mode Grants | создать/rename metadata/delete/назначить с actor validation |\n\nRoleResource — read-only catalogue. Stale assignment form fingerprint включает code build и stored row revision;\nсостав роли не сохраняется как JSON/галочки из этой формы. SubjectGrants editor — отдельная ответственность.\n\n### 5.2 `RoleGrantResource` и `PermissionGrantResource`\n\n- Таблицы читают scoped `GrantManager::page/find` **panel+tenant+origin** (включая поля своих моделей вроде AdminRoleGrant); произвольный Eloquent builder не служит API редактора. Фильтры: панель,\n  роль или право, сущность, «истекает до», «кто выдал», свои поля. Подпись субъекта — `SubjectDirectory::describe()`,\n  сущности — `AssignmentScopeDirectory::describe()`.\n- Создание: панель → субъект (поиск через директорию панели, лимит 50, без загрузки всех пользователей) → роль (те,\n  что выдаются вручную) или право (статичное или динамическое) → сущность (типы, которые принимает панель) → срок →\n  свои поля.\n- Сохранение — `$subject->guard($id)->grantRole(..., on:, until:, fields:)` / `grantPermission(...)`. Свои\n  поля передаются в `fields:`, а не пишутся в модель.\n- Массовый отзыв — одна транзакция, одна новая версия, событие на каждую строку.\n- Редактирование строки — срок и свои поля.\n- Автоматические роли, выдачи из связей и своих источников и права из политик в этих таблицах не видны (их нет в БД). Чтобы понять, откуда у человека\n  право, есть действие «Почему?» → `explain()`.\n\n### 5.3 `PermissionResource` — динамические права\n\nПоказывается для панелей с `DatabaseSource::make()->dynamicPermissions()`. Список всех прав панели: статичные (из enum,\nтолько чтение, с доменом и подсказкой о политике) и динамические (создание, подпись, группа, удаление вместе с\nвыдачами). Запись — `AzGuard::panel($id)->permissions()`.\n\n### 5.4 `PanelsPage` и `DoctorPage`\n\n- `PanelsPage` — то же, что `azguard:panels:list --settings --sources`: панели, их источники и плагины, итоговые настройки и\n  откуда взято каждое значение, схема прав. Только чтение.\n- `DoctorPage` — `azguard:doctor --json` с группировкой по важности.\n\nДоступ к обеим — обычные права страниц Filament."
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/02-decisions.md",
+      "why": "схема панели; definitions read-only",
+      "required": true,
+      "section": "D54, D30, D83",
+      "exists": true,
+      "error": "section not found"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/14-verification.md",
+      "why": "V23, V61, V76",
+      "required": true,
+      "section": "V23, V61, V76",
+      "exists": true,
+      "error": "section not found"
+    },
+    {
+      "path": "audits/2026-09-29-audit/opus/17-crm-acceptance-tests.md",
+      "why": "R25, R38",
+      "required": true,
+      "section": "R25, R38",
+      "exists": true,
+      "error": "section not found"
+    },
+    {
+      "path": "packages/core/src/Schema/PanelSchema.php",
+      "why": "writable, roles, permissions",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Schema/RoleSchema.php",
+      "why": "поля роли",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Schema/PermissionSchema.php",
+      "why": "authority, grantable, dynamic, decidedBy",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Contracts/PanelAccess.php",
+      "why": "добавляемый метод directories()",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Directories/DirectoryResolver.php",
+      "why": "внутренний резолвер, которому делегирует G1",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Directories/LookupContext.php",
+      "why": "входы поиска",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "packages/core/src/Changes/ScopedPermissionManager.php",
+      "why": "create/update/delete динамических",
+      "required": true,
+      "exists": true
+    },
+    {
+      "path": "vendor/filament/tables/docs/09-custom-data.md",
+      "why": "records(), ключи записей, действия с array $record",
+      "required": true,
+      "exists": true
+    }
+  ],
+  "lessons": [
+    {
+      "v": 1,
+      "ts": "2026-10-08T17:24:41Z",
+      "type": "deviation",
+      "item": "P7.1",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "high",
+        "session": "f969685e-0c8d-4b85-804d-7d6c773a6c36"
+      },
+      "summary": "Persistent-повтор EnterPanel: isPersistent:true с аргументом 'azguard.panel:admin' не срабатывает — Livewire сравнивает класс middleware маршрута (alias уже разрешён в EnterPanel) до ':' со списком. Класс EnterPanel вне манифеста, alias регистрируется в boot ядра позже register Filament-панели, поэтому AzGuardFilamentServiceProvider добавляет Livewire::addPersistentMiddleware(класс по алиасу из Router) в app->booted(); плагин регистрирует только authMiddleware/tenantMiddleware. Проверено HTTP-тестом /livewire/update (403 для не допущенного пользователя)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:00:25Z",
+      "type": "difficulty",
+      "item": "P7.1",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "effort": "high",
+        "session": "f969685e-0c8d-4b85-804d-7d6c773a6c36"
+      },
+      "summary": "Полный composer test дважды падал на OptimizeTest (статические optimizeCommands провайдеров Filament/blade-icons переживали тест); сброс добавлен в FilamentFixture::reset() через Pest afterEach, три последних полного прогона зелёные; причина одного падения при уже внесённом сбросе в tearDown не установлена."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:14Z",
+      "type": "deviation",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Экспорт: ExportAction::job() задаёт prepare-job (PrepareCsvExport), а не job строк. Сделан AuthorizedPrepareCsvExport (getExportCsvJob → AuthorizedExportCsv); подставляет его не ExportAction::configureUsing, а слушатель ActionCalling (Exports\\AuthorizesExports, провайдер), который ещё кладёт в options экспорта panel/permission {key}.view/tenant/model: job не может вывести ресурс из модели (V102). Экспорт без ресурса AzGuard или с чужим job при enforce отклоняется.",
+      "refs": [
+        "packages/filament/src/Exports/AuthorizesExports.php"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:15Z",
+      "type": "deviation",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "phpstan.neon вне task_files: в paths добавлены 4 фикстуры-пользователя трейтов (OrderResource, ProductsRelationManager, ReportsPage, OrderCountWidget), иначе PHPStan даёт trait.unused и не анализирует трейты; тот же приём, что tests/Fixtures/Concerns/Member.php для HasAzGuard. Коммитится через --path.",
+      "refs": [
+        "phpstan.neon"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:15Z",
+      "type": "assumption",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Boot-проверка enforce покрывает ресурсы, страницы и виджеты (I3, «без права закрыто») и требует, чтобы методы трейта не были переопределены (getAuthorizationResponse/getEloquentQuery, canAccess, canView): переопределённый getEloquentQuery молча снял бы видимость. Свой запрос ресурса — в новом protected hook modifyEloquentQuery() трейта AuthorizesResource. Иначе InvalidConfigurationException filament_enforce.",
+      "refs": [
+        "packages/filament/src/AzGuardPlugin.php"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:16Z",
+      "type": "deviation",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Gate::before FilamentGate возвращает false только для ability Filament на модели без Laravel policy и без Gate::define этой ability (ровно дыра F2), иначе null: безусловный false в guarded-панели перебивал бы policy приложения и исключённые (exclude) ресурсы. allow не возвращается никогда; без плагина/enforce — null.",
+      "refs": [
+        "packages/filament/src/Authorization/FilamentGate.php"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:17Z",
+      "type": "difficulty",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Exact visibility невозможна в панели с ролью GrantedAutomatically (FolderSource::contextsCovering → null → VisibilityNotSupportedException unsupported_selection): списки enforce-ресурсов в такой панели падают ошибкой настройки. Gate-мир фикстур использует хранимую роль member (GrantedMemberRole); P7.3+/доки P8.2 должны это назвать.",
+      "refs": [
+        "packages/core/src/Sources/Folder/FolderSource.php"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:47:17Z",
+      "type": "difficulty",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Panel::accepts(Model) принимает модель-субъект только по классу (instanceof), а не по morph: модель пользователя Filament должна быть объявлена в for() guard-панели, иначе EnterPanel отказывает. CRM-фикстура объявляет CrmFilamentUser (morph crm.user) вторым субъектом; FilamentGate решает по SubjectRef. CrmWorld::compile забывает scoped-сервисы — фасады чистятся (Facade::clearResolvedInstances).",
+      "refs": [
+        "tests/Fixtures/Crm/Filament/BootsCrmFilament.php"
+      ]
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T18:53:39Z",
+      "type": "deviation",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "2f596612-4389-4ed8-832e-2d69f297858e"
+      },
+      "summary": "Коммит: tests/Acceptance/Crm/FilamentTest.php и README.md (task_files с brace-glob {FilamentTest.php,README.md} не распознаётся plan.py commit) и knowledge/findings-P7-execution.json (deliverable раздела P7.2) добавлены через --path; phpstan.neon — через --path. Грязные правки владельца (D27, P7-filament-model, P7.3–P7.8, views) оставлены вне коммита (--leave-outside)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:06Z",
+      "type": "deviation",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "Каталог ролей читает PanelAccess::roles() (тот же список RoleSchema, что schema()->roles(), CodeRoleCatalog строит его из SchemaBuilder::roles), а authority прав — schema() в глобальном tenant: кодовые роли и права enum не принадлежат tenant, а schema() панели с обязательными tenants без выбранного tenant даёт TenantRequiredException. Для этого TargetSelector::definitions() проверяет только панель."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:06Z",
+      "type": "deviation",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "Core RoleCompiler запрещает PolicyOnly-право в составе роли, поэтому PolicyOnly-badge V61 проверяется в PermissionResource (список всех прав панели): badge 'decided by the policy' с decidedBy, без edit/delete и без checkbox/toggle-колонок. RoleResource показывает authority прав роли: granted / policy / pattern."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:07Z",
+      "type": "deviation",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "Плагин по умолчанию регистрирует редакторы (resources() всё true), поэтому фикстуры Filament включают их явно: FilamentFixture::$editors (по умолчанию выкл., иначе ломались снимки ключей P7.1/P7.2), $manages, $sellerPermissions/$sellerPolicies; seller и teams — dynamicPermissions(), teams получил хранимую роль member и EditorPermission; добавлена панель readonly без DatabaseSource для проверки 'non-writable не виден'."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:08Z",
+      "type": "assumption",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "Права самих редакторов в тестах даёт фикстурный enum EditorPermission (azguard-roles.view_any|view, azguard-permissions.view_any|view|create|update|delete); генерация definitions для них в режиме Enums — P7.7. Подпись tenant берётся из директории: у модели Team без azguardLabel это ключ ('7'), выбор по id в типе tenant целевой панели."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:09Z",
+      "type": "difficulty",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "plan.py start вернул ROUTE_MODEL_UNKNOWN для anthropic/claude-opus-5-5/medium (модель не из таблицы маршрутов), отказа не было; маршрут пункта frontier/medium."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T19:24:55Z",
+      "type": "deviation",
+      "item": "P7.3",
+      "phase": "P7",
+      "actor": {
+        "provider": "anthropic",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "69972ad4-cd81-40a4-bc47-e15a8e5b8326"
+      },
+      "summary": "Коммит: knowledge/findings-P7-execution.json (раздел P7.3 — deliverable пункта) добавлен через --path; грязные правки владельца (D27, P7-filament-model, P7.4–P7.8, views) оставлены вне коммита (--leave-outside)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:13Z",
+      "type": "difficulty",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "plan.py start вернул ROUTE_MODEL_UNKNOWN для claude/claude-opus-5-5/high (модель не из таблицы маршрутов), отказа не было; маршрут пункта frontier/high, сессия Opus 5.5 high."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:14Z",
+      "type": "deviation",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "CRM-стенд Filament вне task_files: tests/Fixtures/Crm/Filament/{CrmEditorPermission.php (права редакторов выдач в crm), CrmFilamentProvider.php (manages crm+backoffice: управляемая панель с выбором организации и ProjectScope для R36/R37/R28 UI), BootsCrmFilament.php}. Коммитятся через --path."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:14Z",
+      "type": "deviation",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "Массовый отзыв берёт сырые ключи выбора (selectedTableRecords), а не records()->only(): custom-data таблица Filament молча отбрасывает ключ вне страницы, тогда чужой id не дошёл бы до revokeMany и операция не была бы отклонена целиком (I10/R37)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:15Z",
+      "type": "deviation",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "После записи таблица не вызывает resetTable(): он сбрасывает и фильтры (панель/tenant возвращались к умолчанию). Вместо него — сброс курсоров, выбора и страницы, flushCachedTableRecords. ListPermissions P7.3 по-прежнему вызывает resetTable() — фильтр цели сбрасывается после записи; не исправлялось (вне scope), кандидат для P7.8."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:15Z",
+      "type": "assumption",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "«Почему?»: форма (субъект, право — все права панели, тип контекста, контекст поиском Inspection без eligibility) → explain() → ответ в #[Locked] explanation и replaceMountedAction('explanation') с TextEntry по редактированному toArray(); действие строки названо why_grant (имена header- и record-действий таблицы общие). Тестовый Livewire не рендерит HTML модалки — тест читает состояния TextEntry схемы."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-08T20:10:16Z",
+      "type": "assumption",
+      "item": "P7.4",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "session": "d6847136-6c00-4208-b6a3-bd92b127e927"
+      },
+      "summary": "Отказ перепроверки формы — ValidationException (уведомление, без записи); перепроверка не решает grantable: право/роль должны быть в схеме, а PolicyOnly/NotGrantable отклоняет писатель (PermissionNotGrantableException) — единственный источник истины. Целое уровня tenant-wide в типе контекста — значение '-'. GrantFilter::expiresBeforeUtc() — публичный @internal помощник для conditions() и SQL."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T02:26:21Z",
+      "type": "difficulty",
+      "item": "P7.5",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "c1b47e22-2c16-4760-916f-ad27a6a93950"
+      },
+      "summary": "plan.py start вернул ROUTE_MODEL_UNKNOWN для claude/claude-opus-5-5/medium (модель не из таблицы маршрутов), отказа не было; маршрут пункта frontier/medium, сессия Opus 5.5 medium."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T02:26:21Z",
+      "type": "deviation",
+      "item": "P7.5",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "c1b47e22-2c16-4760-916f-ad27a6a93950"
+      },
+      "summary": "Editors/ListGrants.php и Editors/GrantEditor.php вне task_files P7.5 (формы выдач живут в Editors, а не в Resources/*Grant*/**): подключение расширений, возврат сырых ключей полей, ошибки писателя как ошибки формы, declared() для LookupContext. Коммитятся через --path."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T02:26:22Z",
+      "type": "deviation",
+      "item": "P7.5",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "c1b47e22-2c16-4760-916f-ad27a6a93950"
+      },
+      "summary": "Filament getState() молча отбрасывает ключ data.fields.<unknown>, которого нет среди компонентов: без исправления поддельное поле терялось, а выдача записывалась. ListGrants::submitted() добавляет такие ключи сырого payload к fields, SchemaFields::values() их не отбрасывает — отклоняет писатель (InvalidChangeFieldsException → ошибка формы)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T02:26:22Z",
+      "type": "assumption",
+      "item": "P7.5",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "medium",
+        "session": "c1b47e22-2c16-4760-916f-ad27a6a93950"
+      },
+      "summary": "Компонент расширения — Filament Field с именем поля схемы (иначе InvalidConfigurationException); оборачивается в Group::statePath('fields'). Для имени, которое дают несколько расширений, побеждает первое зарегистрированное. formExtensions() принимает и экземпляры (они общие по природе — выбор приложения); классы резолвятся контейнером на каждую сборку формы."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T03:04:12Z",
+      "type": "deviation",
+      "item": "P7.7",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "sonnet-5-5",
+        "effort": "medium",
+        "session": "60c7e7e8-02c8-4901-b6a0-921986e0c029"
+      },
+      "summary": "Вне task_files, но необходимы для deny-policy policy-only enum: MakePolicyCommand.php (чтение #[PolicyOnly]) и stubs/policy-method.stub (плейсхолдеры comment/result); первым коммитом пропущены, добавлены отдельным коммитом через --path."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T03:12:00Z",
+      "type": "difficulty",
+      "item": "P7.8",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "summary": "bridge orch brief P7.8 отказал BRIEF_INCOMPLETE: lessons 13/15/21 содержат lifecycle-фразу 'plan.py start'; бриф ревьюера составлен вручную из item, D27 и knowledge P7-filament-model."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T03:46:35Z",
+      "type": "deviation",
+      "item": "P7.8",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "summary": "Effort ревьюера high взят из argv запуска (--effort high); запись сессии grok фиксирует только modelId grok-4.7 и contextWindowTokens 500000, effort в ней не аттестован."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T03:46:56Z",
+      "type": "deviation",
+      "item": "P7.8",
+      "phase": "P7",
+      "actor": {
+        "provider": "claude",
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "summary": "Коммит пункта включает --path knowledge/findings-P7-review.json (deliverable пункта) и knowledge/review-P7-8-2026-10-09.json (запись register-review). Чужие незакоммиченные D27, knowledge/P7-filament-model и сгенерированные views оставлены владельцу (--leave-outside)."
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T05:44:25Z",
+      "type": "deviation",
+      "item": "P7.8",
+      "phase": "P7",
+      "actor": {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "summary": "API add-document генерирует tracked views/knowledge/audit-p7-2026-10-09.md вне автоматического ownership; включён явно в reviewer commit"
+    },
+    {
+      "v": 1,
+      "ts": "2026-10-09T05:57:55Z",
+      "type": "deviation",
+      "item": "P7.2",
+      "phase": "P7",
+      "actor": {
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "summary": "Type coverage fork-mode emitted empty chunk warnings; fresh serial equivalent with __PEST_PLUGIN_ENV=1, variables_order=EGPCS and --no-cache passed 99.5%, no warnings. Livewire enforced closures and unguarded relation managers also reproduced and fixed. ExplainAction answer now has explicit view authorization (P7.4 integration path)."
+    }
+  ],
+  "documents": [
+    {
+      "$schema": "urn:swissknifeman:task:plan:document:v1",
+      "id": "P7-filament-model",
+      "title": "P7 — Filament по схеме панели: проверенные предпосылки, ключи, инварианты, пробелы ядра, приёмка",
+      "sections": [
+        {
+          "id": "Purpose",
+          "title": "Назначение и база кода на момент детализации",
+          "text": "Детализация 2026-10-08 на HEAD `50eb32a`. Пакет `packages/filament` пуст: `composer.json` (`axiomasoft/azguard-filament`, `filament/filament ^5.0`, `axiomasoft/azguard self.version`), пустой `AzGuardFilamentServiceProvider`, `api-manifest.json` без классов. Установлено (composer.lock): filament/* v5.9.0, livewire/livewire v4.4.7, laravel/framework v13.34.0, orchestra/testbench v11.3.0, pest 4; `pestphp/pest-plugin-livewire` НЕ установлен — тесты Livewire пишутся через `Livewire\\Livewire::test()` и макросы Filament testing, новая dev-зависимость не добавляется.\n\nЯдро P1–P6 даёт всё, что нужно UI, через публичный API (манифест `packages/core/api-manifest.json`): `AzGuard::panel($id)` → `Contracts\\PanelAccess` (`inTenant`, `for`, `roles`, `grants`, `permissions`, `schema`, `decide`, `decideMany`, `explain`, `catalog`, `visibility`); `Concerns\\SubjectAccess` (`grantRole/grantPermission(..., on:, until:, fields:)`, `revoke*`); `Contracts\\Changes\\GrantManager` (`page(GrantFilter)` курсорный, `find`, `update(id, GrantDetails, expectedFingerprint)`, `revokeMany(ids)` — scoped panel+tenant+origin, чужой id → null/`StaleSelectionException` всей операции); `Contracts\\Changes\\PermissionManager` (`all/create/update/delete` динамических); `Schema\\PanelSchema` (`writable`, `permissions()` с `authority/grantable()/dynamic/decidedBy/sources/contextTypes`, `roles()` с `editable=false/grantable/automatic/contextBindings/superAdmin`, `fields(FieldTarget)`, `tenants()`, `scopes()`, `subjects()`); `Schema\\FieldTarget` = `RoleGrant|PermissionGrant` (D12: цели `Role` нет); `Authorization\\Visibility::visibleTo/bounded`; `Diagnostics\\Doctor`; `Laravel\\Gate\\GateBridge`; `Laravel\\Http\\Middleware\\EnterPanel` (`azguard.panel:{id}`, единый evaluator admission `Authorization\\PanelAdmission` — P6-surface-model I3 прямо оставляет его для Filament).\n\nArch-гейт `tests/Arch/ApiManifestTest.php` «lets the filament package use only core classes from the manifest»: каждый класс ядра, который использует `packages/filament/src`, обязан быть в манифесте (`@api`). Отсюда пробелы ядра (раздел Core-gaps) закрываются контрактом в ядре в owning item, а не обходом.\n\nСправочник 0.3 (D24 п.7): `git show 491980a:legacy/0.3/packages/filament/src/...` — только как паттерн. Его `ResourceGate` отображал модель → ресурс (`class => resource`) и был union-only; это и есть дефект N18/N19, который 1.0 не повторяет."
+        },
+        {
+          "id": "Filament-premises",
+          "title": "Проверенные предпосылки Filament 5.9 / Livewire 4 (первичный источник — vendor и vendor/filament/*/docs)",
+          "text": "F1. `Resource::getAuthorizationResponse(string|UnitEnum $action, ?Model $record)` — статический метод ресурса (`vendor/filament/filament/src/Resources/Resource/Concerns/HasAuthorization.php`); через него идут `can()`, `authorize()`, `canViewAny/canCreate/canEdit/...` и все `get*AuthorizationResponse`. Переопределение в трейте ресурса — единственная точка, где известна идентичность ресурса (`static::class`).\n\nF2. `Filament\\get_authorization_response()` (`filament/src/helpers.php`): при отсутствии policy/метода и нестрогом режиме вызывает before-колбэки Gate с аргументом `[$model]`; `null` от них → **allow**. Значит (а) ресурс без policy по умолчанию открыт; (б) Gate::before видит только ability и модель, а не ресурс — два ресурса одной модели неразличимы. `strictAuthorization()` превращает отсутствие policy в `LogicException`, но идентичности ресурса не добавляет.\n\nF3. `checkPolicyExistence()` и `skipAuthorization()` пишут `protected static` свойства класса ресурса — общее статическое состояние; AzGuard их не вызывает (11 §2, N18).\n\nF4. `RelationManager::canViewForRecord()` (`Resources/RelationManagers/RelationManager.php`): при `$relatedResource` → `$relatedResource::canAccess()`; иначе `authorize('viewAny', <related model class>)` по модели. Действия relation manager тоже авторизуются по связанной модели.\n\nF5. Комментарий безопасности Filament: bulk-действия проверяют `*Any` (deleteAny, forceDeleteAny, restoreAny) один раз; поштучно — только `authorizeIndividualRecords(string|UnitEnum|Closure)` (`actions/src/Concerns/CanBeAuthorized.php`); inline editable columns обходят авторизацию (только `disabled()`); свои действия требуют явного `authorize()/visible()/hidden()`.\n\nF6. Экспорт (`actions/src/Exports/Exporter.php`, `Jobs/ExportCsv.php`): «Exports do not perform per-record authorization checks»; запрос сериализуется при постановке (`CanExportRecords` вызывает `Exporter::modifyQuery` только при dispatch), job выполняется с `auth()->setUser($export->user)`; класс job заменяется `ExportAction::job()`.\n\nF7. Таблицы с custom data (`tables/docs/09-custom-data.md`, `tables/src/Concerns/HasRecords.php::getTableRecords`): `->records(Closure)` получает `page`, `recordsPerPage`, `search`, `columnSearches`, `filters`, `sortColumn`, `sortDirection`; принимается `array|Collection|Paginator|CursorPaginator|LengthAwarePaginator` (источник; документация показывает LengthAwarePaginator); запись — массив, ключ записи — внешний ключ массива или `ArrayRecord::getKeyName()`; `$record` в действиях — `array`; для bulk через страницы нужен `resolveSelectedRecordsUsing($keys, $isTrackingDeselectedKeys, $deselectedKeys)`; `selectCurrentPageOnly()` ограничивает выбор страницей; после действия — `$this->resetTable()`.\n\nF8. Middleware панели (`filament/src/Panel/Concerns/HasMiddleware.php`): `authMiddleware(array, isPersistent)` и `tenantMiddleware(array, isPersistent)`; persistent-middleware повторяются на Livewire update-запросах. Tenant идентифицируется после аутентификации; tenant-зависимая работа — в tenantMiddleware.\n\nF9. `Resource::getSlug(?Panel $panel)` зависит от панели: resource configurations дают `slug/<key>`, вложенные ресурсы и кластеры — сегменты через `/`.\n\nF10. Плагин: `Filament\\Contracts\\Plugin` (`getId/register(Panel)/boot(Panel)`), экземпляр на каждую панель; читать настройки — `$panel->getPlugin('azguard')` / `Filament::getCurrentPanel()?->getPlugin(...)`, не новый `make()`. `register` — структура панели (ресурсы, страницы, middleware), `boot` — инициализация используемой панели.\n\nF11. Тестирование: Testbench `getPackageProviders()` регистрирует фикстурные PanelProvider; для не-default панели — `Filament::setCurrentPanel('id')`, для tenancy — `Filament::setTenant($t); Filament::bootCurrentPanel()`; bulk в v5 — `selectTableRecords([...])` + `callAction(TestAction::make('...')->table()->bulk())`; регистрация ресурса в панели проверяется `Filament::getPanel('id')->getResources()`; прямой Livewire-тест страницы не проверяет маршрут/панельный middleware — для admission нужны HTTP-тесты.\n\nF12. Livewire 4: checksum снимка не делает редактируемое состояние формы доверенным; значения, которые ставит сервер (целевая панель после выбора, tenant, fingerprint), — `#[Locked]`, а все id из формы перепроверяются сервером при каждом действии.\n\nИсточники: vendor/filament v5.9.0 (пути выше), filamentphp.com/docs/5.x (resources/overview#authorization, managing-relationships, tables/custom-data, testing/testing-resources, plugins/panel-plugins, users/tenancy) — через Perplexity 2026-10-08; сводки Perplexity — наводки, нормативна сверка с vendor."
+        },
+        {
+          "id": "External-patterns",
+          "title": "Внешний опыт: что принято и что отклонено",
+          "text": "Отклонено — ключ по модели. filament-shield 4.x (Filament 4/5) по умолчанию строит ключи `Action:Model` (`resources.subject = model`), README сам признаёт коллизию ресурсов одной модели и предлагает `buildPermissionKeyUsing`; policy при этом всё равно одна на модель. AzGuard 0.3 повторял ту же схему (N18/N19). В 1.0 ключ ресурса строится из идентичности ресурса (slug в Filament-панели), решение — из класса ресурса (F1), а не из Gate по модели.\n\nПринято — разделение поверхностей. Отдельно авторизуются: ресурс (F1), relation manager (F4), bulk поштучно (F5), экспорт при исполнении (F6), страница и виджет, глобальный поиск и списки через запрос ресурса (`getEloquentQuery()` — стартовая точка list/record/global search). Каждую поверхность закрывает свой трейт/класс пакета с тестом.\n\nПринято — состояние плагина только в экземпляре на панель (F10), конфиг — значения по умолчанию.\n\nПринято — payload Livewire недоверенный (F12): сервер пересчитывает варианты и перепроверяет id; `#[Locked]` для серверных значений.\n\nИсточники: github.com/bezhanSalleh/filament-shield README (permissions.separator/case, resources.subject, buildPermissionKeyUsing); filamentphp.com/docs/5.x — через Perplexity 2026-10-08."
+        },
+        {
+          "id": "Keys",
+          "title": "Ключи прав ресурсов, страниц и виджетов (11 §3.2, F9, грамматика P1.2)",
+          "text": "Грамматика сегмента ядра: `/\\A[a-z0-9][a-z0-9_-]*\\z/` (`Kernel\\Grammar\\PermissionGrammar`), сегменты разделяются `.`.\n\n- Ресурс: `{resource}.{ability}` в панели `guardPanel`; `resource` = `Resource::getSlug($filamentPanel)` с заменой `/` на `.` (кластер/вложенность/configuration становятся вложенными сегментами; `shop.products.**` покрывает кластер). `ability` = snake_case действия Filament: viewAny→`view_any`, view, create, update, delete, deleteAny→`delete_any`, forceDelete→`force_delete`, forceDeleteAny→`force_delete_any`, restore, restoreAny→`restore_any`, replicate, reorder. Набор — `abilities` плагина/конфига.\n- Страница: `pages.{slug}` (`Page::getSlug()`, `/`→`.`), без суффикса ability; одно право на открытие страницы (D27 п.3).\n- Виджет: `widgets.{kebab(class_basename)}`, без суффикса ability; при коллизии — `protected static ?string $azguardKey` на классе.\n- Override: `protected static ?string $azguardKey` на ресурсе/странице/виджете заменяет вычисленный сегмент ресурса/страницы/виджета.\n- `class_basename` модели не используется нигде.\n- Уникальность: при `boot` плагина собирается карта ключ → класс по всем ресурсам (с configurations), страницам и виджетам Filament-панели; дубликат → `ConfigurationException` с подсказкой `$azguardKey`. Невалидный сегмент (после нормализации) → та же ошибка.\n- Подписи: ресурс — `getModelLabel()`/`getPluralModelLabel()`, страница — `getNavigationLabel()`/`getTitle()`, группа — навигационная группа; в режиме Resources они попадают в `PermissionDefinition` (label, group) и далее в схему панели, как права из enum."
+        },
+        {
+          "id": "Invariants",
+          "title": "Инварианты P7: enforcement, bypass, interfering",
+          "text": "I1. **Один путь решения.** Каждая поверхность Filament решает через публичный API ядра (`SubjectAccess::decide/hasPermission`, `PanelAccess::decide/explain`, `Visibility`); своей логики прав, ролей, панели и tenant в пакете нет; записи — только `SubjectAccess::grant*/revoke*`, `GrantManager::update/revokeMany`, `PermissionManager`. Enforcement: arch `ApiManifestTest` + новый arch-тест «filament не пишет модели хранилища напрямую» (запрет `Storage\\Models\\*::create/save/update/delete`, `DB::table` в `packages/filament/src`). Bypass: приложение может вызвать Eloquent само — вне пакета, защищено P3.4.\n\nI2. **Идентичность ресурса, не модели.** Ресурс/relation manager/страница/виджет авторизуются трейтами пакета (`Concerns\\AuthorizesResource`, `AuthorizesRelationManager`, `AuthorizesPage`, `AuthorizesWidget`) через `FilamentGate` с явным ключом класса. Gate::before-хук `FilamentGate` — только страховка для model-based проверок Filament (F2/F4) внутри guarded Filament-панели: ядро `GateBridge` зарегистрирован раньше и отвечает по модельной привязке каталога (неоднозначность → deny `gate_error`), `FilamentGate` видит лишь то, что GateBridge отложил (`null`), и при `enforce` отвечает `false` для abilities Filament; никогда не возвращает allow сам и не выбирает ресурс по модели. Interfering: чужой ранний Gate::before приложения (R39) — фиксируется consumer-тестом P8.7, не здесь.\n\nI3. **Enforce = fail-closed.** При `enforce()`: нет субъекта (`AzGuardSubject`/accepted), нет плагина в текущей Filament-панели, нет definition ключа (`UnknownPermissionException`), нет exact visibility adapter (`VisibilityNotSupportedException`) → отказ (403/скрытие) или `ConfigurationException` при boot; никогда не allow. Без `enforce` трейты всё равно решают через AzGuard для известных ключей, а неизвестный ключ → прежнее поведение Filament (F2).\n\nI4. **Admission и текущая панель.** Плагин в `register(Panel)` добавляет `EnterPanel` (`azguard.panel:{guardPanel}`) persistent-middleware: в `tenantMiddleware(..., isPersistent: true)` при tenancy Filament, иначе в `authMiddleware(..., isPersistent: true)` (F8). Так admission (единый `PanelAdmission`, P6 I3), текущая AzGuard-панель = guardPanel и scoped tenant работают и на Livewire update. Tenant AzGuard для guardPanel берётся из `Filament::getTenant()` через `FilamentTenantResolver` (реализует @api `Contracts\\Scopes\\TenantResolver`), подключаемый приложением в `tenantResolvers([...])` панели; payload клиента tenant не выбирает. Bypass: Filament-панель без плагина — AzGuard не участвует (документировано).\n\nI5. **Целевая авторизация редакторов (11 §9, D23).** Целевая панель ∈ `manages` ∩ `schema()->writable`; `manages` — allowlist, не делегирование. Target tenant/subject/role/permission/context/fields перепроверяются сервером на каждом действии (create/edit/delete/bulk/attach/search/autocomplete): id из формы → `describe()` директории с actor и целевым subject/role/proposed (`LookupContext`) → null = отказ; запись идёт с actor = текущий пользователь (`AzGuard::actingAs`), так что `changing`-pipes приложения проверяют делегирование. Право открыть ресурс-редактор (обычный ключ `azguard-role-grants.create` и т.п. в guardPanel) не даёт global grant, superadmin, wildcard и другой tenant. Interfering: смена tenant/панели в открытой форме ∥ сохранение — смена очищает зависимые поля и fingerprint; сохранение со старыми значениями отклоняется перепроверкой.\n\nI6. **Видимость до count/page.** `AuthorizesResource::getEloquentQuery()` при `enforce` применяет `Visibility::visibleTo(panel, query, user, '{key}.view')` — до пагинации, подсчёта, глобального поиска, счётчиков relation и виджетов; `ViewAny` только открывает страницу; Update/Delete/Restore/ForceDelete решаются по конкретной записи. Bulk: каждое bulk-действие guarded-ресурса получает `authorizeIndividualRecords` с ключом поштучного ability (`delete_any`→`delete` и т.д.); один Allow на все строки запрещён. `VisibilityNotSupportedException` → ошибка настройки (I3).\n\nI7. **Экспорт переавторизуется при исполнении.** `Exports\\AuthorizedExportCsv` (наследник `ExportCsv`, подключается `ExportAction::job()`/макросом пакета) при `handle()` заново применяет видимость `{key}.view` к десериализованному запросу для `export->user` в панели из скрытого Context (P6.10 `azguard.panel`); снятое право → строки не выгружаются (R34/R53 UI-часть).\n\nI8. **Definitions только для чтения (D30, D80, D83).** Роли-классы, enum-права, PolicyOnly и состав ролей из UI не меняются; RoleResource — read-only каталог; поле с `class_name`/`definition`/`permissions` роли в Livewire-payload не принимается (V23); PolicyOnly — badge «решает политика», без галочки, сырой grant отклоняет writer (`PermissionNotGrantableException`); динамические права — только при `dynamicPermissions()` и только Grants.\n\nI9. **Состояние плагина — экземпляр.** `AzGuardPlugin` хранит настройки в свойствах экземпляра; `config/azguard-filament.php` — только значения по умолчанию; `config()` не пишется; статические свойства классов ресурсов не меняются (F3). Две Filament-панели с разными guardPanel независимы (V24).\n\nI10. **Stale-запись.** Правка строки выдачи передаёт `GrantRecord::$fingerprint` как `expectedFingerprint`; расхождение → уведомление «данные изменились», записи нет. Массовый отзыв — одна `revokeMany` (одна транзакция, одна версия, событие на строку; чужой id → вся операция отклонена)."
+        },
+        {
+          "id": "Core-gaps",
+          "title": "Пробелы публичного API ядра и их owning items (contract-first)",
+          "text": "G1 (P7.3; используется и P7.4). Директории для UI. `Directories\\DirectoryResolver` — `@internal`, а UI нужен поиск субъектов/tenants/контекстов. Добавить `@api` `Directories\\PanelDirectories` (final readonly: `subjects(?string $type = null): SubjectDirectory`, `tenants(): TenantDirectory`, `scopes(string $type): AssignmentScopeDirectory`) и `PanelAccess::directories(): PanelDirectories` (интерфейс + `ScopedPanelAccess`, делегирует внутреннему резолверу). `LookupContext` уже `@api` с публичным конструктором. Манифест перегенерировать.\n\nG2 (P7.4). Фильтры таблиц выдач. `GrantFilter` поддерживает kind/subject/context/role/permission/state. Досье 11 §5.2 требует ещё «истекает до» и «кто выдал». Добавить `?DateTimeInterface $expiresBefore` и `?ActorRef $grantedBy` (именованные параметры в конце конструктора; `after()` их сохраняет; `conditions()` включает их, чтобы курсор был привязан к фильтру). Фильтр по своим полям в 1.0 не делается (D27 п.6).\n\nG3 (P7.6). Данные страницы «Панели». `PanelsListCommand` собирает источники и происхождение настроек через внутренний `PanelRecipe`. Вынести `@api` read-model `Diagnostics\\PanelOverview` (по одной панели: describe, settings с origin, sources/named/plugins, сводка схемы) — единственный источник для команды и страницы; JSON-вывод `azguard:panels:list --json --settings --sources` не меняется (снимок команды P6.6 зелёный).\n\nG4 (P7.1). Tenant Filament → TenantRef: `AzGuard\\Filament\\FilamentTenantResolver implements Contracts\\Scopes\\TenantResolver` в пакете Filament (контракт уже `@api`), ядро не меняется.\n\nG5 (P7.7). Генерация enum для Filament. `azguard:make:permission` пишет пять CRUD-кейсов с жёстким `#[RequiresGrant]`; генератору Filament нужны `--authority=grants|policy` и повторяемый `--case=Name=local.key`. Расширить команду ядра (CLI — публичный интерфейс), а пакет Filament вызывает её через `$this->call()`: раскладка D72, stubs и policy-файлы остаются в одном месте. Предусловие: дефект stub `view-any` (журнал P6.8) исправлен в owning P6.8.\\n\\nВсе изменения ядра — аддитивные, с записью в `CHANGELOG.md` и перегенерацией `packages/core/api-manifest.json` (`php bin/api-manifest.php --write`)."
+        },
+        {
+          "id": "Package-layout",
+          "title": "Раскладка пакета и тестов",
+          "text": "`packages/filament/src/`:\n- `AzGuardPlugin.php` (id `azguard`), `FilamentDefinitions.php` (enum Enums|Resources), `AzGuardFilamentServiceProvider.php` (config publish/merge, Gate::before FilamentGate, команды);\n- `Authorization/FilamentGate.php`, `Authorization/FilamentKeys.php` (вычисление и уникальность ключей), `Concerns/{AuthorizesResource,AuthorizesRelationManager,AuthorizesPage,AuthorizesWidget}.php`;\n- `Sources/FilamentSource.php` (`ProvidesPermissions`, режим Resources);\n- `FilamentTenantResolver.php`;\n- `Exports/AuthorizedExportCsv.php`;\n- `Resources/{RoleResource,PermissionResource,RoleGrantResource,PermissionGrantResource}/...` (страницы в подпапках `Pages/`);\n- `Forms/SchemaFields.php`, `Contracts/FilamentFormExtension.php`;\n- `Pages/{PanelsPage,DoctorPage}.php` + `resources/views/pages/*.blade.php`;\n- `Commands/FilamentGenerateCommand.php` + `stubs/`;\n- `config/azguard-filament.php`; `resources/lang/{en,ru}/azguard-filament.php` — только если строки UI выносятся (по коду P6.8/подписям).\n\nТесты: `tests/Feature/Filament/<Area>/**` (Plugin, Gate, Roles, Grants, Fields, Pages, Generate) в suite Feature; фикстуры `tests/Fixtures/Filament/**`: PanelProvider-ы `admin` (guardPanel admin, manages admin+seller) и `backoffice` (guardPanel другой AzGuard-панели) для V24, ресурсы `OrderResource` и `ArchivedOrderResource` одной модели (V102), relation manager, страница, виджет, export; общий `tests/Feature/Filament/FilamentTestCase.php` или Pest-хелпер, регистрирующий фикстурные провайдеры через `getPackageProviders()`. CRM-срезы UI — `tests/Acceptance/Crm/FilamentTest.php` + строки README."
+        },
+        {
+          "id": "Acceptance",
+          "title": "Карта приёмки P7 (владелец → V/R)",
+          "text": "| Пункт | Нормативное acceptance |\n|---|---|\n| P7.1 | V24; V75 (часть definitions: Enums/Resources отдельно от authority, FilamentSource build-time, коллизия владельцев enum vs FilamentSource → ошибка компиляции, assignments без dynamicPermissions); consumer-фикстура `--with-filament` 11/12/13 |\n| P7.2 | V25; V95 (Filament-часть: exact visibility до count/page/export, PolicyOnly без assignment reads); V96 (bulk/attach/search/widgets/export); V102 (два ресурса одной модели не угадываются); уникальность ключей; R34 UI-surfaces; R39 Filament; R40 Filament-часть (список→карточка→действие, отказ без записи) |\n| P7.3 | V23; V61; V76; V96 (выбор целевой панели/tenant, поддельный tenant); R38 UI; R25 UI (definition endpoints отклоняются) |\n| P7.4 | V26; V63 («Почему?» = `explain()`; панель без DatabaseSource не в редакторах); V96 (чужой id/tenant switch/IDOR); R36 UI autocomplete; R37 UI; R28 UI (orphan/expired видны для revoke); R24 stale form fingerprint |\n| P7.5 | V62; V96 (tenant switch очищает поля); неизвестное поле → `InvalidChangeFieldsException` |\n| P7.6 | V63 (страница «Панели» показывает панель без DatabaseSource); снимок страниц; DoctorPage = `azguard:doctor --json` с группировкой |\n| P7.7 | V75 (генератор: `--authority`, `--with-policy`, Grants stub pass-only, Policy stub deny, explicit PolicyBinding); снимок генерации; doctor «устаревший домен» |\n| P7.8 | verdict GREEN по всем строкам выше |\n\nФаза закрыта, когда P7.1–P7.7 done, строки таблицы покрыты тестами, CRM README честно показывает статусы R-кейсов P7, consumer-фикстура с Filament зелёная на 11/12/13, verdict P7.8 GREEN."
+        }
+      ],
+      "applies_to": [
+        "P7",
+        "P7.1",
+        "P7.2",
+        "P7.3",
+        "P7.4",
+        "P7.5",
+        "P7.6",
+        "P7.7",
+        "P7.8"
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:document:v1",
+      "id": "audit-p7-2026-10-09",
+      "title": "Аудит P7 — RED, подтверждённые обходы авторизации и исправления",
+      "sections": [
+        {
+          "id": "verdict",
+          "title": "Вердикт",
+          "text": "RED на исходном HEAD d54183d. Независимая от предыдущего исполнения сессия Codex 01a11f2b-5f63-7df2-ab45-0aff8001079e, фактический маршрут gpt-6.1-sol/high (provider turn_context). Владелец явно разрешил аудит и исправление его результатов; при множественных проблемах — второй аудит Grok 4.7 после исправлений."
+        },
+        {
+          "id": "findings",
+          "title": "Подтверждённые находки",
+          "text": "F1 major, P7.2: packages/filament/src/AzGuardPlugin.php:502 — configureUsing закрывает только Delete/ForceDelete/RestoreBulkAction, остальные custom actions и bulk не проверяют права по записи. F2 major, P7.2: packages/filament/src/Concerns/AuthorizesResource.php:22 — неподдержанные editable columns лишь документированы; vendor/filament/tables/src/Concerns/HasColumns.php:43 сохраняет видимую запись без orders.update; exposed column methods также не проверяют disabled. F3 minor, P7.3: packages/filament/src/Resources/PermissionResource/Pages/ListPermissions.php:154 — resetTable сбрасывает target panel/tenant после записи. F6 minor, P7.4: tests/Acceptance/Crm/README.md — R25/R34 содержат future P7.4 для уже реализованных редакторов. Прежние info F4/F5 не требуют исправления. Регрессионные прогоны и последующий независимый аудит сохраняются в artifacts/P7-audit-fixes/."
+        },
+        {
+          "id": "environment",
+          "title": "Окружение",
+          "text": "Локальная .agents/plugins/bundles/task/adapters/codex/skills/task-plan-audit/command.md содержит retired v2 binding task.route_evidence_codex и runtime/plan-protocol. Установленный канонический Task v4 использует scripts/plan.py и skills/plan-protocol; обращение к retired модулю завершилось exit 1, не является успешной проверкой. Используется текущая каноническая команда установленного marketplace. plan.py check: 0 errors/0 warnings. Артефакты генератора Task не редактировались."
+        }
+      ],
+      "applies_to": [
+        "P7",
+        "P7.2",
+        "P7.3",
+        "P7.4",
+        "P7.8"
+      ]
+    },
+    {
+      "$schema": "urn:swissknifeman:task:plan:document:v1",
+      "id": "findings-P7-review",
+      "title": "Review P7: RED — 2 major (P7.2 свои действия и inline-колонки без авторизации), 2 minor",
+      "sections": [
+        {
+          "id": "P7-verdict",
+          "title": "P7.8 — Review P7: RED, 2 major + 2 minor",
+          "text": "**Verdict: RED** (2 major, 2 minor, 2 info). Ревьюер grok-4.7 вернул ATTENTION; правило пункта — GREEN только при всех V зелёных и без находок severity ≥ major, поэтому итог пункта RED: обе major подтверждены исполнителем повторным прогоном пробников. Фаза P7 не закрывается GREEN, пока F1 и F2 не исправлены в owning P7.2 (повтор закрытого пункта — штатный repeat-admission, решение владельца).\n\n**Ревьюер.** Поручение владельца в сессии: «ревью всей 7й фазы на grok 4.7». Headless read-only сессия grok `01a11ea6-29dd-7d92-a820-ebfbefe64620` через `plan.py bridge orch launch reviewer grok --model grok-4.7 --effort high` (ro-run.py, Landlock: запись только /tmp, ~/.grok, vendor). Из записи сессии `~/.grok/sessions/<cwd>/01a11ea6-29dd-7d92-a820-ebfbefe64620`: modelId `grok-4.7`, contextWindowTokens 500000; effort `high` — только из argv запуска, в записи сессии не аттестован. 131 ход, ~31 мин, $3.82. Бриф и полный стрим — `artifacts/P7.8/grok-review-brief.md`, `artifacts/P7.8/grok-review.jsonl`. Бриф составлен вручную: `bridge orch brief` отказал BRIEF_INCOMPLETE (событие difficulty P7.8). Исполнитель пункта (claude/claude-opus-5-5/high, сессия b24eddbc-4fcc-47d4-9630-e13c88415bdf) прогнал V1–V10 и перепроверил каждую находку; ревьюер и исполнитель — разные провайдеры и сессии.\n\n**Предмет.** Фаза P7: `git diff 1b71f18..dfdf2a0` (177 файлов), P7.1–P7.7.\n\n**Итог по осям.** Инварианты I1, I3, I4, I5, I7, I8, I9, I10 — held; I2 и I6 — partial (F1, F2). Обхода редакторов, IDOR, wildcard/global grant и прямых записей нет. Каждая строка карты приёмки покрыта не-skipped тестом (`--fail-on-skipped` в V1/V4); слабые строки: consumer-фикстура `--with-filament` проверяет публикацию конфига, id плагина и FilamentTenantResolver, но не admission и генератор; V96 P7.2 не покрывает свои bulk-действия (F1).\n\n**Не проверено ревьюером:** гонка двух запросов со сменой tenant при сохранении (покрыта перепроверкой на каждый вызов); ранний Gate::before приложения, возвращающий allow (R39 — P8.7)."
+        },
+        {
+          "id": "P7-findings",
+          "title": "Находки P7.8 (severity → owning item)",
+          "text": "| # | severity | файл:строка | owning | инвариант/строка | сценарий | исправление | подтверждение |\n|---|---|---|---|---|---|---|---|\n| F1 | major | `packages/filament/src/AzGuardPlugin.php:502` | P7.2 | I2 | На guarded-ресурсе с AuthorizesResource своё record-действие и своё BulkAction, не наследники DeleteBulkAction, ForceDeleteBulkAction или RestoreBulkAction, исполняются для видимых записей без права delete. Скрытая запись в выборку не попадает. Filament по умолчанию не авторизует custom actions. | В том же configureUsing требовать authorize() для любого Action и BulkAction на livewire, чей ресурс закрыт AuthorizesResource: record-действие — ability по имени или явный ключ, bulk — authorizeIndividualRecords. DetachBulkAction и DissociateBulkAction включить в тот же путь. Boot enforce может предупреждать о действии без authorize(). | подтверждено исполнителем: пробник CustomActionTest — order1_exists_after_row_action=false, order2_exists_after_bulk=false, secret_exists=true при can('delete')=false |\n| F2 | major | `packages/filament/src/Concerns/AuthorizesResource.php:22` | P7.2 | I6 | TextInputColumn, CheckboxColumn или ToggleColumn на таблице guarded-ресурса сохраняют видимую запись через updateTableColumnState без orders.update. Скрытая запись не резолвится. disabled() останавливает запись. Enforce это не запрещает: колонка не переопределяет метод трейта. | В boot enforce отказывать ресурсу, у которого колонка реализует Filament\\Tables\\Columns\\Contracts\\Editable и не disabled(). Либо в configureUsing такой колонки подставлять disabled(), пока ресурс не разрешает update записи. | подтверждено исполнителем: пробник InlineColumnTest — can_edit=false, visible_number=HACKED, secret_number=S-3 |\n| F3 | minor | `packages/filament/src/Resources/PermissionResource/Pages/ListPermissions.php:154` | P7.3 | I5 | После успешного create/edit/delete динамического права resetTable() вызывает resetTableFiltersForm(). Выбранные панель и tenant сбрасываются на панель по умолчанию. Запись при этом попадает в тот tenant, который был выбран до сброса. | Как в ListGrants::write: не вызывать resetTable(). Сбросить кэш строк и страницу, фильтр target оставить. | подтверждено исполнителем: пробник ResetAndBulkTest — фильтр до {panel: teams, tenant: 8}, после {panel: seller, tenant: null}; boards.edit записан в team 8, в team 7 нет |\n| F4 | info | `packages/filament/src/Editors/ListGrants.php:578` | P7.5 | I8 | submitted() добавляет в fields сырые ключи payload, которые getState() отбрасывает. Необъявленный ключ доходит до писателя. Писатель отвечает InvalidChangeFieldsException, форма показывает ошибку, строка и version не пишутся. | Оставить. Комментарий уже объясняет, зачем сырые ключи возвращаются. | info, поведение по замыслу; исполнителем не перепрогонялось (пробник ревьюера SubmittedTest в стриме) |\n| F5 | info | `packages/filament/src/Editors/ListGrants.php:476` | P7.4 | I10 | Bulk revoke читает selectedTableRecords как есть, включая id не с текущей страницы. GrantEditor::revoke отсекает чужой kind и вызывает revokeMany. Чужой tenant или несуществующий id отклоняют всю пачку, ни одна строка не отзывается. | Оставить сырые ключи. Отбрасывание чужих id до revokeMany скрыло бы попытку IDOR. | info, поведение по замыслу; пробник bulk-own исполнителя: свои id страницы отозваны (remaining=0); вариант с чужим id из стрима ревьюера |\n| F6 | minor | `tests/Acceptance/Crm/README.md:37` | P7.4 | R25 | Строка R25 всё ещё говорит future: P7.4 формы выдач. Формы RoleGrantResource и PermissionGrantResource уже в HEAD. Definition-ключей они не принимают: пробник с class_name, definition, permissions и superAdmin записал обычную выдачу member, каталог ролей не изменился. Статус partial верен из-за P8.7, хвост P7.4 — нет. R34 всё ещё говорит future: P7.4 editor surfaces, хотя R36/R37/R38 уже описывают редакторы. | Убрать future: P7.4 из R25 и future: P7.4 editor surfaces из R34. Оставить future: P8.7. | подтверждено исполнителем чтением README: R25 «future: P7.4 формы выдач», R34 «future: P7.4 editor surfaces; P8.7 consumer» |\n\nF1 и F2 — обход авторизации на запись (security), повтор P7.2 обязан закрыть их enforcement-ом (boot enforce или configureUsing), а не документом; регрессии — пробники F1/F2 с обратным ожиданием. F3 — P7.3 (`ListPermissions` без `resetTable()`, как `ListGrants::write`). F6 — README R25/R34 без «future: P7.4». F4, F5 — без изменений.\n\n**Инварианты (ревьюер):**\n\n| Инвариант | Статус | Доказательство |\n|---|---|---|\n| I1 | held | packages/filament/src/Editors/GrantEditor.php:278, packages/filament/src/Resources/PermissionResource/Pages/ListPermissions.php:147, tests/Arch/FilamentWritesArchTest.php |\n| I2 | partial | packages/filament/src/AzGuardPlugin.php:500-524, packages/filament/src/Concerns/AuthorizesRelationManager.php:33, пробник custom action |\n| I3 | held | packages/filament/src/Authorization/FilamentGate.php:183-212, tests/Feature/Filament/Gate/ResourcesTest.php |\n| I4 | held | packages/filament/src/AzGuardPlugin.php:381-390, packages/filament/src/AzGuardFilamentServiceProvider.php:45-51, tests/Feature/Filament/Plugin/IsolationTest.php |\n| I5 | held | packages/filament/src/Editors/TargetSelector.php:127-145, packages/filament/src/Editors/GrantEditor.php:262-315 |\n| I6 | partial | packages/filament/src/Concerns/AuthorizesResource.php:39-41, vendor TextInputColumn, пробник inline column |\n| I7 | held | packages/filament/src/Exports/AuthorizesExports.php:24-53, packages/filament/src/Exports/AuthorizedExportCsv.php:30-65, tests/Feature/Filament/Gate/SurfacesTest.php |\n| I8 | held | packages/filament/src/Resources/RoleResource.php:44-49, tests/Feature/Filament/Roles/RoleResourceTest.php V23, пробник R25 |\n| I9 | held | packages/filament/src/AzGuardPlugin.php:99-120, tests/Feature/Filament/Plugin/IsolationTest.php |\n| I10 | held | packages/filament/src/Editors/ListGrants.php:75-80,442-462, packages/filament/src/Editors/GrantEditor.php:291-315, tests/Feature/Filament/Grants/RoleGrantResourceTest.php R24 |\n\n**Карта приёмки (ревьюер):**\n\n| Пункт | Строка | Статус | Тесты |\n|---|---|---|---|\n| P7.1 | V24 | covered | tests/Feature/Filament/Plugin/IsolationTest.php::gives every Filament panel its own plugin instance; tests/Feature/Filament/Plugin/IsolationTest.php::enters the guard panel of the Filament panel that serves the request; tests/Feature/Filament/Plugin/IsolationTest.php::repeats the admission on a Livewire update |\n| P7.1 | V75 | covered | tests/Feature/Filament/Plugin/DefinitionsTest.php::defines the permissions of the Filament classes with the explicit authority; tests/Feature/Filament/Plugin/DefinitionsTest.php::is a compile conflict, not a merge; tests/Feature/Filament/Plugin/DefinitionsTest.php::stores the assignment of a Resources definition without dynamic permissions |\n| P7.1 | consumer --with-filament | weak | bin/consumer-fixture.sh filament_step |\n| P7.2 | V25 | covered | tests/Feature/Filament/Gate/PagesTest.php::V25 opens a page with its permission; tests/Feature/Filament/Gate/PagesTest.php::V25 refuses a user model that is no AzGuardSubject |\n| P7.2 | V95 | covered | tests/Feature/Filament/Gate/VisibilityTest.php::V95 lists and counts only the visible records; tests/Feature/Filament/Gate/VisibilityTest.php::V95 filters before LIMIT, OFFSET and COUNT; tests/Feature/Filament/Gate/VisibilityTest.php::V95 decides a policy-only resource by its policy without reading a grant |\n| P7.2 | V96 | weak | tests/Feature/Filament/Gate/SurfacesTest.php::V96 deletes in bulk only the selected records; tests/Feature/Filament/Gate/SurfacesTest.php::V96 attaches only a record the user may view; tests/Feature/Filament/Gate/SurfacesTest.php::V96 writes only the rows that are still visible when the export job runs |\n| P7.2 | V102 | covered | tests/Feature/Filament/Gate/ResourcesTest.php::V102 opens the resource whose permission is granted; tests/Feature/Filament/Gate/ResourcesTest.php::V102 refuses the model check of Filament; tests/Feature/Filament/Gate/ResourcesTest.php::V102 refuses the ambiguous model ability |\n| P7.2 | R34 | covered | tests/Acceptance/Crm/FilamentTest.php::R34 shows in the list; tests/Acceptance/Crm/FilamentTest.php::R34 deletes in bulk only own clients; tests/Acceptance/Crm/FilamentTest.php::R34 exports only the clients the caller may still view |\n| P7.2 | R39 | covered | tests/Acceptance/Crm/FilamentTest.php::R39 refuses the Filament panel without a role; tests/Acceptance/Crm/FilamentTest.php::R39 lets a caller of P1 into organization A only |\n| P7.2 | R40 | covered | tests/Acceptance/Crm/FilamentTest.php::R40 lets a caller open the list and the card; tests/Acceptance/Crm/FilamentTest.php::R40 does not open the card of a client of another project |\n| P7.3 | V23 | covered | tests/Feature/Filament/Roles/RoleResourceTest.php::V23 finds no way to change a role; tests/Feature/Filament/Roles/RoleResourceTest.php::V23 offers no action in the catalogue table |\n| P7.3 | V61 | covered | tests/Feature/Filament/Roles/RoleResourceTest.php::V61 lists the code roles; tests/Feature/Filament/Roles/RoleResourceTest.php::V61 shows a role read-only; tests/Feature/Filament/Roles/PermissionResourceTest.php::V61 shows a permission of an enum read-only |\n| P7.3 | V76 | covered | tests/Feature/Filament/Roles/PermissionResourceTest.php::V76 creates a dynamic permission; tests/Feature/Filament/Roles/PermissionResourceTest.php::V76 renames and regroups a dynamic permission |\n| P7.3 | V96 | covered | tests/Feature/Filament/Roles/TargetSelectorTest.php::refuses a panel outside manages; tests/Feature/Filament/Roles/PermissionResourceTest.php::refuses a tenant that the directory does not know; tests/Feature/Filament/Roles/PermissionResourceTest.php::takes the tenant of the request in the guard panel |\n| P7.3 | R38 | covered | tests/Feature/Filament/Roles/RoleResourceTest.php::V61; tests/Feature/Filament/Roles/PermissionResourceTest.php::V61 |\n| P7.3 | R25 | covered | tests/Feature/Filament/Roles/RoleResourceTest.php::V23 finds no way to change a role |\n| P7.4 | V26 | covered | tests/Feature/Filament/Grants/RoleGrantResourceTest.php::V26 searches a subject among 10 000 users |\n| P7.4 | V63 | covered | tests/Feature/Filament/Grants/RoleGrantResourceTest.php::V63 hides a panel without a database source; tests/Feature/Filament/Grants/PermissionGrantResourceTest.php::V63 answers Why |\n| P7.4 | V96 | covered | tests/Feature/Filament/Grants/RoleGrantResourceTest.php::V96 refuses a forged subject; tests/Feature/Filament/Grants/RoleGrantResourceTest.php::V96 R37 refuses the edit and the revocation of a grant of another tenant |\n| P7.4 | R36 | covered | tests/Acceptance/Crm/FilamentTest.php::R36 offers in the grant form the contexts of the target seller |\n| P7.4 | R37 | covered | tests/Acceptance/Crm/FilamentTest.php::R37 refuses a project, a subject or a grant of organization B |\n| P7.4 | R28 | covered | tests/Acceptance/Crm/FilamentTest.php::R28 lists a grant in an inactive project; tests/Feature/Filament/Grants/RoleGrantResourceTest.php::R28 lists expired and orphaned grants |\n| P7.4 | R24 | covered | tests/Feature/Filament/Grants/RoleGrantResourceTest.php::R24 refuses the edit of a row that changed; tests/Feature/Filament/Grants/RoleGrantResourceTest.php::R24 keeps the fingerprint of the open form on the server |\n| P7.5 | V62 | covered | tests/Feature/Filament/Fields/GrantFieldsTest.php::V62 shows the field of the grant model; tests/Feature/Filament/Fields/GrantFieldsTest.php::V62 refuses a forged field in the payload |\n| P7.5 | V96 | covered | tests/Feature/Filament/Fields/GrantFieldsTest.php::V96 clears the fields when the tenant or the panel of the form changes |\n| P7.5 | InvalidChangeFieldsException | covered | tests/Feature/Filament/Fields/GrantFieldsTest.php::V62 refuses a forged field; tests/Feature/Filament/Fields/GrantFieldsTest.php::V62 leaves the rules of a field to the writer |\n| P7.6 | V63 | covered | tests/Feature/Filament/Pages/PanelsAndDoctorPagesTest.php::V63 lists a panel without a database source |\n| P7.6 | DoctorPage | covered | tests/Feature/Filament/Pages/PanelsAndDoctorPagesTest.php::shows the findings of the doctor by severity; tests/Feature/Filament/Pages/PanelsAndDoctorPagesTest.php::keeps secrets out of the data and the HTML |\n| P7.6 | PanelOverview | covered | tests/Feature/Diagnostics/PanelOverviewTest.php::describes every panel; tests/Feature/Diagnostics/PanelOverviewTest.php::gives the data that the command prints as JSON; tests/Feature/Filament/Pages/PanelsAndDoctorPagesTest.php::shows the data of PanelOverview and nothing else |\n| P7.7 | V75 | covered | tests/Feature/Filament/Generate/FilamentGenerateTest.php::V75 writes an enum for each resource; tests/Feature/Filament/Generate/FilamentGenerateTest.php::V75 gives the enums the keys that the Filament panel checks; tests/Feature/Filament/Generate/FilamentGenerateTest.php::V75 declares the permissions policy-only; tests/Feature/Console/Generators/PermissionGeneratorTest.php::declares a policy-only enum with --authority=policy; tests/Feature/Console/Generators/PermissionGeneratorTest.php::replaces the CRUD cases with --case |\n| P7.7 | doctor stale domain | covered | tests/Feature/Filament/Generate/FilamentGenerateTest.php::V75 reports a class that has no definition as an error and a definition whose class is gone as a warning |"
+        },
+        {
+          "id": "P7-checks",
+          "title": "Прогоны V1–V10",
+          "text": "Прогоны исполнителя на HEAD dfdf2a0 (ревью шло параллельно, его пробники — только в /tmp):\n\n| V | Команда | exit | время |\n|---|---|---|---|\n| V1 | `php -d memory_limit=1G vendor/bin/pest tests/Feature/Filament tests/Acceptance/Crm --compact --fail-on-skipped` | 0 (341 тест) | 101 с |\n| V2 | `bash bin/consumer-fixture.sh --laravel=11 --with-filament` | 0 | 72 с |\n| V3 | `bash bin/consumer-fixture.sh --laravel=13 --with-filament` | 0 | 67 с |\n| V4 | `php -d memory_limit=1G vendor/bin/pest tests/Arch --compact --fail-on-skipped` | 0 (95) | 17 с |\n| V5 | `composer test` | 0 (4600) | 242 с |\n| V6 | `vendor/bin/pint --test` | 0 | 1 с |\n| V7 | `vendor/bin/phpstan analyse --memory-limit=1G --no-progress` | 0 | 3 с (кэш) |\n| V8 | `composer test:types` | 0 (99.5 %) | 4 с |\n| V9 | `php bin/api-manifest.php --check` | 0 | <1 с |\n| V10 | `git diff --check` | 0 | <1 с |\n\nСводка — `artifacts/P7.8/checks-executor.txt`. Все V зелёные; RED — только из-за находок F1/F2."
+        }
+      ],
+      "applies_to": [
+        "P7",
+        "P7.8",
+        "P7.2",
+        "P7.3",
+        "P7.4"
+      ]
+    }
+  ],
+  "units": [],
+  "orchestration": {
+    "strategy": "sequential"
+  },
+  "ready_units": []
+}

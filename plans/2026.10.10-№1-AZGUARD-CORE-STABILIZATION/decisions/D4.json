@@ -1,0 +1,40 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D4",
+  "title": "One pre-1.0 supported-surface transition",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "What exactly is frozen and how are deliberate pre-1.0 breaks controlled?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Classify consumer and implementer types, members, protected overrides, facade methods and non-PHP formats explicitly. Complete the necessary typing/namespace/entry-point/token/publication changes as one documented pre-1.0 contract transition. Freeze a qualified candidate and then compare against stable tags.",
+  "rationale": "The current manifest omits the facade method surface and publishes location-based unmarked types and documented internal methods. Same-branch regeneration checks freshness but cannot prove compatibility. Implementer interfaces, named parameters, defaults and exhaustive enum matches require explicit compatibility rules.",
+  "global": true,
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "bin/api-manifest.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Arch/ApiManifestTest.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Facades/AzGuard.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Kernel/Decision/StateToken.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}

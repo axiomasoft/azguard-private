@@ -1,0 +1,40 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D1",
+  "title": "Core meaning and module ownership",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "Which responsibilities define the core and where does optional behavior live?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Core owns tenant/context identity, tenant isolation, domain values, declarations, one authorization engine, one authority-read coordinator and one write coordinator. Scopes behavior, Audit and DevTools are complete internal modules; Filament remains an optional integration package.",
+  "rationale": "AccessScope, IdentityCodec, grant uniqueness and tenant checks already share one authority meaning. Removing those invariants when a module is inactive would widen grants or change stored identities. Optional rich scope algorithms, audit persistence and generators have distinct owners and need no new Composer product.",
+  "global": true,
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Kernel/Identity/AccessScope.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Storage/Schema/StorageSchema.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/ScopeEligibility.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/AzGuardServiceProvider.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}

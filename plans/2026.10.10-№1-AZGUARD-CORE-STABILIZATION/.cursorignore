@@ -1,0 +1,4 @@
+views/
+context/
+*.md
+.lock

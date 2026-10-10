@@ -1,0 +1,182 @@
+{
+  "targeted_adapters": "Current stable candidate: P4.10 V1 139 tests/1428 assertions, P4.11 V1 99 tests/1881 assertions, both exit0. Trace-only followup41tests GREEN.",
+  "related_core_regression": "568 tests/158211 assertions GREEN before trace-only labels followup; no policy/authority behavior change afterward",
+  "arch": "72 tests/314 assertions GREEN; same imports/signatures afterward",
+  "api": "current generated manifest checkGREEN",
+  "pint": "changed30PHP files GREEN",
+  "phpstan": "whole core0errors plus final3changedtracefiles0errors",
+  "types": "all212eligiblefiles, no-cache serial,99.4%; subsequent trace-only result-label/local-bool change preserves signatures/types/sourceinventory",
+  "scope": "No unchanged Filament/SKM/real-engine suites. No storage/query/policy behavior changes; affected SQLite feature paths prove adapters. Existing owner plan layout migration excluded from product review.",
+  "known_environment": "Optional PHPStan turbo extension warning; base native PHPStan did execute. Initial RED/fixture failures retained, no skip accepted.",
+  "P4.10-V1": {
+    "command": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Unit/Kernel/Decision",
+      "tests/Feature/Authorization/ExplainTest.php",
+      "tests/Feature/Console/ExplainCommandTest.php",
+      "--compact"
+    ],
+    "exit_code": 0,
+    "seconds": 0.75,
+    "stable": true
+  },
+  "P4.11-V1": {
+    "command": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Gate",
+      "tests/Regression/P03Test.php",
+      "tests/Regression/P09Test.php",
+      "tests/Regression/RegressionSpecsTest.php",
+      "--compact"
+    ],
+    "exit_code": 0,
+    "seconds": 0.74,
+    "stable": true
+  },
+  "core-regression-001": {
+    "command": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Authorization",
+      "tests/Feature/Policies",
+      "tests/Feature/Scopes",
+      "tests/Acceptance/Crm",
+      "tests/Regression",
+      "--exclude-group=engines,redis",
+      "--compact"
+    ],
+    "exit_code": 0,
+    "seconds": 30.51,
+    "stable": true
+  },
+  "arch-002": {
+    "command": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Arch",
+      "--compact"
+    ],
+    "exit_code": 0,
+    "seconds": 3.98,
+    "stable": true
+  },
+  "static-final-001": {
+    "command": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "packages/core/src",
+      "--memory-limit=1G",
+      "--no-progress",
+      "--error-format=json"
+    ],
+    "exit_code": 0,
+    "seconds": 2.6,
+    "stable": true
+  },
+  "static-followup-001": {
+    "command": [
+      "vendor/bin/phpstan",
+      "analyse",
+      "packages/core/src/Authorization/Pipeline/Trace.php",
+      "packages/core/src/Authorization/Pipeline/AccessPipeline.php",
+      "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+      "--memory-limit=1G",
+      "--no-progress",
+      "--error-format=json"
+    ],
+    "exit_code": 0,
+    "seconds": 1.5,
+    "stable": true
+  },
+  "types-final-001": {
+    "command": [
+      "php",
+      "-d",
+      "variables_order=EGPCS",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "--configuration=/home/vostrikov/projects/packages/azguard/plans/2026.10.01-№1-AZGUARD-V1/artifacts/P4.10-P4.11-execution/phpunit-core.xml",
+      "--type-coverage",
+      "--min=98",
+      "--no-cache"
+    ],
+    "exit_code": 0,
+    "seconds": 8.74,
+    "stable": true
+  },
+  "api-final-001": {
+    "command": [
+      "php",
+      "bin/api-manifest.php",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.07,
+    "stable": true
+  },
+  "pint-final-001": {
+    "command": [
+      "vendor/bin/pint",
+      "--test",
+      "packages/core/src/AzGuardServiceProvider.php",
+      "packages/core/src/Authorization/ReadAttempt.php",
+      "packages/core/src/Authorization/Authorizer.php",
+      "packages/core/src/Authorization/ScopeEligibility.php",
+      "packages/core/src/Panels/PanelResolver.php",
+      "packages/core/src/Authorization/Pipeline/Trace.php",
+      "packages/core/src/Authorization/Pipeline/AccessPipeline.php",
+      "packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php",
+      "packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php",
+      "packages/core/src/Authorization/Pipeline/Stages/AfterStage.php",
+      "packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php",
+      "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+      "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+      "packages/core/src/Laravel/Gate/GateBridge.php",
+      "packages/core/src/Laravel/Console/Commands/ExplainCommand.php",
+      "packages/core/src/Kernel/Decision/Explanation.php",
+      "tests/Regression/P09Test.php",
+      "tests/Regression/RegressionSpecsTest.php",
+      "tests/Regression/P03Test.php",
+      "tests/Feature/Authorization/ExplainTest.php",
+      "tests/Feature/Gate/EarlyGateBeforeTest.php",
+      "tests/Feature/Gate/GatePanelSelectionTest.php",
+      "tests/Feature/Gate/GateOwnershipTest.php",
+      "tests/Feature/Gate/GateResponseTest.php",
+      "tests/Feature/Gate/GateParityTest.php",
+      "tests/Feature/Console/ExplainCommandTest.php",
+      "tests/Fixtures/Authorization/ScenarioGenerator.php",
+      "tests/Fixtures/Gate/GateWorld.php",
+      "tests/Fixtures/Gate/NativeFallbackPolicy.php",
+      "tests/Unit/Kernel/Decision/ExplanationTest.php"
+    ],
+    "exit_code": 0,
+    "seconds": 0.16,
+    "stable": true
+  },
+  "trace-followup-001": {
+    "command": [
+      "php",
+      "-d",
+      "memory_limit=1G",
+      "vendor/bin/pest",
+      "tests/Feature/Authorization/ExplainTest.php",
+      "tests/Feature/Authorization/StepErrorsTest.php",
+      "tests/Feature/Gate",
+      "--compact"
+    ],
+    "exit_code": 0,
+    "seconds": 0.81,
+    "stable": true
+  }
+}

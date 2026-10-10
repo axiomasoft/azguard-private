@@ -1,0 +1,489 @@
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Sources\Database;
+
+use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Sources\AssignmentScopeSelection;
+use AzGuard\Contracts\Sources\DescribesSchema;
+use AzGuard\Contracts\Sources\FencesReads;
+use AzGuard\Contracts\Sources\FiltersQueries;
+use AzGuard\Contracts\Sources\ProvidesGrants;
+use AzGuard\Contracts\Sources\ProvidesPermissions;
+use AzGuard\Contracts\Sources\ProvidesRoleGrants;
+use AzGuard\Contracts\Sources\SourceDescription;
+use AzGuard\Contracts\Sources\StoresGrants;
+use AzGuard\Contracts\Sources\Volatility;
+use AzGuard\Exceptions\ConsistencyException;
+use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\InvalidSourceContributionException;
+use AzGuard\Exceptions\StorageMismatchException;
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Decision\PermissionAuthority;
+use AzGuard\Kernel\Decision\RoleContribution;
+use AzGuard\Kernel\Decision\StateToken;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelRegistry;
+use AzGuard\Schema\FieldTarget;
+use AzGuard\Storage\GrantFields;
+use AzGuard\Storage\Models\Permission;
+use AzGuard\Storage\Models\PermissionGrant;
+use AzGuard\Storage\Models\RoleGrant;
+use AzGuard\Storage\Schema\HostKeyColumns;
+use AzGuard\Storage\Storage;
+use AzGuard\Storage\StorageReadSession;
+use AzGuard\Storage\StorageRegistry;
+use Closure;
+use Illuminate\Database\Query\Builder;
+use ReflectionClass;
+
+/**
+ * Raw database assignments. Role expansion and qualification belong to the engine.
+ *
+ * @api
+ */
+final class DatabaseSource implements DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants, StoresGrants
+{
+    private bool $onlyRoles = false;
+
+    private bool $dynamic = false;
+
+    private string|Storage $selectedStorage = 'default';
+
+    /** @var array<string, class-string<Permission|PermissionGrant|RoleGrant>> */
+    private array $selectedModels = [];
+
+    /** @var array<string, list<string>> */
+    private array $fields = ['role_grant' => [], 'permission_grant' => []];
+
+    private ?string $panelId = null;
+
+    public static function make(): static
+    {
+        return new self;
+    }
+
+    public function rolesOnly(): static
+    {
+        $copy = clone $this;
+        $copy->onlyRoles = true;
+
+        return $copy;
+    }
+
+    public function dynamicPermissions(): static
+    {
+        $copy = clone $this;
+        $copy->dynamic = true;
+
+        return $copy;
+    }
+
+    public function storage(string|Storage $storage): static
+    {
+        if ($storage === '') {
+            throw new DefinitionException('DatabaseSource storage needs a name.');
+        }
+        $copy = clone $this;
+        $copy->selectedStorage = $storage;
+
+        return $copy;
+    }
+
+    /** @param class-string<RoleGrant>|null $roleGrant
+     * @param  class-string<PermissionGrant>|null  $permissionGrant
+     * @param  class-string<Permission>|null  $permission
+     */
+    public function models(?string $roleGrant = null, ?string $permissionGrant = null, ?string $permission = null): static
+    {
+        $copy = clone $this;
+        foreach (['role_grant' => [$roleGrant, RoleGrant::class], 'permission_grant' => [$permissionGrant, PermissionGrant::class], 'permission' => [$permission, Permission::class]] as $kind => [$class, $base]) {
+            if ($class === null) {
+                continue;
+            }
+            self::validateModel($class, $base);
+            $copy->selectedModels[$kind] = $class;
+        }
+
+        return $copy;
+    }
+
+    /** @param list<string> $roleGrant
+     * @param  list<string>  $permissionGrant
+     */
+    public function decisionFields(array $roleGrant = [], array $permissionGrant = []): static
+    {
+        $copy = clone $this;
+        foreach (['role_grant' => $roleGrant, 'permission_grant' => $permissionGrant] as $kind => $names) {
+            $names = self::validatedFieldNames($names);
+            $copy->fields[$kind] = array_values(array_unique($names));
+        }
+
+        return $copy;
+    }
+
+    /** @param array<mixed> $names
+     * @return list<string>
+     */
+    private static function validatedFieldNames(array $names): array
+    {
+        if (! array_is_list($names)) {
+            throw new DefinitionException('Decision fields must be a list of field names.');
+        }
+        foreach ($names as $name) {
+            if (! is_string($name) || $name === '') {
+                throw new DefinitionException('Decision fields must be non-empty names.');
+            }
+        }
+
+        return $names;
+    }
+
+    private static function validateModel(string $class, string $base): void
+    {
+        if (! is_a($class, $base, true) || ! (new ReflectionClass($class))->isInstantiable()) {
+            throw new StorageMismatchException("DatabaseSource model must be a concrete subclass of {$base}.");
+        }
+    }
+
+    public function id(): string
+    {
+        return 'database';
+    }
+
+    public function isRolesOnly(): bool
+    {
+        return $this->onlyRoles;
+    }
+
+    public function isDynamic(): bool
+    {
+        return $this->dynamic;
+    }
+
+    public function volatility(): Volatility
+    {
+        return Volatility::Stable;
+    }
+
+    /** @internal panel attachment binds the writer without reading authority. */
+    public function bindPanel(string $panel): void
+    {
+        if ($this->panelId !== null && $this->panelId !== $panel) {
+            throw new DefinitionException('A DatabaseSource instance belongs to one panel.');
+        }
+        $this->panelId = $panel;
+    }
+
+    public function describe(Panel $panel, ?TenantRef $tenant = null): SourceDescription
+    {
+        $this->bindPanel($panel->id());
+
+        return new SourceDescription($this->id(), self::class, [ProvidesGrants::class, ProvidesRoleGrants::class, ProvidesPermissions::class, StoresGrants::class, FencesReads::class, FiltersQueries::class, DescribesSchema::class], $this->dynamic);
+    }
+
+    /** @return iterable<PermissionDefinition> */
+    public function permissions(Panel $panel, ?TenantRef $tenant = null): iterable
+    {
+        if (! $this->dynamic) {
+            return [];
+        }
+
+        if ($tenant === null) {
+            throw new DefinitionException('Dynamic permissions require an explicit tenant.');
+        }
+
+        $this->bindPanel($panel->id());
+        $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
+        $fingerprint = app(PanelRegistry::class)->fingerprint($panel->id());
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $this->token($session, $panel, $fingerprint);
+            $definitions = $this->readPermissions($session, $panel, $tenant);
+
+            if ($before->equals($this->token($session, $panel, $fingerprint))) {
+                return $definitions;
+            }
+        }
+
+        throw new ConsistencyException('DatabaseSource definitions changed during all three read attempts.');
+    }
+
+    /** @internal The engine retains this pinned handle for the complete Prepare/authority attempt. */
+    public function openReadSession(EvaluationContext $context): StorageReadSession
+    {
+        $this->bindPanel($context->panel()->id());
+
+        return $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
+    }
+
+    /** @internal Read both edges on the same attempt handle. */
+    public function readState(StorageReadSession $session, EvaluationContext $context): StateToken
+    {
+        return $this->token($session, $context->panel(), $context->state()->fingerprint);
+    }
+
+    /** @internal Unfenced capability; the engine owns the surrounding whole-attempt fence.
+     * @return list<PermissionDefinition>
+     */
+    public function readPermissions(StorageReadSession $session, Panel $panel, TenantRef $tenant): array
+    {
+        if (! $this->dynamic) {
+            return [];
+        }
+        $model = $session->model('permission', $this->selectedModels['permission'] ?? null);
+        $definitions = [];
+        foreach ($session->table('permissions')->where('panel', $panel->id())->where('tenant_key', $tenant->key())->get() as $row) {
+            $permission = $model->newFromBuilder((array) $row);
+
+            if (! $permission instanceof Permission || $permission->panel() !== $panel->id() || ! $permission->tenantRef()->equals($tenant)) {
+                throw new InvalidSourceContributionException('Dynamic permission identity differs from its query.');
+            }
+            $definitions[] = new PermissionDefinition(
+                local: $permission->permissionKey()->local(), authority: PermissionAuthority::Grants,
+                label: $permission->getAttribute('label'), group: $permission->getAttribute('group'),
+                description: $permission->getAttribute('description'),
+            );
+        }
+
+        return $definitions;
+    }
+
+    /** @internal Joint root helper; the public host facade is defined separately.
+     * @template T
+     *
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
+    {
+        $this->bindPanel($panel->id());
+
+        return $this->resolvedStorage()->withinAuthorityTransaction($panel->id(), $callback);
+    }
+
+    /** @template T
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    public function transaction(Closure $callback): mixed
+    {
+        $panel = $this->panelId ?? throw new DefinitionException('Attach DatabaseSource to a panel before opening its transaction.');
+
+        return $this->resolvedStorage()->mutate($panel, static fn (): mixed => $callback());
+    }
+
+    public function state(Panel $panel, TenantRef $tenant): StateToken
+    {
+        $this->bindPanel($panel->id());
+        $session = $this->resolvedStorage()->readSession($panel->settings()->reads());
+
+        return $this->token($session, $panel, app(PanelRegistry::class)->fingerprint($panel->id()));
+    }
+
+    /** @param list<AccessScope> $scopes
+     * @return iterable<Grant>
+     */
+    public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+    {
+        if ($this->onlyRoles || $scopes === []) {
+            return [];
+        }
+
+        return $this->fenced($context, fn (StorageReadSession $session): array => $this->read($session, 'permission_grant', $subject, $scopes, $context));
+    }
+
+    /** @param list<AccessScope> $scopes
+     * @return iterable<RoleContribution>
+     */
+    public function roleGrants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+    {
+        if ($scopes === []) {
+            return [];
+        }
+
+        return $this->fenced($context, fn (StorageReadSession $session): array => $this->read($session, 'role_grant', $subject, $scopes, $context));
+    }
+
+    /** @internal one whole-set fence for both capabilities.
+     * @param  list<AccessScope>  $scopes
+     * @return array{state: StateToken, grants: list<Grant>, roles: list<RoleContribution>}
+     */
+    public function readContributions(SubjectRef $subject, array $scopes, EvaluationContext $context): array
+    {
+        return $this->fenced($context, fn (StorageReadSession $session, StateToken $before): array => [
+            'state' => $before,
+            ...$this->readAssignments($session, $subject, $scopes, $context),
+        ]);
+    }
+
+    /** @internal Unfenced capabilities on the engine's pinned attempt handle.
+     * @param  list<AccessScope>  $scopes
+     * @return array{grants: list<Grant>, roles: list<RoleContribution>}
+     */
+    public function readAssignments(StorageReadSession $session, SubjectRef $subject, array $scopes, EvaluationContext $context): array
+    {
+        return [
+            'grants' => $this->onlyRoles || $scopes === [] ? [] : $this->read($session, 'permission_grant', $subject, $scopes, $context),
+            'roles' => $scopes === [] ? [] : $this->read($session, 'role_grant', $subject, $scopes, $context),
+        ];
+    }
+
+    public function contextsCovering(SubjectRef $subject, PermissionKey $key, string $contextType, EvaluationContext $context): AssignmentScopeSelection
+    {
+        IdentityCodec::assertTypeAlias($contextType);
+
+        if ($key->panel() !== $context->panel()->id()) {
+            throw new InvalidSourceContributionException('Selection permission belongs to another panel.');
+        }
+
+        return $this->fenced($context, function (StorageReadSession $session) use ($subject, $contextType, $context): AssignmentScopeSelection {
+            $contributions = $this->read($session, 'role_grant', $subject, [], $context, $contextType);
+
+            if (! $this->onlyRoles) {
+                $contributions = [...$contributions, ...$this->read($session, 'permission_grant', $subject, [], $context, $contextType)];
+            }
+
+            if (count($contributions) > 10000) {
+                throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
+            }
+            $refs = [];
+            $everywhere = false;
+            foreach ($contributions as $item) {
+                $ref = $item->scope->context;
+
+                if ($ref->isGlobal()) {
+                    $everywhere = true;
+
+                    continue;
+                }
+                $refs[$ref->key()] = $ref;
+            }
+
+            if ($contributions === []) {
+                return AssignmentScopeSelection::nowhere();
+            }
+
+            return $everywhere ? AssignmentScopeSelection::everywhere($contributions) : AssignmentScopeSelection::in(array_values($refs), $contributions);
+        });
+    }
+
+    /** @param array<mixed> $scopes
+     * @return list<AccessScope>
+     */
+    private static function validatedScopes(array $scopes): array
+    {
+        if (! array_is_list($scopes)) {
+            throw new InvalidSourceContributionException('Assignment scopes must be a list.');
+        }
+        foreach ($scopes as $scope) {
+            if (! $scope instanceof AccessScope) {
+                throw new InvalidSourceContributionException('Assignment scope must be AccessScope.');
+            }
+        }
+
+        return $scopes;
+    }
+
+    private function resolvedStorage(): Storage
+    {
+        return $this->selectedStorage instanceof Storage ? $this->selectedStorage : app(StorageRegistry::class)->get($this->selectedStorage);
+    }
+
+    /** @template T
+     * @param  Closure(StorageReadSession, StateToken): T  $callback
+     * @return T
+     */
+    private function fenced(EvaluationContext $context, Closure $callback): mixed
+    {
+        $this->bindPanel($context->panel()->id());
+        $session = $this->resolvedStorage()->readSession($context->panel()->settings()->reads());
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $this->token($session, $context->panel(), $context->state()->fingerprint);
+            $result = $callback($session, $before);
+            $after = $this->token($session, $context->panel(), $context->state()->fingerprint);
+
+            if ($before->equals($after)) {
+                return $result;
+            }
+        }
+
+        throw new ConsistencyException('DatabaseSource authority changed during all three read attempts.');
+    }
+
+    private function token(StorageReadSession $session, Panel $panel, string $fingerprint): StateToken
+    {
+        $state = $session->state($panel->id());
+
+        return StateToken::of($this->resolvedStorage()->id(), $panel->id(), $state->incarnation ?? 'uninitialized', $state->version ?? 0, $panel->settings()->cacheGeneration(), $fingerprint);
+    }
+
+    /** @param list<AccessScope> $scopes
+     * @return ($kind is 'role_grant' ? list<RoleContribution> : list<Grant>)
+     */
+    private function read(StorageReadSession $session, string $kind, SubjectRef $subject, array $scopes, EvaluationContext $context, ?string $contextType = null): array
+    {
+        $scopes = self::validatedScopes($scopes);
+        $storage = $this->resolvedStorage();
+        $query = $session->table($kind === 'role_grant' ? 'role_grants' : 'permission_grants')
+            ->where('panel', $context->panel()->id())->where('subject_type', $subject->type())
+            ->where('subject_id', HostKeyColumns::canonical($storage->hostKeys(), $subject->id()));
+
+        if ($contextType !== null) {
+            $query->where('tenant_key', $context->scope()->tenant->key())->where(function (Builder $query) use ($contextType): void {
+                $query->whereNull('context_type')->orWhere('context_type', $contextType);
+            });
+        } else {
+            $query->where(function (Builder $query) use ($scopes): void {
+                foreach ($scopes as $scope) {
+                    $query->orWhere(fn (Builder $pair): Builder => $pair->where('tenant_key', $scope->tenant->key())->where('context_key', $scope->context->key()));
+                }
+            });
+        }
+        $model = $session->model($kind, $this->selectedModels[$kind] ?? null);
+        $target = $kind === 'role_grant' ? FieldTarget::RoleGrant : FieldTarget::PermissionGrant;
+        $fields = GrantFields::for($session, $target, $model::class, $context->panel()->fields($target), $this->fields[$kind]);
+        $items = [];
+        $consume = function (object $row) use ($model, $subject, $context, $fields, &$items): void {
+            $assignment = $model->newFromBuilder((array) $row);
+
+            if (! $assignment instanceof RoleGrant && ! $assignment instanceof PermissionGrant) {
+                throw new InvalidSourceContributionException('Invalid assignment model.');
+            }
+
+            if (! $assignment->subjectRef()->equals($subject) || $assignment->panel() !== $context->panel()->id()) {
+                throw new InvalidSourceContributionException('Assignment identity differs from its query.');
+            }
+            $scope = AccessScope::in($assignment->tenantRef(), $assignment->assignmentScopeRef());
+            $items[] = $assignment instanceof RoleGrant
+                ? RoleContribution::of($assignment->roleKey(), $scope, $this->id(), $assignment->origin(), $assignment->expiresAt(), $fields->decisionValues($assignment))
+                : Grant::of(PermissionPattern::of($assignment->panel(), $assignment->permissionKey()->local()), $this->id(), $scope, origin: $assignment->origin(), expiresAt: $assignment->expiresAt(), fields: $fields->decisionValues($assignment));
+        };
+
+        if ($contextType === null) {
+            foreach ($query->get() as $row) {
+                $consume($row);
+            }
+
+            return $items;
+        }
+        // Visibility enumeration has an explicit budget; every raw witness survives ref deduplication.
+        $query->orderBy('id')->chunkById(500, function ($rows) use ($consume, &$items): void {
+            foreach ($rows as $row) {
+                if (count($items) >= 10000) {
+                    throw new InvalidSourceContributionException('Database selection exceeds the 10000 assignment witness budget.');
+                }
+                $consume($row);
+            }
+        });
+
+        return $items;
+    }
+}

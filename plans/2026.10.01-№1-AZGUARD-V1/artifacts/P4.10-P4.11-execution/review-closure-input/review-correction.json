@@ -1,0 +1,11 @@
+{
+  "correction": "One owning correction for both confirmed findings: membership records pass/deny exactly when check is invoked; common and contribution filter failures record canonical filter/error, so finish cannot backfill skipped. Authority/result/sources/cache queries unchanged.",
+  "delta": [
+    "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+    "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+    "tests/Feature/Authorization/ExplainTest.php"
+  ],
+  "red": "review-findings-red:5tests1pass4fail (both findings reproduced before correction)",
+  "green": "review-fix-green:75tests/2429assertions incl new5cases, allGate, membership/external eligibility, step errors; P4.10 V1-closed146tests/1449assertions;2changedproductionPHPStan0errors;API/Pint/diffGREEN",
+  "reused": "Previous broad core568/Arch72/types99.4 all212 source rows reused: no imports/public-contract/type inventory/state/query/authority behavior changes. Prior targeted P4.11 V1 and final allGate in75tests. No unrelated suites repeated."
+}

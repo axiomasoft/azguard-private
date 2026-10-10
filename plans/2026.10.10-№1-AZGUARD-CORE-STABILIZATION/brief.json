@@ -1,0 +1,190 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:brief:v1",
+  "messages": [
+    {
+      "id": "M1",
+      "date": "2026-10-10",
+      "text": "я имел ввиду, что нужно создать skm новый план, по формату в него все записывать",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M2",
+      "date": "2026-10-10",
+      "text": "после фиксании всей схемы разделить на фазы, а детализация уже отдельно",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M3",
+      "date": "2026-10-10",
+      "text": "Еще раз повторю: ты не говори мне про противоречия. Этот аудит — это только начальная точка. И да, он делался еще когда там пакет дорабатывался до конца, но смысл — ты же понял, что нам нужно распределенное ядро, чтобы одно было легкое, то есть не всем людям нужен тот вот мега широкий функционал. То есть мы, чтобы в дальнейшем мы типа сделали такое: мы вот эту вот базовую какую-то часть оставим как open source, а такие тяжелые надстройки мы сделаем, будем отдельно продавать. То есть вот как должна быть идеальная структура ядра выстроена. Ты мне не пиши про различия. А от аудита важно подчеркнуть суть и то, как он это примерно видел, и адаптировать это под себя. То есть в любом случае решение — это за тобой.",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M4",
+      "date": "2026-10-10",
+      "text": "Ну и ты же понял, что мы сейчас создаем новый план. То есть в него ты там указываешь все вот эти артефакты, все свои мысли, то есть полностью вся твоя выжимка, все, как бы это сказать, все тезисы, все как должно в конечном счете распределиться, а потом мы уже идем, детализируем фазы и исполняем. То есть от тебя нужны мозги по максимуму, потому что то, как ты спроектируешь, в конечном счете должно быть реализовано, ни шага в сторону. Проанализируй все схемы, все цепочки, как это будет работать, как это будет расширяться и так далее.",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M5",
+      "date": "2026-10-10",
+      "text": "То есть, видишь, нужна какая-то умная система, там подключение плагинов, подключение всяких хуков и так далее, макросов, я не знаю, может быть, ещё что-то, событий. То есть, чтобы ядро предоставляло такой набор универсальности, чтобы всем остальным было просто. Там вот говорю, Perplexity использую для поиска лучших там паттернов, как это в коде реализуется. Чтобы полностью всё было спроектировано, и вот на вот эти твои принципы будем полностью полагаться.",
+      "channel": "owner conversation",
+      "kind": "owner"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "B1",
+      "text": "Create a new independent SKM-format plan containing the complete target architecture, rationale, chains, schema, release gate and evidence.",
+      "source": "M1",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B2",
+      "text": "Record the target scheme before its transition phases; leave task decomposition and implementation for separate sessions.",
+      "source": "M2",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B3",
+      "text": "Redistribute current behavior into a lightweight open source authorization engine, optional internal modules and independently useful integration packages.",
+      "source": "M3",
+      "owners": [
+        "P1",
+        "P2",
+        "P3"
+      ]
+    },
+    {
+      "id": "B4",
+      "text": "Use the earlier architecture audit as a starting point and current code as evidence; produce affirmative design decisions rather than a discrepancy report.",
+      "source": "M3",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B5",
+      "text": "Modules interact only through typed core contracts and values; no direct sibling dependency, bridge or module-specific branch in core.",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B6",
+      "text": "Use enums, readonly DTOs, explicit ownership and narrow extension points consistent with CoreX, Chatom, Vaulter and Commerz.",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B7",
+      "text": "Freeze public consumer and implementer APIs plus persistent schema/identities before 1.0 so later movement changes neither API, schema nor user data.",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B8",
+      "text": "Give each separate Composer package an independent purpose; keep AzGuard-only audit, scope behavior and development tooling as internal modules.",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B9",
+      "text": "Design deterministic plugin activation, typed hooks, query/write semantics, transaction participants and after-commit events without unnecessary dynamic mechanisms.",
+      "source": "M5",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B10",
+      "text": "Preserve current tenant, scope, consistency, fail-closed, rollback and transactional audit guarantees throughout redistribution.",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B11",
+      "text": "Define checkable 1.0 release conditions and blocking CI rules against boundary, schema and API degradation.",
+      "owners": [
+        "P4"
+      ]
+    },
+    {
+      "id": "B12",
+      "text": "Do not change implementation code or databases, push to main, execute plan items or add unsolicited reviews during this design session.",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B13",
+      "text": "Keep technical design in English; separate future licensing/distribution policy from core names and authorization behavior.",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    }
+  ],
+  "constraints": [
+    "Architecture design only in this session; phase task detail is deliberately deferred.",
+    "Preserve the pre-existing V1 plan directory and all unrelated work.",
+    "No implementation changes, database mutations, Git commits or pushes in this session.",
+    "No independent review workflow was requested.",
+    "Use the canonical plan.py API for all plan-source writes; generated Markdown is a human projection."
+  ],
+  "environment": [
+    "Repository main at 09612160c98ca6133c894a8f90f5653b9dac6b8f, version 0.7.0.",
+    "Current date: 2026-10-10; project directory: /home/vostrikov/projects/packages/azguard.",
+    "The repository intentionally ignores /plans/; the new plan is local planning infrastructure.",
+    "The legacy V1 directory currently contains runtime contexts/artifacts and no plan.json; its historical canonical state was not reconstructed or changed.",
+    "Codex/GPT-6 family is host-declared; exact native model/effort is not exposed. Authoring records the declared family and omits effort; no item execution or native launch is claimed."
+  ],
+  "out_of_scope": [
+    "Task-level design and execution",
+    "New authorization features",
+    "Physical extraction without a demonstrated independent use",
+    "Commerce/edition design",
+    "Reviewing historical audit discrepancies"
+  ]
+}

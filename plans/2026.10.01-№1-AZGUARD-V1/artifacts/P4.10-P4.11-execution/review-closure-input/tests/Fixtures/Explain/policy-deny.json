@@ -1,0 +1,5 @@
+{
+    "decision": {"effect": "deny", "reason": "policy", "component": "AzGuard\\Tests\\Fixtures\\Authorization\\RuntimePolicy", "message": "hidden", "status": 404, "code": "policy-code"},
+    "panel": "admin", "subject": {"type": "user", "id": "1"},
+    "scope": {"tenant": "global", "context": "global"}, "now": "2026-10-05T12:00:00.000000+00:00"
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P3",
+  "title": "Consolidate coordinators and move complete modules",
+  "design": "skeleton",
+  "goal": "Implement the fixed ownership map for Scopes, Audit and DevTools while preserving one decision/write path and keeping Filament on neutral core contracts.",
+  "context": "Architecture phase C. Approximate size: L. Namespace/DSL changes follow the already chosen transition map; durable data does not change. Complete slices include providers, configuration, health, commands, schema and generated stubs. Task decomposition is deferred.",
+  "contract": {
+    "consumes": [
+      "The chosen API/SPI and upgrade map from the preceding phase",
+      "knowledge/architecture#ownership",
+      "knowledge/architecture#extension-system",
+      "knowledge/architecture#operation-chains"
+    ],
+    "produces": [
+      "Explicit module autoload roots and optional activation boundaries",
+      "One internal authority-read coordinator and coherent source preparation",
+      "Neutral scope evaluation/directory/UI contributions",
+      "Transactional Audit participation with one core event-value construction",
+      "Compiled consumer/generator fixtures using supported symbols"
+    ],
+    "boundaries": [
+      "No core-to-module, sibling-to-sibling or extension-to-internal references",
+      "One scalar/batch/query/write/directory interpretation",
+      "No inactive-module I/O or compulsory optional tables",
+      "Preserve physical-handle snapshots, bounded read retries and root-commit publication"
+    ]
+  },
+  "scope": {
+    "include": [
+      "modules/scopes, modules/audit and modules/devtools ownership",
+      "Authorization read/batch/query coordinators and Changes",
+      "Source preparation, PanelRegistry/compiler and metadata fingerprints",
+      "Directories, Schema, service providers, console commands and Filament consumers"
+    ],
+    "exclude": [
+      "Physical extraction into new Composer products",
+      "Feature expansion or relaxed exact-query semantics",
+      "Exposing internal database mechanisms as public SPI"
+    ]
+  },
+  "depends_on": [
+    "P2"
+  ],
+  "pitfalls": [
+    "Moving the plugin alone leaves schema/config/health/provider dependencies in core",
+    "Application-wide evaluator/options bindings leak between panels",
+    "Audit must receive the exact core event IDs inside the transaction",
+    "Read retries must not repeat policies/hooks or lose original subject model instances"
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "procedure": "Run a core isolation fixture with optional module autoload roots absent; test each activation combination and two panels with different module options; prove scalar/batch/SQL and assignment/directory/write parity, rollback/retry/event-ID equality, physical-handle release and disposable cache fingerprint behavior.",
+      "expect": "All scenarios preserve existing semantics and data; optional modules add no work when inactive and all consumers use the chosen supported surface.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Final ownership/dependency map and module activation matrix",
+    "Separated module providers/config/schema/commands",
+    "Consolidated read/write/source paths",
+    "Updated supported-surface consumer and generator fixtures"
+  ],
+  "items": [],
+  "batches": [],
+  "sections": [
+    {
+      "id": "exit",
+      "title": "Exit criterion",
+      "text": "The target boundaries exist in code, including every composition root and resource owner. Core boots/checks/writes without optional module roots, and all supported paths agree on authority."
+    }
+  ]
+}

@@ -1,0 +1,1755 @@
+{
+    "string": {
+        "permissions": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('azg_permissions_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "name",
+                    "type_name": "varchar",
+                    "type": "character varying(255)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "label",
+                    "type_name": "varchar",
+                    "type": "character varying(191)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "group",
+                    "type_name": "varchar",
+                    "type": "character varying(191)",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "description",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_permissions_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                },
+                {
+                    "name": "azg_pm_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "name"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_pm_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('azg_role_grants_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": "'manual'::character varying",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_role_grants_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_rg_context_pair",
+                    "definition": "CHECK (((((context_key)::text = 'global'::text) = ((context_type IS NULL) AND (context_id IS NULL))) AND ((context_type IS NULL) = (context_id IS NULL))))"
+                },
+                {
+                    "name": "azg_rg_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "permission_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('azg_permission_grants_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "permission",
+                    "type_name": "varchar",
+                    "type": "character varying(255)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": "'manual'::character varying",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_permission_grants_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                },
+                {
+                    "name": "azg_pg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "permission",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "azg_pg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_pg_context_pair",
+                    "definition": "CHECK (((((context_key)::text = 'global'::text) = ((context_type IS NULL) AND (context_id IS NULL))) AND ((context_type IS NULL) = (context_id IS NULL))))"
+                },
+                {
+                    "name": "azg_pg_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        },
+        "panel_state": {
+            "columns": [
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "version",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "'0'::bigint",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "incarnation",
+                    "type_name": "varchar",
+                    "type": "character varying(26)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_panel_state_pkey",
+                    "columns": [
+                        "panel"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [],
+            "foreign_keys": []
+        },
+        "storage_state": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int2",
+                    "type": "smallint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "schema",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "azg_storage_state_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "azg_ss_singleton",
+                    "definition": "CHECK ((id = 1))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "uuid": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('hk_uuid_role_grants_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "uuid",
+                    "type": "uuid",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "uuid",
+                    "type": "uuid",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "uuid",
+                    "type": "uuid",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": "'manual'::character varying",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "uuid",
+                    "type": "uuid",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_uuid_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_uuid_role_grants_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_uuid_rg_context_pair",
+                    "definition": "CHECK (((((context_key)::text = 'global'::text) = ((context_type IS NULL) AND (context_id IS NULL))) AND ((context_type IS NULL) = (context_id IS NULL))))"
+                },
+                {
+                    "name": "hk_uuid_rg_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "bigint": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('hk_bigint_role_grants_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": "'manual'::character varying",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_bigint_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_bigint_role_grants_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_bigint_rg_context_pair",
+                    "definition": "CHECK (((((context_key)::text = 'global'::text) = ((context_type IS NULL) AND (context_id IS NULL))) AND ((context_type IS NULL) = (context_id IS NULL))))"
+                },
+                {
+                    "name": "hk_bigint_rg_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    },
+    "ulid": {
+        "role_grants": {
+            "columns": [
+                {
+                    "name": "id",
+                    "type_name": "int8",
+                    "type": "bigint",
+                    "collation": null,
+                    "nullable": false,
+                    "default": "nextval('hk_ulid_role_grants_id_seq'::regclass)",
+                    "auto_increment": true,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "panel",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "tenant_id",
+                    "type_name": "bpchar",
+                    "type": "character(26)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "role",
+                    "type_name": "varchar",
+                    "type": "character varying(64)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "subject_id",
+                    "type_name": "bpchar",
+                    "type": "character(26)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_key",
+                    "type_name": "varchar",
+                    "type": "character varying(200)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "context_id",
+                    "type_name": "bpchar",
+                    "type": "character(26)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "origin",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": false,
+                    "default": "'manual'::character varying",
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "expires_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_type",
+                    "type_name": "varchar",
+                    "type": "character varying(128)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_id",
+                    "type_name": "bpchar",
+                    "type": "character(26)",
+                    "collation": "C",
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "actor_reason",
+                    "type_name": "text",
+                    "type": "text",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "meta",
+                    "type_name": "json",
+                    "type": "json",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "created_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                },
+                {
+                    "name": "updated_at",
+                    "type_name": "timestamp",
+                    "type": "timestamp(0) without time zone",
+                    "collation": null,
+                    "nullable": true,
+                    "default": null,
+                    "auto_increment": false,
+                    "comment": null,
+                    "generation": null
+                }
+            ],
+            "indexes": [
+                {
+                    "name": "hk_ulid_rg_context",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "context_type",
+                        "context_id"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_expiry",
+                    "columns": [
+                        "expires_at"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_identity",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "role",
+                        "subject_type",
+                        "subject_id",
+                        "context_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_origin",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "origin"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_rg_subject",
+                    "columns": [
+                        "panel",
+                        "tenant_key",
+                        "subject_type",
+                        "subject_id",
+                        "context_key"
+                    ],
+                    "type": "btree",
+                    "unique": false,
+                    "primary": false
+                },
+                {
+                    "name": "hk_ulid_role_grants_pkey",
+                    "columns": [
+                        "id"
+                    ],
+                    "type": "btree",
+                    "unique": true,
+                    "primary": true
+                }
+            ],
+            "constraints": [
+                {
+                    "name": "hk_ulid_rg_context_pair",
+                    "definition": "CHECK (((((context_key)::text = 'global'::text) = ((context_type IS NULL) AND (context_id IS NULL))) AND ((context_type IS NULL) = (context_id IS NULL))))"
+                },
+                {
+                    "name": "hk_ulid_rg_tenant_pair",
+                    "definition": "CHECK (((((tenant_key)::text = 'global'::text) = ((tenant_type IS NULL) AND (tenant_id IS NULL))) AND ((tenant_type IS NULL) = (tenant_id IS NULL))))"
+                }
+            ],
+            "foreign_keys": []
+        }
+    }
+}

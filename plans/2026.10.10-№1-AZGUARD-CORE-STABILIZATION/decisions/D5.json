@@ -1,0 +1,44 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D5",
+  "title": "Keep authority-read mechanics internal and deep",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "How should source-specific reads and consistency mechanics be separated?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Consolidate snapshot acquisition, physical-handle grouping, materialization, retries and cache publication in one internal authority-read coordinator. Keep the existing FencesReads SPI for independently versioned sources; move adapter preparation to its owner without a separate public interface for each concrete-source branch.",
+  "rationale": "ReadAttempt and ReadSessions coordinate one physical database snapshot across logical stores and release pinned handles before later observers. Publicizing sessions or per-branch mechanisms would leak database details and enlarge the stable SPI without an independent extension need.",
+  "applies_to": [
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/ReadAttempt.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/ReadSessions.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Contracts/Sources/FencesReads.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "tests/Feature/Authorization/Batch/ReadSessionLifecycleTest.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}

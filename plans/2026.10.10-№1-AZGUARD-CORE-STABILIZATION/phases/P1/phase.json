@@ -1,0 +1,67 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P1",
+  "title": "Schema and security invariants",
+  "design": "skeleton",
+  "goal": "Fix authority and module data ownership before moving implementations; preserve all existing identity, tenant, consistency and transaction guarantees.",
+  "context": "Architecture phase A. Approximate size: M. Installer/teardown ownership changes deliberately before 1.0; existing grant, identity and audit rows retain their meaning. Task decomposition is deferred to a separate session.",
+  "contract": {
+    "consumes": [
+      "The current 0.7.0 schema-2 implementation and real-driver DDL fixtures",
+      "knowledge/architecture#persistence",
+      "knowledge/architecture#operation-chains"
+    ],
+    "produces": [
+      "Six-table core schema and separate Audit schema/install/health/retention ownership",
+      "Qualified fresh installation, schema-1 upgrade, schema-2 adoption and published application migration behavior",
+      "Stable identity/field/codec ownership contract"
+    ],
+    "boundaries": [
+      "Keep all authority tenant/context columns and uniqueness rules",
+      "Preserve migration history, populated rows and same-transaction audit behavior",
+      "Disabling a module never globalizes or deletes stored grants"
+    ]
+  },
+  "scope": {
+    "include": [
+      "StorageSchema, HostKeyColumns, StorageHealth and existing migrations",
+      "Audit table adoption and teardown ownership",
+      "Tenant/scope boundary and rollback invariants",
+      "Reserved field names and persistent format fixtures"
+    ],
+    "exclude": [
+      "New authorization behavior or tables",
+      "Identity/column/table renaming",
+      "Transaction, lock or replica feature expansion"
+    ]
+  },
+  "depends_on": [],
+  "pitfalls": [
+    "A retained migration filename still executes changed StorageSchema methods",
+    "hasTable alone cannot prove an adopted audit table is compatible",
+    "An adoption rollback must retain a table it did not create",
+    "Modules must not receive unrestricted authority-table mutation"
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "procedure": "Compare actual DDL and constraints on every supported driver for core-only and core+Audit; exercise fresh install, populated 0.7.0/schema-2 adoption, schema-1 upgrade and published migrations; assert unchanged durable identities/rows and tenant/context/rollback invariants.",
+      "expect": "All cases pass with zero grant/identity/audit-row rewrites and no optional Audit table on a fresh core-only installation.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Table and persistent-format ownership contract",
+    "Core-only/core+Audit DDL and populated adoption fixtures",
+    "Documented intentional installer/teardown compatibility change"
+  ],
+  "items": [],
+  "batches": [],
+  "sections": [
+    {
+      "id": "exit",
+      "title": "Exit criterion",
+      "text": "No unresolved data ownership or persistent-format decision remains for the redistribution. Installation and disablement cannot widen authority or discard existing data."
+    }
+  ]
+}

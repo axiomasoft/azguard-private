@@ -1,0 +1,59 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:plan:v1",
+  "id": "2026.10.10-№1-AZGUARD-CORE-STABILIZATION",
+  "short_id": "PLAN1",
+  "title": "Plan №1 — AzGuard modular core and API stabilization for 1.0",
+  "status": "active",
+  "created": "2026-10-10",
+  "updated_at": "2026-10-10T09:39:19Z",
+  "repository": "axiomasoft/azguard-private",
+  "owner": "repository owner",
+  "authoring": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "goal": "Stabilize AzGuard for 1.0 as one small authorization engine with explicit optional internal modules and independently useful integrations. Freeze consumer API, implementer SPI, schema and stored identity meanings before release so later distribution changes preserve user data and supported contracts.",
+  "context": "The target architecture is recorded in knowledge/architecture. It is based on main at 09612160c98ca6133c894a8f90f5653b9dac6b8f (0.7.0), the current manifests, code, migration/test definitions and checked primary sources. The earlier modularization audit supplies initial ideas. This session creates the complete architecture scheme first and four ordered phase skeletons second. Detailed tasks and execution are reserved for separate sessions.",
+  "non_goals": [
+    "New authorization features or a generic plugin workflow engine",
+    "A Composer package for every internal responsibility",
+    "Module bridges, sibling imports or multiple decision engines",
+    "Physical extraction as a prerequisite for 1.0",
+    "Phase task detail, implementation or review execution in this session"
+  ],
+  "rules": [
+    "Preserve one mandatory scalar/batch/query/write interpretation and fail-closed tenant/scope boundaries.",
+    "Core has no module dependency; modules and Filament use supported core API/SPI and neutral values.",
+    "Scopes, Audit and DevTools own complete internal slices; inactive modules perform no runtime I/O or table installation.",
+    "Grant tenant/context identities and schema-2 authority columns remain core-owned.",
+    "Only core coordinators mutate authority state; Audit joins the active transaction through a narrow owned-table capability.",
+    "Choose one documented pre-1.0 API/namespace/config transition, then freeze candidate and stable-tag baselines.",
+    "Detail phases in later sessions against the fixed architecture; preserve all architecture invariants and release conditions.",
+    "Any necessary design amendment is explicit and reasoned, with evidence and the compatibility effect; task decomposition cannot silently change the architecture."
+  ],
+  "phases": [
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "links": {
+    "related_plans": [
+      "2026.10.01-№1-AZGUARD-V1"
+    ]
+  },
+  "settings": {
+    "design_audit": "none",
+    "scout": "off",
+    "language": "en",
+    "evidence": "required",
+    "context_pack": "scoped"
+  },
+  "sections": [
+    {
+      "id": "design-state",
+      "title": "Design state and reading entry point",
+      "text": "The target scheme is fully recorded in `knowledge/architecture`, including ownership, extension slots, operation chains, persistence, compatibility, release conditions and source evidence. The transition phases remain `skeleton` with no items. Use the generated `views/knowledge/architecture.md` for human reading and the plan.py JSON read API for future agent work. The next authorized session details the first phase; this session does not start implementation."
+    }
+  ]
+}

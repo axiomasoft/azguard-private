@@ -1,0 +1,5 @@
+{
+    "decision": {"effect": "allow", "reason": "granted", "component": null, "message": null, "status": null, "code": null},
+    "panel": "admin", "subject": {"type": "user", "id": "1"},
+    "scope": {"tenant": "global", "context": "global"}, "now": "2026-10-05T12:00:00.000000+00:00"
+}

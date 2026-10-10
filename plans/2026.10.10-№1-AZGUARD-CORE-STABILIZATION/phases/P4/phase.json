@@ -1,0 +1,72 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:phase:v1",
+  "id": "P4",
+  "title": "Qualify the candidate and establish the 1.0 freeze",
+  "design": "skeleton",
+  "goal": "Demonstrate a stable API/SPI/schema in real consumers and make the complete release gate and post-1.0 compatibility policy blocking in CI.",
+  "context": "Architecture phase D. Approximate size: M. The candidate closes the one pre-1.0 transition. This phase introduces qualification and compatibility enforcement, without reopening the architecture. Physical extraction is conditional future work and does not block the 1.0 milestone.",
+  "contract": {
+    "consumes": [
+      "The consolidated implementation and regression evidence from the preceding phase",
+      "knowledge/architecture#release-gate",
+      "knowledge/architecture#api-compatibility",
+      "knowledge/architecture#transition-policy"
+    ],
+    "produces": [
+      "Candidate/final supported-surface and non-PHP compatibility baselines",
+      "Blocking archive-consumer and release qualification checks",
+      "Complete upgrade guide and recorded race/load evidence",
+      "Post-1.0 architecture/compatibility rules"
+    ],
+    "boundaries": [
+      "1.0 requires every release condition on the candidate commit",
+      "A tag must not bypass the candidate qualification matrix",
+      "Future code movement retains logical FQCNs, schema/history and durable data"
+    ]
+  },
+  "scope": {
+    "include": [
+      "API generator and tests/Arch ownership/member rules",
+      "Existing driver/cache/replica, race, load and consumer suites",
+      "tests/release workflows and archive fixtures",
+      "Configuration/event/audit/CLI/error format fixtures and upgrade documentation"
+    ],
+    "exclude": [
+      "New authorization features",
+      "Mandatory physical module extraction",
+      "Commercial edition branches or alternative schemas"
+    ]
+  },
+  "depends_on": [
+    "P3"
+  ],
+  "pitfalls": [
+    "Regenerating a manifest on the same branch does not prove compatibility",
+    "continue-on-error consumer checks do not qualify a distribution",
+    "Release validation on a tag must cover the qualified candidate",
+    "Interface additions, named parameters, defaults and closed enum additions can break implementers"
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "procedure": "Verify all ten release conditions in knowledge/architecture#release-gate on the candidate commit, including supported platform/driver/cache/replica checks, archive consumers, recorded race/performance results and all PHP/non-PHP baselines; verify stable-tag comparison and tag gating fail on an intentional breaking fixture.",
+      "expect": "Every release condition is green with reproducible evidence; archive failures and incompatible stable-tag changes are blocking.",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Frozen API/SPI, schema and machine-format baselines",
+    "Blocking consumer/release qualification",
+    "One complete 0.7.0 upgrade guide",
+    "Permanent ownership, activation, parity and compatibility checks"
+  ],
+  "items": [],
+  "batches": [],
+  "sections": [
+    {
+      "id": "exit",
+      "title": "Exit criterion",
+      "text": "The entire documented 1.0 release gate is satisfied. A release decision has concrete evidence, and no required architecture boundary or compatibility format remains undecided."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{"v":1,"ts":"2026-10-10T09:39:19Z","type":"plan_created","actor":{"provider":"codex","model":"gpt-6"},"summary":"plan PLAN1 created","data":{"plan_id":"2026.10.10-№1-AZGUARD-CORE-STABILIZATION"}}
+{"v":1,"ts":"2026-10-10T09:40:48Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D1 accepted","data":{"id":"D1","by":"agent"}}
+{"v":1,"ts":"2026-10-10T09:40:48Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D2 accepted","data":{"id":"D2","by":"agent"}}
+{"v":1,"ts":"2026-10-10T09:40:48Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D3 accepted","data":{"id":"D3","by":"agent"}}
+{"v":1,"ts":"2026-10-10T09:40:48Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D4 accepted","data":{"id":"D4","by":"agent"}}
+{"v":1,"ts":"2026-10-10T09:40:48Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D5 accepted","data":{"id":"D5","by":"agent"}}
+{"v":1,"ts":"2026-10-10T09:40:49Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D6 accepted","data":{"id":"D6","by":"agent"}}

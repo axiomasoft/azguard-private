@@ -1,0 +1,40 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D3",
+  "title": "Stable persistence with independent Audit ownership",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "Which schema changes are required to redistribute modules safely?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Preserve schema-2 authority columns, table names, identity codecs and populated rows. Core owns six authority tables; Audit owns the existing audit table, migration/adoption, health, insertion and retention. Fresh core-only installs omit Audit; existing audit tables are fully checked and adopted without row rewriting or destructive adoption rollback.",
+  "rationale": "Scopes, tenant resolution, DevTools and Filament need no additional AzGuard table. Current StorageSchema and delegate migrations create/drop Audit together with authority storage, so ownership must change deliberately before 1.0 while names/history and same-transaction guarantees remain stable.",
+  "global": true,
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Storage/Schema/StorageSchema.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Storage/Schema/HostKeyColumns.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/database/migrations/2026_10_01_000000_create_azguard_storage.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangeJournal.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}

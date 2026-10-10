@@ -1,0 +1,2080 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c2a0665..7244b4b 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,9 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
+ 
+ ## [Unreleased]
+ 
++- **core:** `Authorizer::explain()` and readonly `Kernel\Decision\Explanation` capture one evaluation, contribution origins/qualification, skipped stages and scalar scope/state; nested secrets and matching message values are redacted. `azguard:explain` prints JSON or a step table without publishing cold diagnostic cache reads (P4.10).
++- **core:** Authoritative `Laravel\Gate\GateBridge` uses the common resolver/pipeline for registered full/prefix names, local static/dynamic names and indexed model abilities; owned denial is final, ambiguous pairs deny, foreign abilities fall through. `toGateResult()` preserves policy Response details. P03/P09, Blade and 200 seeded P9 parity cover current surfaces; earlier host Gate::before callbacks remain an integration constraint (P4.11).
++
+ - Ядро 1.0: `Authorizer::decideMany()` сохраняет скалярные решения и порядок запросов, читает назначения пачками до 100 контекстов под единым fence группы и загружает host-модели/eligibility пакетно. Один `now`, отдельные вызовы политик/условий/ограничений, typed state map; CRM 1k/10k и конкурентный revoke квалифицированы. `resolve()` использует общий PanelResolver, конфликт панелей отклоняется.
+ 
+ - Квалификация кэша ядра 1.0: независимые процессы проверяют revoke/fence и lock-first протокол на PostgreSQL/MySQL/MariaDB, настоящий Redis — expiry/build/restore, PostgreSQL streaming replica — окно Default и отказ Primary. Воспроизводимый benchmark записывает cold/warm p95/p99 и бюджеты SQL. Fingerprint DB authority теперь включает deployment build id, чтобы новый build не использовал прежние raw cache entries.
+diff --git a/packages/core/api-manifest.json b/packages/core/api-manifest.json
+index 57fa5c8..b15bf59 100644
+--- a/packages/core/api-manifest.json
++++ b/packages/core/api-manifest.json
+@@ -4292,6 +4292,107 @@
+             "stability": "api",
+             "via": "location"
+         },
++        {
++            "name": "AzGuard\\Kernel\\Decision\\Explanation",
++            "kind": "class",
++            "final": true,
++            "abstract": false,
++            "readonly": true,
++            "parent": null,
++            "interfaces": [],
++            "constants": [],
++            "properties": [],
++            "methods": [
++                {
++                    "name": "__construct",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [
++                        {
++                            "name": "result",
++                            "type": "AzGuard\\Kernel\\Decision\\Decision",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "steps",
++                            "type": "array",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "evaluatedAt",
++                            "type": "DateTimeImmutable",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "subject",
++                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "resource",
++                            "type": "?array",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": true,
++                            "default": "NULL"
++                        }
++                    ],
++                    "return": null
++                },
++                {
++                    "name": "decision",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "AzGuard\\Kernel\\Decision\\Decision"
++                },
++                {
++                    "name": "now",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "DateTimeImmutable"
++                },
++                {
++                    "name": "scope",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "AzGuard\\Kernel\\Identity\\AccessScope"
++                },
++                {
++                    "name": "state",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "AzGuard\\Kernel\\Decision\\CodeStateToken|AzGuard\\Kernel\\Decision\\StateToken"
++                },
++                {
++                    "name": "steps",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "array"
++                },
++                {
++                    "name": "toArray",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [],
++                    "return": "array"
++                }
++            ],
++            "stability": "api",
++            "via": "location"
++        },
+         {
+             "name": "AzGuard\\Kernel\\Decision\\Grant",
+             "kind": "class",
+@@ -5985,6 +6086,95 @@
+             "stability": "api",
+             "via": "location"
+         },
++        {
++            "name": "AzGuard\\Laravel\\Gate\\GateBridge",
++            "kind": "class",
++            "final": true,
++            "abstract": false,
++            "readonly": true,
++            "parent": null,
++            "interfaces": [],
++            "constants": [],
++            "properties": [],
++            "methods": [
++                {
++                    "name": "__construct",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [
++                        {
++                            "name": "authorizer",
++                            "type": "AzGuard\\Authorization\\Authorizer",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "resolver",
++                            "type": "AzGuard\\Panels\\PanelResolver",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "registry",
++                            "type": "AzGuard\\Panels\\PanelRegistry",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        }
++                    ],
++                    "return": null
++                },
++                {
++                    "name": "__invoke",
++                    "static": false,
++                    "abstract": false,
++                    "parameters": [
++                        {
++                            "name": "user",
++                            "type": "?object",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "ability",
++                            "type": "string",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        },
++                        {
++                            "name": "arguments",
++                            "type": "array",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": true,
++                            "default": "array (\n)"
++                        }
++                    ],
++                    "return": "?Illuminate\\Auth\\Access\\Response"
++                },
++                {
++                    "name": "toGateResult",
++                    "static": true,
++                    "abstract": false,
++                    "parameters": [
++                        {
++                            "name": "decision",
++                            "type": "AzGuard\\Kernel\\Decision\\Decision",
++                            "byRef": false,
++                            "variadic": false,
++                            "hasDefault": false
++                        }
++                    ],
++                    "return": "Illuminate\\Auth\\Access\\Response"
++                }
++            ],
++            "stability": "api",
++            "via": "tag"
++        },
+         {
+             "name": "AzGuard\\Panels\\GateMode",
+             "kind": "enum",
+diff --git a/packages/core/src/Authorization/Authorizer.php b/packages/core/src/Authorization/Authorizer.php
+index b541530..01c9c53 100644
+--- a/packages/core/src/Authorization/Authorizer.php
++++ b/packages/core/src/Authorization/Authorizer.php
+@@ -14,6 +14,7 @@
+ use AzGuard\Kernel\Decision\AccessRequest;
+ use AzGuard\Kernel\Decision\Decision;
+ use AzGuard\Kernel\Decision\DecisionSet;
++use AzGuard\Kernel\Decision\Explanation;
+ use AzGuard\Kernel\Identity\AccessScope;
+ use AzGuard\Kernel\Identity\ActorRef;
+ use AzGuard\Kernel\Identity\AssignmentScopeRef;
+@@ -25,6 +26,7 @@
+ use AzGuard\Panels\PanelResolver;
+ use AzGuard\Sources\Database\DatabaseSource;
+ use Closure;
++use DateTimeImmutable;
+ use Fiber;
+ use Illuminate\Database\Eloquent\Model;
+ use Illuminate\Support\Carbon;
+@@ -137,6 +139,19 @@ private function operationKey(Panel $panel, AccessRequest $request): string
+     }
+ 
+     public function decide(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Decision
++    {
++        return $this->evaluate($panel, $request, $actor)[0];
++    }
++
++    public function explain(Panel $panel, AccessRequest $request, ?ActorRef $actor = null): Explanation
++    {
++        [$decision, $trace, $now] = $this->evaluate($panel, $request, $actor, diagnostic: true);
++
++        return new Explanation($decision, $trace->steps(), $now, $request->subject(), $trace->resource());
++    }
++
++    /** @return array{Decision, Trace, DateTimeImmutable} */
++    private function evaluate(Panel $panel, AccessRequest $request, ?ActorRef $actor, bool $diagnostic = false): array
+     {
+         if ($panel->id() !== $request->permission()->panel()) {
+             throw new ConflictingPanelException('The selected panel differs from the request permission panel.');
+@@ -151,15 +166,21 @@ public function decide(Panel $panel, AccessRequest $request, ?ActorRef $actor =
+         try {
+             $now = Carbon::now('UTC')->toDateTimeImmutable();
+             for ($attempt = 0; ; $attempt++) {
+-                $trace = new Trace($request->isTraced());
++                $trace = new Trace($diagnostic || $request->isTraced(), diagnostic: $diagnostic);
+ 
+                 try {
+                     [$catalog,$definition,$frame,$denial] = $this->prepare->prepare($panel, $request, $actor, $trace, $now);
+ 
+-                    return $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
++                    $decision = $this->pipeline->evaluate($request, $frame, $catalog, $definition, $trace, $denial);
++                    $trace->finish();
++
++                    return [$decision, $trace, $now];
+                 } catch (ReadAttemptChanged $changed) {
+                     if ($attempt === 2) {
+-                        return $this->pipeline->inconsistent($request, $changed->frame, $trace);
++                        $decision = $this->pipeline->inconsistent($request, $changed->frame, $trace);
++                        $trace->finish();
++
++                        return [$decision, $trace, $now];
+                     }
+                 }
+             }
+diff --git a/packages/core/src/Authorization/Pipeline/AccessPipeline.php b/packages/core/src/Authorization/Pipeline/AccessPipeline.php
+index e7a4422..9f01140 100644
+--- a/packages/core/src/Authorization/Pipeline/AccessPipeline.php
++++ b/packages/core/src/Authorization/Pipeline/AccessPipeline.php
+@@ -33,11 +33,17 @@ public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCa
+ 
+         if ($decision === null) {
+             [$frame,$decision] = $this->authority->decide($request, $frame, $catalog, $definition, $trace);
+-            $trace->record('authority', $decision->reason->value);
++            $trace->record('authority', $decision->reason->value, outcome: $decision->allowed() ? 'pass' : 'deny');
++        } else {
++            foreach (['sources', 'superadmin', 'policy', 'authority'] as $stage) {
++                $trace->record($stage, 'skipped');
++            }
+         }
+ 
+         if ($decision->allowed()) {
+             $decision = $restrictionDenial ?? $this->restrictions->decide($request, $frame, $restrictions, $trace) ?? $decision;
++        } else {
++            $trace->record('restriction', 'skipped');
+         }
+ 
+         if ($deferred) {
+@@ -52,6 +58,7 @@ public function evaluate(AccessRequest $request, EvaluationFrame $frame, PanelCa
+     /** @return array{?Decision, list<Restriction>, ?Decision} */
+     public function start(AccessRequest $request, EvaluationFrame $frame, Trace $trace, ?Decision $denial): array
+     {
++        $trace->inputs($frame);
+         $trace->record('prepare', 'prepared');
+         $restrictions = [];
+         $restrictionDenial = null;
+@@ -65,14 +72,21 @@ public function start(AccessRequest $request, EvaluationFrame $frame, Trace $tra
+         $restrictionDenial ??= $this->restrictions->validateKeys($frame, $restrictions, $trace);
+ 
+         $decision = $denial ?? $this->boundary->decide($frame);
+-        $trace->record('boundary', $decision?->reason->value ?? 'pass');
+-        $decision ??= $this->before->decide($request, $frame, $trace);
++        $trace->record('boundary', $decision?->reason->value ?? 'pass', outcome: $decision === null ? 'pass' : 'deny');
++
++        if ($decision === null) {
++            $decision = $this->before->decide($request, $frame, $trace);
++        } else {
++            $trace->record('before', 'skipped');
++        }
+ 
+         return [$decision, $restrictions, $restrictionDenial];
+     }
+ 
+     public function complete(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace, bool $confirm = true): Decision
+     {
++        $confirmed = true;
++
+         if ($confirm && $frame->readAttempt !== null) {
+             try {
+                 $frame = $frame->readAttempt->confirm($frame);
+@@ -83,6 +97,7 @@ public function complete(AccessRequest $request, EvaluationFrame $frame, Decisio
+                 // The root retries every stage; no observer sees a discarded decision.
+                 throw $changed;
+             } catch (Throwable $error) {
++                $confirmed = false;
+                 $trace->error('state', 'source_error', 'dynamic_sources', $error);
+                 $decision = Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), 'dynamic_sources');
+             }
+@@ -90,6 +105,7 @@ public function complete(AccessRequest $request, EvaluationFrame $frame, Decisio
+         $decision = $decision->allowed()
+             ? Decision::allow($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->grants, $decision->message, $decision->status, $decision->code)
+             : Decision::deny($decision->reason, $frame->state(), $decision->scope, $decision->component, $decision->message, $decision->status, $decision->code);
++        $trace->record('state', $confirmed ? 'confirmed' : 'source_error', detail: ['sources' => array_map(static fn ($state): array => get_object_vars($state), $frame->sourceStates)], outcome: $confirmed ? 'pass' : 'error');
+         $this->after->observe($request, $frame, $decision, $trace);
+ 
+         return $decision;
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/AfterStage.php b/packages/core/src/Authorization/Pipeline/Stages/AfterStage.php
+index a28dbd4..ceaef32 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/AfterStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/AfterStage.php
+@@ -20,6 +20,9 @@ public function __construct(private Container $container, private RuntimeInvoker
+ 
+     public function observe(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace): void
+     {
++        if ($frame->panel()->after() === []) {
++            $trace->record('after', 'skipped');
++        }
+         foreach ($frame->panel()->after() as $hook) {
+             $component = is_string($hook) ? $hook : $hook::class;
+ 
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php b/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
+index 0066eb5..5781a3c 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php
+@@ -54,6 +54,9 @@ public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCata
+             if ($denial !== null) {
+                 return [$frame, $denial];
+             }
++        } else {
++            $trace->record('sources', 'skipped');
++            $trace->record('superadmin', 'skipped');
+         }
+ 
+         try {
+@@ -73,6 +76,11 @@ public function decide(AccessRequest $request, EvaluationFrame $frame, PanelCata
+ 
+         try {
+             $veto = $this->policies->decide($request, $frame, $catalog, $definition->authority, qualified: $qualified);
++            $binding = $catalog->policyBindings()[$request->permission()->local()] ?? null;
++            $trace->record('policy', $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'),
++                $binding === null ? null : ($binding->policy ?? $binding->ability),
++                detail: ['message' => $veto?->message, 'status' => $veto?->status, 'code' => $veto?->code],
++                outcome: $binding === null ? 'skipped' : ($veto?->allowed() === false ? 'deny' : 'pass'));
+ 
+             if ($veto !== null) {
+                 return [$frame, $veto];
+@@ -101,7 +109,7 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+         $qualified = false;
+ 
+         try {
+-            $contributions = $frame->readAttempt?->contributions($request, $frame);
++            $contributions = $frame->readAttempt?->contributions($request, $frame, $trace);
+ 
+             if ($frame->readAttempt !== null) {
+                 $frame = $frame->readAttempt->consumedFrame($frame);
+@@ -115,7 +123,7 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+                         $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
+                     }
+ 
+-                    [$items, $frame] = $this->readSource($source, $request, $frame);
++                    [$items, $frame] = $this->readSource($source, $request, $frame, $trace);
+                     foreach ($items as $item) {
+                         $contributions[] = [$source, $item];
+                     }
+@@ -135,11 +143,13 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+         } catch (Throwable $error) {
+             $component = isset($source) ? $source::class : 'sources';
+             $reason = $error instanceof ConsistencyException ? DecisionReason::ConsistencyError : DecisionReason::SourceError;
+-            $trace->error('authority', $reason->value, $component, $error);
++            $trace->error('sources', $reason->value, $component, $error);
+ 
+             return [$frame, false, Decision::deny($reason, $frame->state(), $frame->scope(), $component)];
+         }
+         foreach ($contributions as [$source,$item]) {
++            $trace->qualifying($item);
++
+             if (! $item->activeAt($frame->now())) {
+                 $trace->record('contribution', 'expired', $source::class);
+ 
+@@ -188,7 +198,7 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+                 $branch = $frame->forContribution($item, $role);
+ 
+                 try {
+-                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs)) {
++                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs, $trace)) {
+                         $trace->record('contribution', 'scope_ineligible', $source::class);
+ 
+                         continue;
+@@ -206,7 +216,10 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+                         throw new RuntimeException('Condition resolver did not return GrantCondition.');
+                     }
+ 
+-                    if (! $condition->allows($item, $request, $branch)) {
++                    $allowed = $condition->allows($item, $request, $branch);
++                    $trace->record('condition', $allowed ? 'pass' : 'condition_false', $condition::class);
++
++                    if (! $allowed) {
+                         $passes = false;
+ 
+                         break;
+@@ -245,15 +258,19 @@ public function qualify(AccessRequest $request, EvaluationFrame $frame, PanelCat
+                 if ($admin && $roleDefinition['permissions'] === []) {
+                     $trace->record('contribution', 'qualified_empty_super_admin', $source::class);
+                 }
++            } else {
++                $trace->record('contribution', 'not_matching', $source::class, outcome: 'skipped');
+             }
+         }
+         $frame = $frame->withAuthority($matching, $superAdmin);
++        $trace->record('sources', 'evaluated', detail: ['count' => count($contributions)]);
++        $trace->record('superadmin', $superAdmin ? 'qualified' : 'not_granted');
+ 
+         return [$frame, $qualified, null];
+     }
+ 
+     /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */
+-    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame): array
++    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
+     {
+         if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
+             return [[], $frame];
+@@ -261,6 +278,9 @@ private function readSource(Source $source, AccessRequest $request, EvaluationFr
+ 
+         if ($source instanceof DatabaseSource) {
+             $snapshot = $source->readContributions($request->subject(), $frame->sourceScopes(), $frame);
++            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
++                $trace->contribution($item, $source::class);
++            }
+ 
+             return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
+         }
+@@ -274,6 +294,7 @@ private function readSource(Source $source, AccessRequest $request, EvaluationFr
+                     if (! $item instanceof Grant) {
+                         throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
+                     }
++                    $trace->contribution($item, $source::class);
+                     $items[] = $item;
+                 }
+             }
+@@ -283,6 +304,7 @@ private function readSource(Source $source, AccessRequest $request, EvaluationFr
+                     if (! $item instanceof RoleContribution) {
+                         throw new InvalidSourceContributionException('Unexpected role contribution type.');
+                     }
++                    $trace->contribution($item, $source::class);
+                     $items[] = $item;
+                 }
+             }
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php b/packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php
+index b80f58d..7012924 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php
+@@ -22,6 +22,9 @@ public function __construct(private Container $container, private RuntimeInvoker
+ 
+     public function decide(AccessRequest $request, EvaluationFrame $frame, Trace $trace): ?Decision
+     {
++        if ($frame->panel()->before() === []) {
++            $trace->record('before', 'skipped');
++        }
+         foreach ($frame->panel()->before() as $hook) {
+             $component = is_string($hook) ? $hook : $hook::class;
+ 
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php b/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
+index 7392251..6b28e1f 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php
+@@ -123,7 +123,7 @@ public function structural(AccessRequest $request, EvaluationFrame $frame, Trace
+                 }
+                 $frame = $frame->withAssignmentScope($resolved);
+ 
+-                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs)) {
++                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs, $trace)) {
+                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
+                 }
+             } catch (Throwable $error) {
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php b/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
+index 5186f17..e706de0 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/PrepareStage.php
+@@ -119,7 +119,7 @@ public function complete(AccessRequest $request, PanelCatalog $catalog, ?Permiss
+         $error = null;
+ 
+         if ($definition === null && $catalog->isDynamic()) {
+-            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject());
++            $attempt = $this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic);
+             $frame = $frame->withReadAttempt($attempt);
+ 
+             try {
+@@ -151,7 +151,7 @@ public function complete(AccessRequest $request, PanelCatalog $catalog, ?Permiss
+ 
+         if ($definition?->authority === PermissionAuthority::Grants && $frame->readAttempt === null) {
+             try {
+-                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, $batch, $request->subject()));
++                $frame = $frame->withReadAttempt($this->attempt($catalog, $frame, $batch, $request->subject(), publish: ! $trace->diagnostic));
+             } catch (Throwable $caught) {
+                 $error = $caught;
+                 $trace->error('prepare', 'source_error', 'sources', $caught);
+@@ -161,11 +161,11 @@ public function complete(AccessRequest $request, PanelCatalog $catalog, ?Permiss
+         return [$catalog, $definition ?? $catalog->get($request->permission()), $frame, $error === null ? null : Decision::deny(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class)];
+     }
+ 
+-    private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject): ReadAttempt
++    private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject, bool $publish = true): ReadAttempt
+     {
+         $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container)->all();
+         $cache = $this->container->make(PermissionSetCache::class);
+ 
+-        return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);
++        return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache, publish: $publish) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);
+     }
+ }
+diff --git a/packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php b/packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php
+index a16da18..7c15f26 100644
+--- a/packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php
++++ b/packages/core/src/Authorization/Pipeline/Stages/RestrictionStage.php
+@@ -60,6 +60,9 @@ public function validateKeys(EvaluationFrame $frame, array $restrictions, Trace
+     /** @param list<Restriction> $restrictions */
+     public function decide(AccessRequest $request, EvaluationFrame $frame, array $restrictions, Trace $trace): ?Decision
+     {
++        if ($restrictions === []) {
++            $trace->record('restriction', 'skipped');
++        }
+         foreach ($restrictions as $restriction) {
+             $component = $restriction::class;
+ 
+@@ -78,7 +81,7 @@ public function decide(AccessRequest $request, EvaluationFrame $frame, array $re
+                     continue;
+                 }
+                 $result = $restriction->check($request, $frame);
+-                $trace->record('restriction', $result->reason() ?? 'pass', $component);
++                $trace->record('restriction', $result->reason() ?? 'pass', $component, outcome: $result->denied() ? 'deny' : 'pass');
+ 
+                 if ($result->denied()) {
+                     return Decision::deny(DecisionReason::Restricted, $frame->state(), $frame->scope(), $component);
+diff --git a/packages/core/src/Authorization/Pipeline/Trace.php b/packages/core/src/Authorization/Pipeline/Trace.php
+index c25a12c..b17718e 100644
+--- a/packages/core/src/Authorization/Pipeline/Trace.php
++++ b/packages/core/src/Authorization/Pipeline/Trace.php
+@@ -4,20 +4,94 @@
+ 
+ namespace AzGuard\Authorization\Pipeline;
+ 
++use AzGuard\Authorization\EvaluationFrame;
++use AzGuard\Kernel\Decision\Grant;
++use AzGuard\Kernel\Decision\RoleContribution;
++use Illuminate\Database\Eloquent\Model;
+ use Illuminate\Support\Facades\Log;
+ use Throwable;
+ 
+ final class Trace
+ {
+-    /** @var list<array{stage:string, result:string, component:?string, exception:?string}> */
++    /** @var list<array<string, mixed>> */
+     private array $steps = [];
+ 
+-    public function __construct(private readonly bool $enabled = false) {}
++    /** @var array{class: string, id: int|string|null}|null */
++    private ?array $resource = null;
+ 
+-    public function record(string $stage, string $result, ?string $component = null, ?Throwable $error = null): void
++    /** @var array<string, mixed> */
++    private array $qualification = [];
++
++    public function __construct(private readonly bool $enabled = false, public readonly bool $diagnostic = false) {}
++
++    /** @param array<string, mixed> $detail */
++    public function record(string $stage, string $result, ?string $component = null, ?Throwable $error = null, array $detail = [], ?string $outcome = null): void
+     {
+         if ($this->enabled) {
+-            $this->steps[] = ['stage' => $stage, 'result' => $result, 'component' => $component, 'exception' => $error === null ? null : $error::class];
++            if (in_array($stage, ['contribution', 'condition', 'filter'], true)) {
++                $detail = [...$this->qualification, ...$detail];
++            }
++            $outcome ??= $error !== null ? 'error' : match ($result) {
++                'skipped', 'not_applicable', 'exempt' => 'skipped',
++                'Deny', 'restricted', 'condition_false', 'expired', 'not_granted',
++                'global_role_not_allowed', 'former_role_key', 'unknown_role', 'not_grantable_role',
++                'role_scope_not_accepted', 'scope_ineligible' => 'deny',
++                default => 'pass',
++            };
++            $this->steps[] = ['stage' => $stage, 'component' => $component, 'outcome' => $outcome,
++                'detail' => $error === null ? $detail : [...$detail, 'exception' => $error::class, 'message' => $error->getMessage()],
++                'result' => $result, 'exception' => $error === null ? null : $error::class];
++        }
++    }
++
++    public function inputs(EvaluationFrame $frame): void
++    {
++        if (! $this->enabled) {
++            return;
++        }
++        $resource = $frame->resource();
++        $this->resource = $resource === null ? null : ['class' => $resource::class,
++            'id' => $resource instanceof Model ? $resource->getKey() : null];
++    }
++
++    /** @return array{class: string, id: int|string|null}|null */
++    public function resource(): ?array
++    {
++        return $this->resource;
++    }
++
++    public function contribution(Grant|RoleContribution $item, string $component): void
++    {
++        if (! $this->enabled) {
++            return;
++        }
++        $this->record('contribution', 'observed', $component, detail: [
++            'source' => $item->source, 'origin' => $item->origin, 'role' => $item->role?->full(),
++            'permission' => $item instanceof Grant ? $item->pattern->full() : null,
++            'tenant' => $item->scope->tenant->key(), 'context' => $item->scope->context->key(),
++            'expires_at' => $item->expiresAt?->format(DATE_ATOM), 'fields' => $item->fields(),
++        ], outcome: 'contribution');
++    }
++
++    public function qualifying(Grant|RoleContribution $item): void
++    {
++        if ($this->enabled) {
++            $this->qualification = ['source' => $item->source, 'origin' => $item->origin,
++                'role' => $item->role?->full(), 'permission' => $item instanceof Grant ? $item->pattern->full() : null,
++                'tenant' => $item->scope->tenant->key(), 'context' => $item->scope->context->key(),
++                'expires_at' => $item->expiresAt?->format(DATE_ATOM), 'fields' => $item->fields()];
++        }
++    }
++
++    public function finish(): void
++    {
++        if (! $this->enabled) {
++            return;
++        }
++        foreach (['prepare', 'boundary', 'before', 'sources', 'condition', 'filter', 'superadmin', 'membership', 'policy', 'authority', 'restriction', 'state', 'after'] as $stage) {
++            if (! in_array($stage, array_column($this->steps, 'stage'), true)) {
++                $this->record($stage, 'skipped');
++            }
+         }
+     }
+ 
+@@ -27,7 +101,7 @@ public function error(string $stage, string $reason, string $component, Throwabl
+         Log::warning('AzGuard evaluation failed.', ['component' => $component, 'reason' => $reason, 'exception' => $error::class]);
+     }
+ 
+-    /** @return list<array{stage:string, result:string, component:?string, exception:?string}> */
++    /** @return list<array<string, mixed>> */
+     public function steps(): array
+     {
+         return $this->steps;
+diff --git a/packages/core/src/Authorization/ReadAttempt.php b/packages/core/src/Authorization/ReadAttempt.php
+index cf5425b..7dbe35d 100644
+--- a/packages/core/src/Authorization/ReadAttempt.php
++++ b/packages/core/src/Authorization/ReadAttempt.php
+@@ -5,6 +5,7 @@
+ namespace AzGuard\Authorization;
+ 
+ use AzGuard\Authorization\Cache\PermissionSetCache;
++use AzGuard\Authorization\Pipeline\Trace;
+ use AzGuard\Catalog\PanelCatalog;
+ use AzGuard\Contracts\Sources\FencesReads;
+ use AzGuard\Contracts\Sources\ProvidesGrants;
+@@ -53,7 +54,7 @@ final class ReadAttempt
+     private array $pending = [];
+ 
+     /** @param list<Attached> $sources */
+-    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null) {}
++    public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true) {}
+ 
+     /** @var list<AccessScope>|null */
+     private ?array $batchScopes = null;
+@@ -157,7 +158,7 @@ public function catalog(): PanelCatalog
+     }
+ 
+     /** @return list<array{Source, Grant|RoleContribution}> */
+-    public function contributions(AccessRequest $request, EvaluationFrame $frame): array
++    public function contributions(AccessRequest $request, EvaluationFrame $frame, ?Trace $trace = null): array
+     {
+         $contributions = [];
+         $pending = [];
+@@ -182,6 +183,7 @@ public function contributions(AccessRequest $request, EvaluationFrame $frame): a
+ 
+             if ($items !== null) {
+                 foreach ($items as $item) {
++                    $trace?->contribution($item, $source::class);
+                     $contributions[] = [$source, $item];
+                 }
+ 
+@@ -203,6 +205,8 @@ public function contributions(AccessRequest $request, EvaluationFrame $frame): a
+                         if (! $item instanceof Grant) {
+                             throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
+                         }
++                        // Capture declared secrets before advancing a potentially throwing lazy iterator.
++                        $trace?->contribution($item, $source::class);
+                         $items[] = $item;
+                     }
+                 }
+@@ -212,11 +216,16 @@ public function contributions(AccessRequest $request, EvaluationFrame $frame): a
+                         if (! $item instanceof RoleContribution) {
+                             throw new InvalidSourceContributionException('Unexpected role contribution type.');
+                         }
++                        $trace?->contribution($item, $source::class);
+                         $items[] = $item;
+                     }
+                 }
+             }
+             foreach ($items as $item) {
++                if ($source instanceof DatabaseSource) {
++                    $trace?->contribution($item, $source::class);
++                }
++
+                 if (($item instanceof Grant && $item->pattern->panel() !== $frame->panel()->id())
+                     || ($item->role !== null && $item->role->panel() !== $frame->panel()->id()) || ! $frame->acceptsContributionScope($item->scope)) {
+                     throw new InvalidSourceContributionException('Contribution panel or scope differs from the request.');
+@@ -270,12 +279,14 @@ public function confirm(EvaluationFrame $frame): EvaluationFrame
+         }
+ 
+         foreach ($this->stateKeys as $id => $key) {
+-            if ($this->transaction === null && isset($this->states[$id])) {
++            if ($this->publish && $this->transaction === null && isset($this->states[$id])) {
+                 $this->cache?->rememberState($key, $this->states[$id]);
+             }
+         }
+         foreach ($this->pending as ['key' => $key, 'source' => $source, 'items' => $items]) {
+-            $this->cache?->put($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $items, $frame->now());
++            if ($this->publish) {
++                $this->cache?->put($key, $frame->panel(), $source->volatility(), $source instanceof FencesReads, $items, $frame->now());
++            }
+         }
+         $this->pending = [];
+ 
+diff --git a/packages/core/src/Authorization/ScopeEligibility.php b/packages/core/src/Authorization/ScopeEligibility.php
+index 9694a5b..d754a39 100644
+--- a/packages/core/src/Authorization/ScopeEligibility.php
++++ b/packages/core/src/Authorization/ScopeEligibility.php
+@@ -4,6 +4,7 @@
+ 
+ namespace AzGuard\Authorization;
+ 
++use AzGuard\Authorization\Pipeline\Trace;
+ use AzGuard\Authorization\Query\EligibilityBuilder;
+ use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
+ use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+@@ -21,7 +22,7 @@
+ {
+     public function __construct(private Container $container) {}
+ 
+-    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
++    public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null, ?Trace $trace = null): bool
+     {
+         if ($frame->scope()->context->isGlobal()) {
+             return true;
+@@ -30,11 +31,11 @@ public function common(AccessRequest $request, EvaluationFrame $frame, ?BatchInp
+         $definition = $this->definition($frame);
+         $runtime = $this->runtime($request->subject(), $frame, common: true);
+ 
+-        return $this->native($definition, $definition, $frame, $runtime, $batch)
+-            && $this->external($frame, $runtime, $batch);
++        return $this->native($definition, $definition, $frame, $runtime, $batch, $trace)
++            && $this->external($frame, $runtime, $batch, $trace);
+     }
+ 
+-    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null): bool
++    public function contribution(AccessRequest $request, EvaluationFrame $frame, ?BatchInputs $batch = null, ?Trace $trace = null): bool
+     {
+         if ($frame->scope()->context->isGlobal()) {
+             return true;
+@@ -78,13 +79,13 @@ public function contribution(AccessRequest $request, EvaluationFrame $frame, ?Ba
+                     throw new RuntimeException('A model-required scope binding has no resolved record.');
+                 }
+ 
+-                if (! $this->native($definition, $binding, $frame, $runtime, $batch)) {
++                if (! $this->native($definition, $binding, $frame, $runtime, $batch, $trace)) {
+                     return false;
+                 }
+             }
+         }
+ 
+-        return $this->external($frame, $runtime, $batch);
++        return $this->external($frame, $runtime, $batch, $trace);
+     }
+ 
+     private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
+@@ -93,7 +94,7 @@ private function definition(EvaluationFrame $frame): AssignmentScopeDefinition
+             ?? throw new RuntimeException('Selected scope definition is missing.');
+     }
+ 
+-    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
++    private function native(AssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch, ?Trace $trace = null): bool
+     {
+         $filters = $configuration instanceof ConfigurableAssignmentScopeDefinition ? $configuration->settings()->filters : [];
+ 
+@@ -107,11 +108,16 @@ private function native(AssignmentScopeDefinition $definition, AssignmentScopeDe
+ 
+         $resolved = $frame->assignmentScope ?? throw new RuntimeException('Scope eligibility requires structural resolution.');
+ 
+-        return $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
++        $allowed = $batch === null ? EligibilityBuilder::matches($definition, $resolved, $filters, $runtime, $this->container)
+             : $batch->native($definition, $configuration, $filters, $runtime, $frame);
++        $trace?->record('filter', $allowed ? 'pass' : 'false', $definition::class,
++            detail: ['filters' => array_map(static fn ($filter): string => is_string($filter) ? $filter : $filter::class, $filters)],
++            outcome: $allowed ? 'pass' : 'deny');
++
++        return $allowed;
+     }
+ 
+-    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch): bool
++    private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch, ?Trace $trace = null): bool
+     {
+         $declared = $frame->panel()->scopes()->adapters()[$frame->scope()->context->type() ?? ''] ?? null;
+ 
+@@ -125,8 +131,11 @@ private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtim
+             throw new RuntimeException('Scope adapter resolver did not return AssignmentScopeAccessAdapter.');
+         }
+ 
+-        return $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
++        $allowed = $batch === null ? $adapter->allows($frame->scope()->context, $runtime)
+             : $batch->external($adapter, $frame, $runtime);
++        $trace?->record('filter', $allowed ? 'pass' : 'false', $adapter::class, outcome: $allowed ? 'pass' : 'deny');
++
++        return $allowed;
+     }
+ 
+     public function runtime(SubjectRef $subject, EvaluationFrame $frame, bool $common = false): AssignmentScopeRuntime
+diff --git a/packages/core/src/AzGuardServiceProvider.php b/packages/core/src/AzGuardServiceProvider.php
+index 902e711..94890e9 100644
+--- a/packages/core/src/AzGuardServiceProvider.php
++++ b/packages/core/src/AzGuardServiceProvider.php
+@@ -12,7 +12,9 @@
+ use AzGuard\Exceptions\InvalidConfigurationException;
+ use AzGuard\Laravel\Console\Commands\CatalogCacheCommand;
+ use AzGuard\Laravel\Console\Commands\CatalogClearCommand;
++use AzGuard\Laravel\Console\Commands\ExplainCommand;
+ use AzGuard\Laravel\Console\Commands\StorageMigrationCommand;
++use AzGuard\Laravel\Gate\GateBridge;
+ use AzGuard\Panels\CurrentPanel;
+ use AzGuard\Panels\PanelCompiler;
+ use AzGuard\Panels\PanelProvider;
+@@ -22,6 +24,8 @@
+ use AzGuard\Sources\SourceManager;
+ use AzGuard\Storage\StorageRegistry;
+ use AzGuard\Storage\StorageTouched;
++use Illuminate\Auth\Access\Response;
++use Illuminate\Contracts\Auth\Access\Gate;
+ use Illuminate\Contracts\Foundation\Application;
+ use Illuminate\Database\DatabaseManager;
+ use Illuminate\Support\ServiceProvider;
+@@ -78,9 +82,12 @@ public function boot(): void
+         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'azguard');
+ 
+         $this->registerConfiguredPanels();
++        $this->app->make(Gate::class)->before(function (?object $user, string $ability, array $arguments): ?Response {
++            return $this->app->make(GateBridge::class)($user, $ability, $arguments);
++        });
+ 
+         if ($this->app->runningInConsole()) {
+-            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class]);
++            $this->commands([CatalogCacheCommand::class, CatalogClearCommand::class, StorageMigrationCommand::class, ExplainCommand::class]);
+         }
+ 
+         $this->app->booted(function (): void {
+diff --git a/packages/core/src/Panels/PanelResolver.php b/packages/core/src/Panels/PanelResolver.php
+index 14f2d50..5b60026 100644
+--- a/packages/core/src/Panels/PanelResolver.php
++++ b/packages/core/src/Panels/PanelResolver.php
+@@ -85,21 +85,28 @@ public function resolve(Model|SubjectRef|null $subject = null, UnitEnum|string|n
+     /**
+      * The panel that owns a Gate ability, or null when the ability is not a permission of the package.
+      *
+-     * A single word belongs to Laravel policies. A full name of a registered panel and a name with a registered
++     * A single word with a model belongs here only when the compiled ability index contains that pair. A full name of a registered panel and a name with a registered
+      * prefix belong to that panel even when the action is unknown. Any other dotted name belongs to the panel the
+      * rule would pick without explicit signals only when the catalog of that panel has the name; otherwise the
+-     * ability is not ours. The answer reads hash indexes and makes no query.
++     * ability is not ours. A dynamic catalog returns a tentative candidate: the adapter confirms membership using the same prepared evaluation. The answer reads hash indexes and makes no query.
+      *
+      * @throws DefinitionException when the panels are not compiled yet
+      */
+-    public function owner(string $ability, Model|SubjectRef|null $subject = null): ?Panel
++    public function owner(string $ability, Model|SubjectRef|null $subject = null, ?string $resourceModel = null): ?Panel
+     {
+         if (str_contains($ability, ':')) {
+             return $this->registry->find(explode(':', $ability, 2)[0]);
+         }
+ 
+         if (! str_contains($ability, '.')) {
+-            return null;
++            $candidate = $this->candidate($subject);
++
++            if ($candidate === null || $resourceModel === null) {
++                return null;
++            }
++            $catalog = $this->registry->catalog($candidate->id());
++
++            return $catalog->permissionForAbility($resourceModel, $ability) !== null || $catalog->abilityIsAmbiguous($resourceModel, $ability) ? $candidate : null;
+         }
+ 
+         $prefixed = $this->registry->forPrefix(explode('.', $ability, 2)[0]);
+@@ -110,7 +117,7 @@ public function owner(string $ability, Model|SubjectRef|null $subject = null): ?
+ 
+         $candidate = $this->candidate($subject);
+ 
+-        return $candidate !== null && $this->registry->catalog($candidate->id())->has($ability) ? $candidate : null;
++        return $candidate !== null && ($this->registry->catalog($candidate->id())->has($ability) || $this->registry->catalog($candidate->id())->isDynamic()) ? $candidate : null;
+     }
+ 
+     /**
+diff --git a/tests/Fixtures/Authorization/ScenarioGenerator.php b/tests/Fixtures/Authorization/ScenarioGenerator.php
+index 0138fe6..674c1b1 100644
+--- a/tests/Fixtures/Authorization/ScenarioGenerator.php
++++ b/tests/Fixtures/Authorization/ScenarioGenerator.php
+@@ -98,6 +98,14 @@ public function expiry(int $offset): DateTimeImmutable
+         return $this->now->modify(sprintf('%+d seconds', $offset));
+     }
+ 
++    /** Same explicit scalar scope and resource inputs for the Laravel adapter.
++     * @return array{?object, AccessScope}
++     */
++    public function gateArguments(AccessRequest $request): array
++    {
++        return [$request->resource(), AccessScope::in($request->tenant() ?? TenantRef::global(), $request->context())];
++    }
++
+     public function scope(bool $context = false, bool $global = false): AccessScope
+     {
+         return AccessScope::in($global ? TenantRef::global() : $this->tenant, $context ? $this->context : null);
+@@ -142,6 +150,7 @@ public function world(array $sources, ?Closure $configure = null, ?string $mode
+             BetaPanel::class => fn (PanelBuilder $p) => $describe($p, 'beta', $this->panel === 'beta' ? $sources : [$otherSource ?? new GeneratedSource(name: 'other')]),
+         ]);
+         app()->instance(PanelRegistry::class, $registry);
++        app()->instance(PanelResolver::class, $resolver);
+         app()->forgetInstance(Authorizer::class);
+ 
+         return [app(Authorizer::class), $registry->get($this->panel), AccessRequest::for($this->subject, PermissionKey::of($this->panel, 'orders.view')), $resolver, $registry];
+diff --git a/tests/Regression/P09Test.php b/tests/Regression/P09Test.php
+index f04e9d5..b16cde6 100644
+--- a/tests/Regression/P09Test.php
++++ b/tests/Regression/P09Test.php
+@@ -3,8 +3,14 @@
+ declare(strict_types=1);
+ 
+ use AzGuard\Exceptions\PanelNotResolvedException;
++use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
++use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
++use AzGuard\Tests\Fixtures\Gate\GateWorld;
+ use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+ use AzGuard\Tests\Fixtures\Panels\User;
++use Illuminate\Database\Eloquent\Relations\Relation;
++use Illuminate\Support\Carbon;
++use Illuminate\Support\Facades\Gate;
+ 
+ it('picks the panel of a full name without a current panel and throws for a local name', function (): void {
+     [$resolver, $current] = PanelWorld::adminAndCabinet();
+@@ -16,3 +22,15 @@
+         ->and($resolver->owner('admin.users.delete', $user)?->id())->toBe('admin')
+         ->and(fn () => $resolver->resolve($user, 'users.delete'))->toThrow(PanelNotResolvedException::class);
+ });
++
++it('P09 Gate uses the explicit panel without a route hint and the local current panel when supplied', function (): void {
++    GateWorld::seed();
++    [, , , $current, $registry] = GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
++    $user = User::findOrFail(1);
++    expect(Gate::forUser($user)->allows('admin:orders.view'))->toBeTrue();
++    $current->set($registry->get('cabinet'));
++    expect(Gate::forUser($user)->allows('admin:orders.view'))->toBeTrue()
++        ->and(Gate::forUser($user)->allows('orders.view'))->toBeFalse();
++    Carbon::setTestNow();
++    Relation::morphMap([], false);
++});
+diff --git a/tests/Regression/RegressionSpecsTest.php b/tests/Regression/RegressionSpecsTest.php
+index 08d8f37..8a22cde 100644
+--- a/tests/Regression/RegressionSpecsTest.php
++++ b/tests/Regression/RegressionSpecsTest.php
+@@ -12,7 +12,7 @@ function regressionProbeOwners(): array
+         'P01b' => 'PLAN2.P4.7',
+         'P01c' => 'PLAN2.P2.2',
+         'P02' => 'PLAN2.P4.2',
+-        'P03' => 'PLAN2.P4.3',
++        'P03' => 'PLAN2.P4.11',
+         'P04a' => 'PLAN2.P4.12',
+         'P04b' => 'PLAN2.P4.12',
+         'P04c' => 'PLAN2.P4.12',
+diff --git a/tests/Regression/specs/P03.md b/tests/Regression/specs/P03.md
+index 6819cf4..5fbe061 100644
+--- a/tests/Regression/specs/P03.md
++++ b/tests/Regression/specs/P03.md
+@@ -2,11 +2,12 @@
+ 
+ **Probe:** P03
+ **Finding:** N03
+-**Owning item:** PLAN2.P4.3
++**Owning rationale:** D14 §7 transfers P03 to P4.11: entry-point parity becomes testable when Gate and explain exist. P4.3 retains policy compilation ownership.
++**Owning item:** PLAN2.P4.11
+ **Scenarios:** V30
+ **Defect in 0.3:** Resolver из `az-guard.resolver` отказывал в `hasPermission`, но `Gate::allows` по тому же праву возвращал true. Тест: `audits/2026-09-29-audit/opus/evidence/probes/OpusAuditProbesTest.php`, `it('P03: a restrictive az-guard.resolver is honoured by hasPermission() but not by the Gate')`.
+ **Required behavior:** Подменённый хук или источник, запрещающий право, виден одинаково через трейт, фасад, Gate, `@can`, `azguard.can`, `decideMany` и `azguard:explain`; Gate не обходит запрет.
+-**Status:** pending
++**Status:** covered: tests/Regression/P03Test.php::P03 honors denied hooks and sources across decide batch explain Gate inspect Blade and CLI
+ 
+ ## Сценарий на целевом API
+ 
+@@ -22,3 +23,5 @@ $answers = [
+ ];
+ expect(array_unique($answers))->toBe([false]);
+ ```
++
++Implemented parity: decide, decideMany, explain, Gate::allows, Gate::inspect, standard Blade @can and azguard:explain. Future: trait (P5.1), facade authorization (P6.1), azguard.can middleware (P6.2). These future surfaces are not claimed covered.
+diff --git a/tests/Regression/specs/P09.md b/tests/Regression/specs/P09.md
+index 40bf6e2..94b0ba7 100644
+--- a/tests/Regression/specs/P09.md
++++ b/tests/Regression/specs/P09.md
+@@ -9,7 +9,7 @@
+ **Required behavior:** Полное имя (`admin:users.delete`) выбирает панель `admin` на любом входе; локальное имя без панели при нескольких панелях и без панели по умолчанию бросает `PanelNotResolvedException`.
+ **Status:** covered: tests/Regression/P09Test.php::picks the panel of a full name without a current panel and throws for a local name
+ 
+-Уровень `PanelResolver` закрыт P2.2: полное имя выбирает `admin` без текущей панели, локальное имя бросает `PanelNotResolvedException`. Ответы трейта и Gate из сценария ниже — acceptance V64/V29 пунктов P5.1 и P4.11.
++Уровень `PanelResolver` закрыт P2.2: полное имя выбирает `admin` без текущей панели, локальное имя бросает `PanelNotResolvedException`. Gate V64/V29 additionally covered by tests/Regression/P09Test.php::P09 Gate uses the explicit panel without a route hint and the local current panel when supplied. Trait parity remains future acceptance P5.1.
+ 
+ ## Сценарий на целевом API
+ 
+
+NEW FILE packages/core/src/Laravel/Gate/GateBridge.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Laravel\Gate;
+
+use AzGuard\Authorization\Authorizer;
+use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
+use AzGuard\Exceptions\UnknownPermissionException;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Decision;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\PanelResolver;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use Throwable;
+
+/** Authoritative Laravel Gate adapter; null is reserved for foreign abilities.
+ * @api
+ */
+final readonly class GateBridge
+{
+    public function __construct(private Authorizer $authorizer, private PanelResolver $resolver, private PanelRegistry $registry) {}
+
+    /** @param array<mixed> $arguments */
+    public function __invoke(?object $user, string $ability, array $arguments = []): ?Response
+    {
+        $owned = false;
+
+        try {
+            $subject = $user instanceof Model || $user instanceof SubjectRef ? $user : null;
+            $resource = $arguments[0] ?? null;
+            $model = $resource instanceof Model ? $resource::class
+                : (is_string($resource) && is_subclass_of($resource, Model::class) ? $resource : null);
+            $owner = $this->resolver->owner($ability, $subject, $model);
+
+            if ($owner === null) {
+                return null;
+            }
+            $owned = true;
+
+            if ($subject === null) {
+                throw new InvalidArgumentException('Owned abilities require an accepted subject.');
+            }
+            $catalog = $this->registry->catalog($owner->id());
+            $qualified = str_contains($ability, ':') || ($owner->prefix() !== null && str_starts_with($ability, $owner->prefix().'.'));
+            $dynamicLocal = ! $qualified && str_contains($ability, '.') && ! $catalog->has($ability) && $catalog->isDynamic();
+            $permission = $ability;
+
+            if (! str_contains($ability, '.') && ! str_contains($ability, ':')) {
+                if ($model === null || $catalog->abilityIsAmbiguous($model, $ability)) {
+                    throw new InvalidArgumentException('The model ability is ambiguous. Use an explicit permission name.');
+                }
+                $permission = $catalog->permissionForAbility($model, $ability)
+                    ?? throw new InvalidArgumentException('Model permission is unavailable.');
+            }
+            [$panel, $key] = $this->authorizer->resolve($subject, $permission);
+            $definition = $catalog->find($key);
+
+            if ($model !== null && $definition?->resourceModel !== null && ! is_a($model, $definition->resourceModel, true)) {
+                throw new InvalidArgumentException('Resource class does not match the permission binding.');
+            }
+            $ref = $subject instanceof SubjectRef ? $subject : SubjectRef::of($subject->getMorphClass(), $subject->getKey());
+            $context = $arguments[1] ?? null;
+            $request = AccessRequest::for($ref, $key);
+
+            if ($context instanceof AccessScope) {
+                $request = $request->inScope($context, is_object($resource) ? $resource : null);
+            } else {
+                $context = $context instanceof ProvidesAssignmentScope ? $context->azguardAssignmentScope() : $context;
+
+                if ($context !== null && ! $context instanceof AssignmentScopeRef) {
+                    throw new InvalidArgumentException('Context must be an assignment scope or an access scope.');
+                }
+                $request = $request->on($context, is_object($resource) ? $resource : null);
+            }
+
+            try {
+                return self::toGateResult($this->authorizer->decide($panel, $request));
+            } catch (UnknownPermissionException $error) {
+                if ($dynamicLocal) {
+                    return null;
+                }
+
+                throw $error;
+            }
+        } catch (Throwable $error) {
+            Log::warning('AzGuard Gate evaluation failed.', ['exception' => $error::class, 'owned' => $owned]);
+
+            return Response::deny(code: 'gate_error');
+        }
+    }
+
+    public static function toGateResult(Decision $decision): Response
+    {
+        $response = $decision->allowed()
+            ? Response::allow($decision->message, $decision->code)
+            : Response::deny($decision->message, $decision->code ?? $decision->reason->value);
+
+        return $response->withStatus($decision->status);
+    }
+}
+
+NEW FILE packages/core/src/Laravel/Console/Commands/ExplainCommand.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Laravel\Console\Commands;
+
+use AzGuard\Authorization\Authorizer;
+use AzGuard\Authorization\ModelSubjectResolver;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+use Illuminate\Console\Command;
+use InvalidArgumentException;
+use Throwable;
+
+final class ExplainCommand extends Command
+{
+    /** @var string */
+    protected $signature = 'azguard:explain {subject : type:id} {permission} {--panel=} {--tenant= : type:id} {--context= : type:id} {--json}';
+
+    /** @var string */
+    protected $description = 'Explain one AzGuard authorization decision with secrets redacted';
+
+    public function handle(Authorizer $authorizer, ModelSubjectResolver $subjects): int
+    {
+        try {
+            [$type, $id] = $this->identity($this->argument('subject'));
+            $subject = SubjectRef::of($type, $id);
+            [$panel, $permission] = $authorizer->resolve($subject, (string) $this->argument('permission'), $this->option('panel'));
+
+            if ($subjects->resolve($panel, $subject) === null) {
+                throw new InvalidArgumentException('Subject does not exist in the selected panel.');
+            }
+            $request = AccessRequest::for($subject, $permission);
+
+            if ($this->option('tenant') !== null) {
+                [$type, $id] = $this->identity($this->option('tenant'));
+                $request = $request->inTenant(TenantRef::of($type, $id));
+            }
+
+            if ($this->option('context') !== null) {
+                [$type, $id] = $this->identity($this->option('context'));
+                $request = $request->on(AssignmentScopeRef::of($type, $id));
+            }
+            $explanation = $authorizer->explain($panel, $request);
+
+            if ($this->option('json')) {
+                $this->line(json_encode($explanation->toArray(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
+            } else {
+                $this->line($explanation->toArray()['decision']['effect'].': '.$explanation->toArray()['decision']['reason']);
+                $this->table(['Stage', 'Component', 'Outcome', 'Detail'], array_map(static fn (array $step): array => [
+                    $step['stage'], $step['component'] ?? '', $step['outcome'],
+                    json_encode($step['detail'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
+                ], $explanation->steps()));
+            }
+
+            return self::SUCCESS;
+        } catch (Throwable $error) {
+            // Input failures precede trace redaction; do not print untrusted exception payloads.
+            $this->components->error('Cannot explain the request: '.$error::class.'. Check subject, panel, permission and scope identities.');
+
+            return self::FAILURE;
+        }
+    }
+
+    /** @return array{string, string} */
+    private function identity(mixed $input): array
+    {
+        if (! is_string($input) || ! str_contains($input, ':')) {
+            throw new InvalidArgumentException('Identity must have the form type:id.');
+        }
+
+        [$type, $id] = explode(':', $input, 2);
+
+        return [$type, $id];
+    }
+}
+
+NEW FILE packages/core/src/Kernel/Decision/Explanation.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Kernel\Decision;
+
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\SubjectRef;
+use DateTimeImmutable;
+
+/** An immutable, scalar diagnostic snapshot of one evaluation.
+ * @api
+ */
+final readonly class Explanation
+{
+    /** @var list<array<string, mixed>> */
+    private array $trace;
+
+    /** @var array<string, mixed> */
+    private array $snapshot;
+
+    /** @param list<array<string, mixed>> $steps
+     * @param  array{class: string, id: int|string|null}|null  $resource
+     */
+    public function __construct(private Decision $result, array $steps, private DateTimeImmutable $evaluatedAt, SubjectRef $subject, ?array $resource = null)
+    {
+        $data = [
+            'decision' => ['effect' => $result->effect->value, 'reason' => $result->reason->value, 'component' => $result->component,
+                'message' => $result->message, 'status' => $result->status, 'code' => $result->code],
+            'panel' => $result->state->panel,
+            'subject' => ['type' => $subject->type(), 'id' => $subject->id()],
+            'scope' => ['tenant' => $result->scope->tenant->key(), 'context' => $result->scope->context->key()],
+            'resource' => $resource, 'now' => $evaluatedAt->format('Y-m-d\TH:i:s.uP'),
+            'state' => get_object_vars($result->state), 'steps' => $steps,
+        ];
+        $secrets = [];
+        self::secrets($data, $secrets);
+        usort($secrets, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+        $this->snapshot = self::redact($data, array_values(array_unique($secrets)));
+        $this->trace = array_map(static fn (array $step): array => self::redact($step, array_values(array_unique($secrets))), $steps);
+    }
+
+    public function decision(): Decision
+    {
+        return $this->result;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function steps(): array
+    {
+        return $this->trace;
+    }
+
+    public function scope(): AccessScope
+    {
+        return $this->result->scope;
+    }
+
+    public function now(): DateTimeImmutable
+    {
+        return $this->evaluatedAt;
+    }
+
+    public function state(): CodeStateToken|StateToken
+    {
+        return $this->result->state;
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        return $this->snapshot;
+    }
+
+    private static function sensitive(string|int $name): bool
+    {
+        return is_string($name) && preg_match('/password|secret|token|credential|key/i', $name) === 1;
+    }
+
+    /** @param array<mixed> $data
+     * @param  list<string>  $secrets
+     */
+    private static function secrets(array $data, array &$secrets, bool $sensitive = false): void
+    {
+        foreach ($data as $name => $value) {
+            $hidden = $sensitive || self::sensitive($name);
+
+            if (is_array($value)) {
+                self::secrets($value, $secrets, $hidden);
+            } elseif ($hidden && is_scalar($value) && (string) $value !== '') {
+                $secrets[] = (string) $value;
+            }
+        }
+    }
+
+    /** @param array<mixed> $data
+     * @param  list<string>  $secrets
+     * @return array<mixed>
+     */
+    private static function redact(array $data, array $secrets): array
+    {
+        $plain = [];
+        foreach ($data as $name => $value) {
+            $plain[$name] = match (true) {
+                self::sensitive($name) => '[redacted]',
+                is_array($value) => self::redact($value, $secrets),
+                is_string($value) => preg_replace('/\b((?:password|secret|token|credential|api_key)\s*[:=]\s*)[^\s,;]+/i', '$1[redacted]', $secrets === [] ? $value : str_replace($secrets, '[redacted]', $value)),
+                $value === null || is_scalar($value) => $value,
+                default => '[redacted]',
+            };
+        }
+
+        return $plain;
+    }
+}
+
+NEW FILE tests/Regression/P03Test.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate;
+
+it('P03 honors denied hooks and sources across decide batch explain Gate inspect Blade and CLI', function (bool $hook): void {
+    GateWorld::seed();
+    $source = new GeneratedSource(direct: [AuthorizationWorld::grant()]);
+    $deny = false;
+    [$engine, $panel, $request] = GateWorld::compile($source, function (PanelBuilder $p) use ($hook, &$deny): void {
+        $p->before(function () use ($hook, &$deny): BeforeResult {
+            return $hook && $deny ? BeforeResult::Deny : BeforeResult::Continue;
+        });
+    });
+    $user = User::findOrFail(1);
+    Gate::swap(Gate::forUser($user));
+    expect($engine->decide($panel, $request)->allowed())->toBeTrue()
+        ->and(Gate::allows('admin:orders.view'))->toBeTrue()
+        ->and(Blade::render("@can('admin:orders.view')\nyes\n@else\nno\n@endcan"))->toContain('yes');
+    $deny = true;
+
+    if (! $hook) {
+        $source->direct = [];
+    }
+    expect($engine->decide($panel, $request)->allowed())->toBeFalse()
+        ->and($engine->decideMany([$request])->get(0)->allowed())->toBeFalse()
+        ->and($engine->explain($panel, $request)->decision()->allowed())->toBeFalse()
+        ->and(Gate::allows('admin:orders.view'))->toBeFalse()
+        ->and(Gate::inspect('admin:orders.view')->denied())->toBeTrue()
+        ->and(Blade::render("@can('admin:orders.view')\nyes\n@else\nno\n@endcan"))->toContain('no')->not->toContain('yes');
+    expect(Artisan::call('azguard:explain', ['subject' => 'user:1', 'permission' => 'admin:orders.view', '--json' => true]))->toBe(0);
+    expect(json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR)['decision']['effect'])->toBe('deny');
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+})->with([false, true]);
+
+NEW FILE tests/Feature/Authorization/ExplainTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Decision\RestrictionResult;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
+use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
+use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
+use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
+use AzGuard\Tests\Fixtures\Scopes\StoreScope;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Support\Carbon;
+
+it('explains the identical decision on 200 seeded scenarios without a second source poll', function (): void {
+    foreach (ScenarioGenerator::scenarios() as $seed => $s) {
+        Carbon::setTestNow($s->now);
+        $source = new GeneratedSource(direct: $s->flag() ? [$s->grant(expires: $s->expiry(($seed % 3) - 1))] : [], roles: $s->flag() ? [$s->role()] : []);
+        $restriction = new RecordingRestriction(deny: $s->flag(), exempt: $s->flag());
+        [$engine, $panel, $request] = $s->world([$source], fn (PanelBuilder $p) => $p->restrictions([$restriction]));
+        $decision = $engine->decide($panel, $request);
+        $reads = $source->grantReads;
+        $explanation = $engine->explain($panel, $request);
+        $this->assertEquals($decision, $explanation->decision(), "explain seed=$seed");
+        expect($source->grantReads)->toBe($reads + 1)->and($explanation->now())->toEqual($s->now)
+            ->and($explanation->scope())->toEqual($decision->scope)->and($explanation->state())->toEqual($decision->state);
+    }
+})->group('properties');
+
+it('marks assignments and superadmin skipped for PolicyOnly and preserves Response details', function (): void {
+    $source = new GeneratedSource(read: fn () => throw new RuntimeException('must not read'));
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source);
+    RuntimePolicy::$result = Response::denyAsNotFound('hidden', 'policy-code');
+    $explanation = $engine->explain($panel, AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy')));
+    expect($explanation->decision()->reason)->toBe(DecisionReason::Policy)->and($source->grantReads)->toBe(0);
+    $steps = collect($explanation->steps())->keyBy('stage');
+    expect($steps['sources']['outcome'])->toBe('skipped')->and($steps['superadmin']['outcome'])->toBe('skipped')
+        ->and($steps['policy']['detail'])->toBe(['message' => 'hidden', 'status' => 404, 'code' => 'policy-code'])
+        ->and($steps['restriction']['outcome'])->toBe('skipped');
+});
+
+it('reports contribution origins expiry and the condition class that rejected a grant', function (): void {
+    $source = new GeneratedSource(direct: [AuthorizationWorld::grant(expires: Carbon::now()->toDateTimeImmutable()), AuthorizationWorld::grant(fields: ['weekdays' => [0]])]);
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $p) => $p->grantConditions([WeekdaysCondition::class]));
+    $steps = $engine->explain($panel, $request)->steps();
+    expect(array_column($steps, 'result'))->toContain('expired', 'condition_false');
+    $condition = collect($steps)->firstWhere('stage', 'condition');
+    expect($condition['component'])->toBe(WeekdaysCondition::class)->and($condition['outcome'])->toBe('deny');
+    $contribution = collect($steps)->firstWhere('outcome', 'contribution');
+    expect($contribution['detail']['origin'])->toBe('manual')->and($contribution['detail']['source'])->toBe('generated');
+});
+
+it('observes hooks once and marks later stages skipped after before denial', function (): void {
+    $before = $after = 0;
+    $source = new GeneratedSource;
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source, function (PanelBuilder $p) use (&$before, &$after): void {
+        $p->before(function () use (&$before): BeforeResult {
+            $before++;
+
+            return BeforeResult::Deny;
+        })
+            ->after(function () use (&$after): void {
+                $after++;
+            });
+    });
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->reason)->toBe(DecisionReason::Hook)->and($before)->toBe(1)->and($after)->toBe(1)->and($source->grantReads)->toBe(0);
+    foreach (['sources', 'superadmin', 'policy', 'authority', 'restriction'] as $stage) {
+        expect(collect($explanation->steps())->firstWhere('stage', $stage)['outcome'])->toBe('skipped');
+    }
+});
+
+it('shows exempt restrictions and retains a source error after an allowing source', function (): void {
+    $s = new ScenarioGenerator(2);
+    $source = new GeneratedSource(roles: [$s->role()]);
+    $restriction = new RecordingRestriction(deny: true, exempt: true);
+    [$engine, $panel, $request] = $s->world([$source], fn (PanelBuilder $p) => $p->restrictions([$restriction]));
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->allowed())->toBeTrue()->and(collect($explanation->steps())->firstWhere('result', 'exempt')['outcome'])->toBe('skipped');
+    [$engine, $panel, $request] = $s->world([$source, new GeneratedSource(name: 'broken', read: fn () => throw new RuntimeException('source failure'))]);
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->reason)->toBe(DecisionReason::SourceError);
+    $error = collect($explanation->steps())->firstWhere('outcome', 'error');
+    expect($error['detail'])->toBe(['exception' => RuntimeException::class, 'message' => 'source failure'])->not->toHaveKey('trace');
+});
+
+it('redacts nested secret fields and their occurrences in exception messages without serializing the subject model', function (): void {
+    $source = new GeneratedSource(direct: [AuthorizationWorld::grant(fields: ['api_TOKEN' => 'sensitive-value', 'nested' => ['password' => 'nested-pass'], 'department' => 'sales'])]);
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $p) => $p->after(fn () => throw new RuntimeException('sensitive-value nested-pass')));
+    $json = json_encode($engine->explain($panel, $request)->toArray(), JSON_THROW_ON_ERROR);
+    expect($json)->not->toContain('sensitive-value', 'nested-pass', 'department":"sales","is_root')
+        ->toContain('[redacted]', 'department', 'sales');
+});
+
+it('does not publish cold explain reads into the permission cache but reuses a warm ordinary read', function (): void {
+    $source = new CacheSource(direct: [AuthorizationWorld::grant()]);
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $p) => $p->cache('array'));
+    $engine->explain($panel, $request);
+    $engine->explain($panel, $request);
+    expect($source->grantReads)->toBe(2);
+    $engine->decide($panel, $request);
+    expect($source->grantReads)->toBe(3);
+    $engine->explain($panel, $request);
+    expect($source->grantReads)->toBe(3);
+});
+
+it('names a denied common context filter instead of reporting it skipped', function (): void {
+    $s = new ScenarioGenerator(2);
+    $adapter = new EligibilityExternalAdapter(fn () => false);
+    [$engine, $panel, $request] = $s->world([new GeneratedSource(direct: [$s->grant($s->scope(true))])],
+        fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(app(StoreScope::class))->accessAdapter('store', $adapter)), mode: 'inherit');
+    $explanation = $engine->explain($panel, $request->inScope($s->scope(true)));
+    expect($explanation->decision()->reason)->toBe(DecisionReason::AssignmentScopeIneligible);
+    $filter = collect($explanation->steps())->firstWhere('stage', 'filter');
+    expect($filter['component'])->toBe($adapter::class)->and($filter['outcome'])->toBe('deny')
+        ->and($adapter->observed)->toHaveCount(1);
+});
+
+it('redacts a restriction reason containing a declared secret value', function (): void {
+    $restriction = new class implements Restriction
+    {
+        public function key(): string
+        {
+            return 'secret-restriction';
+        }
+
+        public function appliesTo(AccessRequest $request, EvaluationContext $context): bool
+        {
+            return true;
+        }
+
+        public function exemptsSuperAdmin(): bool
+        {
+            return false;
+        }
+
+        public function check(AccessRequest $request, EvaluationContext $context): RestrictionResult
+        {
+            return RestrictionResult::deny('blocked_sensitive_value');
+        }
+    };
+    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant(fields: ['api_token' => 'sensitive_value'])]), fn (PanelBuilder $p) => $p->restrictions([$restriction]));
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->reason)->toBe(DecisionReason::Restricted)
+        ->and(json_encode($explanation->toArray(), JSON_THROW_ON_ERROR))->not->toContain('sensitive_value')->toContain('[redacted]');
+});
+
+it('marks undeclared condition and filter stages skipped and ignored role qualification denied', function (): void {
+    $s = new ScenarioGenerator(2);
+    [$engine, $panel, $request] = $s->world([new GeneratedSource(direct: [$s->grant()], roles: [$s->role(key: 'removed-role')])]);
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->allowed())->toBeTrue();
+    $steps = collect($explanation->steps());
+    expect($steps->firstWhere('stage', 'condition')['outcome'])->toBe('skipped')
+        ->and($steps->firstWhere('stage', 'filter')['outcome'])->toBe('skipped')
+        ->and($steps->firstWhere('result', 'unknown_role')['outcome'])->toBe('deny');
+});
+
+it('redacts secrets observed before a lazy direct or role contribution iterator fails', function (bool $role): void {
+    $s = new ScenarioGenerator(2);
+    $source = new class($role, $s) extends GeneratedSource
+    {
+        public function __construct(private bool $roleFailure, private ScenarioGenerator $scenario)
+        {
+            parent::__construct();
+        }
+
+        public function grants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+        {
+            if (! $this->roleFailure) {
+                yield $this->scenario->grant(fields: ['api_token' => 'lazy-confidential-value']);
+
+                throw new RuntimeException('Rejected value lazy-confidential-value');
+            }
+        }
+
+        public function roleGrants(SubjectRef $subject, array $scopes, EvaluationContext $context): iterable
+        {
+            if ($this->roleFailure) {
+                yield $this->scenario->role(fields: ['credential' => 'lazy-confidential-value']);
+
+                throw new RuntimeException('Rejected value lazy-confidential-value');
+            }
+        }
+    };
+    [$engine, $panel, $request] = $s->world([$source]);
+    $explanation = $engine->explain($panel, $request);
+    expect($explanation->decision()->reason)->toBe(DecisionReason::SourceError)
+        ->and(json_encode($explanation->toArray(), JSON_THROW_ON_ERROR))->not->toContain('lazy-confidential-value')->toContain('[redacted]')
+        ->and(collect($explanation->steps())->where('outcome', 'contribution'))->toHaveCount(1);
+})->with([false, true]);
+
+NEW FILE tests/Feature/Gate/EarlyGateBeforeTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Laravel\Gate\GateBridge;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Auth\Access\Gate as LaravelGate;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+
+it('documents that a permissive host callback registered before the bridge bypasses it', function (): void {
+    GateWorld::seed();
+    $source = new GeneratedSource;
+    GateWorld::compile($source);
+    $user = User::findOrFail(1);
+    $gate = new LaravelGate(app(), fn () => $user);
+    $gate->before(fn () => true);
+    $gate->before(app(GateBridge::class));
+    expect($gate->allows('admin:orders.view'))->toBeTrue()->and($source->grantReads)->toBe(0);
+    expect(app(GateBridge::class)($user, 'admin:orders.view')->denied())->toBeTrue();
+    Relation::morphMap([], false);
+    Carbon::setTestNow();
+});
+
+NEW FILE tests/Feature/Gate/GatePanelSelectionTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Exceptions\ConflictingPanelException;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Scopes\ScopedResource;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+
+beforeEach(fn () => GateWorld::seed());
+afterEach(function (): void {
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+});
+
+it('honors explicit panel and prefix while local names use the current panel', function (): void {
+    [, , , $current, $registry] = GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
+    $current->set($registry->get('cabinet'));
+    $user = User::findOrFail(1);
+    expect(Gate::forUser($user)->allows('admin:orders.view'))->toBeTrue()
+        ->and(Gate::forUser($user)->allows('admin.orders.view'))->toBeTrue()
+        ->and(Gate::forUser($user)->allows('orders.view'))->toBeFalse()
+        ->and(fn () => app(PanelResolver::class)->resolve($user, 'admin:orders.view', 'cabinet'))->toThrow(ConflictingPanelException::class);
+});
+
+it('carries resource tenant and context through the common boundary and rejects a conflicting owner', function (): void {
+    $s = new ScenarioGenerator(2);
+    [$engine, $panel, $request] = $s->world([new GeneratedSource(direct: [$s->grant($s->scope(true))])], mode: 'inherit');
+    $resource = new ScopedResource($s->scope(true));
+    $request = $request->inScope($s->scope(true), $resource);
+    expect($engine->decide($panel, $request)->allowed())->toBeTrue()
+        ->and(Gate::forUser($s->subject)->allows($request->permission()->full(), $s->gateArguments($request)))->toBeTrue();
+    $conflict = AccessScope::in($s->foreignTenant, $s->context);
+    expect(Gate::forUser($s->subject)->allows($request->permission()->full(), [$resource, $conflict]))->toBeFalse();
+});
+
+NEW FILE tests/Feature/Gate/GateOwnershipTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Kernel\Decision\Grant;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\PermissionPattern;
+use AzGuard\Kernel\Identity\TenantRef;
+use AzGuard\Laravel\Gate\GateBridge;
+use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Sources\Gate\GateSource;
+use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Gate\NativeFallbackPolicy;
+use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\PoliciesGate\GateRecord;
+use AzGuard\Tests\Fixtures\Scopes\Membership;
+use AzGuard\Tests\Fixtures\Scopes\Organization;
+use AzGuard\Tests\Fixtures\Scopes\TenantDynamicSource;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
+
+beforeEach(fn () => GateWorld::seed());
+afterEach(function (): void {
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+});
+
+it('makes owned NotGranted and Policy denies final despite a matching permissive native definition', function (string $ability): void {
+    GateWorld::compile(new GeneratedSource);
+    RuntimePolicy::$result = false;
+    Gate::define($ability, fn () => true);
+    expect(Gate::forUser(User::findOrFail(1))->allows($ability))->toBeFalse();
+})->with(['admin:orders.view', 'admin:orders.policy', 'orders.view']);
+
+it('denies unknown qualified and registered prefix names and leaves foreign names untouched without queries', function (): void {
+    $source = new GeneratedSource;
+    GateWorld::compile($source);
+    $user = User::findOrFail(1);
+    $queries = [];
+    DB::listen(function ($query) use (&$queries): void {
+        $queries[] = $query->sql;
+    });
+    foreach (['foreign.word', 'foreign:orders.view', 'update'] as $ability) {
+        expect(app(GateBridge::class)($user, $ability))->toBeNull();
+        Gate::define($ability, fn () => true);
+        expect(Gate::forUser($user)->allows($ability))->toBeTrue();
+    }
+    expect($queries)->toBe([])->and($source->grantReads)->toBe(0);
+    foreach (['admin:orders.unknown', 'admin.orders.unknown', 'admin:invalid..name'] as $ability) {
+        Gate::define($ability, fn () => true);
+        expect(Gate::forUser($user)->allows($ability))->toBeFalse();
+    }
+});
+
+it('uses the model ability index including class arguments and denies ambiguous pairs', function (): void {
+    $grant = Grant::of(PermissionPattern::of('admin', 'inventory.view_any'), 'generated', AccessScope::in(TenantRef::global()));
+    GateWorld::compile(new GeneratedSource(direct: [$grant]));
+    $user = User::findOrFail(1);
+    expect(Gate::forUser($user)->allows('viewAny', GateRecord::class))->toBeTrue();
+    Gate::define('read', fn () => true);
+    expect(Gate::forUser($user)->allows('read', new GateRecord))->toBeFalse();
+    Gate::define('update', fn () => true);
+    expect(Gate::forUser($user)->allows('update', new GateRecord))->toBeFalse()
+        ->and(Gate::forUser($user)->allows('update', new User))->toBeTrue();
+});
+
+it('denies explicit owned names for guests and unacceptable subject types while foreign abilities abstain', function (): void {
+    GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
+    expect(app(GateBridge::class)(null, 'admin:orders.view'))->not->toBeNull()
+        ->and(app(GateBridge::class)(null, 'native.word'))->toBeNull();
+    $outsider = new GateRecord;
+    $outsider->setAttribute('id', 1);
+    expect(app(GateBridge::class)($outsider, 'admin:orders.view')->denied())->toBeTrue()
+        ->and(app(GateBridge::class)($outsider, 'orders.view'))->toBeNull();
+});
+
+it('resolves local dynamic ownership once and abstains for a missing dynamic name', function (): void {
+    $scope = AccessScope::in(TenantRef::of('org', 'A'));
+    $source = new TenantDynamicSource(name: 'dynamic', direct: [Grant::of(PermissionPattern::of('admin', 'orders.dynamic'), 'generated', $scope)]);
+    GateWorld::compile(new GeneratedSource, fn ($p) => $p->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(['1']))), extra: [$source]);
+    $user = User::findOrFail(1);
+    expect(Gate::forUser($user)->allows('orders.dynamic', [null, $scope]))->toBeTrue();
+    Gate::define('foreign.dynamic', fn () => true);
+    $reads = $source->grantReads;
+    expect(Gate::forUser($user)->allows('foreign.dynamic', [null, $scope]))->toBeTrue()
+        ->and($source->grantReads)->toBe($reads);
+});
+
+it('leaves an unbound model ability to the native Laravel policy', function (): void {
+    GateWorld::compile(new GeneratedSource);
+    Gate::policy(User::class, NativeFallbackPolicy::class);
+    $user = User::findOrFail(1);
+    expect(app(GateBridge::class)($user, 'update', [$user]))->toBeNull()
+        ->and(Gate::forUser($user)->allows('update', $user))->toBeTrue();
+});
+
+it('uses mapped external gate policies without reentering the bridge or generating Grants authority', function (): void {
+    Gate::define('host-update', fn () => true);
+    $mapping = GateSource::make()->map('inventory.update', 'host-update');
+    $source = new GeneratedSource;
+    GateWorld::compile($source, extra: [$mapping]);
+    $user = User::findOrFail(1);
+    expect(Gate::forUser($user)->allows('admin:inventory.update'))->toBeFalse();
+    $source->direct = [Grant::of(PermissionPattern::of('admin', 'inventory.update'), 'generated', AccessScope::in(TenantRef::global()))];
+    expect(Gate::forUser($user)->allows('admin:inventory.update'))->toBeTrue();
+});
+
+it('rejects an explicit permission supplied with a conflicting resource class', function (): void {
+    $grant = Grant::of(PermissionPattern::of('admin', 'inventory.view_any'), 'generated', AccessScope::in(TenantRef::global()));
+    GateWorld::compile(new GeneratedSource(direct: [$grant]));
+    expect(Gate::forUser(User::findOrFail(1))->allows('admin:inventory.view_any', User::class))->toBeFalse();
+});
+
+NEW FILE tests/Feature/Gate/GateResponseTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Laravel\Gate\GateBridge;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use AzGuard\Tests\Fixtures\Panels\User;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+
+beforeEach(fn () => GateWorld::seed());
+afterEach(function (): void {
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+});
+
+it('preserves allow and deny Response code message and status through Gate inspect', function (bool $allow): void {
+    [$engine, $panel, $request] = GateWorld::compile(new GeneratedSource);
+    RuntimePolicy::$result = ($allow ? Response::allow('allowed', 0) : Response::denyAsNotFound('hidden', 'host-code'))->withStatus(404);
+    $decision = $engine->decide($panel, AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy')));
+    $response = Gate::forUser(User::findOrFail(1))->inspect('admin:orders.policy');
+    expect($response->allowed())->toBe($allow)->and($response->message())->toBe($decision->message)
+        ->and($response->code())->toBe($decision->code)->and($response->status())->toBe(404);
+})->with([false, true]);
+
+it('uses the decision reason as the default deny code', function (): void {
+    [$engine, $panel, $request] = GateWorld::compile(new GeneratedSource);
+    $decision = $engine->decide($panel, $request);
+    expect(GateBridge::toGateResult($decision)->code())->toBe('not_granted');
+});
+
+NEW FILE tests/Feature/Gate/GateParityTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
+
+beforeEach(fn () => GateWorld::seed());
+afterEach(function (): void {
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+});
+
+it('P9 preserves decide batch explain and Gate parity over 200 mixed seeded scenarios', function (): void {
+    foreach (ScenarioGenerator::scenarios() as $seed => $s) {
+        Carbon::setTestNow($s->now);
+        $policy = $seed % 3 === 0;
+        $hookDenies = $seed % 7 === 0;
+        $source = new GeneratedSource(direct: $s->flag() ? [$s->grant(expires: $s->expiry(($seed % 3) - 1))] : []);
+        $restriction = new RecordingRestriction(deny: $s->flag());
+        [$engine, $panel, $request, $resolver] = $s->world([$source], fn (PanelBuilder $p) => $p->restrictions([$restriction])->before(fn () => $hookDenies ? BeforeResult::Deny : BeforeResult::Continue));
+        app()->instance(PanelResolver::class, $resolver);
+
+        if ($policy) {
+            $request = AccessRequest::for($s->subject, PermissionKey::of($s->panel, 'orders.policy'));
+        }
+        RuntimePolicy::$result = $s->flag() ? Response::allow('ok', 0) : Response::denyAsNotFound('hidden', 'p9');
+        $decision = $engine->decide($panel, $request);
+        expect($engine->decideMany([$request])->get(0))->toEqual($decision)
+            ->and($engine->explain($panel, $request)->decision())->toEqual($decision);
+        $gate = Gate::forUser($s->subject)->inspect($request->permission()->full(), $s->gateArguments($request));
+        expect($gate->allowed())->toBe($decision->allowed(), "P9 seed=$seed")
+            ->and($gate->message())->toBe($decision->message)
+            ->and($gate->status())->toBe($decision->status)
+            ->and($gate->code())->toBe($decision->code ?? ($decision->allowed() ? null : $decision->reason->value));
+    }
+})->group('properties');
+
+NEW FILE tests/Feature/Console/ExplainCommandTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Gate\GateWorld;
+use Illuminate\Auth\Access\Response;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
+
+beforeEach(fn () => GateWorld::seed());
+afterEach(function (): void {
+    Carbon::setTestNow();
+    Relation::morphMap([], false);
+});
+
+it('prints stable allow and policy denial JSON snapshots', function (bool $policy): void {
+    GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]));
+    RuntimePolicy::$result = Response::denyAsNotFound('hidden', 'policy-code');
+    $exit = Artisan::call('azguard:explain', ['subject' => 'user:1', 'permission' => $policy ? 'orders.policy' : 'orders.view', '--panel' => 'admin', '--json' => true]);
+    expect($exit)->toBe(0);
+    $json = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+    $snapshot = ['decision' => $json['decision'], 'panel' => $json['panel'], 'subject' => $json['subject'], 'scope' => $json['scope'], 'now' => $json['now']];
+    $expected = json_decode(file_get_contents(__DIR__.'/../../Fixtures/Explain/'.($policy ? 'policy-deny' : 'allow').'.json'), true, flags: JSON_THROW_ON_ERROR);
+    expect($snapshot)->toBe($expected);
+})->with([false, true]);
+
+it('prints redacted steps as JSON and as a table', function (bool $json): void {
+    GateWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant(fields: ['api_token' => 'operator-secret'])]));
+    expect(Artisan::call('azguard:explain', ['subject' => 'user:1', 'permission' => 'admin:orders.view', '--json' => $json]))->toBe(0);
+    expect(Artisan::output())->toContain('[redacted]', 'contribution')->not->toContain('operator-secret');
+})->with([false, true]);
+
+it('fails invalid or missing subject and scope identities without exposing input exceptions', function (array $arguments): void {
+    GateWorld::compile(new GeneratedSource);
+    expect(Artisan::call('azguard:explain', [...['subject' => 'user:1', 'permission' => 'admin:orders.view'], ...$arguments]))->toBe(1);
+    expect(Artisan::output())->toContain('Cannot explain');
+})->with([
+    [['subject' => 'user:999']], [['subject' => 'missing-colon']], [['--tenant' => 'missing-colon']], [['--context' => 'missing-colon']], [['permission' => 'admin:orders.unknown']],
+]);
+
+NEW FILE tests/Fixtures/Explain/policy-deny.json
+{
+    "decision": {"effect": "deny", "reason": "policy", "component": "AzGuard\\Tests\\Fixtures\\Authorization\\RuntimePolicy", "message": "hidden", "status": 404, "code": "policy-code"},
+    "panel": "admin", "subject": {"type": "user", "id": "1"},
+    "scope": {"tenant": "global", "context": "global"}, "now": "2026-10-05T12:00:00.000000+00:00"
+}
+
+NEW FILE tests/Fixtures/Explain/allow.json
+{
+    "decision": {"effect": "allow", "reason": "granted", "component": null, "message": null, "status": null, "code": null},
+    "panel": "admin", "subject": {"type": "user", "id": "1"},
+    "scope": {"tenant": "global", "context": "global"}, "now": "2026-10-05T12:00:00.000000+00:00"
+}
+
+NEW FILE tests/Fixtures/Gate/GateWorld.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Tests\Fixtures\Gate;
+
+use AzGuard\Authorization\Authorizer;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Identity\PermissionKey;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Panels\CurrentPanel;
+use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\PanelRegistry;
+use AzGuard\Panels\PanelResolver;
+use AzGuard\Policies\PolicyBinding;
+use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
+use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
+use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
+use AzGuard\Tests\Fixtures\Panels\AdminPanel;
+use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
+use AzGuard\Tests\Fixtures\Panels\PanelWorld;
+use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\PoliciesGate\IndexedPermission;
+use Closure;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
+
+final class GateWorld
+{
+    public static function seed(): void
+    {
+        Relation::morphMap(['user' => User::class], false);
+        Carbon::setTestNow(Carbon::parse('2026-10-05 12:00:00', 'UTC'));
+        RuntimePolicy::$result = true;
+        RuntimePolicy::$callback = null;
+        RuntimePolicy::$calls = 0;
+        Schema::create('users', function (Blueprint $table): void {
+            $table->id();
+            $table->string('department')->nullable();
+            $table->boolean('is_root')->default(false);
+        });
+        User::query()->insert(['id' => 1, 'department' => 'sales']);
+    }
+
+    /** @return array{Authorizer, Panel, AccessRequest, CurrentPanel, PanelRegistry} */
+    public static function compile(GeneratedSource $source, ?Closure $configure = null, ?GeneratedSource $other = null, array $extra = []): array
+    {
+        [$resolver, $current, $registry] = PanelWorld::compile([
+            AdminPanel::class => function (PanelBuilder $p) use ($source, $configure, $extra): void {
+                $p->for(User::class)->default()->permissions([$source, IndexedPermission::class, ...$extra])->roles([GrantableRootRole::class])
+                    ->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]);
+                $configure?->__invoke($p);
+            },
+            CabinetPanel::class => fn (PanelBuilder $p) => $p->for(User::class)->permissions([$other ?? new GeneratedSource(name: 'cabinet')])
+                ->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]),
+        ]);
+        app()->instance(PanelRegistry::class, $registry);
+        app()->instance(PanelResolver::class, $resolver);
+        app()->instance(CurrentPanel::class, $current);
+        app()->forgetInstance(Authorizer::class);
+
+        return [app(Authorizer::class), $registry->get('admin'), AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'orders.view')), $current, $registry];
+    }
+}
+
+NEW FILE tests/Fixtures/Gate/NativeFallbackPolicy.php
+<?php
+
+declare(strict_types=1);
+
+namespace AzGuard\Tests\Fixtures\Gate;
+
+use AzGuard\Tests\Fixtures\Panels\User;
+
+final class NativeFallbackPolicy
+{
+    public function update(User $user, User $record): bool
+    {
+        return $user->getKey() === $record->getKey();
+    }
+}
+
+NEW FILE tests/Unit/Kernel/Decision/ExplanationTest.php
+<?php
+
+declare(strict_types=1);
+
+use AzGuard\Kernel\Decision\CodeStateToken;
+use AzGuard\Kernel\Decision\Decision;
+use AzGuard\Kernel\Decision\DecisionReason;
+use AzGuard\Kernel\Decision\Explanation;
+use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\SubjectRef;
+use AzGuard\Kernel\Identity\TenantRef;
+
+it('copies a plain readonly diagnostic snapshot and redacts secret names case insensitively', function (): void {
+    $state = CodeStateToken::of('admin', 'build', 'fingerprint');
+    $decision = Decision::deny(DecisionReason::Restricted, $state, AccessScope::in(TenantRef::global()), message: 'token-value');
+    $field = 'token-value';
+    $steps = [['stage' => 'contribution', 'component' => 'test', 'outcome' => 'contribution', 'detail' => ['API_TOKEN' => &$field, 'nested' => ['Credential' => ['secret-value']], 'safe' => 'kept', 'object' => new stdClass]]];
+    $explanation = new Explanation($decision, $steps, new DateTimeImmutable('2026-10-05T12:00:00Z'), SubjectRef::of('user', '01'));
+    $field = 'changed';
+    $steps[0]['stage'] = 'mutated';
+    $array = $explanation->toArray();
+    expect($array['steps'][0]['stage'])->toBe('contribution')->and($array['decision']['message'])->toBe('[redacted]')
+        ->and($array['steps'][0]['detail'])->toBe(['API_TOKEN' => '[redacted]', 'nested' => ['Credential' => '[redacted]'], 'safe' => 'kept', 'object' => '[redacted]'])
+        ->and($explanation->decision())->toBe($decision);
+    $array['steps'][0]['detail']['safe'] = 'changed';
+    expect($explanation->steps()[0]['detail']['safe'])->toBe('kept');
+});

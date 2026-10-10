@@ -1,0 +1,40 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D2",
+  "title": "Typed panel contributions and mandatory execution stages",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "How can plugins extend behavior without introducing another engine or bypass route?",
+  "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
+  "decision": "Retain the explicit Plugin lifecycle and panel compiler. Seal deterministic typed declarations, resolve operation-scoped handlers, preserve mandatory stage order and expose narrow evaluation/query/change/participant/diagnostic slots. No macros, arbitrary stage insertion, sibling plugin-ID dependencies or generic module bus.",
+  "rationale": "PanelCompiler and the existing contracts already provide the extension spine. OnceTerminal is necessary because a generic Pipeline continuation alone does not enforce one writer call or final-result identity. A panel-owned evaluator and immutable options prevent cross-panel request state leakage.",
+  "global": true,
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Contracts/Plugins/Plugin.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Panels/PanelCompiler.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/OnceTerminal.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Contracts/Authorization/FiltersAccessQueries.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M3",
+      "note": "The owner delegated architecture choices and required an affirmative target design."
+    }
+  ],
+  "actor": {
+    "provider": "codex",
+    "model": "gpt-6"
+  },
+  "answered_by": "agent"
+}
