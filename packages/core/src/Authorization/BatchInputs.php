@@ -63,20 +63,14 @@ final class BatchInputs
     {
         $groups = [];
         foreach ($requests as [$panel, $request]) {
-            $refs = [$request->subject()];
+            $refs = ModelSubjectResolver::given($panel, $request->subjectModel(), $request->subject()) === null
+                ? [$request->subject()] : [];
 
-            if ($actor?->id !== null) {
+            if ($actor?->id !== null && ($actor->type !== $request->subject()->type() || $actor->id !== $request->subject()->id())) {
                 $refs[] = SubjectRef::of($actor->type, $actor->id);
             }
             foreach ($refs as $ref) {
                 $key = self::subjectKey($panel, $ref);
-                $given = ModelSubjectResolver::given($panel, $request->subjectModel(), $ref);
-
-                if ($given !== null) {
-                    $this->subjects[$key] = $given;
-
-                    continue;
-                }
                 $this->subjects[$key] = null;
                 foreach ($panel->subjectModels() as $class) {
                     $model = new $class;
@@ -106,6 +100,12 @@ final class BatchInputs
                 }
             }
         }
+    }
+
+    public function forRequest(Panel $panel, AccessRequest $request): ?Model
+    {
+        return ModelSubjectResolver::given($panel, $request->subjectModel(), $request->subject())
+            ?? $this->subject($panel, $request->subject());
     }
 
     public function subject(Panel $panel, SubjectRef $ref): ?Model
@@ -248,6 +248,7 @@ final class BatchInputs
     public function external(AssignmentScopeAccessAdapter $adapter, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
     {
         $key = IdentityCodec::compose(['external', $adapter::class, $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
+            $runtime->user === null ? null : spl_object_id($runtime->user), $runtime->actorModel === null ? null : spl_object_id($runtime->actorModel),
             $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
 
         if (! array_key_exists($key, $this->eligibility)) {
@@ -271,6 +272,7 @@ final class BatchInputs
     public function eligibilityKey(AssignmentScopeDefinition $configuration, AssignmentScopeRuntime $runtime): string
     {
         return IdentityCodec::compose([$this->configurationKey($configuration), $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
+            $runtime->user === null ? null : spl_object_id($runtime->user), $runtime->actorModel === null ? null : spl_object_id($runtime->actorModel),
             $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
     }
 

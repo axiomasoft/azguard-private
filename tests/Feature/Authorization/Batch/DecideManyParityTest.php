@@ -18,9 +18,37 @@ use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Authorization\ScenarioGenerator;
 use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
+use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Support\Carbon;
 
 uses()->group('batch');
+
+it('preserves each supplied subject instance alongside database fallbacks', function (array $order): void {
+    [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource);
+    RuntimePolicy::$callback = static fn (User $user): bool => $user->getAttribute('department') === 'allow';
+    $allowed = User::query()->findOrFail(1);
+    $allowed->setAttribute('department', 'allow');
+    $denied = clone $allowed;
+    $denied->setAttribute('department', 'deny');
+    $request = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
+    $variants = [
+        'allowed' => $request->withSubjectModel($allowed),
+        'denied' => $request->withSubjectModel($denied),
+        'bare' => $request,
+    ];
+    $requests = array_map(static fn (string $key): AccessRequest => $variants[$key], $order);
+    $scalar = array_map(static fn (AccessRequest $item): bool => $engine->decide($panel, $item)->allowed(), $requests);
+    $batch = $engine->decideMany($requests);
+
+    expect(array_map(static fn (Decision $decision): bool => $decision->allowed(), iterator_to_array($batch)))
+        ->toBe($scalar)->toBe(array_map(static fn (string $key): bool => $key === 'allowed', $order));
+})->with([
+    'given then fallback' => [['allowed', 'bare']],
+    'fallback then given' => [['bare', 'allowed']],
+    'allow then deny' => [['allowed', 'denied']],
+    'deny then allow' => [['denied', 'allowed']],
+    'all variants' => [['allowed', 'bare', 'denied', 'allowed']],
+]);
 
 it('matches scalar decisions for 200 seeded ordered batches at frozen time', function (): void {
     foreach (ScenarioGenerator::scenarios() as $seed => $s) {

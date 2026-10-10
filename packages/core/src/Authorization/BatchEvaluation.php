@@ -291,7 +291,9 @@ final readonly class BatchEvaluation
                 continue;
             }
 
-            $scopeKey = IdentityCodec::compose([$entry['request']->subject(), $frame->panel()->id(), $frame->scope()]);
+            $scopeKey = IdentityCodec::compose([$entry['request']->subject(), $frame->panel()->id(), $frame->scope(),
+                $frame->subjectModel() === null ? null : spl_object_id($frame->subjectModel()),
+                $frame->actorModel() === null ? null : spl_object_id($frame->actorModel())]);
 
             if (isset($scopes[$scopeKey])) {
                 continue;

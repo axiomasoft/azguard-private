@@ -9,6 +9,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 The first public release. Earlier 0.x versions were never published; moving data from 0.3 is described in
 [UPGRADING.md](UPGRADING.md). Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
 
+### Fixed
+
+- **core:** Batch authorization preserves each supplied subject model and qualifies scope access against that
+  instance, even when adjacent requests use the same primary key or a database fallback.
+
 ### Added
 
 - **core:** Panels: isolated permission sets with their own subjects, roles, sources and settings
