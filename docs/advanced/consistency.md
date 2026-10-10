@@ -60,13 +60,14 @@ roadmap (`ROADMAP.md` in the repository).
 ## DecisionSet
 
 `decideMany()` starts every request first (admission, before hooks). Then it reads the database authority of
-every subject in **one snapshot per storage connection**: each subject's observed state, the cache lookups, and
-the raw rows of subjects with a cache miss. No host code runs inside that transaction. All decisions of one
+every subject in **one snapshot per physical PDO connection**: each subject's observed state, the cache lookups, and
+the raw rows of subjects with a cache miss. Logical stores retain their own table prefixes and cache namespaces,
+including when different read modes resolve to that same handle. Policies and hooks run outside the snapshot. All decisions of one
 storage panel therefore match one panel state, and `DecisionSet::states()` has exactly one token for it.
 
 The guarantee is weaker in these cases:
 
-- Panels on different connections or with different read modes are read in separate snapshots.
+- Panels on different physical connections are read in separate snapshots, including a primary and a replica.
 - Requests inside an authority transaction keep their own read.
 - If the caller splits a large batch into several `decideMany()` calls, each chunk is consistent on its own,
   but the chunks are not consistent with each other.

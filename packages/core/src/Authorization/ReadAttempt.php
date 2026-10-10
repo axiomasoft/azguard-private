@@ -184,9 +184,9 @@ final class ReadAttempt
 
     /**
      * One snapshot for a DecisionSet (audits/2026-10-09-consistency-design.md, step 5): the database reads of every
-     * batch attempt that shares a storage connection run in one read-only transaction: the observed state of each
-     * subject, the cache lookups of its requests and the raw rows of the subjects with a miss. Nothing of the host
-     * runs inside; rows are hydrated after COMMIT. Each attempt then evaluates from what was read, so all its
+     * batch attempt that shares a physical PDO run in one read-only transaction, retaining each logical store's
+     * own table prefix: the observed state of each subject, the cache lookups of its requests and the raw rows of
+     * the subjects with a miss. Policies and hooks run outside; rows are hydrated after COMMIT. Each attempt then evaluates from what was read, so all its
      * decisions and those of the other subjects match one database state. A failed read fails the attempts of that
      * snapshot; an attempt inside an authority transaction or a test baseline keeps its own read.
      *
@@ -230,14 +230,15 @@ final class ReadAttempt
 
                     continue;
                 }
-                $groups[$session->authorityIdentity()."\0".$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
+                $groups[$session->handleIdentity()][] = [$attempt, $source, $requests[0][0]->subject(), $requests];
             }
         }
         foreach ($groups as $members) {
             $session = $members[0][0]->sessions[$members[0][1]->id()];
+            $participants = array_map(static fn (array $member): StorageReadSession => $member[0]->sessions[$member[1]->id()], $members);
 
             try {
-                $read = $session->snapshot(static function () use ($members, $session): array {
+                $read = $session->snapshot(static function () use ($members): array {
                     // One statement per source and subject type for all observed states, not one per subject.
                     [$entries, $sources] = [[], []];
                     foreach ($members as $n => [$attempt, $source, $subject]) {
@@ -246,7 +247,9 @@ final class ReadAttempt
                     }
                     $states = [];
                     foreach ($entries as $id => $byMember) {
-                        $states += $sources[$id]->readObservedMany($session, $byMember);
+                        $n = array_key_first($byMember);
+                        $memberSession = $members[$n][0]->sessions[$members[$n][1]->id()];
+                        $states += $sources[$id]->readObservedMany($memberSession, $byMember);
                     }
                     [$seen, $missing, $fetched] = [[], [], []];
                     foreach ($members as $n => [$attempt, $source, $subject, $requests]) {
@@ -273,7 +276,7 @@ final class ReadAttempt
                     foreach ($missing as $byMember) {
                         $n = array_key_first($byMember);
                         [$attempt, $source] = $members[$n];
-                        $fetched += $source->assignmentRowsMany($session, $attempt->initial, $byMember, $attempt->batchScopes ?? []);
+                        $fetched += $source->assignmentRowsMany($attempt->sessions[$source->id()], $attempt->initial, $byMember, $attempt->batchScopes ?? []);
                     }
                     $read = [];
                     foreach ($seen as $n => [$observed, $hits]) {
@@ -281,7 +284,7 @@ final class ReadAttempt
                     }
 
                     return $read;
-                });
+                }, $participants);
             } catch (Throwable $error) {
                 foreach ($members as [$attempt, $source]) {
                     $attempt->batchFailures[$source->id()] = $error;

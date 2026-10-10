@@ -113,21 +113,28 @@ final class StorageReadSession
      * - SQLite: BEGIN DEFERRED; a read transaction sees one snapshot (https://sqlite.org/isolation.html). Without WAL a
      *   writer waits for the reader to finish; the doctor warns about it, WAL is never enabled here.
      *
-     * `$read` must read plain rows only: no model, event, cache or host callback runs inside. The transaction is
+     * `$read` reads plain rows and may look up cached contributions: no model hydration, policy or hook runs inside. The transaction is
      * committed after `$read` returns and rolled back when it throws; when that cleanup fails the connection is
      * disconnected (never reused in an unknown transaction state, never reconnected here).
      *
      * @template T
      *
      * @param  Closure(): T  $read
+     * @param  list<self>  $participants  logical sessions sharing this physical handle
      * @return T
      */
-    public function snapshot(Closure $read): mixed
+    public function snapshot(Closure $read, array $participants = []): mixed
     {
-        if (! $this->canSnapshot()) {
-            throw InvalidConfigurationException::failing('authority_transaction', 'A snapshot read needs a handle without an open transaction.');
+        $sessions = [spl_object_id($this) => $this];
+        foreach ($participants as $session) {
+            $sessions[spl_object_id($session)] = $session;
         }
-        $this->assertNoTransaction($this->pdo);
+        foreach ($sessions as $session) {
+            if (! $session->canSnapshot() || $session->pdo !== $this->pdo) {
+                throw InvalidConfigurationException::failing('authority_transaction', 'Snapshot participants need the same handle without an open transaction.');
+            }
+            $session->assertNoTransaction($session->pdo);
+        }
         $driver = $this->connection->getDriverName();
         match ($driver) {
             'pgsql' => $this->pdo->exec('START TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY'),
@@ -135,18 +142,24 @@ final class StorageReadSession
             'sqlite' => $this->pdo->exec('BEGIN DEFERRED'),
             default => throw InvalidConfigurationException::failing('authority_read', 'Snapshot reads are not supported on driver '.$driver.'.'),
         };
-        $this->inSnapshot = true;
+        foreach ($sessions as $session) {
+            $session->inSnapshot = true;
+        }
         $committed = false;
 
         try {
             $result = $read();
-            $this->assertOwnSnapshot();
+            foreach ($sessions as $session) {
+                $session->assertOwnSnapshot();
+            }
             $this->pdo->exec('COMMIT');
             $committed = true;
 
             return $result;
         } finally {
-            $this->inSnapshot = false;
+            foreach ($sessions as $session) {
+                $session->inSnapshot = false;
+            }
 
             try {
                 if (! $committed && $this->pdo->inTransaction()) {

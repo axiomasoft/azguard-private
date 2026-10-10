@@ -11,6 +11,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **core:** Panels sharing one physical database handle use one decision-set snapshot even across different
+  logical stores, table prefixes or read modes; cache namespaces remain scoped to each store and read route.
 - **core:** Write results retain the panel epoch and report its increment for touches, resets and dynamic permission
   changes, matching the committed authority state.
 - **core:** Completed and failed decision batches release pinned database handles immediately, including when
