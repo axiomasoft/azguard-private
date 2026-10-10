@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P1.5",
   "title": "Blocking consumer qualification",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "The built-archive consumer check (core, core+Filament in a clean Laravel 13 application) is a blocking job in the tests workflow and a required step of the release validate job, so neither a merge nor a tag release can pass with a broken archive or an unreachable Packagist.",
   "why": "I19 moves from non-blocking to blocking in P1; release-gate condition 9 says a tag release cannot bypass it (owner amendment D14). Packagist unavailability (exit 3) is 'proves nothing' and must never be green.",
   "scope": {
@@ -65,6 +65,13 @@
       "note": "only if a pre-release version needs it"
     }
   ],
+  "artifacts": [
+    {
+      "id": "review-P1.5",
+      "path": "@plan/artifacts/reviews/P1.5-review.json",
+      "role": "output"
+    }
+  ],
   "rules": [
     "Exit 3 (Packagist unreachable) fails the job; never add `|| true`, `continue-on-error` or a retry that turns 3 into 0.",
     "Keep the workflow hardening style already used (pinned major actions, minimal permissions, no new secrets); the zizmor workflow must stay clean.",
@@ -115,6 +122,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-10T12:00:00Z"
+  "result": {
+    "started_at": "2026-10-10T12:29:57Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "0b994a41-73a4-4675-93f4-3f65113a6ef0"
+    }
+  },
+  "updated_at": "2026-10-10T12:46:46Z"
 }
