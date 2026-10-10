@@ -34,6 +34,9 @@ then copy the role assignments.
 
 ```php
 use AzGuard\Facades\AzGuard;
+use AzGuard\Support\ModelKey;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 
 $map = ['editor' => EditorRole::class, 'super-admin' => SuperAdminRole::class];
@@ -46,7 +49,12 @@ AzGuard::actingAs('migration from 0.3', function () use ($map): void {
         ->lazy()
         ->each(function (object $row) use ($map): void {
             $role = $map[$row->name] ?? throw new RuntimeException("No 1.0 role for {$row->name}");
-            $subject = $row->model_type::find($row->model_id);
+            $class = Relation::getMorphedModel($row->model_type) ?? $row->model_type;
+
+            if (! is_subclass_of($class, Model::class)) {
+                throw new RuntimeException("Unknown subject type {$row->model_type}");
+            }
+            $subject = ModelKey::find((new $class)->newQuery(), (string) $row->model_id);
 
             if ($subject === null) {
                 logger()->warning('azguard migration: subject not found', (array) $row);

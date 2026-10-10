@@ -11,6 +11,7 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **core:** The 0.3 role-copy upgrade example resolves morph aliases and exact model keys as well as class names.
 - **filament:** Export chunks discard malformed integer record keys before resource queries, using the same exact-key
   rules as subject and scope resolution.
 - **core:** Panels sharing one physical database handle use one decision-set snapshot even across different

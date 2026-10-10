@@ -22,7 +22,7 @@ use Livewire\Livewire;
  * (set AZGUARD_UPDATE_SNAPSHOTS=1 to write them again).
  */
 
-const SECRET = 'hunter2-leaking-secret';
+const SECRET = 'fixture password';
 
 beforeEach(function (): void {
     GateWorld::prepare();

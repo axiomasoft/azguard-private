@@ -103,7 +103,7 @@ Laravel adapter переводит чужую ability в `null`. Для owned no
 | Настройка | Возможность | Что проверять при сборке |
 |:--|:--|:--|
 | Namespace definitions | Несколько каталогов, local/qualified translation, display metadata | Grammar, uniqueness, immutable registry, duplicate ownership |
-| Subject mapper / provider | Разные auth providers, int/UUID/ULID/morph refs | Canonical ID, storage namespace, null/transient subject policy |
+| Subject mapping | Разные механизмы аутентификации, int/UUID/ULID/morph refs | Canonical ID, storage namespace, null/transient subject policy |
 | Grant sources | Code roles, DB roles, direct/context/external grants | Deterministic registration, volatility/version/deadline capabilities |
 | Constraints / composition | Membership, resource scope, organization policy | Обязательность, порядок, error behavior и override capability |
 | Storage implementation | Eloquent default или другой adapter | Atomic write+state version, authoritative reads, transactions и identity support |
