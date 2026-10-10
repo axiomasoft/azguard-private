@@ -1,0 +1,34 @@
+{
+ "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+ "evidence_id": "PLAN1.P1.3.V2.2026-10-10T18:04:22Z",
+ "check_id": "V2",
+ "subject": "PLAN1.P1.3",
+ "procedure": {
+  "cmd": "vendor/bin/pest tests/Feature/Parity --fail-on-skipped",
+  "cwd": "."
+ },
+ "candidate": {
+  "head": "55855ba941c19da56d120a57fa7b87fdf0d3bc77",
+  "dirty_digest": "6fffc5006455cee7f80120edacd78813919f98b2799c93f40ab70719c7fcf0c2"
+ },
+ "exit": 0,
+ "environment": {
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3",
+  "db_connection": "sqlite"
+ },
+ "log": {
+  "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V2.log",
+  "sha256": "e0e758b4e118ab7476df5737ba5a1f027d0278c32093f92faccc22f2891f8861"
+ },
+ "started_at": "2026-10-10T18:04:22Z",
+ "finished_at": "2026-10-10T18:04:28Z",
+ "producer": {
+  "kind": "executor",
+  "actor": {
+   "provider": "claude-code",
+   "model": "claude-opus-5-5",
+   "effort": "high"
+  }
+ }
+}

@@ -1,0 +1,550 @@
+{
+    "baseline": "0.7.0",
+    "decisions": {
+        "resource_owner_adapter": {
+            "flat u1 clients.update t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u1 clients.update t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u1 clients.view t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u1 clients.view t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u1 clients.view_own_profile t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u1 clients.view_own_profile t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.update t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.update t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.view t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.view t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.view_own_profile t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u2 clients.view_own_profile t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.update t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.update t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.view t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.view t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.view_own_profile t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u3 clients.view_own_profile t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.update t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.update t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.view t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.view t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.view_own_profile t1": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ],
+            "flat u4 clients.view_own_profile t2": [
+                "paths=sql,sql+audit seeds=1-8 client:1 client:2 client:3 client:4 client:5 client:6"
+            ]
+        }
+    },
+    "assignments": {
+        "directory_has_no_expiry_input": {
+            "backoffice u1 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:3 until:past project:5 until:past"
+            ],
+            "backoffice u1 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past project:5 until:past"
+            ],
+            "backoffice u1 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past project:5 until:past"
+            ],
+            "backoffice u1 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past"
+            ],
+            "backoffice u1 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past"
+            ],
+            "backoffice u1 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past project:4 until:past"
+            ],
+            "backoffice u1 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past"
+            ],
+            "backoffice u2 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past"
+            ],
+            "backoffice u2 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past project:3 until:past project:5 until:past"
+            ],
+            "backoffice u2 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:3 until:past"
+            ],
+            "backoffice u2 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 project:5 until:past"
+            ],
+            "backoffice u2 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 project:5 until:past"
+            ],
+            "backoffice u3 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:3 until:past"
+            ],
+            "backoffice u3 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:3 until:past project:4 until:past"
+            ],
+            "backoffice u3 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:3 until:past project:5 until:past"
+            ],
+            "backoffice u3 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past project:3 until:past project:5 until:past"
+            ],
+            "backoffice u3 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past"
+            ],
+            "crm u1 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past"
+            ],
+            "crm u1 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past"
+            ],
+            "crm u1 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past"
+            ],
+            "crm u1 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:5 until:past"
+            ],
+            "crm u1 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past"
+            ],
+            "crm u1 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past project:5 until:past"
+            ],
+            "crm u1 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past"
+            ],
+            "crm u1 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past"
+            ],
+            "crm u2 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past project:5 until:past"
+            ],
+            "crm u2 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:3 until:past project:5 until:past"
+            ],
+            "crm u2 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past"
+            ],
+            "crm u2 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:3 until:past"
+            ],
+            "crm u2 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 project:4 until:past"
+            ],
+            "crm u3 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 project:3 until:past"
+            ],
+            "crm u3 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 project:2 until:past project:4 until:past"
+            ],
+            "crm u3 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:4 until:past"
+            ],
+            "crm u3 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past"
+            ],
+            "crm u3 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 project:1 until:past project:2 until:past project:3 until:past"
+            ]
+        },
+        "directory_lists_no_tenant_wide_context": {
+            "backoffice u1 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u1 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u1 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u1 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u1 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u1 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u1 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u1 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u1 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u1 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u2 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u2 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u2 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u2 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u2 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u2 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u2 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u2 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u2 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u2 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u3 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u3 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u3 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u3 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u3 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u3 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u3 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u3 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u3 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u3 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "backoffice u4 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u4 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "backoffice u4 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "backoffice u4 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u1 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u1 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u1 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u1 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u1 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u1 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u1 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u1 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u1 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u1 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u2 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u2 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u2 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u2 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u2 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u2 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u2 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u2 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u2 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u2 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u3 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u3 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u3 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u3 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u3 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u3 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u3 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u3 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u3 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u3 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u4 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u4 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u4 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u4 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "crm u4 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u4 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u4 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "crm u4 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u4 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "crm u4 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u1 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u1 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u1 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u1 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u1 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u1 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u1 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u1 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u1 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u1 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u2 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u2 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u2 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u2 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u2 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u2 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u2 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u2 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u2 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u2 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u3 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u3 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u3 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u3 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u3 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u3 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u3 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u3 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u3 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u3 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:future"
+            ],
+            "flat u4 role:analyst t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:analyst t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:auditor t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u4 role:auditor t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u4 role:caller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:caller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:seller t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:seller t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ],
+            "flat u4 role:tenant-admin t1": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:past"
+            ],
+            "flat u4 role:tenant-admin t2": [
+                "paths=directory,directory+audit seeds=1 tenant-wide until:none"
+            ]
+        }
+    }
+}

@@ -1,0 +1,3 @@
+$ git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/
+
+exit=0

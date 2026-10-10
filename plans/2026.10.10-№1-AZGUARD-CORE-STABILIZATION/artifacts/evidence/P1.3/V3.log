@@ -1,0 +1,4 @@
+$ PGSQL_PORT=55432 DB_CONNECTION=pgsql vendor/bin/pest tests/Feature/Parity --fail-on-skipped --exclude-group=sqlite
+{"tool":"pest","result":"passed","tests":15,"passed":15,"assertions":25,"duration_ms":15874}
+
+exit=0

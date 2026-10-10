@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P1.3",
   "title": "Parity harness and no-scope-declaration harness",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "One parity harness proves on the unchanged 0.7.0 code that scalar decisions, batch decisions, SQL visibility, directory eligibility and write admission agree over the existing fixtures, including expiry, NULL, tenant ownership, global/scoped roles, Audit on/off, two panels and a panel without a scope declaration; unsupported mappings are recorded as unsupported. A no-scope-declaration harness (I7) runs over the populated 0.7.0 fixture with an owned allowlist.",
   "why": "I9 and I7 (release-gate condition 6) must be measurable before P2 changes the scope declaration slot and evaluator, and maintained through P4. A harness that skipped unsupported mappings would hide narrowing as agreement. Hard risk: authorization semantics.",
   "scope": {
@@ -151,6 +151,74 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-10T11:58:30Z"
+  "result": {
+    "started_at": "2026-10-10T16:39:12Z",
+    "finished_at": "2026-10-10T18:28:19Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "7265a0d2-7a4d-42ed-b7d0-9e014a95ee6f"
+    },
+    "attempt_id": "P1.3-finish-1",
+    "notes": "Parity matrix (I9): 3456 decision cases (8 seeds x 432, Audit off/on) scalar=batch=SQL, 2304 fully agreeing (128 allow), 1152 with SQL unsupported (flat none(): resource_owner_adapter); 720 assignment cases directory vs write. I9 findings F1 (28, directory ignores effective none() mode) and F2 (54, directory ignores target tenant membership) listed in i9-findings-0.7.0.json, owner P2. I7 harness over the P1.1 default fixture: all 12 cases hold at 0.7.0, allowlist empty. Grok 4.7 review: round 1 FINDINGS (2 high, fixed), round 2 GREEN (artifacts/reviews/P1.3-review.json).",
+    "deviations": [
+      "V7 exit 1: the 2 pre-existing phpstan errors in unchanged production code (as P1.2); lint:check passes alone",
+      "plan-work.py facade unusable for this plan layout; run through plan.py"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V6.json"
+      },
+      {
+        "id": "V7",
+        "exit": 1,
+        "at": "2026-10-10T18:28:19Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V7.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V6.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.3/V7.json"
+    ]
+  },
+  "updated_at": "2026-10-10T18:28:19Z"
 }

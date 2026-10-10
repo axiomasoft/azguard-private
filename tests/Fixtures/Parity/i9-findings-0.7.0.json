@@ -1,0 +1,429 @@
+{
+    "baseline": "0.7.0",
+    "findings": {
+        "F1": {
+            "summary": "A panel whose effective scope declaration is AssignmentScopePolicy::none() after an earlier scopes() record (here the CRM provider declares inherit(ProjectScope), the panel then declares none()) keeps that record's definitions: PanelCompiler::scopes() merges the definitions of every layered scopes() record while the mode comes from the effective policy. QueryScopeDirectory::search() does not consult the mode and offers project contexts in the Assignment phase; final validation rejects every non-global context (context_not_accepted). Directory eligibility differs from write admission (I9), and without a declaration the directory still offers non-global contexts (I7).",
+            "owner_phase": "P2",
+            "reported": "plan log PLAN1 P1.3 (finding)"
+        },
+        "F2": {
+            "summary": "QueryScopeDirectory::search() in the Assignment phase offers the contexts of a tenant to a target who is not a member of that tenant (no 0.7.0 directory, subject, tenant or scope, consults tenant membership), while final validation rejects the grant (tenant_mismatch, ChangeValidator::tenancy()). The directory documents that it offers only the contexts the final write would accept for the target, so directory eligibility differs from write admission (I9).",
+            "owner_phase": "P2",
+            "reported": "plan log PLAN1 P1.3 (finding)"
+        }
+    },
+    "disagreements": {
+        "assignments": [
+            {
+                "case": "backoffice u2 role:analyst t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u3 role:analyst t2 project:4 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u3 role:caller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u3 role:seller t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u3 role:tenant-admin t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:analyst t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:analyst t1 project:2 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:analyst t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:analyst t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:caller t1 project:1 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:caller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:caller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:seller t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:seller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:seller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:tenant-admin t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:tenant-admin t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "backoffice u4 role:tenant-admin t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u2 role:analyst t2 project:4 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u3 role:analyst t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u3 role:caller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u3 role:seller t2 project:4 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u3 role:tenant-admin t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:analyst t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:analyst t1 project:2 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:analyst t1 project:5 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:analyst t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:caller t1 project:1 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:caller t1 project:5 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:caller t2 project:4 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:seller t1 project:1 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:seller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:seller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:tenant-admin t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:tenant-admin t1 project:5 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "crm u4 role:tenant-admin t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u1 role:analyst t1 project:1 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:analyst t1 project:2 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:analyst t1 project:5 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:analyst t2 project:4 until:none",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:caller t1 project:1 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:caller t1 project:5 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:caller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:seller t1 project:1 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:seller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:seller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:tenant-admin t1 project:1 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:tenant-admin t1 project:5 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u1 role:tenant-admin t2 project:4 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:analyst t1 project:1 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:analyst t1 project:2 until:none",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:analyst t1 project:5 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:analyst t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u2 role:caller t1 project:2 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:seller t1 project:2 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u2 role:tenant-admin t1 project:2 until:none",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:analyst t1 project:1 until:none",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:analyst t1 project:2 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:analyst t1 project:5 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:analyst t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u3 role:caller t1 project:1 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:caller t1 project:5 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:caller t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u3 role:seller t1 project:1 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:seller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:seller t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u3 role:tenant-admin t1 project:1 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:tenant-admin t1 project:5 until:past",
+                "observed": "directory=allow write=deny(context_not_accepted) directory+audit=allow write+audit=deny(context_not_accepted)",
+                "finding": "F1"
+            },
+            {
+                "case": "flat u3 role:tenant-admin t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:analyst t1 project:1 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:analyst t1 project:2 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:analyst t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:analyst t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:caller t1 project:1 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:caller t1 project:5 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:caller t2 project:4 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:seller t1 project:1 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:seller t1 project:5 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:seller t2 project:4 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:tenant-admin t1 project:1 until:none",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:tenant-admin t1 project:5 until:past",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            },
+            {
+                "case": "flat u4 role:tenant-admin t2 project:4 until:future",
+                "observed": "directory=allow write=deny(tenant_mismatch) directory+audit=allow write+audit=deny(tenant_mismatch)",
+                "finding": "F2"
+            }
+        ]
+    }
+}
