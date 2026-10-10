@@ -73,6 +73,7 @@ final class StorageReadSession
         }
         $this->pdo = $pdo;
         $this->assertNoTransaction($pdo);
+        $this->assertIsolation();
         $this->connection = clone $authority;
         $this->connection->setPdo($pdo)->setReadPdo($pdo);
         $this->connection->setReconnector(static function (): never {
@@ -125,6 +126,7 @@ final class StorageReadSession
      */
     public function snapshot(Closure $read, array $participants = []): mixed
     {
+        $this->assertIsolation();
         $sessions = [spl_object_id($this) => $this];
         foreach ($participants as $session) {
             $sessions[spl_object_id($session)] = $session;
@@ -334,6 +336,19 @@ final class StorageReadSession
         if ($connection->transactionLevel() > 0 || ($write instanceof PDO && $write->inTransaction())
             || ($readPdo !== null && $readPdo->inTransaction())) {
             throw InvalidConfigurationException::failing('authority_transaction', 'Consumed authority reads cannot run inside an unrecognized transaction.');
+        }
+    }
+
+    /** Shared-cache SQLite can expose another connection's dirty rows even inside BEGIN. */
+    private function assertIsolation(): void
+    {
+        if ($this->storage->connection()->getDriverName() !== 'sqlite') {
+            return;
+        }
+        $mode = $this->pdo->query('PRAGMA read_uncommitted');
+
+        if ($mode === false || ! in_array($mode->fetchColumn(), [0, '0'], true)) {
+            throw InvalidConfigurationException::failing('authority_read', 'SQLite authority reads require read_uncommitted=0.');
         }
     }
 

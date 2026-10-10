@@ -11,6 +11,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **core:** SQLite authority reads reject handles configured for dirty reads, which can expose uncommitted grants
+  when SQLite shared cache is enabled.
 - **core:** The 0.3 role-copy upgrade example resolves morph aliases and exact model keys as well as class names.
 - **filament:** Export chunks discard malformed integer record keys before resource queries, using the same exact-key
   rules as subject and scope resolution.
