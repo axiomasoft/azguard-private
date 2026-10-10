@@ -11,6 +11,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **filament:** Export chunks discard malformed integer record keys before resource queries, using the same exact-key
+  rules as subject and scope resolution.
 - **core:** Panels sharing one physical database handle use one decision-set snapshot even across different
   logical stores, table prefixes or read modes; cache namespaces remain scoped to each store and read route.
 - **core:** Write results retain the panel epoch and report its increment for touches, resets and dynamic permission

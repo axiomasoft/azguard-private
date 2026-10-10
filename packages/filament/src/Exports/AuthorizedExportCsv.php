@@ -58,10 +58,20 @@ class AuthorizedExportCsv extends ExportCsv
             $access = $access->inTenant(TenantRef::of($tenant['type'], $tenant['id']));
         }
         $model = new $authority['model'];
+        $keys = [];
+        foreach ($this->records as $key) {
+            if ((is_int($key) || is_string($key)) && ModelKey::canHold($model, (string) $key)) {
+                $keys[] = (string) $key;
+            }
+        }
+
+        if ($keys === []) {
+            return [];
+        }
         $query = $access->visibility()->visibleTo($access->definition(), $model->newQuery(), SubjectRef::of($user->getMorphClass(), ModelKey::of($user)),
             $authority['permission'], $access->scope());
         $visible = [];
-        foreach ($query->whereKey($this->records)->pluck($model->getQualifiedKeyName())->all() as $key) {
+        foreach (ModelKey::where($query, $keys)->pluck($model->getQualifiedKeyName())->all() as $key) {
             if (is_int($key) || is_string($key)) {
                 $visible[] = (string) $key;
             }

@@ -35,6 +35,7 @@ use Filament\Tables\Columns\ToggleColumn;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Queue;
@@ -170,6 +171,28 @@ it('V96 writes no row without the guard panel of the export or with another one'
     expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe('')
         ->and(Context::getHidden(PanelContext::KEY))->toBeNull();
 });
+
+it('rejects malformed integer export keys before querying resource rows', function (array $records, bool $hasValid): void {
+    Storage::fake('local');
+    $export = exportOf(GateWorld::grant(['orders.view_any', 'orders.view']));
+    $job = new AuthorizedExportCsv($export, EloquentSerializeFacade::serialize(Order::query()), $records, 1, ['number' => 'Number'],
+        [AuthorizedExportCsv::OPTION => ['panel' => 'admin', 'permission' => 'orders.view', 'tenant' => null, 'model' => Order::class]]);
+    app(CurrentPanel::class)->set(app(PanelRegistry::class)->get('admin'));
+    $rowQueries = [];
+    app('db')->connection()->listen(static function (QueryExecuted $query) use (&$rowQueries): void {
+        if (str_starts_with(strtolower(ltrim($query->sql)), 'select') && preg_match('/from ["`]orders["`]/', $query->sql) === 1) {
+            $rowQueries[] = $query->sql;
+        }
+    });
+
+    $job->handle();
+
+    expect(Storage::disk('local')->get('filament_exports/'.$export->getKey().'/0000000000000001.csv'))->toBe($hasValid ? "A-1\n" : '')
+        ->and($rowQueries)->toHaveCount($hasValid ? 2 : 0);
+    foreach ($rowQueries as $sql) {
+        expect($sql)->not->toContain(', 0', ', 5');
+    }
+})->with(['all invalid' => [['01', 'a/b', '5abc'], false], 'mixed valid and invalid' => [[1, '01', 'a/b', '5abc'], true]]);
 
 function exportOf(User $user): Export
 {
