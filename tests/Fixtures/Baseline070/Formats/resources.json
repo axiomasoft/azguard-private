@@ -1,0 +1,70 @@
+{
+    "publish_tags": {
+        "core": {
+            "azguard-config": [
+                "config/azguard.php => config/azguard.php"
+            ],
+            "azguard-migrations": [
+                "database/migrations => database/migrations"
+            ]
+        },
+        "filament": {
+            "azguard-filament-config": [
+                "config/azguard-filament.php => config/azguard-filament.php"
+            ]
+        }
+    },
+    "stub_publish_path": "stubs/azguard",
+    "core_migrations": {
+        "basenames": [
+            "2026_10_01_000000_create_azguard_storage",
+            "2026_10_09_000000_upgrade_azguard_storage_to_schema_2"
+        ],
+        "loaded_by_provider": true
+    },
+    "named_storage_migration": "<date>_create_azguard_<storage>_storage.php",
+    "middleware_aliases": {
+        "azguard.panel": "AzGuard\\Laravel\\Http\\Middleware\\EnterPanel",
+        "azguard.can": "AzGuard\\Laravel\\Http\\Middleware\\CheckPermission"
+    },
+    "container_alias": {
+        "azguard": "AzGuard\\AzGuardManager",
+        "same_instance": true
+    },
+    "translation_namespaces": [
+        "azguard"
+    ],
+    "view_namespaces": [
+        "azguard-filament"
+    ],
+    "queue_hidden_context_key": "azguard.panel",
+    "plugin_ids": {
+        "audit": "azguard/audit"
+    },
+    "system_actor_type": {
+        "constant": "azguard.system",
+        "system()": "azguard.system"
+    },
+    "storage_state_schema_keys": [
+        "version",
+        "identity_codec",
+        "storage_id",
+        "prefix",
+        "host_keys"
+    ],
+    "storage_state_schema_default": {
+        "version": 2,
+        "identity_codec": 1,
+        "storage_id": "default",
+        "prefix": "azg_",
+        "host_keys": "string"
+    },
+    "absent_at_070": {
+        "publish_tag azguard-audit-migrations (P3)": false,
+        "migration 2026_10_20_000000_create_azguard_audit_log (P3)": false,
+        "command azguard:audit:migration (P3)": false,
+        "plugin id azguard/scopes (P2)": false,
+        "provider AzGuard\\Audit\\AuditServiceProvider (P3)": false,
+        "provider AzGuard\\DevTools\\DevToolsServiceProvider (P3)": false
+    }
+}

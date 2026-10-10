@@ -1,0 +1,382 @@
+{
+    "exceptions": {
+        "AmbiguousPanelException": {
+            "class": "AzGuard\\Exceptions\\AmbiguousPanelException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "ambiguous_panel"
+        },
+        "AssignmentScopeNotAcceptedException": {
+            "class": "AzGuard\\Exceptions\\AssignmentScopeNotAcceptedException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "context_not_accepted"
+        },
+        "AssignmentScopeRequiredException": {
+            "class": "AzGuard\\Exceptions\\AssignmentScopeRequiredException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "context_required"
+        },
+        "AuthorizationEngineException": {
+            "class": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "AzGuardException": {
+            "class": "AzGuard\\Exceptions\\AzGuardException",
+            "parent": "RuntimeException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "ChangeCancelledException": {
+            "class": "AzGuard\\Exceptions\\ChangeCancelledException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "change_cancelled"
+        },
+        "ChangeException": {
+            "class": "AzGuard\\Exceptions\\ChangeException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "ConfigurationException": {
+            "class": "AzGuard\\Exceptions\\ConfigurationException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "ConflictingPanelException": {
+            "class": "AzGuard\\Exceptions\\ConflictingPanelException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "conflicting_panel"
+        },
+        "ConsistencyException": {
+            "class": "AzGuard\\Exceptions\\ConsistencyException",
+            "parent": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "abstract": false,
+            "final": true,
+            "code": "consistency"
+        },
+        "DecisionFailedException": {
+            "class": "AzGuard\\Laravel\\Http\\DecisionFailedException",
+            "parent": "Symfony\\Component\\HttpKernel\\Exception\\HttpException",
+            "abstract": false,
+            "final": true,
+            "code": null
+        },
+        "DecisionSetTooLargeException": {
+            "class": "AzGuard\\Exceptions\\DecisionSetTooLargeException",
+            "parent": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "abstract": false,
+            "final": true,
+            "code": "decision_set_too_large"
+        },
+        "DefaultPanelConflictException": {
+            "class": "AzGuard\\Exceptions\\DefaultPanelConflictException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "default_panel_conflict"
+        },
+        "DefinitionException": {
+            "class": "AzGuard\\Exceptions\\DefinitionException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": false,
+            "final": false,
+            "code": "definition"
+        },
+        "DirectoryScanLimitException": {
+            "class": "AzGuard\\Exceptions\\DirectoryScanLimitException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": false,
+            "final": true,
+            "code": "directory_scan_limit"
+        },
+        "DuplicatePanelException": {
+            "class": "AzGuard\\Exceptions\\DuplicatePanelException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "duplicate_panel"
+        },
+        "DuplicatePermissionException": {
+            "class": "AzGuard\\Exceptions\\DuplicatePermissionException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "duplicate_permission"
+        },
+        "DuplicatePolicyBindingException": {
+            "class": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "duplicate_policy_binding"
+        },
+        "DuplicateRoleException": {
+            "class": "AzGuard\\Exceptions\\DuplicateRoleException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "duplicate_role"
+        },
+        "InvalidAssignmentScopeException": {
+            "class": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
+            "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_context"
+        },
+        "InvalidChangeFieldsException": {
+            "class": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_change_fields"
+        },
+        "InvalidConfigurationException": {
+            "class": "AzGuard\\Exceptions\\InvalidConfigurationException",
+            "parent": "AzGuard\\Exceptions\\ConfigurationException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_configuration"
+        },
+        "InvalidIdentityException": {
+            "class": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": false,
+            "final": false,
+            "code": "invalid_identity"
+        },
+        "InvalidPanelIdException": {
+            "class": "AzGuard\\Exceptions\\InvalidPanelIdException",
+            "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_panel_id"
+        },
+        "InvalidPermissionKeyException": {
+            "class": "AzGuard\\Exceptions\\InvalidPermissionKeyException",
+            "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_permission_key"
+        },
+        "InvalidPolicyStructureException": {
+            "class": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_policy_structure"
+        },
+        "InvalidRoleKeyException": {
+            "class": "AzGuard\\Exceptions\\InvalidRoleKeyException",
+            "parent": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_role_key"
+        },
+        "InvalidSourceContributionException": {
+            "class": "AzGuard\\Exceptions\\InvalidSourceContributionException",
+            "parent": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "abstract": false,
+            "final": true,
+            "code": "invalid_source_contribution"
+        },
+        "MissingPermissionCheckException": {
+            "class": "AzGuard\\Exceptions\\MissingPermissionCheckException",
+            "parent": "AzGuard\\Exceptions\\ConfigurationException",
+            "abstract": false,
+            "final": true,
+            "code": "missing_permission_check"
+        },
+        "PanelNotResolvedException": {
+            "class": "AzGuard\\Exceptions\\PanelNotResolvedException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "panel_not_resolved"
+        },
+        "PanelNotWritableException": {
+            "class": "AzGuard\\Exceptions\\PanelNotWritableException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "panel_not_writable"
+        },
+        "PermissionNotGrantableException": {
+            "class": "AzGuard\\Exceptions\\PermissionNotGrantableException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "permission_not_grantable"
+        },
+        "PluginConflictException": {
+            "class": "AzGuard\\Exceptions\\PluginConflictException",
+            "parent": "AzGuard\\Exceptions\\PluginException",
+            "abstract": false,
+            "final": true,
+            "code": "plugin_conflict"
+        },
+        "PluginDependencyMissingException": {
+            "class": "AzGuard\\Exceptions\\PluginDependencyMissingException",
+            "parent": "AzGuard\\Exceptions\\PluginException",
+            "abstract": false,
+            "final": true,
+            "code": "plugin_dependency_missing"
+        },
+        "PluginException": {
+            "class": "AzGuard\\Exceptions\\PluginException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "PrefixConflictException": {
+            "class": "AzGuard\\Exceptions\\PrefixConflictException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "prefix_conflict"
+        },
+        "RecursionDetectedException": {
+            "class": "AzGuard\\Exceptions\\RecursionDetectedException",
+            "parent": "RuntimeException",
+            "abstract": false,
+            "final": true,
+            "code": null
+        },
+        "RegistryFrozenException": {
+            "class": "AzGuard\\Exceptions\\RegistryFrozenException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "registry_frozen"
+        },
+        "RoleNotGrantableException": {
+            "class": "AzGuard\\Exceptions\\RoleNotGrantableException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "role_not_grantable"
+        },
+        "StaleSelectionException": {
+            "class": "AzGuard\\Exceptions\\StaleSelectionException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "stale_selection"
+        },
+        "StorageException": {
+            "class": "AzGuard\\Exceptions\\StorageException",
+            "parent": "AzGuard\\Exceptions\\AzGuardException",
+            "abstract": true,
+            "final": false,
+            "code": null
+        },
+        "StorageMismatchException": {
+            "class": "AzGuard\\Exceptions\\StorageMismatchException",
+            "parent": "AzGuard\\Exceptions\\StorageException",
+            "abstract": false,
+            "final": true,
+            "code": "storage_mismatch"
+        },
+        "SubjectNotAcceptedException": {
+            "class": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "subject_not_accepted"
+        },
+        "TenantMismatchException": {
+            "class": "AzGuard\\Exceptions\\TenantMismatchException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "tenant_mismatch"
+        },
+        "TenantRequiredException": {
+            "class": "AzGuard\\Exceptions\\TenantRequiredException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "tenant_required"
+        },
+        "UnknownPanelException": {
+            "class": "AzGuard\\Exceptions\\UnknownPanelException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "unknown_panel"
+        },
+        "UnknownPermissionException": {
+            "class": "AzGuard\\Exceptions\\UnknownPermissionException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "unknown_permission"
+        },
+        "UnknownRoleException": {
+            "class": "AzGuard\\Exceptions\\UnknownRoleException",
+            "parent": "AzGuard\\Exceptions\\ChangeException",
+            "abstract": false,
+            "final": true,
+            "code": "unknown_role"
+        },
+        "UnknownSourceException": {
+            "class": "AzGuard\\Exceptions\\UnknownSourceException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "unknown_source"
+        },
+        "UnsupportedDirectWriteException": {
+            "class": "AzGuard\\Exceptions\\UnsupportedDirectWriteException",
+            "parent": "AzGuard\\Exceptions\\StorageException",
+            "abstract": false,
+            "final": true,
+            "code": "unsupported_direct_write"
+        },
+        "VisibilityNotSupportedException": {
+            "class": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
+            "parent": "RuntimeException",
+            "abstract": false,
+            "final": true,
+            "code": null
+        },
+        "WriterConflictException": {
+            "class": "AzGuard\\Exceptions\\WriterConflictException",
+            "parent": "AzGuard\\Exceptions\\DefinitionException",
+            "abstract": false,
+            "final": true,
+            "code": "writer_conflict"
+        }
+    },
+    "invalid_configuration_checks": [
+        "authority_read",
+        "authority_transaction",
+        "cache_ttl",
+        "changing",
+        "enum",
+        "filament",
+        "filament_enforce",
+        "host_keys",
+        "panel_state",
+        "permission",
+        "storage",
+        "tenant_scope"
+    ]
+}

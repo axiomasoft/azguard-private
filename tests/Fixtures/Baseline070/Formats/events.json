@@ -1,0 +1,539 @@
+{
+    "types": [
+        {
+            "case": "PermissionCreated",
+            "type": "permission.created"
+        },
+        {
+            "case": "PermissionUpdated",
+            "type": "permission.updated"
+        },
+        {
+            "case": "PermissionDeleted",
+            "type": "permission.deleted"
+        },
+        {
+            "case": "RoleGranted",
+            "type": "role.granted"
+        },
+        {
+            "case": "RoleRevoked",
+            "type": "role.revoked"
+        },
+        {
+            "case": "RoleGrantUpdated",
+            "type": "role.grant_updated"
+        },
+        {
+            "case": "PermissionGranted",
+            "type": "permission.granted"
+        },
+        {
+            "case": "PermissionRevoked",
+            "type": "permission.revoked"
+        },
+        {
+            "case": "PermissionGrantUpdated",
+            "type": "permission.grant_updated"
+        },
+        {
+            "case": "GrantExpired",
+            "type": "grant.expired"
+        },
+        {
+            "case": "PanelTouched",
+            "type": "panel.touched"
+        },
+        {
+            "case": "AccessDecided",
+            "type": "access.decided"
+        }
+    ],
+    "events": {
+        "permission.created": {
+            "case": "PermissionCreated",
+            "class": "AzGuard\\Events\\PermissionCreated",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "permission",
+                "label",
+                "group",
+                "description",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "permission.updated": {
+            "case": "PermissionUpdated",
+            "class": "AzGuard\\Events\\PermissionUpdated",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "permission",
+                "label",
+                "group",
+                "description",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "permission.deleted": {
+            "case": "PermissionDeleted",
+            "class": "AzGuard\\Events\\PermissionDeleted",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "permission",
+                "label",
+                "group",
+                "description",
+                "fields",
+                "removed_grants"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "role.granted": {
+            "case": "RoleGranted",
+            "class": "AzGuard\\Events\\RoleGranted",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "role",
+                "context",
+                "origin",
+                "expires_at",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "role.revoked": {
+            "case": "RoleRevoked",
+            "class": "AzGuard\\Events\\RoleRevoked",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "role",
+                "context",
+                "origin",
+                "expires_at",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "role.grant_updated": {
+            "case": "RoleGrantUpdated",
+            "class": "AzGuard\\Events\\RoleGrantUpdated",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "role",
+                "context",
+                "origin",
+                "expires_at",
+                "fields",
+                "previous_role"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "permission.granted": {
+            "case": "PermissionGranted",
+            "class": "AzGuard\\Events\\PermissionGranted",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "permission",
+                "context",
+                "origin",
+                "expires_at",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "permission.revoked": {
+            "case": "PermissionRevoked",
+            "class": "AzGuard\\Events\\PermissionRevoked",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "permission",
+                "context",
+                "origin",
+                "expires_at",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "permission.grant_updated": {
+            "case": "PermissionGrantUpdated",
+            "class": "AzGuard\\Events\\PermissionGrantUpdated",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "permission",
+                "context",
+                "origin",
+                "expires_at",
+                "fields"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "grant.expired": {
+            "case": "GrantExpired",
+            "class": "AzGuard\\Events\\GrantExpired",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "kind",
+                "role",
+                "permission",
+                "context",
+                "origin",
+                "expired_at"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "panel.touched": {
+            "case": "PanelTouched",
+            "class": "AzGuard\\Events\\PanelStateTouched",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "previous_version",
+                "reason"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "storage",
+                "panel",
+                "incarnation",
+                "version",
+                "generation",
+                "fingerprint"
+            ]
+        },
+        "access.decided": {
+            "case": "AccessDecided",
+            "class": "AzGuard\\Events\\AccessDecided",
+            "envelope": [
+                "event_id",
+                "type",
+                "occurred_at",
+                "panel",
+                "tenant",
+                "actor",
+                "correlation_id",
+                "state"
+            ],
+            "data": [
+                "subject",
+                "permission",
+                "context",
+                "effect",
+                "reason",
+                "component"
+            ],
+            "tenant": [
+                "key",
+                "type",
+                "id"
+            ],
+            "actor": [
+                "type",
+                "id",
+                "reason"
+            ],
+            "state": [
+                "kind",
+                "panel",
+                "build_id",
+                "fingerprint"
+            ]
+        }
+    }
+}

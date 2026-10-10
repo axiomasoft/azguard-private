@@ -1,0 +1,216 @@
+{
+    "allow": {
+        "exit": 0,
+        "decision": {
+            "effect": "allow",
+            "reason": "granted",
+            "component": null,
+            "message": null,
+            "status": null,
+            "code": null
+        },
+        "shape": {
+            "decision": {
+                "effect": "string",
+                "reason": "string",
+                "component": "null",
+                "message": "null",
+                "status": "null",
+                "code": "null"
+            },
+            "panel": "string",
+            "subject": {
+                "type": "string",
+                "id": "string"
+            },
+            "scope": {
+                "tenant": "string",
+                "context": "string"
+            },
+            "resource": "null",
+            "now": "string",
+            "state": {
+                "panel": "string",
+                "buildId": "string",
+                "fingerprint": "string"
+            },
+            "steps": [
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                }
+            ]
+        },
+        "steps": [
+            "prepare:pass:prepared",
+            "boundary:pass:pass",
+            "before:skipped:skipped",
+            "contribution:contribution:observed",
+            "contribution:pass:qualified",
+            "sources:pass:evaluated",
+            "superadmin:deny:not_granted",
+            "membership:pass:pass",
+            "policy:skipped:skipped",
+            "authority:pass:granted",
+            "restriction:skipped:skipped",
+            "state:pass:confirmed",
+            "after:skipped:skipped",
+            "condition:skipped:skipped",
+            "filter:skipped:skipped"
+        ],
+        "step_keys": [
+            "stage",
+            "component",
+            "outcome",
+            "detail",
+            "result",
+            "exception"
+        ]
+    },
+    "policy_deny": {
+        "exit": 0,
+        "decision": {
+            "effect": "deny",
+            "reason": "policy",
+            "component": "AzGuard\\Tests\\Fixtures\\Authorization\\RuntimePolicy",
+            "message": "hidden",
+            "status": 404,
+            "code": "policy-code"
+        },
+        "shape": {
+            "decision": {
+                "effect": "string",
+                "reason": "string",
+                "component": "string",
+                "message": "string",
+                "status": "int",
+                "code": "string"
+            },
+            "panel": "string",
+            "subject": {
+                "type": "string",
+                "id": "string"
+            },
+            "scope": {
+                "tenant": "string",
+                "context": "string"
+            },
+            "resource": "null",
+            "now": "string",
+            "state": {
+                "panel": "string",
+                "buildId": "string",
+                "fingerprint": "string"
+            },
+            "steps": [
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                }
+            ]
+        },
+        "steps": [
+            "prepare:pass:prepared",
+            "boundary:pass:pass",
+            "before:skipped:skipped",
+            "sources:skipped:skipped",
+            "superadmin:skipped:skipped",
+            "membership:pass:pass",
+            "policy:deny:deny",
+            "authority:deny:policy",
+            "restriction:skipped:skipped",
+            "state:pass:confirmed",
+            "after:skipped:skipped",
+            "condition:skipped:skipped",
+            "filter:skipped:skipped"
+        ],
+        "step_keys": [
+            "stage",
+            "component",
+            "outcome",
+            "detail",
+            "result",
+            "exception"
+        ]
+    },
+    "not_granted": {
+        "exit": 0,
+        "decision": {
+            "effect": "deny",
+            "reason": "not_granted",
+            "component": null,
+            "message": null,
+            "status": null,
+            "code": null
+        },
+        "shape": {
+            "decision": {
+                "effect": "string",
+                "reason": "string",
+                "component": "null",
+                "message": "null",
+                "status": "null",
+                "code": "null"
+            },
+            "panel": "string",
+            "subject": {
+                "type": "string",
+                "id": "string"
+            },
+            "scope": {
+                "tenant": "string",
+                "context": "string"
+            },
+            "resource": "null",
+            "now": "string",
+            "state": {
+                "panel": "string",
+                "buildId": "string",
+                "fingerprint": "string"
+            },
+            "steps": [
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                }
+            ]
+        },
+        "steps": [
+            "prepare:pass:prepared",
+            "boundary:pass:pass",
+            "before:skipped:skipped",
+            "contribution:contribution:observed",
+            "contribution:skipped:not_matching",
+            "sources:pass:evaluated",
+            "superadmin:deny:not_granted",
+            "policy:skipped:skipped",
+            "authority:deny:not_granted",
+            "restriction:skipped:skipped",
+            "state:pass:confirmed",
+            "after:skipped:skipped",
+            "condition:skipped:skipped",
+            "filter:skipped:skipped",
+            "membership:skipped:skipped"
+        ],
+        "step_keys": [
+            "stage",
+            "component",
+            "outcome",
+            "detail",
+            "result",
+            "exception"
+        ]
+    }
+}

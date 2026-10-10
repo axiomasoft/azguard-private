@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P1.2",
   "title": "Frozen 0.7.0 formats, identities and inventories",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Every identity row of knowledge/identities and every machine format of 0.7.0 (config keys and env names, CLI names/options/exit codes, publish tags and resources, event types and AccessEvent payloads, audit rows, exception classes and codes, doctor and explain JSON) is frozen as a snapshot test; the 0.7.0 API manifests, the serializable-FQCN inventory, the azg_ grant-field evidence and the consumers of Scopes/ folder discovery are recorded.",
   "why": "I17 and release-gate condition 8 require frozen non-PHP contracts; P2 and P3 change code around them, so the 0.7.0 values must be pinned before any change. The serializable-FQCN list protects host-stored class names (architecture#persistence). Hard risk: public formats and identities.",
   "scope": {
@@ -157,6 +157,44 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-10T11:58:47Z"
+  "result": {
+    "started_at": "2026-10-10T12:29:57Z",
+    "finished_at": "2026-10-10T14:59:01Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "0b994a41-73a4-4675-93f4-3f65113a6ef0"
+    },
+    "notes": "I17 snapshots: commands+exit codes, config defaults/env, resources (P2/P3 identities as absent), events/envelope/state, audit rows, exceptions, doctor checks+JSON, explain JSON, API manifests (byte copies), serializable-fqcn, azg_ evidence (accepted at 0.7.0), Scopes/ discovery consumers. 95 tests green. 7 identity findings logged as notes.",
+    "deviations": [
+      "V3: composer analyse fails on 2 pre-existing phpstan errors in unchanged packages/ (out of scope, logged); lint:check passes"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-10T14:59:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-10T14:59:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 1,
+        "at": "2026-10-10T14:59:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V3.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V3.json"
+    ]
+  },
+  "updated_at": "2026-10-10T14:59:01Z"
 }

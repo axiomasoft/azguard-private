@@ -1,0 +1,108 @@
+{
+    "environment": [
+        "AZGUARD_BUILD_ID",
+        "AZGUARD_DB_CONNECTION"
+    ],
+    "retired": {
+        "defaults.gate.mode": {
+            "present_at_070": true,
+            "owner_phase": "P2"
+        }
+    },
+    "azguard": {
+        "panels": {
+            "providers": []
+        },
+        "defaults": {
+            "models": {
+                "role_grant": "AzGuard\\Storage\\Models\\RoleGrant",
+                "permission_grant": "AzGuard\\Storage\\Models\\PermissionGrant",
+                "permission": "AzGuard\\Storage\\Models\\Permission"
+            },
+            "resource_prefix": true,
+            "gate": {
+                "mode": "authoritative"
+            },
+            "cache": {
+                "store": null,
+                "ttl": 3600,
+                "generation": 1
+            },
+            "consistency": {
+                "reads": "primary",
+                "state_refresh": "request"
+            },
+            "trace_decisions": false,
+            "tenants": {
+                "resolvers": []
+            },
+            "scopes": {
+                "resolvers": []
+            }
+        },
+        "gate": {
+            "enabled": true
+        },
+        "decision_sets": {
+            "max_subjects": 500
+        },
+        "schedule": {
+            "enabled": true,
+            "prune_expired": "daily"
+        },
+        "catalog": {
+            "build_id": null,
+            "cache_path": null
+        },
+        "storages": {
+            "default": {
+                "connection": null,
+                "table_prefix": "azg_",
+                "host_keys": null
+            }
+        },
+        "ids": {
+            "host_keys": "string"
+        },
+        "sources": [],
+        "discovery": {
+            "permissions": "Permissions",
+            "policies": "Policies",
+            "roles": "Roles",
+            "scopes": "Scopes",
+            "abilities": "Abilities",
+            "queries": "Queries",
+            "shared": "Shared"
+        },
+        "scaffold": {
+            "namespace": "App\\Guards",
+            "path": "app/Guards"
+        }
+    },
+    "azguard-filament": {
+        "guard_panel": null,
+        "manages": null,
+        "enforce": true,
+        "definitions": "enums",
+        "authority": "grants",
+        "abilities": [
+            "view_any",
+            "view",
+            "create",
+            "update",
+            "delete",
+            "delete_any",
+            "force_delete",
+            "force_delete_any",
+            "restore",
+            "restore_any",
+            "replicate",
+            "reorder"
+        ],
+        "exclude": {
+            "resources": [],
+            "pages": [],
+            "widgets": []
+        }
+    }
+}

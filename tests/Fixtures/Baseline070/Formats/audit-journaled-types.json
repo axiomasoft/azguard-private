@@ -1,0 +1,14 @@
+[
+    "permission.created",
+    "permission.updated",
+    "role.granted",
+    "role.grant_updated",
+    "role.revoked",
+    "permission.granted",
+    "permission.grant_updated",
+    "permission.revoked",
+    "permission.deleted",
+    "panel.touched",
+    "role.granted",
+    "grant.expired"
+]

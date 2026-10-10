@@ -1,35 +1,242 @@
 {
-    "azguard:audit:prune": "[--panel [PANEL]] [--before [BEFORE]] [--force]",
-    "azguard:catalog:cache": "",
-    "azguard:catalog:clear": "",
-    "azguard:catalog:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
-    "azguard:doctor": "[--panel [PANEL]] [--storage [STORAGE]] [--production] [--json]",
-    "azguard:explain": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
-    "azguard:filament:generate": "[--filament-panel [FILAMENT-PANEL]] [--panel [PANEL]] [--authority [AUTHORITY]] [--with-policy] [--only [ONLY]] [--force] [--dry-run]",
-    "azguard:grants:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json] [--] <subject>",
-    "azguard:grants:prune": "[--panel [PANEL]] [--tenant [TENANT]] [--before [BEFORE]] [--dry-run]",
-    "azguard:install": "[--migrate] [--force] [--connection [CONNECTION]] [--host-keys [HOST-KEYS]] [--panel [PANEL]]",
-    "azguard:make:models": "[--storage [STORAGE]] [--force] [--] <panel>",
-    "azguard:make:panel": "[--model [MODEL]] [--force] [--] <panel>",
-    "azguard:make:permission": "[--model [MODEL]] [--authority [AUTHORITY]] [--case [CASE]] [--policy] [--abilities] [--force] [--] <panel> <group>",
-    "azguard:make:pipe": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
-    "azguard:make:plugin": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
-    "azguard:make:policy": "[--enum [ENUM]] [--force] [--] <panel> <group>",
-    "azguard:make:restriction": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
-    "azguard:make:role": "[--force] [--] <panel> <name>",
-    "azguard:make:source": "[--panel [PANEL]] [--shared] [--grants] [--permissions] [--roles] [--policies] [--force] [--] <name>",
-    "azguard:panels:list": "[--settings] [--sources] [--schema] [--json]",
-    "azguard:permissions:create": "[--panel [PANEL]] [--label [LABEL]] [--group [GROUP]] [--tenant [TENANT]] [--] <name>",
-    "azguard:permissions:delete": "[--panel [PANEL]] [--tenant [TENANT]] [--force] [--] <name>",
-    "azguard:permissions:grant": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
-    "azguard:permissions:revoke": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
-    "azguard:permissions:show": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--json] [--] <subject>",
-    "azguard:roles:grant": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
-    "azguard:roles:list": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
-    "azguard:roles:rename-key": "[--panel [PANEL]] [--tenant [TENANT]] [--dry-run] [--force] [--] <role> <new>",
-    "azguard:roles:revoke": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
-    "azguard:sources:list": "[--json]",
-    "azguard:state:reset": "[--force] [--] <panel>",
-    "azguard:storage:migration": "<name>",
-    "azguard:stubs": "[--force]"
+    "azguard:audit:prune": {
+        "synopsis": "[--panel [PANEL]] [--before [BEFORE]] [--force]",
+        "exit_codes": {
+            "success": 0,
+            "production without --force": 2,
+            "unknown panel": 2
+        }
+    },
+    "azguard:catalog:cache": {
+        "synopsis": "",
+        "exit_codes": {
+            "success": 0
+        }
+    },
+    "azguard:catalog:clear": {
+        "synopsis": "",
+        "exit_codes": {
+            "success": 0
+        }
+    },
+    "azguard:catalog:list": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
+        "exit_codes": {
+            "success": 0,
+            "missing tenant": 2,
+            "unknown panel": 2
+        }
+    },
+    "azguard:doctor": {
+        "synopsis": "[--panel [PANEL]] [--storage [STORAGE]] [--production] [--json]",
+        "exit_codes": {
+            "no errors": 0,
+            "error findings": 1,
+            "unknown panel": 2,
+            "unknown storage": 2
+        }
+    },
+    "azguard:explain": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--context [CONTEXT]] [--json] [--] <subject> <permission>",
+        "exit_codes": {
+            "success": 0,
+            "unknown subject": 1,
+            "malformed subject": 1
+        }
+    },
+    "azguard:filament:generate": {
+        "synopsis": "[--filament-panel [FILAMENT-PANEL]] [--panel [PANEL]] [--authority [AUTHORITY]] [--with-policy] [--only [ONLY]] [--force] [--dry-run]",
+        "exit_codes": {
+            "invalid --authority": 2
+        }
+    },
+    "azguard:grants:list": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--json] [--] <subject>",
+        "exit_codes": {
+            "success": 0,
+            "unknown panel": 2
+        }
+    },
+    "azguard:grants:prune": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--before [BEFORE]] [--dry-run]",
+        "exit_codes": {
+            "success": 0,
+            "malformed --before": 2,
+            "unknown panel": 2
+        }
+    },
+    "azguard:install": {
+        "synopsis": "[--migrate] [--force] [--connection [CONNECTION]] [--host-keys [HOST-KEYS]] [--panel [PANEL]]",
+        "exit_codes": {
+            "success": 0,
+            "unknown host keys": 2
+        }
+    },
+    "azguard:make:models": {
+        "synopsis": "[--storage [STORAGE]] [--force] [--] <panel>",
+        "exit_codes": {
+            "success": 0,
+            "unknown storage": 2
+        }
+    },
+    "azguard:make:panel": {
+        "synopsis": "[--model [MODEL]] [--force] [--] <panel>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1,
+            "name normalised to a class": 0
+        }
+    },
+    "azguard:make:permission": {
+        "synopsis": "[--model [MODEL]] [--authority [AUTHORITY]] [--case [CASE]] [--policy] [--abilities] [--force] [--] <panel> <group>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:make:pipe": {
+        "synopsis": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:make:plugin": {
+        "synopsis": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:make:policy": {
+        "synopsis": "[--enum [ENUM]] [--force] [--] <panel> <group>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1,
+            "group without a permission enum": 2
+        }
+    },
+    "azguard:make:restriction": {
+        "synopsis": "[--panel [PANEL]] [--shared] [--force] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:make:role": {
+        "synopsis": "[--force] [--] <panel> <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:make:source": {
+        "synopsis": "[--panel [PANEL]] [--shared] [--grants] [--permissions] [--roles] [--policies] [--force] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists without --force": 1
+        }
+    },
+    "azguard:panels:list": {
+        "synopsis": "[--settings] [--sources] [--schema] [--json]",
+        "exit_codes": {
+            "success": 0
+        }
+    },
+    "azguard:permissions:create": {
+        "synopsis": "[--panel [PANEL]] [--label [LABEL]] [--group [GROUP]] [--tenant [TENANT]] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "exists": 1,
+            "missing tenant": 2
+        }
+    },
+    "azguard:permissions:delete": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--force] [--] <name>",
+        "exit_codes": {
+            "success": 0,
+            "unknown permission": 1
+        }
+    },
+    "azguard:permissions:grant": {
+        "synopsis": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
+        "exit_codes": {
+            "success": 0,
+            "unknown permission": 1,
+            "malformed --until": 2
+        }
+    },
+    "azguard:permissions:revoke": {
+        "synopsis": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <permission>",
+        "exit_codes": {
+            "success": 0,
+            "missing tenant": 2
+        }
+    },
+    "azguard:permissions:show": {
+        "synopsis": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--json] [--] <subject>",
+        "exit_codes": {
+            "success": 0,
+            "missing tenant": 2
+        }
+    },
+    "azguard:roles:grant": {
+        "synopsis": "[--panel [PANEL]] [--on [ON]] [--until [UNTIL]] [--field [FIELD]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
+        "exit_codes": {
+            "success": 0,
+            "unknown role": 1,
+            "unknown panel": 2
+        }
+    },
+    "azguard:roles:list": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--json]",
+        "exit_codes": {
+            "success": 0,
+            "unknown panel": 2
+        }
+    },
+    "azguard:roles:rename-key": {
+        "synopsis": "[--panel [PANEL]] [--tenant [TENANT]] [--dry-run] [--force] [--] <role> <new>",
+        "exit_codes": {
+            "dry run": 0,
+            "target is not a former key": 1,
+            "missing tenant": 2
+        }
+    },
+    "azguard:roles:revoke": {
+        "synopsis": "[--panel [PANEL]] [--on [ON]] [--tenant [TENANT]] [--origin [ORIGIN]] [--] <subject> <role>",
+        "exit_codes": {
+            "success": 0,
+            "unknown panel": 2
+        }
+    },
+    "azguard:sources:list": {
+        "synopsis": "[--json]",
+        "exit_codes": {
+            "success": 0
+        }
+    },
+    "azguard:state:reset": {
+        "synopsis": "[--force] [--] <panel>",
+        "exit_codes": {
+            "success": 0,
+            "unknown panel": 2,
+            "production without --force": 2
+        }
+    },
+    "azguard:storage:migration": {
+        "synopsis": "<name>",
+        "exit_codes": {
+            "success": 0,
+            "default storage": 1,
+            "unknown storage": 1
+        }
+    },
+    "azguard:stubs": {
+        "synopsis": "[--force]",
+        "exit_codes": {
+            "success": 0,
+            "published again without --force keeps them": 0
+        }
+    }
 }

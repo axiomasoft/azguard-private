@@ -1,0 +1,10 @@
+{
+    "folder": "Scopes",
+    "discovered": [
+        "AzGuard\\Tests\\Fixtures\\Guards\\Admin\\Scopes\\ProjectScope"
+    ],
+    "cached": [
+        "AzGuard\\Tests\\Fixtures\\Guards\\Admin\\Scopes\\ProjectScope"
+    ],
+    "definition_types": []
+}

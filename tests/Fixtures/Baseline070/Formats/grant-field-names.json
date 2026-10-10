@@ -1,0 +1,9 @@
+{
+    "azg_region": true,
+    "azg_": true,
+    "region": true,
+    "tenant_region": false,
+    "subject_region": false,
+    "context_region": false,
+    "actor_region": false
+}

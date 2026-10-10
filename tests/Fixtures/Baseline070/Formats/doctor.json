@@ -1,0 +1,227 @@
+{
+    "healthy": {
+        "exit": 0,
+        "finding_fields": [
+            "key",
+            "severity",
+            "scope",
+            "message",
+            "details"
+        ],
+        "findings": [
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "mode"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "mode"
+                ]
+            }
+        ]
+    },
+    "broken": {
+        "exit": 1,
+        "finding_fields": [
+            "key",
+            "severity",
+            "scope",
+            "message",
+            "details"
+        ],
+        "findings": [
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "panel:backoffice",
+                "details": [
+                    "mode"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "fields.meta",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "field",
+                    "kind"
+                ]
+            },
+            {
+                "key": "grants.dead.failed",
+                "severity": "error",
+                "scope": "panel:crm",
+                "details": [
+                    "exception"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "panel:crm",
+                "details": [
+                    "mode"
+                ]
+            },
+            {
+                "key": "roles.orphaned.failed",
+                "severity": "error",
+                "scope": "panel:crm",
+                "details": [
+                    "exception"
+                ]
+            },
+            {
+                "key": "storage.migrated",
+                "severity": "error",
+                "scope": "storage:default",
+                "details": [
+                    "tables"
+                ]
+            }
+        ]
+    },
+    "unknown_panel_exit": 2
+}

@@ -1,0 +1,1159 @@
+{
+    "baseline": "09612160c98ca6133c894a8f90f5653b9dac6b8f",
+    "source": "derived from the 0.7.0 code (enums, concrete Kernel types, Events namespace, Throwable, JsonSerializable, __serialize); target/action/owner from plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json sha256 ddb5d7e2848785eff7ad1b05ab0309b6f74d63fecccb775a4b412dbd69f6b282",
+    "types": [
+        {
+            "fqcn": "AzGuard\\Changes\\ChangeStatus",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Changes\\ChangeStatus",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Changes\\ChangeType",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Changes\\ChangeType",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Changes\\EffectKind",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Changes\\EffectKind",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Contracts\\Sources\\Volatility",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Contracts\\Sources\\Volatility",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Diagnostics\\Severity",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Diagnostics\\Severity",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\AccessDecided",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\AccessDecided",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\AccessEvent",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\AccessEvent",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\EventType",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Events\\EventType",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\GrantExpired",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\GrantExpired",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PanelStateTouched",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PanelStateTouched",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionCreated",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionCreated",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionDeleted",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionDeleted",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionGrantUpdated",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionGrantUpdated",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionGranted",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionGranted",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionRevoked",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionRevoked",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\PermissionUpdated",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\PermissionUpdated",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\RoleGrantUpdated",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\RoleGrantUpdated",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\RoleGranted",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\RoleGranted",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Events\\RoleRevoked",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\RoleRevoked",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\AmbiguousPanelException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\AmbiguousPanelException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\AssignmentScopeNotAcceptedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\AssignmentScopeNotAcceptedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\AssignmentScopeRequiredException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\AssignmentScopeRequiredException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\AuthorizationEngineException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\AzGuardException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\AzGuardException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\ChangeCancelledException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\ChangeCancelledException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\ChangeException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\ChangeException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\ConfigurationException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\ConfigurationException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\ConflictingPanelException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\ConflictingPanelException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\ConsistencyException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\ConsistencyException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DecisionSetTooLargeException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DecisionSetTooLargeException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DefaultPanelConflictException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DefaultPanelConflictException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DefinitionException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DefinitionException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DirectoryScanLimitException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DirectoryScanLimitException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DuplicatePanelException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DuplicatePanelException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DuplicatePermissionException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DuplicatePermissionException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DuplicatePolicyBindingException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\DuplicateRoleException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\DuplicateRoleException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidAssignmentScopeException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidChangeFieldsException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidConfigurationException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidConfigurationException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidIdentityException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidPanelIdException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidPanelIdException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidPermissionKeyException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidPermissionKeyException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidPolicyStructureException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidRoleKeyException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidRoleKeyException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\InvalidSourceContributionException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\InvalidSourceContributionException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\MissingPermissionCheckException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\MissingPermissionCheckException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PanelNotResolvedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PanelNotResolvedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PanelNotWritableException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PanelNotWritableException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PermissionNotGrantableException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PermissionNotGrantableException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PluginConflictException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PluginConflictException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PluginException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PluginException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PrefixConflictException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\PrefixConflictException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\RecursionDetectedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\RecursionDetectedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\RegistryFrozenException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\RegistryFrozenException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\RoleNotGrantableException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\RoleNotGrantableException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\StaleSelectionException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\StaleSelectionException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\StorageException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\StorageException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\StorageMismatchException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\StorageMismatchException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\SubjectNotAcceptedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\TenantMismatchException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\TenantMismatchException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\TenantRequiredException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\TenantRequiredException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\UnknownPanelException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\UnknownPanelException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\UnknownPermissionException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\UnknownPermissionException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\UnknownRoleException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\UnknownRoleException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\UnknownSourceException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\UnknownSourceException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\UnsupportedDirectWriteException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\UnsupportedDirectWriteException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\VisibilityNotSupportedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\WriterConflictException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Exceptions\\WriterConflictException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Filament\\Exports\\AuthorizedExportCsv",
+            "kinds": [
+                "__serialize"
+            ],
+            "target": "AzGuard\\Filament\\Exports\\AuthorizedExportCsv",
+            "action": "keep",
+            "owner": "filament"
+        },
+        {
+            "fqcn": "AzGuard\\Filament\\Exports\\AuthorizedPrepareCsvExport",
+            "kinds": [
+                "__serialize"
+            ],
+            "target": "AzGuard\\Filament\\Exports\\AuthorizedPrepareCsvExport",
+            "action": "keep",
+            "owner": "filament"
+        },
+        {
+            "fqcn": "AzGuard\\Filament\\FilamentDefinitions",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Filament\\FilamentDefinitions",
+            "action": "keep",
+            "owner": "filament"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\AccessPredicate",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\AccessPredicate",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\AccessRequest",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\AccessRequest",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\BeforeResult",
+            "kinds": [
+                "enum",
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\BeforeResult",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\CodeStateToken",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\CodeStateToken",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\Decision",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\Decision",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\DecisionReason",
+            "kinds": [
+                "enum",
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\DecisionReason",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\DecisionSet",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\DecisionSet",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\Effect",
+            "kinds": [
+                "enum",
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\Effect",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\Explanation",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\Explanation",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\FailureKind",
+            "kinds": [
+                "enum",
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\FailureKind",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\Grant",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\Grant",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+            "kinds": [
+                "enum",
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\RestrictionResult",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\RestrictionResult",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\RoleContribution",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\RoleContribution",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Decision\\StateToken",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Decision\\StateToken",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Grammar\\PermissionGrammar",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Grammar\\PermissionGrammar",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\AccessScope",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\AccessScope",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\ActorRef",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\ActorRef",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\AnyAssignmentScope",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\AnyAssignmentScope",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\IdentityCodec",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\IdentityCodec",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\PermissionKey",
+            "kinds": [
+                "kernel_value",
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\PermissionKey",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\PermissionPattern",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\RoleKey",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\RoleKey",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\SubjectRef",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\SubjectRef",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Identity\\TenantRef",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Identity\\TenantRef",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Permissions\\PermissionSet",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Permissions\\PermissionSet",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Laravel\\Http\\DecisionFailedException",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Laravel\\Http\\DecisionFailedException",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Panels\\Reads",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Panels\\Reads",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Panels\\StateRefresh",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Panels\\StateRefresh",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\AssignmentScopeBindingSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\AssignmentScopeBindingSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\AssignmentScopeTypeSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\AssignmentScopeTypeSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\FieldSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\FieldSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\FieldTarget",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Schema\\FieldTarget",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\PanelSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\PanelSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\PermissionSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\PermissionSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\RoleSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\RoleSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\SubjectTypeSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\SubjectTypeSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Schema\\TenantTypeSchema",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Schema\\TenantTypeSchema",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Storage\\Models\\Permission",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Storage\\Models\\Permission",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Storage\\Models\\PermissionGrant",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Storage\\Models\\PermissionGrant",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Storage\\Models\\RoleGrant",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Storage\\Models\\RoleGrant",
+            "action": "keep",
+            "owner": "core"
+        },
+        {
+            "fqcn": "AzGuard\\Testing\\FakeSubject",
+            "kinds": [
+                "json_serializable"
+            ],
+            "target": "AzGuard\\Testing\\FakeSubject",
+            "action": "keep",
+            "owner": "core"
+        }
+    ],
+    "reported": [
+        {
+            "fqcn": "AzGuard\\Catalog\\CacheState",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Catalog\\Internal\\CacheState",
+            "action": "move",
+            "owner": "core",
+            "note": "internal enum of the catalog cache; the type map moves it under Catalog\\Internal (P3). A host does not store it; listed because it is an enum."
+        },
+        {
+            "fqcn": "AzGuard\\Events\\EventObservers",
+            "kinds": [
+                "event"
+            ],
+            "target": "AzGuard\\Events\\Internal\\EventObservers",
+            "action": "move",
+            "owner": "core",
+            "note": "internal observer registry in the Events namespace, not an event; moved under Events\\Internal (P3). Listed by the Events-namespace rule only."
+        },
+        {
+            "fqcn": "AzGuard\\Exceptions\\PluginDependencyMissingException",
+            "kinds": [
+                "exception"
+            ],
+            "target": null,
+            "action": "retire",
+            "owner": "retired",
+            "note": "retired by P2 (D8, DependsOnPlugins retired); a host catching it by FQCN must follow the upgrade map."
+        },
+        {
+            "fqcn": "AzGuard\\Filament\\Authorization\\FilamentSurface",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Filament\\Internal\\Authorization\\FilamentSurface",
+            "action": "move",
+            "owner": "filament",
+            "note": "internal Filament enum; moved under Filament\\Internal (P3)."
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Grammar\\PatternMatcher",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Internal\\PatternMatcher",
+            "action": "move",
+            "owner": "core",
+            "note": "stateless Kernel helper, not a value; moved under Kernel\\Internal (P3)."
+        },
+        {
+            "fqcn": "AzGuard\\Kernel\\Support\\Narrow",
+            "kinds": [
+                "kernel_value"
+            ],
+            "target": "AzGuard\\Kernel\\Internal\\Narrow",
+            "action": "move",
+            "owner": "core",
+            "note": "stateless Kernel helper, not a value; moved under Kernel\\Internal (P3)."
+        },
+        {
+            "fqcn": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+            "kinds": [
+                "exception"
+            ],
+            "target": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
+            "action": "move",
+            "owner": "core",
+            "note": "internal console exception; moved to Laravel\\Console (P3). Never leaves a command."
+        },
+        {
+            "fqcn": "AzGuard\\Panels\\GateMode",
+            "kinds": [
+                "enum"
+            ],
+            "target": null,
+            "action": "retire",
+            "owner": "retired",
+            "note": "published enum retired by P2 together with defaults.gate.mode; a host storing it must follow the upgrade map."
+        },
+        {
+            "fqcn": "AzGuard\\Scopes\\AssignmentScopePhase",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Context\\AssignmentScopePhase",
+            "action": "move",
+            "owner": "core",
+            "note": "published enum moved to AzGuard\\Context\\AssignmentScopePhase (type map, P3): a serialized or stored FQCN changes. Owner decision needed or an alias."
+        },
+        {
+            "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Testing\\Internal\\Contracts\\ContractPermission",
+            "action": "move",
+            "owner": "core",
+            "note": "contract-suite fixture enum; moved under Testing\\Internal (P3)."
+        },
+        {
+            "fqcn": "AzGuard\\Testing\\Contracts\\OtherPermission",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Testing\\Internal\\Contracts\\OtherPermission",
+            "action": "move",
+            "owner": "core",
+            "note": "contract-suite fixture enum; moved under Testing\\Internal (P3)."
+        }
+    ]
+}

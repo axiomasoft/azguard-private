@@ -1,0 +1,231 @@
+{
+    "severities": [
+        "error",
+        "warning"
+    ],
+    "failed_check_id": "<key>.failed",
+    "checks": {
+        "AzGuard\\Diagnostics\\Checks\\CacheStore": {
+            "key": "cache.store",
+            "finding_ids": {
+                "literal": [
+                    "cache.store"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\CatalogBuildId": {
+            "key": "catalog.build_id",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\CatalogCached": {
+            "key": "catalog.cached",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\CatalogCollisions": {
+            "key": "catalog.collisions",
+            "finding_ids": {
+                "literal": [
+                    "catalog.collisions"
+                ],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\ConfigValid": {
+            "key": "config.valid",
+            "finding_ids": {
+                "literal": [
+                    "config.valid"
+                ],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\ConsistencyReads": {
+            "key": "consistency.reads",
+            "finding_ids": {
+                "literal": [
+                    "consistency.reads"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\DecisionFieldsInMeta": {
+            "key": "fields.meta",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\DirectWrites": {
+            "key": "direct_writes",
+            "finding_ids": {
+                "literal": [
+                    "direct_writes"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\DiscoveryCached": {
+            "key": "panels.policies",
+            "finding_ids": {
+                "literal": [
+                    "panels.policies"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\GateModeCheck": {
+            "key": "gate.mode",
+            "finding_ids": {
+                "literal": [
+                    "gate.mode"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\GrantsDead": {
+            "key": "grants.dead",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\MembershipConfigured": {
+            "key": "membership.configured",
+            "finding_ids": {
+                "literal": [
+                    "membership.configured"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\ModelColumns": {
+            "key": "storage.schema",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PanelsPlugins": {
+            "key": "panels.plugins",
+            "finding_ids": {
+                "literal": [
+                    "panels.plugins"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PanelsPolicies": {
+            "key": "panels.policies",
+            "finding_ids": {
+                "literal": [
+                    "panels.policies"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PanelsRelations": {
+            "key": "panels.relations",
+            "finding_ids": {
+                "literal": [
+                    "panels.relations"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PanelsSources": {
+            "key": "panels.sources",
+            "finding_ids": {
+                "literal": [
+                    "panels.sources"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PanelsValid": {
+            "key": "panels.valid",
+            "finding_ids": {
+                "literal": [
+                    "panels.valid"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\PoliciesComplete": {
+            "key": "policies.complete",
+            "finding_ids": {
+                "literal": [
+                    "policies.complete"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\RolesKeys": {
+            "key": "roles.keys",
+            "finding_ids": {
+                "literal": [
+                    "roles.keys"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\RolesOrphaned": {
+            "key": "roles.orphaned",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\RoutesChecks": {
+            "key": "routes.checks",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\StorageMigrated": {
+            "key": "storage.migrated",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\StorageSchema": {
+            "key": "storage.schema",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Diagnostics\\Checks\\StorageSqlite": {
+            "key": "storage.sqlite",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        },
+        "AzGuard\\Filament\\Diagnostics\\FilamentDefinitionsCheck": {
+            "key": "filament.definitions",
+            "finding_ids": {
+                "literal": [
+                    "filament.missing_definition",
+                    "filament.stale_definition"
+                ],
+                "uses_key": false
+            }
+        },
+        "AzGuard\\Plugins\\Audit\\AuditTableExists": {
+            "key": "audit.table",
+            "finding_ids": {
+                "literal": [],
+                "uses_key": true
+            }
+        }
+    }
+}

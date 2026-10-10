@@ -8,6 +8,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Configuration\BootsWithConfiguration;
 use AzGuard\Tests\Fixtures\Panels\FixedScopeResolver;
 use AzGuard\Tests\Fixtures\Panels\FixedTenantResolver;
@@ -211,4 +212,35 @@ it('registers Gate::before only while gate.enabled is true', function (): void {
     $this->bootWith(['azguard.gate.enabled' => false]);
 
     expect(gateBeforeCallbacks())->toBe($enabled - 1);
+});
+
+/*
+ * I17, blocking now: the default of every key of the published core and Filament files and the environment names they
+ * read, as 0.7.0 ships them. `defaults.gate.mode` is present at 0.7.0 and retired by P2, which changes this fixture.
+ */
+it('keeps the defaults of the published files and the environment names they read', function (): void {
+    $root = dirname(__DIR__, 3).'/packages';
+    $names = [];
+
+    foreach (['core/config/azguard.php', 'filament/config/azguard-filament.php'] as $file) {
+        preg_match_all('/\benv\(\s*[\'"]([A-Z0-9_]+)[\'"]/', (string) file_get_contents($root.'/'.$file), $found);
+        array_push($names, ...$found[1]);
+    }
+    sort($names, SORT_STRING);
+    $saved = array_map(static fn (string $name): array|false|string => getenv($name), $names);
+    array_map(static fn (string $name): bool => putenv($name), $names);
+
+    try {
+        $core = require $root.'/core/config/azguard.php';
+        $filament = require $root.'/filament/config/azguard-filament.php';
+    } finally {
+        foreach ($names as $index => $name) {
+            putenv($saved[$index] === false ? $name : $name.'='.$saved[$index]);
+        }
+    }
+    $snapshot = ['environment' => $names, 'retired' => ['defaults.gate.mode' => ['present_at_070' => data_get($core, 'defaults.gate.mode') !== null, 'owner_phase' => 'P2']],
+        'azguard' => $core, 'azguard-filament' => $filament];
+    [$actual, $stored] = FormatSnapshot::compare('config-defaults', $snapshot);
+
+    expect($names)->toBe(['AZGUARD_BUILD_ID', 'AZGUARD_DB_CONNECTION'])->and($actual)->toBe($stored);
 });
