@@ -21,6 +21,7 @@ it('distinguishes executing explain writes from read-only plans and selects', fu
     'implicit true' => ['EXPLAIN (ANALYZE) DELETE FROM contract_probe', true],
     'on' => ['EXPLAIN (FORMAT JSON, ANALYZE ON) INSERT INTO contract_probe VALUES (1)', true],
     'cte' => ['EXPLAIN ANALYZE WITH input AS (SELECT 1) UPDATE contract_probe SET note = 1', true],
+    'leading CTE write' => ["WITH input AS (SELECT 'updated' AS note) UPDATE contract_probe SET note = (SELECT note FROM input)", true],
     'second statement' => ['SELECT 1; EXPLAIN ANALYZE UPDATE contract_probe SET note = 1', true],
     'plain plan' => ['EXPLAIN UPDATE contract_probe SET note = 1', false],
     'false' => ['EXPLAIN (ANALYZE FALSE) UPDATE contract_probe SET note = 1', false],
@@ -43,7 +44,8 @@ it('observes commented and CTE writes in contract hooks', function (string $sql)
 })->with([
     'block comment' => ["/* request tag */ insert into contract_probe (note) values ('written')"],
     'line comment' => ["-- request tag\ninsert into contract_probe (note) values ('written')"],
-    'CTE update' => ["with input as (select 'updated' as note) update contract_probe set note = (select note from input)"],
+    // MariaDB 10.11 supports a CTE in a subquery, but not before UPDATE.
+    'CTE update' => ["update contract_probe set note = (with input as (select 'updated' as note) select note from input)"],
 ]);
 
 it('does not mistake read literals or comments for writes', function (): void {
