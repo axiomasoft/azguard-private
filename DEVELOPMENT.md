@@ -1,8 +1,8 @@
 # AzGuard — Development
 
-## State of 1.0
+## State of 0.7.0
 
-This monorepo holds AzGuard 1.0. The 0.3 code is not part of any build.
+This monorepo holds AzGuard 0.7.0, the first public release. The API may change before 1.0. The 0.3 code is not part of any build.
 
 | Path | What it is |
 |---|---|
@@ -129,7 +129,7 @@ is a hard failure, not a silent pass.
   classes with stable keys declared by `#[Role]` or `key()`.
 - Role definitions live in the panel catalog. The database stores assignments
   in `role_grants`, partitioned by panel, tenant, subject, scope and origin;
-  there is no role-definition table or DB-only role in 1.0.
+  there is no role-definition table or DB-only role in 0.7.0.
 
 ## Git workflow
 

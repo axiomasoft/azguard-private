@@ -1,6 +1,6 @@
 # Roadmap
 
-These items are not part of AzGuard 1.0. Each one says why it is deferred and what would bring it back. None of
+These items are not part of AzGuard 0.7.0. Each one says why it is deferred and what would bring it back. None of
 them is a promise or a date. Open an issue with a concrete use case if one of them blocks you.
 
 ## Consistency

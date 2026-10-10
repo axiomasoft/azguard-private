@@ -6,6 +6,8 @@ The Filament 5 plugin for [AzGuard](https://github.com/axiomasoft/azguard):
 - resource lists are filtered in SQL to the records the user may view;
 - editors for role grants, permission grants and runtime permissions.
 
+0.7.0 is the first public release. The API may change before 1.0.
+
 ```bash
 composer require axiomasoft/azguard-filament
 ```

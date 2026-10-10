@@ -19,6 +19,8 @@ $user->hasPermission(PostPermission::Update, $post); // the grant decides, PostP
 $user->can('update', $post);                         // the same decision through Laravel's Gate
 ```
 
+0.7.0 is the first public release. The API may change before 1.0.
+
 ## What you get
 
 - **Panels.** A panel is one area of the application, such as `admin` or `cabinet`. Each panel has its

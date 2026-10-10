@@ -11,7 +11,7 @@ inaccuracy in an issue and it will be corrected.
 | [santigarcor/laratrust](https://laratrust.santigarcor.me/) | 8.5.5 (2026-03-06) | Laravel 10–13 |
 | [casbin/laravel-authz](https://github.com/php-casbin/laravel-authz) | 5.1.1 (2026-09-27) | Laravel 10–13, on casbin/casbin 4.6.0 |
 | [bezhansalleh/filament-shield](https://github.com/bezhansalleh/filament-shield) | 4.3.1 (2026-07-25) | Filament 4–5, built on spatie/laravel-permission |
-| AzGuard | 1.0 | 8.3–8.5, Laravel 11–13, Filament 5 |
+| AzGuard | 0.7.0 | 8.3–8.5, Laravel 11–13, Filament 5 |
 
 ## Feature matrix
 
@@ -66,7 +66,7 @@ inaccuracy in an issue and it will be corrected.
 - More concepts than Spatie: panels, authority modes, assignment scopes.
 - Each check reads the subject model once, so its attributes are always current for policies and automatic
   roles. Many checks in one request cost one small query each; see [Performance](/advanced/performance).
-- Version 1.0 is new. The others have years of production use.
+- Version 0.7.0 is the first public release; the API may change before 1.0. The others have years of production use.
 
 ## Corrections to the previous comparison
 
@@ -79,5 +79,5 @@ The previous version of this page made several claims that are not accurate agai
 | Spatie: "Octane issues", "4 MB cache per user" | Spatie documents Octane support (`register_octane_reset_listener`). The size claim had no source and was removed |
 | Bouncer: no wildcard permissions | Bouncer has `everything()` and `toManage()` |
 | Laratrust: no team scoping ("partial"), no wildcards | Laratrust has teams and accepts patterns when checking (`Str::is`) |
-| AzGuard: "custom runtime roles" | 1.0 roles are code only; runtime **permissions** exist |
-| AzGuard: `guard:doctor`, `#[RoleOnly]`, `#[SkipGuardCheck]` | 1.0 names: `azguard:doctor`, `#[CheckPermission]`, `#[SkipPermissionCheck]` |
+| AzGuard: "custom runtime roles" | 0.7.0 roles are code only; runtime **permissions** exist |
+| AzGuard: `guard:doctor`, `#[RoleOnly]`, `#[SkipGuardCheck]` | 0.7.0 names: `azguard:doctor`, `#[CheckPermission]`, `#[SkipPermissionCheck]` |

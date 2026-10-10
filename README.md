@@ -35,6 +35,8 @@ $user->grantRole(EditorRole::class, on: $team, until: now()->addWeek());
 $user->hasPermission(PostPermission::Update, $post);   // the grant, then PostPolicy may veto
 ```
 
+0.7.0 is the first public release. The API may change before 1.0.
+
 ## Installation
 
 ```bash

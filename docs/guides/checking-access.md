@@ -207,7 +207,7 @@ to express **every** rule that decides the permission in SQL. Otherwise the call
 | Restrictions | `FiltersAccessQueries` on the restriction |
 | Before hooks | An invokable class with `FiltersAccessQueries`; a closure cannot be compiled |
 | Custom sources | `FiltersQueries` on the source (`DatabaseSource` and `RelationSource` have it) |
-| `GrantedAutomatically` roles | Not supported in lists in 1.0 |
+| `GrantedAutomatically` roles | Not supported in lists in 0.7.0 |
 
 Filament resources with `AuthorizesResource` use this query automatically.
 

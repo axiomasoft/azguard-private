@@ -6,7 +6,9 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
-The first public release. Earlier 0.x versions were never published; moving data from 0.3 is described in
+## [0.7.0] - 2026-10-10
+
+The first public release, 0.7.0. The API may change before 1.0. Earlier 0.x versions were never published; moving data from 0.3 is described in
 [UPGRADING.md](UPGRADING.md). Requires PHP 8.3–8.5 and Laravel 11–13; the Filament package requires Filament 5.
 
 ### Fixed
@@ -57,3 +59,6 @@ The first public release. Earlier 0.x versions were never published; moving data
   exports are authorized by AzGuard; lists are filtered in SQL; `enforce()` refuses unprotected surfaces.
 - **filament:** Read-only role, panel and doctor pages; editors for role grants, permission grants and runtime
   permissions; a permission generator `azguard:filament:generate`.
+
+[Unreleased]: https://github.com/axiomasoft/azguard-private/compare/v0.7.0...main
+[0.7.0]: https://github.com/axiomasoft/azguard-private/compare/v0.3.0...v0.7.0

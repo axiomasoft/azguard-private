@@ -3,6 +3,8 @@
 Code-first authorization for Laravel 11–13. Permissions are backed enums and roles are PHP classes. Every
 check goes through one decision pipeline that fails closed.
 
+0.7.0 is the first public release. The API may change before 1.0.
+
 ```bash
 composer require axiomasoft/azguard
 php artisan azguard:install --panel=Admin --migrate

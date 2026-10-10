@@ -9,13 +9,13 @@ autoload, undiscovered providers) that the monorepo test suite cannot see.
 ```bash
 bash bin/consumer-fixture.sh                      # core archive, Laravel 13
 bash bin/consumer-fixture.sh --with-filament      # core and Filament archives
-bash bin/consumer-fixture.sh --laravel=12 --version=1.0.0-alpha.dev --keep
+bash bin/consumer-fixture.sh --laravel=12 --version=0.7.0 --keep
 ```
 
 | Option | Meaning |
 |:--|:--|
 | `--laravel=N` | Laravel major version of the fixture application (default `13`) |
-| `--version=V` | Version stamped into the **copies** of the package manifests (default `1.0.0-alpha.dev`) |
+| `--version=V` | Version stamped into the **copies** of the package manifests (default `0.7.0`) |
 | `--with-filament` | Also install `axiomasoft/azguard-filament` |
 | `--keep` | Keep the temporary directory and print its path |
 

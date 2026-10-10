@@ -1,6 +1,6 @@
 # Console commands
 
-This page is generated from `php artisan list azguard --format=json` (azguard 1.0, Laravel 13).
+This page is generated from `php artisan list azguard --format=json` (AzGuard 0.7.0, Laravel 13).
 `php artisan help <command>` shows the same text. A subject is written as `type:id`, where the type is the morph alias.
 `azguard:filament:generate` comes from `axiomasoft/azguard-filament`.
 

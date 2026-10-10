@@ -19,6 +19,9 @@ with a user-visible change edits `[Unreleased]`; the release moves it under the 
 
 ## Versioning: lockstep
 
+0.7.0 is the first public release. The API may change before 1.0; during 0.x, a minor release
+may include breaking changes. Mutation testing is deferred by the owner and does not block 0.7.0.
+
 Both packages share **one version**. A release tags the monorepo and
 splits the same tag into every package repo, so `azguard` and
 `azguard-filament` always advance together.
@@ -26,7 +29,7 @@ splits the same tag into every package repo, so `azguard` and
 Consequences:
 
 - The Filament package requires the core as `"axiomasoft/azguard": "self.version"`.
-- A breaking change in any package bumps the major for both.
+- After 1.0, a breaking change in any package bumps the major for both.
 - Never tag a single package independently — always tag the monorepo.
 
 The package `composer.json` files intentionally carry **no `version` field**:
@@ -48,7 +51,7 @@ Composer derives the version from the git tag the split action pushes.
    before making the candidate commit.
 3. Verify the candidate tree read-only:
    ```bash
-   bash bin/release-preflight.sh 1.0.0 HEAD
+   bash bin/release-preflight.sh 0.7.0 HEAD
    ```
    The script reads `git show REF:CHANGELOG.md`; a working-tree-only edit fails.
    Run `bash bin/test-release-preflight.sh` for isolated matching, missing,
@@ -56,29 +59,29 @@ Composer derives the version from the git tag the split action pushes.
 4. After explicit owner approval, create and push an annotated tag from that
    commit:
    ```bash
-   git tag -a v1.0.0 -m "v1.0.0 — release summary"
-   git push origin v1.0.0
+   git tag -a v0.7.0 -m "AzGuard 0.7.0"
+   git push origin v0.7.0
    ```
 5. CI takes over:
    - **`release.yml`** repeats `release-preflight` on the tagged commit, validates
      every package manifest (`composer validate --strict`), re-runs analyse + style +
-     tests, then creates the GitHub release. Its notes are the version's CHANGELOG
+     tests. The GitHub release is created only after both package splits succeed. Its notes are the version's CHANGELOG
      section, printed by `bin/release-notes.sh x.y.z REF` (try it before tagging).
    - **`split.yml`** is called only after release validation succeeds. Its split
-     job is skipped until its one-time setup is complete.
+     jobs fail if the one-time setup is incomplete; the GitHub release depends on both succeeding.
 
 There is **no** post-tag workflow that commits `CHANGELOG.md` back to `main`; the
 tagged commit must already contain the version section.
 
-Local resolution of the `self.version` and `^1.0` constraints between packages is handled by the
+Local resolution of the `self.version` and `^0.7` constraints between packages is handled by the
 `versions` map in the root `composer.json` path repository — keep it in sync with
-the current major when bumping (e.g. `2.0.0` after a `v2.0.0`).
+the current release when bumping (for 0.7.0, both aliases are `0.7.x-dev`).
 
-## Split and Packagist status — 2026-07-22
+## Split and Packagist status — 2026-10-10
 
 Split repositories and Packagist publication are deferred until the one-time setup below
-is done. Release tags still create a GitHub Release; the `split` job is disabled by
-default through the repository variable guard.
+is done. GitHub Release creation requires successful splits of both packages. Missing
+`SPLIT_ENABLED=true` or `MONOREPO_SPLIT_TOKEN` fails publishing; it does not block a local annotated tag.
 
 ## One-time setup (before enabling split)
 

@@ -3,7 +3,7 @@
 # application, the way a consumer receives them (no path repositories, no symlinks),
 # then install its schema and test real HTTP requests and RefreshDatabase grants/cache.
 #
-#   bash bin/consumer-fixture.sh [--laravel=13] [--version=1.0.0-alpha.dev] [--with-filament] [--keep]
+#   bash bin/consumer-fixture.sh [--laravel=13] [--version=0.7.0] [--with-filament] [--keep]
 #
 # Exit codes: 0 success, 1 failure, 3 Packagist unreachable (result is `unavailable`, never green).
 # Writes only to build/ in the repository and to a temporary directory.
@@ -13,7 +13,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dist="${root}/build/dist"
 
 laravel="13"
-version="1.0.0-alpha.dev"
+version="0.7.0"
 with_filament=0
 keep=0
 

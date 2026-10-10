@@ -81,3 +81,25 @@ Release workflow теперь требует успешного split обеих
 
 **Нужно обсудить:** новых концептуальных решений для принятия этой ветки нет.
 Перестройка ядра, разделение на пакеты и замена блокировки панели относятся к последующей стабилизации.
+
+## Подготовка локального релиза 0.7.0 — 2026-10-10
+
+Версии обоих path-пакетов — 0.7.0, корневые требования — `^0.7`, aliases `dev-main` — `0.7.x-dev`.
+Filament сохраняет `self.version`; постоянного поля `version` в публикуемых manifests нет.
+CHANGELOG содержит пустой новый `[Unreleased]` и `[0.7.0]` с датой подготовки; записи исправлений сохранены.
+
+На системном PHP 8.4.26 с включённым pcov, без отключения platform requirements:
+
+- `composer validate --strict` для корня и обеих частей — PASS.
+- `composer check` без mutation — PASS: Pint, PHPStan (0 ошибок), Rector, API manifest;
+  SQLite — 4772 passed, 412714 assertions; типы — 99.8% при 98%, строки — 93.9% при 85%.
+- `composer docs:language`, `composer docs:php`, `npm ci` и VitePress с base `/azguard-private/` — PASS.
+  `npm ci` сообщил о 8 уязвимостях существующих зависимостей документации (2 moderate, 6 high);
+  зависимости в рамках подготовки версии не изменялись.
+- `bash bin/check-commits.sh origin/main` и `bash bin/test-release-preflight.sh` — PASS.
+
+Mutation не запускался и не считается PASS: он отложен по решению владельца. Длительные серверные,
+Redis, replica, конкурентные и upgrade-прогоны не повторялись; их результаты записаны выше.
+Исходники ядра и compatibility patch mutation-runner не менялись. Release workflow сохраняет
+зависимость GitHub Release от успешного split обеих частей; `v0.7.0` соответствует trigger.
+Отсутствие настроек split не блокирует локальный тег. Push и публикация этой задачей не разрешены.

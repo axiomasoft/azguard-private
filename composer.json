@@ -1,6 +1,6 @@
 {
     "name": "axiomasoft/azguard-monorepo",
-    "description": "Development monorepo for AzGuard 1.0: panel-based authorization core for Laravel and its Filament editors.",
+    "description": "Development monorepo for AzGuard 0.7.0: panel-based authorization core for Laravel and its Filament editors.",
     "license": "MIT",
     "type": "project",
     "authors": [
@@ -11,8 +11,8 @@
     ],
     "require": {
         "php": "^8.3",
-        "axiomasoft/azguard": "^1.0",
-        "axiomasoft/azguard-filament": "^1.0"
+        "axiomasoft/azguard": "^0.7",
+        "axiomasoft/azguard-filament": "^0.7"
     },
     "require-dev": {
         "laravel/pint": "^1.32",
@@ -39,8 +39,8 @@
             "url": "packages/*",
             "options": {
                 "versions": {
-                    "axiomasoft/azguard": "1.0.0",
-                    "axiomasoft/azguard-filament": "1.0.0"
+                    "axiomasoft/azguard": "0.7.0",
+                    "axiomasoft/azguard-filament": "0.7.0"
                 }
             }
         }
