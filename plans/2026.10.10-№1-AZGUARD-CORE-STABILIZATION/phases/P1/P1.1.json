@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P1.1",
   "title": "Populated 0.7.0 database fixtures per driver",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Deterministic populated 0.7.0 databases exist for four scenarios (default storage, named storage, published core migration copies, schema-1 database) on SQLite, PostgreSQL, MySQL and MariaDB, can be restored later without 0.7.0 production code, and are asserted for full DDL, audit-table shape and row content.",
   "why": "I16 and I15 need real 0.7.0 data to prove in P3 that the split rewrites zero rows and that Audit adoption verifies the full audit_log shape. A fixture taken after any P2 change is not a 0.7.0 baseline, so it must be produced now from the unchanged code. Hard risk: persistence/data integrity on four drivers (name it in the report; Review P1.6 covers it).",
   "scope": {
@@ -150,6 +150,66 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-10T11:58:30Z"
+  "result": {
+    "started_at": "2026-10-10T12:29:57Z",
+    "finished_at": "2026-10-10T15:49:29Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "0b994a41-73a4-4675-93f4-3f65113a6ef0"
+    },
+    "notes": "Legacy070Schema (proved equal to production 0.7.0 DDL per driver), Dataset (crm with Audit + ops without tenants/Audit, public API, all 11 journaled types), Scenario/Writer/Restorer, 16 dumps (4 drivers x default/named/published/schema1), deterministic per driver. PopulatedDatabaseTest 5/5 on sqlite/pgsql/mysql/mariadb. Grok 4.7 review: 1 finding fixed, round 2 GREEN. Hard risk: persistence/data integrity (Review P1.6).",
+    "deviations": [
+      "V6: composer analyse fails on the 2 pre-existing phpstan errors in unchanged packages/ (same as P1.2); lint:check passes",
+      "V3/V4 ran with PGSQL_PORT=55432 / MYSQL_PORT=53306 (local docker port mapping)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 1,
+        "at": "2026-10-10T15:49:29Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V6.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/V6.json"
+    ]
+  },
+  "updated_at": "2026-10-10T15:49:29Z"
 }

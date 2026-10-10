@@ -1,0 +1,3866 @@
+{
+    "header": {
+        "baseline": "0.7.0",
+        "commit": "09612160c98ca6133c894a8f90f5653b9dac6b8f",
+        "driver": "mariadb",
+        "scenario": "named",
+        "generator": "AZGUARD_BASELINE_WRITE=1 vendor/bin/pest tests/Regression/Baseline070/PopulatedDatabaseTest.php",
+        "generated_at": "2026-10-10T15:13:31Z",
+        "normalisation": "Restorer::rows(): JSON columns decoded with sorted object keys; other values as strings; panel_state.updated_at (written from the wall clock) replaced by Dataset::CLOCK. Generated ULIDs are fixed by Dataset::fixUlids()."
+    },
+    "storages": {
+        "default": {
+            "prefix": "azg_",
+            "host_keys": "string",
+            "application_columns": [],
+            "ddl": {
+                "audit_log": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "event_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "correlation_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "payload",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "occurred_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "azg_al_corr",
+                            "columns": [
+                                "correlation_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_al_event",
+                            "columns": [
+                                "event_id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_al_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_al_time",
+                            "columns": [
+                                "panel",
+                                "occurred_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "azg_al_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "payload",
+                            "definition": "json_valid(`payload`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "permission_grants": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "permission",
+                            "type_name": "varbinary",
+                            "type": "varbinary(255)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "origin",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "'manual'",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "expires_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "azg_pg_context",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "context_type",
+                                "context_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_pg_expiry",
+                            "columns": [
+                                "expires_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_pg_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "permission",
+                                "subject_type",
+                                "subject_id",
+                                "context_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_pg_origin",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_pg_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id",
+                                "context_key"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "azg_pg_context_pair",
+                            "definition": "`context_key` = 'global' = (`context_type` is null and `context_id` is null) and `context_type` is null = (`context_id` is null)"
+                        },
+                        {
+                            "name": "azg_pg_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "role_grants": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "role",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "origin",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "'manual'",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "expires_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "azg_rg_context",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "context_type",
+                                "context_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_rg_expiry",
+                            "columns": [
+                                "expires_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_rg_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "role",
+                                "subject_type",
+                                "subject_id",
+                                "context_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_rg_origin",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "azg_rg_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id",
+                                "context_key"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "azg_rg_context_pair",
+                            "definition": "`context_key` = 'global' = (`context_type` is null and `context_id` is null) and `context_type` is null = (`context_id` is null)"
+                        },
+                        {
+                            "name": "azg_rg_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "permissions": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "name",
+                            "type_name": "varbinary",
+                            "type": "varbinary(255)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "label",
+                            "type_name": "varchar",
+                            "type": "varchar(191)",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "group",
+                            "type_name": "varchar",
+                            "type": "varchar(191)",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "description",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "azg_pm_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "name"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "azg_pm_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "subject_revisions": {
+                    "columns": [
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "revision",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "panel",
+                                "subject_type",
+                                "subject_id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [],
+                    "foreign_keys": []
+                },
+                "panel_state": {
+                    "columns": [
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "version",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "incarnation",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "epoch",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "panel"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [],
+                    "foreign_keys": []
+                },
+                "storage_state": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "smallint",
+                            "type": "smallint(6)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "schema",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "azg_ss_singleton",
+                            "definition": "`id` = 1"
+                        },
+                        {
+                            "name": "schema",
+                            "definition": "json_valid(`schema`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                }
+            },
+            "tables": {
+                "audit_log": [],
+                "permission_grants": [],
+                "role_grants": [],
+                "permissions": [],
+                "subject_revisions": [],
+                "panel_state": [],
+                "storage_state": [
+                    {
+                        "id": "1",
+                        "schema": {
+                            "host_keys": "string",
+                            "identity_codec": 1,
+                            "prefix": "azg_",
+                            "storage_id": "default",
+                            "version": 2
+                        }
+                    }
+                ]
+            }
+        },
+        "ledger": {
+            "prefix": "lgr_",
+            "host_keys": "string",
+            "application_columns": {
+                "role_grants": [
+                    "ticket"
+                ]
+            },
+            "ddl": {
+                "audit_log": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "event_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "correlation_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "payload",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "occurred_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "lgr_al_corr",
+                            "columns": [
+                                "correlation_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_al_event",
+                            "columns": [
+                                "event_id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_al_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_al_time",
+                            "columns": [
+                                "panel",
+                                "occurred_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "lgr_al_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "payload",
+                            "definition": "json_valid(`payload`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "permission_grants": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "permission",
+                            "type_name": "varbinary",
+                            "type": "varbinary(255)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "origin",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "'manual'",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "expires_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "lgr_pg_context",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "context_type",
+                                "context_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_pg_expiry",
+                            "columns": [
+                                "expires_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_pg_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "permission",
+                                "subject_type",
+                                "subject_id",
+                                "context_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_pg_origin",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_pg_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id",
+                                "context_key"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "lgr_pg_context_pair",
+                            "definition": "`context_key` = 'global' = (`context_type` is null and `context_id` is null) and `context_type` is null = (`context_id` is null)"
+                        },
+                        {
+                            "name": "lgr_pg_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "role_grants": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "role",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "context_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "origin",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "'manual'",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "expires_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "actor_reason",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "ticket",
+                            "type_name": "varchar",
+                            "type": "varchar(32)",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "lgr_rg_context",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "context_type",
+                                "context_id"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_rg_expiry",
+                            "columns": [
+                                "expires_at"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_rg_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "role",
+                                "subject_type",
+                                "subject_id",
+                                "context_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_rg_origin",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "origin"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "lgr_rg_subject",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "subject_type",
+                                "subject_id",
+                                "context_key"
+                            ],
+                            "type": "btree",
+                            "unique": false,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "lgr_rg_context_pair",
+                            "definition": "`context_key` = 'global' = (`context_type` is null and `context_id` is null) and `context_type` is null = (`context_id` is null)"
+                        },
+                        {
+                            "name": "lgr_rg_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "permissions": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "bigint",
+                            "type": "bigint(20) unsigned",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": true,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_key",
+                            "type_name": "varbinary",
+                            "type": "varbinary(200)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "tenant_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "name",
+                            "type_name": "varbinary",
+                            "type": "varbinary(255)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "label",
+                            "type_name": "varchar",
+                            "type": "varchar(191)",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "group",
+                            "type_name": "varchar",
+                            "type": "varchar(191)",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "description",
+                            "type_name": "text",
+                            "type": "text",
+                            "collation": "utf8mb4_unicode_ci",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "meta",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "created_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": true,
+                            "default": "NULL",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "lgr_pm_identity",
+                            "columns": [
+                                "panel",
+                                "tenant_key",
+                                "name"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": false
+                        },
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "lgr_pm_tenant_pair",
+                            "definition": "`tenant_key` = 'global' = (`tenant_type` is null and `tenant_id` is null) and `tenant_type` is null = (`tenant_id` is null)"
+                        },
+                        {
+                            "name": "meta",
+                            "definition": "json_valid(`meta`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                },
+                "subject_revisions": {
+                    "columns": [
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_type",
+                            "type_name": "varbinary",
+                            "type": "varbinary(128)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "subject_id",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "revision",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "panel",
+                                "subject_type",
+                                "subject_id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [],
+                    "foreign_keys": []
+                },
+                "panel_state": {
+                    "columns": [
+                        {
+                            "name": "panel",
+                            "type_name": "varbinary",
+                            "type": "varbinary(64)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "version",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "incarnation",
+                            "type_name": "varbinary",
+                            "type": "varbinary(26)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "updated_at",
+                            "type_name": "datetime",
+                            "type": "datetime",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "epoch",
+                            "type_name": "bigint",
+                            "type": "bigint(20)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": "0",
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "panel"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [],
+                    "foreign_keys": []
+                },
+                "storage_state": {
+                    "columns": [
+                        {
+                            "name": "id",
+                            "type_name": "smallint",
+                            "type": "smallint(6)",
+                            "collation": null,
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        },
+                        {
+                            "name": "schema",
+                            "type_name": "longtext",
+                            "type": "longtext",
+                            "collation": "utf8mb4_bin",
+                            "nullable": false,
+                            "default": null,
+                            "auto_increment": false,
+                            "comment": null,
+                            "generation": null
+                        }
+                    ],
+                    "indexes": [
+                        {
+                            "name": "primary",
+                            "columns": [
+                                "id"
+                            ],
+                            "type": "btree",
+                            "unique": true,
+                            "primary": true
+                        }
+                    ],
+                    "constraints": [
+                        {
+                            "name": "lgr_ss_singleton",
+                            "definition": "`id` = 1"
+                        },
+                        {
+                            "name": "schema",
+                            "definition": "json_valid(`schema`)"
+                        }
+                    ],
+                    "foreign_keys": []
+                }
+            },
+            "tables": {
+                "audit_log": [
+                    {
+                        "id": "1",
+                        "event_id": "01k70000000000000000000003",
+                        "type": "permission.created",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": null,
+                        "subject_id": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000001",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "correlation_id": "01k70000000000000000000001",
+                            "description": null,
+                            "event_id": "01k70000000000000000000003",
+                            "fields": [],
+                            "group": "Marketing",
+                            "label": "Launch",
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "panel": "crm",
+                            "permission": "crm:campaigns.launch",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 1
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.created"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "2",
+                        "event_id": "01k70000000000000000000005",
+                        "type": "permission.updated",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": null,
+                        "subject_id": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000004",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "correlation_id": "01k70000000000000000000004",
+                            "description": "Starts a campaign",
+                            "event_id": "01k70000000000000000000005",
+                            "fields": [],
+                            "group": "Marketing",
+                            "label": "Launch now",
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "panel": "crm",
+                            "permission": "crm:campaigns.launch",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 2
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.updated"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "3",
+                        "event_id": "01k70000000000000000000007",
+                        "type": "permission.created",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": null,
+                        "subject_id": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000006",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "correlation_id": "01k70000000000000000000006",
+                            "description": null,
+                            "event_id": "01k70000000000000000000007",
+                            "fields": [],
+                            "group": "Marketing",
+                            "label": "Pause",
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "panel": "crm",
+                            "permission": "crm:campaigns.pause",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 3
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.created"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "4",
+                        "event_id": "01k70000000000000000000009",
+                        "type": "permission.deleted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": null,
+                        "subject_id": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000008",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "correlation_id": "01k70000000000000000000008",
+                            "description": null,
+                            "event_id": "01k70000000000000000000009",
+                            "fields": [],
+                            "group": "Marketing",
+                            "label": "Pause",
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "panel": "crm",
+                            "permission": "crm:campaigns.pause",
+                            "removed_grants": [],
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 4
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.deleted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "5",
+                        "event_id": "01k70000000000000000000011",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000010",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": null,
+                                "key": "global",
+                                "type": null
+                            },
+                            "correlation_id": "01k70000000000000000000010",
+                            "event_id": "01k70000000000000000000011",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": "R1",
+                                "ticket": "T-100"
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:auditor",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 5
+                            },
+                            "subject": {
+                                "id": "2",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "6",
+                        "event_id": "01k70000000000000000000013",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000012",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000012",
+                            "event_id": "01k70000000000000000000013",
+                            "expires_at": "2026-11-01T00:00:00Z",
+                            "fields": {
+                                "eligible": true,
+                                "region": "R1",
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:analyst",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 6
+                            },
+                            "subject": {
+                                "id": "2",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "7",
+                        "event_id": "01k70000000000000000000015",
+                        "type": "role.grant_updated",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000014",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000014",
+                            "event_id": "01k70000000000000000000015",
+                            "expires_at": "2026-12-01T00:00:00Z",
+                            "fields": {
+                                "eligible": true,
+                                "region": "R1",
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "previous_role": null,
+                            "role": "crm:analyst",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 7
+                            },
+                            "subject": {
+                                "id": "2",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.grant_updated"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "8",
+                        "event_id": "01k70000000000000000000017",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000016",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000016",
+                            "event_id": "01k70000000000000000000017",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null,
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:seller",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 8
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "9",
+                        "event_id": "01k70000000000000000000019",
+                        "type": "role.revoked",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000018",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000018",
+                            "event_id": "01k70000000000000000000019",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null,
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:seller",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 9
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.revoked"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "10",
+                        "event_id": "01k70000000000000000000021",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000020",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "5",
+                                "key": "crm.project:5",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000020",
+                            "event_id": "01k70000000000000000000021",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null,
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:seller",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 10
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "11",
+                        "event_id": "01k70000000000000000000023",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "3",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000022",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": null,
+                                "key": "global",
+                                "type": null
+                            },
+                            "correlation_id": "01k70000000000000000000022",
+                            "event_id": "01k70000000000000000000023",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null,
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "import",
+                            "panel": "crm",
+                            "role": "crm:support",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 11
+                            },
+                            "subject": {
+                                "id": "3",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "12",
+                        "event_id": "01k70000000000000000000025",
+                        "type": "permission.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000024",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000024",
+                            "event_id": "01k70000000000000000000025",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.view",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 12
+                            },
+                            "subject": {
+                                "id": "2",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "13",
+                        "event_id": "01k70000000000000000000027",
+                        "type": "permission.grant_updated",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000026",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "1",
+                                "key": "crm.project:1",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000026",
+                            "event_id": "01k70000000000000000000027",
+                            "expires_at": "2027-01-01T00:00:00Z",
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.view",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 13
+                            },
+                            "subject": {
+                                "id": "2",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.grant_updated"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "14",
+                        "event_id": "01k70000000000000000000029",
+                        "type": "permission.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000028",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "2",
+                                "key": "crm.project:2",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000028",
+                            "event_id": "01k70000000000000000000029",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.update",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 14
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "15",
+                        "event_id": "01k70000000000000000000031",
+                        "type": "permission.revoked",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000030",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "2",
+                                "key": "crm.project:2",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000030",
+                            "event_id": "01k70000000000000000000031",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.update",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 15
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.revoked"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "16",
+                        "event_id": "01k70000000000000000000033",
+                        "type": "permission.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000032",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": null,
+                                "key": "global",
+                                "type": null
+                            },
+                            "correlation_id": "01k70000000000000000000032",
+                            "event_id": "01k70000000000000000000033",
+                            "expires_at": null,
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:campaigns.launch",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 16
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "1",
+                                "key": "crm.organization:1",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "17",
+                        "event_id": "01k70000000000000000000035",
+                        "type": "role.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:2",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "2",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000034",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "4",
+                                "key": "crm.project:4",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000034",
+                            "event_id": "01k70000000000000000000035",
+                            "expires_at": "2026-10-07T00:00:00Z",
+                            "fields": {
+                                "eligible": null,
+                                "region": null,
+                                "ticket": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "role": "crm:analyst",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 17
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "2",
+                                "key": "crm.organization:2",
+                                "type": "crm.organization"
+                            },
+                            "type": "role.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "18",
+                        "event_id": "01k70000000000000000000037",
+                        "type": "permission.granted",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:2",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "2",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000036",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "context": {
+                                "id": "4",
+                                "key": "crm.project:4",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000036",
+                            "event_id": "01k70000000000000000000037",
+                            "expires_at": "2026-10-07T00:00:00Z",
+                            "fields": {
+                                "eligible": null,
+                                "region": null
+                            },
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.view",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 18
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "2",
+                                "key": "crm.organization:2",
+                                "type": "crm.organization"
+                            },
+                            "type": "permission.granted"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "19",
+                        "event_id": "01k70000000000000000000048",
+                        "type": "panel.touched",
+                        "panel": "crm",
+                        "tenant_key": "global",
+                        "tenant_type": null,
+                        "tenant_id": null,
+                        "subject_type": null,
+                        "subject_id": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "correlation_id": "01k70000000000000000000047",
+                        "payload": {
+                            "actor": {
+                                "id": "3",
+                                "reason": null,
+                                "type": "crm.user"
+                            },
+                            "correlation_id": "01k70000000000000000000047",
+                            "event_id": "01k70000000000000000000048",
+                            "occurred_at": "2026-10-06T12:00:00Z",
+                            "panel": "crm",
+                            "previous_version": 18,
+                            "reason": "manual",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 19
+                            },
+                            "tenant": {
+                                "id": null,
+                                "key": "global",
+                                "type": null
+                            },
+                            "type": "panel.touched"
+                        },
+                        "occurred_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "20",
+                        "event_id": "01k70000000000000000000050",
+                        "type": "grant.expired",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:2",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "2",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "azguard.system",
+                        "actor_id": null,
+                        "actor_reason": "azguard:grants:prune",
+                        "correlation_id": "01k70000000000000000000049",
+                        "payload": {
+                            "actor": {
+                                "id": null,
+                                "reason": "azguard:grants:prune",
+                                "type": "azguard.system"
+                            },
+                            "context": {
+                                "id": "4",
+                                "key": "crm.project:4",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000049",
+                            "event_id": "01k70000000000000000000050",
+                            "expired_at": "2026-10-07T00:00:00Z",
+                            "kind": "role",
+                            "occurred_at": "2026-10-08T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": null,
+                            "role": "crm:analyst",
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 20
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "2",
+                                "key": "crm.organization:2",
+                                "type": "crm.organization"
+                            },
+                            "type": "grant.expired"
+                        },
+                        "occurred_at": "2026-10-08 12:00:00"
+                    },
+                    {
+                        "id": "21",
+                        "event_id": "01k70000000000000000000051",
+                        "type": "grant.expired",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:2",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "2",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "actor_type": "azguard.system",
+                        "actor_id": null,
+                        "actor_reason": "azguard:grants:prune",
+                        "correlation_id": "01k70000000000000000000049",
+                        "payload": {
+                            "actor": {
+                                "id": null,
+                                "reason": "azguard:grants:prune",
+                                "type": "azguard.system"
+                            },
+                            "context": {
+                                "id": "4",
+                                "key": "crm.project:4",
+                                "type": "crm.project"
+                            },
+                            "correlation_id": "01k70000000000000000000049",
+                            "event_id": "01k70000000000000000000051",
+                            "expired_at": "2026-10-07T00:00:00Z",
+                            "kind": "permission",
+                            "occurred_at": "2026-10-08T12:00:00Z",
+                            "origin": "manual",
+                            "panel": "crm",
+                            "permission": "crm:clients.view",
+                            "role": null,
+                            "state": {
+                                "fingerprint": "5c8b76851aeaf7ca71abbe5ed28cf2c55ff64586d80c6e4797a70aa76adac02f",
+                                "generation": 1,
+                                "incarnation": "01k70000000000000000000002",
+                                "kind": "state",
+                                "panel": "crm",
+                                "storage": "ledger",
+                                "version": 20
+                            },
+                            "subject": {
+                                "id": "1",
+                                "type": "crm.user"
+                            },
+                            "tenant": {
+                                "id": "2",
+                                "key": "crm.organization:2",
+                                "type": "crm.organization"
+                            },
+                            "type": "grant.expired"
+                        },
+                        "occurred_at": "2026-10-08 12:00:00"
+                    }
+                ],
+                "permission_grants": [
+                    {
+                        "id": "1",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "permission": "clients.view",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "context_key": "crm.project:1",
+                        "context_type": "crm.project",
+                        "context_id": "1",
+                        "origin": "manual",
+                        "expires_at": "2027-01-01 00:00:00",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "3",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "permission": "campaigns.launch",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "manual",
+                        "expires_at": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00"
+                    },
+                    {
+                        "id": "5",
+                        "panel": "ops",
+                        "tenant_key": "global",
+                        "tenant_type": null,
+                        "tenant_id": null,
+                        "permission": "reports.export",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "manual",
+                        "expires_at": "2027-01-01 00:00:00",
+                        "actor_type": "azguard.system",
+                        "actor_id": null,
+                        "actor_reason": "baseline import",
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00"
+                    }
+                ],
+                "role_grants": [
+                    {
+                        "id": "1",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "role": "auditor",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "manual",
+                        "expires_at": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": {
+                            "region": "R1"
+                        },
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": "T-100"
+                    },
+                    {
+                        "id": "2",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "role": "analyst",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "context_key": "crm.project:1",
+                        "context_type": "crm.project",
+                        "context_id": "1",
+                        "origin": "manual",
+                        "expires_at": "2026-12-01 00:00:00",
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": {
+                            "eligible": true,
+                            "region": "R1"
+                        },
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": null
+                    },
+                    {
+                        "id": "4",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "role": "seller",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "context_key": "crm.project:5",
+                        "context_type": "crm.project",
+                        "context_id": "5",
+                        "origin": "manual",
+                        "expires_at": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": null
+                    },
+                    {
+                        "id": "5",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "role": "support",
+                        "subject_type": "crm.user",
+                        "subject_id": "3",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "import",
+                        "expires_at": null,
+                        "actor_type": "crm.user",
+                        "actor_id": "3",
+                        "actor_reason": null,
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": null
+                    },
+                    {
+                        "id": "7",
+                        "panel": "ops",
+                        "tenant_key": "global",
+                        "tenant_type": null,
+                        "tenant_id": null,
+                        "role": "reader",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "manual",
+                        "expires_at": null,
+                        "actor_type": "azguard.system",
+                        "actor_id": null,
+                        "actor_reason": "baseline import",
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": null
+                    }
+                ],
+                "permissions": [
+                    {
+                        "id": "1",
+                        "panel": "crm",
+                        "tenant_key": "crm.organization:1",
+                        "tenant_type": "crm.organization",
+                        "tenant_id": "1",
+                        "name": "campaigns.launch",
+                        "label": "Launch now",
+                        "group": "Marketing",
+                        "description": "Starts a campaign",
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00"
+                    }
+                ],
+                "subject_revisions": [
+                    {
+                        "panel": "crm",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "revision": "9"
+                    },
+                    {
+                        "panel": "crm",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "revision": "5"
+                    },
+                    {
+                        "panel": "crm",
+                        "subject_type": "crm.user",
+                        "subject_id": "3",
+                        "revision": "1"
+                    },
+                    {
+                        "panel": "ops",
+                        "subject_type": "crm.user",
+                        "subject_id": "1",
+                        "revision": "2"
+                    },
+                    {
+                        "panel": "ops",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "revision": "2"
+                    }
+                ],
+                "panel_state": [
+                    {
+                        "panel": "crm",
+                        "version": "20",
+                        "incarnation": "01k70000000000000000000002",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "epoch": "5"
+                    },
+                    {
+                        "panel": "ops",
+                        "version": "5",
+                        "incarnation": "01k70000000000000000000039",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "epoch": "1"
+                    }
+                ],
+                "storage_state": [
+                    {
+                        "id": "1",
+                        "schema": {
+                            "host_keys": "string",
+                            "identity_codec": 1,
+                            "prefix": "lgr_",
+                            "storage_id": "ledger",
+                            "version": 2
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "migrations": [
+        {
+            "migration": "2026_10_01_000000_create_azguard_storage",
+            "batch": 1
+        },
+        {
+            "migration": "2026_10_09_000000_upgrade_azguard_storage_to_schema_2",
+            "batch": 1
+        },
+        {
+            "migration": "2026_10_10_000000_create_azguard_ledger_storage",
+            "batch": 1
+        }
+    ]
+}
