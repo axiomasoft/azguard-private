@@ -1,0 +1,162 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.2",
+  "title": "Frozen 0.7.0 formats, identities and inventories",
+  "status": "todo",
+  "summary": "Every identity row of knowledge/identities and every machine format of 0.7.0 (config keys and env names, CLI names/options/exit codes, publish tags and resources, event types and AccessEvent payloads, audit rows, exception classes and codes, doctor and explain JSON) is frozen as a snapshot test; the 0.7.0 API manifests, the serializable-FQCN inventory, the azg_ grant-field evidence and the consumers of Scopes/ folder discovery are recorded.",
+  "why": "I17 and release-gate condition 8 require frozen non-PHP contracts; P2 and P3 change code around them, so the 0.7.0 values must be pinned before any change. The serializable-FQCN list protects host-stored class names (architecture#persistence). Hard risk: public formats and identities.",
+  "scope": {
+    "include": [
+      "Commands: extend tests/Fixtures/Console/commands.json and CommandsSnapshotTest with exit codes per command (success, usage error, failure paths that exist at 0.7.0); every row of identities#commands present with its 0.7.0 options",
+      "Config: ConfigKeysTest keeps the key snapshot; add defaults of every identities#config key and the environment names AZGUARD_DB_CONNECTION, AZGUARD_BUILD_ID; defaults.gate.mode snapshotted as present at 0.7.0 with owner phase P2 (retired)",
+      "Resources: one snapshot test for every identities#resources row that exists at 0.7.0 — publish tags (azguard-config, azguard-migrations, azguard-filament-config), stub publish path, both core migration basenames, generated named-storage migration pattern, middleware aliases azguard.panel/azguard.can, container alias azguard, translation namespace azguard, view namespace azguard-filament, queue hidden-context key, plugin id azguard/audit, reserved azguard/* prefix, system actor type azguard:system, storage_state.schema keys; rows marked new (P2/P3) are listed as absent at 0.7.0",
+      "Events: every identities#events row — EventType case, type string, class; AccessEvent::toArray() envelope keys (event_id, type, occurred_at, panel, tenant, actor, correlation_id, state, data keys) and the exact state object keys per event class",
+      "Audit rows: the journal row written for each event type (columns and payload JSON equal to toArray())",
+      "Exceptions: every identities#exceptions row — class, parent, code (abstract classes recorded as abstract)",
+      "Doctor: every identities#doctor row — check class, key, finding ids; azguard:doctor --json document shape on a fixture world (keys, finding objects, exit code)",
+      "Explain: azguard:explain --json document shape for allow, deny and not-applicable decisions on a fixture world",
+      "API manifests: tests/Fixtures/Baseline070/api-manifest/core.json and filament.json — byte copies of packages/core/api-manifest.json and packages/filament/api-manifest.json at the baseline commit, plus a test that they are byte-identical to `git show 09612160c98ca6133c894a8f90f5653b9dac6b8f:<path>`",
+      "Serializable-FQCN inventory: tests/Fixtures/Baseline070/serializable-fqcn.json — Kernel values, enums, events, decision values and exceptions that hosts may serialize; a test that every listed FQCN exists and that its target-map row keeps target == current",
+      "azg_ evidence: a test pinning that 0.7.0 AzGuard\\Schema\\Field accepts names with the azg_ prefix, with the result recorded in tests/Fixtures/Baseline070/README.md for the P2 upgrade map",
+      "Scopes/ folder discovery: a snapshot of what discovery collects from a Scopes/ fixture directory and a recorded list of its consumers (AzGuardConfig DISCOVERY_KEYS/'Scopes', AzGuardServiceProvider, Authorization\\Visibility, Authorization\\Pipeline\\Stages\\AuthorityStage, Diagnostics\\Checks\\DiscoveryCached) in the README"
+    ],
+    "exclude": [
+      "Any change under packages/",
+      "DDL snapshots (exist: tests/Fixtures/Storage/ddl, extended by P1.1)",
+      "Member-level API inventory (P2); post-1.0 stable-tag comparison (P4)",
+      "Fixing a mismatch between code and knowledge/identities — report it instead"
+    ]
+  },
+  "depends_on": [],
+  "decisions": [
+    "D12",
+    "D13"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/identities",
+      "why": "All sections: the complete list of identities to snapshot (commands, config, resources, events, exceptions, doctor)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#persistence",
+      "why": "Subsection 'Formats that survive the transition': event/audit payload freeze, serializable FQCNs, azg_ rule, meta",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#rules",
+      "why": "How to read target-map rows (target, owner, action) for the serializable-FQCN cross-check",
+      "required": true
+    },
+    {
+      "path": "@plan/artifacts/inventory/identities-0.7.0.json",
+      "why": "Machine inventory of commands, exception codes, doctor keys and event types at the baseline; starting point, verified against code",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Console/CommandsSnapshotTest.php",
+      "why": "Existing command snapshot mechanism to extend",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Configuration/ConfigKeysTest.php",
+      "why": "Existing config key snapshot and publish-tag test",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Events/AccessEvent.php",
+      "why": "toArray() envelope and state keys",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Schema/Field.php",
+      "why": "0.7.0 reserved grant-field rule (azg_ evidence)",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Regression/Baseline070/*SnapshotTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Formats/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/api-manifest/*.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/serializable-fqcn.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/README.md",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Console/commands.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Feature/Console/CommandsSnapshotTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Feature/Configuration/ConfigKeysTest.php",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "No production change: `git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/` holds at hand-off.",
+    "Snapshot values come from running the 0.7.0 code, not from copying the knowledge document; then every knowledge/identities row is checked against them. A difference is recorded as a finding in the plan log (`plan.py log`) and reported; the snapshot keeps the code value.",
+    "Each snapshot test names its invariant (I17) and states that it blocks now.",
+    "Snapshots are JSON fixtures compared exactly (ordered keys, no regex placeholders except for generated ULIDs/timestamps, which are normalised by one helper).",
+    "Identities marked new (P2/P3) or retired are represented explicitly (absent at 0.7.0 / present with owner phase), so later phases change a fixture deliberately, never silently.",
+    "The serializable-FQCN list is derived from code (enums, Kernel values, events, decision values, exceptions, classes implementing JsonSerializable/__serialize) and cross-checked with target-map; a listed type whose target-map row moves it is reported to the owner, not resolved here."
+  ],
+  "guidance": "Put new snapshot tests in `tests/Regression/Baseline070/` (Regression suite runs in `composer test` and on every driver) and their fixtures in `tests/Fixtures/Baseline070/Formats/`. Reuse existing worlds for doctor/explain/event output (`tests/Fixtures/Crm/CrmWorld`, `tests/Fixtures/Events/EventWorld`, `tests/Fixtures/Changes/ChangeWorld`). Exit codes: drive commands with `artisan()` and assert the returned code for the success path and each documented failure path; record them next to the existing signatures in `commands.json`. README.md in `tests/Fixtures/Baseline070/` lists: generation commit, the azg_ result, Scopes/ discovery consumers, and any finding filed against knowledge/identities.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "vendor/bin/pest tests/Regression/Baseline070 tests/Feature/Console/CommandsSnapshotTest.php tests/Feature/Configuration/ConfigKeysTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "composer analyse && composer lint:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Snapshot tests and fixtures covering every row of knowledge/identities and every listed machine format",
+    "0.7.0 API manifest snapshots (core, filament)",
+    "serializable-fqcn.json and exception-code snapshot",
+    "README with azg_ evidence, Scopes/ discovery consumers and identity findings"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-10T11:58:47Z"
+}

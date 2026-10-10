@@ -150,9 +150,9 @@
     }
   ],
   "applies_to": [
-    "P1",
     "P2",
-    "P3"
+    "P3",
+    "P1"
   ],
   "provenance": {
     "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json",

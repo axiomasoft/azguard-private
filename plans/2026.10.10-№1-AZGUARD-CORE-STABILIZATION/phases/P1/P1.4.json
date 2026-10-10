@@ -1,0 +1,193 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.4",
+  "title": "Boundary scans, inactive-cost harness and invariant register",
+  "status": "todo",
+  "summary": "Boundary scans I2, I3 and I5 run in report mode against the generated ownership oracle with owned, shrinking allowlists; I1 kernel/zone purity covers the future module roots; an inactive-cost harness (I13) measures a core-only panel; and an invariant register in tests/Arch proves that every invariant I1–I22 has an executable check or a recorded owner phase.",
+  "why": "Release-gate conditions 1 and 2 require mechanical proof that core references no module, modules and Filament stay isolated, every file has one owner and inactive modules cost nothing. Introducing the scans now in report mode makes every P2/P3 move measurable and stops new violations immediately. The register is the phase exit criterion (P1#exit).",
+  "scope": {
+    "include": [
+      "tests/Arch/Fixtures/target-map.json: byte copy of @plan/artifacts/inventory/target-map.json; tests/Arch/Fixtures/target-map.sha256 with its sha256 (D14)",
+      "tests/Arch/SourceScan.php extension: besides imports and class references, collect FQCN string literals, `::class` constants, `class-string<…>` docblock types, grouped imports, `azguard/<module>` plugin-id literals and module table-name literals (`audit_log`, `{prefix}audit_log`)",
+      "tests/Arch/OwnershipScanTest.php — I2: a file owned by core references no type, plugin id or table owned by scopes, audit or devtools; I3: a module file references no other module and no Filament type, a Filament file references no module type; owner of a file = owner of the target-map row whose current_path is that file (target_path once moved); references resolve to rows by FQCN",
+      "tests/Arch/AutoloadOwnershipTest.php — I5: every production FQCN under packages/*/src and packages/core/modules/*/src has exactly one PSR-4 owner from packages/*/composer.json autoload; directories src/Scopes, src/Audit, src/DevTools and src/Plugins/Audit are reported; an optimized authoritative classmap is generated and checked for duplicates",
+      "tests/Arch/Allowlists/i2.json, i3.json, i5.json: current violations, each {file, reference, kind, invariant, owner_phase}; owner_phase is the phase column of the target-map row that removes it (P2 or P3); all lists must be empty at P3 exit",
+      "I1: ZonesArchTest and BaselineArchTest rules extended to packages/core/modules/*/src (the module roots do not exist yet; each new rule is proven non-vacuous by a synthetic violating file in a temporary directory, like the existing 'finds … but not …' tests)",
+      "tests/Feature/InactiveCost/CoreOnlyPanelTest.php — I13: a core-only panel (no Audit plugin, AssignmentScopePolicy::none()) boots, checks and grants; assert the query log contains no query to a module table, the container resolved no service whose type is owned by scopes/audit/devtools in the oracle, DevTools-owned commands are absent when not running in console, and doctor needs no audit_log; current costs go to tests/Fixtures/InactiveCost/allowlist.json with owner P3",
+      "tests/Arch/invariants.json and tests/Arch/InvariantRegisterTest.php: one entry per I1–I22 {id, status exists|build, checks: [test paths], blocking: now|after Pn, owner_phase}; the test asserts all 22 ids, every listed path exists, every build entry without a check has owner_phase in P2–P4, and status agrees with knowledge/architecture#invariants"
+    ],
+    "exclude": [
+      "Any change under packages/ (allowlist instead of fixing)",
+      "Member-level supported-symbol usage I4 and SPI positional calls I20 (P2) — registered with owner phase only",
+      "Making the scans blocking without allowlists (P3)",
+      "Editing target-map.json by hand"
+    ]
+  },
+  "depends_on": [
+    "P1.1",
+    "P1.2",
+    "P1.3",
+    "P1.5"
+  ],
+  "decisions": [
+    "D13",
+    "D14"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/architecture#invariants",
+      "why": "I1–I22 table: checks, status and owner phases for the register; I2/I3/I5/I13 wording",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#ownership",
+      "why": "Zones, module roots, forbidden dependency directions the scans enforce",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#release-gate",
+      "why": "Subsection 'CI rules: present vs to build': which rules are report mode in P1 and blocking in P3",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#rules",
+      "why": "Row columns (owner, current_path, target_path, phase) the scans consume",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#transition-policy",
+      "why": "Phase ownership of each removal; no responsibility moves across phases",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/SourceScan.php",
+      "why": "Existing token scanner to extend (imports, references, grouped imports)",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "why": "Existing zone rules and non-vacuity test pattern",
+      "required": true
+    },
+    {
+      "path": "@plan/artifacts/inventory/target_map.py",
+      "why": "Generator of the oracle (provenance and the only allowed way to change target-map.json)",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Arch/Fixtures/target-map.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Fixtures/target-map.sha256",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/SourceScan.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/OwnershipScanTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/AutoloadOwnershipTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Allowlists/*.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/ZonesArchTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/BaselineArchTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Feature/InactiveCost/CoreOnlyPanelTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/InactiveCost/allowlist.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/invariants.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/InvariantRegisterTest.php",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "No production change: `git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/` holds at hand-off.",
+    "The oracle is only tests/Arch/Fixtures/target-map.json; no hand-written namespace or owner list. The copy is byte-identical to the plan artifact (sha recorded) and changes only by regenerating with target_map.py and re-copying (D14).",
+    "Report mode means: current violations must equal the allowlist exactly — a new violation fails now, a fixed violation still listed fails as stale. Every entry names its owner phase.",
+    "Every new check states in its description which invariant it proves and whether it blocks now or after a named phase; the register repeats it.",
+    "Types introduced by the transition (target-map action `new`) are not expected to exist; their rows are ignored by the scans until present.",
+    "The inactive-cost harness counts resolutions through the container `resolving` callback and queries through `DB::listen`; it asserts on owners from the oracle, not on class names.",
+    "The register lists I4, I18, I20 and I22 with owner phases (P2/P4) and no fabricated checks."
+  ],
+  "guidance": "Ownership resolution: build `Ownership::fromOracle()` once — maps current FQCN → owner and current_path → owner; a reference to a FQCN missing from the oracle (vendor, PHP) is ignored; a production file missing from the oracle fails (the oracle must be complete). Allowlist generation: run the scan once on the 0.7.0 tree, write the found violations with owner_phase taken from the referenced or referencing row (`phase` like `P2`, `P3`, `P2/P3` → the last phase), review the list, commit it. The register is a hand-authored JSON whose check paths come from this phase's items (P1.1 PopulatedDatabaseTest, P1.2 snapshot tests, P1.3 parity tests, P1.5 consumer job in workflows) and the existing suites named in architecture#invariants.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "cmp tests/Arch/Fixtures/target-map.json plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json && sha256sum tests/Arch/Fixtures/target-map.json | cut -d' ' -f1 | diff - tests/Arch/Fixtures/target-map.sha256",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "vendor/bin/pest tests/Arch tests/Feature/InactiveCost --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer test",
+      "expect": "exit 0 (full sqlite suite incl. all P1 checks)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer analyse && composer lint:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Ownership oracle copy with sha and extended SourceScan",
+    "OwnershipScanTest (I2, I3), AutoloadOwnershipTest (I5) with owned allowlists",
+    "I1 rules covering packages/core/modules/*/src",
+    "CoreOnlyPanelTest (I13) with allowlist owner P3",
+    "invariants.json and InvariantRegisterTest covering I1–I22"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-10T11:58:47Z"
+}

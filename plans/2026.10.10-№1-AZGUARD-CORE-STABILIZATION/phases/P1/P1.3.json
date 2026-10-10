@@ -1,0 +1,156 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.3",
+  "title": "Parity harness and no-scope-declaration harness",
+  "status": "todo",
+  "summary": "One parity harness proves on the unchanged 0.7.0 code that scalar decisions, batch decisions, SQL visibility, directory eligibility and write admission agree over the existing fixtures, including expiry, NULL, tenant ownership, global/scoped roles, Audit on/off, two panels and a panel without a scope declaration; unsupported mappings are recorded as unsupported. A no-scope-declaration harness (I7) runs over the populated 0.7.0 fixture with an owned allowlist.",
+  "why": "I9 and I7 (release-gate condition 6) must be measurable before P2 changes the scope declaration slot and evaluator, and maintained through P4. A harness that skipped unsupported mappings would hide narrowing as agreement. Hard risk: authorization semantics.",
+  "scope": {
+    "include": [
+      "tests/Feature/Parity/ParityMatrixTest.php: for each generated case the five paths — scalar (check/authorize), batch (decideMany/DecisionSet), SQL (visibleTo), directory eligibility (PanelDirectories assignment lookup) and write admission (change pipeline final validation of the corresponding grant) — produce the same verdict per (subject, permission, resource/context)",
+      "tests/Fixtures/Parity/: a ParityWorld built from the existing generators of ParityPropertyTest, DecideManyParityTest, ScopePropertiesTest and the scope eligibility fixtures, plus a result ledger",
+      "Dimensions: expired and NULL expiry, NULL columns, tenant ownership incl. foreign tenant, global and scoped roles, tenant-wide (context_key = global) rows, Audit plugin on/off (the 0.7.0 'module on/off'), two panels on one storage with different scope policies, and a panel with AssignmentScopePolicy::none()",
+      "Unsupported: when a path cannot answer exactly (VisibilityNotSupportedException or an eligibility query without exact support) the ledger records unsupported(reason) for that case; tests/Fixtures/Parity/unsupported-0.7.0.json snapshots the set so that a new unsupported case fails and a removed one must be deleted from the snapshot",
+      "tests/Feature/Parity/NoScopeDeclarationTest.php (I7) over the P1.1 populated default fixture, with the panel rebuilt with AssignmentScopePolicy::none() (the 0.7.0 equivalent of 'no scope declaration' and of 'scope plugin removed'): non-global requests are denied; scoped rows never apply to global requests; non-global writes are rejected; revocation and expired-grant prune still work and never consult scope behavior",
+      "tests/Fixtures/Parity/i7-allowlist.json: I7 cases that fail at 0.7.0, each {case, observed, owner_phase: \"P2\"}; the test fails on a new failure and on a stale entry"
+    ],
+    "exclude": [
+      "Any change under packages/ (no fix of a disagreement found by the harness — record it)",
+      "Filament UI paths (Filament delegates to visibleTo and directories, covered here)",
+      "Module activation matrix of P3 and relocated modules"
+    ]
+  },
+  "depends_on": [
+    "P1.1"
+  ],
+  "decisions": [
+    "D12"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/architecture#operation-chains",
+      "why": "Chains C–G and the activation matrix (I): what each path must decide and how revocation/expiry behave without scope behavior",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#invariants",
+      "why": "Exact wording of I7 and I9 and their P1/P2 status",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#release-gate",
+      "why": "Condition 6 dimensions the harness must cover",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Scopes/AssignmentScopePolicy.php",
+      "why": "none()/inherit()/isolated()/required() — the 0.7.0 scope declaration slot",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Visibility/ParityPropertyTest.php",
+      "why": "Existing scalar↔list generator, seeds and denial-layer controls to reuse",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Authorization/Batch/DecideManyParityTest.php",
+      "why": "Existing scalar↔batch generator to reuse",
+      "required": true
+    },
+    {
+      "path": "tests/Feature/Authorization/Properties/ScopePropertiesTest.php",
+      "why": "Scope table and tenant properties to reuse as dimensions",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Persistence/Restorer.php",
+      "why": "P1.1 restorer for the populated default fixture used by the I7 harness",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "tests/Feature/Parity/**",
+      "change": "create"
+    },
+    {
+      "path": "tests/Fixtures/Parity/**",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "No production change: `git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/` holds at hand-off.",
+    "The matrix asserts agreement between paths, not hand-written expected verdicts; only the I7 harness asserts fixed expectations.",
+    "unsupported is never agreement: a case with any unsupported path is excluded from the equality count and recorded in the ledger with its stable reason.",
+    "Seeds and case counts are fixed and printed in the test name; a failure prints the seed and the differing paths.",
+    "Write admission is evaluated without committing (inside a transaction rolled back by the test, or the pipeline validation entry point) so the matrix leaves the world unchanged.",
+    "The two existing parity tests stay as they are; the harness reuses their generators through extracted fixture helpers in tests/Fixtures/Parity, not by editing their assertions.",
+    "I7 failures at 0.7.0 go to the allowlist with owner P2; I9 disagreements are findings reported to the owner (plan log), never allowlisted silently."
+  ],
+  "guidance": "Shape: `ParityWorld::cases(int $seed): iterable<ParityCase>` yields (panel, subject, permission, resource|context, now). `ParityRunner::run(ParityCase)` returns `array<path, Verdict|Unsupported>`. The test groups by case and asserts all non-unsupported verdicts are equal, then compares the unsupported set with `unsupported-0.7.0.json`. Directory eligibility maps to 'would this context be offered for assignment of this role', write admission to 'does final validation accept the proposed grant'; compare them with each other (I9 'directory eligibility equals write admission') and decisions with decisions.\n\nFor I7 restore the default populated fixture, rebuild panel A with `AssignmentScopePolicy::none()`, and run: a check with a non-global scope → deny; a global check where only a scoped row would allow → deny; a grant with a non-global context → rejected; revoke of a scoped row and prune of an expired scoped row → succeed. Document in the file header why `none()` is the 0.7.0 equivalent.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "vendor/bin/pest tests/Feature/Parity --fail-on-skipped",
+      "expect": "exit 0 on sqlite",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "DB_CONNECTION=pgsql vendor/bin/pest tests/Feature/Parity --fail-on-skipped --exclude-group=sqlite",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "DB_CONNECTION=mysql vendor/bin/pest tests/Feature/Parity --fail-on-skipped --exclude-group=sqlite",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "DB_CONNECTION=mariadb vendor/bin/pest tests/Feature/Parity --fail-on-skipped --exclude-group=sqlite",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "vendor/bin/pest tests/Feature/Visibility/ParityPropertyTest.php tests/Feature/Authorization/Batch/DecideManyParityTest.php tests/Feature/Authorization/Properties --fail-on-skipped",
+      "expect": "exit 0 (existing suites unchanged)",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "composer analyse && composer lint:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "ParityMatrixTest with ParityWorld/ParityRunner and the unsupported-0.7.0 ledger",
+    "NoScopeDeclarationTest with i7-allowlist.json (owner P2)",
+    "Findings for any I9 disagreement recorded in the plan log"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-10T11:58:30Z"
+}

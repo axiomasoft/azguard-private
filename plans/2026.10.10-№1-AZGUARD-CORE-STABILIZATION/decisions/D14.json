@@ -1,0 +1,49 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D14",
+  "title": "P1 ownership-oracle copy and release-gated consumer check",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "How do P1 checks consume the ownership oracle, and does P1 extend the blocking consumer check to the release workflow?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Byte copy of target-map.json in tests/Arch/Fixtures with a recorded sha256, plus the consumer check in release.yml validate (chosen)"
+    },
+    {
+      "id": "B",
+      "text": "Tests read plans/<ID>/artifacts/inventory/target-map.json directly; release gating left to P4"
+    }
+  ],
+  "context": "Owner-agreed deviations from the literal P1 text (brief M10, M13). P1#design-inputs names artifacts/inventory/target-map.json as the oracle; a repository test reading the plan directory breaks when plan.py archive moves it to plans/archive/ and in split archives. Phase scope.include names only the tests workflow and bin/consumer-fixture.sh, while release-gate condition 9 requires that a tag release cannot bypass the blocking consumer check.",
+  "decision": "A — Byte copy of target-map.json in tests/Arch/Fixtures with a recorded sha256, plus the consumer check in release.yml validate (chosen)",
+  "rationale": "Owner agreed both points in the P1 design session (brief M13).",
+  "consequences": [
+    "P2/P3 changes to the type map re-copy the generated file and update the sha in the same commit.",
+    "A tag release fails when Packagist is unreachable (consumer-fixture exit 3), never silently green."
+  ],
+  "applies_to": [
+    "P1"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M13",
+      "note": "Owner answers in the P1 design session."
+    },
+    {
+      "kind": "repo",
+      "ref": ".github/workflows/release.yml"
+    },
+    {
+      "kind": "repo",
+      "ref": ".github/workflows/tests.yml"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "high"
+  },
+  "answered_by": "owner"
+}

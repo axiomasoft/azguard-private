@@ -1,0 +1,120 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P1.5",
+  "title": "Blocking consumer qualification",
+  "status": "todo",
+  "summary": "The built-archive consumer check (core, core+Filament in a clean Laravel 13 application) is a blocking job in the tests workflow and a required step of the release validate job, so neither a merge nor a tag release can pass with a broken archive or an unreachable Packagist.",
+  "why": "I19 moves from non-blocking to blocking in P1; release-gate condition 9 says a tag release cannot bypass it (owner amendment D14). Packagist unavailability (exit 3) is 'proves nothing' and must never be green.",
+  "scope": {
+    "include": [
+      ".github/workflows/tests.yml job consumer-fixture: remove `continue-on-error: true` and the stale comment that points to PLAN2.P8.3; keep both steps (core; core+Filament)",
+      ".github/workflows/release.yml job validate: add PHP extensions needed by the fixture (zip, pdo_sqlite, sqlite3) and two steps running `bash bin/consumer-fixture.sh --laravel=13 --version=\"${GITHUB_REF_NAME#v}\"` and the same with `--with-filament`, after Tests and before the changelog preflight",
+      "bin/consumer-fixture.sh: only if needed so a pre-release tag version (e.g. 1.0.0-rc.1) builds and installs; exit-code contract 0/1/2/3 unchanged"
+    ],
+    "exclude": [
+      "Core-only inactive-cost consumer variant and module-relocation rehearsal (P3/P4)",
+      "Any change under packages/",
+      "Other workflows"
+    ]
+  },
+  "depends_on": [],
+  "decisions": [
+    "D14"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/architecture#release-gate",
+      "why": "Condition 9 and the consumer/distribution CI row",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#invariants",
+      "why": "I19 wording and status",
+      "required": true
+    },
+    {
+      "path": "bin/consumer-fixture.sh",
+      "why": "Arguments, archive build from copies, exit codes",
+      "required": true
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "section": "consumer-fixture",
+      "why": "Job to make blocking",
+      "required": true
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "section": "validate",
+      "why": "Job that gains the consumer steps",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": ".github/workflows/tests.yml",
+      "change": "modify"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "change": "modify"
+    },
+    {
+      "path": "bin/consumer-fixture.sh",
+      "change": "modify",
+      "note": "only if a pre-release version needs it"
+    }
+  ],
+  "rules": [
+    "Exit 3 (Packagist unreachable) fails the job; never add `|| true`, `continue-on-error` or a retry that turns 3 into 0.",
+    "Keep the workflow hardening style already used (pinned major actions, minimal permissions, no new secrets); the zizmor workflow must stay clean.",
+    "Do not change test selection of other jobs."
+  ],
+  "guidance": "Run the fixture locally once per variant to prove it is green on the 0.7.0 tree before making it blocking; if it is red, stop and report instead of weakening the gate. Validate workflow syntax with actionlint (installed locally).",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "bash bin/consumer-fixture.sh --laravel=13",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "bash bin/consumer-fixture.sh --laravel=13 --with-filament",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "actionlint .github/workflows/tests.yml .github/workflows/release.yml",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "! grep -n 'continue-on-error' .github/workflows/tests.yml && grep -c 'consumer-fixture.sh' .github/workflows/release.yml | grep -qx 2",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Blocking consumer-fixture job in tests.yml",
+    "Consumer steps (core, core+Filament) in release.yml validate"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-10T12:00:00Z"
+}

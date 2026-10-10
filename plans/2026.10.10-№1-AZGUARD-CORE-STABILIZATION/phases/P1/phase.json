@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P1",
   "title": "Baseline evidence and compatibility harness",
-  "design": "skeleton",
+  "design": "detailed",
   "goal": "Capture the 0.7.0 behavior, formats and populated data as executable evidence and install the boundary, parity and distribution checks every later phase is measured against, without changing production behavior.",
   "context": "Architecture phase A (revision 2, D12). Approximate size: M. Replaces revision 1's schema-first phase: persistence ownership is fixed in knowledge/architecture#persistence and executed in P3 together with its owner. Only tests, fixtures and CI change here. Task decomposition is deferred to a separate session.",
   "contract": {
@@ -33,7 +33,9 @@
       "tests/Fixtures and Engines fixtures for populated 0.7.0 databases",
       "Machine-format snapshot tests",
       "Parity harness reusing existing property suites",
-      "tests workflow consumer job and bin/consumer-fixture.sh"
+      "tests workflow consumer job and bin/consumer-fixture.sh",
+      "release.yml validate job: consumer-fixture runs for core and core+Filament (owner amendment, D14)",
+      "tests/Arch/Fixtures/target-map.json: byte copy of artifacts/inventory/target-map.json with recorded sha256 as the scan oracle (D14)"
     ],
     "exclude": [
       "StorageSchema, migration, installer or doctor behavior changes",
@@ -65,8 +67,46 @@
     "Blocking consumer qualification",
     "Inventory of serializable FQCNs and exception codes"
   ],
-  "items": [],
-  "batches": [],
+  "items": [
+    "P1.1",
+    "P1.2",
+    "P1.3",
+    "P1.4",
+    "P1.5",
+    "P1.6"
+  ],
+  "batches": [
+    {
+      "id": "B1",
+      "items": [
+        "P1.1",
+        "P1.2",
+        "P1.5"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B2",
+      "items": [
+        "P1.3"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3",
+      "items": [
+        "P1.4"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B4",
+      "items": [
+        "P1.6"
+      ],
+      "mode": "recommended"
+    }
+  ],
   "sections": [
     {
       "id": "design-inputs",

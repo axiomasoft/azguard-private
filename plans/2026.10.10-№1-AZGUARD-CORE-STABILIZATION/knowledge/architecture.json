@@ -85,10 +85,10 @@
     }
   ],
   "applies_to": [
-    "P1",
     "P2",
     "P3",
-    "P4"
+    "P4",
+    "P1"
   ],
   "provenance": {
     "path": "audits/2026-10-09-architecture-modularization.md",

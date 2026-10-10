@@ -7,3 +7,5 @@
 {"v":1,"ts":"2026-10-10T09:40:49Z","type":"decision","actor":{"provider":"codex","model":"gpt-6"},"summary":"D6 accepted","data":{"id":"D6","by":"agent"}}
 {"v":1,"ts":"2026-10-10T10:36:38Z","type":"decision","actor":{"provider":"claude-code","model":"claude-opus-5-5","effort":"xhigh"},"summary":"D7 supersedes D1","data":{"id":"D7","supersedes":"D1"}}
 {"v":1,"ts":"2026-10-10T10:36:38Z","type":"decision","actor":{"provider":"claude-code","model":"claude-opus-5-5","effort":"xhigh"},"summary":"D8 supersedes D2","data":{"id":"D8","supersedes":"D2"}}
+{"v":1,"ts":"2026-10-10T11:54:50Z","type":"decision","actor":{"provider":"claude-code","model":"claude-opus-5-5","effort":"high"},"summary":"D14 accepted","data":{"id":"D14","by":"owner","option":"A"}}
+{"v":1,"ts":"2026-10-10T11:58:52Z","type":"design_done","phase":"P1","actor":{"provider":"claude-code","model":"claude-opus-5-5","effort":"high"},"summary":"P1 design done"}

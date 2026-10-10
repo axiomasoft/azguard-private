@@ -63,6 +63,34 @@
       "text": "Да, записывай по максимумму подробностей. раньше была папка arfifacts куда тоже заносили инфу, или она лишняя в этот раз будет? / и еще я хочет чтобы сразу все было спроектирвоано по структуре пакетов! / т.е. у тебя наверное в голове все это есть же, когда ты принимал решения, но не записал. / т.е. нужна чистая техническая выжимка твоих мозгов. ЧТобы придетализации не было шансов уйти от эталона / и нужно проверить что при детализации фаз агент будет получать необходимую информацию, т.е. она записана в плане, но может не прочитаться",
       "channel": "owner conversation",
       "kind": "owner"
+    },
+    {
+      "id": "M10",
+      "date": "2026-10-10",
+      "text": "строго  следуй заложенной структуре, если есть какие-то отклонения, то надо согласовать",
+      "channel": "owner conversation (P1 design session)",
+      "kind": "owner"
+    },
+    {
+      "id": "M11",
+      "date": "2026-10-10",
+      "text": "Смотри, с Whisk Knife Man сейчас вот то, что лежит, версия 0.28.3, по-моему Task, вот по ней пока надо работать. [...] Если нет, тогда ещё подробнее скажи, в чём сложность. — после разбора несовместимости (Task 0.28.3 не читает план v4) владелец выбрал: «Оставить v4, plan.py (Recommended)»",
+      "channel": "owner conversation (P1 design session)",
+      "kind": "owner"
+    },
+    {
+      "id": "M12",
+      "date": "2026-10-10",
+      "text": "Ну да, то есть я хочу, чтобы не было никаких проблем, когда мы начнем исполнение этого плана. Пусть да, он пишет в таком формате, лишь бы он был понятный для исполнителя при исполнении пунктов фазы.",
+      "channel": "owner conversation (P1 design session)",
+      "kind": "owner"
+    },
+    {
+      "id": "M13",
+      "date": "2026-10-10",
+      "text": "P1 design choices answered by the owner: 5 items 1:1 to contract.produces; invariant register in tests/Arch; a separate read-only Review P1 at the end; consumer check added to release.yml in P1.5 («Да, в P1.5»); oracle: «да, согласен с tests/Arch/Fixtures/target-map.json».",
+      "channel": "owner conversation (P1 design session)",
+      "kind": "owner"
     }
   ],
   "requirements": [
@@ -292,7 +320,9 @@
     "Plans are tracked in Git since commit 47105c3 (the owner removed /plans/ from .gitignore).",
     "The legacy V1 directory currently contains runtime contexts/artifacts and no plan.json; its historical canonical state was not reconstructed or changed.",
     "Revision 1: Codex/GPT-6 family, host-declared; exact native model/effort not exposed.",
-    "Revision 2 (independent review): Claude Opus 5.5 (claude-opus-5-5), xhigh effort, Claude Code session on 2026-10-10. Perplexity was used for retrieval; claims were confirmed on primary pages or source code."
+    "Revision 2 (independent review): Claude Opus 5.5 (claude-opus-5-5), xhigh effort, Claude Code session on 2026-10-10. Perplexity was used for retrieval; claims were confirmed on primary pages or source code.",
+    "Task tooling: this plan is layout v4 JSON and is readable only by plan.py from the swissknifeman repository main (/home/vostrikov/projects/packages/swissknifeman/packages/task, commit e9edbe4c or later; JSON API since ec6cc2d7). The installed Task plugin (cache 0.28.3 from marketplace release v0.28.6) is layout v2 (plan-work.py, plan.md) and cannot read it: its /task:plan-run and /task:plan-design fail with plan.md is not readable. Execution follows packages/task/commands/plan-run.md of that repository with python3 <repo>/packages/task/scripts/plan.py (owner choice, brief M11).",
+    "Local driver services (verified 2026-10-10): host-native PostgreSQL and MySQL already listen on 127.0.0.1:5432 and :3306, so the repository containers run on other ports: start with `PGSQL_PORT=55432 MYSQL_PORT=53306 docker compose up -d postgres mysql mariadb` (MariaDB keeps 3307) and export `PGSQL_PORT=55432 MYSQL_PORT=53306` before every DB_CONNECTION=pgsql|mysql|mariadb command and composer test:pgsql|mysql|mariadb|engines:*; without the export the tests target the host services. Smoke: StorageSchemaTest green on all three drivers."
   ],
   "out_of_scope": [
     "Task-level design and execution",
