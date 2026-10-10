@@ -71,6 +71,7 @@ run_package() {
     # The parent merges the coverage of all workers: 1G ran out in CI (Allowed memory size exhausted), so it is unlimited.
     output="$(XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" "${AZGUARD_COVERAGE_PHP_ARGS[@]}" -d memory_limit=-1 vendor/bin/pest \
         --configuration="$config" \
+        --fail-on-skipped \
         --exclude-group=engines --exclude-group=redis --exclude-group=replica \
         --mutate \
         --parallel \
@@ -82,13 +83,6 @@ run_package() {
         --min="$min_score" \
         --no-cache 2>&1)" || status=$?
     printf '%s\n' "$output"
-
-    # A package without mutable code has no score to enforce. Line coverage is
-    # still gated separately by bin/coverage-gate.sh.
-    if ((status != 0)) && grep -q 'No mutations created' <<<"$output" && ! grep -q 'Mutations: [1-9]' <<<"$output"; then
-        echo "[mutation-gate] $package: no mutable code yet — nothing to enforce." >&2
-        status=0
-    fi
 
     return "$status"
 }

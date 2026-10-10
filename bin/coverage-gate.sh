@@ -19,4 +19,4 @@ fi
 # Invoke PHP explicitly: vendor/bin/pest's shebang is `/usr/bin/env php`
 # and would otherwise pick a PATH binary that has no driver.
 # Coverage of the full suite needs more than 1G (measured OOM at 1G with pcov).
-XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" -d memory_limit=-1 "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85
+XDEBUG_MODE=coverage "$AZGUARD_COVERAGE_PHP" -d memory_limit=-1 "${AZGUARD_COVERAGE_PHP_ARGS[@]}" vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85

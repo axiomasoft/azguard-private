@@ -61,12 +61,12 @@
         "test:pgsql": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv DB_CONNECTION=pgsql",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
+            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
         ],
         "test:mysql": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv DB_CONNECTION=mysql",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
+            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
         ],
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
@@ -93,6 +93,7 @@
             "@lint:check",
             "@analyse",
             "@refactor:check",
+            "@api:check",
             "@test:types",
             "@test",
             "@check:coverage",
@@ -113,7 +114,7 @@
         "test:mariadb": [
             "Composer\\Config::disableProcessTimeout",
             "@putenv DB_CONNECTION=mariadb",
-            "php -d memory_limit=1G vendor/bin/pest --exclude-group=engines --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
+            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
         ],
         "test:engines:mariadb": [
             "@putenv DB_CONNECTION=mariadb",

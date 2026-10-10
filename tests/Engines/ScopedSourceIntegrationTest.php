@@ -15,6 +15,11 @@ it('runs the scoped scalar acceptance matrix on a real SQL engine', function (st
 it('reports the SQL engine and server version used by the acceptance matrix', function (): void {
     $connection = DatabaseWorld::storage()->connection();
     $version = $connection->selectOne('select version() as version')->version;
-    expect($connection->getDatabaseName())->toBe('azguard_test')->and($version)->toBeString()->not->toBeEmpty();
+    $expected = match ($connection->getDriverName()) {
+        'pgsql' => env('PGSQL_DATABASE', 'azguard_test'),
+        'mysql' => env('MYSQL_DATABASE', 'azguard_test'),
+        'mariadb' => env('MARIADB_DATABASE', 'azguard_test'),
+    };
+    expect($connection->getDatabaseName())->toBe($expected)->and($version)->toBeString()->not->toBeEmpty();
     fwrite(STDERR, 'Engine: '.$connection->getDriverName().' '.$version.PHP_EOL);
 })->group('engines');

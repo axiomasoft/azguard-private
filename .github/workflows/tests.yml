@@ -59,7 +59,7 @@ jobs:
           composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-progress
 
       - name: Run tests
-        run: vendor/bin/pest --ci --exclude-group=engines --exclude-group=redis --exclude-group=replica
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
@@ -248,7 +248,7 @@ jobs:
         run: composer update --prefer-dist --no-interaction --no-progress
 
       - name: Run tests with coverage
-        run: vendor/bin/pest --ci --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85 --coverage-clover=coverage.xml
+        run: vendor/bin/pest --ci --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --coverage --min=85 --coverage-clover=coverage.xml
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'

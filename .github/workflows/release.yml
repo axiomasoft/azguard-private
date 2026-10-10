@@ -53,7 +53,7 @@ jobs:
         run: composer lint:check
 
       - name: Tests
-        run: vendor/bin/pest --ci
+        run: composer test -- --ci
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
