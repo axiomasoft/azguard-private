@@ -73,7 +73,8 @@ final class LockedReads
         $effective = $effects > 0 || in_array($this->panel->id(), $this->mutation->touched(), true);
 
         return StateToken::of($this->storage->id(), $this->panel->id(), $state->incarnation, $state->version + ($effective ? 1 : 0),
-            $this->panel->settings()->cacheGeneration(), $this->registry->fingerprint($this->panel->id()));
+            $this->panel->settings()->cacheGeneration(), $this->registry->fingerprint($this->panel->id()),
+            epoch: $state->epoch + ($this->mutation->touchesEpoch($this->panel->id()) ? 1 : 0));
     }
 
     public function isDynamic(): bool

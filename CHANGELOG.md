@@ -11,6 +11,8 @@ The first public release. Earlier 0.x versions were never published; moving data
 
 ### Fixed
 
+- **core:** Write results retain the panel epoch and report its increment for touches, resets and dynamic permission
+  changes, matching the committed authority state.
 - **core:** Completed and failed decision batches release pinned database handles immediately, including when
   observers retain evaluation contexts or PHP cycle collection is disabled.
 - **core:** Batch authorization preserves each supplied subject model and qualifies scope access against that
