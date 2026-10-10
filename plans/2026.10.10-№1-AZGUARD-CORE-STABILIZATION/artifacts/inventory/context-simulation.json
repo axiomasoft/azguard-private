@@ -1,0 +1,10 @@
+{
+  "date": "2026-10-10",
+  "method": "plan exported and imported into a scratch plans root; one skeleton item per phase reading knowledge/contracts#participants; plan.py context --budget; lifecycle.design_report; then P2 narrowed to section reads with the phase bindings of architecture, type-map and target-structure removed. The real plan was not changed by the simulation.",
+  "phase_bound_packs_kb": {"P1.1": 268, "P2.1": 329, "P3.1": 331, "P4.1": 216},
+  "budget_kb": 256,
+  "largest_sources_kb": {"knowledge/architecture": 104, "knowledge/type-map": 90, "knowledge/target-structure": 24, "knowledge/contracts": 23, "knowledge/identities": 15, "knowledge/upgrade-map": 7},
+  "design_report_P3_unread": ["knowledge/architecture", "knowledge/identities", "knowledge/target-structure", "knowledge/type-map", "knowledge/upgrade-map"],
+  "narrowed_P2_1": {"pack_kb": 132, "reads": ["knowledge/contracts#participants", "knowledge/architecture#operation-chains", "knowledge/architecture#spi-catalog", "knowledge/type-map#zone-changes"], "check": "0 errors, 0 warnings"},
+  "conclusion": "Every phase-bound document reaches item packs (no silent loss in scoped mode); design-done lists phase-bound documents no item reads; packs exceed the budget until bindings of the large references move to item section reads, after which a typical P2 pack is about half the budget."
+}

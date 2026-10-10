@@ -1,0 +1,60 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D12",
+  "title": "Transition order: evidence, contracts in place, relocation, freeze",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "In which order can the redistribution run so that every step has its owner and a safety net?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Evidence → contracts → relocation → freeze (chosen)"
+    },
+    {
+      "id": "B",
+      "text": "Schema first (revision 1): Audit ownership split before its owner and contract exist."
+    },
+    {
+      "id": "C",
+      "text": "Relocate first: Files move twice and contracts change under moved code."
+    }
+  ],
+  "context": "Independent architecture review (revision 2) requested by the owner (brief M6, M7). Phase tasks and implementation remain deferred. Revision 1 split installers and audit ownership in P1 before the participant contract and the Audit module existed.",
+  "decision": "P1 captures 0.7.0 evidence and builds the compatibility harness and boundary scans in report mode without production changes; P2 performs the single API/SPI transition in place, making existing scope, audit and generator code use the final contracts; P3 relocates complete module slices and splits schema, installer, health and config ownership; P4 qualifies one candidate and freezes baselines. Each phase leaves main releasable as 0.x.",
+  "rationale": "Moving installation, insertion and pruning together needs the participant contract and the Audit module; contracts first means files move only once; evidence first makes every later change measurable against 0.7.0.",
+  "consequences": [
+    "P1 changes only tests and CI.",
+    "Responsibilities move between phases only by explicit plan amendment."
+  ],
+  "applies_to": [
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangePipeline.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "bin/consumer-fixture.sh"
+    },
+    {
+      "kind": "repo",
+      "ref": ".github/workflows/tests.yml"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M6",
+      "note": "Owner requested an independent review and authorized amending Codex decisions within the owner principles."
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "xhigh"
+  },
+  "answered_by": "agent"
+}

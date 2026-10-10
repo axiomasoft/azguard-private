@@ -1,0 +1,71 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D8",
+  "title": "Declaration-only plugins, one named contract per slot, transactional participants",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "How do plugins and modules extend behavior without another engine, bypass route or dynamic mechanism?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Declaration-only plugin + typed slots + append-only participant (chosen): Smallest SPI, ecosystem-aligned."
+    },
+    {
+      "id": "B",
+      "text": "Keep boot() and duck-typed slots (revision 1): No break, but unenforceable lifecycle rules and untyped surface frozen into 1.0."
+    },
+    {
+      "id": "C",
+      "text": "Manifest with plugin requires like Commerz: Sibling-id dependency conflicts with owner principle 4."
+    }
+  ],
+  "context": "Independent architecture review (revision 2) requested by the owner (brief M6, M7). Phase tasks and implementation remain deferred. Replaces D2: revision 1 retained Plugin::boot(), left slots untyped and described participant capability loosely.",
+  "decision": "Plugin keeps id() and register(PanelBuilder, PluginContext); boot(), BasePlugin, DependsOnPlugins and PluginContext::dependencies() are retired. Every slot has one named contract (existing Restriction, GrantCondition, source capabilities, DoctorCheck; new names BeforeHook, AfterHook, ChangePipe for existing slots); closures only for single-method contracts with compile-time signature checks; no duck typing or invocation by parameter name. Slot requirements are checked by core (participants need the core writer, RelationSource needs a declared queryable alias, the scope declaration merges by layer without conflicts and names at most one evaluator). Typed readonly module options keyed by class replace recipe introspection. ChangeParticipant replaces the public ChangeJournal: participants run once per operation with at least one effect, after the last effect and inside the transaction, receive the core-built events and an append-only writer limited to their declared tables; an exception rolls back. Mandatory stages are never replaceable; no macros, bus or sandbox.",
+  "rationale": "boot() has no production use and is a second lifecycle route; Chatom and Commerz plugins are declaration-only. Duck-typed pipes and parameter-name injection are the dynamic mechanisms principle 6 rejects. The journal needs exactly same-transaction append of rows carrying the published event ids; an append-only capability is the narrowest contract that gives that without exposing StorageMutation. OnceTerminal remains the guard for pipes.",
+  "consequences": [
+    "Third-party pipes and hooks implement named contracts or keep closures with checked signatures.",
+    "Custom journals use ChangeParticipant.",
+    "An implementation keeping boot() compiles but is never called; documented in the upgrade map."
+  ],
+  "global": true,
+  "supersedes": [
+    "D2"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Contracts/Plugins/Plugin.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Plugins/BasePlugin.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Panels/PanelCompiler.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/Pipeline/Stages/BeforeStage.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangeJournal.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/OnceTerminal.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M6",
+      "note": "Owner requested an independent review and authorized amending Codex decisions within the owner principles."
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "xhigh"
+  },
+  "answered_by": "agent"
+}

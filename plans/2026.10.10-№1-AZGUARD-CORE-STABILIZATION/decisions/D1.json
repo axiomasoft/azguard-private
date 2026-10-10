@@ -3,12 +3,13 @@
   "id": "D1",
   "title": "Core meaning and module ownership",
   "date": "2026-10-10",
-  "status": "accepted",
+  "status": "superseded",
   "question": "Which responsibilities define the core and where does optional behavior live?",
   "context": "Architecture decision recorded by the agent under the owner's explicit design delegation. Phase tasks and implementation remain deferred.",
   "decision": "Core owns tenant/context identity, tenant isolation, domain values, declarations, one authorization engine, one authority-read coordinator and one write coordinator. Scopes behavior, Audit and DevTools are complete internal modules; Filament remains an optional integration package.",
   "rationale": "AccessScope, IdentityCodec, grant uniqueness and tenant checks already share one authority meaning. Removing those invariants when a module is inactive would widen grants or change stored identities. Optional rich scope algorithms, audit persistence and generators have distinct owners and need no new Composer product.",
   "global": true,
+  "superseded_by": "D7",
   "evidence": [
     {
       "kind": "repo",

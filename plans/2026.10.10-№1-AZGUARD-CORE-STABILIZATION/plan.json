@@ -5,7 +5,7 @@
   "title": "Plan №1 — AzGuard modular core and API stabilization for 1.0",
   "status": "active",
   "created": "2026-10-10",
-  "updated_at": "2026-10-10T09:39:19Z",
+  "updated_at": "2026-10-10T10:58:42Z",
   "repository": "axiomasoft/azguard-private",
   "owner": "repository owner",
   "authoring": {
@@ -13,23 +13,27 @@
     "model": "gpt-6"
   },
   "goal": "Stabilize AzGuard for 1.0 as one small authorization engine with explicit optional internal modules and independently useful integrations. Freeze consumer API, implementer SPI, schema and stored identity meanings before release so later distribution changes preserve user data and supported contracts.",
-  "context": "The target architecture is recorded in knowledge/architecture. It is based on main at 09612160c98ca6133c894a8f90f5653b9dac6b8f (0.7.0), the current manifests, code, migration/test definitions and checked primary sources. The earlier modularization audit supplies initial ideas. This session creates the complete architecture scheme first and four ordered phase skeletons second. Detailed tasks and execution are reserved for separate sessions.",
+  "context": "The target architecture is recorded in knowledge/architecture (revision 2). It is based on main at 09612160c98ca6133c894a8f90f5653b9dac6b8f (0.7.0; HEAD 47105c3 adds plan files only), the manifests, code, migrations, CI and existing tests, the ecosystem packages and checked primary sources. The earlier modularization audit supplies initial ideas. Revision 1 (Codex) was independently reviewed and amended in revision 2 (Claude Opus 5.5); the review record is knowledge/architecture#review and replaced decisions are superseded through the protocol. The plan carries four ordered phase skeletons; detailed tasks and execution are reserved for separate sessions.",
   "non_goals": [
     "New authorization features or a generic plugin workflow engine",
     "A Composer package for every internal responsibility",
     "Module bridges, sibling imports or multiple decision engines",
+    "Edition, licensing or 'pro' variants in code, names, rules or schema",
+    "A sandbox for trusted in-process extension PHP",
     "Physical extraction as a prerequisite for 1.0",
-    "Phase task detail, implementation or review execution in this session"
+    "Phase task detail, implementation or review execution in design sessions"
   ],
   "rules": [
-    "Preserve one mandatory scalar/batch/query/write interpretation and fail-closed tenant/scope boundaries.",
-    "Core has no module dependency; modules and Filament use supported core API/SPI and neutral values.",
-    "Scopes, Audit and DevTools own complete internal slices; inactive modules perform no runtime I/O or table installation.",
-    "Grant tenant/context identities and schema-2 authority columns remain core-owned.",
-    "Only core coordinators mutate authority state; Audit joins the active transaction through a narrow owned-table capability.",
+    "Preserve one mandatory scalar/batch/query/write/directory interpretation and fail-closed tenant/scope boundaries.",
+    "Core has no module dependency; modules and Filament use attributed core API/SPI and core values only.",
+    "Scopes, Audit and DevTools own complete internal slices; inactive modules perform no runtime I/O, service resolution or table installation.",
+    "Tenant/context identities, schema-2 authority columns and the assignment-scope algebra (mode vocabulary, envelope, structural verification) remain core-owned.",
+    "Only the core writer mutates authority state; change participants append only to their declared tables inside the operation transaction.",
+    "Every extension slot has one named contract; extensions veto, narrow, observe or propose candidates and never bypass final validation.",
+    "Shipped migration basenames, config key paths, command names, event types, payloads and serializable FQCNs are identities; changing one is an explicit compatibility decision.",
     "Choose one documented pre-1.0 API/namespace/config transition, then freeze candidate and stable-tag baselines.",
-    "Detail phases in later sessions against the fixed architecture; preserve all architecture invariants and release conditions.",
-    "Any necessary design amendment is explicit and reasoned, with evidence and the compatibility effect; task decomposition cannot silently change the architecture."
+    "Detail phases in later sessions against the fixed architecture; preserve all invariants in knowledge/architecture#invariants and the release conditions.",
+    "Any necessary design amendment is explicit and reasoned, with evidence and the compatibility effect; task decomposition cannot silently change the architecture or move a responsibility between phases."
   ],
   "phases": [
     "P1",
@@ -53,7 +57,17 @@
     {
       "id": "design-state",
       "title": "Design state and reading entry point",
-      "text": "The target scheme is fully recorded in `knowledge/architecture`, including ownership, extension slots, operation chains, persistence, compatibility, release conditions and source evidence. The transition phases remain `skeleton` with no items. Use the generated `views/knowledge/architecture.md` for human reading and the plan.py JSON read API for future agent work. The next authorized session details the first phase; this session does not start implementation."
+      "text": "The target scheme is recorded in `knowledge/architecture` revision 2 and made exhaustive by five reference documents: `knowledge/type-map` (every one of the 464 baseline types and 43 new types: owner, target FQCN, marker, action, phase, reason), `knowledge/target-structure` (package and module trees, composer metadata, resources, test ownership), `knowledge/contracts` (normative signatures), `knowledge/identities` (commands, config keys, resources, events, exception codes, doctor ids) and `knowledge/upgrade-map` (0.7.0 map seed). Raw inventory and generators: `artifacts/inventory/`. Accepted decisions: D3–D6 and D7–D13; D1 and D2 are superseded by D7 and D8. Phases remain `skeleton`; each phase starts with a `design-inputs` section that lists the mandatory reads and the rules for items. The next authorized session details P1; design sessions do not start implementation."
+    },
+    {
+      "id": "context-delivery",
+      "title": "Verified context delivery to phase design and item executors",
+      "text": "How the reference reaches agents (verified 2026-10-10 on a scratch copy; evidence `artifacts/inventory/context-simulation.json`):\n\n1. **Phase design.** `plan.py next` → `task:plan-design … Pn` → step 1 runs `plan.py show <plan> <Pn>`, which prints the phase JSON whose first section `design-inputs` lists the exact `get` commands and item rules. `contract.consumes` repeats the document refs.\n2. **Item executors.** The plan uses `context_pack: scoped`: a knowledge document reaches an item pack only through `applies_to` (phase or item) or `global`, plus the sections the item names in `reads`. All reference documents are bound to the phases that use them, so nothing is silently dropped.\n3. **Safety net.** `design-done` reports `phase_documents_unread` (a phase-bound document no item reads) and pack sizes; the simulation showed both work.\n4. **Budget.** With phase bindings only, packs are 268/329/331/216 KB for P1–P4 against 256 KB. After detailing, the designer moves the binding of the large references (architecture 104 KB, type-map 90 KB, target-structure 24 KB) from the phase to item section reads; the simulated P2 item then had a 132 KB pack with all needed sections present and `check` clean.\n\nThe phase `design-inputs` sections make step 4 part of the item rules; it is not optional."
+    },
+    {
+      "id": "revision-history",
+      "title": "Revision history",
+      "text": "| Revision | Date | Author | Summary |\n|:--|:--|:--|:--|\n| 1 | 2026-10-10 | Codex (GPT-6 family) | Target architecture, decisions D1–D6, phases schema → API/SPI → consolidation → freeze. |\n| 2 | 2026-10-10 | Claude Opus 5.5 (xhigh), independent review | Scope algebra in core and evaluator narrowed to eligibility (D7), declaration-only plugins with typed slots and append-only participants (D8), attribute markers and named-argument policy (D9), core-only authority writer (D10), migration identity and Audit installation chain (D11), evidence-first phase order (D12); SPI catalogue, full chains, invariants with check status, cost and risks added. Details in knowledge/architecture#review. |\n| 2.1 | 2026-10-10 | Claude Opus 5.5 (xhigh), on owner request M8/M9 | Exhaustive reference: type map of every type, package/module trees, normative contracts, identities, upgrade-map seed, inventory artifacts and generators (D13); phase `design-inputs`; verified context delivery. |"
     }
   ]
 }

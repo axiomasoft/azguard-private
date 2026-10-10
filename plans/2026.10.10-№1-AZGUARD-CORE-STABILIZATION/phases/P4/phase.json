@@ -3,38 +3,45 @@
   "id": "P4",
   "title": "Qualify the candidate and establish the 1.0 freeze",
   "design": "skeleton",
-  "goal": "Demonstrate a stable API/SPI/schema in real consumers and make the complete release gate and post-1.0 compatibility policy blocking in CI.",
-  "context": "Architecture phase D. Approximate size: M. The candidate closes the one pre-1.0 transition. This phase introduces qualification and compatibility enforcement, without reopening the architecture. Physical extraction is conditional future work and does not block the 1.0 milestone.",
+  "goal": "Demonstrate a stable API/SPI/schema on one candidate commit in real consumers and make the release gate and post-1.0 compatibility comparison blocking.",
+  "context": "Architecture phase D (revision 2, D4, D6, D9, D12). Approximate size: M. The candidate closes the one pre-1.0 transition; only fixes demonstrated necessary by qualification are allowed. Physical extraction remains conditional future work.",
   "contract": {
     "consumes": [
-      "The consolidated implementation and regression evidence from the preceding phase",
+      "The relocated implementation and evidence from P1–P3",
       "knowledge/architecture#release-gate",
+      "knowledge/architecture#invariants",
       "knowledge/architecture#api-compatibility",
-      "knowledge/architecture#transition-policy"
+      "knowledge/architecture#transition-policy",
+      "knowledge/contracts",
+      "knowledge/identities",
+      "knowledge/upgrade-map",
+      "knowledge/type-map"
     ],
     "produces": [
-      "Candidate/final supported-surface and non-PHP compatibility baselines",
-      "Blocking archive-consumer and release qualification checks",
-      "Complete upgrade guide and recorded race/load evidence",
-      "Post-1.0 architecture/compatibility rules"
+      "Candidate supported-surface and non-PHP baselines",
+      "Stable-tag comparison in CI (I18) with the chosen structural comparison tool or generator diff",
+      "Recorded race and load evidence against prior profiles (I22)",
+      "Module relocation rehearsal (I19)",
+      "Complete upgrade guide and release notes"
     ],
     "boundaries": [
       "1.0 requires every release condition on the candidate commit",
-      "A tag must not bypass the candidate qualification matrix",
-      "Future code movement retains logical FQCNs, schema/history and durable data"
+      "A tag cannot bypass the candidate qualification matrix",
+      "A PR cannot replace the compatibility baseline silently",
+      "Future relocation keeps FQCNs, formats, migration basenames and data"
     ]
   },
   "scope": {
     "include": [
-      "API generator and tests/Arch ownership/member rules",
-      "Existing driver/cache/replica, race, load and consumer suites",
+      "API generator, ApiManifestTest and tests/Arch rules in blocking mode",
+      "Driver/cache/replica, race, load and consumer suites",
       "tests/release workflows and archive fixtures",
-      "Configuration/event/audit/CLI/error format fixtures and upgrade documentation"
+      "Format fixtures and upgrade documentation"
     ],
     "exclude": [
       "New authorization features",
       "Mandatory physical module extraction",
-      "Commercial edition branches or alternative schemas"
+      "Edition branches or alternative schemas"
     ]
   },
   "depends_on": [
@@ -42,31 +49,36 @@
   ],
   "pitfalls": [
     "Regenerating a manifest on the same branch does not prove compatibility",
-    "continue-on-error consumer checks do not qualify a distribution",
+    "continue-on-error checks do not qualify a distribution",
     "Release validation on a tag must cover the qualified candidate",
-    "Interface additions, named parameters, defaults and closed enum additions can break implementers"
+    "Interface additions, named parameters, defaults and closed-enum cases can break implementers"
   ],
   "validation": [
     {
       "id": "V1",
-      "procedure": "Verify all ten release conditions in knowledge/architecture#release-gate on the candidate commit, including supported platform/driver/cache/replica checks, archive consumers, recorded race/performance results and all PHP/non-PHP baselines; verify stable-tag comparison and tag gating fail on an intentional breaking fixture.",
-      "expect": "Every release condition is green with reproducible evidence; archive failures and incompatible stable-tag changes are blocking.",
+      "procedure": "Verify the ten release conditions on the candidate commit with the evidence named in knowledge/architecture#release-gate, and prove that the stable-tag comparison and tag gating fail on intentional breaking fixtures (interface method, parameter rename, closed-enum case, payload key, migration basename).",
+      "expect": "Every condition green with reproducible evidence; every intentional break is rejected.",
       "kind": "acceptance"
     }
   ],
   "deliverables": [
     "Frozen API/SPI, schema and machine-format baselines",
-    "Blocking consumer/release qualification",
+    "Blocking compatibility and release qualification",
     "One complete 0.7.0 upgrade guide",
-    "Permanent ownership, activation, parity and compatibility checks"
+    "Relocation rehearsal record"
   ],
   "items": [],
   "batches": [],
   "sections": [
     {
+      "id": "design-inputs",
+      "title": "Mandatory design inputs",
+      "text": "The detailing session for P4 reads these before authoring any item (`show` of this phase is the entry point; the list is mandatory):\n\n```bash\nP='python3 <task>/scripts/plan.py'; ID=2026.10.10-№1-AZGUARD-CORE-STABILIZATION\n$P get $ID knowledge/architecture --section release-gate\n$P get $ID knowledge/architecture --section invariants\n$P get $ID knowledge/architecture --section api-compatibility\n$P get $ID knowledge/architecture --section transition-policy\n$P get $ID knowledge/architecture --section risks\n$P get $ID knowledge/contracts            # all sections\n$P get $ID knowledge/identities            # all sections\n$P get $ID knowledge/upgrade-map            # all sections (becomes UPGRADING.md)\n$P get $ID knowledge/type-map            # rules\n$P get $ID D4\n$P get $ID D6\n$P get $ID D9\n$P get $ID D12\n$P get $ID D13\n```\n\nRules for the detailed items:\n\n- Each item lists in `reads` (with `section`, `required: true`) the reference sections it implements; a phase-bound document that no item reads is reported by `design-done` (`phase_documents_unread`) and must be resolved before the phase counts as detailed.\n- Items cite their type-map rows by current FQCN in `scope.include`; an item may not move, rename or re-mark a type differently from `knowledge/type-map`.\n- If `design-done` reports a pack over the 256 KB budget, move the binding of a reference document from the phase to the items that read it (`plan.py unlink … --kind applies_to`, `plan.py link …`) — never drop the read.\n- Baselines are taken from the candidate; the intentional-break fixtures cover one example per frozen category of `knowledge/identities` and `knowledge/contracts`."
+    },
+    {
       "id": "exit",
       "title": "Exit criterion",
-      "text": "The entire documented 1.0 release gate is satisfied. A release decision has concrete evidence, and no required architecture boundary or compatibility format remains undecided."
+      "text": "The documented 1.0 release gate is satisfied on one candidate commit with linked evidence, and no architecture boundary, contract or format remains undecided."
     }
   ]
 }

@@ -1,37 +1,44 @@
 {
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P3",
-  "title": "Consolidate coordinators and move complete modules",
+  "title": "Relocate modules and split ownership",
   "design": "skeleton",
-  "goal": "Implement the fixed ownership map for Scopes, Audit and DevTools while preserving one decision/write path and keeping Filament on neutral core contracts.",
-  "context": "Architecture phase C. Approximate size: L. Namespace/DSL changes follow the already chosen transition map; durable data does not change. Complete slices include providers, configuration, health, commands, schema and generated stubs. Task decomposition is deferred.",
+  "goal": "Move the complete Scopes, Audit and DevTools slices into their module roots and split schema, installer, health and configuration ownership, keeping one decision/write path and all data intact.",
+  "context": "Architecture phase C (revision 2, D7, D11, D12). Approximate size: L. FQCN changes follow the P2 upgrade map; durable data does not change. Complete slices include providers, config sections, health checks, commands, migrations, stubs and contract suites.",
   "contract": {
     "consumes": [
-      "The chosen API/SPI and upgrade map from the preceding phase",
+      "The P2 contracts and upgrade map",
       "knowledge/architecture#ownership",
-      "knowledge/architecture#extension-system",
-      "knowledge/architecture#operation-chains"
+      "knowledge/architecture#persistence",
+      "knowledge/architecture#operation-chains",
+      "knowledge/target-structure",
+      "knowledge/type-map",
+      "knowledge/identities",
+      "knowledge/upgrade-map",
+      "knowledge/contracts"
     ],
     "produces": [
-      "Explicit module autoload roots and optional activation boundaries",
-      "One internal authority-read coordinator and coherent source preparation",
-      "Neutral scope evaluation/directory/UI contributions",
-      "Transactional Audit participation with one core event-value construction",
-      "Compiled consumer/generator fixtures using supported symbols"
+      "modules/scopes, modules/audit and modules/devtools with explicit PSR-4 roots and single autoload ownership",
+      "Six-table StorageSchema create/drop and core health; Audit migration with fixed basename, adoption, non-destructive down() and per-storage generator; Audit health and retention without the authority lock",
+      "DevTools-owned onboarding, generators, stubs and scaffold section; owner-registered config sections",
+      "Concrete-source branches removed from decision/query semantics; any further read-coordinator restructuring gated by I21/I22",
+      "Activation-matrix fixtures and relocated consumer/generator fixtures"
     ],
     "boundaries": [
-      "No core-to-module, sibling-to-sibling or extension-to-internal references",
+      "No core→module, module↔module or module↔Filament references (allowlists empty)",
       "One scalar/batch/query/write/directory interpretation",
-      "No inactive-module I/O or compulsory optional tables",
-      "Preserve physical-handle snapshots, bounded read retries and root-commit publication"
+      "No inactive-module I/O, service resolution or compulsory optional table",
+      "Physical-handle snapshots, bounded fenced re-reads and root-commit publication preserved",
+      "Shipped migration basenames unchanged"
     ]
   },
   "scope": {
     "include": [
-      "modules/scopes, modules/audit and modules/devtools ownership",
-      "Authorization read/batch/query coordinators and Changes",
-      "Source preparation, PanelRegistry/compiler and metadata fingerprints",
-      "Directories, Schema, service providers, console commands and Filament consumers"
+      "Module trees, composer autoload and provider metadata",
+      "StorageSchema, StorageHealth, doctor checks, migrations and storage/audit migration commands",
+      "Configuration section registration",
+      "AzGuardServiceProvider and module providers, console commands and stubs",
+      "Filament and generated-code fixtures"
     ],
     "exclude": [
       "Physical extraction into new Composer products",
@@ -44,31 +51,37 @@
   ],
   "pitfalls": [
     "Moving the plugin alone leaves schema/config/health/provider dependencies in core",
-    "Application-wide evaluator/options bindings leak between panels",
-    "Audit must receive the exact core event IDs inside the transaction",
-    "Read retries must not repeat policies/hooks or lose original subject model instances"
+    "Overlapping PSR-4 prefixes need an empty src/Scopes|Audit|DevTools to keep one owner",
+    "Audit adoption must verify full shape, including SQLite triggers, and change nothing on mismatch",
+    "Prune without the panel lock needs concurrent insert/prune runs on MySQL and MariaDB",
+    "Published copies of core migrations now build six tables; teardown must keep audit data"
   ],
   "validation": [
     {
       "id": "V1",
-      "procedure": "Run a core isolation fixture with optional module autoload roots absent; test each activation combination and two panels with different module options; prove scalar/batch/SQL and assignment/directory/write parity, rollback/retry/event-ID equality, physical-handle release and disposable cache fingerprint behavior.",
-      "expect": "All scenarios preserve existing semantics and data; optional modules add no work when inactive and all consumers use the chosen supported surface.",
+      "procedure": "Run the core-only fixture with module roots absent and every activation combination including two panels with different options; replay all persistence scenarios on populated 0.7.0 fixtures per driver; run parity, rollback/retry/event-id, physical-handle release, cache fingerprint, concurrent prune and archive consumer checks.",
+      "expect": "I2, I3, I5, I13, I15 and I16 green with empty allowlists; all P1/P2 checks stay green; zero grant, identity or audit-row rewrite.",
       "kind": "acceptance"
     }
   ],
   "deliverables": [
     "Final ownership/dependency map and module activation matrix",
-    "Separated module providers/config/schema/commands",
-    "Consolidated read/write/source paths",
-    "Updated supported-surface consumer and generator fixtures"
+    "Separated module providers, config sections, schema, commands and stubs",
+    "Audit installation/adoption chain incl. named storages",
+    "Updated consumer and generator fixtures"
   ],
   "items": [],
   "batches": [],
   "sections": [
     {
+      "id": "design-inputs",
+      "title": "Mandatory design inputs",
+      "text": "The detailing session for P3 reads these before authoring any item (`show` of this phase is the entry point; the list is mandatory):\n\n```bash\nP='python3 <task>/scripts/plan.py'; ID=2026.10.10-№1-AZGUARD-CORE-STABILIZATION\n$P get $ID knowledge/architecture --section ownership\n$P get $ID knowledge/architecture --section scope-boundary\n$P get $ID knowledge/architecture --section operation-chains\n$P get $ID knowledge/architecture --section persistence\n$P get $ID knowledge/architecture --section invariants\n$P get $ID knowledge/architecture --section risks\n$P get $ID knowledge/target-structure            # all sections (the trees are the target)\n$P get $ID knowledge/type-map            # all zones; rows with phase P3 are this phase's scope\n$P get $ID knowledge/identities            # commands, config, resources, doctor\n$P get $ID knowledge/upgrade-map            # all sections\n$P get $ID knowledge/contracts            # audit, storage, config, scopes-plugin\n$P get $ID D5\n$P get $ID D7\n$P get $ID D11\n$P get $ID D12\n$P get $ID D13\n```\n\nRules for the detailed items:\n\n- Each item lists in `reads` (with `section`, `required: true`) the reference sections it implements; a phase-bound document that no item reads is reported by `design-done` (`phase_documents_unread`) and must be resolved before the phase counts as detailed.\n- Items cite their type-map rows by current FQCN in `scope.include`; an item may not move, rename or re-mark a type differently from `knowledge/type-map`.\n- If `design-done` reports a pack over the 256 KB budget, move the binding of a reference document from the phase to the items that read it (`plan.py unlink … --kind applies_to`, `plan.py link …`) — never drop the read.\n- After P3 the tree under each root equals `knowledge/target-structure`; I5 checks it against `artifacts/inventory/target-map.json` with `target_path`."
+    },
+    {
       "id": "exit",
       "title": "Exit criterion",
-      "text": "The target boundaries exist in code, including every composition root and resource owner. Core boots/checks/writes without optional module roots, and all supported paths agree on authority."
+      "text": "The target boundaries exist in code, including every composition root, config section and resource owner. Core boots, checks and writes without module roots, and all supported paths agree on authority."
     }
   ]
 }

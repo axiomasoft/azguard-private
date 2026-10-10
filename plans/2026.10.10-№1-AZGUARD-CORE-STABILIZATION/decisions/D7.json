@@ -1,0 +1,71 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D7",
+  "title": "Core algebra, module behavior and exact ownership",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "Which responsibilities define the core and where does optional behavior live, including the assignment-scope boundary?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Algebra in core, behavior in module (chosen): Closed mode enum and envelope in core; evaluator answers eligibility only."
+    },
+    {
+      "id": "B",
+      "text": "Inheritance in module behind one evaluator (revision 1): Every path asks the module which contributions apply; core must re-verify an open-ended answer."
+    },
+    {
+      "id": "C",
+      "text": "Keep all scope code in core: Simplest move, but the core stays heavy and violates the owner's lightweight-core goal."
+    }
+  ],
+  "context": "Independent architecture review (revision 2) requested by the owner (brief M6, M7). Phase tasks and implementation remain deferred. Replaces D1: revision 1 assigned scope inheritance to the module behind a broad evaluator; the code interprets the scope mode over core-owned columns in every path.",
+  "decision": "Core owns domain values, request context, tenant isolation, the assignment-scope algebra (closed AssignmentScopeMode, one scope declaration slot per panel, applicability envelope, structural verification, role scope aliases, neutral scope contracts and a typed resource-to-context mapping), one decision engine, one visibility compiler, the only authority writer, standard read adapters (Database, Folder, Gate, Relation with core-internal binding), directories, schema, diagnostics and Laravel integration. The Scopes module owns scope behavior (definitions, filters, adapters, membership, binding refinement, the evaluator and exact eligibility query, default directory, ContextAware, ScopesPlugin DSL) and has no provider, table or config. Audit owns its plugin, options, participant, schema, migrations, health and retention. DevTools owns generators, stubs, onboarding azguard:install and the scaffold config section. Filament stays the only separate package. Existing config key paths and command names stay; module config sections are registered by their owners.",
+  "rationale": "EvaluationFrame::sourceScopes, BoundaryStage, Visibility, PanelAdmission and ChangeValidator all interpret the mode; keeping the closed vocabulary and envelope in core keeps one interpretation for scalar, batch, SQL and writes without asking a module, while every rich behavior stays optional. RelationSource and BaseRole::scopes() reference definition contracts, so those contracts stay core. InstallCommand imports scaffolding and AzGuardConfig validates scaffold keys, so onboarding and that section belong to DevTools. No package is added because none of the modules has a purpose outside AzGuard.",
+  "consequences": [
+    "Scope DSL moves to ScopesPlugin; module FQCNs change once in the transition.",
+    "A panel without a scope declaration is mode None and fails closed for non-global contexts.",
+    "Core holds no module literal, table name or plugin id; config validation uses owner-registered sections."
+  ],
+  "global": true,
+  "supersedes": [
+    "D1"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/EvaluationFrame.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Authorization/Visibility.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangeValidator.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Laravel/Console/Commands/InstallCommand.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Configuration/AzGuardConfig.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M6",
+      "note": "Owner requested an independent review and authorized amending Codex decisions within the owner principles."
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "xhigh"
+  },
+  "answered_by": "agent"
+}

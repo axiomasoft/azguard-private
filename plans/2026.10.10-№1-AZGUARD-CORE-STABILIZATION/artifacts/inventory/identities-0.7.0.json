@@ -1,0 +1,960 @@
+{
+ "exceptions": [
+  {
+   "class": "AmbiguousPanelException",
+   "parent": "DefinitionException",
+   "code": "ambiguous_panel",
+   "abstract": false,
+   "path": "Exceptions/AmbiguousPanelException.php"
+  },
+  {
+   "class": "AssignmentScopeNotAcceptedException",
+   "parent": "ChangeException",
+   "code": "context_not_accepted",
+   "abstract": false,
+   "path": "Exceptions/AssignmentScopeNotAcceptedException.php"
+  },
+  {
+   "class": "AssignmentScopeRequiredException",
+   "parent": "ChangeException",
+   "code": "context_required",
+   "abstract": false,
+   "path": "Exceptions/AssignmentScopeRequiredException.php"
+  },
+  {
+   "class": "AuthorizationEngineException",
+   "parent": "AzGuardException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/AuthorizationEngineException.php"
+  },
+  {
+   "class": "AzGuardException",
+   "parent": "RuntimeException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/AzGuardException.php"
+  },
+  {
+   "class": "ChangeCancelledException",
+   "parent": "ChangeException",
+   "code": "change_cancelled",
+   "abstract": false,
+   "path": "Exceptions/ChangeCancelledException.php"
+  },
+  {
+   "class": "ChangeException",
+   "parent": "AzGuardException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/ChangeException.php"
+  },
+  {
+   "class": "ConfigurationException",
+   "parent": "AzGuardException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/ConfigurationException.php"
+  },
+  {
+   "class": "ConflictingPanelException",
+   "parent": "DefinitionException",
+   "code": "conflicting_panel",
+   "abstract": false,
+   "path": "Exceptions/ConflictingPanelException.php"
+  },
+  {
+   "class": "ConsistencyException",
+   "parent": "AuthorizationEngineException",
+   "code": "consistency",
+   "abstract": false,
+   "path": "Exceptions/ConsistencyException.php"
+  },
+  {
+   "class": "DecisionSetTooLargeException",
+   "parent": "AuthorizationEngineException",
+   "code": "decision_set_too_large",
+   "abstract": false,
+   "path": "Exceptions/DecisionSetTooLargeException.php"
+  },
+  {
+   "class": "DefaultPanelConflictException",
+   "parent": "DefinitionException",
+   "code": "default_panel_conflict",
+   "abstract": false,
+   "path": "Exceptions/DefaultPanelConflictException.php"
+  },
+  {
+   "class": "DefinitionException",
+   "parent": "AzGuardException",
+   "code": "definition",
+   "abstract": false,
+   "path": "Exceptions/DefinitionException.php"
+  },
+  {
+   "class": "DirectoryScanLimitException",
+   "parent": "AzGuardException",
+   "code": "directory_scan_limit",
+   "abstract": false,
+   "path": "Exceptions/DirectoryScanLimitException.php"
+  },
+  {
+   "class": "DuplicatePanelException",
+   "parent": "DefinitionException",
+   "code": "duplicate_panel",
+   "abstract": false,
+   "path": "Exceptions/DuplicatePanelException.php"
+  },
+  {
+   "class": "DuplicatePermissionException",
+   "parent": "DefinitionException",
+   "code": "duplicate_permission",
+   "abstract": false,
+   "path": "Exceptions/DuplicatePermissionException.php"
+  },
+  {
+   "class": "DuplicatePolicyBindingException",
+   "parent": "DefinitionException",
+   "code": "duplicate_policy_binding",
+   "abstract": false,
+   "path": "Exceptions/DuplicatePolicyBindingException.php"
+  },
+  {
+   "class": "DuplicateRoleException",
+   "parent": "DefinitionException",
+   "code": "duplicate_role",
+   "abstract": false,
+   "path": "Exceptions/DuplicateRoleException.php"
+  },
+  {
+   "class": "InvalidAssignmentScopeException",
+   "parent": "InvalidIdentityException",
+   "code": "invalid_context",
+   "abstract": false,
+   "path": "Exceptions/InvalidAssignmentScopeException.php"
+  },
+  {
+   "class": "InvalidChangeFieldsException",
+   "parent": "ChangeException",
+   "code": "invalid_change_fields",
+   "abstract": false,
+   "path": "Exceptions/InvalidChangeFieldsException.php"
+  },
+  {
+   "class": "InvalidConfigurationException",
+   "parent": "ConfigurationException",
+   "code": null,
+   "abstract": false,
+   "path": "Exceptions/InvalidConfigurationException.php"
+  },
+  {
+   "class": "InvalidIdentityException",
+   "parent": "AzGuardException",
+   "code": "invalid_identity",
+   "abstract": false,
+   "path": "Exceptions/InvalidIdentityException.php"
+  },
+  {
+   "class": "InvalidPanelIdException",
+   "parent": "InvalidIdentityException",
+   "code": "invalid_panel_id",
+   "abstract": false,
+   "path": "Exceptions/InvalidPanelIdException.php"
+  },
+  {
+   "class": "InvalidPermissionKeyException",
+   "parent": "InvalidIdentityException",
+   "code": "invalid_permission_key",
+   "abstract": false,
+   "path": "Exceptions/InvalidPermissionKeyException.php"
+  },
+  {
+   "class": "InvalidPolicyStructureException",
+   "parent": "DefinitionException",
+   "code": "invalid_policy_structure",
+   "abstract": false,
+   "path": "Exceptions/InvalidPolicyStructureException.php"
+  },
+  {
+   "class": "InvalidRoleKeyException",
+   "parent": "InvalidIdentityException",
+   "code": "invalid_role_key",
+   "abstract": false,
+   "path": "Exceptions/InvalidRoleKeyException.php"
+  },
+  {
+   "class": "InvalidSourceContributionException",
+   "parent": "AuthorizationEngineException",
+   "code": "invalid_source_contribution",
+   "abstract": false,
+   "path": "Exceptions/InvalidSourceContributionException.php"
+  },
+  {
+   "class": "MissingPermissionCheckException",
+   "parent": "ConfigurationException",
+   "code": "missing_permission_check",
+   "abstract": false,
+   "path": "Exceptions/MissingPermissionCheckException.php"
+  },
+  {
+   "class": "PanelNotResolvedException",
+   "parent": "DefinitionException",
+   "code": "panel_not_resolved",
+   "abstract": false,
+   "path": "Exceptions/PanelNotResolvedException.php"
+  },
+  {
+   "class": "PanelNotWritableException",
+   "parent": "ChangeException",
+   "code": "panel_not_writable",
+   "abstract": false,
+   "path": "Exceptions/PanelNotWritableException.php"
+  },
+  {
+   "class": "PermissionNotGrantableException",
+   "parent": "ChangeException",
+   "code": "permission_not_grantable",
+   "abstract": false,
+   "path": "Exceptions/PermissionNotGrantableException.php"
+  },
+  {
+   "class": "PluginConflictException",
+   "parent": "PluginException",
+   "code": "plugin_conflict",
+   "abstract": false,
+   "path": "Exceptions/PluginConflictException.php"
+  },
+  {
+   "class": "PluginDependencyMissingException",
+   "parent": "PluginException",
+   "code": "plugin_dependency_missing",
+   "abstract": false,
+   "path": "Exceptions/PluginDependencyMissingException.php"
+  },
+  {
+   "class": "PluginException",
+   "parent": "AzGuardException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/PluginException.php"
+  },
+  {
+   "class": "PrefixConflictException",
+   "parent": "DefinitionException",
+   "code": "prefix_conflict",
+   "abstract": false,
+   "path": "Exceptions/PrefixConflictException.php"
+  },
+  {
+   "class": "RecursionDetectedException",
+   "parent": "RuntimeException",
+   "code": null,
+   "abstract": false,
+   "path": "Exceptions/RecursionDetectedException.php"
+  },
+  {
+   "class": "RegistryFrozenException",
+   "parent": "DefinitionException",
+   "code": "registry_frozen",
+   "abstract": false,
+   "path": "Exceptions/RegistryFrozenException.php"
+  },
+  {
+   "class": "RoleNotGrantableException",
+   "parent": "ChangeException",
+   "code": "role_not_grantable",
+   "abstract": false,
+   "path": "Exceptions/RoleNotGrantableException.php"
+  },
+  {
+   "class": "StaleSelectionException",
+   "parent": "ChangeException",
+   "code": "stale_selection",
+   "abstract": false,
+   "path": "Exceptions/StaleSelectionException.php"
+  },
+  {
+   "class": "StorageException",
+   "parent": "AzGuardException",
+   "code": null,
+   "abstract": true,
+   "path": "Exceptions/StorageException.php"
+  },
+  {
+   "class": "StorageMismatchException",
+   "parent": "StorageException",
+   "code": "storage_mismatch",
+   "abstract": false,
+   "path": "Exceptions/StorageMismatchException.php"
+  },
+  {
+   "class": "SubjectNotAcceptedException",
+   "parent": "DefinitionException",
+   "code": "subject_not_accepted",
+   "abstract": false,
+   "path": "Exceptions/SubjectNotAcceptedException.php"
+  },
+  {
+   "class": "TenantMismatchException",
+   "parent": "ChangeException",
+   "code": "tenant_mismatch",
+   "abstract": false,
+   "path": "Exceptions/TenantMismatchException.php"
+  },
+  {
+   "class": "TenantRequiredException",
+   "parent": "ChangeException",
+   "code": "tenant_required",
+   "abstract": false,
+   "path": "Exceptions/TenantRequiredException.php"
+  },
+  {
+   "class": "UnknownPanelException",
+   "parent": "DefinitionException",
+   "code": "unknown_panel",
+   "abstract": false,
+   "path": "Exceptions/UnknownPanelException.php"
+  },
+  {
+   "class": "UnknownPermissionException",
+   "parent": "ChangeException",
+   "code": "unknown_permission",
+   "abstract": false,
+   "path": "Exceptions/UnknownPermissionException.php"
+  },
+  {
+   "class": "UnknownRoleException",
+   "parent": "ChangeException",
+   "code": "unknown_role",
+   "abstract": false,
+   "path": "Exceptions/UnknownRoleException.php"
+  },
+  {
+   "class": "UnknownSourceException",
+   "parent": "DefinitionException",
+   "code": "unknown_source",
+   "abstract": false,
+   "path": "Exceptions/UnknownSourceException.php"
+  },
+  {
+   "class": "UnsupportedDirectWriteException",
+   "parent": "StorageException",
+   "code": "unsupported_direct_write",
+   "abstract": false,
+   "path": "Exceptions/UnsupportedDirectWriteException.php"
+  },
+  {
+   "class": "VisibilityNotSupportedException",
+   "parent": "RuntimeException",
+   "code": null,
+   "abstract": false,
+   "path": "Exceptions/VisibilityNotSupportedException.php"
+  },
+  {
+   "class": "WriterConflictException",
+   "parent": "DefinitionException",
+   "code": "writer_conflict",
+   "abstract": false,
+   "path": "Exceptions/WriterConflictException.php"
+  },
+  {
+   "class": "DecisionFailedException",
+   "parent": "HttpException",
+   "code": null,
+   "abstract": false,
+   "path": "Laravel/Http/DecisionFailedException.php"
+  }
+ ],
+ "event_types": [
+  {
+   "case": "PermissionCreated",
+   "type": "permission.created"
+  },
+  {
+   "case": "PermissionUpdated",
+   "type": "permission.updated"
+  },
+  {
+   "case": "PermissionDeleted",
+   "type": "permission.deleted"
+  },
+  {
+   "case": "RoleGranted",
+   "type": "role.granted"
+  },
+  {
+   "case": "RoleRevoked",
+   "type": "role.revoked"
+  },
+  {
+   "case": "RoleGrantUpdated",
+   "type": "role.grant_updated"
+  },
+  {
+   "case": "PermissionGranted",
+   "type": "permission.granted"
+  },
+  {
+   "case": "PermissionRevoked",
+   "type": "permission.revoked"
+  },
+  {
+   "case": "PermissionGrantUpdated",
+   "type": "permission.grant_updated"
+  },
+  {
+   "case": "GrantExpired",
+   "type": "grant.expired"
+  },
+  {
+   "case": "PanelTouched",
+   "type": "panel.touched"
+  },
+  {
+   "case": "AccessDecided",
+   "type": "access.decided"
+  }
+ ],
+ "commands": [
+  {
+   "name": "azguard:audit:prune",
+   "class": "AuditPruneCommand",
+   "path": "Laravel/Console/Commands/AuditPruneCommand.php",
+   "inputs": [
+    "--panel",
+    "--before",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:catalog:cache",
+   "class": "CatalogCacheCommand",
+   "path": "Laravel/Console/Commands/CatalogCacheCommand.php",
+   "inputs": []
+  },
+  {
+   "name": "azguard:catalog:clear",
+   "class": "CatalogClearCommand",
+   "path": "Laravel/Console/Commands/CatalogClearCommand.php",
+   "inputs": []
+  },
+  {
+   "name": "azguard:catalog:list",
+   "class": "CatalogListCommand",
+   "path": "Laravel/Console/Commands/CatalogListCommand.php",
+   "inputs": [
+    "--panel",
+    "--tenant",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:doctor",
+   "class": "DoctorCommand",
+   "path": "Laravel/Console/Commands/DoctorCommand.php",
+   "inputs": [
+    "--panel",
+    "--storage",
+    "--production",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:explain",
+   "class": "ExplainCommand",
+   "path": "Laravel/Console/Commands/ExplainCommand.php",
+   "inputs": [
+    "subject",
+    "permission",
+    "--panel",
+    "--tenant",
+    "--context",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:grants:list",
+   "class": "GrantsListCommand",
+   "path": "Laravel/Console/Commands/GrantsListCommand.php",
+   "inputs": [
+    "subject",
+    "--panel",
+    "--tenant",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:grants:prune",
+   "class": "GrantsPruneCommand",
+   "path": "Laravel/Console/Commands/GrantsPruneCommand.php",
+   "inputs": [
+    "--panel",
+    "--tenant",
+    "--before",
+    "--dry-run"
+   ]
+  },
+  {
+   "name": "azguard:install",
+   "class": "InstallCommand",
+   "path": "Laravel/Console/Commands/InstallCommand.php",
+   "inputs": [
+    "--migrate",
+    "--force",
+    "--connection",
+    "--host-keys",
+    "--panel"
+   ]
+  },
+  {
+   "name": "azguard:make:models",
+   "class": "MakeModelsCommand",
+   "path": "Laravel/Console/Commands/Make/MakeModelsCommand.php",
+   "inputs": [
+    "panel",
+    "--storage",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:panel",
+   "class": "MakePanelCommand",
+   "path": "Laravel/Console/Commands/Make/MakePanelCommand.php",
+   "inputs": [
+    "panel",
+    "--model",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:permission",
+   "class": "MakePermissionCommand",
+   "path": "Laravel/Console/Commands/Make/MakePermissionCommand.php",
+   "inputs": [
+    "panel",
+    "group",
+    "--model",
+    "--authority",
+    "--case",
+    "--policy",
+    "--abilities",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:pipe",
+   "class": "MakePipeCommand",
+   "path": "Laravel/Console/Commands/Make/MakePipeCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--shared",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:plugin",
+   "class": "MakePluginCommand",
+   "path": "Laravel/Console/Commands/Make/MakePluginCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--shared",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:policy",
+   "class": "MakePolicyCommand",
+   "path": "Laravel/Console/Commands/Make/MakePolicyCommand.php",
+   "inputs": [
+    "panel",
+    "group",
+    "--enum",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:restriction",
+   "class": "MakeRestrictionCommand",
+   "path": "Laravel/Console/Commands/Make/MakeRestrictionCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--shared",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:role",
+   "class": "MakeRoleCommand",
+   "path": "Laravel/Console/Commands/Make/MakeRoleCommand.php",
+   "inputs": [
+    "panel",
+    "name",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:make:source",
+   "class": "MakeSourceCommand",
+   "path": "Laravel/Console/Commands/Make/MakeSourceCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--shared",
+    "--grants",
+    "--permissions",
+    "--roles",
+    "--policies",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:panels:list",
+   "class": "PanelsListCommand",
+   "path": "Laravel/Console/Commands/PanelsListCommand.php",
+   "inputs": [
+    "--settings",
+    "--sources",
+    "--schema",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:permissions:create",
+   "class": "PermissionsCreateCommand",
+   "path": "Laravel/Console/Commands/PermissionsCreateCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--label",
+    "--group",
+    "--tenant"
+   ]
+  },
+  {
+   "name": "azguard:permissions:delete",
+   "class": "PermissionsDeleteCommand",
+   "path": "Laravel/Console/Commands/PermissionsDeleteCommand.php",
+   "inputs": [
+    "name",
+    "--panel",
+    "--tenant",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:permissions:grant",
+   "class": "PermissionsGrantCommand",
+   "path": "Laravel/Console/Commands/PermissionsGrantCommand.php",
+   "inputs": [
+    "subject",
+    "permission",
+    "--panel",
+    "--on",
+    "--until",
+    "--field",
+    "--tenant",
+    "--origin"
+   ]
+  },
+  {
+   "name": "azguard:permissions:revoke",
+   "class": "PermissionsRevokeCommand",
+   "path": "Laravel/Console/Commands/PermissionsRevokeCommand.php",
+   "inputs": [
+    "subject",
+    "permission",
+    "--panel",
+    "--on",
+    "--tenant",
+    "--origin"
+   ]
+  },
+  {
+   "name": "azguard:permissions:show",
+   "class": "PermissionsShowCommand",
+   "path": "Laravel/Console/Commands/PermissionsShowCommand.php",
+   "inputs": [
+    "subject",
+    "--panel",
+    "--on",
+    "--tenant",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:roles:grant",
+   "class": "RolesGrantCommand",
+   "path": "Laravel/Console/Commands/RolesGrantCommand.php",
+   "inputs": [
+    "subject",
+    "role",
+    "--panel",
+    "--on",
+    "--until",
+    "--field",
+    "--tenant",
+    "--origin"
+   ]
+  },
+  {
+   "name": "azguard:roles:list",
+   "class": "RolesListCommand",
+   "path": "Laravel/Console/Commands/RolesListCommand.php",
+   "inputs": [
+    "--panel",
+    "--tenant",
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:roles:rename-key",
+   "class": "RolesRenameKeyCommand",
+   "path": "Laravel/Console/Commands/RolesRenameKeyCommand.php",
+   "inputs": [
+    "role",
+    "new",
+    "--panel",
+    "--tenant",
+    "--dry-run",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:roles:revoke",
+   "class": "RolesRevokeCommand",
+   "path": "Laravel/Console/Commands/RolesRevokeCommand.php",
+   "inputs": [
+    "subject",
+    "role",
+    "--panel",
+    "--on",
+    "--tenant",
+    "--origin"
+   ]
+  },
+  {
+   "name": "azguard:sources:list",
+   "class": "SourcesListCommand",
+   "path": "Laravel/Console/Commands/SourcesListCommand.php",
+   "inputs": [
+    "--json"
+   ]
+  },
+  {
+   "name": "azguard:state:reset",
+   "class": "StateResetCommand",
+   "path": "Laravel/Console/Commands/StateResetCommand.php",
+   "inputs": [
+    "panel",
+    "--force"
+   ]
+  },
+  {
+   "name": "azguard:storage:migration",
+   "class": "StorageMigrationCommand",
+   "path": "Laravel/Console/Commands/StorageMigrationCommand.php",
+   "inputs": [
+    "name"
+   ]
+  },
+  {
+   "name": "azguard:stubs",
+   "class": "StubsCommand",
+   "path": "Laravel/Console/Commands/StubsCommand.php",
+   "inputs": [
+    "--force"
+   ]
+  }
+ ],
+ "doctor_checks": [
+  {
+   "class": "CacheStore",
+   "key": "cache.store",
+   "finding_ids": [
+    "cache.store"
+   ],
+   "path": "Diagnostics/Checks/CacheStore.php"
+  },
+  {
+   "class": "CatalogBuildId",
+   "key": "catalog.build_id",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/CatalogBuildId.php"
+  },
+  {
+   "class": "CatalogCached",
+   "key": "catalog.cached",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/CatalogCached.php"
+  },
+  {
+   "class": "CatalogCollisions",
+   "key": "catalog.collisions",
+   "finding_ids": [
+    "catalog.collisions"
+   ],
+   "path": "Diagnostics/Checks/CatalogCollisions.php"
+  },
+  {
+   "class": "ConfigValid",
+   "key": "config.valid",
+   "finding_ids": [
+    "config.valid"
+   ],
+   "path": "Diagnostics/Checks/ConfigValid.php"
+  },
+  {
+   "class": "ConsistencyReads",
+   "key": "consistency.reads",
+   "finding_ids": [
+    "consistency.reads"
+   ],
+   "path": "Diagnostics/Checks/ConsistencyReads.php"
+  },
+  {
+   "class": "DecisionFieldsInMeta",
+   "key": "fields.meta",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/DecisionFieldsInMeta.php"
+  },
+  {
+   "class": "DirectWrites",
+   "key": "direct_writes",
+   "finding_ids": [
+    "direct_writes"
+   ],
+   "path": "Diagnostics/Checks/DirectWrites.php"
+  },
+  {
+   "class": "DiscoveryCached",
+   "key": "panels.policies",
+   "finding_ids": [
+    "panels.policies"
+   ],
+   "path": "Diagnostics/Checks/DiscoveryCached.php"
+  },
+  {
+   "class": "GateModeCheck",
+   "key": "gate.mode",
+   "finding_ids": [
+    "gate.mode"
+   ],
+   "path": "Diagnostics/Checks/GateModeCheck.php"
+  },
+  {
+   "class": "GrantsDead",
+   "key": "grants.dead",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/GrantsDead.php"
+  },
+  {
+   "class": "MembershipConfigured",
+   "key": "membership.configured",
+   "finding_ids": [
+    "membership.configured"
+   ],
+   "path": "Diagnostics/Checks/MembershipConfigured.php"
+  },
+  {
+   "class": "ModelColumns",
+   "key": "storage.schema",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/ModelColumns.php"
+  },
+  {
+   "class": "PanelsPlugins",
+   "key": "panels.plugins",
+   "finding_ids": [
+    "panels.plugins"
+   ],
+   "path": "Diagnostics/Checks/PanelsPlugins.php"
+  },
+  {
+   "class": "PanelsPolicies",
+   "key": "panels.policies",
+   "finding_ids": [
+    "panels.policies"
+   ],
+   "path": "Diagnostics/Checks/PanelsPolicies.php"
+  },
+  {
+   "class": "PanelsRelations",
+   "key": "panels.relations",
+   "finding_ids": [
+    "panels.relations"
+   ],
+   "path": "Diagnostics/Checks/PanelsRelations.php"
+  },
+  {
+   "class": "PanelsSources",
+   "key": "panels.sources",
+   "finding_ids": [
+    "panels.sources"
+   ],
+   "path": "Diagnostics/Checks/PanelsSources.php"
+  },
+  {
+   "class": "PanelsValid",
+   "key": "panels.valid",
+   "finding_ids": [
+    "panels.valid"
+   ],
+   "path": "Diagnostics/Checks/PanelsValid.php"
+  },
+  {
+   "class": "PoliciesComplete",
+   "key": "policies.complete",
+   "finding_ids": [
+    "policies.complete"
+   ],
+   "path": "Diagnostics/Checks/PoliciesComplete.php"
+  },
+  {
+   "class": "RolesKeys",
+   "key": "roles.keys",
+   "finding_ids": [
+    "roles.keys"
+   ],
+   "path": "Diagnostics/Checks/RolesKeys.php"
+  },
+  {
+   "class": "RolesOrphaned",
+   "key": "roles.orphaned",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/RolesOrphaned.php"
+  },
+  {
+   "class": "RoutesChecks",
+   "key": "routes.checks",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/RoutesChecks.php"
+  },
+  {
+   "class": "StorageMigrated",
+   "key": "storage.migrated",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/StorageMigrated.php"
+  },
+  {
+   "class": "StorageSchema",
+   "key": "storage.schema",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/StorageSchema.php"
+  },
+  {
+   "class": "StorageSqlite",
+   "key": "storage.sqlite",
+   "finding_ids": [],
+   "path": "Diagnostics/Checks/StorageSqlite.php"
+  },
+  {
+   "class": "AuditTableExists",
+   "key": "audit.table",
+   "finding_ids": [],
+   "path": "Plugins/Audit/AuditTableExists.php"
+  }
+ ]
+}

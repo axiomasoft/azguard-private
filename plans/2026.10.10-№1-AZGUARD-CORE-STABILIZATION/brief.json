@@ -35,6 +35,34 @@
       "text": "То есть, видишь, нужна какая-то умная система, там подключение плагинов, подключение всяких хуков и так далее, макросов, я не знаю, может быть, ещё что-то, событий. То есть, чтобы ядро предоставляло такой набор универсальности, чтобы всем остальным было просто. Там вот говорю, Perplexity использую для поиска лучших там паттернов, как это в коде реализуется. Чтобы полностью всё было спроектировано, и вот на вот эти твои принципы будем полностью полагаться.",
       "channel": "owner conversation",
       "kind": "owner"
+    },
+    {
+      "id": "M6",
+      "date": "2026-10-10",
+      "text": "Ты — независимый архитектор AzGuard. Проверь архитектуру, предложенную Codex, и доведи существующий SKM-план до максимально продуманного, согласованного состояния. Это проектирование распределения уже существующего функционала перед 1.0. Мне нужен лёгкий фундамент авторизации, к которому подключаются необязательные возможности. Не каждому приложению нужен весь функционал AzGuard. До 1.0 необходимо определить и зафиксировать: точные границы ядра, внутренних модулей и отдельных пакетов; публичный API и SPI для разработчиков расширений; взаимодействие модулей, плагины, хуки, события и конфигурацию; владение таблицами, схемой и постоянными идентификаторами; полные цепочки проверки доступа, выборок, изменений и аудита; условия стабильности и архитектурные ограничения для дальнейшего развития. Будущий физический вынос должен сохранять API, схему и данные пользователей. ОБЯЗАТЕЛЬНЫЕ ПРИНЦИПЫ ВЛАДЕЛЬЦА: 1. Не выпускать 1.0, пока API/SPI и схема не стабилизированы. 2. Архитектурное разделение определяется ответственностью, а не монетизацией. Не использовать название «pro». 3. Отдельный Composer-пакет оправдан только самостоятельным назначением. AzGuard-only функционал остаётся внутренним модулем вне ядра. Самодостаточная интеграция, например Filament, может распространяться отдельно. 4. Модули взаимодействуют исключительно через контракты и значения ядра. Никаких прямых зависимостей, мостов и проверок идентификатора соседнего модуля. 5. Каждый новый модуль, пакет и контракт должен быть обоснован существующим поведением. Избегать лишних абстракций. 6. Строгая типизация: enums, readonly DTO, явные контракты и понятное владение. Универсальность не должна превращаться в динамическую магию. 7. Подходы должны соответствовать экосистеме axiomasoft: CoreX, Chatom, Vaulter, Commerz. 8. Более ранний аудит — источник исходных идей. Мне не нужен отчёт о его неточностях или расхождениях. [...] Не принимай предложения Codex на веру. Проверь их по коду и самостоятельно оцени целевую архитектуру. [...] Расширения через поддерживаемые точки не должны обходить обязательную валидацию. Не обещай sandbox для доверенного PHP-кода. [...] Нельзя предполагать, что 0.7.0 никто не устанавливал. [...] Проверка свежести манифеста сама по себе не доказывает совместимость. [...] Различай существующие проверки и те, которые ещё предстоит реализовать. [...] Доведи этот же SKM-план до законченного архитектурного проекта: устрани реальные пробелы и несогласованности; сформулируй точную итоговую структуру и правила взаимодействия; сохрани обоснования, альтернативы и ограничения важных решений; зафиксируй все изменения и результаты независимой проверки внутри плана; при замене принятого решения сохрани историю средствами протокола; после уточнения схемы актуализируй цели, границы и критерии завершения фаз. Решения Codex можно менять; принципы владельца обязательны. Не детализируй задачи фаз, не создавай исполнительные items, не реализуй код, не изменяй БД, не коммить и не пушь. Не запускай дополнительные процессы ревью или исполнения. Архитектурные материалы веди на английском.",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M7",
+      "date": "2026-10-10",
+      "text": "пользуйся любыми инструментами подкрепления мнения, perplexity поиск",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M8",
+      "date": "2026-10-10",
+      "text": "слушай а план реально подробно все границы описал? а то codex час работал, ты полчаса, а по файлам плана вижу, что мало. Или я ошибаюсь? ведь при детализации должен быть полный объем информации",
+      "channel": "owner conversation",
+      "kind": "owner"
+    },
+    {
+      "id": "M9",
+      "date": "2026-10-10",
+      "text": "Да, записывай по максимумму подробностей. раньше была папка arfifacts куда тоже заносили инфу, или она лишняя в этот раз будет? / и еще я хочет чтобы сразу все было спроектирвоано по структуре пакетов! / т.е. у тебя наверное в голове все это есть же, когда ты принимал решения, но не записал. / т.е. нужна чистая техническая выжимка твоих мозгов. ЧТобы придетализации не было шансов уйти от эталона / и нужно проверить что при детализации фаз агент будет получать необходимую информацию, т.е. она записана в плане, но может не прочитаться",
+      "channel": "owner conversation",
+      "kind": "owner"
     }
   ],
   "requirements": [
@@ -164,21 +192,107 @@
         "P3",
         "P4"
       ]
+    },
+    {
+      "id": "B14",
+      "text": "Separate by responsibility, never by monetization: no 'pro' naming, edition switches, alternative decision rules or second schema.",
+      "source": "M6",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B15",
+      "text": "Justify every new module, package and contract by existing behavior, avoid unnecessary abstractions, and keep the architecture cost (concepts, contracts, mandatory user actions) explicit.",
+      "source": "M6",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B16",
+      "text": "Independently verify the proposed architecture against code (boundaries, dependencies, SPI, operation chains, module independence, data safety, freeze completeness, release-gate realism, cost); record changes, verification results and superseded decisions in the plan and refresh phase goals, boundaries and exits.",
+      "source": "M6",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B17",
+      "text": "Supported extension points cannot bypass mandatory validation; no sandbox is promised for trusted in-process PHP.",
+      "source": "M6",
+      "owners": [
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B18",
+      "text": "Assume 0.7.0 is installed: future physical relocation and the transition preserve API identities, schema, migration history and user data.",
+      "source": "M6",
+      "owners": [
+        "P1",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B19",
+      "text": "Back architectural judgments with available tools: code reading, recorded evidence, Perplexity retrieval and primary sources for external premises.",
+      "source": "M7",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B20",
+      "text": "Record the complete target package and module structure and an exhaustive per-symbol reference (placement, markers, signatures, identities, upgrade map) so that phase detail cannot drift from it; raw generated evidence goes to artifacts/.",
+      "source": "M9",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B21",
+      "text": "Guarantee that phase-design and item contexts actually receive the reference: explicit read lists in each phase, phase-bound documents, and a verified context delivery.",
+      "source": "M9",
+      "owners": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
     }
   ],
   "constraints": [
-    "Architecture design only in this session; phase task detail is deliberately deferred.",
+    "Architecture design only; phase task detail is deliberately deferred to separate sessions.",
     "Preserve the pre-existing V1 plan directory and all unrelated work.",
-    "No implementation changes, database mutations, Git commits or pushes in this session.",
-    "No independent review workflow was requested.",
-    "Use the canonical plan.py API for all plan-source writes; generated Markdown is a human projection."
+    "No implementation changes, database mutations, Git commits or pushes in the design sessions.",
+    "No additional review or execution processes are started by a design session.",
+    "Use the canonical plan.py API for all plan-source writes; generated Markdown is a human projection.",
+    "Replaced decisions keep their history through supersede; owner principles in M6 are binding over agent decisions."
   ],
   "environment": [
-    "Repository main at 09612160c98ca6133c894a8f90f5653b9dac6b8f, version 0.7.0.",
+    "Code baseline main at 09612160c98ca6133c894a8f90f5653b9dac6b8f, version 0.7.0 (tag v0.7.0). HEAD 47105c3 adds plan files only; code paths are identical.",
     "Current date: 2026-10-10; project directory: /home/vostrikov/projects/packages/azguard.",
-    "The repository intentionally ignores /plans/; the new plan is local planning infrastructure.",
+    "Plans are tracked in Git since commit 47105c3 (the owner removed /plans/ from .gitignore).",
     "The legacy V1 directory currently contains runtime contexts/artifacts and no plan.json; its historical canonical state was not reconstructed or changed.",
-    "Codex/GPT-6 family is host-declared; exact native model/effort is not exposed. Authoring records the declared family and omits effort; no item execution or native launch is claimed."
+    "Revision 1: Codex/GPT-6 family, host-declared; exact native model/effort not exposed.",
+    "Revision 2 (independent review): Claude Opus 5.5 (claude-opus-5-5), xhigh effort, Claude Code session on 2026-10-10. Perplexity was used for retrieval; claims were confirmed on primary pages or source code."
   ],
   "out_of_scope": [
     "Task-level design and execution",

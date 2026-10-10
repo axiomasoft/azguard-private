@@ -1,0 +1,55 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D10",
+  "title": "Authority writes belong to core storage only",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "Is the panel writer an extension point?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Retire the SPI (chosen): Truthful surface, no feature work."
+    },
+    {
+      "id": "B",
+      "text": "Make writes writer-agnostic: New feature: locks, revisions and participants for foreign stores."
+    }
+  ],
+  "context": "Independent architecture review (revision 2) requested by the owner (brief M6, M7). Phase tasks and implementation remain deferred.",
+  "decision": "Retire StoresGrants from the supported SPI. The core database storage is the only authority writer; panels without it are read-only. Read-source SPI is unchanged. PanelSchema exposes writer capabilities (writable, dynamic permissions) so UIs need no concrete source class.",
+  "rationale": "ChangePipeline::operate, RoleKeyMigration, ScopedGrantManager, Authorizer and Filament accept only DatabaseSource, so the published SPI promises an implementer path that core rejects. Making the coordinator writer-agnostic would be a new feature; principle 5 rejects keeping an unimplementable contract.",
+  "consequences": [
+    "Filament's DatabaseSource::isDynamic check moves to PanelSchema capabilities.",
+    "Contract suites for writers become internal."
+  ],
+  "applies_to": [
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Contracts/Sources/StoresGrants.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/src/Changes/ChangePipeline.php"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/filament/src/Resources/PermissionResource.php"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M6",
+      "note": "Owner requested an independent review and authorized amending Codex decisions within the owner principles."
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "xhigh"
+  },
+  "answered_by": "agent"
+}

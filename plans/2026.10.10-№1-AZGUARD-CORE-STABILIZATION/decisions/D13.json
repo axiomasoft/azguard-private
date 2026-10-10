@@ -1,0 +1,65 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D13",
+  "title": "Exhaustive target structure and reference documents",
+  "date": "2026-10-10",
+  "status": "accepted",
+  "question": "What is the exact target structure of every package and module, and how is it fixed so phase detail cannot drift from it?",
+  "options": [
+    {
+      "id": "A",
+      "text": "Exhaustive generated map with Internal namespaces and stable public FQCNs (chosen)"
+    },
+    {
+      "id": "B",
+      "text": "Rules only, placement decided per phase: drift and repeated analysis"
+    },
+    {
+      "id": "C",
+      "text": "Full per-domain re-layout like Chatom (Exceptions/Events per domain): large consumer break without functional gain"
+    },
+    {
+      "id": "D",
+      "text": "Keep internal FQCNs where they are: smaller diff, but boundaries visible only through attributes and harder to scan"
+    }
+  ],
+  "context": "Independent architecture review (revision 2) requested by the owner (brief M6, M7); the owner asked for the complete package structure and a technical reference that detailing cannot deviate from. Phase tasks and implementation remain deferred.",
+  "decision": "The per-type placement in knowledge/type-map (generated from the baseline by artifacts/inventory/target_map.py) is the reference for all moves. Rules: publication is the #[Api]/#[Spi] attribute; attributed types live outside \\Internal\\; internal types live under <Zone>\\Internal\\ (Sources\\<Adapter>\\Internal, Filament\\Internal\\<Area>); published FQCNs stay unless the map lists a move; Kernel values, events, exceptions, enums and Storage\\Schema\\StorageSchema never move; exceptions stay in one Exceptions namespace; Filament resource pages keep the framework layout with @internal. Module roots: AzGuard\\Scopes\\, AzGuard\\Audit\\, AzGuard\\DevTools\\ under packages/core/modules/<module>/src. knowledge/contracts fixes the signatures of new and changed types; knowledge/identities and knowledge/upgrade-map fix identities and the 0.7.0 map. A deviation requires a decision and a #review entry.",
+  "rationale": "Rules plus a mixed-area map leave ~420 placements to later sessions, which would re-derive them differently. The ecosystem (Chatom, CoreX, Commerz) keeps implementation under Internal namespaces, which also makes the boundary scans of I2–I4 mechanical. Stable published FQCNs keep the upgrade map short; internal FQCNs carry no promise, so their one-time move is safe. Exceptions and events stay centralized because installed applications catch and listen to them by FQCN.",
+  "consequences": [
+    "P3 moves about 190 internal types and 8 module types once; tests update imports mechanically.",
+    "P1 scans use target-map.json as the ownership oracle.",
+    "The upgrade map lists only supported symbols."
+  ],
+  "applies_to": [
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+  ],
+  "evidence": [
+    {
+      "kind": "repo",
+      "ref": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target-map.json"
+    },
+    {
+      "kind": "repo",
+      "ref": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/inventory/target_map.py"
+    },
+    {
+      "kind": "repo",
+      "ref": "packages/core/api-manifest.json"
+    },
+    {
+      "kind": "owner",
+      "ref": "brief/M8",
+      "note": "The owner asked for the complete package structure and a reference without room for deviation."
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5",
+    "effort": "xhigh"
+  },
+  "answered_by": "agent"
+}

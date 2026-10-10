@@ -1,67 +1,82 @@
 {
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P1",
-  "title": "Schema and security invariants",
+  "title": "Baseline evidence and compatibility harness",
   "design": "skeleton",
-  "goal": "Fix authority and module data ownership before moving implementations; preserve all existing identity, tenant, consistency and transaction guarantees.",
-  "context": "Architecture phase A. Approximate size: M. Installer/teardown ownership changes deliberately before 1.0; existing grant, identity and audit rows retain their meaning. Task decomposition is deferred to a separate session.",
+  "goal": "Capture the 0.7.0 behavior, formats and populated data as executable evidence and install the boundary, parity and distribution checks every later phase is measured against, without changing production behavior.",
+  "context": "Architecture phase A (revision 2, D12). Approximate size: M. Replaces revision 1's schema-first phase: persistence ownership is fixed in knowledge/architecture#persistence and executed in P3 together with its owner. Only tests, fixtures and CI change here. Task decomposition is deferred to a separate session.",
   "contract": {
     "consumes": [
-      "The current 0.7.0 schema-2 implementation and real-driver DDL fixtures",
+      "The 0.7.0 code, migrations, manifests, CI and existing suites",
       "knowledge/architecture#persistence",
-      "knowledge/architecture#operation-chains"
+      "knowledge/architecture#invariants",
+      "knowledge/architecture#release-gate",
+      "knowledge/identities",
+      "knowledge/type-map"
     ],
     "produces": [
-      "Six-table core schema and separate Audit schema/install/health/retention ownership",
-      "Qualified fresh installation, schema-1 upgrade, schema-2 adoption and published application migration behavior",
-      "Stable identity/field/codec ownership contract"
+      "Populated 0.7.0 database fixtures per driver: default storage, named storage, published core migrations, schema-1 database",
+      "Frozen snapshots: DDL/constraints, event and audit payloads, config keys, CLI names/options/exit codes, publish tags, doctor/explain JSON, exception codes, serializable-FQCN inventory, 0.7.0 API manifest",
+      "Parity harness for scalar/batch/SQL/directory/write over existing fixtures, including no scope declaration and two panels",
+      "Boundary scans (I2, I3, I5) and the inactive-cost harness (I13) in report mode with owned, shrinking allowlists",
+      "Blocking archive consumer job (I19)"
     ],
     "boundaries": [
-      "Keep all authority tenant/context columns and uniqueness rules",
-      "Preserve migration history, populated rows and same-transaction audit behavior",
-      "Disabling a module never globalizes or deletes stored grants"
+      "No production code or behavior change",
+      "Every new check states which invariant it proves and whether it blocks now or after a named phase",
+      "Allowlist entries name the phase that removes them"
     ]
   },
   "scope": {
     "include": [
-      "StorageSchema, HostKeyColumns, StorageHealth and existing migrations",
-      "Audit table adoption and teardown ownership",
-      "Tenant/scope boundary and rollback invariants",
-      "Reserved field names and persistent format fixtures"
+      "tests/Arch scans and SourceScan extension",
+      "tests/Fixtures and Engines fixtures for populated 0.7.0 databases",
+      "Machine-format snapshot tests",
+      "Parity harness reusing existing property suites",
+      "tests workflow consumer job and bin/consumer-fixture.sh"
     ],
     "exclude": [
-      "New authorization behavior or tables",
-      "Identity/column/table renaming",
-      "Transaction, lock or replica feature expansion"
+      "StorageSchema, migration, installer or doctor behavior changes",
+      "API/SPI, namespace or DSL changes",
+      "New authorization behavior"
     ]
   },
   "depends_on": [],
   "pitfalls": [
-    "A retained migration filename still executes changed StorageSchema methods",
-    "hasTable alone cannot prove an adopted audit table is compatible",
-    "An adoption rollback must retain a table it did not create",
-    "Modules must not receive unrestricted authority-table mutation"
+    "A snapshot taken after any P2 change is not a 0.7.0 baseline",
+    "hasTable alone does not describe the audit table shape that P3 must adopt",
+    "Published migration copies and package-loaded migrations share basenames; both variants need fixtures",
+    "A parity harness that skips unsupported mappings must record them as unsupported, not as agreement",
+    "Check whether 0.7.0 applications could already use an azg_ grant field name",
+    "Folder discovery collects Scopes/ classes today; record what consumes them before P2 changes the declaration slot"
   ],
   "validation": [
     {
       "id": "V1",
-      "procedure": "Compare actual DDL and constraints on every supported driver for core-only and core+Audit; exercise fresh install, populated 0.7.0/schema-2 adoption, schema-1 upgrade and published migrations; assert unchanged durable identities/rows and tenant/context/rollback invariants.",
-      "expect": "All cases pass with zero grant/identity/audit-row rewrites and no optional Audit table on a fresh core-only installation.",
+      "procedure": "Run the full existing matrix plus the new fixtures, snapshots, parity harness, boundary scans and blocking consumer job on the unchanged 0.7.0 code on every supported driver.",
+      "expect": "All existing suites stay green; every new check passes against 0.7.0 or reports only allowlisted findings with an owner phase; the consumer job blocks on failure.",
       "kind": "acceptance"
     }
   ],
   "deliverables": [
-    "Table and persistent-format ownership contract",
-    "Core-only/core+Audit DDL and populated adoption fixtures",
-    "Documented intentional installer/teardown compatibility change"
+    "Populated 0.7.0 fixtures and format snapshots",
+    "Parity harness",
+    "Boundary and inactive-cost scans with allowlists",
+    "Blocking consumer qualification",
+    "Inventory of serializable FQCNs and exception codes"
   ],
   "items": [],
   "batches": [],
   "sections": [
     {
+      "id": "design-inputs",
+      "title": "Mandatory design inputs",
+      "text": "The detailing session for P1 reads these before authoring any item (`show` of this phase is the entry point; the list is mandatory):\n\n```bash\nP='python3 <task>/scripts/plan.py'; ID=2026.10.10-№1-AZGUARD-CORE-STABILIZATION\n$P get $ID knowledge/architecture --section product\n$P get $ID knowledge/architecture --section ownership\n$P get $ID knowledge/architecture --section persistence\n$P get $ID knowledge/architecture --section operation-chains\n$P get $ID knowledge/architecture --section invariants\n$P get $ID knowledge/architecture --section release-gate\n$P get $ID knowledge/architecture --section transition-policy\n$P get $ID knowledge/identities            # all sections\n$P get $ID knowledge/type-map            # rules (the oracle itself is artifacts/inventory/target-map.json)\n$P get $ID D11\n$P get $ID D12\n$P get $ID D13\n```\n\nRules for the detailed items:\n\n- Each item lists in `reads` (with `section`, `required: true`) the reference sections it implements; a phase-bound document that no item reads is reported by `design-done` (`phase_documents_unread`) and must be resolved before the phase counts as detailed.\n- Items cite their type-map rows by current FQCN in `scope.include`; an item may not move, rename or re-mark a type differently from `knowledge/type-map`.\n- If `design-done` reports a pack over the 256 KB budget, move the binding of a reference document from the phase to the items that read it (`plan.py unlink … --kind applies_to`, `plan.py link …`) — never drop the read.\n- Boundary scans (I2, I3, I5) must read `artifacts/inventory/target-map.json` as the ownership oracle instead of a hand-written namespace list; identity snapshots cover every row of `knowledge/identities`."
+    },
+    {
       "id": "exit",
       "title": "Exit criterion",
-      "text": "No unresolved data ownership or persistent-format decision remains for the redistribution. Installation and disablement cannot widen authority or discard existing data."
+      "text": "Every invariant I1–I22 in knowledge/architecture#invariants has an executable check or a recorded owner phase; 0.7.0 behavior, formats and populated data are reproducible from fixtures; nothing in production changed."
     }
   ]
 }
