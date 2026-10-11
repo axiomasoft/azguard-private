@@ -1,4 +1,21 @@
+candidate=38dc04dc8b410afdd769aaa26ba1e29f221d6d79
+command=export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; docker compose --profile authority-replica up -d --wait authority-primary authority-replica && composer test:redis && composer test:replica
+started_at=2026-10-11T14:19:10Z
+ Container azguard-authority-primary-1 Starting 
+ Container azguard-authority-primary-1 Started 
+ Container azguard-authority-primary-1 Waiting 
+ Container azguard-authority-primary-1 Healthy 
+ Container azguard-authority-replica-1 Starting 
+ Container azguard-authority-replica-1 Started 
+ Container azguard-authority-primary-1 Waiting 
+ Container azguard-authority-replica-1 Waiting 
+ Container azguard-authority-primary-1 Healthy 
+ Container azguard-authority-replica-1 Healthy 
 > php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis
-{"tool":"pest","result":"passed","tests":2,"passed":2,"assertions":26,"duration_ms":125}
+{"tool":"pest","result":"passed","tests":2,"passed":2,"assertions":26,"duration_ms":139}
 > bash tests/Engines/Support/replica-fixture.sh
-{"tool":"pest","result":"passed","tests":1,"passed":1,"assertions":15,"duration_ms":237}
+{"tool":"pest","result":"passed","tests":1,"passed":1,"assertions":15,"duration_ms":235}
+
+finished_at=2026-10-11T14:19:15Z
+exit=0
+duration_seconds=4.922

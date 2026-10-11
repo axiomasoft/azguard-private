@@ -107,7 +107,11 @@
       "mode": "recommended"
     }
   ],
-  "closed": null,
+  "closed": {
+    "at": "2026-10-11T14:20:35Z",
+    "result": "done_with_deviations",
+    "summary": "6 item(s): 6 done_with_deviations"
+  },
   "sections": [
     {
       "id": "design-inputs",

@@ -6,11 +6,13 @@
 - Reviewers (independent, read-only, same prompt `artifacts/reviews/P1/round2/prompt.md`, neither saw the other's verdict):
   - `codex/gpt-6.1-sol/high` — `codex exec -s read-only`, codex-cli 0.162.1, session `01a12a89-bf3e-7473-a930-22938b7a5027`, working shell (41 commands); verdict `artifacts/reviews/P1/round2/codex-gpt-6.1-sol.md`
   - `grok/grok-4.7/high` — grok 1.0.50 headless, `--sandbox review` (project profile: read-only, child network for the mAInd hook), tools `run_terminal_command,read_file,grep,list_dir`, resolved model `grok-4.7-build`, session `01a12a89-c64d-7b22-b941-53e3327805ca`, 47 turns, working shell; verdict `artifacts/reviews/P1/round2/grok-4.7.md`
-- Executor (registrar, acceptance runs, finding verification): `claude-code/opus-5-5/high`
+- Review registrar and finding verification: `claude-code/opus-5-5/high`
+- Acceptance executor and closure: `codex/gpt-6.1-sol/high`, session `01a12b41-068b-77e2-b8fa-ad1c03dbfd37` (model/effort, cwd, approval `never` and sandbox `danger-full-access` observed in the session runtime journal)
+- Acceptance candidate: HEAD `38dc04dc8b410afdd769aaa26ba1e29f221d6d79`; difference from reviewed `09aa569` is test infrastructure and its documentation only: `.github/workflows/tests.yml`, `docker-compose.yml`, `DEVELOPMENT.md`, `docs/guides/testing.md`, `docs/reference.md`. `packages/` and `tests/` unchanged.
 
-Verdict: PENDING
+Verdict: GREEN
 
-Both reviewers returned GREEN independently with no findings; each confirmed F1–F6 fixed. PENDING-ACCEPTANCE
+Both reviewers returned GREEN independently with no findings; each confirmed F1–F6 fixed. Acceptance V1, V2, V3 (pgsql, mysql, mariadb), V4 and V6 all exited 0 on `38dc04dc8b410afdd769aaa26ba1e29f221d6d79`; no skipped or unavailable check is counted as green. V5 validates this completed verdict file, with its actual exit recorded separately.
 
 ## Round 2 findings
 
@@ -44,11 +46,26 @@ Round-1 V3 MySQL failures, resolved:
 - Consumer gate: `bin/consumer-fixture.sh` exit 3 fails the job; no `continue-on-error` on consumer steps; `release`/`split` need `validate`.
 - Fix commits: no weakened or tautological assertion, cross-driver snapshot split or new shared-state leak.
 
-## Commands run (executor, round 2, HEAD `09aa569`)
+## Commands run (executor, round 2, acceptance HEAD `38dc04d`)
 
-PENDING-COMMANDS
+| id | command | outcome |
+|---|---|---|
+| V1 | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/` | exit 0; wall 0.003s |
+| V3.pgsql | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:pgsql` | exit 0; wall 339.905s; 4959/4959 passed; 339.151s (Pest) |
+| V3.mysql | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:mysql` | exit 0; wall 391.019s; 4959/4959 passed; 390.066s (Pest) |
+| V3.mariadb | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:mariadb` | exit 0; wall 217.867s; 4959/4959 passed; 217.038s (Pest) |
+| V2 | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test` | exit 0; wall 115.749s; 4895/4895 passed; 114.788s (Pest) |
+| V4 | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:engines:pgsql && composer test:engines:mysql && composer test:engines:mariadb` | exit 0; wall 91.376s; pgsql: 68/68 passed; 41.110s (Pest); mysql: 68/68 passed; 25.252s (Pest); mariadb: 68/68 passed; 22.635s (Pest) |
+| V6 | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; docker compose --profile authority-replica up -d --wait authority-primary authority-replica && composer test:redis && composer test:replica` | exit 0; wall 4.922s; redis: 2/2 passed; 0.139s (Pest); replica: 1/1 passed; 0.235s (Pest) |
+| V5 | `export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md && grep -qE '^Verdict: (GREEN\|RED)' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md` | exit 0; completed verdict file exists and contains GREEN; final check log/timing: `artifacts/evidence/P1.6/V5.log` / `V5.json`. |
+
+Process deviations: V3 ran sequentially per driver with a separate observed exit; all commands exported PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; V6 explicitly started replica services via `docker compose --profile authority-replica up -d --wait authority-primary authority-replica`. The existing Redis service is published at 26379. Historical logs on 09aa569 were not reused as acceptance for this candidate.
+
+Deferred to P2: `ContractWorld::rowCounts()` MySQL schema scoping, and the two pre-existing PHPStan errors in `RoutesChecks.php:106` / `AuthorizesActions.php:91` (already recorded in the journal).
 
 ## Environment disclosures (round 2)
+
+- Supplementary `git diff --check` exited 2 solely for trailing spaces emitted by Compose in raw `V6.log`; the log is preserved unchanged. `git diff --check -- . ':!**/*.log'` exited 0. These formatting checks do not change any acceptance exit.
 
 - Both reviewers had a working read-only shell this round. Codex `-s read-only` ran (round-1 `bwrap: loopback` failure did not reproduce). Grok needs `--sandbox review` and the tool name `run_terminal_command`; with the built-in `read-only` profile the project mAInd hook cannot reach its daemon and denies every shell call.
 - Reviewers did not run composer/pest/docker by instruction; V1–V6 are executor runs.

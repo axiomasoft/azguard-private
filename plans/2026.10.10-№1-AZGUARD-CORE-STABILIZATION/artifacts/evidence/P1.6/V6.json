@@ -1,14 +1,14 @@
 {
  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
- "evidence_id": "PLAN1.P1.6.V6.2026-10-11T05:55:16Z",
+ "evidence_id": "PLAN1.P1.6.V6.2026-10-11T14:19:15Z",
  "check_id": "V6",
  "subject": "PLAN1.P1.6",
  "procedure": {
-  "cmd": "docker compose --profile authority-replica up -d --wait authority-primary authority-replica; composer test:redis && composer test:replica",
+  "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; docker compose --profile authority-replica up -d --wait authority-primary authority-replica && composer test:redis && composer test:replica",
   "cwd": "."
  },
  "candidate": {
-  "head": "9b8092e73da25185a30f438ba9458eb1f9633cef"
+  "head": "38dc04dc8b410afdd769aaa26ba1e29f221d6d79"
  },
  "exit": 0,
  "environment": {
@@ -17,15 +17,15 @@
  },
  "log": {
   "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.6/V6.log",
-  "sha256": "4294a89837f0e20c08f0551de21f4684ec856269cc92004b811d7ecab2a34729"
+  "sha256": "090eac3a32952e873bb7fed3afa2d0cda835e6f5b87beeca407ce5dcc81628b7"
  },
- "started_at": "2026-10-11T05:55:16Z",
- "finished_at": "2026-10-11T05:55:16Z",
+ "started_at": "2026-10-11T14:19:10Z",
+ "finished_at": "2026-10-11T14:19:15Z",
  "producer": {
   "kind": "executor",
   "actor": {
-   "provider": "claude-code",
-   "model": "opus-5-5",
+   "provider": "codex",
+   "model": "gpt-6.1-sol",
    "effort": "high"
   }
  }

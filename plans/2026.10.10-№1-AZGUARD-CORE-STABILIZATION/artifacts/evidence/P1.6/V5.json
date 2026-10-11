@@ -1,14 +1,14 @@
 {
  "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
- "evidence_id": "PLAN1.P1.6.V5.2026-10-11T05:55:35Z",
+ "evidence_id": "PLAN1.P1.6.V5.2026-10-11T14:20:35Z",
  "check_id": "V5",
  "subject": "PLAN1.P1.6",
  "procedure": {
-  "cmd": "test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md && grep -qE '^Verdict: (GREEN|RED)' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md",
+  "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md && grep -qE '^Verdict: (GREEN|RED)' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1-review.md",
   "cwd": "."
  },
  "candidate": {
-  "head": "9b8092e73da25185a30f438ba9458eb1f9633cef"
+  "head": "38dc04dc8b410afdd769aaa26ba1e29f221d6d79"
  },
  "exit": 0,
  "environment": {
@@ -17,15 +17,15 @@
  },
  "log": {
   "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.6/V5.log",
-  "sha256": "34415dc11c256d4f1b0171df9073cddc4d954f9eabfc81b96dec42e9bff85b6b"
+  "sha256": "96a1ec165860ed4d390388dcdc0e8b948a1f2821e5a08df79aa359f54dfe8d13"
  },
- "started_at": "2026-10-11T05:55:35Z",
- "finished_at": "2026-10-11T05:55:35Z",
+ "started_at": "2026-10-11T14:20:35Z",
+ "finished_at": "2026-10-11T14:20:35Z",
  "producer": {
   "kind": "executor",
   "actor": {
-   "provider": "claude-code",
-   "model": "opus-5-5",
+   "provider": "codex",
+   "model": "gpt-6.1-sol",
    "effort": "high"
   }
  }

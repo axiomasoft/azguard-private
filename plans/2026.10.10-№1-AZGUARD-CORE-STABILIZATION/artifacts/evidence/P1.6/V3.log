@@ -1,17 +1,45 @@
+candidate=38dc04dc8b410afdd769aaa26ba1e29f221d6d79
+command=export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:pgsql
+started_at=2026-10-11T13:59:55Z
 > Composer\Config::disableProcessTimeout
 > @putenv DB_CONNECTION=pgsql
 > php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica
 Engine: pgsql PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
 [mutation-gate] Oversized or invalid regex: selecting entire covering test classes.
 
-V04: 100000 distinct tuples in 1.32 s
-{"tool":"pest","result":"passed","tests":4959,"passed":4959,"assertions":416945,"duration_ms":537888}
+V04: 100000 distinct tuples in 1.13 s
+{"tool":"pest","result":"passed","tests":4959,"passed":4959,"assertions":417338,"duration_ms":339151}
+
+finished_at=2026-10-11T14:05:34Z
+exit=0
+duration_seconds=339.905
+candidate=38dc04dc8b410afdd769aaa26ba1e29f221d6d79
+command=export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:mysql
+started_at=2026-10-11T14:05:34Z
 > Composer\Config::disableProcessTimeout
 > @putenv DB_CONNECTION=mysql
 > php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica
 Engine: mysql 8.4.10
+
+V04: 100000 distinct tuples in 1.12 s
+[mutation-gate] Oversized or invalid regex: selecting entire covering test classes.
+{"tool":"pest","result":"passed","tests":4959,"passed":4959,"assertions":417338,"duration_ms":390066}
+
+finished_at=2026-10-11T14:12:05Z
+exit=0
+duration_seconds=391.019
+candidate=38dc04dc8b410afdd769aaa26ba1e29f221d6d79
+command=export PGSQL_PORT=55432 MYSQL_PORT=53306 REDIS_PORT=26379; composer test:mariadb
+started_at=2026-10-11T14:12:05Z
+> Composer\Config::disableProcessTimeout
+> @putenv DB_CONNECTION=mariadb
+> php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica
 [mutation-gate] Oversized or invalid regex: selecting entire covering test classes.
 
-V04: 100000 distinct tuples in 1.13 s
-{"tool":"pest","result":"failed","tests":4959,"passed":4956,"assertions":416945,"duration_ms":5448897,"failed":3,"failures":[{"test":"P\\Tests\\Regression\\Baseline070\\ResourcesSnapshotTest::__pest_evaluable_it_keeps_the_publish_tags__migrations__aliases__namespaces_and_reserved_identities","file":"/home/vostrikov/projects/packages/azguard/tests/Regression/Baseline070/ResourcesSnapshotTest.php","line":108,"message":"Failed asserting that two strings are identical.\n--- Expected\n+++ Actual\n@@ @@\n         \"system()\": \"azguard.system\"\n     },\n     \"storage_state_schema_keys\": [\n+        \"prefix\",\n         \"version\",\n-        \"identity_codec\",\n+        \"host_keys\",\n         \"storage_id\",\n-        \"prefix\",\n-        \"host_keys\"\n+        \"identity_codec\"\n     ],\n     \"storage_state_schema_default\": {\n+        \"prefix\": \"azg_\",\n         \"version\": 2,\n-        \"identity_codec\": 1,\n+        \"host_keys\": \"string\",\n         \"storage_id\": \"default\",\n-        \"prefix\": \"azg_\",\n-        \"host_keys\": \"string\"\n+        \"identity_codec\": 1\n     },\n     \"absent_at_070\": {\n         \"publish_tag azguard-audit-migrations (P3)\": false,"},{"test":"P\\Tests\\Contracts\\NegativeFixturesTest::__pest_evaluable_it_fails_the_hook_suite_on_a_hook_or_a_pipe_that_breaks_a_guarantee_and_passes_it_on_one_that_keeps_it with data set \"dataset \"cancelled change leaves a row\"\"","file":"/home/vostrikov/projects/packages/azguard/tests/Contracts/NegativeFixturesTest.php","line":105,"message":"Exception \"PHPUnit\\Framework\\AssertionFailedError\" not thrown."},{"test":"P\\Tests\\Feature\\Diagnostics\\DoctorCommandTest::__pest_evaluable_it_matches_the_JSON_snapshot_of_the_CRM_stand_and_changes_nothing_it_reads","file":"/home/vostrikov/projects/packages/azguard/tests/Feature/Diagnostics/DoctorCommandTest.php","line":101,"message":"Failed asserting that true is false."}]}
-Script php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica handling the test:mysql event returned with error code 1
+V04: 100000 distinct tuples in 1.14 s
+Engine: mariadb 10.11.19-MariaDB-ubu2204
+{"tool":"pest","result":"passed","tests":4959,"passed":4959,"assertions":417608,"duration_ms":217038}
+
+finished_at=2026-10-11T14:15:43Z
+exit=0
+duration_seconds=217.867
