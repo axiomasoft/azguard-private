@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Plugins\Plugin;
@@ -91,7 +91,7 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
         'core_migrations' => ['basenames' => $migrations, 'loaded_by_provider' => count($loaded) === 1],
         'named_storage_migration' => implode(', ', array_diff($named, [$namedAudit])),
         'middleware_aliases' => array_filter($router->getMiddleware(), static fn (string $alias): bool => str_starts_with($alias, 'azguard'), ARRAY_FILTER_USE_KEY),
-        'container_alias' => ['azguard' => app('azguard')::class, 'same_instance' => app('azguard') === app(AzGuardManager::class)],
+        'container_alias' => ['azguard' => app('azguard')::class, 'same_instance' => app('azguard') === app(AzGuard::class)],
         'translation_namespaces' => array_values(array_filter(array_keys(app('translator')->getLoader()->namespaces()), static fn (string $name): bool => str_starts_with($name, 'azguard'))),
         'view_namespaces' => array_values(array_filter(array_keys(app('view')->getFinder()->getHints()), static fn (string $name): bool => str_starts_with($name, 'azguard'))),
         'queue_hidden_context_key' => PanelContext::KEY,

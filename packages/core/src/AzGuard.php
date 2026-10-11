@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Concerns\ScopedPanelAccess;
 use AzGuard\Concerns\SubjectAccess;
@@ -13,6 +14,7 @@ use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\PanelNotResolvedException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -28,6 +30,8 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Sources\SourceManager;
+use AzGuard\Storage\StorageDescriptor;
+use AzGuard\Storage\StorageRegistry;
 use AzGuard\Support\ModelKey;
 use AzGuard\Testing\AzGuardFake;
 use Closure;
@@ -40,15 +44,17 @@ use InvalidArgumentException;
 use UnitEnum;
 
 /**
- * Root of the AzGuard facade.
+ * The typed application entry point and the root of the `AzGuard` facade (container alias `azguard`).
  *
- * The manager keeps no panel state and chooses no panel: each call forwards to the registry, the engine or the panel
- * of the current request. The rule that picks a panel for a check stays in the resolver.
+ * It keeps no panel state and chooses no panel: each call forwards to the registry, the engine or the panel of the
+ * current request. The rule that picks a panel for a check stays in the resolver.
  */
-final class AzGuardManager
+#[Api(since: '1.0')]
+final class AzGuard
 {
     private ?AzGuardFake $fake = null;
 
+    /** @internal built by the container */
     public function __construct(private readonly Application $app) {}
 
     /**
@@ -130,7 +136,7 @@ final class AzGuardManager
      *
      * @throws SubjectNotAcceptedException when the subject is not a model or a reference the panel accepts
      */
-    public function check(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool
+    public function check(Model|Authenticatable|SubjectRef $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool
     {
         return $this->subjectAccess($subject, $permission, $guard)->hasPermission($permission, $on);
     }
@@ -141,7 +147,7 @@ final class AzGuardManager
      *
      * @throws AuthorizationException
      */
-    public function authorize(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): void
+    public function authorize(Model|Authenticatable|SubjectRef $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): void
     {
         $decision = $this->subjectAccess($subject, $permission, $guard)->decide($permission, $on);
 
@@ -201,6 +207,27 @@ final class AzGuardManager
     }
 
     /**
+     * The storage with the id, as a readonly description: id, connection (null for the default one), table prefix and
+     * host key type.
+     *
+     * @throws InvalidConfigurationException when no storage has the id
+     */
+    public function storage(string $id = 'default'): StorageDescriptor
+    {
+        return $this->app->make(StorageRegistry::class)->descriptor($id);
+    }
+
+    /**
+     * Every storage, configured and registered, in registration order.
+     *
+     * @return list<StorageDescriptor>
+     */
+    public function storages(): array
+    {
+        return $this->app->make(StorageRegistry::class)->descriptors();
+    }
+
+    /**
      * @throws InvalidIdentityException
      */
     private function actorOf(Model|Authenticatable|SubjectRef|string $actor): ActorRef
@@ -225,7 +252,7 @@ final class AzGuardManager
      *
      * @throws SubjectNotAcceptedException
      */
-    private function subjectAccess(mixed $subject, string|UnitEnum $permission, ?string $guard): SubjectAccess
+    private function subjectAccess(Model|Authenticatable|SubjectRef $subject, string|UnitEnum $permission, ?string $guard): SubjectAccess
     {
         if (! $subject instanceof Model && ! $subject instanceof SubjectRef) {
             throw new SubjectNotAcceptedException(get_debug_type($subject).' is not a subject: pass an Eloquent model or a subject reference.');

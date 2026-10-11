@@ -28,7 +28,7 @@
         "azguard.can": "AzGuard\\Laravel\\Http\\Middleware\\CheckPermission"
     },
     "container_alias": {
-        "azguard": "AzGuard\\AzGuardManager",
+        "azguard": "AzGuard\\AzGuard",
         "same_instance": true
     },
     "translation_namespaces": [

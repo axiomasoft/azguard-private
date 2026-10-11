@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Cache\PermissionSetCache;
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Context\Internal\CurrentContext;
@@ -80,7 +80,7 @@ it('keeps scoped services out of the singleton graph', function (): void {
             }
         }
     };
-    $singletons = [AzGuardManager::class, StorageRegistry::class, CatalogCache::class, PanelRegistry::class, SourceManager::class];
+    $singletons = [AzGuard::class, StorageRegistry::class, CatalogCache::class, PanelRegistry::class, SourceManager::class];
     foreach ($singletons as $singleton) {
         $seen = [];
         $reach($singleton, $seen);

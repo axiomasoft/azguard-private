@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Attributes\Api;
 use AzGuard\Attributes\Spi;
+use AzGuard\Testing\AzGuardFake;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Arch\BoundaryScan;
 use AzGuard\Tests\Arch\Ownership;
@@ -355,4 +356,45 @@ it('I4: types nullable unions, closures, arrow functions and $this, and leaves e
         'AzGuard\Kernel\Identity\SubjectRef id method',
         'AzGuard\Scopes\Probe inherited method',
     ]);
+});
+
+/**
+ * The supported public methods of a class with their signatures: parameter names, types, defaults and the return type.
+ *
+ * @return array<string, string>
+ */
+function apiSignatures(string $class): array
+{
+    $signatures = [];
+
+    foreach ((new ReflectionClass($class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        if ($method->isConstructor() || preg_match('/@internal\b/', (string) $method->getDocComment()) === 1) {
+            continue;
+        }
+        $parameters = array_map(static fn (ReflectionParameter $parameter): string => $parameter->getType().' $'.$parameter->getName()
+            .($parameter->isDefaultValueAvailable() ? ' = '.var_export($parameter->getDefaultValue(), true) : ''), $method->getParameters());
+        $signatures[$method->getName()] = '('.implode(', ', $parameters).'): '.$method->getReturnType();
+    }
+    ksort($signatures);
+
+    return $signatures;
+}
+
+it('generates the facade methods from the entry class and records them in the manifest', function (): void {
+    preg_match_all('/@method static .+? (\w+)\(/', (string) (new ReflectionClass(AzGuard\Facades\AzGuard::class))->getDocComment(), $declared);
+    $entry = array_keys(apiSignatures(AzGuard\AzGuard::class));
+    $manifest = json_decode((string) file_get_contents(apiManifestRoot().'/packages/core/api-manifest.json'), true, flags: JSON_THROW_ON_ERROR);
+    sort($declared[1]);
+
+    expect($entry)->toContain('panel', 'check', 'storage', 'storages', 'fake')
+        ->and($declared[1])->toBe($entry)
+        ->and(array_column($manifest['facade'], 'name'))->toBe($entry);
+});
+
+it('mirrors every public method of the entry class on the consumer fake with the same signature', function (): void {
+    $entry = apiSignatures(AzGuard\AzGuard::class);
+    $fake = apiSignatures(AzGuardFake::class);
+
+    expect(array_intersect_key($fake, $entry))->toBe(array_merge($entry, ['fake' => '(): self']))
+        ->and($entry['fake'])->toBe('(): AzGuard\Testing\AzGuardFake');
 });

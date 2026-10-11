@@ -7,6 +7,8 @@ use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
+use AzGuard\Exceptions\InvalidConfigurationException;
+use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\PanelNotResolvedException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\UnknownPermissionException;
@@ -16,6 +18,8 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\CurrentPanel;
+use AzGuard\Storage\StorageDescriptor;
+use AzGuard\Storage\StorageRegistry;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;
@@ -81,9 +85,34 @@ it('takes the panel of the request when nothing else names one, and an explicit 
 
 it('refuses a subject that is not a model or a reference, and one the picked panel does not accept', function (): void {
     expect(fn () => AzGuard::check(new GenericUser(['id' => 1]), 'crm:clients.update'))->toThrow(SubjectNotAcceptedException::class)
-        ->and(fn () => AzGuard::check('anna', 'crm:clients.update'))->toThrow(SubjectNotAcceptedException::class)
-        ->and(fn () => AzGuard::check(null, 'crm:clients.update'))->toThrow(SubjectNotAcceptedException::class)
         ->and(fn () => AzGuard::check(SubjectRef::of('crm.organization', 1), 'crm:clients.update'))->toThrow(SubjectNotAcceptedException::class);
+});
+
+it('types the subject of check and authorize as a model, an authenticatable or a subject reference', function (): void {
+    expect(fn () => AzGuard::check('anna', 'crm:clients.update'))->toThrow(TypeError::class)
+        ->and(fn () => AzGuard::check(null, 'crm:clients.update'))->toThrow(TypeError::class)
+        ->and(fn () => AzGuard::authorize(42, 'crm:clients.update'))->toThrow(TypeError::class);
+});
+
+it('describes each storage by id, connection, prefix and host key type, and refuses an unknown id', function (): void {
+    $default = AzGuard::storage();
+
+    expect($default)->toBeInstanceOf(StorageDescriptor::class)
+        ->and([$default->id, $default->prefix, $default->hostKeys])->toBe(['default', app(StorageRegistry::class)->get('default')->prefix(), 'string'])
+        ->and(AzGuard::storage('default'))->toEqual($default)
+        ->and(array_map(static fn (StorageDescriptor $storage): string => $storage->id, AzGuard::storages()))->toContain('default')
+        ->and(fn () => AzGuard::storage('nowhere'))->toThrow(InvalidConfigurationException::class);
+});
+
+it('gives the canonical stored form of a host key per host key type', function (): void {
+    $of = static fn (string $hostKeys): StorageDescriptor => new StorageDescriptor('probe', null, 'azg_', $hostKeys);
+
+    expect($of('string')->canonicalKey(7))->toBe('7')
+        ->and($of('string')->canonicalKey('a-1'))->toBe('a-1')
+        ->and($of('bigint')->canonicalKey('42'))->toBe(42)
+        ->and($of('uuid')->canonicalKey('0190a9e0-1c2b-7d3e-8f40-0123456789ab'))->toBe('0190a9e0-1c2b-7d3e-8f40-0123456789ab')
+        ->and(fn () => $of('bigint')->canonicalKey('007'))->toThrow(InvalidIdentityException::class)
+        ->and(fn () => $of('uuid')->canonicalKey('0190A9E0-1C2B-7D3E-8F40-0123456789AB'))->toThrow(InvalidIdentityException::class);
 });
 
 it('authorizes with the reason code and no explanation, and passes silently when allowed', function (): void {

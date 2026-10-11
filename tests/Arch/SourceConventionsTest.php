@@ -103,7 +103,7 @@ const AZGUARD_PANEL_SELECTION_OWNERS = [
     'azguardDefaultPanel' => ['packages/core/src/Panels/PanelResolver.php'],
     'CurrentPanel' => [
         'packages/core/src/Panels/PanelResolver.php', 'packages/core/src/Panels/CurrentPanel.php',
-        'packages/core/src/AzGuardServiceProvider.php', 'packages/core/src/AzGuardManager.php',
+        'packages/core/src/AzGuardServiceProvider.php', 'packages/core/src/AzGuard.php',
         'packages/core/src/Laravel/Http/Middleware/EnterPanel.php', 'packages/core/src/Laravel/Queue/PanelContext.php',
     ],
 ];

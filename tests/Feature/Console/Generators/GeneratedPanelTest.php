@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Sources\SourceManager;
@@ -79,7 +79,7 @@ function bootGenerated(object $test, GeneratedApp $generated): array
     User::query()->insert(['id' => 1, 'department' => 'sales']);
     app(StorageSchema::class)->create('default');
 
-    $panel = app(AzGuardManager::class)->panel('orders');
+    $panel = app(AzGuard::class)->panel('orders');
     $subject = $panel->for(User::query()->findOrFail(1));
     $sales = $generated->class('Orders\Permissions\Sales\Orders\OrderPermission');
     $support = $generated->class('Orders\Permissions\Support\Orders\OrderPermission');
@@ -135,7 +135,7 @@ it('V78 finds the permission of a generated enum for the Gate ability viewAny of
     expect(app(PanelRegistry::class)->catalog('orders')->permissionForAbility(User::class, 'viewAny'))->toBe('sales.orders.view_any')
         ->and(Gate::forUser($user)->allows('viewAny', User::class))->toBeFalse();
 
-    app(AzGuardManager::class)->panel('orders')->for($user)->grantPermission([$sales::ViewAny]);
+    app(AzGuard::class)->panel('orders')->for($user)->grantPermission([$sales::ViewAny]);
 
     expect(Gate::forUser($user)->allows('viewAny', User::class))->toBeTrue();
 });

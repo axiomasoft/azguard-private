@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace AzGuard\Testing;
 
 use AzGuard\Attributes\Api;
+use AzGuard\AzGuard;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Context\Internal\ContextIdentity;
+use AzGuard\Contracts\PanelAccess;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventObservers;
@@ -16,10 +18,17 @@ use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Panels\PanelBuilder;
+use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Sources\SourceManager;
+use AzGuard\Storage\StorageDescriptor;
 use AzGuard\Support\ModelKey;
 use BackedEnum;
+use Closure;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
@@ -50,6 +59,107 @@ final class AzGuardFake
     public function __construct(private readonly Container $container)
     {
         $this->handle = $container->make(EventObservers::class)->add($this->record(...));
+    }
+
+    // The entry point, mirrored: every method forwards to AzGuard\AzGuard, so the fake stands in for it in a test.
+
+    public function panel(string $id): PanelAccess
+    {
+        return $this->entry()->panel($id);
+    }
+
+    /** @return array<string, Panel> panels by id, in registration order */
+    public function panels(): array
+    {
+        return $this->entry()->panels();
+    }
+
+    public function currentPanel(): ?Panel
+    {
+        return $this->entry()->currentPanel();
+    }
+
+    public function sources(): SourceManager
+    {
+        return $this->entry()->sources();
+    }
+
+    /** @param class-string<PanelProvider> $provider */
+    public function registerPanel(string $provider): void
+    {
+        $this->entry()->registerPanel($provider);
+    }
+
+    /** @param Closure(PanelBuilder): mixed $callback */
+    public function configurePanel(string $id, Closure $callback): void
+    {
+        $this->entry()->configurePanel($id, $callback);
+    }
+
+    /** @param Closure(PanelBuilder): mixed $callback */
+    public function configurePanels(Closure $callback): void
+    {
+        $this->entry()->configurePanels($callback);
+    }
+
+    public function check(Model|Authenticatable|SubjectRef $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool
+    {
+        return $this->entry()->check($subject, $permission, $on, $guard);
+    }
+
+    /** @throws AuthorizationException */
+    public function authorize(Model|Authenticatable|SubjectRef $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): void
+    {
+        $this->entry()->authorize($subject, $permission, $on, $guard);
+    }
+
+    /**
+     * @template TResult
+     *
+     * @param  Closure(): TResult  $callback
+     * @return TResult
+     */
+    public function withinScope(Model|AssignmentScopeRef $context, Closure $callback): mixed
+    {
+        return $this->entry()->withinScope($context, $callback);
+    }
+
+    public function currentScope(): ?AssignmentScopeRef
+    {
+        return $this->entry()->currentScope();
+    }
+
+    /**
+     * @template TResult
+     *
+     * @param  Closure(): TResult  $callback
+     * @return TResult
+     */
+    public function actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure $callback): mixed
+    {
+        return $this->entry()->actingAs($actor, $callback);
+    }
+
+    public function storage(string $id = 'default'): StorageDescriptor
+    {
+        return $this->entry()->storage($id);
+    }
+
+    /** @return list<StorageDescriptor> */
+    public function storages(): array
+    {
+        return $this->entry()->storages();
+    }
+
+    /** A new spy in place of this one, as `AzGuard::fake()`. */
+    public function fake(): self
+    {
+        return $this->entry()->fake();
+    }
+
+    private function entry(): AzGuard
+    {
+        return $this->container->make(AzGuard::class);
     }
 
     /** Stops recording; what was recorded stays readable. */
@@ -154,7 +264,7 @@ final class AzGuardFake
     /** Whether the recorded full name is the permission, named by an enum case, a full name or a name of the panel. */
     private function isPermission(string $panel, string $recorded, string|UnitEnum $permission): bool
     {
-        $owner = $this->panel($panel);
+        $owner = $this->registeredPanel($panel);
 
         if ($owner === null) {
             return false;
@@ -169,7 +279,7 @@ final class AzGuardFake
 
     private function isRole(RecordedChange $change, string|UnitEnum $role): bool
     {
-        $owner = $this->panel($change->panel);
+        $owner = $this->registeredPanel($change->panel);
 
         if ($owner === null || $change->role === null) {
             return false;
@@ -201,14 +311,14 @@ final class AzGuardFake
         }
 
         if ($on instanceof Model) {
-            $owner = $this->panel($change->panel);
+            $owner = $this->registeredPanel($change->panel);
             $on = $owner === null ? null : ContextIdentity::context($owner, $on);
         }
 
         return $on !== null && $on->equals($context);
     }
 
-    private function panel(string $id): ?Panel
+    private function registeredPanel(string $id): ?Panel
     {
         return $this->container->make(PanelRegistry::class)->find($id);
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Testing;
 
 use AzGuard\Attributes\Api;
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelResolver;
@@ -43,7 +43,7 @@ trait InteractsWithAzGuard
      */
     public function actingAsWithPermissions(Model $subject, array $permissions, Model|AssignmentScopeRef|null $on = null, ?string $panel = null): static
     {
-        $manager = app(AzGuardManager::class);
+        $manager = app(AzGuard::class);
         $selected = app(PanelResolver::class)->select($subject, $permissions, [], $panel === null ? [] : [$panel]);
         $manager->actingAs('testing', static fn () => $manager->panel($selected->id())->for($subject)->grantPermission($permissions, $on));
 
@@ -58,7 +58,7 @@ trait InteractsWithAzGuard
      */
     public function actingAsWithRoles(Model $subject, array $roles, Model|AssignmentScopeRef|null $on = null, ?string $panel = null): static
     {
-        $manager = app(AzGuardManager::class);
+        $manager = app(AzGuard::class);
         $selected = app(PanelResolver::class)->select($subject, [], $roles, $panel === null ? [] : [$panel]);
         $manager->actingAs('testing', static fn () => $manager->panel($selected->id())->for($subject)->grantRole($roles, $on));
 
@@ -73,7 +73,7 @@ trait InteractsWithAzGuard
      */
     public function actingAsSuperAdmin(Model $subject, ?string $panel = null): static
     {
-        $manager = app(AzGuardManager::class);
+        $manager = app(AzGuard::class);
         $selected = app(PanelResolver::class)->select($subject, [], [], $panel === null ? [] : [$panel]);
         $role = null;
         foreach ($manager->panel($selected->id())->roles()->all() as $candidate) {

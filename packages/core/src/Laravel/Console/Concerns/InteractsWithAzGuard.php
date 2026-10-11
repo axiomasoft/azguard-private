@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Concerns;
 
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantRecord;
@@ -152,7 +152,7 @@ trait InteractsWithAzGuard
     /** The access to the panel in the tenant of `--tenant`, in the origin given for changes. */
     protected function access(Panel $panel, string $origin = IdentityCodec::DEFAULT_ORIGIN): PanelAccess
     {
-        return app(AzGuardManager::class)->panel($panel->id())->inTenant($this->tenantOf($panel))->fromOrigin($origin);
+        return app(AzGuard::class)->panel($panel->id())->inTenant($this->tenantOf($panel))->fromOrigin($origin);
     }
 
     protected function originOption(): string

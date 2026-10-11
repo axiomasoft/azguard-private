@@ -126,8 +126,8 @@ final class AzGuardServiceProvider extends ServiceProvider
         $this->app->singleton(EventObservers::class);
         $this->app->singleton(SourceManager::class, static fn (Application $app): SourceManager => new SourceManager($app));
 
-        $this->app->singleton(AzGuardManager::class);
-        $this->app->alias(AzGuardManager::class, 'azguard');
+        $this->app->singleton(AzGuard::class);
+        $this->app->alias(AzGuard::class, 'azguard');
     }
 
     public function boot(): void

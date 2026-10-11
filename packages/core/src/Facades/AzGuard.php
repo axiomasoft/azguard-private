@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Facades;
 
 use AzGuard\Attributes\Api;
-use AzGuard\AzGuardManager;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -13,6 +12,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Sources\SourceManager;
+use AzGuard\Storage\StorageDescriptor;
 use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -21,26 +21,26 @@ use UnitEnum;
 
 /**
  * Entry point of the package: the modules bring or extend panels here, the application reaches a panel as a whole
- * and asks for a permission.
+ * and asks for a permission. Every method forwards to the entry class; this block is generated from it by
+ * `composer api:manifest` and never edited by hand (`composer api:check` fails on a difference).
  *
- * `$subject` is a model or a {@see SubjectRef}. `check()` and `authorize()` pick the panel by the rule of the panel
- * resolver, the same as the model trait; `panel()` is the only other way in and takes the id of a panel.
- *
- * @method static PanelAccess panel(string $id)
- * @method static void registerPanel(class-string<PanelProvider> $provider)
+ * @method static mixed actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure(): mixed $callback)
+ * @method static void authorize(Model|Authenticatable|SubjectRef $subject, UnitEnum|string $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
+ * @method static bool check(Model|Authenticatable|SubjectRef $subject, UnitEnum|string $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
  * @method static void configurePanel(string $id, Closure(PanelBuilder): mixed $callback)
  * @method static void configurePanels(Closure(PanelBuilder): mixed $callback)
- * @method static array<string, Panel> panels()
- * @method static Panel|null currentPanel()
- * @method static SourceManager sources()
- * @method static bool check(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
- * @method static void authorize(mixed $subject, string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null)
- * @method static mixed withinScope(Model|AssignmentScopeRef $context, Closure $callback)
- * @method static AssignmentScopeRef|null currentScope()
- * @method static mixed actingAs(Model|Authenticatable|SubjectRef|string $actor, Closure $callback)
+ * @method static ?Panel currentPanel()
+ * @method static ?AssignmentScopeRef currentScope()
  * @method static \AzGuard\Testing\AzGuardFake fake()
+ * @method static PanelAccess panel(string $id)
+ * @method static array<string, Panel> panels()
+ * @method static void registerPanel(class-string<PanelProvider> $provider)
+ * @method static SourceManager sources()
+ * @method static StorageDescriptor storage(string $id = 'default')
+ * @method static list<StorageDescriptor> storages()
+ * @method static mixed withinScope(Model|AssignmentScopeRef $context, Closure(): mixed $callback)
  *
- * @see AzGuardManager
+ * @see \AzGuard\AzGuard
  */
 #[Api(since: '0.7')]
 final class AzGuard extends Facade

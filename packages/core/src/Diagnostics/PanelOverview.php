@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Diagnostics;
 
 use AzGuard\Attributes\Api;
-use AzGuard\AzGuardManager;
+use AzGuard\AzGuard;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
@@ -26,7 +26,7 @@ use BackedEnum;
 #[Api(since: '0.7')]
 final readonly class PanelOverview
 {
-    public function __construct(private PanelRegistry $registry, private AzGuardManager $azguard) {}
+    public function __construct(private PanelRegistry $registry, private AzGuard $azguard) {}
 
     /**
      * Every registered panel, in the order of registration.

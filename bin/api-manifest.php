@@ -28,6 +28,9 @@ const API_PACKAGES = ['packages/core', 'packages/filament'];
 /** The entry class whose public methods the facade forwards. */
 const API_ENTRY = 'AzGuard\\AzGuard';
 
+/** The facade generated from the entry class: its `@method static` block is never edited by hand. */
+const API_FACADE = 'packages/core/src/Facades/AzGuard.php';
+
 /*
  * Classes declared differently by the installed Laravel. The manifest records the Laravel 13 shape (the dev
  * requirement); on an older Laravel the committed entry is kept instead of the fallback declaration.
@@ -376,6 +379,155 @@ function apiDiff(string $current, array $expected): array
     return $lines === [] ? ['  ~ formatting'] : $lines;
 }
 
+/**
+ * The source of the facade: one `@method static` line per supported public method of the entry class, with the
+ * parameter and return types of its PHPDoc where it has them (template types become `mixed`) and the declared types
+ * otherwise. The imports are the classes those lines name.
+ */
+function apiFacadeSource(): string
+{
+    $entry = new ReflectionClass(API_ENTRY);
+    $entryImports = apiImports((string) file_get_contents((string) $entry->getFileName()));
+    $imports = ['AzGuard\Attributes\Api' => true, 'Illuminate\Support\Facades\Facade' => true];
+    $short = static function (string $fqcn) use (&$imports): string {
+        // The facade zone imports no testing code (ZonesArchTest): the fake is named by its full name.
+        if (str_starts_with($fqcn, 'AzGuard\\Testing\\')) {
+            return '\\'.$fqcn;
+        }
+        $imports[$fqcn] = true;
+
+        return substr($fqcn, (int) strrpos('\\'.$fqcn, '\\'));
+    };
+    $lines = [];
+
+    foreach (apiMembers($entry, facade: true)['methods'] as $described) {
+        $method = $entry->getMethod($described['name']);
+        $doc = (string) $method->getDocComment();
+        preg_match_all('/@template\s+(\w+)/', $doc, $templates);
+        $documentedType = static function (string $type) use ($templates, $entryImports, $short): string {
+            foreach ($templates[1] as $template) {
+                $type = (string) preg_replace('/\b'.preg_quote($template, '/').'\b/', 'mixed', $type);
+            }
+
+            return (string) preg_replace_callback('/(?<![\w\\\\$-])[A-Z]\w*/', static function (array $name) use ($entryImports, $short): string {
+                $fqcn = $entryImports[strtolower($name[0])] ?? null;
+
+                return $fqcn === null ? $name[0] : $short($fqcn);
+            }, $type);
+        };
+        $declaredType = static function (?ReflectionType $type) use ($short): string {
+            if ($type === null) {
+                return 'mixed';
+            }
+
+            return (string) preg_replace_callback('/[A-Za-z_]\w*(?:\\\\\w+)*/', static function (array $name) use ($short): string {
+                return class_exists($name[0]) || interface_exists($name[0]) || enum_exists($name[0]) ? $short($name[0]) : $name[0];
+            }, (string) $type);
+        };
+        $parameters = [];
+
+        foreach ($method->getParameters() as $parameter) {
+            $type = preg_match('/@param\s+(.+?)\s+\$'.$parameter->getName().'\b/', $doc, $documented) === 1
+                ? $documentedType(trim($documented[1]))
+                : $declaredType($parameter->getType());
+            $default = $parameter->isDefaultValueAvailable() ? ' = '.apiDefault($parameter->getDefaultValue()) : '';
+            $parameters[] = $type.' $'.$parameter->getName().$default;
+        }
+        $return = ($documented = apiDocReturn($doc)) !== null ? $documentedType($documented) : $declaredType($method->getReturnType());
+        $lines[] = ' * @method static '.$return.' '.$method->getName().'('.implode(', ', $parameters).')';
+    }
+    $names = array_keys($imports);
+    sort($names, SORT_STRING | SORT_FLAG_CASE);
+    $uses = implode("\n", array_map(static fn (string $fqcn): string => 'use '.$fqcn.';', $names));
+    $methods = implode("\n", $lines);
+
+    return <<<PHP
+        <?php
+
+        declare(strict_types=1);
+
+        namespace AzGuard\Facades;
+
+        {$uses}
+
+        /**
+         * Entry point of the package: the modules bring or extend panels here, the application reaches a panel as a whole
+         * and asks for a permission. Every method forwards to the entry class; this block is generated from it by
+         * `composer api:manifest` and never edited by hand (`composer api:check` fails on a difference).
+         *
+        {$methods}
+         *
+         * @see \AzGuard\AzGuard
+         */
+        #[Api(since: '0.7')]
+        final class AzGuard extends Facade
+        {
+            protected static function getFacadeAccessor(): string
+            {
+                return 'azguard';
+            }
+        }
+
+        PHP;
+}
+
+/** The type of the `@return` tag, read up to the first space outside brackets, or null without the tag. */
+function apiDocReturn(string $doc): ?string
+{
+    if (preg_match('/@return\s+/', $doc, $tag, PREG_OFFSET_CAPTURE) !== 1) {
+        return null;
+    }
+    $type = '';
+    $depth = 0;
+
+    for ($cursor = $tag[0][1] + strlen($tag[0][0]); $cursor < strlen($doc); $cursor++) {
+        $char = $doc[$cursor];
+
+        if ($depth === 0 && ctype_space($char)) {
+            break;
+        }
+        $depth += match ($char) {
+            '<', '(', '{', '[' => 1,
+            '>', ')', '}', ']' => -1,
+            default => 0,
+        };
+        $type .= $char;
+    }
+
+    return $type === '' ? null : $type;
+}
+
+function apiDefault(mixed $value): string
+{
+    return match (true) {
+        $value === null => 'null',
+        is_bool($value) => $value ? 'true' : 'false',
+        is_string($value) => "'".addcslashes($value, "'\\")."'",
+        is_int($value) || is_float($value) => (string) $value,
+        is_array($value) && $value === [] => '[]',
+        $value instanceof UnitEnum => '\\'.$value::class.'::'.$value->name,
+        default => var_export($value, true),
+    };
+}
+
+/**
+ * The class imports of a file, by lower-case alias.
+ *
+ * @return array<string, string>
+ */
+function apiImports(string $code): array
+{
+    preg_match_all('/^use\s+([\w\\\\]+)(?:\s+as\s+(\w+))?;/m', $code, $matches, PREG_SET_ORDER);
+    $imports = [];
+
+    foreach ($matches as $match) {
+        $alias = $match[2] ?? substr($match[1], (int) strrpos('\\'.$match[1], '\\'));
+        $imports[strtolower($alias)] = $match[1];
+    }
+
+    return $imports;
+}
+
 $mode = $argv[1] ?? '';
 
 if (! in_array($mode, ['--write', '--check'], true)) {
@@ -404,6 +556,20 @@ foreach (API_PACKAGES as $package) {
 
     $stale = true;
     fwrite(STDERR, "{$package}/api-manifest.json is stale (run composer api:manifest):\n".implode("\n", apiDiff($current, $manifest))."\n");
+}
+
+if (class_exists(API_ENTRY)) {
+    $path = "{$root}/".API_FACADE;
+    $facade = apiFacadeSource();
+    $current = is_file($path) ? (string) file_get_contents($path) : '';
+
+    if ($current !== $facade && $mode === '--write') {
+        file_put_contents($path, $facade);
+        fwrite(STDOUT, 'updated '.API_FACADE."\n");
+    } elseif ($current !== $facade) {
+        $stale = true;
+        fwrite(STDERR, API_FACADE.' is stale: its @method block is generated from '.API_ENTRY." (run composer api:manifest)\n");
+    }
 }
 
 exit($stale ? 1 : 0);
