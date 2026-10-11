@@ -5,6 +5,7 @@ declare(strict_types=1);
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\Field;
+use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Fixtures\Baseline070\Formats\FormatSnapshot;
 use AzGuard\Tests\Fixtures\Guards\Admin\AdminGuardPanelProvider;
 use AzGuard\Tests\Fixtures\Guards\Admin\Scopes\ProjectScope;
@@ -95,12 +96,29 @@ it('lists the serializable types and pins the target of each in the type map', f
 
     expect($kinds)->toBe(baselineSerializableTypes());
 
+    // The type map is the oracle: each listed type has its own row there, and the fixture repeats that row.
+    $oracle = Ownership::fromOracle();
+
+    foreach ($listed as $type) {
+        $row = $oracle->typeRow($type['fqcn']);
+
+        expect($row)->not->toBeNull($type['fqcn'].' has no type-map row')
+            ->and($row['current'])->toBe($type['fqcn'])
+            ->and([$type['target'], $type['action'], $type['owner']])->toBe([$row['target'], $row['action'], $row['owner']], $type['fqcn']);
+    }
+
     foreach ($fixture['types'] as $type) {
         expect($type['target'])->toBe($type['fqcn']);
     }
 
+    // A reported type names the phase that moves or retires it, and that phase is the one of its type-map row.
     foreach ($fixture['reported'] as $type) {
-        expect($type['target'])->not->toBe($type['fqcn'])->and($type['note'])->not->toBe('');
+        $phase = Ownership::removingPhase($oracle->typeRow($type['fqcn']));
+        preg_match_all('/\bP\d+\b/', $type['note'], $named);
+
+        expect($type['target'])->not->toBe($type['fqcn'])
+            ->and($phase)->not->toBeNull($type['fqcn'])
+            ->and(array_values(array_unique($named[0])))->toBe([$phase], $type['fqcn'].': '.$type['note']);
     }
 });
 

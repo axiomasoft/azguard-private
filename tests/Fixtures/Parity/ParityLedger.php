@@ -185,6 +185,7 @@ final class ParityLedger
         $actual = FormatSnapshot::encode($this->unsupported());
 
         if (getenv(FormatSnapshot::WRITE) === '1') {
+            FormatSnapshot::assertBaselineTree();
             $stored = ['baseline' => '0.7.0', ...$stored ?? [], $section => $this->unsupported()];
             file_put_contents(self::SNAPSHOT, FormatSnapshot::encode($stored));
         }

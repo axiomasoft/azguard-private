@@ -46,22 +46,23 @@
         "system()": "azguard.system"
     },
     "storage_state_schema_keys": [
-        "version",
+        "host_keys",
         "identity_codec",
-        "storage_id",
         "prefix",
-        "host_keys"
+        "storage_id",
+        "version"
     ],
     "storage_state_schema_default": {
-        "version": 2,
+        "host_keys": "string",
         "identity_codec": 1,
-        "storage_id": "default",
         "prefix": "azg_",
-        "host_keys": "string"
+        "storage_id": "default",
+        "version": 2
     },
     "absent_at_070": {
         "publish_tag azguard-audit-migrations (P3)": false,
         "migration 2026_10_20_000000_create_azguard_audit_log (P3)": false,
+        "generated migration <date>_create_azguard_<storage>_audit_log.php (P3)": false,
         "command azguard:audit:migration (P3)": false,
         "plugin id azguard/scopes (P2)": false,
         "provider AzGuard\\Audit\\AuditServiceProvider (P3)": false,

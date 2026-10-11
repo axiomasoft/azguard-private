@@ -24,15 +24,11 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-/** The keys of a JSON document at every depth with the type of each leaf; a list shows the shape of its first item. */
+/** The keys of a JSON document at every depth with the type of each leaf; a list shows the shape of each of its items. */
 function baselineJsonShape(mixed $value): mixed
 {
     if (is_array($value)) {
-        if ($value === []) {
-            return '[]';
-        }
-
-        return array_is_list($value) ? [baselineJsonShape($value[0])] : array_map(baselineJsonShape(...), $value);
+        return $value === [] ? '[]' : array_map(baselineJsonShape(...), $value);
     }
 
     return get_debug_type($value);

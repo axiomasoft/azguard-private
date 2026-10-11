@@ -46,8 +46,8 @@ function baselinePublishTags(string $provider, string $package): array
     return $tags;
 }
 
-/** The file name the generator gives the migration of a named storage, with its date and storage as placeholders. */
-function baselineNamedStorageMigration(): string
+/** @return list<string> the files the generator writes for a named storage, with their date and storage as placeholders */
+function baselineNamedStorageMigrations(): array
 {
     $scratch = sys_get_temp_dir().'/azguard-baseline-'.bin2hex(random_bytes(8));
     app()->useDatabasePath($scratch);
@@ -58,10 +58,11 @@ function baselineNamedStorageMigration(): string
     try {
         expect(Artisan::call('azguard:storage:migration', ['name' => 'archive']))->toBe(0);
         $files = array_map('basename', glob($scratch.'/migrations/*') ?: []);
+        sort($files, SORT_STRING);
 
-        expect($files)->toHaveCount(1)->and($files[0])->toMatch('/\A\d{4}_\d{2}_\d{2}_\d{6}_/');
+        expect($files)->not->toBeEmpty()->each->toMatch('/\A\d{4}_\d{2}_\d{2}_\d{6}_/');
 
-        return str_replace('archive', '<storage>', (string) preg_replace('/\A\d{4}_\d{2}_\d{2}_\d{6}/', '<date>', $files[0]));
+        return array_map(static fn (string $file): string => str_replace('archive', '<storage>', (string) preg_replace('/\A\d{4}_\d{2}_\d{2}_\d{6}/', '<date>', $file)), $files);
     } finally {
         array_map('unlink', glob($scratch.'/migrations/*') ?: []);
         @rmdir($scratch.'/migrations');
@@ -75,7 +76,11 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
     $migrations = array_map(static fn (string $file): string => basename($file, '.php'), glob($root.'/core/database/migrations/*.php') ?: []);
     $loaded = array_values(array_filter(app('migrator')->paths(), static fn (string $path): bool => realpath($path) === realpath($root.'/core/database/migrations')));
     app(StorageSchema::class)->create('default');
+    // The keys come back in the order of the driver's JSON column (MySQL sorts them), so the snapshot sorts them.
     $state = json_decode((string) app(StorageRegistry::class)->get('default')->table('storage_state')->where('id', 1)->value('schema'), true, flags: JSON_THROW_ON_ERROR);
+    ksort($state, SORT_STRING);
+    $named = baselineNamedStorageMigrations();
+    $namedAudit = '<date>_create_azguard_<storage>_audit_log.php';
 
     $snapshot = [
         'publish_tags' => [
@@ -84,7 +89,7 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
         ],
         'stub_publish_path' => StubStore::PUBLISHED,
         'core_migrations' => ['basenames' => $migrations, 'loaded_by_provider' => count($loaded) === 1],
-        'named_storage_migration' => baselineNamedStorageMigration(),
+        'named_storage_migration' => implode(', ', array_diff($named, [$namedAudit])),
         'middleware_aliases' => array_filter($router->getMiddleware(), static fn (string $alias): bool => str_starts_with($alias, 'azguard'), ARRAY_FILTER_USE_KEY),
         'container_alias' => ['azguard' => app('azguard')::class, 'same_instance' => app('azguard') === app(AzGuardManager::class)],
         'translation_namespaces' => array_values(array_filter(array_keys(app('translator')->getLoader()->namespaces()), static fn (string $name): bool => str_starts_with($name, 'azguard'))),
@@ -97,6 +102,7 @@ it('keeps the publish tags, migrations, aliases, namespaces and reserved identit
         'absent_at_070' => [
             'publish_tag azguard-audit-migrations (P3)' => ServiceProvider::pathsToPublish(null, 'azguard-audit-migrations') !== [],
             'migration 2026_10_20_000000_create_azguard_audit_log (P3)' => in_array('2026_10_20_000000_create_azguard_audit_log', $migrations, true),
+            'generated migration '.$namedAudit.' (P3)' => in_array($namedAudit, $named, true),
             'command azguard:audit:migration (P3)' => array_key_exists('azguard:audit:migration', Artisan::all()),
             'plugin id azguard/scopes (P2)' => class_exists('AzGuard\\Scopes\\ScopesPlugin'),
             'provider AzGuard\\Audit\\AuditServiceProvider (P3)' => class_exists('AzGuard\\Audit\\AuditServiceProvider'),

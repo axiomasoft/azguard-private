@@ -42,6 +42,162 @@
                     "detail": "[]",
                     "result": "string",
                     "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "count": "int"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "message": "null",
+                        "status": "null",
+                        "code": "null"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "sources": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
                 }
             ]
         },
@@ -114,6 +270,108 @@
                     "detail": "[]",
                     "result": "string",
                     "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": {
+                        "message": "string",
+                        "status": "int",
+                        "code": "string"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "sources": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
                 }
             ]
         },
@@ -177,6 +435,158 @@
                 "fingerprint": "string"
             },
             "steps": [
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "string",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "count": "int"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "sources": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": "[]",
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
+                {
+                    "stage": "string",
+                    "component": "null",
+                    "outcome": "string",
+                    "detail": {
+                        "source": "string",
+                        "origin": "string",
+                        "role": "null",
+                        "permission": "string",
+                        "tenant": "string",
+                        "context": "string",
+                        "expires_at": "null",
+                        "fields": "[]"
+                    },
+                    "result": "string",
+                    "exception": "null"
+                },
                 {
                     "stage": "string",
                     "component": "null",

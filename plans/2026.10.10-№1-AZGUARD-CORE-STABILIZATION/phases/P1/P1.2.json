@@ -158,43 +158,45 @@
     "status": "not_needed"
   },
   "result": {
-    "started_at": "2026-10-10T12:29:57Z",
-    "finished_at": "2026-10-10T14:59:01Z",
+    "started_at": "2026-10-11T06:13:48Z",
+    "finished_at": "2026-10-11T06:23:20Z",
     "executor": {
       "provider": "claude-code",
-      "model": "claude-opus-5-5",
+      "model": "opus-5-5",
       "effort": "high",
-      "session": "0b994a41-73a4-4675-93f4-3f65113a6ef0"
+      "session": "00641288-dcd6-4fa7-b9df-240b76302978"
     },
-    "notes": "I17 snapshots: commands+exit codes, config defaults/env, resources (P2/P3 identities as absent), events/envelope/state, audit rows, exceptions, doctor checks+JSON, explain JSON, API manifests (byte copies), serializable-fqcn, azg_ evidence (accepted at 0.7.0), Scopes/ discovery consumers. 95 tests green. 7 identity findings logged as notes.",
+    "attempt_id": "p1-2-r2",
+    "notes": "Rework after P1.6 RED (owner amendment). F1: explain shape records every list item (ExplainSnapshotTest::baselineJsonShape), explain.json re-frozen — every step detail key pinned. F2: serializable inventory checked row by row against the D14 oracle (target/action/owner, current FQCN, note phase = type-map phase via Ownership); InvalidCommandInput and AssignmentScopePhase notes corrected to P2. F3: generated '<date>_create_azguard_<storage>_audit_log.php (P3)' listed absent with an executable check. F5: one guard FormatSnapshot::assertBaselineTree() before every 0.7.0 fixture write (FormatSnapshot::compare, commands.json, parity ledger, persistence Writer — the Writer's own copy removed). F6: storage_state keys sorted before the snapshot (MySQL JSON column reorders them); resources.json re-frozen. Also fixed: CommandsSnapshotTest exit-code scenarios wrote the catalog cache to the shared bootstrap path (CatalogCache singleton resolved before cache_path was set), which made DoctorCommandTest order-dependent. V2 green on sqlite, pgsql, mysql, mariadb.",
     "deviations": [
-      "V3: composer analyse fails on 2 pre-existing phpstan errors in unchanged packages/ (out of scope, logged); lint:check passes"
+      "V3 exit 1: composer analyse keeps the 2 pre-existing phpstan errors in unchanged packages/ (RoutesChecks.php:106, AuthorizesActions.php:91); lint:check passes; packages/ out of P1 scope.",
+      "Files outside task_files: tests/Fixtures/Parity/ParityLedger.php (P1.3, writer guard) and tests/Fixtures/Baseline070/Persistence/Writer.php (P1.1, now reuses the shared guard)."
     ],
     "checks": [
       {
         "id": "V1",
         "exit": 0,
-        "at": "2026-10-10T14:59:01Z",
-        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V1.json"
+        "at": "2026-10-11T06:23:20Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V1.json"
       },
       {
         "id": "V2",
         "exit": 0,
-        "at": "2026-10-10T14:59:01Z",
-        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V2.json"
+        "at": "2026-10-11T06:23:20Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V2.json"
       },
       {
         "id": "V3",
         "exit": 1,
-        "at": "2026-10-10T14:59:01Z",
-        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V3.json"
+        "at": "2026-10-11T06:23:20Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V3.json"
       }
     ],
     "evidence": [
-      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V1.json",
-      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V2.json",
-      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/V3.json"
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V3.json"
     ]
   },
-  "updated_at": "2026-10-10T14:59:01Z"
+  "updated_at": "2026-10-11T06:23:20Z"
 }

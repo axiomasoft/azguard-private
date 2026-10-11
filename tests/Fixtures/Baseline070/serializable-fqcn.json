@@ -1113,7 +1113,7 @@
             "target": "AzGuard\\Laravel\\Console\\InvalidCommandInput",
             "action": "move",
             "owner": "core",
-            "note": "internal console exception; moved to Laravel\\Console (P3). Never leaves a command."
+            "note": "internal console exception; moved to Laravel\\Console (P2). Never leaves a command."
         },
         {
             "fqcn": "AzGuard\\Panels\\GateMode",
@@ -1133,7 +1133,7 @@
             "target": "AzGuard\\Context\\AssignmentScopePhase",
             "action": "move",
             "owner": "core",
-            "note": "published enum moved to AzGuard\\Context\\AssignmentScopePhase (type map, P3): a serialized or stored FQCN changes. Owner decision needed or an alias."
+            "note": "published enum moved to AzGuard\\Context\\AssignmentScopePhase (type map, P2): a serialized or stored FQCN changes. Owner decision needed or an alias."
         },
         {
             "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",

@@ -21,7 +21,7 @@ final class Writer
 {
     public static function write(string $scenario, string $scratch): void
     {
-        self::assertBaseline();
+        FormatSnapshot::assertBaselineTree();
         $connection = app('db')->connection();
         $storages = $scenario === 'named' ? ['default', Restorer::NAMED['id']] : ['default'];
         $seeded = $scenario === 'named' ? Restorer::NAMED['id'] : 'default';
@@ -77,15 +77,6 @@ final class Writer
         $storage->table('storage_state')->update(['schema' => json_encode([...$storage->schema(), 'version' => 1], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)]);
         $connection->table('migrations')->where('migration', Scenario::UPGRADE)->delete();
         app()->forgetInstance(StorageRegistry::class);
-    }
-
-    private static function assertBaseline(): void
-    {
-        exec('git -C '.escapeshellarg(dirname(__DIR__, 4)).' diff --quiet '.Restorer::BASELINE.' -- packages/', result_code: $code);
-
-        if ($code !== 0) {
-            throw new RuntimeException('A populated 0.7.0 dump is generated only from the unchanged 0.7.0 code: packages/ differs from '.Restorer::BASELINE.'.');
-        }
     }
 
     /** @param array<string, mixed> $parameters */

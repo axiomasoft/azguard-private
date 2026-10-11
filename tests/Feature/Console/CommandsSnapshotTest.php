@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Catalog\CatalogCache;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\Audit\AuditPlugin;
@@ -84,6 +85,9 @@ describe('exit codes', function (): void {
         W::dynamicPanel();
         $this->scratch = sys_get_temp_dir().'/azguard-exit-codes-'.bin2hex(random_bytes(6));
         config()->set('azguard.catalog.cache_path', $this->scratch.'/catalog.php');
+        // The cache was resolved at boot with the shared bootstrap path; resolve it again on the scratch path.
+        app()->forgetInstance(AzGuardConfig::class);
+        app()->forgetInstance(CatalogCache::class);
     });
     afterEach(function (): void {
         app()->instance('env', 'testing');
@@ -275,6 +279,7 @@ describe('exit codes', function (): void {
         $snapshot = azguardCommandsSnapshot();
 
         if (getenv(FormatSnapshot::WRITE) === '1') {
+            FormatSnapshot::assertBaselineTree();
             $snapshot[$command]['exit_codes'] = $codes;
             file_put_contents(azguardCommandsPath(), FormatSnapshot::encode($snapshot));
         }

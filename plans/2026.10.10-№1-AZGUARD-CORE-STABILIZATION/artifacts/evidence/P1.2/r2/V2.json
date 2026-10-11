@@ -1,0 +1,32 @@
+{
+ "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+ "evidence_id": "PLAN1.P1.2.V2.r2.2026-10-11T06:23:11Z",
+ "check_id": "V2",
+ "subject": "PLAN1.P1.2",
+ "procedure": {
+  "cmd": "vendor/bin/pest tests/Regression/Baseline070 tests/Feature/Console/CommandsSnapshotTest.php tests/Feature/Configuration/ConfigKeysTest.php --fail-on-skipped (sqlite; also pgsql/mysql/mariadb with --exclude-group=sqlite, logs concatenated)",
+  "cwd": "."
+ },
+ "candidate": {
+  "head": "e0f2a9ab228f771af231e83b5dc637d3de3466b7"
+ },
+ "exit": 0,
+ "environment": {
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3"
+ },
+ "log": {
+  "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.2/r2/V2.log",
+  "sha256": "f0a3ac9c471b407736fb89e34b3fde02c7de3fdb314751bd82d3f6e1ec9317ef"
+ },
+ "started_at": "2026-10-11T06:23:11Z",
+ "finished_at": "2026-10-11T06:23:11Z",
+ "producer": {
+  "kind": "executor",
+  "actor": {
+   "provider": "claude-code",
+   "model": "opus-5-5",
+   "effort": "high"
+  }
+ }
+}
