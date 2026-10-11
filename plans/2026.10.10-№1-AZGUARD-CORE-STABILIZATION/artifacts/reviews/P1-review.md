@@ -1,18 +1,64 @@
 # P1 review (P1.6)
 
-- Commit reviewed: `9b8092e73da25185a30f438ba9458eb1f9633cef` (clean tree; `packages/` equal to baseline `09612160c98ca6133c894a8f90f5653b9dac6b8f`)
+- Commit reviewed: `09aa5696caaaf5e1e4151d6ac0af2d736423e5ab` (round 2; `packages/` equal to baseline `09612160c98ca6133c894a8f90f5653b9dac6b8f`)
 - Date: 2026-10-11
-- Owner request: «ревью на codex gpt-6.1-sol high и одно на grok 4.7»
-- Reviewers (independent, read-only, same prompt, neither saw the other's verdict):
-  - `codex/gpt-6.1-sol/high` — `codex exec -s read-only`, codex-cli 0.162.1, session `01a12924-172e-7a61-baff-b66d3bad45ec`
-  - `grok/grok-4.7/high` — grok 1.0.50 headless `-p`, tools `read_file,grep,list_dir`, resolved model `grok-4.7-build`, session `01a12924-1e5e-7b32-a323-ef21c0d624fa`, 42 turns
+- Owner request: round 1 «ревью на codex gpt-6.1-sol high и одно на grok 4.7»; round 2 «Делай все, что нужно, чтобы максимально качественно закрыть пункт» (reopen after the round-1 RED was fixed)
+- Reviewers (independent, read-only, same prompt `artifacts/reviews/P1/round2/prompt.md`, neither saw the other's verdict):
+  - `codex/gpt-6.1-sol/high` — `codex exec -s read-only`, codex-cli 0.162.1, session `01a12a89-bf3e-7473-a930-22938b7a5027`, working shell (41 commands); verdict `artifacts/reviews/P1/round2/codex-gpt-6.1-sol.md`
+  - `grok/grok-4.7/high` — grok 1.0.50 headless, `--sandbox review` (project profile: read-only, child network for the mAInd hook), tools `run_terminal_command,read_file,grep,list_dir`, resolved model `grok-4.7-build`, session `01a12a89-c64d-7b22-b941-53e3327805ca`, 47 turns, working shell; verdict `artifacts/reviews/P1/round2/grok-4.7.md`
 - Executor (registrar, acceptance runs, finding verification): `claude-code/opus-5-5/high`
 
-Verdict: RED
+Verdict: PENDING
 
-Both reviewers returned RED independently. Every finding below was re-checked by the executor against the cited code.
+Both reviewers returned GREEN independently with no findings; each confirmed F1–F6 fixed. PENDING-ACCEPTANCE
 
-## Findings
+## Round 2 findings
+
+none
+
+## Round-1 findings — status at `09aa569`
+
+| id | item | fixed in | status | evidence |
+|---|---|---|---|---|
+| F1 | P1.2 | `639d34e` | fixed (codex, grok) | `ExplainSnapshotTest.php:28-34` shapes every list element; `explain.json` pins contribution (`source, origin, role, permission, tenant, context, expires_at, fields`) and policy (`message, status, code`) detail keys |
+| F2 | P1.2 | `639d34e` | fixed (codex, grok) | `InventoriesSnapshotTest.php:99-121` asserts `target`/`action`/`owner` of every listed FQCN against `Ownership::fromOracle()` and the phase named in each reported note against the row's removing phase; notes at `serializable-fqcn.json:1116`, `:1136` say P2; all 126 rows match the oracle |
+| F3 | P1.2 | `639d34e` | fixed (codex, grok) | `ResourcesSnapshotTest.php:82-105` checks `<date>_create_azguard_<storage>_audit_log.php` against the files `azguard:storage:migration` actually writes; `resources.json` stores `false` (P3) |
+| F4 | P1.1 | `09aa569` | fixed (codex, grok) | `Dataset.php:193-194` prunes `--panel=crm` only; `PopulatedDatabaseTest.php:171-173` requires a grant expired before `PRUNE_CLOCK`, one after it and one NULL; all 16 dumps keep the expired ops `operator` grant, headers record `09612160…` |
+| F5 | P1.2 | `639d34e` | fixed (codex, grok) | `FormatSnapshot::assertBaselineTree()` guards `FormatSnapshot::compare`, `Writer::write`, `ParityLedger::compare` and the `commands.json` rewrite; codex also confirmed no untracked files under `packages/` (`git ls-files --others --exclude-standard packages/`) |
+| F6 | P1.2 | `639d34e` | fixed (codex, grok) | `ResourcesSnapshotTest.php:79-81` `ksort`s `storage_state.schema`; keys and values unchanged |
+
+Round-1 V3 MySQL failures, resolved:
+
+| test | resolution |
+|---|---|
+| `ResourcesSnapshotTest.php:108` | F6, fixed in `639d34e` |
+| `DoctorCommandTest.php:101` (order-dependent) | Attributed: `CommandsSnapshotTest` (P1.2) wrote the catalog cache to the shared testbench `bootstrap/cache/azguard.php`; fixed in `639d34e` (re-resolve `AzGuardConfig`/`CatalogCache` on the scratch path); stale cache file removed by the owner |
+| `NegativeFixturesTest.php:105` "cancelled change leaves a row" | 0.7.0 defect outside P1: `ContractWorld::rowCounts()` (`packages/core/src/Testing/Contracts/ContractWorld.php:123-141`) lists tables without a schema, so on a MySQL server holding other databases it drops every count and the check compares two empty lists (false green elsewhere, red here). Recorded for P2 in `log.jsonl` with a fix plan; both reviewers confirmed the attribution. The stale databases `azguard_acceptance_legacy_test`, `azguard_acceptance_probe_test` (AZGUARD-V1 acceptance, 2026-10-10) were dropped by the owner. |
+
+## Areas found sound by both reviewers (round 2)
+
+- Baseline integrity: `packages/` equals `09612160…` at HEAD and at both fix commits; dump headers record the baseline; API baseline copies and the D14 oracle (`target-map.sha256`) match.
+- Allowlists `i2.json` (38), `i3.json` (0), `i5.json` (2), `InactiveCost/allowlist.json` (2), `i7-allowlist.json` (0): entries real, owned, owner phases P2/P3 agree with the oracle.
+- Parity/I7: unsupported paths never count as agreement; the 82 I9 disagreements stay in `i9-findings-0.7.0.json`, owner P2.
+- Invariant register `tests/Arch/invariants.json`: I1–I22 agree with `knowledge/architecture#invariants`; I4, I18, I20, I22 have an owner and no invented check.
+- Consumer gate: `bin/consumer-fixture.sh` exit 3 fails the job; no `continue-on-error` on consumer steps; `release`/`split` need `validate`.
+- Fix commits: no weakened or tautological assertion, cross-driver snapshot split or new shared-state leak.
+
+## Commands run (executor, round 2, HEAD `09aa569`)
+
+PENDING-COMMANDS
+
+## Environment disclosures (round 2)
+
+- Both reviewers had a working read-only shell this round. Codex `-s read-only` ran (round-1 `bwrap: loopback` failure did not reproduce). Grok needs `--sandbox review` and the tool name `run_terminal_command`; with the built-in `read-only` profile the project mAInd hook cannot reach its daemon and denies every shell call.
+- Reviewers did not run composer/pest/docker by instruction; V1–V6 are executor runs.
+- `plan.py` from the swissknifeman dev runtime (`packages/task/scripts/plan.py`), as in round 1.
+
+---
+
+## Round 1 (history, commit `9b8092e73da25185a30f438ba9458eb1f9633cef`)
+
+Round-1 verdict: RED. Reviewers `codex/gpt-6.1-sol/high` (session `01a12924-172e-7a61-baff-b66d3bad45ec`) and `grok/grok-4.7/high` (session `01a12924-1e5e-7b32-a323-ef21c0d624fa`), verdicts in `artifacts/reviews/P1/codex-gpt-6.1-sol.md` and `artifacts/reviews/P1/grok-4.7.md`. Every finding was re-checked by the executor against the cited code.
 
 | id | item | location | contract clause | severity | correction | reported by |
 |---|---|---|---|---|---|---|
@@ -25,36 +71,4 @@ Both reviewers returned RED independently. Every finding below was re-checked by
 
 Plan-text discrepancy (not a P1.1–P1.5 defect): P1.6 V6 says the replica fixture "starts its own services", but `tests/Engines/Support/replica-fixture.sh` does not; CI (`tests.yml` job `test-replica`) and the local run start them with `docker compose --profile authority-replica up -d --wait authority-primary authority-replica`.
 
-## Areas found sound by both reviewers
-
-- Baseline integrity: `packages/` byte-equal to baseline; dump headers record `09612160…`; API baseline copies and D14 oracle checksum match.
-- Allowlists `tests/Arch/Allowlists/i2.json`, `i3.json`, `i5.json`, `InactiveCost/allowlist.json`, `i7-allowlist.json`: entries real, owned, owner phases agree with the oracle.
-- Parity/I7: unsupported cases snapshotted and excluded from agreement; I9 disagreements recorded in `i9-findings-0.7.0.json` with owner P2.
-- Invariant register `tests/Arch/invariants.json`: I1–I22 status and owner phase agree with `knowledge/architecture#invariants`.
-- Consumer gate: `bin/consumer-fixture.sh` exit 3 fails the job; no `continue-on-error`; `release.yml` `validate` runs both consumer steps unconditionally and `release`/`split` need it.
-
-## Commands run (executor)
-
-| id | command | outcome |
-|---|---|---|
-| V1 | `git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/` | exit 0 |
-| V2 | `composer test` | exit 0 — 4895 passed, 415333 assertions |
-| V3 | `composer test:pgsql && composer test:mysql && composer test:mariadb` (`PGSQL_PORT=55432 MYSQL_PORT=53306`, brief local ports) | **exit 1 — not green.** pgsql 4959/4959 passed; mysql 4956/4959 (3 failed, 91 min); mariadb not run (chain stopped at the mysql failure) |
-| V4 | `composer test:engines:pgsql && composer test:engines:mysql && composer test:engines:mariadb` (same ports) | exit 0 — 68/68 on each driver |
-| V6 | `composer test:redis && composer test:replica` (replica services started via the compose profile) | exit 0 — redis 2 passed; replica 1 passed (real streaming replica lag, no skips) |
-| V5 | `test -s …/P1-review.md && grep -qE '^Verdict: (GREEN|RED)' …/P1-review.md` | run at finish |
-
-V3 MySQL failures:
-
-| test | isolated run on MySQL | attribution |
-|---|---|---|
-| `tests/Regression/Baseline070/ResourcesSnapshotTest.php:108` | fails | P1.2 deliverable — finding F6 |
-| `tests/Contracts/NegativeFixturesTest.php:105` dataset "cancelled change leaves a row" (`AssertionFailedError` not thrown) | fails (29/30) | Pre-dates P1: the test, its support code, `tests/TestCase.php`, `composer.json` and `packages/` are unchanged since `09612160`. A 0.7.0 MySQL defect outside P1's scope; it still keeps V3 red and needs an owner (P2 or a fix item). |
-| `tests/Feature/Diagnostics/DoctorCommandTest.php:101` "changes nothing it reads" | passes (6/6) | Order-dependent; fails only in the full MySQL run. Not attributed: a state leak from a P1-added test or a pre-existing ordering issue. Not green. |
-
-A first V3/V4/V6 run without the local port export targeted the host-native PostgreSQL (auth failure) and the not-yet-started replica — an executor environment error, discarded and rerun.
-
-## Environment disclosures
-
-- Neither reviewer had a working shell: codex's sandbox failed (`bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`) and grok was limited to read tools by design; both reviewed through file reads (codex also via Git objects). V1/V2 were not re-run by the reviewers; V3/V4/V6 were left to the executor.
-- The `plan-work.py` facade is unavailable for this layout-v4 plan (plugin cache 0.28.3: `No module named 'core.provider'`; release v0.28.6 expects `plan.md`); the item ran through the swissknifeman dev runtime `packages/task/scripts/plan.py`.
+Round-1 executor commands (HEAD `9b8092e`): V1 exit 0; V2 exit 0 (4895 passed); V3 exit 1 (pgsql 4959/4959; mysql 4956/4959, 3 failed, 91 min; mariadb not run); V4 exit 0 (68/68 per driver); V6 exit 0 (redis 2, replica 1). Round-1 environment: neither reviewer had a working shell (codex `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`; grok read tools only); `plan-work.py` facade unusable for layout v4.
