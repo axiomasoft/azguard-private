@@ -1,0 +1,49 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:decision:v1",
+  "id": "D15",
+  "title": "Enum classification marker",
+  "date": "2026-10-11",
+  "status": "accepted",
+  "question": "How is the closed/open classification of every published enum expressed in code? knowledge/contracts#markers gives Api only a since argument and no ecosystem package classifies enums.",
+  "options": [
+    {
+      "id": "A",
+      "text": "PHPDoc tag in the enum docblock: exactly one of @closed or @open; the manifest generator records it; a test requires it on every attributed enum and compares it with the type-map enum column"
+    },
+    {
+      "id": "B",
+      "text": "New attribute argument #[Api(since, enum: EnumKind)] plus a new Attributes\\EnumKind type (contract amendment)"
+    },
+    {
+      "id": "C",
+      "text": "Classification only in the manifest, read from the target-map oracle; no marker in the source"
+    }
+  ],
+  "context": "Gap found in the P2 design session: architecture#api-compatibility requires closed/open enums and the generator must record them, but no mechanism is fixed. Owner answer M14.",
+  "decision": "A — PHPDoc tag in the enum docblock: exactly one of @closed or @open; the manifest generator records it; a test requires it on every attributed enum and compares it with the type-map enum column",
+  "rationale": "Owner chose the PHPDoc tag (M14): no change to the Api/Spi signatures, machine-readable by the generator and checkable against the oracle.",
+  "consequences": [
+    "P2.1 adds the tag to every attributed enum from the type-map enum column; the generator writes an `enum` field (closed|open) per enum entry.",
+    "Adding a case to a @closed enum is a major change after 1.0 (D9)."
+  ],
+  "applies_to": [
+    "P2"
+  ],
+  "evidence": [
+    {
+      "kind": "owner",
+      "ref": "brief/M14",
+      "note": "«PHPDoc-тег (Recommended)»"
+    },
+    {
+      "kind": "repo",
+      "ref": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/knowledge/contracts.json",
+      "note": "section markers"
+    }
+  ],
+  "actor": {
+    "provider": "claude-code",
+    "model": "claude-opus-5-5"
+  },
+  "answered_by": "owner"
+}

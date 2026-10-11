@@ -1,0 +1,163 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.12",
+  "title": "Opaque state tokens and kernel identity values",
+  "status": "todo",
+  "summary": "`StateToken` and `CodeStateToken` are opaque values with `panel()`, `equals()`, versioned `toString()` (`st1.`/`ct1.` + base64url JSON) and `fromString()`, while event and journal payloads keep the `state` object keys of knowledge/contracts#tokens; the system actor type is the reference value `azguard:system`.",
+  "why": "Public token properties expose storage counters and read-session details that are not a promise (architecture#api-compatibility state evidence); the identities reference fixes the system actor type (D16). Hard risk: the payload serializer must keep the exact `state` keys so events and journal rows have one shape, and cache keys derived from tokens must stay deterministic.",
+  "scope": {
+    "include": [
+      "`Kernel\\Decision\\StateToken`, `CodeStateToken`: promoted public properties → private; supported members per knowledge/contracts#tokens; internal readers use `@internal` accessors; `fromString()` rejects unknown version/malformed input with `InvalidIdentityException`",
+      "Event envelope (`AccessEvent::toArray()`) builds `state` with the exact keys `kind, storage, panel, incarnation, version, generation, fingerprint` / `kind, panel, build_id, fingerprint` through an internal serializer",
+      "`Kernel\\Identity\\ActorRef::SYSTEM_TYPE` = `azguard:system`; events/actor snapshots regenerated deliberately",
+      "All 37 production users of tokens (cache keys, read sessions, Filament if any, explain) switched to supported or `@internal` accessors; I4 entries fixed",
+      "Migration lines: token properties → methods; system actor type value"
+    ],
+    "exclude": [
+      "Ordering or replica-wait semantics for tokens",
+      "Changing other event payload keys"
+    ]
+  },
+  "depends_on": [
+    "P2.11"
+  ],
+  "decisions": [
+    "D4",
+    "D16"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p2-execution#conventions",
+      "why": "Rules every P2 item follows (reference wins, no shims, D17 placement, attributes, snapshots, migration lines)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#allowlists",
+      "why": "Report-mode allowlist protocol and which entries this item removes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#commands",
+      "why": "Exact validation commands and driver environment",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#tokens",
+      "why": "Opaque token members and payload rule",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#events",
+      "why": "Frozen envelope and state keys",
+      "required": true
+    },
+    {
+      "ref": "knowledge/identities#resources",
+      "why": "System actor type value",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Kernel/Decision/StateToken.php",
+      "why": "Token to close",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Events/AccessEvent.php",
+      "why": "Payload builder",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Kernel/Decision/StateToken.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Kernel/Decision/CodeStateToken.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Kernel/Identity/ActorRef.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Events/AccessEvent.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/**/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Formats/*.json",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Round trip: `StateToken::fromString($t->toString())->equals($t)` for every token kind (property test).",
+    "Events snapshot changes only in the actor type value; `state` keys identical."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Unit tests/Feature/Events tests/Regression/Baseline070/EventsSnapshotTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression/Baseline070 --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 && composer test:pgsql && composer test:mysql && composer test:mariadb",
+      "expect": "exit 0 on all three drivers",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Opaque StateToken/CodeStateToken with versioned string form",
+    "Unchanged payload state keys",
+    "System actor type azguard:system"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "medium"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-11T16:11:49Z"
+}

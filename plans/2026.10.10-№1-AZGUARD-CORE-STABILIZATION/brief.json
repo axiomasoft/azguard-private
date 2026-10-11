@@ -91,6 +91,20 @@
       "text": "P1 design choices answered by the owner: 5 items 1:1 to contract.produces; invariant register in tests/Arch; a separate read-only Review P1 at the end; consumer check added to release.yml in P1.5 («Да, в P1.5»); oracle: «да, согласен с tests/Arch/Fixtures/target-map.json».",
       "channel": "owner conversation (P1 design session)",
       "kind": "owner"
+    },
+    {
+      "id": "M14",
+      "date": "2026-10-11",
+      "text": "P2 design questions answered: enum classification — «PHPDoc-тег (Recommended)»; reserved azguard/* plugin ids — «забудь про legacy, нам не нужна совместимость, мы делаем идеальную версию по лучшим канонам»; «Да, Review P2 (Recommended)»; upgrade map — «нам нужна краткая инструкция для ии агентов по миграции, пока пакет даже не публиковался».",
+      "channel": "owner conversation (P2 design session)",
+      "kind": "owner"
+    },
+    {
+      "id": "M15",
+      "date": "2026-10-11",
+      "text": "вообщем не смотри на 0.7 - ее просто нет для тебя. Есть только цель создать идеальный нажеджный апи, идеальную архитектуру, гибкую и надежную. / мы базу отлично спроектировали, осталось следовать ей",
+      "channel": "owner conversation (P2 design session)",
+      "kind": "owner"
     }
   ],
   "requirements": [
@@ -300,6 +314,16 @@
       "source": "M9",
       "owners": [
         "P1",
+        "P2",
+        "P3",
+        "P4"
+      ]
+    },
+    {
+      "id": "B22",
+      "text": "0.7.0 is not a compatibility constraint: implement the ideal, reliable API and architecture exactly as recorded in the plan reference (knowledge/architecture, contracts, type-map, identities, target-structure) without compatibility shims; 0.7.0 fixtures are regression guards of current behavior that change deliberately, and a short migration instruction for AI agents replaces the machine upgrade map.",
+      "source": "M15",
+      "owners": [
         "P2",
         "P3",
         "P4"

@@ -1,0 +1,265 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.11",
+  "title": "Transactional change participants and the Audit journal on them",
+  "status": "todo",
+  "summary": "Write operations hand their committed-attempt records to `ChangeParticipant`s inside the operation transaction through the append-only `OwnedRowsWriter` (`Changes\\Internal\\OperationRows`), with `ChangeRecord` carrying the core-built event; the public `ChangeJournal` sink and `DatabaseSource::appendJournal()` are gone; the audit journal is `Audit\\Internal\\JournalParticipant` + `Audit\\Internal\\JournalRow`; `Storage\\Schema\\IdentityColumns` and the participant contract suite exist; `ContractWorld::rowCounts()` counts only the current schema.",
+  "why": "D8/R6: the journal needs exactly same-transaction append of rows carrying the published event ids; an append-only capability limited to declared tables is the narrowest contract, and core must stop hard-coding the audit table (I2, I13 entries). Hard risks (participant-model): rows of discarded attempts must vanish on rollback, nested host rollback and deadlock retry; events are built once and dispatched only after the root commit; a participant can never touch authority tables.",
+  "scope": {
+    "include": [
+      "New `Contracts\\Changes\\ChangeParticipant`, `Contracts\\Changes\\OwnedRowsWriter`, `Changes\\ChangeRecord` exactly as knowledge/contracts#participants; `PanelBuilder::participants()` (contracts#panel-builder); compile checks of p2-execution#participant-model",
+      "`ChangePipeline::operate()`: events built once per change result; after the last change, if any effect, participants called in declaration order with records in effect order and a new `Changes\\Internal\\OperationRows` bound to the active `StorageMutation`; the window closes when `record()` returns",
+      "Retire the public `Changes\\ChangeJournal` (row encoding → `Audit\\Internal\\JournalRow`, 14 columns, payload JSON of `AccessEvent::toArray()`); `Plugins\\Audit\\RecordChange` → `Audit\\Internal\\JournalParticipant` (`tables(): ['audit_log']`); `AuditPlugin::register()` contributes `participants([JournalParticipant::class])` instead of the pipe; `DatabaseSource::appendJournal()` removed; files under packages/core/src/Audit/Internal (D17)",
+      "New `Storage\\Schema\\IdentityColumns` (Spi(Call), contracts#storage) built on `HostKeyColumns`; core `StorageSchema` may use it only if DDL snapshots stay byte-identical (I15)",
+      "New `Testing\\Contracts\\ChangeParticipantContractTests` (Spi(Call)): window, declared tables, scalar values, rollback, retry re-invocation, no call on no-op",
+      "Fix `Testing\\Contracts\\ContractWorld::rowCounts()` to list tables of the current database/schema only (P1 note; MySQL vacuity) and add a test that fails on the old behavior",
+      "Re-target I11/I6/I12 suites: tests/Feature/Plugins/Audit, TransactionPropertiesTest, NestedMutationTest, ChangeRaceTest, TransactionTest, DirectWritesEngineTest; events snapshot and audit-rows snapshot unchanged",
+      "Inactive-cost allowlist: `ChangeJournal` module-service entry removed; i2 ChangeJournal entries removed; `pruneJournal` stays (P3)",
+      "Migration lines: ChangeJournal → ChangeParticipant + OwnedRowsWriter; journaling pipes → participants"
+    ],
+    "exclude": [
+      "Audit schema/migration/adoption, prune without panel lock, health split (P3)",
+      "Moving AuditPlugin/AuditTableExists (P3)",
+      "External delivery or outbox"
+    ]
+  },
+  "depends_on": [
+    "P2.3",
+    "P2.4",
+    "P2.5"
+  ],
+  "decisions": [
+    "D8",
+    "D10",
+    "D16",
+    "D17"
+  ],
+  "skills": [
+    "php:production-readiness-checklist"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p2-execution#conventions",
+      "why": "Rules every P2 item follows (reference wins, no shims, D17 placement, attributes, snapshots, migration lines)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#allowlists",
+      "why": "Report-mode allowlist protocol and which entries this item removes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#commands",
+      "why": "Exact validation commands and driver environment",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#rules",
+      "why": "Owners/roots, Internal placement rule, stable FQCNs, composition roots — where new files go",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#participant-model",
+      "why": "Transaction invariant, enforcement points, bypass routes and interfering pairs",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#participants",
+      "why": "Normative declarations and rules",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#storage",
+      "why": "StorageDescriptor and IdentityColumns",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#operation-chains",
+      "why": "Chain G and its case table",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#persistence",
+      "why": "audit_log format that must not change",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-changes",
+      "why": "ChangeJournal split row",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Changes/ChangePipeline.php",
+      "why": "operate(): events, journal frame, afterCommit",
+      "required": true,
+      "section": "operate"
+    },
+    {
+      "path": "packages/core/src/Changes/ChangeJournal.php",
+      "why": "Row encoding to move, frame sink to retire",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Storage/StorageMutation.php",
+      "why": "Mutation the capability binds to",
+      "required": true
+    },
+    {
+      "path": "packages/core/src/Testing/Contracts/ContractWorld.php",
+      "why": "rowCounts() defect",
+      "required": true,
+      "section": "rowCounts"
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Contracts/Changes/ChangeParticipant.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Contracts/Changes/OwnedRowsWriter.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Changes/ChangeRecord.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Changes/Internal/OperationRows.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Changes/ChangePipeline.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Changes/ChangeJournal.php",
+      "change": "delete"
+    },
+    {
+      "path": "packages/core/src/Audit/Internal/JournalParticipant.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Audit/Internal/JournalRow.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Plugins/Audit/RecordChange.php",
+      "change": "delete"
+    },
+    {
+      "path": "packages/core/src/Plugins/Audit/AuditPlugin.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Sources/Database/DatabaseSource.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Storage/Schema/IdentityColumns.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Panels/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/AzGuardServiceProvider.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/src/Testing/Contracts/*.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/**",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/InactiveCost/allowlist.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/Allowlists/*.json",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "One journal row per effective change with the dispatched event's eventId; none for no-op, rollback, nested rollback, discarded retry (I11) — asserted on all drivers.",
+    "Formats/audit-rows.json and Formats/events.json pass without regeneration (row and payload shape unchanged).",
+    "`OperationRows` never exposes a builder, connection or the mutation; capability misuse raises UnsupportedDirectWriteException (I6)."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Plugins tests/Feature/Changes tests/Feature/Authorization/Properties tests/Contracts tests/Regression/Baseline070/EventsSnapshotTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "test ! -e packages/core/src/Changes/ChangeJournal.php && test -z \"$(git grep -n 'appendJournal\\|ChangeJournal' -- '*.php')\"",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression/Baseline070 --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V7",
+      "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 && composer test:pgsql && composer test:mysql && composer test:mariadb",
+      "expect": "exit 0 on all three drivers",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V8",
+      "cmd": "export PGSQL_PORT=55432 MYSQL_PORT=53306 && composer test:engines:pgsql && composer test:engines:mysql && composer test:engines:mariadb",
+      "expect": "exit 0 on all three drivers",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "ChangeParticipant, OwnedRowsWriter, ChangeRecord, OperationRows",
+    "Audit journal as JournalParticipant/JournalRow",
+    "IdentityColumns and participant contract suite",
+    "ContractWorld::rowCounts fixed"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-11T16:12:47Z"
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.15",
+  "title": "Review P2",
+  "status": "todo",
+  "summary": "An independent read-only review checks P2.1–P2.14 against the reference (knowledge/contracts, type-map, architecture#scope-boundary, #extension-system, #operation-chains G, p2-execution) and D15–D17, and records a GREEN or RED verdict with findings in artifacts/reviews/P2-review.md.",
+  "why": "Owner requested a review of P2 (brief M14). P2 rewrites the whole extension surface, the scope eligibility and SQL paths and the transactional journal; a fresh reader catches silent signature drift, weakened tests, approximate visibility and participant bypasses that item-level checks can miss.",
+  "scope": {
+    "include": [
+      "Signature conformance: every new/changed supported type and member vs knowledge/contracts (manifest diff against the reference)",
+      "Placement/marker conformance vs the oracle; no shims or aliases (D16); interim placement per D17",
+      "Scope paths: check order and failure mapping (p2-execution#scope-order) in boundary, authority, batch, validator, directories, visibility; parity matrix unchanged except the 82 directory verdicts",
+      "Participant model: enforcement points, bypass routes, interfering pairs (p2-execution#participant-model) with test evidence on all drivers",
+      "Tests: no weakened, skipped or deleted assertions (git diff of tests since the P2 start commit); every new rule has a negative test",
+      "Migration instruction completeness and brevity; allowlists owner-P3 only",
+      "Verdict, findings table {id, item, file:line, rule, severity, fix}, and re-run of P2.14 acceptance commands"
+    ],
+    "exclude": [
+      "Changing code or fixtures (read-only; fixes go through reopened items)",
+      "Re-designing the reference"
+    ]
+  },
+  "depends_on": [
+    "P2.14"
+  ],
+  "decisions": [
+    "D15",
+    "D16",
+    "D17"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p2-execution#conventions",
+      "why": "Rules every P2 item follows (reference wins, no shims, D17 placement, attributes, snapshots, migration lines)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#scope-order",
+      "why": "Shared check order, envelope and failure mapping for every scope path",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#participant-model",
+      "why": "Transaction invariant, enforcement points, bypass routes and interfering pairs",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#rules",
+      "why": "Owners/roots, Internal placement rule, stable FQCNs, composition roots — where new files go",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#allowlists",
+      "why": "Report-mode allowlist protocol and which entries this item removes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#commands",
+      "why": "Exact validation commands and driver environment",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#rules",
+      "why": "Normative status of every signature",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#review",
+      "why": "Review method and change log conventions of revision 2",
+      "required": true
+    },
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1.3-review.json",
+      "why": "Format and depth of a previous review record (findings with file:line, verdict)",
+      "required": false
+    }
+  ],
+  "task_files": [
+    {
+      "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2-review.md",
+      "change": "create"
+    }
+  ],
+  "rules": [
+    "Read-only: no change outside artifacts/reviews/.",
+    "A finding needs a file:line and the violated reference rule; style preferences are not findings."
+  ],
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "test -s plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2-review.md && grep -Eq 'Verdict: \\*\\*(GREEN|RED)\\*\\*' plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2-review.md",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "git diff --quiet HEAD -- packages tests bin docs",
+      "expect": "exit 0 (review changed nothing outside the plan)",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "artifacts/reviews/P2-review.md with verdict and findings"
+  ],
+  "route": {
+    "class": "frontier",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": null,
+  "updated_at": "2026-10-11T16:12:48Z"
+}
