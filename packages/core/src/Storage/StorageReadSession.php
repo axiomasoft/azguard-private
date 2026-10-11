@@ -18,6 +18,7 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Database\QueryException;
 use JsonException;
 use PDO;
+use PDOException;
 use Throwable;
 
 /** @internal One consumed authority fence, including schema validation, on one pinned PDO. */
@@ -164,14 +165,14 @@ final class StorageReadSession
             }
 
             try {
-                if (! $committed && $this->pdo->inTransaction()) {
+                if (! $committed && self::transactionOpen($this->pdo)) {
                     $this->pdo->exec('ROLLBACK');
                 }
             } catch (Throwable) {
                 // Reported by the discard below; the original exception of the read stays the one thrown.
             }
 
-            if ($this->pdo->inTransaction()) {
+            if (self::transactionOpen($this->pdo)) {
                 $this->storage->connection()->disconnect();
             }
         }
@@ -297,10 +298,41 @@ final class StorageReadSession
         return [$state, $revisions];
     }
 
+    /**
+     * @internal The real transaction state of a PDO handle.
+     *
+     * Before PHP 8.4 `PDO::inTransaction()` of pdo_sqlite only mirrors the flag that `PDO::beginTransaction()` sets:
+     * after `exec('BEGIN')` it stays false while SQLite is inside a transaction, and after a raw `exec('COMMIT')` of a
+     * `beginTransaction()` it stays true. PHP 8.4 asks SQLite itself (`sqlite3_get_autocommit`); pdo_pgsql and
+     * pdo_mysql ask the server on every supported version. SQLite has no query for its transaction state, so on the
+     * one handle that lies a second `BEGIN` is the probe: it is refused exactly while a transaction is open.
+     */
+    public static function transactionOpen(PDO $pdo): bool
+    {
+        if (PHP_VERSION_ID >= 80400 || $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite') {
+            return $pdo->inTransaction();
+        }
+
+        try {
+            $started = $pdo->exec('BEGIN');
+        } catch (PDOException $exception) {
+            return str_contains($exception->getMessage(), 'within a transaction') ? true : throw $exception;
+        }
+
+        if ($started === false) {
+            $message = $pdo->errorInfo()[2] ?? null;
+
+            return is_string($message) && str_contains($message, 'within a transaction');
+        }
+        $pdo->exec('ROLLBACK');
+
+        return false;
+    }
+
     /** The snapshot transaction on the pinned PDO is still the one this session opened. */
     private function assertOwnSnapshot(): void
     {
-        if (! $this->pdo->inTransaction() || $this->storage->connection()->transactionLevel() > 0) {
+        if (! self::transactionOpen($this->pdo) || $this->storage->connection()->transactionLevel() > 0) {
             throw InvalidConfigurationException::failing('authority_transaction', 'The snapshot read was ended or joined by another transaction.');
         }
     }
@@ -333,8 +365,8 @@ final class StorageReadSession
             return;
         }
 
-        if ($connection->transactionLevel() > 0 || ($write instanceof PDO && $write->inTransaction())
-            || ($readPdo !== null && $readPdo->inTransaction())) {
+        if ($connection->transactionLevel() > 0 || ($write instanceof PDO && self::transactionOpen($write))
+            || ($readPdo !== null && self::transactionOpen($readPdo))) {
             throw InvalidConfigurationException::failing('authority_transaction', 'Consumed authority reads cannot run inside an unrecognized transaction.');
         }
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuardBench\Load;
 
+use AzGuard\Storage\StorageReadSession;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\Events\TransactionCommitted;
@@ -17,7 +18,7 @@ use PDO;
  * The cost is precision, stated per probe:
  *
  * - `probe.snapshot`: the span of the statements a check ran inside a snapshot read, from the start of the first to the end
- *   of the last. A snapshot is a transaction on the PDO that Laravel does not know about (`inTransaction()` while
+ *   of the last. A snapshot is a transaction on the PDO that Laravel does not know about (`transactionOpen()` while
  *   `transactionLevel()` is 0). The BEGIN and COMMIT round trips are not seen, so this is a lower bound by two round trips.
  * - `probe.lock_wait`: the time of the statement that takes the panel lock: `SELECT … FOR UPDATE` on `panel_state`
  *   (PostgreSQL, MySQL, MariaDB) or the first write to `panel_state` (SQLite takes its write lock there). It includes one
@@ -44,7 +45,7 @@ final class Probe
             $end = hrtime(true) / 1e3;
             $start = $end - $event->time * 1e3;
             $pdo = $event->connection->getRawPdo();
-            $inSnapshot = $pdo instanceof PDO && $pdo->inTransaction() && $event->connection->transactionLevel() === 0;
+            $inSnapshot = $pdo instanceof PDO && StorageReadSession::transactionOpen($pdo) && $event->connection->transactionLevel() === 0;
 
             if ($inSnapshot) {
                 self::$snapshotStart ??= $start;

@@ -8,6 +8,7 @@ use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
+use AzGuard\Storage\StorageReadSession;
 use AzGuard\Tests\Fixtures\Sources\Database\ConcurrentWriter;
 use AzGuard\Tests\Fixtures\Sources\Database\DatabaseWorld;
 use Illuminate\Database\Connection;
@@ -99,7 +100,7 @@ it('leaves no open transaction when the snapshot read throws', function (): void
     });
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
-    expect($decision->reason)->toBe(DecisionReason::SourceError)->and($connection->getPdo()->inTransaction())->toBeFalse()
+    expect($decision->reason)->toBe(DecisionReason::SourceError)->and(StorageReadSession::transactionOpen($connection->getPdo()))->toBeFalse()
         ->and($connection->transactionLevel())->toBe(0);
 });
 
@@ -108,12 +109,12 @@ it('fails a snapshot that another caller ended inside the read', function (): vo
     $connection = DatabaseWorld::storage()->connection();
     $pdo = $connection->getPdo();
     $connection->listen(static function (QueryExecuted $event) use ($pdo): void {
-        if (str_contains($event->sql, 'azg_role_grants') && $pdo->inTransaction()) {
+        if (str_contains($event->sql, 'azg_role_grants') && StorageReadSession::transactionOpen($pdo)) {
             $pdo->exec('COMMIT');
         }
     });
     $decision = app(Authorizer::class)->decide($panel, DatabaseWorld::request());
 
-    expect($decision->reason)->toBe(DecisionReason::SourceError)->and($pdo->inTransaction())->toBeFalse()
+    expect($decision->reason)->toBe(DecisionReason::SourceError)->and(StorageReadSession::transactionOpen($pdo))->toBeFalse()
         ->and($connection->transactionLevel())->toBe(0);
 });
