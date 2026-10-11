@@ -98,20 +98,92 @@ make down               # stop and remove the stand
 ```
 
 `docker-compose.yml` defines four default services — `postgres` (Postgres 16), `mysql`
-(MySQL 8), `mariadb` (MariaDB 10.11), `redis` (Redis 7) — each with a healthcheck
-and a named volume for its data. The `authority-replica` profile adds an isolated
+(MySQL 8), `mariadb` (MariaDB 10.11), `redis` (Redis 7) — each with a healthcheck.
+The three test databases store data on tmpfs (a 2 GiB limit per service); Redis keeps its named volume.
+These database containers deliberately disable crash durability: PostgreSQL disables `fsync`,
+`synchronous_commit` and `full_page_writes`; MySQL disables binlog, commit-time log flushing and
+doublewrite, with `O_DIRECT_NO_FSYNC`; MariaDB disables binlog, commit-time log flushing and doublewrite.
+Their data disappears on stop/restart, and the image entrypoints recreate `azguard_test` on startup.
+Use this stand only for tests. Versions, charset, collation, SQL modes and test isolation are unchanged.
+The `authority-replica` profile adds an isolated
 Postgres primary and replica for the [replica qualification](tests/Engines/Support/replica-README.md). Ports
 are published on `127.0.0.1` only; credentials come from `.env`, never
 hardcoded in the compose file. The database names default to `azguard_test`
 (`.env.example`), keeping the invariant that test database names end in `_test`.
 
 With the stand up, run the suite against a real engine via `composer
-test:pgsql` / `composer test:mysql` — these switch `DB_CONNECTION` and
+test:pgsql` / `composer test:mysql` / `composer test:mariadb` — these switch `DB_CONNECTION` and
 otherwise share `tests/TestCase.php`'s env-driven connection config with the
-sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job), the PG/MySQL matrix (`test-db-matrix`
+sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job), the PG/MySQL/MariaDB matrix (`test-db-matrix`
 job), and a dedicated Redis lane (`test-redis`) on every push/PR. **All three
 lanes are required for merge** — sqlite alone self-skips database-specific code,
 and array-store tests do not prove cross-process Redis lock behaviour.
+
+On hosts with existing PostgreSQL/MySQL servers, export `PGSQL_PORT=55432 MYSQL_PORT=53306`
+before **both** Compose and test commands (MariaDB defaults to 3307). Before recreating any database
+service, check `pgrep -af 'composer test|vendor/bin/pest'` and wait for active runs to finish.
+To apply the tmpfs configuration to an existing stand:
+
+```bash
+export PGSQL_PORT=55432 MYSQL_PORT=53306
+docker compose up -d --force-recreate --wait postgres mysql mariadb
+```
+
+The old `azguard_pgsql_data`, `azguard_mysql_data` and `azguard_mariadb_data` volumes remain on disk;
+Compose no longer attaches them. Their deletion is a separate owner action.
+In CI each database-matrix job starts only its selected service and uses the same bounded tmpfs.
+CI retains the image's durability defaults: the local `actionlint` 1.7.12 rejects `services.command`,
+so the workflow uses portable service `options` without an image or entrypoint workaround.
+The real-replica profile retains its persistent storage and WAL settings.
+
+Tests still drop and migrate the schema before each server-backed test. Replacing that with a single
+migration and truncation is rejected: tests create their own tables, and MySQL DDL implicitly commits.
+Driver suites remain sequential. Concurrent drivers would need separate Testbench skeletons;
+`TESTBENCH_APP_BASE_PATH` is supported by the installed Testbench, but this change does not add a
+parallel launcher because full-suite equivalence and the required 30% gain have not been measured.
+
+Before enabling per-driver `pest --parallel`, the P2 follow-up must fix
+`ContractWorld::rowCounts()` to count only the selected database: neighbouring databases on the same
+MySQL server can hide writes from negative fixtures. Every worker also needs its own Testbench
+skeleton and test database; Laravel's `azguard_test_test_N` names currently fail the `_test` suffix
+guard. Keep these prerequisites together. This infrastructure change leaves the stabilization plan untouched.
+
+### Infrastructure measurement (2026-10-11)
+
+The owner requested short checks instead of full-suite runs. The same 51 tests ran sequentially on
+each server before and after the change, with `--order-by=random --random-order-seed=20261011`.
+They cover DDL snapshots, constraints, JSON grants, committed-state isolation, database source reads,
+change races, storage schemas and negative contract fixtures. Test identities and assertion counts
+match before/after; every measured run exits 0 with no errors, failures or skips.
+
+| Engine | Tests | Assertions | Before (wall seconds) | After (wall seconds) | Speedup |
+|---|---:|---:|---:|---:|---:|
+| PostgreSQL | 51 | 485 | 15.37 | 8.94 | 1.72× |
+| MySQL | 51 | 485 | 50.90 | 11.01 | 4.62× |
+| MariaDB | 51 | 543 | 29.93 | 8.36 | 3.58× |
+
+SQLite's matching non-engine selection passes 33 tests / 419 assertions in 0.86 wall seconds.
+The historical full-suite durations (SQLite 113 s, PostgreSQL 538 s, MySQL 5449 s / 6813 s under
+disk load) are not comparable to this subset; full-suite speed and equivalence remain unmeasured.
+No full 4895/4959-test suite or complete 68-test engine bundle was run for this change.
+Discovery with `--list-tests-xml` confirms the unchanged inventories without executing them:
+SQLite 4895, each server driver 4959, and the engine group 68.
+
+To reproduce the server selection, replace `test:mysql` with `test:pgsql` or `test:mariadb`:
+
+```bash
+export PGSQL_PORT=55432 MYSQL_PORT=53306
+composer test:mysql -- \
+  tests/Engines/StorageDdlTest.php tests/Engines/StorageConstraintsTest.php \
+  tests/Engines/GrantFieldsEngineTest.php tests/Engines/StorageIsolationTest.php \
+  tests/Engines/DatabaseSourceEngineTest.php tests/Engines/ChangeRaceTest.php \
+  tests/Feature/Storage/StorageSchemaTest.php tests/Contracts/NegativeFixturesTest.php \
+  --order-by=random --random-order-seed=20261011
+```
+
+An initial diagnostic invocation omitted `--order-by=random`: PHPUnit warned about the seed and
+exited 1 despite passing assertions. PAO's JSON omitted that runner warning. The table uses only
+corrected, successful invocations; no failure/skip gate was relaxed.
 
 With Redis up (`make up`), run the qualification bundle:
 

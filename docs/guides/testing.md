@@ -3,6 +3,17 @@
 AzGuard has no "allow everything" switch for tests. Tests grant real roles and permissions and run the real
 engine, so they exercise the same policies, scopes and caches as production.
 
+## Maintainer database stand
+
+The repository's `docker-compose.yml` runs PostgreSQL 16, MySQL 8 and MariaDB 10.11 as disposable
+test databases on tmpfs, with a 2 GiB limit each. Crash durability is deliberately disabled;
+data disappears when a database container stops. Test schemas are still dropped and migrated
+before each test. Redis and the real PostgreSQL replica profile retain persistent volumes.
+
+The CI database matrix starts only its selected engine, on tmpfs with the image's durability defaults.
+Commands, measurement results and prerequisites for future parallel runs are in the repository's
+`DEVELOPMENT.md`. The supported settings are listed in [Test infrastructure references](../reference.md).
+
 ## Signing in with grants
 
 ```php
