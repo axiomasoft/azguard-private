@@ -189,8 +189,9 @@ final class Dataset
 
         AzGuard::actingAs($user(3), static fn () => AzGuard::panel('crm')->touch());
 
+        // The prune removes the expired grants of crm only, so the expired operator grant of ops stays in every dump.
         Carbon::setTestNow(Carbon::parse(self::PRUNE_CLOCK, 'UTC'));
-        $exit = Artisan::call('azguard:grants:prune');
+        $exit = Artisan::call('azguard:grants:prune', ['--panel' => 'crm']);
 
         if ($exit !== 0) {
             throw new RuntimeException('azguard:grants:prune failed: '.Artisan::output());

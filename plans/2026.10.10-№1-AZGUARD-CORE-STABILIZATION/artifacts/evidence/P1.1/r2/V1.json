@@ -1,0 +1,32 @@
+{
+ "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+ "evidence_id": "PLAN1.P1.1.V1.r2.2026-10-11T06:23:11Z",
+ "check_id": "V1",
+ "subject": "PLAN1.P1.1",
+ "procedure": {
+  "cmd": "git diff --quiet 09612160c98ca6133c894a8f90f5653b9dac6b8f -- packages/",
+  "cwd": "."
+ },
+ "candidate": {
+  "head": "e0f2a9ab228f771af231e83b5dc637d3de3466b7"
+ },
+ "exit": 0,
+ "environment": {
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "python": "3.12.3"
+ },
+ "log": {
+  "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P1.1/r2/V1.log",
+  "sha256": "19eaf43821a7660ec323a87c8457bf74823beb296c39f5e01aa8a683aa50f061"
+ },
+ "started_at": "2026-10-11T06:23:11Z",
+ "finished_at": "2026-10-11T06:23:11Z",
+ "producer": {
+  "kind": "executor",
+  "actor": {
+   "provider": "claude-code",
+   "model": "opus-5-5",
+   "effort": "high"
+  }
+ }
+}

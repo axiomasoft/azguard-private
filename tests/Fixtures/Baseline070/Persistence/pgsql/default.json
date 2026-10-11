@@ -5,7 +5,7 @@
         "driver": "pgsql",
         "scenario": "default",
         "generator": "AZGUARD_BASELINE_WRITE=1 vendor/bin/pest tests/Regression/Baseline070/PopulatedDatabaseTest.php",
-        "generated_at": "2026-10-10T15:13:13Z",
+        "generated_at": "2026-10-11T06:17:49Z",
         "normalisation": "Restorer::rows(): JSON columns decoded with sorted object keys; other values as strings; panel_state.updated_at (written from the wall clock) replaced by Dataset::CLOCK. Generated ULIDs are fixed by Dataset::fixUlids()."
     },
     "storages": {
@@ -2540,6 +2540,28 @@
                         "created_at": "2026-10-06 12:00:00",
                         "updated_at": "2026-10-06 12:00:00",
                         "ticket": null
+                    },
+                    {
+                        "id": "8",
+                        "panel": "ops",
+                        "tenant_key": "global",
+                        "tenant_type": null,
+                        "tenant_id": null,
+                        "role": "operator",
+                        "subject_type": "crm.user",
+                        "subject_id": "2",
+                        "context_key": "global",
+                        "context_type": null,
+                        "context_id": null,
+                        "origin": "manual",
+                        "expires_at": "2026-10-07 00:00:00",
+                        "actor_type": "azguard.system",
+                        "actor_id": null,
+                        "actor_reason": "baseline import",
+                        "meta": null,
+                        "created_at": "2026-10-06 12:00:00",
+                        "updated_at": "2026-10-06 12:00:00",
+                        "ticket": null
                     }
                 ],
                 "permissions": [
@@ -2587,7 +2609,7 @@
                         "panel": "ops",
                         "subject_type": "crm.user",
                         "subject_id": "2",
-                        "revision": "2"
+                        "revision": "1"
                     }
                 ],
                 "panel_state": [
@@ -2600,7 +2622,7 @@
                     },
                     {
                         "panel": "ops",
-                        "version": "5",
+                        "version": "4",
                         "incarnation": "01k70000000000000000000039",
                         "updated_at": "2026-10-06 12:00:00",
                         "epoch": "1"
