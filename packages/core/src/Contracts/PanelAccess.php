@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Visibility;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Contracts\Catalog\PermissionCatalog;
@@ -39,9 +40,8 @@ use Illuminate\Database\Eloquent\Model;
  * can neither see nor change the data of another partition. The origin selects the partition of changes and
  * stored-grant lists only; decisions read every origin. Without `inTenant()` the tenant is the current tenant of the
  * panel; a panel with tenants and neither is a `TenantRequiredException`, never an aggregate over tenants.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface PanelAccess
 {
     public function definition(): Panel;

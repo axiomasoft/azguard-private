@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use Illuminate\Database\Eloquent\Model;
@@ -11,10 +12,10 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Explicit resource-to-context mapping. Tenant resources also implement ProvidesAccessScope.
  *
- * @api
  *
  * @mixin Model
  */
+#[Api(since: '0.7')]
 trait ContextAware
 {
     abstract public function azguardContextType(): string;

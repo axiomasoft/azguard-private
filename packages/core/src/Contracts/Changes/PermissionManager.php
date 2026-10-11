@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Exceptions\DuplicatePermissionException;
@@ -15,9 +16,8 @@ use AzGuard\Schema\PermissionSchema;
  * The permissions of one panel and tenant. Permissions of enums live in code and are only listed; dynamic permissions
  * exist only when the database writer of the panel declares `dynamicPermissions()`, belong to the tenant and are
  * always decided by grants. Every change goes through the change pipeline.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface PermissionManager
 {
     /**

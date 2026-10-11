@@ -16,8 +16,6 @@ use Illuminate\Database\Eloquent\Model;
  * It searches by key and by the columns a model lists in `azguardSearchColumns()`, and labels a subject with
  * `azguardLabel()` or its key. It does not depend on the target of the lookup, so it works while the subject is
  * still being chosen.
- *
- * @api
  */
 final readonly class ModelSubjectDirectory implements SubjectDirectory
 {

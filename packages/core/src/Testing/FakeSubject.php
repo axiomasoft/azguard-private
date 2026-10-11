@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Attributes\Api;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
@@ -12,9 +13,8 @@ use Illuminate\Database\Query\Builder;
 /**
  * The smallest subject model: it has a key and no table, so a test of a panel, a source or a plugin needs no schema
  * for its users. Every key exists as a subject; nothing is read or written. It authenticates like any user model.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class FakeSubject extends Model implements AuthenticatableContract
 {
     use Authenticatable;

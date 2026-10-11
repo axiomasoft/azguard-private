@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Facades;
 
+use AzGuard\Attributes\Api;
 use AzGuard\AzGuardManager;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -41,6 +42,7 @@ use UnitEnum;
  *
  * @see AzGuardManager
  */
+#[Api(since: '0.7')]
 final class AzGuard extends Facade
 {
     protected static function getFacadeAccessor(): string

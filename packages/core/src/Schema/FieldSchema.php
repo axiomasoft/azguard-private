@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use Stringable;
 /**
  * A grant field as an interface shows it: scalars and class names only, never a rule object or a closure.
  */
+#[Api(since: '0.7')]
 final readonly class FieldSchema implements JsonSerializable
 {
     /**

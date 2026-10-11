@@ -12,8 +12,6 @@ use AzGuard\Scopes\ModelTenantDefinition;
 /**
  * Default tenant directory over the tenant model of a panel. It lists tenants for the interface and decides
  * nothing about membership; a panel without tenants offers none.
- *
- * @api
  */
 final readonly class ModelTenantDirectory implements TenantDirectory
 {

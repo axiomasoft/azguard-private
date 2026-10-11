@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Plugins\Audit;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Plugins\BasePlugin;
@@ -17,9 +18,8 @@ use InvalidArgumentException;
  *
  * `retentionDays` is how long a row is kept; the journal is cleaned by the maintenance command, never by this plugin.
  * Doctor checks that the journal table exists (`audit.table`).
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class AuditPlugin extends BasePlugin
 {
     private function __construct(private int $retentionDays)

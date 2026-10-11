@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Attributes\Api;
 use AzGuard\AzGuardManager;
 use AzGuard\Exceptions\UnknownRoleException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -20,9 +21,8 @@ use UnitEnum;
  * production — also under `RefreshDatabase`.
  *
  * A panel with tenants needs its current tenant set before the call, as for any grant.
- *
- * @api
  */
+#[Api(since: '0.7')]
 trait InteractsWithAzGuard
 {
     /** @internal Laravel invokes this after starting RefreshDatabase's wrapping transaction. */

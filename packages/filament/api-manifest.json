@@ -1,28 +1,39 @@
 {
     "package": "axiomasoft/azguard-filament",
+    "roots": {
+        "AzGuard\\Filament\\": "src/"
+    },
     "classes": [
         {
             "name": "AzGuard\\Filament\\Attributes\\ForFilament",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": true,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [
                 {
                     "name": "class",
+                    "visibility": "public",
                     "type": "string",
                     "readonly": true,
-                    "static": false
+                    "static": false,
+                    "contracts": []
                 }
             ],
             "methods": [
                 {
                     "name": "__construct",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "class",
@@ -32,27 +43,35 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": null
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string $class the resource, page or widget the enum defines the permissions of"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Authorization\\FilamentGate",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "before",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "user",
@@ -77,12 +96,18 @@
                             "default": "array (\n)"
                         }
                     ],
-                    "return": "?bool"
+                    "return": "?bool",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<mixed> $arguments"
+                    ]
                 },
                 {
                     "name": "page",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "page",
@@ -100,12 +125,18 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<Page> $page"
+                    ]
                 },
                 {
                     "name": "relationManager",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "relationManager",
@@ -138,12 +169,18 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<RelationManager> $relationManager"
+                    ]
                 },
                 {
                     "name": "resource",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "resource",
@@ -168,12 +205,18 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<FilamentResource> $resource"
+                    ]
                 },
                 {
                     "name": "visible",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "resource",
@@ -190,12 +233,21 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@template TModel of Model",
+                        "@param class-string<FilamentResource> $resource",
+                        "@param Builder<TModel> $query",
+                        "@return Builder<TModel>"
+                    ]
                 },
                 {
                     "name": "widget",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "widget",
@@ -213,14 +265,57 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<Widget> $widget"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
+        },
+        {
+            "name": "AzGuard\\Filament\\AzGuardFilamentServiceProvider",
+            "publication": "api",
+            "since": "0.7",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": "Illuminate\\Support\\ServiceProvider",
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "boot",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
         },
         {
             "name": "AzGuard\\Filament\\AzGuardPlugin",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -229,15 +324,24 @@
             "interfaces": [
                 "Filament\\Contracts\\Plugin"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [
-                "ID"
+                {
+                    "name": "ID",
+                    "visibility": "public",
+                    "final": false,
+                    "value": "azguard"
+                }
             ],
             "properties": [],
             "methods": [
                 {
                     "name": "__construct",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "config",
@@ -247,12 +351,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": null
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "abilities",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "abilities",
@@ -262,12 +370,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<string> $abilities"
+                    ]
                 },
                 {
                     "name": "authority",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "authority",
@@ -277,12 +391,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "boot",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -292,12 +410,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "definitions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "definitions",
@@ -307,12 +429,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "enforce",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "enforce",
@@ -323,12 +449,16 @@
                             "default": "true"
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "exclude",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "resources",
@@ -355,12 +485,20 @@
                             "default": "array (\n)"
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<string> $resources",
+                        "@param list<string> $pages",
+                        "@param list<string> $widgets"
+                    ]
                 },
                 {
                     "name": "formExtensions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "extensions",
@@ -370,12 +508,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<FilamentFormExtension>|FilamentFormExtension ...$extensions"
+                    ]
                 },
                 {
                     "name": "get",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "filamentPanel",
@@ -386,68 +530,112 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "self"
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getAbilities",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<string>"
+                    ]
                 },
                 {
                     "name": "getAuthority",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Kernel\\Decision\\PermissionAuthority"
+                    "return": "AzGuard\\Kernel\\Decision\\PermissionAuthority",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getDefinitions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Filament\\FilamentDefinitions"
+                    "return": "AzGuard\\Filament\\FilamentDefinitions",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getExclude",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array{resources: list<string>, pages: list<string>, widgets: list<string>}"
+                    ]
                 },
                 {
                     "name": "getFormExtensions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<class-string<FilamentFormExtension>|FilamentFormExtension>"
+                    ]
                 },
                 {
                     "name": "getGuardPanel",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getId",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getManages",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "?array"
+                    "return": "?array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<string>|null"
+                    ]
                 },
                 {
                     "name": "guardPanel",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -457,12 +645,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "hasEditor",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "editor",
@@ -472,19 +664,27 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "isEnforced",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "keys",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -494,19 +694,27 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "AzGuard\\Filament\\Authorization\\FilamentKeys"
+                    "return": "AzGuard\\Filament\\Authorization\\FilamentKeys",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "make",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "manages",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panels",
@@ -516,12 +724,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<string>|null $panels"
+                    ]
                 },
                 {
                     "name": "register",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -531,19 +745,29 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "resolveFormExtensions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<FilamentFormExtension>"
+                    ]
                 },
                 {
                     "name": "resources",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "roles",
@@ -594,49 +818,61 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesPage",
+            "publication": "api",
+            "since": "0.7",
             "kind": "trait",
             "final": false,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "canAccess",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesRelationManager",
+            "publication": "api",
+            "since": "0.7",
             "kind": "trait",
             "final": false,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "canViewForRecord",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "ownerRecord",
@@ -653,12 +889,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -676,27 +916,44 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "makeTable",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "Filament\\Tables\\Table",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesResource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "trait",
             "final": false,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -714,56 +971,96 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getEloquentQuery",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return Builder<Model>"
+                    ]
+                },
+                {
+                    "name": "modifyEloquentQuery",
+                    "visibility": "protected",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param Builder<Model> $query",
+                        "@return Builder<Model>"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Concerns\\AuthorizesWidget",
+            "publication": "api",
+            "since": "0.7",
             "kind": "trait",
             "final": false,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "canView",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Contracts\\FilamentFormExtension",
+            "publication": "spi-implement",
+            "since": "0.7",
             "kind": "interface",
             "final": false,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "appliesTo",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -780,12 +1077,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "components",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -802,14 +1103,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array<string, Component>"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Diagnostics\\FilamentDefinitionsCheck",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -818,20 +1123,28 @@
             "interfaces": [
                 "AzGuard\\Contracts\\Diagnostics\\DoctorCheck"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "key",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "run",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "context",
@@ -841,14 +1154,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "iterable"
+                    "return": "iterable",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Exports\\AuthorizedExportCsv",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -857,24 +1172,35 @@
             "interfaces": [
                 "Illuminate\\Contracts\\Queue\\ShouldQueue"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [
-                "OPTION"
+                {
+                    "name": "OPTION",
+                    "visibility": "public",
+                    "final": false,
+                    "value": "azguard"
+                }
             ],
             "properties": [],
             "methods": [
                 {
                     "name": "handle",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Exports\\AuthorizedPrepareCsvExport",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": false,
             "abstract": false,
@@ -883,22 +1209,28 @@
             "interfaces": [
                 "Illuminate\\Contracts\\Queue\\ShouldQueue"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getExportCsvJob",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\FilamentDefinitions",
+            "publication": "api",
+            "since": "0.7",
             "kind": "enum",
             "final": true,
             "abstract": false,
@@ -908,6 +1240,9 @@
                 "BackedEnum",
                 "UnitEnum"
             ],
+            "namedArguments": true,
+            "contracts": [],
+            "enum": "open",
             "cases": [
                 {
                     "name": "Enums",
@@ -922,29 +1257,39 @@
             "properties": [
                 {
                     "name": "name",
+                    "visibility": "public",
                     "type": "string",
                     "readonly": true,
-                    "static": false
+                    "static": false,
+                    "contracts": []
                 },
                 {
                     "name": "value",
+                    "visibility": "public",
                     "type": "string",
                     "readonly": true,
-                    "static": false
+                    "static": false,
+                    "contracts": []
                 }
             ],
             "methods": [
                 {
                     "name": "cases",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "from",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "value",
@@ -954,12 +1299,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "static"
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "tryFrom",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "value",
@@ -969,14 +1318,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "?static"
+                    "return": "?static",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\FilamentTenantResolver",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -985,13 +1336,17 @@
             "interfaces": [
                 "AzGuard\\Contracts\\Scopes\\TenantResolver"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "resolve",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "request",
@@ -1001,29 +1356,40 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "?AzGuard\\Kernel\\Identity\\TenantRef"
+                    "return": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Forms\\SchemaFields",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": null,
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [
-                "PATH"
+                {
+                    "name": "PATH",
+                    "visibility": "public",
+                    "final": false,
+                    "value": "fields"
+                }
             ],
             "properties": [],
             "methods": [
                 {
                     "name": "declared",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -1047,12 +1413,19 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<mixed>|null $state",
+                        "@return array<string, mixed>"
+                    ]
                 },
                 {
                     "name": "field",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "field",
@@ -1062,12 +1435,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "Filament\\Forms\\Components\\Field"
+                    "return": "Filament\\Forms\\Components\\Field",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "for",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -1092,12 +1469,19 @@
                             "default": "array (\n)"
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<FilamentFormExtension> $extensions in the order of registration; the first component of a name wins",
+                        "@return list<Component>"
+                    ]
                 },
                 {
                     "name": "state",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -1121,12 +1505,19 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<string, mixed> $values",
+                        "@return array<string, mixed>"
+                    ]
                 },
                 {
                     "name": "values",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -1150,14 +1541,19 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<mixed>|null $state",
+                        "@return array<string, mixed>"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Pages\\DoctorPage",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1168,48 +1564,74 @@
                 "Filament\\Schemas\\Contracts\\HasRenderHookScopes",
                 "Filament\\Schemas\\Contracts\\HasSchemas"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [
                 {
                     "name": "findings",
+                    "visibility": "public",
                     "type": "array",
                     "readonly": false,
-                    "static": false
+                    "static": false,
+                    "contracts": [
+                        "@var list<array{key: string, severity: string, scope: string, message: string, details: array<string, mixed>}>"
+                    ]
                 }
             ],
             "methods": [
                 {
                     "name": "canAccess",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "check",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "mount",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "severities",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<string> the severities that have findings, the heaviest first"
+                    ]
                 },
                 {
                     "name": "severity",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "severity",
@@ -1219,14 +1641,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<array{key: string, severity: string, scope: string, message: string, details: array<string, mixed>}>"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Pages\\PanelsPage",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1237,49 +1663,67 @@
                 "Filament\\Schemas\\Contracts\\HasRenderHookScopes",
                 "Filament\\Schemas\\Contracts\\HasSchemas"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [
                 {
                     "name": "panels",
+                    "visibility": "public",
                     "type": "array",
                     "readonly": false,
-                    "static": false
+                    "static": false,
+                    "contracts": [
+                        "@var list<array<string, mixed>>"
+                    ]
                 }
             ],
             "methods": [
                 {
                     "name": "canAccess",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "mount",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "void"
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Resources\\PermissionGrantResource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": "Filament\\Resources\\Resource",
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -1297,41 +1741,57 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getEloquentQuery",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return Builder<Model>"
+                    ]
                 },
                 {
                     "name": "getPages",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Resources\\PermissionResource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": "Filament\\Resources\\Resource",
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -1349,26 +1809,40 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getEloquentQuery",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return Builder<Model>"
+                    ]
                 },
                 {
                     "name": "getPages",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "keepsDynamicPermissions",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -1378,12 +1852,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "row",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "permission",
@@ -1393,27 +1871,35 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array{name: string, domain: string, label: string, group: ?string, description: ?string, authority: string, dynamic: bool, decided_by: ?string}"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Resources\\RoleGrantResource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": "Filament\\Resources\\Resource",
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -1431,41 +1917,57 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getEloquentQuery",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return Builder<Model>"
+                    ]
                 },
                 {
                     "name": "getPages",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Resources\\RoleResource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
             "readonly": false,
             "parent": "Filament\\Resources\\Resource",
             "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "getAuthorizationResponse",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "action",
@@ -1483,26 +1985,40 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "Illuminate\\Auth\\Access\\Response"
+                    "return": "Illuminate\\Auth\\Access\\Response",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "getEloquentQuery",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "Illuminate\\Database\\Eloquent\\Builder"
+                    "return": "Illuminate\\Database\\Eloquent\\Builder",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return Builder<Model>"
+                    ]
                 },
                 {
                     "name": "getPages",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "permissionsOf",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "schema",
@@ -1512,12 +2028,18 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return array<string, PermissionSchema>"
+                    ]
                 },
                 {
                     "name": "row",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "role",
@@ -1535,14 +2057,18 @@
                             "default": "array (\n)"
                         }
                     ],
-                    "return": "array"
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param array<string, PermissionSchema> $permissions by local name"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         },
         {
             "name": "AzGuard\\Filament\\Sources\\FilamentSource",
+            "publication": "api",
+            "since": "0.7",
             "kind": "class",
             "final": true,
             "abstract": false,
@@ -1553,13 +2079,17 @@
                 "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
                 "AzGuard\\Contracts\\Sources\\Source"
             ],
+            "namedArguments": true,
+            "contracts": [],
             "constants": [],
             "properties": [],
             "methods": [
                 {
                     "name": "describe",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -1577,33 +2107,49 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "AzGuard\\Contracts\\Sources\\SourceDescription"
+                    "return": "AzGuard\\Contracts\\Sources\\SourceDescription",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "filamentPanel",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "id",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "string"
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "isDynamic",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [],
-                    "return": "bool"
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "make",
+                    "visibility": "public",
                     "static": true,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "filamentPanel",
@@ -1613,12 +2159,16 @@
                             "hasDefault": false
                         }
                     ],
-                    "return": "self"
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "permissions",
+                    "visibility": "public",
                     "static": false,
                     "abstract": false,
+                    "final": false,
                     "parameters": [
                         {
                             "name": "panel",
@@ -1636,11 +2186,13 @@
                             "default": "NULL"
                         }
                     ],
-                    "return": "iterable"
+                    "return": "iterable",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<PermissionDefinition>"
+                    ]
                 }
-            ],
-            "stability": "api",
-            "via": "tag"
+            ]
         }
     ]
 }

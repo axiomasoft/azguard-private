@@ -1,5 +1,17 @@
 # Upgrading
 
+## From 0.7 to 1.0 (instructions for AI agents)
+
+1.0 finishes one contract transition from 0.7.0. There are no compatibility aliases: apply every line that matches
+your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
+
+- Find: `@api` or `@spi` in a docblock of an AzGuard type → Replace: nothing; publication is the attribute
+  `#[AzGuard\Attributes\Api(since: …)]` or `#[AzGuard\Attributes\Spi(kind: SpiKind::Implement|Call, since: …)]`, and a type
+  without it is internal wherever it lives.
+- Find: `"stability"` or `"via"` in a tool reading `api-manifest.json` → Replace: `"publication"` (`api`, `spi-implement`,
+  `spi-call`) and `"since"`; entries also carry protected override points, constant values, `enum: closed|open`,
+  PHPDoc `contracts`, `namedArguments`, and the manifest carries `roots` (core also `facade`).
+
 ## From 0.3 to 0.7.0
 
 Version 0.3 (`axioma-studio/azguard-core`, `-context`, `-filament`, tag `v0.3.0`) was never published on

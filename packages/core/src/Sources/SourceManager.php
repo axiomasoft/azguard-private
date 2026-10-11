@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Attributes\AsSource;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Sources\Source;
@@ -21,9 +22,8 @@ use ReflectionClass;
  *
  * The manager does not keep a driver cache: `make()` calls the creator every time, so two panels never share an
  * object. There is no default source.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class SourceManager extends Manager
 {
     /** @var array<string, class-string<Source>> source name => class declared with `#[AsSource]` */

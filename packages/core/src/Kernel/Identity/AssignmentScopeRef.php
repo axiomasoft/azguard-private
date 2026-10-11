@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 
 /**
@@ -11,6 +12,7 @@ use AzGuard\Exceptions\InvalidAssignmentScopeException;
  *
  * `global()` is a separate form with key `global`; `of('global', ...)` is an ordinary reference.
  */
+#[Api(since: '0.7')]
 final readonly class AssignmentScopeRef
 {
     private const string GLOBAL_KEY = 'global';

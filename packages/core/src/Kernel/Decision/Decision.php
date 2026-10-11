@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -11,6 +12,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 /**
  * The answer to an access request: effect, reason consistent with it, the state it was made against and the scope.
  */
+#[Api(since: '0.7')]
 final readonly class Decision
 {
     private const array ALLOW_REASONS = [DecisionReason::Granted, DecisionReason::SuperAdmin, DecisionReason::Policy];

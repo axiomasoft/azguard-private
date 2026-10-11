@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Arch\SourceScan;
 
 const AZGUARD_TASK_CODE = '/\bPLAN\d+\b|\bP\d+\.\d+\b|\b[CDNQRV]-?\d{2,3}\b|\bF\d{2}\b/';
@@ -70,14 +71,20 @@ it('reads package configuration only in the configuration zone', function (): vo
     expect($offenders)->toBe([]);
 });
 
-it('tags every contract as api or spi', function (): void {
-    $untagged = array_values(array_filter(
+it('publishes every contract by attribute, except the ones P2 still moves or retires', function (): void {
+    $oracle = Ownership::fromOracle();
+    $unpublished = array_values(array_filter(
         SourceScan::files(),
-        static fn (string $file): bool => str_contains($file, '/packages/core/src/Contracts/')
-            && preg_match('/^\s*\*\s*@(api|spi)\b/m', (string) file_get_contents($file)) !== 1,
+        static function (string $file) use ($oracle): bool {
+            $row = $oracle->typeRow((string) Ownership::declaredType((string) file_get_contents($file)));
+
+            return str_contains($file, '/packages/core/src/Contracts/')
+                && preg_match('/^#\[(Api|Spi)\(/m', (string) file_get_contents($file)) !== 1
+                && ! (($row['phase'] ?? null) === 'P2' && in_array($row['action'] ?? null, ['move', 'rename', 'retire'], true));
+        },
     ));
 
-    expect($untagged)->toBe([]);
+    expect($unpublished)->toBe([]);
 });
 
 /*

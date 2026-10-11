@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -11,9 +13,8 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 
 /**
  * Candidate prefilter with raw witnesses. It never represents an Allow.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class AssignmentScopeSelection
 {
     /** @param list<AssignmentScopeRef> $refs

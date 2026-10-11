@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -27,9 +29,8 @@ use UnitEnum;
  * - an exception inside it is a denial with the reason `restriction_error`, never a pass — and the suite finds the
  *   exception, because a restriction that fails on an ordinary request is a defect;
  * - a denial names the restriction.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait RestrictionContractTests
 {
     /** A new instance of the restriction under test. */

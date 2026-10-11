@@ -1,12 +1,14 @@
 # Baseline 0.7.0 fixtures
 
-Executable evidence of AzGuard 0.7.0 (PLAN1, phase P1). Every fixture here was generated from the unchanged code of
-the baseline commit `09612160c98ca6133c894a8f90f5653b9dac6b8f` (tag 0.7.0; `git diff --quiet <commit> -- packages/`
-held at generation). Later phases change a fixture only deliberately, in the commit that changes the behavior.
+Executable evidence of AzGuard 0.7.0 (PLAN1, phase P1), generated from the baseline commit
+`09612160c98ca6133c894a8f90f5653b9dac6b8f` (tag 0.7.0). Since P2 (D16) the fixtures are **regression guards of the
+current behavior**, not compatibility promises: a change that alters a pinned format on purpose regenerates the fixture
+in writer mode in the same commit and names every changed fixture in its plan result. An unexplained fixture change is a
+defect. The byte copies of the 0.7.0 API manifests (`api-manifest/`) are pinned by sha256 and never regenerated.
 
 ## Regenerating
 
-A fixture is written only in writer mode, and only from the 0.7.0 code:
+A fixture is written only in writer mode, on the current tree:
 
 ```bash
 AZGUARD_BASELINE_WRITE=1 vendor/bin/pest tests/Regression/Baseline070 tests/Feature/Console/CommandsSnapshotTest.php \

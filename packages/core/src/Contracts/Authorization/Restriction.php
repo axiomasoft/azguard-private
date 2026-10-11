@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\RestrictionResult;
 
@@ -15,9 +17,8 @@ use AzGuard\Kernel\Decision\RestrictionResult;
  * encode its own applicability there (AccessPredicate::pass() when inapplicable) and
  * appliesTo() is not consulted for lists. For a restriction without that adapter
  * appliesTo() may skip it only when the answer does not depend on the resource.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface Restriction
 {
     public function key(): string;

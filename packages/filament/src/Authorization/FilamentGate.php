@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Authorization;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
@@ -41,9 +42,8 @@ use function Filament\get_authorization_response;
  * `before()` is the `Gate::before` hook of the package: inside a Filament panel that enforces, it refuses an ability of
  * Filament on a model that has neither a policy nor a Gate ability, the check that Filament would otherwise allow. It
  * never allows anything.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class FilamentGate
 {
     /**

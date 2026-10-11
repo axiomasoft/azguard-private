@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -14,9 +15,8 @@ use Throwable;
 
 /**
  * Eloquent shorthand. A tenant panel must supply an explicit authoritative owner callback.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class ModelAssignmentScopeDefinition extends BaseAssignmentScope
 {
     private readonly string $alias;

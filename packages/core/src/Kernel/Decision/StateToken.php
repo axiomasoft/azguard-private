@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -14,6 +15,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
  * with changes that are not one subject's (a manual touch, a reset, a dynamic permission or a write whose subjects
  * are unknown); the version moves with every write of the panel.
  */
+#[Api(since: '0.7')]
 final readonly class StateToken
 {
     private function __construct(

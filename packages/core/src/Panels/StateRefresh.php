@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
+
 /**
  * How often a panel re-reads the state version that invalidates cached permissions.
  *
- * @api
+ * @closed
  */
+#[Api(since: '0.7')]
 enum StateRefresh: string
 {
     /** Once per request or job. */

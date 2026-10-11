@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Exceptions;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Explicit panel signals of one check name different panels.
  */
+#[Api(since: '0.7')]
 final class ConflictingPanelException extends DefinitionException
 {
     public function code(): string

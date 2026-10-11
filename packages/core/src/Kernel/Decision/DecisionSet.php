@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Kernel\Decision;
 
 use ArrayIterator;
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use Countable;
@@ -16,6 +17,7 @@ use OutOfRangeException;
  *
  * @implements IteratorAggregate<int, Decision>
  */
+#[Api(since: '0.7')]
 final readonly class DecisionSet implements Countable, IteratorAggregate
 {
     /**

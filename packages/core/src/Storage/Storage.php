@@ -34,8 +34,6 @@ use function Illuminate\Support\enum_value;
 
 /**
  * A configured physical storage or a registry-managed private storage.
- *
- * @api
  */
 final class Storage
 {

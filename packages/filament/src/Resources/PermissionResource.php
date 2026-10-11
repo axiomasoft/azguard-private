@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use AzGuard\Panels\Panel;
@@ -19,9 +20,8 @@ use UnitEnum;
  * who edits.
  *
  * Its permissions are `azguard-permissions.{view_any,view,create,update,delete}` in the guard panel.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class PermissionResource extends Resource
 {
     use AuthorizesResource;

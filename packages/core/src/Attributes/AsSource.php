@@ -8,10 +8,9 @@ use Attribute;
 
 /**
  * Registers the class under a source name. Discovery of the attribute is separate from this declaration.
- *
- * @api
  */
 #[Attribute(Attribute::TARGET_CLASS)]
+#[Api(since: '0.7')]
 final readonly class AsSource
 {
     public function __construct(public string $name) {}

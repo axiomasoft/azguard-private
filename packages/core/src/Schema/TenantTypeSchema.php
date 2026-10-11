@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\TenantDirectory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
@@ -11,6 +12,7 @@ use JsonSerializable;
 /**
  * The tenant type of a panel and the directory that looks its tenants up.
  */
+#[Api(since: '0.7')]
 final readonly class TenantTypeSchema implements JsonSerializable
 {
     /**

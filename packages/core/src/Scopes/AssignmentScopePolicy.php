@@ -14,8 +14,6 @@ use Throwable;
 
 /**
  * The assignment scopes accepted by a panel and how tenant-wide grants inherit into them.
- *
- * @api
  */
 final class AssignmentScopePolicy
 {

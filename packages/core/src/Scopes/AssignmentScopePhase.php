@@ -6,8 +6,6 @@ namespace AzGuard\Scopes;
 
 /**
  * Why an assignment scope is evaluated: checking access, assigning, revoking or inspecting assignments.
- *
- * @api
  */
 enum AssignmentScopePhase: string
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Catalog;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -14,9 +15,8 @@ use UnitEnum;
  *
  * A name is the local name of the panel (`orders.view`) or a permission key of the panel; a key of another panel is
  * never found. Every lookup reads a hash index: no list is scanned and no query is made.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface PermissionCatalog
 {
     /**

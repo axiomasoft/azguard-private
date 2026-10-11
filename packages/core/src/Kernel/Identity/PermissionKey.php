@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -13,6 +14,7 @@ use Stringable;
 /**
  * A catalog permission name: local `orders.view` inside a panel, full form `admin:orders.view`.
  */
+#[Api(since: '0.7')]
 final readonly class PermissionKey implements JsonSerializable, Stringable
 {
     private function __construct(

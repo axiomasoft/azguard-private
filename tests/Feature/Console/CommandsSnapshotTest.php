@@ -278,8 +278,7 @@ describe('exit codes', function (): void {
         $codes = azguardExitCodes(azguardExitScenarios()[$command]);
         $snapshot = azguardCommandsSnapshot();
 
-        if (getenv(FormatSnapshot::WRITE) === '1') {
-            FormatSnapshot::assertBaselineTree();
+        if (FormatSnapshot::writing()) {
             $snapshot[$command]['exit_codes'] = $codes;
             file_put_contents(azguardCommandsPath(), FormatSnapshot::encode($snapshot));
         }

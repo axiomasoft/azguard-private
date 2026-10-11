@@ -89,15 +89,48 @@ final class Ownership
         return $this->rows;
     }
 
-    /** @param string $path path relative to the repository root */
-    public function fileRow(string $path): ?array
+    /**
+     * The row of a file: by its path, or, for a file at an interim path the oracle does not list (D17: a type P2 gives
+     * its target FQCN before P3 moves the file), by the FQCN the file declares.
+     *
+     * @param  string  $path  path relative to the repository root
+     * @param  string|null  $root  repository root the path is read from; this repository when null
+     */
+    public function fileRow(string $path, ?string $root = null): ?array
     {
-        return $this->byPath[$path] ?? null;
+        if (isset($this->byPath[$path])) {
+            return $this->byPath[$path];
+        }
+        $file = rtrim($root ?? dirname(__DIR__, 2), '/').'/'.$path;
+        $declared = is_file($file) ? self::declaredType((string) file_get_contents($file)) : null;
+
+        return $declared === null ? null : $this->typeRow($declared);
     }
 
-    public function fileOwner(string $path): ?string
+    public function fileOwner(string $path, ?string $root = null): ?string
     {
-        return $this->fileRow($path)['owner'] ?? null;
+        return $this->fileRow($path, $root)['owner'] ?? null;
+    }
+
+    /** The FQCN of the first class, interface, trait or enum a file declares, or null when it declares none. */
+    public static function declaredType(string $code): ?string
+    {
+        $tokens = array_values(array_filter(token_get_all($code), static fn (array|string $token): bool => ! is_array($token)
+            || ! in_array($token[0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)));
+
+        foreach ($tokens as $index => $token) {
+            $previous = $tokens[$index - 1] ?? null;
+            $name = $tokens[$index + 1] ?? null;
+
+            if (is_array($token) && in_array($token[0], [T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM], true) && is_array($name) && $name[0] === T_STRING
+                && ! (is_array($previous) && in_array($previous[0], [T_DOUBLE_COLON, T_NEW], true))) {
+                $namespace = SourceScan::namespace($code);
+
+                return ($namespace === '' ? '' : $namespace.'\\').$name[1];
+            }
+        }
+
+        return null;
     }
 
     public function typeRow(string $fqcn): ?array

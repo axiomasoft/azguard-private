@@ -9,8 +9,6 @@ use Illuminate\Http\Request;
 
 /**
  * Selects the current tenant from an HTTP request.
- *
- * @spi
  */
 interface TenantResolver
 {

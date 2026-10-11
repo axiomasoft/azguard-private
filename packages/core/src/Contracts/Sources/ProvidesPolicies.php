@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Panels\Panel;
 use AzGuard\Policies\PolicyBinding;
 
 /**
  * A source of policy bindings: the only authority of a policy-only permission, a veto for a grants permission.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface ProvidesPolicies extends Source
 {
     /**

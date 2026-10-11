@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Subjects\SubjectResolver;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -21,9 +23,8 @@ use Throwable;
  * - the model of the reference resolves back to the same reference;
  * - a reference to a subject that does not exist has no model;
  * - what is not a subject is refused, not turned into a reference.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait SubjectResolverContractTests
 {
     /** A new instance of the resolver under test. */

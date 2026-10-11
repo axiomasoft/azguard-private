@@ -19,6 +19,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePhase;
+use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Scopes\Project;
@@ -57,7 +58,8 @@ it('keeps the documented scope and subject contracts', function (string $contrac
     $reflection = new ReflectionClass($contract);
 
     expect($reflection->isInterface())->toBeTrue()
-        ->and((string) $reflection->getDocComment())->toContain('@spi')
+        // P2.2 moves TenantMembership and TenantResolver to Contracts\Tenancy and marks them there.
+        ->and(ApiUsage::publication($contract))->toBe(in_array($contract, [TenantMembership::class, TenantResolver::class], true) ? null : 'spi-implement')
         ->and(contractSignatures($contract))->toBe($signatures);
 })->with([
     'definition' => [AssignmentScopeDefinition::class, [
@@ -99,7 +101,7 @@ it('keeps a resolved scope a plain final readonly value', function (): void {
         ->and((new ResolvedAssignmentScope($ref, $tenant))->record)->toBeNull()
         ->and($reflection->isFinal() && $reflection->isReadOnly())->toBeTrue()
         ->and(array_map(static fn (ReflectionMethod $m): string => $m->getName(), $reflection->getMethods()))->toBe(['__construct'])
-        ->and((string) $reflection->getDocComment())->toContain('@spi');
+        ->and(ApiUsage::publication(ResolvedAssignmentScope::class))->toBe('spi-call');
 });
 
 it('lets several code roles share one scope definition by its alias', function (BaseRole $role): void {
@@ -145,5 +147,6 @@ it('resolves no scope for a foreign type or the global scope', function (Assignm
 it('names the four assignment scope phases', function (): void {
     expect(array_map(static fn (AssignmentScopePhase $p): string => $p->value, AssignmentScopePhase::cases()))
         ->toBe(['access', 'assignment', 'revocation', 'inspection'])
-        ->and((string) (new ReflectionEnum(AssignmentScopePhase::class))->getDocComment())->toContain('@api');
+        // P2.2 moves the enum to Context and marks it there.
+        ->and(ApiUsage::publication(AssignmentScopePhase::class))->toBeNull();
 });

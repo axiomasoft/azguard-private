@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Panels\Panel;
 use AzGuard\Storage\Storage;
@@ -11,9 +13,8 @@ use AzGuard\Storage\Storage;
 /**
  * What one run of `azguard:doctor` inspects: the selected panels and storages, whether the run checks a production
  * deployment and the configuration. A check of a source, a panel or a plugin also gets the panel it runs for.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class DoctorContext
 {
     /**

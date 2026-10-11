@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\TenantRequiredException;
 use AzGuard\Exceptions\UnknownPanelException;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -15,9 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Every panel of one subject: `$user->azguard()`. Panels are picked by the panel resolver only; the selector never
  * changes the model, the authentication manager or the current panel.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class SubjectPanels
 {
     public function __construct(private Model|SubjectRef $subject) {}

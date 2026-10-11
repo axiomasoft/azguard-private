@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Widgets\Widget;
 
@@ -11,9 +12,8 @@ use Filament\Widgets\Widget;
  * Shows a widget with its permission `widgets.{name}` in the guard panel.
  *
  * @phpstan-require-extends Widget
- *
- * @api
  */
+#[Api(since: '0.7')]
 trait AuthorizesWidget
 {
     public static function canView(): bool

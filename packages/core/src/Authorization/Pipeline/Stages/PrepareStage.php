@@ -99,7 +99,7 @@ final readonly class PrepareStage
             decisionNow: $now, selectedActor: $actor, subject: $subject, actorSubject: $actorModel, selectedResource: $request->resource(), batchInputs: $batch,
         );
 
-        [$frame, $boundaryDenial] = $this->boundary->resolve(request: $request, frame: $frame, trace: $trace, structural: false);
+        [$frame, $boundaryDenial] = $this->boundary->resolve($request, $frame, $trace, false);
 
         return [$catalog, $definition, $frame, $boundaryDenial ?? ($error === null ? null : Decision::failed(DecisionReason::SourceError, $frame->state(), $frame->scope(), ModelSubjectResolver::class))];
     }

@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Scopes\AssignmentScopePhase;
 
 /**
  * What a change does to the grants and the dynamic permissions of a panel.
  *
- * @api
+ * @open
  */
+#[Api(since: '0.7')]
 enum ChangeType: string
 {
     case GrantRole = 'grant_role';

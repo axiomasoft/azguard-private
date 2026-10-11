@@ -65,7 +65,7 @@ final readonly class EnterPanel
      */
     public function handle(Request $request, Closure $next, string $panel): mixed
     {
-        $panel = $this->resolver->resolve(panel: $panel)['panel'];
+        $panel = $this->resolver->resolve(null, null, $panel)['panel'];
 
         return $this->through($request, $this->panelMiddleware($request, $panel), fn (Request $request): mixed => $this->enter($request, $next, $panel));
     }

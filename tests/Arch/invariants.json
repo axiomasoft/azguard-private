@@ -30,8 +30,11 @@
     {
         "id": "I4",
         "status": "build",
-        "checks": [],
-        "blocking": "after P2",
+        "checks": [
+            "tests/Arch/ApiManifestTest.php",
+            "tests/Arch/Allowlists/i4.json"
+        ],
+        "blocking": "after P3",
         "owner_phase": "P2"
     },
     {
@@ -188,8 +191,10 @@
     {
         "id": "I20",
         "status": "build",
-        "checks": [],
-        "blocking": "after P2",
+        "checks": [
+            "tests/Arch/SpiPositionalCallsTest.php"
+        ],
+        "blocking": "now",
         "owner_phase": "P2"
     },
     {

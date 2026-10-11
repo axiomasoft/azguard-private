@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Scopes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 
 /**
  * A resource that reports its assignment scope in a panel without tenants.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface ProvidesAssignmentScope
 {
     public function azguardAssignmentScope(): ?AssignmentScopeRef;

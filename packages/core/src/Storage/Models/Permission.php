@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Models;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Storage\Concerns\BelongsToStorage;
 use AzGuard\Storage\Concerns\GuardsDirectWrites;
 use Illuminate\Database\Eloquent\Model;
 
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 class Permission extends Model
 {
     use BelongsToStorage;

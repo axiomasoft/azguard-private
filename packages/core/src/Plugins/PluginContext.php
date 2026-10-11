@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Plugins;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
+
 /**
  * What a plugin is told about the build it takes part in: the panel, its own id, the build and its declared
  * dependencies.
  *
  * It carries no options, no container and no panel object: a plugin keeps its settings in its own typed fields.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class PluginContext
 {
     /**

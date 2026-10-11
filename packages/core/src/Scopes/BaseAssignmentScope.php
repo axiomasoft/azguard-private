@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
@@ -23,9 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  * this base has no universal `make()`.
  *
  * `resolve()` loads the record once. A global reference and a reference of another type are refused, not ignored.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 abstract class BaseAssignmentScope implements ConfigurableAssignmentScopeDefinition, QueryableAssignmentScopeDefinition
 {
     /** @var list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> */

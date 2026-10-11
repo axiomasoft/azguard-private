@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
@@ -27,6 +28,7 @@ use UnitEnum;
 /**
  * A compiled panel: an immutable description produced from the recipe of its provider.
  */
+#[Api(since: '0.7')]
 final readonly class Panel
 {
     /**

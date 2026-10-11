@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Concerns\SubjectAccess;
 use AzGuard\Concerns\SubjectPanels;
@@ -20,9 +22,8 @@ use UnitEnum;
 /**
  * A model that holds roles and permissions; `Concerns\HasAzGuard` implements it. The panel selector `guard()` is not
  * part of the contract: a model may keep its own Eloquent `guard()` and reach panels through `azguard()`.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface AzGuardSubject
 {
     public function hasPermission(string|UnitEnum $permission, Model|AssignmentScopeRef|null $on = null, ?string $guard = null): bool;

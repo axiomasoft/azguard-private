@@ -103,7 +103,7 @@ it('lists the serializable types and pins the target of each in the type map', f
         $row = $oracle->typeRow($type['fqcn']);
 
         expect($row)->not->toBeNull($type['fqcn'].' has no type-map row')
-            ->and($row['current'])->toBe($type['fqcn'])
+            ->and($row['current'] ?? $row['target'])->toBe($type['fqcn'])
             ->and([$type['target'], $type['action'], $type['owner']])->toBe([$row['target'], $row['action'], $row['owner']], $type['fqcn']);
     }
 

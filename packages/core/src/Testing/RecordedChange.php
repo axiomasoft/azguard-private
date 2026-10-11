@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventType;
 use AzGuard\Events\GrantExpired;
@@ -23,9 +24,8 @@ use AzGuard\Kernel\Identity\TenantRef;
 /**
  * One change the fake saw, taken from the event the change published after its commit. A change of the permission
  * catalog or of the panel state has no subject, role or context.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class RecordedChange
 {
     public function __construct(

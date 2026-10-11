@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Roles;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\RoleSchema;
 
 /**
  * The code roles of one panel, read-only. A role is a PHP class: its key, permissions and scopes change only in code
  * and with a deployment, never through this catalog. Who holds a role is a matter of grants, not of the catalog.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface RoleCatalog
 {
     /**

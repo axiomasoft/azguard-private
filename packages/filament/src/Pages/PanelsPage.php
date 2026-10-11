@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Pages;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Diagnostics\PanelOverview;
 use AzGuard\Filament\Concerns\AuthorizesPage;
 use Filament\Pages\Page;
@@ -16,9 +17,8 @@ use UnitEnum;
  * nothing; a panel without a database source is listed here though no editor offers it.
  *
  * Its permission is `pages.azguard-panels` in the guard panel.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class PanelsPage extends Page
 {
     use AuthorizesPage;

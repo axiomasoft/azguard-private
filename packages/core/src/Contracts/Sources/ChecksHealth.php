@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 
 /**
  * A source that brings its own health checks to `azguard:doctor`; they run for each panel the source is attached to.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface ChecksHealth extends Source
 {
     /** @return list<DoctorCheck> */

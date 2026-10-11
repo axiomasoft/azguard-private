@@ -3,38 +3,30 @@
 declare(strict_types=1);
 
 /*
- * Machine manifest of the public API of each package (api-manifest.json).
+ * Machine manifest of the supported surface of each package (api-manifest.json).
  *
  *   php bin/api-manifest.php --write   regenerate both manifests
  *   php bin/api-manifest.php --check   exit 1 with a short diff when a manifest is stale
  *
- * Public by location (core): Kernel, Exceptions, Schema, Events, Testing, Storage\Models, Facades\AzGuard,
- * Concerns\HasAzGuard, Roles\BaseRole, Panels\{PanelBuilder,Panel,PanelProvider}. Contracts need an @api/@spi tag.
- * Any other class is public only with an explicit @api/@spi docblock tag. An @internal class is never published.
+ * Publication is the attribute only (D9): a type with #[Api] or #[Spi] is supported, any other type is internal wherever
+ * it lives, and a type under `\Internal\` with an attribute is an error. Per supported type the manifest records the
+ * attribute kind and `since`, the public members and, for a class that is not final, the protected members (override
+ * points) with full signatures and parameter names, constants with values, enum cases with the closed/open class, the
+ * PHPDoc generic and class-string contracts of the members and the `@no-named-arguments` stance. A member documented
+ * `@internal` is excluded. The core manifest also lists the facade methods derived from the entry class
+ * `AzGuard\AzGuard` and every manifest names the PSR-4 roots of its package.
  */
+
+use AzGuard\Attributes\Api;
+use AzGuard\Attributes\Spi;
 
 $root = dirname(__DIR__);
 require $root.'/vendor/autoload.php';
 
 const API_PACKAGES = ['packages/core', 'packages/filament'];
 
-const API_LOCATION_PREFIXES = [
-    'AzGuard\\Kernel\\',
-    'AzGuard\\Exceptions\\',
-    'AzGuard\\Schema\\',
-    'AzGuard\\Events\\',
-    'AzGuard\\Testing\\',
-    'AzGuard\\Storage\\Models\\',
-];
-
-const API_LOCATION_CLASSES = [
-    'AzGuard\\Facades\\AzGuard',
-    'AzGuard\\Concerns\\HasAzGuard',
-    'AzGuard\\Roles\\BaseRole',
-    'AzGuard\\Panels\\PanelBuilder',
-    'AzGuard\\Panels\\Panel',
-    'AzGuard\\Panels\\PanelProvider',
-];
+/** The entry class whose public methods the facade forwards. */
+const API_ENTRY = 'AzGuard\\AzGuard';
 
 /*
  * Classes declared differently by the installed Laravel. The manifest records the Laravel 13 shape (the dev
@@ -45,7 +37,7 @@ const API_LARAVEL_DEPENDENT = [
 ];
 
 /**
- * @return array{package: string, classes: list<array<string, mixed>>}
+ * @return array{package: string, roots: array<string, string>, facade?: list<array<string, mixed>>, classes: list<array<string, mixed>>}
  */
 function apiManifest(string $root, string $package): array
 {
@@ -59,6 +51,7 @@ function apiManifest(string $root, string $package): array
     /** @var array{name: string, autoload: array{psr-4: array<string, string>}} $composer */
     $composer = json_decode((string) file_get_contents("{$root}/{$package}/composer.json"), true, flags: JSON_THROW_ON_ERROR);
     $classes = [];
+    $hasEntry = false;
 
     foreach ($composer['autoload']['psr-4'] as $prefix => $dir) {
         $base = "{$root}/{$package}/".rtrim($dir, '/');
@@ -76,6 +69,7 @@ function apiManifest(string $root, string $package): array
                 continue;
             }
 
+            $hasEntry = $hasEntry || $fqcn === API_ENTRY;
             $dependsOn = API_LARAVEL_DEPENDENT[$fqcn] ?? null;
             $entry = $dependsOn !== null && ! class_exists($dependsOn) && isset($committed[$fqcn])
                 ? $committed[$fqcn]
@@ -88,8 +82,49 @@ function apiManifest(string $root, string $package): array
     }
 
     ksort($classes, SORT_STRING);
+    $roots = $composer['autoload']['psr-4'];
+    ksort($roots, SORT_STRING);
+    $manifest = ['package' => $composer['name'], 'roots' => $roots];
 
-    return ['package' => $composer['name'], 'classes' => array_values($classes)];
+    if ($package === 'packages/core') {
+        $manifest['facade'] = $hasEntry ? apiMembers(new ReflectionClass(API_ENTRY), facade: true)['methods'] : [];
+    }
+
+    return [...$manifest, 'classes' => array_values($classes)];
+}
+
+/**
+ * The publication of a type: `api`, `spi-implement` or `spi-call` with its `since`, or null for an internal type.
+ *
+ * @param  ReflectionClass<object>  $class
+ * @return array{publication: string, since: string}|null
+ */
+function apiPublication(ReflectionClass $class): ?array
+{
+    $api = $class->getAttributes(Api::class);
+    $spi = $class->getAttributes(Spi::class);
+
+    if ($api === [] && $spi === []) {
+        return null;
+    }
+
+    $name = $class->getName();
+
+    if (str_contains($name, '\\Internal\\')) {
+        throw new RuntimeException("{$name}: a type under \\Internal\\ carries no publication attribute.");
+    }
+
+    if ($api !== [] && $spi !== []) {
+        throw new RuntimeException("{$name}: a type carries either #[Api] or #[Spi], not both.");
+    }
+
+    if ($api !== []) {
+        return ['publication' => 'api', 'since' => $api[0]->newInstance()->since];
+    }
+
+    $marker = $spi[0]->newInstance();
+
+    return ['publication' => 'spi-'.$marker->kind->value, 'since' => $marker->since];
 }
 
 /**
@@ -98,26 +133,16 @@ function apiManifest(string $root, string $package): array
  */
 function apiDescribe(ReflectionClass $class): ?array
 {
+    $publication = apiPublication($class);
+
+    if ($publication === null) {
+        return null;
+    }
+
     $name = $class->getName();
-
-    if (preg_match('/^\s*\*\s*@internal\b/m', (string) $class->getDocComment()) === 1) {
-        return null;
-    }
-
-    preg_match('/^\s*\*\s*@(api|spi)\b/m', (string) $class->getDocComment(), $tag);
-    $byLocation = in_array($name, API_LOCATION_CLASSES, true)
-        || array_filter(API_LOCATION_PREFIXES, static fn (string $p): bool => str_starts_with($name, $p)) !== [];
-
-    if (str_starts_with($name, 'AzGuard\\Contracts\\') && $tag === []) {
-        throw new RuntimeException("{$name}: a contract needs an @api or @spi tag.");
-    }
-
-    if (! $byLocation && $tag === []) {
-        return null;
-    }
-
     $entry = [
         'name' => $name,
+        ...$publication,
         'kind' => match (true) {
             $class->isEnum() => 'enum',
             $class->isInterface() => 'interface',
@@ -129,56 +154,136 @@ function apiDescribe(ReflectionClass $class): ?array
         'readonly' => $class->isReadOnly(),
         'parent' => $class->getParentClass() === false ? null : $class->getParentClass()->getName(),
         'interfaces' => apiSorted($class->getInterfaceNames()),
+        'namedArguments' => ! apiHasTag($class->getDocComment(), 'no-named-arguments'),
+        'contracts' => apiDocContracts($class->getDocComment()),
     ];
 
     if ($class->isEnum()) {
+        preg_match_all('/^\s*\*\s*@(closed|open)\b/m', (string) $class->getDocComment(), $tags);
+
+        if (count($tags[1]) !== 1) {
+            throw new RuntimeException("{$name}: a supported enum carries exactly one @closed or @open tag.");
+        }
+
+        $entry['enum'] = $tags[1][0];
         $entry['cases'] = array_map(static fn (ReflectionEnumUnitCase $case): array => [
             'name' => $case->getName(),
             'value' => $case instanceof ReflectionEnumBackedCase ? $case->getBackingValue() : null,
         ], (new ReflectionEnum($name))->getCases());
     }
 
-    $entry['constants'] = apiSorted(array_values(array_map(
-        static fn (ReflectionClassConstant $c): string => $c->getName(),
-        array_filter(
-            $class->getReflectionConstants(ReflectionClassConstant::IS_PUBLIC),
-            static fn (ReflectionClassConstant $c): bool => ! $c->isEnumCase() && $c->getDeclaringClass()->getName() === $name,
-        ),
-    )));
+    return [...$entry, ...apiMembers($class)];
+}
+
+/**
+ * The supported members declared by a class: public ones and, when the class is not final, protected ones (override
+ * points). A member documented `@internal` is not supported. With `$facade` only the public methods, as the facade
+ * forwards them.
+ *
+ * @param  ReflectionClass<object>  $class
+ * @return array{constants: list<array<string, mixed>>, properties: list<array<string, mixed>>, methods: list<array<string, mixed>>}
+ */
+function apiMembers(ReflectionClass $class, bool $facade = false): array
+{
+    $name = $class->getName();
+    $visibility = $class->isFinal() || $facade ? ReflectionMethod::IS_PUBLIC : ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED;
+    $classNamed = ! apiHasTag($class->getDocComment(), 'no-named-arguments');
+
+    $constants = [];
+    foreach ($class->getReflectionConstants($visibility) as $constant) {
+        if ($constant->isEnumCase() || $constant->getDeclaringClass()->getName() !== $name || apiHasTag($constant->getDocComment(), 'internal')) {
+            continue;
+        }
+        $constants[$constant->getName()] = [
+            'name' => $constant->getName(),
+            'visibility' => apiVisibility($constant),
+            'final' => $constant->isFinal(),
+            'value' => apiValue($constant->getValue()),
+        ];
+    }
+    ksort($constants, SORT_STRING);
 
     $properties = [];
-    foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-        if ($property->getDeclaringClass()->getName() === $name) {
-            $properties[$property->getName()] = [
-                'name' => $property->getName(),
-                'type' => apiType($property->getType(), $name),
-                'readonly' => $property->isReadOnly(),
-                'static' => $property->isStatic(),
-            ];
+    foreach ($class->getProperties($visibility) as $property) {
+        if ($property->getDeclaringClass()->getName() !== $name || apiHasTag($property->getDocComment(), 'internal')) {
+            continue;
         }
+        $properties[$property->getName()] = [
+            'name' => $property->getName(),
+            'visibility' => apiVisibility($property),
+            'type' => apiType($property->getType(), $name),
+            'readonly' => $property->isReadOnly(),
+            'static' => $property->isStatic(),
+            'contracts' => apiDocContracts($property->getDocComment()),
+        ];
     }
     ksort($properties, SORT_STRING);
-    $entry['properties'] = array_values($properties);
 
     $methods = [];
-    foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-        if ($method->getDeclaringClass()->getName() === $name) {
-            $methods[$method->getName()] = [
-                'name' => $method->getName(),
-                'static' => $method->isStatic(),
-                'abstract' => $method->isAbstract() && ! $class->isInterface(),
-                'parameters' => array_map(static fn (ReflectionParameter $parameter): array => apiParameter($parameter, $name), $method->getParameters()),
-                'return' => apiType($method->getReturnType(), $name),
-            ];
+    foreach ($class->getMethods($visibility) as $method) {
+        if ($method->getDeclaringClass()->getName() !== $name || apiHasTag($method->getDocComment(), 'internal')) {
+            continue;
         }
+        $methods[$method->getName()] = [
+            'name' => $method->getName(),
+            'visibility' => apiVisibility($method),
+            'static' => $method->isStatic(),
+            'abstract' => $method->isAbstract() && ! $class->isInterface(),
+            'final' => $method->isFinal(),
+            'parameters' => array_map(static fn (ReflectionParameter $parameter): array => apiParameter($parameter, $name), $method->getParameters()),
+            'return' => apiType($method->getReturnType(), $name),
+            'namedArguments' => $classNamed && ! apiHasTag($method->getDocComment(), 'no-named-arguments'),
+            'contracts' => apiDocContracts($method->getDocComment()),
+        ];
     }
     ksort($methods, SORT_STRING);
-    $entry['methods'] = array_values($methods);
 
-    $entry['stability'] = $tag[1] ?? 'api';
-    $entry['via'] = $byLocation ? 'location' : 'tag';
+    return ['constants' => array_values($constants), 'properties' => array_values($properties), 'methods' => array_values($methods)];
+}
 
-    return $entry;
+function apiVisibility(ReflectionClassConstant|ReflectionProperty|ReflectionMethod $member): string
+{
+    return $member->isPublic() ? 'public' : 'protected';
+}
+
+function apiHasTag(string|false $doc, string $tag): bool
+{
+    return preg_match('/^\s*(?:\/\*\*|\*)\s*@'.preg_quote($tag, '/').'\b/m', (string) $doc) === 1;
+}
+
+/**
+ * The PHPDoc type contracts of a docblock: the `@param`, `@return`, `@var` and `@template` lines whose type is a
+ * generic, a shape or a class-string, with whitespace normalised. They are part of the supported contract.
+ *
+ * @return list<string>
+ */
+function apiDocContracts(string|false $doc): array
+{
+    $contracts = [];
+
+    foreach (preg_split('/\R/', (string) $doc) ?: [] as $line) {
+        $line = trim((string) preg_replace('/^\s*(?:\/\*\*|\*\/|\*)?\s*|\s*\*\/\s*$/', '', $line));
+
+        if (preg_match('/^@(?:phpstan-|psalm-)?(param|return|var|template(?:-covariant|-contravariant)?)\b/', $line) !== 1) {
+            continue;
+        }
+
+        if (str_starts_with($line, '@template') || preg_match('/[<{]|class-string/', $line) === 1) {
+            $contracts[] = (string) preg_replace('/\s+/', ' ', $line);
+        }
+    }
+
+    return $contracts;
+}
+
+function apiValue(mixed $value): mixed
+{
+    return match (true) {
+        $value instanceof UnitEnum => $value::class.'::'.$value->name,
+        is_array($value) => array_map(apiValue(...), $value),
+        is_object($value) => 'new '.$value::class,
+        default => $value,
+    };
 }
 
 /**
@@ -239,8 +344,9 @@ function apiEncode(mixed $manifest): string
  */
 function apiDiff(string $current, array $expected): array
 {
+    $decoded = json_decode($current, true) ?: [];
     $old = [];
-    foreach ((json_decode($current, true) ?: ['classes' => []])['classes'] ?? [] as $entry) {
+    foreach ($decoded['classes'] ?? [] as $entry) {
         $old[$entry['name']] = $entry;
     }
 
@@ -259,6 +365,11 @@ function apiDiff(string $current, array $expected): array
     foreach (array_intersect_key($new, $old) as $name => $entry) {
         if ($entry !== $old[$name]) {
             $lines[] = "  ~ {$name}";
+        }
+    }
+    foreach (['roots', 'facade'] as $key) {
+        if (($decoded[$key] ?? null) !== ($expected[$key] ?? null)) {
+            $lines[] = "  ~ {$key}";
         }
     }
 

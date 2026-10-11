@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Pages;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Diagnostics\Doctor;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Diagnostics\Severity;
@@ -20,9 +21,8 @@ use UnitEnum;
  * "Check again" is called, never on a render; the findings are the ones the doctor has already cleared of secrets.
  *
  * Its permission is `pages.azguard-doctor` in the guard panel.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class DoctorPage extends Page
 {
     use AuthorizesPage;

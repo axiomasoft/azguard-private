@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Schema\PanelSchema;
 use Filament\Schemas\Components\Component;
@@ -16,9 +18,8 @@ use Filament\Schemas\Components\Component;
  * is a configuration error, and what the component collects is checked by the writer of the panel like any other value.
  * Register it with `AzGuardPlugin::formExtensions()`; it is resolved from the container every time a form is built,
  * so it keeps no state between panels or requests.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface FilamentFormExtension
 {
     public function appliesTo(PanelSchema $schema, FieldTarget $target): bool;

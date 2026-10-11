@@ -14,6 +14,7 @@ use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Tests\Arch\ApiUsage;
 
 it('declares StoresGrants as apply and transaction of one writer', function (): void {
     $methods = array_map(
@@ -25,7 +26,8 @@ it('declares StoresGrants as apply and transaction of one writer', function (): 
     expect($methods)->toEqualCanonicalizing(['id', 'apply', 'transaction'])
         ->and((string) $apply->getParameters()[0]->getType())->toBe(Change::class)
         ->and((string) $apply->getReturnType())->toBe(ChangeResult::class)
-        ->and((new ReflectionClass(StoresGrants::class))->getDocComment())->toContain('@spi');
+        // The type map retires StoresGrants (P2.6): it carries no publication attribute.
+        ->and(ApiUsage::publication(StoresGrants::class))->toBeNull();
 });
 
 it('declares the documented evaluation context and nothing else', function (): void {
@@ -36,17 +38,17 @@ it('declares the documented evaluation context and nothing else', function (): v
 
     expect($methods)->toBe([
         'panel', 'scope', 'scopes', 'resource', 'state', 'now', 'subjectModel', 'actor', 'actorModel', 'role', 'grant', 'matchingGrants',
-    ])->and((new ReflectionClass(EvaluationContext::class))->getDocComment())->toContain('@api');
+    ])->and(ApiUsage::publication(EvaluationContext::class))->toBe('spi-call');
 });
 
-it('names the three volatilities and tags every new source contract', function (string $class): void {
-    expect((new ReflectionClass($class))->getDocComment())->toContain('@spi');
+it('names the three volatilities and publishes every new source contract', function (string $class, string $publication): void {
+    expect(ApiUsage::publication($class))->toBe($publication);
 })->with([
-    ProvidesGrants::class,
-    ProvidesRoleGrants::class,
-    DescribesSchema::class,
-    SourceDescription::class,
-    Volatility::class,
+    [ProvidesGrants::class, 'spi-implement'],
+    [ProvidesRoleGrants::class, 'spi-implement'],
+    [DescribesSchema::class, 'spi-implement'],
+    [SourceDescription::class, 'api'],
+    [Volatility::class, 'spi-call'],
 ]);
 
 it('lists stable, request and volatile', function (): void {
@@ -59,7 +61,7 @@ it('carries the source name on the attribute', function (): void {
 
     expect($attribute)->not->toBeNull()
         ->and((new AsSource('ldap'))->name)->toBe('ldap')
-        ->and((new ReflectionClass(AsSource::class))->getDocComment())->toContain('@api');
+        ->and(ApiUsage::publication(AsSource::class))->toBe('api');
 });
 
 it('codes a writer conflict as a definition error', function (): void {

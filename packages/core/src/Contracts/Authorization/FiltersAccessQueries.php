@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\AccessPredicate;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
@@ -19,9 +21,8 @@ use AzGuard\Kernel\Decision\RoleContribution;
  * assigned an explicit outcome; a SQL NULL is not implicitly policy abstention.
  * A Restriction with this adapter is always compiled for lists: Restriction::appliesTo()
  * is not called there, so predicate() returns AccessPredicate::pass() when it is inapplicable.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface FiltersAccessQueries
 {
     public function predicate(

@@ -11,8 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * The tenant boundary of a panel. Required tenants also require active membership by default.
- *
- * @api
  */
 final class TenantPolicy
 {

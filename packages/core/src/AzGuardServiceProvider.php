@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\CatalogCache;
@@ -73,6 +74,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use ReflectionClass;
 
+#[Api(since: '0.7')]
 final class AzGuardServiceProvider extends ServiceProvider
 {
     public function register(): void

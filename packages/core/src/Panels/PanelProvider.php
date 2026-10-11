@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Panels\PanelRegistry;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,6 +14,7 @@ use Illuminate\Support\ServiceProvider;
  *
  * Listed in `azguard.panels.providers` or registered as a regular service provider by a module.
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 abstract class PanelProvider extends ServiceProvider
 {
     /**

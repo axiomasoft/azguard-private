@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\Panel;
@@ -21,9 +23,8 @@ use PHPUnit\Framework\Attributes\Test;
  * - it builds on a clean panel and on two panels, and a panel without it is the panel it was before;
  * - `boot()` does not change the panel;
  * - a panel that keeps the plugin off is the panel without it, with no trace left.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait PluginContractTests
 {
     /** A new instance of the plugin under test. */

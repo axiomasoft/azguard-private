@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\AccessEvent;
@@ -33,9 +34,8 @@ use UnitEnum;
  *
  * `$on` of the change assertions names the assignment scope of the grant: `null` is the tenant-wide grant,
  * `AnyAssignmentScope::all()` is a grant in any scope.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class AzGuardFake
 {
     /** @var list<RecordedCheck> */

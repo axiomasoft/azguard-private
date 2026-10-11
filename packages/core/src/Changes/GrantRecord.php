@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
@@ -16,9 +17,8 @@ use DateTimeImmutable;
  *
  * `id` is `role:<n>` or `permission:<n>`. `fingerprint` covers the build, the id, the key, the expiry, the fields and
  * the last update; a form that kept it can be saved only while it still matches.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GrantRecord
 {
     /**

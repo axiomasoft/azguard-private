@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -34,9 +35,8 @@ use InvalidArgumentException;
  *
  * Pages are ordered role grants first, then permission grants, each by id. `cursor` continues a page; it belongs to
  * the manager, the filter and the code build it came from.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GrantFilter
 {
     public const string ACTIVE = 'active';

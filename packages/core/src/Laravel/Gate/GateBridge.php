@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Gate;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Exceptions\UnknownPermissionException;
@@ -22,8 +23,8 @@ use InvalidArgumentException;
 use Throwable;
 
 /** Authoritative Laravel Gate adapter; null is reserved for foreign abilities.
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GateBridge
 {
     public function __construct(private Authorizer $authorizer, private PanelResolver $resolver, private PanelRegistry $registry) {}

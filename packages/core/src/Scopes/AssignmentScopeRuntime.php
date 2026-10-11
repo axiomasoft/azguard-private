@@ -21,8 +21,6 @@ use Illuminate\Database\Eloquent\Model;
  * common, direct or policy-only check. `actor` is null when a change has no actor; it never falls back to the
  * target or to Auth. `proposed` holds only schema-validated assignment values (`until`, `fields`) of an
  * Assignment phase and is empty for Access, Revocation and Inspection.
- *
- * @api
  */
 final readonly class AssignmentScopeRuntime
 {

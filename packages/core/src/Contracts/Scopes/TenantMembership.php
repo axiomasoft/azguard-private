@@ -9,8 +9,6 @@ use AzGuard\Kernel\Identity\TenantRef;
 
 /**
  * Tells whether a subject belongs to a tenant.
- *
- * @spi
  */
 interface TenantMembership
 {

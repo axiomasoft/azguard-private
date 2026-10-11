@@ -50,9 +50,30 @@ const AZGUARD_DATABASE_ACCESS = [
  */
 const AZGUARD_KERNEL_FORBIDDEN = ['Illuminate', 'Carbon', 'Laravel', 'AzGuard\Filament', 'AzGuard\Tenancy', 'AzGuard\Context', ...AZGUARD_OUTER_ZONES];
 
+/*
+ * The publication markers (D9): every zone, the kernel included, names them to publish its supported types. They are
+ * leaves that depend on nothing but PHP, so naming them adds no dependency on zone code.
+ */
+const AZGUARD_PUBLICATION_MARKERS = ['AzGuard\Attributes\Api', 'AzGuard\Attributes\Spi', 'AzGuard\Attributes\SpiKind'];
+
+it('keeps the publication markers leaves that name nothing but PHP and each other', function (): void {
+    $names = [];
+
+    foreach (AZGUARD_PUBLICATION_MARKERS as $marker) {
+        $file = dirname(__DIR__, 2).'/packages/core/src/Attributes/'.substr($marker, strrpos($marker, '\\') + 1).'.php';
+
+        foreach (SourceScan::ownershipReferences((string) file_get_contents($file)) as $reference) {
+            $names[] = $reference['value'];
+        }
+    }
+
+    expect(array_values(array_diff(array_unique($names), [...AZGUARD_PUBLICATION_MARKERS, 'Attribute'])))->toBe([]);
+});
+
 arch('kernel depends on nothing but PHP')
     ->expect('AzGuard\Kernel')
-    ->not->toUse(AZGUARD_KERNEL_FORBIDDEN);
+    ->not->toUse(AZGUARD_KERNEL_FORBIDDEN)
+    ->ignoring(AZGUARD_PUBLICATION_MARKERS);
 
 const AZGUARD_FRAMEWORK_HELPERS = ['app', 'config', 'now', 'today', 'env', 'resolve', 'request', 'auth', 'cache', 'event', 'logger', 'info'];
 
@@ -90,7 +111,7 @@ function azguardKernelLeaks(array $files): array
 
     foreach ($files as $file) {
         foreach (SourceScan::ownershipReferences((string) file_get_contents($file)) as $reference) {
-            if (SourceScan::inZone($reference['value'], AZGUARD_KERNEL_FORBIDDEN)) {
+            if (SourceScan::inZone($reference['value'], AZGUARD_KERNEL_FORBIDDEN) && ! in_array($reference['value'], AZGUARD_PUBLICATION_MARKERS, true)) {
                 $offenders[] = basename($file).': '.$reference['kind'].' '.$reference['value'];
             }
         }
@@ -111,7 +132,10 @@ it('finds a kernel file that names framework, zone or module code in any form', 
         use AzGuard\Audit\{AuditPlugin};
         use AzGuard\Filament\AzGuardPlugin;
         use AzGuard\Tenancy\TenantMode;
+        use AzGuard\Attributes\Api;
+        use AzGuard\Attributes\AsSource;
         /** @var class-string<\AzGuard\DevTools\DevToolsServiceProvider> $provider */
+        #[Api(since: '1.0')]
         final class Leaking {
             public const SCOPES = 'AzGuard\\Scopes\\ScopesPlugin';
             public function id(): string { return \Carbon\Carbon::class; }
@@ -121,6 +145,7 @@ it('finds a kernel file that names framework, zone or module code in any form', 
 
     try {
         expect(azguardKernelLeaks([$leaking, $clean]))->toBe([
+            'Leaking.php: import AzGuard\Attributes\AsSource',
             'Leaking.php: import AzGuard\Audit\AuditPlugin',
             'Leaking.php: class-string AzGuard\DevTools\DevToolsServiceProvider',
             'Leaking.php: import AzGuard\Filament\AzGuardPlugin',
@@ -166,7 +191,8 @@ it('reads every production root, the module roots included', function (): void {
 
 arch('exceptions depend only on the kernel')
     ->expect('AzGuard\Exceptions')
-    ->not->toUse(['Illuminate', ...AZGUARD_OUTER_ZONES]);
+    ->not->toUse(['Illuminate', ...AZGUARD_OUTER_ZONES])
+    ->ignoring(AZGUARD_PUBLICATION_MARKERS);
 
 /*
  * Change inputs and results are immutable values the writer contract and the database writer exchange with the
@@ -211,6 +237,7 @@ forbidDependencies(
     'support helpers lean only on the framework, the kernel and the exceptions',
     ['AzGuard\\Support'],
     array_values(array_diff(AZGUARD_OUTER_ZONES, ['AzGuard\\Support'])),
+    AZGUARD_PUBLICATION_MARKERS,
 );
 
 forbidDependencies(

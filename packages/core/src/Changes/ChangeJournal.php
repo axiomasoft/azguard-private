@@ -19,8 +19,6 @@ use WeakMap;
  * Only the change pipeline opens it, around the pipes of one change and only inside the active mutation of the panel;
  * a call at any other time is `UnsupportedDirectWriteException`. A row is the columns of the journal table with the
  * payload as an array.
- *
- * @api
  */
 final class ChangeJournal
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Pages\Page;
 
@@ -11,9 +12,8 @@ use Filament\Pages\Page;
  * Opens a page with its permission `pages.{slug}` in the guard panel.
  *
  * @phpstan-require-extends Page
- *
- * @api
  */
+#[Api(since: '0.7')]
 trait AuthorizesPage
 {
     public static function canAccess(): bool

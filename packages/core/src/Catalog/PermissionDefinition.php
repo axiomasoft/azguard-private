@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Catalog;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -15,9 +17,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * The panel is not part of the definition: the catalog that receives it gives the panel. Two definitions are equal
  * only when every field is equal.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class PermissionDefinition
 {
     /**

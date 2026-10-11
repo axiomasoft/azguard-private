@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Schema\Field;
 
 /**
  * What a source can contribute to a panel. Parameters of the source are not part of the description.
- *
- * @spi
  */
+#[Api(since: '0.7')]
 final readonly class SourceDescription
 {
     /** A name of the source for people; the id when the source gives none. */

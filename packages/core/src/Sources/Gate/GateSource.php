@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Gate;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesPolicies;
 use AzGuard\Contracts\Sources\SourceDescription;
@@ -16,9 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Adapts explicitly mapped native Laravel abilities as mode-aware policies.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class GateSource implements DescribesSchema, ProvidesPolicies
 {
     /** @var list<PolicyBinding> */

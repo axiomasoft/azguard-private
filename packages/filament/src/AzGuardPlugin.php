@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Filament\Authorization\FilamentContext;
@@ -58,9 +59,8 @@ use ReflectionMethod;
  *
  * The plugin does not change the AzGuard panels. The application attaches `FilamentSource` and `FilamentTenantResolver`
  * itself; `boot()` checks that it did and says what is missing.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class AzGuardPlugin implements Plugin
 {
     public const string ID = 'azguard';

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Authorization;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -18,9 +20,8 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * What the engine shows a source, a hook or a restriction during one check.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 interface EvaluationContext
 {
     public function panel(): Panel;

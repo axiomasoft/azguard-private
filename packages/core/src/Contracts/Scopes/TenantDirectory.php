@@ -10,8 +10,6 @@ use AzGuard\Kernel\Identity\TenantRef;
 
 /**
  * Search of tenants for the interface. It does not decide membership.
- *
- * @spi
  */
 interface TenantDirectory
 {

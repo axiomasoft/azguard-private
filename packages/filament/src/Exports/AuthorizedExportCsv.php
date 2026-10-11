@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Exports;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\AzGuardSubject;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -20,9 +21,8 @@ use Illuminate\Support\Facades\Log;
  * keeps, of the keys of its chunk, those that the view permission of the resource still lets the user see, in the guard
  * panel that the job runs in (the panel of the request that started the export) and the tenant of the export. A missing
  * panel, permission, user or tenant writes no row.
- *
- * @api
  */
+#[Api(since: '0.7')]
 class AuthorizedExportCsv extends ExportCsv
 {
     /** Option of an export with the guard panel, the view permission, the tenant and the model of its resource. */

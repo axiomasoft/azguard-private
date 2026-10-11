@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Scopes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Scopes\AssignmentScopeSettings;
 use Closure;
 
@@ -11,9 +13,8 @@ use Closure;
  * An assignment-scope definition whose filters, label and directory are set in code and cloned per change.
  *
  * A string passed to `filter` is a class-string of {@see AssignmentScopeFilter}, never a profile alias.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface ConfigurableAssignmentScopeDefinition extends AssignmentScopeDefinition
 {
     /**

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -25,9 +27,8 @@ use UnitEnum;
  * - a `before` hook answers with a `BeforeResult`, is repeatable and writes nothing;
  * - a pipe writes nothing itself: what reaches the database goes through the writer it hands the change to;
  * - a change that is cancelled after the pipe left nothing behind in any table.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait HookContractTests
 {
     /** A `before` hook as the panel takes it (a closure or the name of an invokable class), or null. */

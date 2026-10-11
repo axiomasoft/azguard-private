@@ -15,7 +15,7 @@ use RuntimeException;
  * The snapshot is the set itself, without loss: per reason and group (one list query or directory search), the
  * unsupported paths, the seeds and the members (clients, contexts). Seeds with the same paths and members share one
  * line. A new unsupported case fails, and a case that became supported fails until it is deleted from the snapshot.
- * It is rewritten only with `AZGUARD_BASELINE_WRITE=1` on the unchanged 0.7.0 code, like the other 0.7.0 fixtures.
+ * It is rewritten only in writer mode, `AZGUARD_BASELINE_WRITE=1`, like the other baseline fixtures (D16).
  *
  * A disagreement is an I9 finding. The ones 0.7.0 has are reported to the owner in the plan log and listed, by
  * finding, in the hand-written `i9-findings-0.7.0.json`; the matrix fails on any other disagreement and on a listed
@@ -184,8 +184,7 @@ final class ParityLedger
         $stored = is_file(self::SNAPSHOT) ? json_decode((string) file_get_contents(self::SNAPSHOT), true, flags: JSON_THROW_ON_ERROR) : null;
         $actual = FormatSnapshot::encode($this->unsupported());
 
-        if (getenv(FormatSnapshot::WRITE) === '1') {
-            FormatSnapshot::assertBaselineTree();
+        if (FormatSnapshot::writing()) {
             $stored = ['baseline' => '0.7.0', ...$stored ?? [], $section => $this->unsupported()];
             file_put_contents(self::SNAPSHOT, FormatSnapshot::encode($stored));
         }

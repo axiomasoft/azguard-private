@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -20,9 +21,8 @@ use DateTimeZone;
  * without a difference publishes nothing. `state` is the revision the change produced, not the latest state at the
  * moment of delivery. The payload holds values and references only: no Eloquent model, request, container or secret.
  * Delivery is best effort and not exactly-once.
- *
- * @api
  */
+#[Api(since: '0.7')]
 abstract readonly class AccessEvent
 {
     public function __construct(

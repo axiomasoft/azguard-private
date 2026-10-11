@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\PermissionAuthority;
 use AzGuard\Kernel\Identity\PermissionKey;
 use JsonSerializable;
@@ -11,6 +12,7 @@ use JsonSerializable;
 /**
  * One permission of a panel as an interface shows it: who decides it, which sources can give it and where.
  */
+#[Api(since: '0.7')]
 final readonly class PermissionSchema implements JsonSerializable
 {
     /**

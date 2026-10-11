@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
+
 /**
  * A source of permission definitions and grants attached to a panel; what it provides is declared by the
  * capability interfaces it implements.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface Source
 {
     /**

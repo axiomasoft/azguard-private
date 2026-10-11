@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
+use AzGuard\Attributes\Api;
 use AzGuard\AzGuardManager;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -18,11 +19,11 @@ use BackedEnum;
  * plugins, and the schema of its permissions and roles. It is the one place that gathers this; `azguard:panels:list`
  * and the panels page of the Filament package print it. It only reads.
  *
- * @api
  *
  * @phpstan-type Sources array{sources: list<array{id: string, label: string, class: string, capabilities: list<string>, dynamic: bool}>, named: list<array{name: string, origin: string}>, plugins: list<string>}
  * @phpstan-type Entry array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>, settings?: array<string, array{value: bool|int|string|null, origin: string}>, sources?: Sources, schema?: array<string, mixed>}
  */
+#[Api(since: '0.7')]
 final readonly class PanelOverview
 {
     public function __construct(private PanelRegistry $registry, private AzGuardManager $azguard) {}

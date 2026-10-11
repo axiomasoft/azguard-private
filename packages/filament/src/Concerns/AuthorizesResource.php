@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Resources\Resource as FilamentResource;
 use Illuminate\Auth\Access\Response;
@@ -24,9 +25,8 @@ use UnitEnum;
  * editable columns before Livewire invokes them. A column action must be a Filament Action, not a raw closure.
  *
  * @phpstan-require-extends FilamentResource
- *
- * @api
  */
+#[Api(since: '0.7')]
 trait AuthorizesResource
 {
     public static function getAuthorizationResponse(string|UnitEnum $action, ?Model $record = null): Response

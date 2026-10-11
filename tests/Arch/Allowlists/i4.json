@@ -1,0 +1,268 @@
+[
+    {
+        "file": "packages/core/src/Authorization/ScopeEligibility.php",
+        "reference": "AzGuard\\Authorization\\BatchInputs",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/ScopeEligibility.php",
+        "reference": "AzGuard\\Authorization\\EvaluationFrame",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/ScopeEligibility.php",
+        "reference": "AzGuard\\Authorization\\Pipeline\\Trace",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/ScopeEligibility.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/ScopeEligibility.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Contracts/Scopes/AssignmentScopeAccessAdapter.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Contracts/Scopes/AssignmentScopeFilter.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
+        "reference": "AzGuard\\Directories\\ModelLookup",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/AuditPruneCommand.php",
+        "reference": "AzGuard\\Changes\\ChangePipeline",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/AuditPruneCommand.php",
+        "reference": "AzGuard\\Panels\\PanelRegistry",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/InstallCommand.php",
+        "reference": "AzGuard\\Configuration\\AzGuardConfig",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/InstallCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeCommand.php",
+        "reference": "AzGuard\\Configuration\\AzGuardConfig",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeModelsCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeModelsCommand.php",
+        "reference": "AzGuard\\Storage\\StorageRegistry",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePanelCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePermissionCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakePolicyCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Commands/Make/MakeRoleCommand.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Scaffold/Layout.php",
+        "reference": "AzGuard\\Configuration\\AzGuardConfig",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Scaffold/Layout.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Laravel/Console/Scaffold/StubStore.php",
+        "reference": "AzGuard\\Laravel\\Console\\Concerns\\InvalidCommandInput",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Plugins/Audit/AuditPlugin.php",
+        "reference": "AzGuard\\Panels\\PanelRecipe",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Plugins/Audit/RecordChange.php",
+        "reference": "AzGuard\\Changes\\ChangeEventPublisher",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Plugins/Audit/RecordChange.php",
+        "reference": "AzGuard\\Kernel\\Support\\Narrow",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+        "reference": "AzGuard\\Kernel\\Support\\Narrow",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+        "reference": "AzGuard\\Policies\\RuntimeInvoker",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+        "reference": "AzGuard\\Scopes\\Query\\PredicateBuilder",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
+        "reference": "AzGuard\\Scopes\\Query\\QueryGuard",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/stubs/models-migration.stub",
+        "reference": "AzGuard\\Storage\\StorageRegistry",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/filament/src/Editors/GrantEditor.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/filament/src/Editors/TargetSelector.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/filament/src/Editors/TargetSelector.php",
+        "reference": "AzGuard\\Scopes\\CurrentContext",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/filament/src/FilamentTenantResolver.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\TenantResolver",
+        "kind": "type",
+        "invariant": "I4",
+        "owner_phase": "P2"
+    }
+]

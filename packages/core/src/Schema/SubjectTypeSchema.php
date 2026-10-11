@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
@@ -11,6 +12,7 @@ use JsonSerializable;
 /**
  * A subject model of a panel: the Laravel auth guard its current user comes from and the directory that looks it up.
  */
+#[Api(since: '0.7')]
 final readonly class SubjectTypeSchema implements JsonSerializable
 {
     /**

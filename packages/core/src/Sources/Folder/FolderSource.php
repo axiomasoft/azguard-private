@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Folder;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
@@ -51,9 +52,8 @@ use UnitEnum;
  *
  * Every panel has this source first. One `FolderSource` in `permissions([...])` configures that
  * built-in source; a second one is rejected. Names contributed by a plugin are stored as declared.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
 {
     /** @var array{permissions: ?string, policies: ?string, roles: ?string, abilities: ?string} */

@@ -358,6 +358,37 @@ it('resolves a moved file and a renamed type through the target path and the tar
         ->and($ownership->referenceOwner('import', 'AzGuard\Scopes\Internal\Other'))->toBeNull();
 });
 
+it('resolves a file at an interim path by the FQCN it declares (D17), and nothing for an unknown FQCN', function (): void {
+    $root = sys_get_temp_dir().'/azguard-interim-'.bin2hex(random_bytes(4));
+    $files = [
+        'packages/core/src/Scopes/Internal/ScopeEvaluator.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\n\n/** a doc */\nfinal class ScopeEvaluator {}\n",
+        'packages/core/src/Scopes/Internal/Stray.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\nfinal class Stray {}\n",
+    ];
+    $ownership = Ownership::of([[
+        'current' => null, 'current_path' => null,
+        'target' => 'AzGuard\Scopes\Internal\ScopeEvaluator', 'target_path' => 'packages/core/modules/scopes/src/Internal/ScopeEvaluator.php',
+        'owner' => 'scopes', 'action' => 'new', 'phase' => 'P2',
+    ]]);
+
+    try {
+        foreach ($files as $path => $code) {
+            is_dir(dirname($root.'/'.$path)) || mkdir(dirname($root.'/'.$path), 0777, true);
+            file_put_contents($root.'/'.$path, $code);
+        }
+
+        expect($ownership->fileOwner('packages/core/src/Scopes/Internal/ScopeEvaluator.php', $root))->toBe('scopes')
+            ->and($ownership->fileOwner('packages/core/src/Scopes/Internal/Stray.php', $root))->toBeNull()
+            ->and($ownership->fileOwner('packages/core/src/Scopes/Internal/Missing.php', $root))->toBeNull();
+    } finally {
+        foreach (array_keys($files) as $path) {
+            unlink($root.'/'.$path);
+        }
+        for ($directory = dirname($root.'/'.array_key_first($files)); $directory !== dirname($root); $directory = dirname($directory)) {
+            rmdir($directory);
+        }
+    }
+});
+
 it('lists only violations the oracle can place in a phase', function (): void {
     foreach (['i2', 'i3'] as $name) {
         foreach (BoundaryScan::allowlist($name) as $entry) {

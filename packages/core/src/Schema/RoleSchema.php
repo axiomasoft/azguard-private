@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Roles\BaseRole;
@@ -12,6 +13,7 @@ use JsonSerializable;
 /**
  * A code role of a panel. Its definition changes only in PHP, so an interface shows it read-only.
  */
+#[Api(since: '0.7')]
 final readonly class RoleSchema implements JsonSerializable
 {
     /** A code role is never edited from an interface. */

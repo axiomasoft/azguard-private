@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Support;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,9 +17,8 @@ use Illuminate\Database\Eloquent\Model;
  * to row 5, a case-insensitive collation matches `ABC` to `abc`, and PostgreSQL rejects `a/b` with an error that also
  * aborts the surrounding transaction. AzGuard resolves every subject, tenant and context through this class, so use it
  * for ids that come from a request, a form or a queue payload when the answer must agree with AzGuard's.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class ModelKey
 {
     private function __construct() {}

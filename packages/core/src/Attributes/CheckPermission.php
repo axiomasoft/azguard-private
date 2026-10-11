@@ -19,10 +19,9 @@ if (class_exists(Middleware::class)) {
      * On a class it covers every action, narrowed by `only` and `except` as Laravel controller middleware. `on` names
      * the route parameter that holds the resource or the assignment scope. A denial answers with `status` and
      * `message` (by default 403 and the standard message) and never explains the decision.
-     *
-     * @api
      */
     #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+    #[Api(since: '0.7')]
     final class CheckPermission extends Middleware
     {
         use DescribesPermissionCheck;
@@ -50,10 +49,9 @@ if (class_exists(Middleware::class)) {
      * On a class it covers every action, narrowed by `only` and `except` as Laravel controller middleware. `on` names
      * the route parameter that holds the resource or the assignment scope. A denial answers with `status` and
      * `message` (by default 403 and the standard message) and never explains the decision.
-     *
-     * @api
      */
     #[Attribute(Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
+    #[Api(since: '0.7')]
     final class CheckPermission
     {
         use DescribesPermissionCheck;

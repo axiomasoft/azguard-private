@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Why a decision could not be computed: the closed taxonomy of failures (audits/2026-10-09-consistency-design.md,
  * step 6). A failure is never a policy outcome: it denies, but it does not say the subject lacks the permission.
@@ -12,7 +14,10 @@ namespace AzGuard\Kernel\Decision;
  *   later; HTTP adapters answer 503.
  * - `Contract`: host code broke its contract (`policy_error`, `hook_error`, `restriction_error`, `condition_error`,
  *   `context_filter_error`). Retrying does not help; HTTP adapters answer 500.
+ *
+ * @open
  */
+#[Api(since: '0.7')]
 enum FailureKind: string
 {
     case Transient = 'transient';

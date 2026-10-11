@@ -596,7 +596,7 @@ final class ChangeValidator
             throw new DefinitionException('Tenant membership resolver did not return '.TenantMembership::class.'.');
         }
 
-        return $adapter->isMember(subject: $subject, tenant: $tenant);
+        return $adapter->isMember($subject, $tenant);
     }
 
     private function scopeMember(SubjectRef $subject, ResolvedAssignmentScope $resolved): bool
@@ -612,6 +612,6 @@ final class ChangeValidator
             throw new DefinitionException('Scope membership resolver did not return '.AssignmentScopeMembership::class.'.');
         }
 
-        return $adapter->isMember(subject: $subject, context: $resolved->ref);
+        return $adapter->isMember($subject, $resolved->ref);
     }
 }

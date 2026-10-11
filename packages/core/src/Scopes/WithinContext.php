@@ -12,8 +12,6 @@ use Closure;
 
 /**
  * Runs an operation inside a panel scope and restores state even when entry resolution fails.
- *
- * @api
  */
 final readonly class WithinContext
 {

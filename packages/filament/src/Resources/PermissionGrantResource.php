@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\PermissionGrantResource\Pages\ListPermissionGrants;
 use Filament\Resources\Resource;
@@ -18,9 +19,8 @@ use UnitEnum;
  * A permission that a policy decides is never offered and its grant is refused by the writer. Every value of a form is
  * checked again on the server and the writes run as the user who edits. Its permissions are
  * `azguard-permission-grants.{view_any,view,create,update,delete}` in the guard panel.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class PermissionGrantResource extends Resource
 {
     use AuthorizesResource;

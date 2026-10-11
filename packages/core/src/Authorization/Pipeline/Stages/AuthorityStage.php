@@ -69,7 +69,7 @@ final readonly class AuthorityStage
         try {
             $membership = new MembershipRestriction($this->container);
 
-            $denied = $membership->check(request: $request, context: $frame)->denied();
+            $denied = $membership->check($request, $frame)->denied();
             $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
 
             if ($denied) {

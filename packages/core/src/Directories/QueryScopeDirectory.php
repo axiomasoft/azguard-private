@@ -34,7 +34,6 @@ use Illuminate\Database\Eloquent\Model;
  * the limit, and the scan goes on until the limit is filled or the candidates end. Reading `maxScan` candidates
  * without either outcome raises `DirectoryScanLimitException` instead of returning a partial list.
  *
- * @api
  *
  * @phpstan-import-type Filter from \AzGuard\Scopes\AssignmentScopeSettings
  */

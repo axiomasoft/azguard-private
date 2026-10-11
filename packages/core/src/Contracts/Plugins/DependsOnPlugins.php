@@ -6,8 +6,6 @@ namespace AzGuard\Contracts\Plugins;
 
 /**
  * A plugin that works only next to other plugins of the same panel.
- *
- * @spi
  */
 interface DependsOnPlugins
 {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Forms;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Filament\Contracts\FilamentFormExtension;
 use AzGuard\Schema\FieldSchema;
@@ -29,9 +30,8 @@ use Throwable;
  *
  * The fields only collect values and show the rules of the schema as hints. What the values mean is checked by the
  * writer of the panel, which refuses an unknown field or a value that breaks its rules.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class SchemaFields
 {
     /** The state path that holds the values. */

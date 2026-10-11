@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * A compiled subject of a panel as `PanelBuilder::for()` declared it: the model, the Laravel auth guard its current
  * user comes from and the directory that looks subjects up for interfaces.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class SubjectDescriptor
 {
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Effect;
@@ -19,9 +20,8 @@ use DateTimeImmutable;
  * An access decision, published only by a panel that traces decisions. It reads, never changes: it does not raise the
  * state version, passes no change pipe and is published when the decision is made — after the commit when the decision
  * was made inside a transaction the package itself holds open.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class AccessDecided extends AccessEvent
 {
     public function __construct(

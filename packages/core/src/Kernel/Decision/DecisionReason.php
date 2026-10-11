@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Why a decision has its effect; the value is the stable machine code of the reason.
+ *
+ * @open
  */
+#[Api(since: '0.7')]
 enum DecisionReason: string
 {
     case Granted = 'granted';

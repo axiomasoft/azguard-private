@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\FilamentContext;
 use AzGuard\Filament\Authorization\FilamentGate;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -19,9 +20,8 @@ use Illuminate\Database\Eloquent\Model;
  * a resource a Filament panel that enforces refuses the relation manager.
  *
  * @phpstan-require-extends RelationManager
- *
- * @api
  */
+#[Api(since: '0.7')]
 trait AuthorizesRelationManager
 {
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool

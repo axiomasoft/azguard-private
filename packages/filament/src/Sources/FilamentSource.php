@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Sources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
@@ -22,9 +23,8 @@ use Filament\Facades\Filament;
  * uses `FilamentDefinitions::Resources`. The definitions are built when the catalog of the panel is compiled, not
  * stored; who decides them is the explicit authority of the plugin. A permission that an enum of the panel defines
  * too is a conflict of the catalog, not a merge.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class FilamentSource implements DescribesSchema, ProvidesPermissions
 {
     private function __construct(private string $filamentPanel) {}

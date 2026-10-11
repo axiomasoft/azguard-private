@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
+
 /**
  * The stable machine name of each access event; the value is part of the integration contract.
+ *
+ * @open
  */
+#[Api(since: '0.7')]
 enum EventType: string
 {
     case PermissionCreated = 'permission.created';

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
+
 /**
  * One page of stored grants of a grant manager. `nextCursor` is null on the last page; otherwise
  * `$filter->after($page->nextCursor)` asks for the next one.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GrantPage
 {
     /**

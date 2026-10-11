@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -11,6 +12,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 /**
  * A role key inside a panel; full form `admin:manager`.
  */
+#[Api(since: '0.7')]
 final readonly class RoleKey
 {
     private function __construct(

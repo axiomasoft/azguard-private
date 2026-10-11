@@ -13,8 +13,6 @@ use Throwable;
 
 /**
  * A tenant model identified by its registered morph alias.
- *
- * @api
  */
 final readonly class ModelTenantDefinition
 {

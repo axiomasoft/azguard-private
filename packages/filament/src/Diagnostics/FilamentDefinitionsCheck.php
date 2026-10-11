@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Diagnostics;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
@@ -24,9 +25,8 @@ use ReflectionEnum;
  * for a permission it checks, is an error (`filament.missing_definition`).
  *
  * Add it to the guard panel with `doctorChecks([FilamentDefinitionsCheck::class])`.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class FilamentDefinitionsCheck implements DoctorCheck
 {
     public function key(): string

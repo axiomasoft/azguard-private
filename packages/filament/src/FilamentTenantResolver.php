@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -17,9 +18,8 @@ use Illuminate\Http\Request;
  * The application attaches it with `tenantResolvers([FilamentTenantResolver::class])` on the guard panel. It reads the
  * tenant that Filament chose, takes its type from the tenant model of the guard panel and never invents a tenant: a
  * request without a Filament tenant, a Filament panel without the plugin or a tenant of another model gives null.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class FilamentTenantResolver implements TenantResolver
 {
     public function resolve(Request $request): ?TenantRef

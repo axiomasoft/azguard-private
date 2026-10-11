@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
+
 /**
  * How long a source may reuse the grants it read.
  *
- * @spi
+ * @closed
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 enum Volatility: string
 {
     /** The source changes with a revision the panel already accounts for. */

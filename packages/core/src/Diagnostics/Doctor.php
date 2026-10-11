@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Sources\ChecksHealth;
@@ -47,9 +48,8 @@ use Throwable;
  * exception and nothing of its message, which may carry a driver message or connection details. Values of the
  * database connections and source parameters that look like secrets are removed from every finding before it
  * leaves the doctor. The doctor only reads.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class Doctor
 {
     /** @var list<class-string<DoctorCheck>> checks of the core in the order of the catalog of checks */

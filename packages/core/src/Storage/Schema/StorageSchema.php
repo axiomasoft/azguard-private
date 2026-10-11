@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Schema;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Storage\Storage;
 use AzGuard\Storage\StorageRegistry;
 use Illuminate\Database\Schema\Blueprint;
 
 /**
  * Creates and drops the complete schema of a configured AzGuard storage.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class StorageSchema
 {
     public function __construct(private StorageRegistry $storages) {}

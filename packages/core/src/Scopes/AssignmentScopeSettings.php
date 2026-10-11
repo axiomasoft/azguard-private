@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use Closure;
@@ -14,10 +15,10 @@ use Closure;
  * The object stores no model, request or query builder. A class-string filter is resolved when the
  * operation runs, not here.
  *
- * @api
  *
  * @phpstan-type Filter AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure
  */
+#[Api(since: '0.7')]
 final readonly class AssignmentScopeSettings
 {
     /**

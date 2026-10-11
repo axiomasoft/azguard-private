@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantFilter;
@@ -15,9 +16,8 @@ use AzGuard\Exceptions\StaleSelectionException;
  * The stored grants of one panel, tenant and origin, for an editor. The partition is fixed when the manager is made:
  * no method takes a panel, a tenant or an origin, and a grant of another partition behaves as if it did not exist.
  * Every change goes through the change pipeline, its pipes and its final validation.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface GrantManager
 {
     /** Grants of the partition matching the filter, expired and orphaned ones included as the filter asks. */

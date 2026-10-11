@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -17,9 +18,8 @@ use DateTimeImmutable;
 /**
  * A stored grant was removed because its expiry had passed. `kind` is `role` or `permission`; exactly one of `role`
  * and `permission` is set.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GrantExpired extends AccessEvent
 {
     public function __construct(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Grammar;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Exceptions\InvalidRoleKeyException;
@@ -15,6 +16,7 @@ use AzGuard\Exceptions\InvalidRoleKeyException;
  * A full key is `panel:local`. A pattern is a local key whose last segment may be `*` (exactly one more
  * segment) or `**` (one or more segments); bare wildcards are never valid, "everything" is a super-admin role.
  */
+#[Api(since: '0.7')]
 final class PermissionGrammar
 {
     public const int MAX_LOCAL_LENGTH = 255;

@@ -11,8 +11,6 @@ use WeakMap;
 
 /**
  * Request/job-local scope state, isolated by panel.
- *
- * @api
  */
 final class CurrentContext
 {

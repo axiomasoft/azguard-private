@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Contracts\AzGuardSubject;
 use AzGuard\Kernel\Identity\AnyAssignmentScope;
@@ -30,6 +31,7 @@ use UnitEnum;
  *
  * @mixin Model
  */
+#[Api(since: '0.7')]
 trait HasAzGuard
 {
     // Permissions

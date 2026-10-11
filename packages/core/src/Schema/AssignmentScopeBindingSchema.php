@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Schema;
 
+use AzGuard\Attributes\Api;
 use JsonSerializable;
 
 /**
  * How a role binds one assignment scope type: the classes of its filters and how the scope is shown and looked up.
  * Filter objects, their constructor arguments and closures are not part of it.
  */
+#[Api(since: '0.7')]
 final readonly class AssignmentScopeBindingSchema implements JsonSerializable
 {
     /**

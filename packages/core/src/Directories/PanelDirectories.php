@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\TenantDirectory;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
@@ -18,9 +19,8 @@ use Illuminate\Contracts\Container\Container;
  * otherwise the default one of that kind; the schema of the panel names the same classes. A directory only searches and
  * describes; it decides neither membership nor access, and a caller checks every chosen value with `describe()` again
  * before it writes.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PanelDirectories
 {
     private DirectoryResolver $resolver;

@@ -88,7 +88,9 @@ final class AuthorizesActions
 
     private static function ability(Action $action): string
     {
-        return match ($name = FilamentContext::ability($action->getName() ?? 'unnamed')) {
+        $name = FilamentContext::ability($action->getName() ?? 'unnamed');
+
+        return match ($name) {
             'edit' => 'update',
             'revoke' => 'delete',
             'why', 'why_grant' => 'view',

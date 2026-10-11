@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
@@ -24,9 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  * A source of grants that lives in memory, for a test of the application: the test says who holds which permission or
  * role and the real engine decides from that, with the same scope, expiry and role rules as for any other source. It
  * is a source like the others, not a shortcut around the engine.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class FakeSource implements ProvidesGrants, ProvidesRoleGrants
 {
     /** @var list<array{subject: string, pattern: PermissionPattern, scope: AccessScope, until: ?DateTimeImmutable}> */

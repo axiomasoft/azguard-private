@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Who decides a permission: its policy alone, or assignments with an optional policy veto.
  *
  * The owner, membership and restriction boundary is never part of this answer; callers always AND it outside.
+ *
+ * @closed
  */
+#[Api(since: '0.7')]
 enum PermissionAuthority: string
 {
     case Policy = 'policy';

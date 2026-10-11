@@ -4,18 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Baseline070\Formats;
 
-use RuntimeException;
-
 /**
- * The JSON fixtures of the 0.7.0 machine formats (I17). A fixture is written only from the unchanged 0.7.0 code with
- * `AZGUARD_BASELINE_WRITE=1`; a normal run compares the stored text exactly and fails when the fixture is missing.
+ * The JSON fixtures of the machine formats (I17), regression guards of the current behavior (D16). A fixture is written
+ * only in writer mode, `AZGUARD_BASELINE_WRITE=1`, on the current tree; a normal run compares the stored text exactly
+ * and fails when the fixture is missing. A change that alters a pinned format regenerates the fixture in the same commit.
  */
 final class FormatSnapshot
 {
     public const string WRITE = 'AZGUARD_BASELINE_WRITE';
-
-    /** The 0.7.0 release commit the fixtures are generated from. */
-    public const string BASELINE = '09612160c98ca6133c894a8f90f5653b9dac6b8f';
 
     /** A generated ULID (event, correlation and incarnation ids) as it stands in a fixture. */
     public const string ULID = '<ulid>';
@@ -36,22 +32,17 @@ final class FormatSnapshot
         $actual = self::encode($value);
         $path = self::path($name);
 
-        if (getenv(self::WRITE) === '1') {
-            self::assertBaselineTree();
+        if (self::writing()) {
             file_put_contents($path, $actual);
         }
 
         return [$actual, is_file($path) ? (string) file_get_contents($path) : 'missing fixture '.$path];
     }
 
-    /** Every writer run of a 0.7.0 fixture calls this first: `packages/` must equal the baseline commit. */
-    public static function assertBaselineTree(): void
+    /** Whether this run is the explicit writer run that regenerates the fixtures it passes through. */
+    public static function writing(): bool
     {
-        exec('git -C '.escapeshellarg(dirname(__DIR__, 4)).' diff --quiet '.self::BASELINE.' -- packages/ 2>&1', result_code: $code);
-
-        if ($code !== 0) {
-            throw new RuntimeException('A 0.7.0 fixture is written only from the unchanged 0.7.0 code: packages/ differs from '.self::BASELINE.'.');
-        }
+        return getenv(self::WRITE) === '1';
     }
 
     /** The only placeholder of the fixtures: a ULID becomes `<ulid>`, at any depth, in keys and values alike. */

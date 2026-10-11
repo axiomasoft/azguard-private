@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -15,9 +16,8 @@ use DateTimeImmutable;
 
 /**
  * A permission or a permission pattern was granted to a subject in one assignment scope and origin.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PermissionGranted extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

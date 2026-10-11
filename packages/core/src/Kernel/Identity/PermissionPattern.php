@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Exceptions\InvalidPermissionKeyException;
 use AzGuard\Kernel\Grammar\PatternMatcher;
@@ -12,6 +13,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 /**
  * A granted pattern inside a panel: an exact name, `orders.*` (one segment) or `orders.**` (one or more).
  */
+#[Api(since: '0.7')]
 final readonly class PermissionPattern
 {
     private function __construct(

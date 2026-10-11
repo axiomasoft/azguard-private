@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Sources;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
 
 /**
  * A source of code roles of a panel; it describes roles and never assigns them.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface ProvidesRoles extends Source
 {
     /**

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 
 /**
- * Generates the dump of a scenario from the unchanged 0.7.0 code, only with `AZGUARD_BASELINE_WRITE=1` (I16). The
+ * Generates the dump of a scenario, only in writer mode `AZGUARD_BASELINE_WRITE=1` on the current tree (I16, D16). The
  * storage is prepared the way an installed 0.7.0 application prepared it, through its migrations and commands; the
  * dataset is written through the public API; then every AzGuard table and the AzGuard rows of `migrations` are dumped.
  */
@@ -21,7 +21,6 @@ final class Writer
 {
     public static function write(string $scenario, string $scratch): void
     {
-        FormatSnapshot::assertBaselineTree();
         $connection = app('db')->connection();
         $storages = $scenario === 'named' ? ['default', Restorer::NAMED['id']] : ['default'];
         $seeded = $scenario === 'named' ? Restorer::NAMED['id'] : 'default';

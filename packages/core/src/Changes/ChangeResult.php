@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\StateToken;
 
 /**
@@ -13,9 +14,8 @@ use AzGuard\Kernel\Decision\StateToken;
  * it received and cannot replace it. `record` is the dynamic permission of an operation that changed one, otherwise
  * the first grant record. `state` is the resulting revision of this operation; `committed` is false while
  * an outer transaction is still open, so the state must not be cached yet. One `correlationId` per operation.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class ChangeResult
 {
     /**

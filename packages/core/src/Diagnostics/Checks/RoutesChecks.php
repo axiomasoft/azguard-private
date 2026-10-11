@@ -49,7 +49,7 @@ final readonly class RoutesChecks implements DoctorCheck
             }
 
             try {
-                $panel = $this->resolver->resolve(panel: $id)['panel'];
+                $panel = $this->resolver->resolve(null, null, $id)['panel'];
             } catch (AzGuardException $error) {
                 yield DoctorFinding::error($this->key(), 'Route '.self::name($route).' enters the panel "'.$id.'", which does not resolve: '.$error->getMessage(),
                     details: ['route' => self::name($route), 'code' => $error->code()]);
@@ -76,7 +76,7 @@ final readonly class RoutesChecks implements DoctorCheck
 
         foreach ($this->checks->attributes($route) as $check) {
             try {
-                $this->resolver->resolve(permission: $check->permission, panel: $panel->id());
+                $this->resolver->resolve(null, $check->permission, $panel->id());
             } catch (AzGuardException $error) {
                 $findings[] = DoctorFinding::error($this->key(), '#[CheckPermission('.self::permission($check->permission).')] on route '.self::name($route)
                     .' does not name a permission of panel '.$panel->id().': '.$error->getMessage(), $scope,
@@ -103,7 +103,7 @@ final readonly class RoutesChecks implements DoctorCheck
 
     private static function name(Route $route): string
     {
-        return $route->getName() ?? implode('|', $route->methods()).' /'.ltrim($route->uri(), '/');
+        return $route->getName() ?? implode('|', array_filter($route->methods(), is_string(...))).' /'.ltrim($route->uri(), '/');
     }
 
     private static function permission(UnitEnum|string $permission): string

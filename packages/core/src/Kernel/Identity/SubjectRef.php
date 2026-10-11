@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 
 /**
  * The subject a decision is about: a type alias of its identity domain and a canonical id.
  */
+#[Api(since: '0.7')]
 final readonly class SubjectRef
 {
     private function __construct(

@@ -94,8 +94,8 @@ it('names an owner phase for every invariant without a check, and invents no che
         }
     }
 
-    // I4 and I20 are built by P2, I18 and I22 by P4: no check of them exists in P1.
-    expect($without)->toBe(['I4', 'I18', 'I20', 'I22']);
+    // I18 and I22 are built by P4: no check of them exists before.
+    expect($without)->toBe(['I18', 'I22']);
 });
 
 it('states for every build entry with a check the phase from which it blocks', function (): void {
@@ -121,7 +121,7 @@ it('agrees with the invariants table of the architecture knowledge', function ()
 
 it('keeps each allowlist inside the phase from which its invariant blocks', function (): void {
     $lists = [
-        'I2' => __DIR__.'/Allowlists/i2.json', 'I3' => __DIR__.'/Allowlists/i3.json', 'I5' => __DIR__.'/Allowlists/i5.json',
+        'I2' => __DIR__.'/Allowlists/i2.json', 'I3' => __DIR__.'/Allowlists/i3.json', 'I4' => __DIR__.'/Allowlists/i4.json', 'I5' => __DIR__.'/Allowlists/i5.json',
         'I13' => dirname(__DIR__).'/Fixtures/InactiveCost/allowlist.json', 'I7' => dirname(__DIR__).'/Fixtures/Parity/i7-allowlist.json',
     ];
     $register = array_column(invariantRegister(), null, 'id');

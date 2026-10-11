@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -15,6 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
  *
  * A null tenant or context means "not given"; resolvers fill it later. The global context is passed explicitly.
  */
+#[Api(since: '0.7')]
 final readonly class AccessRequest
 {
     private function __construct(

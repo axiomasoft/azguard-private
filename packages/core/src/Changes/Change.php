@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -27,9 +29,8 @@ use DateTimeImmutable;
  * A pipe may only replace `until` and `fields` through `withUntil()` and `withFields()` (the fields of the details for
  * a dynamic permission), cancel with `cancel()`, and must return the result it receives from `$next`. The engine
  * validates the final change again after all pipes.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class Change
 {
     /** The origin recorded on a change of a dynamic permission, which has no grant origin. */

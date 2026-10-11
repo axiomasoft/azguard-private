@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Authorization\AuthorizesActions;
 use AzGuard\Filament\Authorization\FilamentGate;
 use AzGuard\Filament\Authorization\RefusesEditableColumns;
@@ -17,6 +18,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 
+#[Api(since: '0.7')]
 final class AzGuardFilamentServiceProvider extends ServiceProvider
 {
     private const string PANEL_MIDDLEWARE = 'azguard.panel';

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Database;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
@@ -72,9 +73,8 @@ use Throwable;
 
 /**
  * Raw database assignments. Role expansion and qualification belong to the engine.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants, StoresGrants
 {
     private bool $onlyRoles = false;

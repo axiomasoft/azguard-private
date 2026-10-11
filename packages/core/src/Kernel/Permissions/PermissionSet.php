@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Permissions;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use DateTimeImmutable;
@@ -11,6 +12,7 @@ use DateTimeImmutable;
 /**
  * The patterns a subject holds, deduplicated, with an optional absolute deadline of the set.
  */
+#[Api(since: '0.7')]
 final readonly class PermissionSet
 {
     /**

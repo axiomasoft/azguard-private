@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Concerns;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Pipeline\Stages\BoundaryStage;
 use AzGuard\Changes\Change;
@@ -62,9 +63,8 @@ use UnitEnum;
  * a role list or permission set takes the scope the panel resolves for it, and a change refuses it.
  *
  * The origin selects the partition of changes and stored-grant lists only; checks read every origin.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class SubjectAccess
 {
     private SubjectRef $ref;

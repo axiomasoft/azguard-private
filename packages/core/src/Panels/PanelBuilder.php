@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
@@ -30,6 +31,7 @@ use UnitEnum;
  * Every call is written to the panel recipe together with its origin; the builder exposes nothing to read back.
  * Once the panel is compiled the builder is sealed and any further call throws `RegistryFrozenException`.
  */
+#[Api(since: '0.7')]
 final class PanelBuilder
 {
     /**

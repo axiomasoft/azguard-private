@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -14,6 +15,7 @@ use DateTimeImmutable;
 /**
  * A role held in a scope, contributed by a source; qualified by scope, expiry and fields before expansion.
  */
+#[Api(since: '0.7')]
 final readonly class RoleContribution
 {
     /**

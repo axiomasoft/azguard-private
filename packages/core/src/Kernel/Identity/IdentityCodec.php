@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use JsonException;
 use ReflectionReference;
@@ -14,6 +15,7 @@ use ReflectionReference;
  * Composite keys are JSON arrays led by the codec version, never strings glued without boundaries. A reference is
  * encoded with its kind, so a subject, a tenant and an assignment scope with the same alias and id stay distinct.
  */
+#[Api(since: '0.7')]
 final readonly class IdentityCodec
 {
     public const int VERSION = 1;

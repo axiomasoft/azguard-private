@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -16,6 +17,7 @@ use ReflectionReference;
 /**
  * A grant from any source: "the permission holds because of this", with its owner (origin), scope and expiry.
  */
+#[Api(since: '0.7')]
 final readonly class Grant
 {
     /**

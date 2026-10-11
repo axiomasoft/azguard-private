@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
 use DateTimeImmutable;
 
 /** An immutable, scalar diagnostic snapshot of one evaluation.
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class Explanation
 {
     /** @var list<array<string, mixed>> */

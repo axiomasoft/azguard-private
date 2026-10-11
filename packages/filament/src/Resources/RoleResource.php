@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Resources;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\RoleResource\Pages\ListRoles;
 use AzGuard\Filament\Resources\RoleResource\Pages\ViewRole;
@@ -23,10 +24,10 @@ use UnitEnum;
  * changed from the interface; roles are assigned in the grant editors. Its permissions are `azguard-roles.view_any`
  * and `azguard-roles.view` in the guard panel.
  *
- * @api
  *
  * @phpstan-type Row array{key: string, label: string, class: string, grantable: bool, automatic: bool, super_admin: bool, scope_required: bool, contexts: list<string>, filters: list<string>, permissions: list<array{name: string, authority: ?string, grantable: bool}>}
  */
+#[Api(since: '0.7')]
 final class RoleResource extends Resource
 {
     use AuthorizesResource;

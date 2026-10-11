@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Exceptions;
 
+use AzGuard\Attributes\Api;
+
 /**
  * The package configuration fails a load-time check.
  *
  * The code names the failed check after the dot (`invalid_configuration.enum`); a failure without a narrower
  * check keeps the base code.
  */
+#[Api(since: '0.7')]
 final class InvalidConfigurationException extends ConfigurationException
 {
     private ?string $check = null;

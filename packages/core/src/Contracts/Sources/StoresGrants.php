@@ -10,8 +10,6 @@ use Closure;
 
 /**
  * The writer of a panel. A panel has at most one.
- *
- * @spi
  */
 interface StoresGrants extends Source
 {

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 
 /**
  * Who initiated a change: a host identity, or the system actor without an id and with a reason.
  */
+#[Api(since: '0.7')]
 final readonly class ActorRef
 {
     public const string SYSTEM_TYPE = 'azguard.system';

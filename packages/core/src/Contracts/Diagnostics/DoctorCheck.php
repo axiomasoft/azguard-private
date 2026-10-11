@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Diagnostics;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 
@@ -13,9 +15,8 @@ use AzGuard\Diagnostics\DoctorFinding;
  * A check of a source, a panel or a plugin runs once for each selected panel it belongs to and reads that panel
  * from `DoctorContext::panel()`. An exception thrown by a check is reported as an error under `<key>.failed`;
  * the other checks still run.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface DoctorCheck
 {
     /** A stable key of the check, such as `storage.schema` or `acme.folders`. */

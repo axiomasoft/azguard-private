@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Events;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -16,9 +17,8 @@ use DateTimeImmutable;
 /**
  * The expiry or fields of a stored role grant changed; the values are the new ones. A migration from a former key of
  * the role also changes the key: `previousRole` is then the former key, otherwise null.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class RoleGrantUpdated extends AccessEvent
 {
     /** @param array<string, mixed> $fields */

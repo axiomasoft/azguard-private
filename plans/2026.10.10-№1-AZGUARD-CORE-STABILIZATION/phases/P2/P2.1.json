@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.1",
   "title": "Publication markers, member-aware manifest and I4/I20 checks",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "AzGuard-owned `#[Api]`/`#[Spi]`/`SpiKind` attributes mark every supported type of the type map, enums carry `@closed`/`@open`, the manifest generator publishes by attribute only and records members, overrides, constants, enum classes, generics and module roots; I4 (member-aware supported-symbol usage, report mode) and I20 (positional SPI calls) run in tests/Arch; the migration instruction section exists and the P2 harness prerequisites (D16 snapshot switch, D17 ownership fallback, two pre-existing PHPStan errors) are in place.",
   "why": "Release-gate condition 3 needs an attribute-classified surface and a generator that sees members and protected override points; every later P2 item marks its types and is measured by I4/I20. Location-based publication (97 types) and the zero-method facade make the 0.7.0 manifest unable to say what is supported (D4, D9). Hard risk: a marker pass that publishes a type the type map makes internal, or misses one, silently changes the frozen surface — the oracle comparison test prevents it.",
   "scope": {
@@ -264,12 +264,65 @@
   },
   "result": {
     "started_at": "2026-10-11T16:25:05Z",
+    "finished_at": "2026-10-11T17:35:01Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "88815852-c27c-4a38-923e-e5efc238bdf7"
-    }
+    },
+    "notes": "Attributes Api/Spi/SpiKind; 249 existing types marked since 0.7 (keep+relocate at target FQCN, P3-move rows at current FQCN), 16 enums tagged @closed/@open, all @api/@spi tags removed. Generator publishes by attribute only with kind/since, public+protected override members, constants, enum class, PHPDoc contracts, namedArguments, roots, facade. Manifests: core 230 types (176 api, 36 spi-implement, 18 spi-call), filament 22. I4 report mode (i4.json 38 entries: 37 P3, 1 P2), I20 blocking (7 core files made positional), D17 ownership fallback, D16 writer switch, PHPStan errors fixed, upgrade.md section. Changed fixtures: packages/core/api-manifest.json, packages/filament/api-manifest.json, tests/Fixtures/Baseline070/serializable-fqcn.json (SpiKind), tests/Arch/invariants.json. V1-V6 exit 0 under PHP 8.4.26 (V5 4908/4908). Grok 4.7 review: round 1 RED (F1 fixed), round 2 GREEN.",
+    "deviations": [
+      "Extra paths beyond task_files (ApiUsage.php, ZonesArchTest marker exemption, SourceConventionsTest, InvariantRegisterTest, two unit tests, ParityLedger, CommandsSnapshotTest, InventoriesSnapshotTest, serializable-fqcn.json, 7 core I20 call sites, CONTRIBUTING.md)",
+      "Acceptance run under PHP 8.4 via PATH shim: system php 8.3 breaks SQLite snapshot reads (pre-existing core defect, 286 failures identical on HEAD); vendor refreshed by owner composer update",
+      "F1 correction folded into the executor commit (fix commit would sweep the uncommitted product)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-11T17:35:01Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V6.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V5.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.1/V6.json"
+    ]
   },
-  "updated_at": "2026-10-11T16:25:05Z"
+  "updated_at": "2026-10-11T17:35:01Z"
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use DateTimeImmutable;
@@ -12,9 +13,8 @@ use DateTimeImmutable;
  * One stored dynamic permission as the writer read it under the panel lock.
  *
  * `id` is `action:<n>`. The permission exists in one tenant only and is always decided by grants.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PermissionRecord
 {
     /**

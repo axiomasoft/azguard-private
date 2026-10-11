@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Decision;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\InvalidPanelIdException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -11,6 +12,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 /**
  * State evidence of a decision made from code alone: the panel build, without storage.
  */
+#[Api(since: '0.7')]
 final readonly class CodeStateToken
 {
     private function __construct(

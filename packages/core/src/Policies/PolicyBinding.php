@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Policies;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use BackedEnum;
@@ -14,9 +15,8 @@ use UnitEnum;
  * Binds a permission to the policy class that decides it.
  *
  * Under a policy-only permission the policy is the only authority; under a grants permission it may only veto.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PolicyBinding
 {
     /**

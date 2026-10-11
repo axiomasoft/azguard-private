@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
@@ -18,9 +20,8 @@ use PHPUnit\Framework\Attributes\Test;
  * - the same request gives the same scope;
  * - the scope survives the codec and has no ":" in its type;
  * - a request that names no scope gives null, not an error and not the global scope.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait AssignmentScopeResolverContractTests
 {
     /** A new instance of the resolver under test. */

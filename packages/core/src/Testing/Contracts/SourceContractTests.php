@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Testing\Contracts;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Changes\Change;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -49,9 +51,8 @@ use UnitEnum;
  * - it takes `now` from the context, not from its own clock;
  * - `describe()` lists the capabilities the source implements and what it returns has the type of its capability;
  * - a writer refuses to store anything outside the transaction the change pipeline opens.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 trait SourceContractTests
 {
     /** A new instance of the source under test, ready to be attached to a panel. */

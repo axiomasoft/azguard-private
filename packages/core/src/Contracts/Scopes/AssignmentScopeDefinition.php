@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Scopes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * A type of assignment scope, such as a project; grants store its alias, never the class name.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface AssignmentScopeDefinition
 {
     /**

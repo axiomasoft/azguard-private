@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Storage\Models;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Schema\Field;
 use AzGuard\Storage\Concerns\BelongsToStorage;
@@ -11,6 +13,7 @@ use AzGuard\Storage\Concerns\GrantIdentity;
 use AzGuard\Storage\Concerns\GuardsDirectWrites;
 use Illuminate\Database\Eloquent\Model;
 
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 class RoleGrant extends Model
 {
     use BelongsToStorage;

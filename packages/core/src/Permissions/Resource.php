@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace AzGuard\Permissions;
 
 use Attribute;
+use AzGuard\Attributes\Api;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Label and domain model of a permission enum. The model does not by itself create permissions.
- *
- * @api
  */
 #[Attribute(Attribute::TARGET_CLASS)]
+#[Api(since: '0.7')]
 final readonly class Resource
 {
     /**

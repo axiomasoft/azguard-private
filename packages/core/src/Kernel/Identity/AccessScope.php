@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Kernel\Identity;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Where an assignment applies: a tenant and an assignment scope inside it.
  *
  * The global scope inside a tenant means tenant-wide; it never equals the global tenant.
  */
+#[Api(since: '0.7')]
 final readonly class AccessScope
 {
     private function __construct(

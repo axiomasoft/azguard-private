@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use DateTimeImmutable;
 
 /**
  * The complete replacement of the editable values of one grant: expiry and fields. Identity, role, scope and
  * origin are never part of it; the writer validates the values again under the panel lock.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class GrantDetails
 {
     /**

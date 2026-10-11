@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Query\PredicateCompiler;
 use AzGuard\Authorization\Query\VisibilityScope;
 use AzGuard\Catalog\PanelCatalog;
@@ -50,9 +51,8 @@ use UnitEnum;
 
 /**
  * Exact final access before aggregation or pagination. Bounded fallback checks the whole host universe.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class Visibility
 {
     public function __construct(private PanelRegistry $registry, private ModelSubjectResolver $subjects, private Container $container, private CurrentContext $current) {}
@@ -108,7 +108,7 @@ final readonly class Visibility
         $group = $query->getModel()->newModelQuery();
 
         if ($mapping !== null) {
-            $mapping->constrain($group, $mapping->query($request, $frame, common: true));
+            $mapping->constrain($group, $mapping->query($request, $frame, true));
         }
         // Tenant membership is one fixed subject/tenant input for the entire operation.
         $declared = $panel->tenants()->membership();
@@ -371,7 +371,7 @@ final readonly class Visibility
             $mapping = $this->mapping($candidate, $frame, new PredicateCompiler);
 
             if ($mapping !== null) {
-                $mapping->constrain($candidate, $mapping->query($request, $frame, eligibility: false));
+                $mapping->constrain($candidate, $mapping->query($request, $frame, false, false));
             }
         }
         $records = $candidate->limit($limit + 1)->get();

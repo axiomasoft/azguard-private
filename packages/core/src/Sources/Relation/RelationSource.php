@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources\Relation;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -37,9 +38,8 @@ use Throwable;
 
 /**
  * Raw roles from membership on a host entity. The engine expands and qualifies the roles.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesRoleGrants
 {
     private ?RelationBinding $binding = null;

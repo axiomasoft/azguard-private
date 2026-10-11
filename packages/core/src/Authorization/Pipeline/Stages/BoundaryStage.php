@@ -182,7 +182,7 @@ final readonly class BoundaryStage
                 throw new RuntimeException('Resource resolver does not implement ResourceScopeResolver.');
             }
 
-            return $resolver->resolve(resource: $resource, selected: $selected);
+            return $resolver->resolve($resource, $selected);
         }
 
         if ($resource instanceof ProvidesAccessScope) {

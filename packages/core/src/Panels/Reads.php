@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Which database connection decisions read grants from.
  *
- * @api
+ * @closed
  */
+#[Api(since: '0.7')]
 enum Reads: string
 {
     /** The write PDO outside an unrecognized transaction; decisions do not see replica lag. */

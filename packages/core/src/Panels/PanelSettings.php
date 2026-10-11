@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Panels;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 
 /**
@@ -11,9 +12,8 @@ use AzGuard\Exceptions\DefinitionException;
  *
  * A value is taken from the panel provider, otherwise from a plugin, otherwise from `configure` for all panels,
  * otherwise from the `defaults` section of the configuration.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PanelSettings
 {
     public const string RESOURCE_PREFIX = 'resource_prefix';

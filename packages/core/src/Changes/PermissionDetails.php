@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 
 /**
  * The complete replacement of the editable values of one dynamic permission: label, group, description and fields.
  * Name, tenant and the Grants authority mode are never part of it; the writer validates the values again under the
  * panel lock. A dynamic permission declares no field schema, so any field is refused when the change is validated.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class PermissionDetails
 {
     /**

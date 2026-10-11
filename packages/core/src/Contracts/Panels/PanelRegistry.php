@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Panels;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePanelException;
 use AzGuard\Exceptions\InvalidPanelIdException;
@@ -20,9 +21,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Panels are compiled once the application has booted; reading before that throws, so a half-built registry is
  * never observed.
- *
- * @api
  */
+#[Api(since: '0.7')]
 interface PanelRegistry
 {
     /**

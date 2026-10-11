@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -18,9 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * The target subject may be absent while the caller is still choosing who to assign. The actor is null when the
  * operation has no actor; it is never replaced by the target or by Auth.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class LookupContext
 {
     /**

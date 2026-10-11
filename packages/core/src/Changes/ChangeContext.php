@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -20,9 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  * `user` is the target subject, never the actor. `actor` is null when the change has no actor. `proposed` holds only
  * schema-validated `until` and `fields` of a grant or an update; it is empty for a revocation. `state` is the locked
  * panel state before this operation.
- *
- * @api
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class ChangeContext
 {
     /**

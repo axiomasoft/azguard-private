@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament;
 
+use AzGuard\Attributes\Api;
+
 /**
  * Where the permissions of the resources, pages and widgets of a Filament panel are described.
  *
  * It names the source of the definitions only; who decides a permission is the authority.
  *
- * @api
+ * @open
  */
+#[Api(since: '0.7')]
 enum FilamentDefinitions: string
 {
     /** Permission enums of the guard panel folder. */

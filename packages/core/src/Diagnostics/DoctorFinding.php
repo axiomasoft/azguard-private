@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics;
 
+use AzGuard\Attributes\Api;
 use InvalidArgumentException;
 
 /**
@@ -11,9 +12,8 @@ use InvalidArgumentException;
  *
  * The scope is `core`, `panel:<id>`, `storage:<id>` or `plugin:<id>`. Details are scalars or lists of scalars; a
  * detail whose name looks like a secret (a password, a token, a DSN or a URL) never keeps its value.
- *
- * @api
  */
+#[Api(since: '0.7')]
 final readonly class DoctorFinding
 {
     public const string REDACTED = '[redacted]';

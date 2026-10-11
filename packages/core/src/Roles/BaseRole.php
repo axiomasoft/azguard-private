@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Roles;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Exceptions\InvalidRoleKeyException;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
@@ -20,6 +22,7 @@ use UnitEnum;
  * Every attribute has a method with the same meaning, and overriding the method is equivalent to the attribute.
  * Attributes are read by reflection once per class.
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 abstract class BaseRole
 {
     /**

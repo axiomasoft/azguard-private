@@ -6,8 +6,6 @@ namespace AzGuard\Panels;
 
 /**
  * How a panel answers Laravel Gate for the abilities it owns.
- *
- * @api
  */
 enum GateMode: string
 {

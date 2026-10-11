@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Contracts\Plugins;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
@@ -14,9 +16,8 @@ use AzGuard\Plugins\PluginContext;
  *
  * A plugin takes its settings through its own constructor or named factory with typed parameters. Every panel
  * works with its own copy of the plugin, so one plugin can be attached to several panels.
- *
- * @spi
  */
+#[Spi(kind: SpiKind::Implement, since: '0.7')]
 interface Plugin
 {
     /**
