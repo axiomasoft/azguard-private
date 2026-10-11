@@ -71,6 +71,16 @@ Deferred to P2: `ContractWorld::rowCounts()` MySQL schema scoping, and the two p
 - Reviewers did not run composer/pest/docker by instruction; V1–V6 are executor runs.
 - `plan.py` from the swissknifeman dev runtime (`packages/task/scripts/plan.py`), as in round 1.
 
+## Additional owner-requested review (round 3, 2026-10-11)
+
+- Owner requested another Grok 4.7 review of P1 boundaries and corrections to agreed findings after P1.6 closure.
+- Candidate: `3a38f84be67139c8b960bd1c5f1887bdb5f8b491`; fresh native session `afe3a57a-8936-472f-a2e6-66236ae661c0`, selected `grok-4.7`, resolved `grok-4.7-build`, effort `high`, sandbox `review`, Grok CLI `1.0.50`. Model and effort are verified from provider runtime, not inferred from the prompt. 61 turns, 120 completed tool calls.
+- Verdict: **GREEN**, no findings. Reviewed P1.1–P1.6 against P1 boundaries and D12–D14, including current Compose/CI changes and candidate-bound V1–V6 evidence. No production transition assigned to P2/P3/P4 was implemented; `packages/` remains identical to baseline `09612160`.
+- Independent report: `artifacts/reviews/P1/round3/grok-4.7.md`; prompt and native route/session proof: `prompt.md`, `receipt.json` in the same directory.
+- Executor verified live MySQL command options match current Compose, tmpfs `/var/lib/mysql`, healthy service, `O_DIRECT_NO_FSYNC`, `innodb_flush_log_at_trx_commit=0`, `innodb_doublewrite=OFF`, `log_bin=OFF`; evidence: `executor-checks.json` / `executor-checks.log`. No service restart or database mutation was performed.
+- One native shell probe with destructive temporary-path operations was denied. Grok replaced it with non-mutating EXIT-trap probes; the executor independently confirmed expected exit 3. An executor log-reading query also hit a lexical `security.safe-dirs` false positive and succeeded with a corrected read-only query; that failed attempt is not represented as a passed check.
+- No agreed defect required a code or fixture correction. P1 remains `done_with_deviations`; existing P2 pending items remain. Full acceptance was not repeated: code, tests, Compose and CI are unchanged since accepted `38dc04d`, and the reviewer verified the evidence logs/hashes. This supplement does not re-date or replace those acceptance runs.
+
 ---
 
 ## Round 1 (history, commit `9b8092e73da25185a30f438ba9458eb1f9633cef`)

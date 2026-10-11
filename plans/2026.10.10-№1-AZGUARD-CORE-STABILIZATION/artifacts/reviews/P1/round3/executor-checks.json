@@ -1,0 +1,141 @@
+{
+  "candidate": "3a38f84be67139c8b960bd1c5f1887bdb5f8b491",
+  "actor": "codex/gpt-6.1-sol/high",
+  "checks": [
+    {
+      "id": "compose-config",
+      "argv": [
+        "docker",
+        "compose",
+        "config",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.615432+00:00",
+      "finished_at": "2026-10-11T14:46:43.700015+00:00"
+    },
+    {
+      "id": "mysql-container",
+      "argv": [
+        "docker",
+        "inspect",
+        "azguard-mysql-1",
+        "--format",
+        "{{json .Config.Cmd}}"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.700173+00:00",
+      "finished_at": "2026-10-11T14:46:43.720279+00:00"
+    },
+    {
+      "id": "mysql-tmpfs",
+      "argv": [
+        "docker",
+        "inspect",
+        "azguard-mysql-1",
+        "--format",
+        "{{json .HostConfig.Tmpfs}}"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.720331+00:00",
+      "finished_at": "2026-10-11T14:46:43.739131+00:00"
+    },
+    {
+      "id": "mysql-state",
+      "argv": [
+        "docker",
+        "inspect",
+        "azguard-mysql-1",
+        "--format",
+        "{{.State.Status}} {{.State.Health.Status}}"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.739150+00:00",
+      "finished_at": "2026-10-11T14:46:43.750358+00:00"
+    },
+    {
+      "id": "mysql-runtime-variables",
+      "argv": [
+        "php",
+        "-r",
+        "$p=new PDO(\"mysql:host=127.0.0.1;port=53306;dbname=azguard_test\",\"azguard\",\"azguard\");foreach([\"innodb_flush_method\",\"innodb_flush_log_at_trx_commit\",\"innodb_doublewrite\",\"log_bin\"] as $v){$r=$p->query(\"SHOW VARIABLES LIKE \". $p->quote($v))->fetch(PDO::FETCH_NUM);echo $r[0],\"=\",$r[1],\"\\n\";}"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.750370+00:00",
+      "finished_at": "2026-10-11T14:46:43.765318+00:00"
+    },
+    {
+      "id": "exit-trap-preserves-3",
+      "argv": [
+        "bash",
+        "-c",
+        "trap ':' EXIT; exit 3"
+      ],
+      "exit": 3,
+      "expected_exit": 3,
+      "started_at": "2026-10-11T14:46:43.765327+00:00",
+      "finished_at": "2026-10-11T14:46:43.766596+00:00"
+    },
+    {
+      "id": "baseline-package-equality",
+      "argv": [
+        "git",
+        "diff",
+        "--quiet",
+        "09612160c98ca6133c894a8f90f5653b9dac6b8f",
+        "--",
+        "packages/"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.766600+00:00",
+      "finished_at": "2026-10-11T14:46:43.769156+00:00"
+    },
+    {
+      "id": "untracked-packages",
+      "argv": [
+        "git",
+        "ls-files",
+        "--others",
+        "--exclude-standard",
+        "packages/"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.769161+00:00",
+      "finished_at": "2026-10-11T14:46:43.771924+00:00"
+    },
+    {
+      "id": "candidate-diff-plan-only",
+      "argv": [
+        "git",
+        "diff",
+        "--quiet",
+        "38dc04d",
+        "HEAD",
+        "--",
+        ".",
+        ":!plans"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "started_at": "2026-10-11T14:46:43.771935+00:00",
+      "finished_at": "2026-10-11T14:46:43.773626+00:00"
+    }
+  ],
+  "log": {
+    "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P1/round3/executor-checks.log",
+    "sha256": "169fd2c312711aab23eed801b0cb9cbeac4864f6a555cccd6e7d66bc9ba20349"
+  },
+  "notes": [
+    "Read-only checks; MySQL service was not restarted and test databases were not modified.",
+    "Observed running MySQL flags and tmpfs match current Compose, reducing the reviewer startup uncertainty.",
+    "One executor read-only inspection was rejected by security.safe-dirs because a search string resembled a deletion command; corrected read-only query succeeded."
+  ]
+}
