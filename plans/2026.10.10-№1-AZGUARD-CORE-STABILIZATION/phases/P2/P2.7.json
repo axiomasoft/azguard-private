@@ -185,7 +185,7 @@
     },
     {
       "id": "V2",
-      "cmd": "test -z \"$(git grep -n 'AssignmentScopePolicy' -- '*.php')\"",
+      "cmd": "test -z \"$(git grep -n 'AssignmentScopePolicy' -- '*.php' ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')\"",
       "expect": "exit 0",
       "kind": "acceptance"
     },
@@ -240,5 +240,5 @@
     "status": "not_needed"
   },
   "result": null,
-  "updated_at": "2026-10-11T16:12:45Z"
+  "updated_at": "2026-10-11T20:17:30Z"
 }

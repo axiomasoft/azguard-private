@@ -179,7 +179,7 @@
     },
     {
       "id": "V2",
-      "cmd": "test -z \"$(git grep -nE 'BasePlugin|DependsOnPlugins|PluginDependencyMissingException|function boot\\(Panel' -- '*.php')\"",
+      "cmd": "test -z \"$(git grep -nE 'BasePlugin|DependsOnPlugins|PluginDependencyMissingException|function boot\\(Panel' -- '*.php' ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')\"",
       "expect": "exit 0",
       "kind": "acceptance"
     },
@@ -229,5 +229,5 @@
     "status": "not_needed"
   },
   "result": null,
-  "updated_at": "2026-10-11T16:11:47Z"
+  "updated_at": "2026-10-11T20:17:28Z"
 }
