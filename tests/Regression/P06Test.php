@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
@@ -16,7 +17,6 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

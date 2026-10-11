@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament\Guards;
 
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 

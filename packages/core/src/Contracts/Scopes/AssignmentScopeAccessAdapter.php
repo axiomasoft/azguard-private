@@ -6,8 +6,8 @@ namespace AzGuard\Contracts\Scopes;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;

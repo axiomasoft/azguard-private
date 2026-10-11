@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes\Query;
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Policies\RuntimeInvoker;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Support\ModelKey;
 use Closure;
 use Illuminate\Contracts\Container\Container;

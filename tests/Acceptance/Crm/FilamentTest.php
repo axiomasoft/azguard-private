@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AnourValar\EloquentSerialize\Facades\EloquentSerializeFacade;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Exports\AuthorizedExportCsv;
 use AzGuard\Filament\Exports\AuthorizedPrepareCsvExport;
@@ -10,7 +11,6 @@ use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Crm\ContextAwareProjectDirectory;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;

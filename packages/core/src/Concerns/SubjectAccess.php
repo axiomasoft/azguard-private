@@ -10,10 +10,11 @@ use AzGuard\Authorization\Pipeline\Stages\BoundaryStage;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Context\Internal\ContextIdentity;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\TenantMismatchException;
@@ -34,12 +35,13 @@ use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
+use AzGuard\Support\ModelKey;
+use AzGuard\Tenancy\Internal\TenantIdentity;
+use AzGuard\Tenancy\TenantMode;
 use BackedEnum;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -87,7 +89,7 @@ final readonly class SubjectAccess
         if ($tenant !== null && ! $tenant->isGlobal() && $tenant->type() !== $panel->tenants()->definition()?->type()) {
             throw new TenantMismatchException('Panel '.$panel->id().' does not take tenants of the type "'.$tenant->type().'".');
         }
-        $this->ref = $subject instanceof SubjectRef ? $subject : SubjectRef::of($subject->getMorphClass(), self::key($subject));
+        $this->ref = $subject instanceof SubjectRef ? $subject : SubjectRef::of($subject->getMorphClass(), ModelKey::of($subject));
     }
 
     public function panel(): Panel
@@ -438,7 +440,7 @@ final readonly class SubjectAccess
             return $tenant;
         }
 
-        if ($this->panel->tenants()->mode() === 'none') {
+        if ($this->panel->tenants()->mode() === TenantMode::None) {
             return TenantRef::global();
         }
 
@@ -507,13 +509,13 @@ final readonly class SubjectAccess
      */
     private function contextOf(Model $model): ?AssignmentScopeRef
     {
-        return ModelIdentity::context($this->panel, $model);
+        return ContextIdentity::context($this->panel, $model);
     }
 
     /** Whether a check may also pass the model as its resource: the panel can place it or has no tenants. */
     private function placesResource(Model $model): bool
     {
-        if ($this->panel->tenants()->mode() === 'none' || $model instanceof ProvidesAccessScope) {
+        if ($this->panel->tenants()->mode() === TenantMode::None || $model instanceof ProvidesAccessScope) {
             return true;
         }
         foreach (array_keys($this->panel->resourceScopes()) as $class) {
@@ -528,7 +530,7 @@ final readonly class SubjectAccess
     /** @throws TenantMismatchException */
     private function tenantOf(Model $tenant): TenantRef
     {
-        return ModelIdentity::tenant($this->panel, $tenant);
+        return TenantIdentity::tenant($this->panel, $tenant);
     }
 
     private function roleKey(string|UnitEnum $role): RoleKey
@@ -551,12 +553,6 @@ final readonly class SubjectAccess
         $prefix = $this->panel->prefix();
 
         return $prefix === null ? $local : $prefix.'.'.$local;
-    }
-
-    /** @throws InvalidIdentityException when the model has no key yet */
-    private static function key(Model $model): int|string
-    {
-        return ModelIdentity::key($model);
     }
 
     private function authorizer(): Authorizer

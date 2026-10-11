@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Exceptions\DefinitionException;
@@ -10,9 +12,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Tests\Feature\Directories\Support\AllowedProjectsAdapter;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;

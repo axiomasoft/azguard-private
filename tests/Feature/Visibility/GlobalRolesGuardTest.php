@@ -9,7 +9,7 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Scopes\Membership;
 use AzGuard\Tests\Fixtures\Scopes\Organization;

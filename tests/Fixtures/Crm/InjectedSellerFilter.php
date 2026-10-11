@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm;
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use RuntimeException;

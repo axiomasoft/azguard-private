@@ -89,7 +89,7 @@ engine never guesses that an unknown object belongs to the current tenant.
 ## Tenants
 
 ```php
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 
 ->tenants(TenantPolicy::required(Team::class)->requireMembership(TeamMembership::class))
 ```

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Tenancy;
 
+use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
@@ -14,6 +15,7 @@ use Throwable;
 /**
  * A tenant model identified by its registered morph alias.
  */
+#[Api(since: '0.7')]
 final readonly class ModelTenantDefinition
 {
     private string $alias;

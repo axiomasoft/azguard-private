@@ -19,7 +19,6 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
@@ -132,7 +131,7 @@ final readonly class VisibilityScope
             $structural->where(function (Builder $or) use ($records, $request, $frame, $common): void {
                 $or->whereRaw('1 = 0');
                 foreach ($records as $record) {
-                    $local = $this->frame($frame, AssignmentScopeRef::of($this->definition->type(), ModelIdentity::key($record)));
+                    $local = $this->frame($frame, AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record)));
                     $branch = $this->query($request, $local, $common);
                     $or->orWhereIn($record->getQualifiedKeyName(), $branch->select($record->getQualifiedKeyName())->toBase());
                 }
@@ -205,7 +204,7 @@ final readonly class VisibilityScope
         $customResolver = (new ReflectionMethod($this->definition, 'resolve'))->getDeclaringClass()->getName() !== BaseAssignmentScope::class;
         foreach ($records as $record) {
             if ($customResolver) {
-                $ref = AssignmentScopeRef::of($this->definition->type(), ModelIdentity::key($record));
+                $ref = AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record));
                 $resolved = $this->definition->resolve($ref);
 
                 if ($resolved === null || ! $resolved->ref->equals($ref) || ! $resolved->tenant->equals($frame->scope()->tenant)) {

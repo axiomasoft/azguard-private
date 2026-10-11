@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
 use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;

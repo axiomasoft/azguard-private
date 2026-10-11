@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\AssignmentScopePhase;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 
 it('keeps the operation frame a readonly value with a nullable role and user', function (): void {

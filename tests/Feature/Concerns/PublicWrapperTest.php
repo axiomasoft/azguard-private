@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\WithinContext;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;

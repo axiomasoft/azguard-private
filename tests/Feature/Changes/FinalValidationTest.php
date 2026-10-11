@@ -26,7 +26,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\SupportRole;

@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\BatchNativeFilter;
 use AzGuard\Tests\Fixtures\Authorization\BatchNativeRole;

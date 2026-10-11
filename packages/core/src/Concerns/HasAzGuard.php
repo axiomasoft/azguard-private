@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Support\ModelKey;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -177,7 +177,7 @@ trait HasAzGuard
 
     public function azguardRef(): SubjectRef
     {
-        return SubjectRef::of($this->getMorphClass(), ModelIdentity::key($this));
+        return SubjectRef::of($this->getMorphClass(), ModelKey::of($this));
     }
 
     /**

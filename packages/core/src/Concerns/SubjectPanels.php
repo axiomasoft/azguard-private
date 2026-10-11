@@ -11,6 +11,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Tenancy\TenantMode;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -57,7 +58,7 @@ final readonly class SubjectPanels
     {
         $sets = [];
         foreach ($this->resolver()->panelsOf($this->subject) as $panel) {
-            if ($panel->tenants()->mode() === 'none') {
+            if ($panel->tenants()->mode() === TenantMode::None) {
                 $sets[$panel->id()] = $this->guard($panel->id())->permissionSet();
             }
         }

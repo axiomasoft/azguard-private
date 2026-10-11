@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -11,7 +12,6 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Permissions\GrantedToAll;
 use AzGuard\Permissions\RequiresGrant;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;

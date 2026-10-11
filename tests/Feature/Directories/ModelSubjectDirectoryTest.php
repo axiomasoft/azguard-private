@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\ModelSubjectDirectory;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Tests\Feature\Directories\Support\FixtureSubjectDirectory;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Feature\Directories\Support\Person;

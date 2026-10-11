@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Context;
 
+use AzGuard\Attributes\Spi;
+use AzGuard\Attributes\SpiKind;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -22,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  * target or to Auth. `proposed` holds only schema-validated assignment values (`until`, `fields`) of an
  * Assignment phase and is empty for Access, Revocation and Inspection.
  */
+#[Spi(kind: SpiKind::Call, since: '0.7')]
 final readonly class AssignmentScopeRuntime
 {
     public function __construct(

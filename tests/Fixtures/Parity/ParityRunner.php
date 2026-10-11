@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Parity;
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Changes\ChangePipeline;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
@@ -19,7 +20,6 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\AnalystRole;

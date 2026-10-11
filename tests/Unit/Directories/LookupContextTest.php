@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Directories\SubjectOption;
@@ -11,7 +12,6 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 
 it('keeps lookup inputs and directory options readonly', function (): void {

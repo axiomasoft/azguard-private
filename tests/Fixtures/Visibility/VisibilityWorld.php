@@ -37,7 +37,7 @@ use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ContextAware;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;

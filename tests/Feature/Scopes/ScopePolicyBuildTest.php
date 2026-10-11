@@ -8,7 +8,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Changes;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Scopes\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopePhase;
 
 /**
  * What a change does to the grants and the dynamic permissions of a panel.

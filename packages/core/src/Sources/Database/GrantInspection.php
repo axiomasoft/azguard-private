@@ -19,6 +19,7 @@ use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
 use AzGuard\Storage\Schema\HostKeyColumns;
 use AzGuard\Storage\StorageReadSession;
+use AzGuard\Tenancy\TenantMode;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -210,7 +211,7 @@ final readonly class GrantInspection
         $policy = $this->panel->tenants();
         $roles = [];
         foreach ($this->catalog->roles() as $key => $role) {
-            if (! $role['grantable'] || $tenant->isGlobal() && $policy->mode() === 'required' && ! in_array($role['class'], $policy->globalRoles(), true)) {
+            if (! $role['grantable'] || $tenant->isGlobal() && $policy->mode() === TenantMode::Required && ! in_array($role['class'], $policy->globalRoles(), true)) {
                 continue;
             }
             $roles[$key] = [

@@ -8,11 +8,12 @@ use AzGuard\Authorization\BatchInputs;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\ScopeEligibility;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
-use AzGuard\Contracts\Scopes\TenantResolver;
+use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -20,8 +21,8 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Support\ModelKey;
+use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -48,7 +49,7 @@ final readonly class BoundaryStage
             if ($request->resource() !== null) {
                 $resource = $this->resourceScope(resource: $request->resource(), panel: $panel, selected: $hint);
 
-                if ($resource === null && $panel->tenants()->mode() === 'required') {
+                if ($resource === null && $panel->tenants()->mode() === TenantMode::Required) {
                     return [$frame, $this->deny($frame, DecisionReason::ResourceScopeMissing)];
                 }
             }
@@ -56,7 +57,7 @@ final readonly class BoundaryStage
             $context = $request->context() ?? $resource->context
                 ?? ($panel->scopes()->mode() === 'none' ? null : $ambient?->context);
 
-            if ($tenant === null && $panel->tenants()->mode() !== 'none') {
+            if ($tenant === null && $panel->tenants()->mode() !== TenantMode::None) {
                 $tenant = $this->resolveTenant($frame);
             }
 
@@ -140,7 +141,7 @@ final readonly class BoundaryStage
     {
         $tenantPolicy = $frame->panel()->tenants();
 
-        if ($tenantPolicy->mode() === 'required') {
+        if ($tenantPolicy->mode() === TenantMode::Required) {
             if ($frame->scope()->tenant->isGlobal()) {
                 return $this->deny($frame, DecisionReason::TenantRequired);
             }
@@ -189,7 +190,7 @@ final readonly class BoundaryStage
             return $resource->azguardScope();
         }
 
-        if ($panel->tenants()->mode() === 'none' && $resource instanceof ProvidesAssignmentScope) {
+        if ($panel->tenants()->mode() === TenantMode::None && $resource instanceof ProvidesAssignmentScope) {
             return AccessScope::in(tenant: TenantRef::global(), context: $resource->azguardAssignmentScope());
         }
 

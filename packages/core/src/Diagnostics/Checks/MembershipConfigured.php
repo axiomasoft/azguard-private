@@ -9,6 +9,7 @@ use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
 use ReflectionClass;
 
@@ -47,7 +48,7 @@ final readonly class MembershipConfigured implements DoctorCheck
             }
         }
 
-        if ($panel->tenants()->mode() === 'required') {
+        if ($panel->tenants()->mode() === TenantMode::Required) {
             foreach ($panel->scopeDefinitions() as $type => $definition) {
                 if ($definition instanceof ModelAssignmentScopeDefinition && ! $definition->hasOwner()) {
                     $findings[] = DoctorFinding::error('membership.configured', 'Assignment scope '.$type.' of the tenant panel '.$panel->id()

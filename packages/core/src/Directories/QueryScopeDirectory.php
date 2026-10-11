@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
@@ -12,11 +14,9 @@ use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DirectoryScanLimitException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Scopes\AssignmentScopePhase;
-use AzGuard\Scopes\AssignmentScopeRuntime;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
+use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 
@@ -108,7 +108,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             }
 
             foreach ($this->adapted($adapter, $type, $owned, $lookup) as $record) {
-                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, (string) ModelIdentity::key($record)), ModelLookup::label($record));
+                $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, ModelKey::of($record)), ModelLookup::label($record));
 
                 if (count($options) >= $limit) {
                     return $options;
@@ -212,7 +212,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
             if ($records === []) {
                 break;
             }
-            $refs = array_map(static fn (Model $record): AssignmentScopeRef => AssignmentScopeRef::of($type, (string) ModelIdentity::key($record)), $records);
+            $refs = array_map(static fn (Model $record): AssignmentScopeRef => AssignmentScopeRef::of($type, ModelKey::of($record)), $records);
             $allowed = $adapter->allowsMany($refs, $this->runtime($lookup, $withRole));
             $records = array_values(array_filter($records, static fn (Model $record, int $i): bool => $allowed[$refs[$i]->key()] ?? false, ARRAY_FILTER_USE_BOTH));
         }

@@ -6,8 +6,8 @@ namespace AzGuard\Directories;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\TenantDirectory;
 use AzGuard\Contracts\Subjects\SubjectDirectory;
+use AzGuard\Contracts\Tenancy\TenantDirectory;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Panels\Panel;
 use Illuminate\Contracts\Container\Container;

@@ -8,6 +8,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
+use AzGuard\Tenancy\TenantMode;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -45,7 +46,7 @@ final readonly class PanelAdmission
         $ref = SubjectRef::of($subject->getMorphClass(), $key);
         $scope = $this->authorizer->admissionScope($panel, $ref);
 
-        if ($scope === null || ($scope->tenant->isGlobal() && $panel->tenants()->mode() === 'required') || ! $this->holdsRole($panel, $ref, $scope)) {
+        if ($scope === null || ($scope->tenant->isGlobal() && $panel->tenants()->mode() === TenantMode::Required) || ! $this->holdsRole($panel, $ref, $scope)) {
             return null;
         }
         $entry = $panel->entry();

@@ -22,7 +22,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Roles\TenantAdminRole;

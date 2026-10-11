@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;

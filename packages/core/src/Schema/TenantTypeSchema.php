@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Schema;
 
 use AzGuard\Attributes\Api;
-use AzGuard\Contracts\Scopes\TenantDirectory;
+use AzGuard\Contracts\Tenancy\TenantDirectory;
 use Illuminate\Database\Eloquent\Model;
 use JsonSerializable;
 

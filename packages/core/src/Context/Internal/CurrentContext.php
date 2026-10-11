@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Context\Internal;
 
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Panels\Panel;

@@ -21,50 +21,8 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Authorization/ScopeEligibility.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/ScopeEligibility.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Contracts/Scopes/AssignmentScopeAccessAdapter.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Contracts/Scopes/AssignmentScopeFilter.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Directories/QueryScopeDirectory.php",
         "reference": "AzGuard\\Directories\\ModelLookup",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Directories/QueryScopeDirectory.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
         "kind": "type",
         "invariant": "I4",
         "owner_phase": "P3"
@@ -211,13 +169,6 @@
     },
     {
         "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopeRuntime",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Scopes/Query/EligibilityBuilder.php",
         "reference": "AzGuard\\Scopes\\Query\\PredicateBuilder",
         "kind": "type",
         "invariant": "I4",
@@ -236,33 +187,5 @@
         "kind": "type",
         "invariant": "I4",
         "owner_phase": "P3"
-    },
-    {
-        "file": "packages/filament/src/Editors/GrantEditor.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/filament/src/Editors/TargetSelector.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePhase",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/filament/src/Editors/TargetSelector.php",
-        "reference": "AzGuard\\Scopes\\CurrentContext",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/filament/src/FilamentTenantResolver.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\TenantResolver",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P2"
     }
 ]

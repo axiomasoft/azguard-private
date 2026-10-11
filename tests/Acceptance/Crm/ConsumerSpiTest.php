@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
@@ -16,9 +17,8 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\OrganizationMembership;

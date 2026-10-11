@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Exceptions\DefinitionException;
@@ -12,7 +13,6 @@ use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;

@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Context\Internal;
 
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\Panel;
+use AzGuard\Tenancy\TenantMode;
 use Closure;
 
 /**
@@ -28,12 +29,12 @@ final readonly class WithinContext
         try {
             $this->current->set(panel: $panel, scope: $scope);
 
-            if ($panel->tenants()->mode() === 'required' && ($scope->tenant->isGlobal()
+            if ($panel->tenants()->mode() === TenantMode::Required && ($scope->tenant->isGlobal()
                 || $scope->tenant->type() !== $panel->tenants()->definition()?->type())) {
                 throw new InvalidAssignmentScopeException('The selected tenant is not accepted by this panel.');
             }
 
-            if ($panel->tenants()->mode() === 'none' && ! $scope->tenant->isGlobal()) {
+            if ($panel->tenants()->mode() === TenantMode::None && ! $scope->tenant->isGlobal()) {
                 throw new InvalidAssignmentScopeException('This panel does not accept tenants.');
             }
 

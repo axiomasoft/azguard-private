@@ -14,7 +14,7 @@ use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
-use AzGuard\Contracts\Scopes\TenantResolver;
+use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -28,8 +28,9 @@ use AzGuard\Schema\FieldTarget;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ScopeConfiguration;
-use AzGuard\Scopes\TenantPolicy;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Tenancy\TenantMode;
+use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -388,7 +389,7 @@ final class PanelCompiler
         }
         foreach ($definitions as $declared) {
             if (is_string($declared) && is_subclass_of($declared, Model::class)) {
-                if ($tenants->mode() === 'required') {
+                if ($tenants->mode() === TenantMode::Required) {
                     throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$recipe->panelId().' requires a scope descriptor with an authoritative tenant owner.');
                 }
                 $definition = ModelAssignmentScopeDefinition::make($declared);
@@ -400,7 +401,7 @@ final class PanelCompiler
                 throw new DefinitionException('Panel '.$recipe->panelId().' requires assignment scope definition objects or classes.');
             }
 
-            if ($definition instanceof ModelAssignmentScopeDefinition && $tenants->mode() === 'required' && ! $definition->hasOwner()) {
+            if ($definition instanceof ModelAssignmentScopeDefinition && $tenants->mode() === TenantMode::Required && ! $definition->hasOwner()) {
                 throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$recipe->panelId().' requires an explicit scope owner callback.');
             }
 

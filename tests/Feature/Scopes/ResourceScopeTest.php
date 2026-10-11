@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -14,7 +15,6 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Feature\Directories\Support;
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
 use DateTimeImmutable;

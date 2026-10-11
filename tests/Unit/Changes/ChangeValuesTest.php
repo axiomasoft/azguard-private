@@ -11,6 +11,7 @@ use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Changes\GrantRecord;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
 use AzGuard\Exceptions\InvalidConfigurationException;
@@ -22,7 +23,6 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\AssignmentScopePhase;
 
 function unitScope(): AccessScope
 {

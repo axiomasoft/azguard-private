@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Laravel\Http\Middleware;
 
 use AzGuard\Authorization\PanelAdmission;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Exceptions\MissingPermissionCheckException;
 use AzGuard\Laravel\Http\PanelUser;
 use AzGuard\Laravel\Http\RouteChecks;
@@ -12,7 +13,6 @@ use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\CurrentContext;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\Access\Response;

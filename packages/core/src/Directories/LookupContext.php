@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace AzGuard\Directories;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 

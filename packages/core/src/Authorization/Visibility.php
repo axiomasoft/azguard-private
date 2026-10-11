@@ -8,12 +8,13 @@ use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Query\PredicateCompiler;
 use AzGuard\Authorization\Query\VisibilityScope;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
@@ -35,10 +36,10 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Support\ModelKey;
+use AzGuard\Tenancy\TenantMode;
 use DateTimeImmutable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -236,7 +237,7 @@ final readonly class Visibility
     /** @return array{AccessRequest, EvaluationFrame, PanelCatalog} */
     private function inputs(Panel $panel, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): array
     {
-        $ref = $subject instanceof Model ? SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)) : $subject;
+        $ref = $subject instanceof Model ? SubjectRef::of($subject->getMorphClass(), ModelKey::of($subject)) : $subject;
 
         if (! $panel->accepts($ref)) {
             throw new SubjectNotAcceptedException('Selected panel does not accept this subject.');
@@ -249,8 +250,8 @@ final readonly class Visibility
         }
         $scope ??= $this->current->get($panel) ?? AccessScope::in(TenantRef::global());
 
-        if (($panel->tenants()->mode() === 'required' && ($scope->tenant->isGlobal() || $scope->tenant->type() !== $panel->tenants()->definition()?->type()))
-            || ($panel->tenants()->mode() === 'none' && ! $scope->tenant->isGlobal())
+        if (($panel->tenants()->mode() === TenantMode::Required && ($scope->tenant->isGlobal() || $scope->tenant->type() !== $panel->tenants()->definition()?->type()))
+            || ($panel->tenants()->mode() === TenantMode::None && ! $scope->tenant->isGlobal())
             || (! $scope->context->isGlobal() && ($panel->scopes()->mode() === 'none' || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
             throw new VisibilityNotSupportedException('selected_scope');
         }
@@ -268,7 +269,7 @@ final readonly class Visibility
         $model = $query->getModel();
 
         if ($panel->scopes()->mode() === 'none') {
-            if ($panel->tenants()->mode() !== 'none' || $model instanceof ProvidesAccessScope || $model instanceof ProvidesAssignmentScope || $panel->resourceScopes() !== []) {
+            if ($panel->tenants()->mode() !== TenantMode::None || $model instanceof ProvidesAccessScope || $model instanceof ProvidesAssignmentScope || $panel->resourceScopes() !== []) {
                 throw new VisibilityNotSupportedException('resource_owner_adapter');
             }
 
@@ -276,7 +277,7 @@ final readonly class Visibility
         }
 
         if (! method_exists($model, 'azguardContextType') || ! method_exists($model, 'azguardContextRelation')
-            || ($panel->tenants()->mode() === 'required' ? ! $model instanceof ProvidesAccessScope : ! $model instanceof ProvidesAssignmentScope)
+            || ($panel->tenants()->mode() === TenantMode::Required ? ! $model instanceof ProvidesAccessScope : ! $model instanceof ProvidesAssignmentScope)
             || $panel->resourceScopes() !== []) {
             throw new VisibilityNotSupportedException('resource_context_mapping');
         }

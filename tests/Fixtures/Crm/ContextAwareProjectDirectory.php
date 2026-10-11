@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm;
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Scopes\AssignmentScopePhase;
 
 final class ContextAwareProjectDirectory implements AssignmentScopeDirectory
 {

@@ -8,10 +8,12 @@ use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\AssignmentScopeRequiredException;
 use AzGuard\Exceptions\AzGuardException;
@@ -39,10 +41,9 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Support\ModelKey;
+use AzGuard\Tenancy\TenantMode;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Container\Container;
@@ -279,11 +280,11 @@ final class ChangeValidator
     {
         $policy = $this->panel->tenants();
 
-        if ($policy->mode() === 'none' && ! $tenant->isGlobal()) {
+        if ($policy->mode() === TenantMode::None && ! $tenant->isGlobal()) {
             throw new TenantMismatchException('Panel '.$this->panel->id().' has no tenants.');
         }
 
-        if ($policy->mode() === 'required') {
+        if ($policy->mode() === TenantMode::Required) {
             if ($tenant->isGlobal()) {
                 throw new TenantRequiredException('Panel '.$this->panel->id().' keeps dynamic permissions only inside a tenant.');
             }
@@ -401,11 +402,11 @@ final class ChangeValidator
         $policy = $this->panel->tenants();
         $tenant = $change->scope->tenant;
 
-        if ($policy->mode() === 'none' && ! $tenant->isGlobal()) {
+        if ($policy->mode() === TenantMode::None && ! $tenant->isGlobal()) {
             throw new TenantMismatchException('Panel '.$this->panel->id().' has no tenants.');
         }
 
-        if ($policy->mode() === 'required') {
+        if ($policy->mode() === TenantMode::Required) {
             if ($tenant->isGlobal()) {
                 if ($role === null || ! in_array($role['class'], $policy->globalRoles(), true)) {
                     throw new TenantRequiredException('Panel '.$this->panel->id().' grants this only inside a tenant.');
@@ -508,7 +509,7 @@ final class ChangeValidator
         $grantFields = $this->reads->fields($change->isRole() ? 'role' : 'permission');
         $values = $grantFields->validate($change->fields);
 
-        if ($this->panel->tenants()->mode() !== 'required') {
+        if ($this->panel->tenants()->mode() !== TenantMode::Required) {
             return $values;
         }
         foreach ($grantFields->declared() as $field) {

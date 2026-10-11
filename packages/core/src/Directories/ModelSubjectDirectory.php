@@ -6,7 +6,6 @@ namespace AzGuard\Directories;
 
 use AzGuard\Contracts\Subjects\SubjectDirectory;
 use AzGuard\Kernel\Identity\SubjectRef;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
@@ -43,7 +42,7 @@ final readonly class ModelSubjectDirectory implements SubjectDirectory
             ModelLookup::match($query, $term);
 
             foreach ($query->orderBy($query->getModel()->getQualifiedKeyName())->limit($limit - count($options))->get() as $record) {
-                $options[] = new SubjectOption(SubjectRef::of($alias, (string) ModelIdentity::key($record)), ModelLookup::label($record));
+                $options[] = new SubjectOption(SubjectRef::of($alias, ModelKey::of($record)), ModelLookup::label($record));
             }
         }
 

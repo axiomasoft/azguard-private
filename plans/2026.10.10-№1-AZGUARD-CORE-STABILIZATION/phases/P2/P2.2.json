@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.2",
   "title": "Context and Tenancy namespaces, TenantMode and ModelIdentity split",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Request-context and tenant-isolation types live in their core namespaces (`Context`, `Context\\Internal`, `Tenancy`, `Tenancy\\Internal`, `Contracts\\Tenancy`), `TenantPolicy::mode()` returns the closed `TenantMode`, `ModelIdentity` is split into `TenantIdentity`/`ContextIdentity` with keys via `Support\\ModelKey`, and Filament reads the current scope through `PanelAccess::scope()`.",
   "why": "The mixed `Scopes` namespace hides that context and tenancy are core (D7); later scope items need `Context\\AssignmentScopePhase/Runtime` at their final FQCN and Filament must stop importing the mutable `CurrentContext` store (architecture#spi-catalog neutral contracts). Hard risk: Fiber/panel locality of the ambient scope (CurrentContext, WithinContext) must survive the move unchanged (I14).",
   "scope": {
@@ -210,12 +210,58 @@
   },
   "result": {
     "started_at": "2026-10-11T16:25:05Z",
+    "finished_at": "2026-10-11T18:44:12Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-opus-5-5",
       "effort": "high",
       "session": "88815852-c27c-4a38-923e-e5efc238bdf7"
-    }
+    },
+    "notes": "Moved to Context/Tenancy per type map: Context\\AssignmentScopePhase (Api 0.7, @closed), Context\\AssignmentScopeRuntime (Spi Call 0.7), Context\\Internal\\{CurrentContext,WithinContext}, Tenancy\\{TenantPolicy (Api 1.0), ModelTenantDefinition (Api 0.7)}, Contracts\\Tenancy\\Tenant{Directory,Membership,Resolver} (Spi Implement 0.7). ModelIdentity split into Tenancy\\Internal\\TenantIdentity + Context\\Internal\\ContextIdentity, key() -> Support\\ModelKey::of. New Tenancy\\TenantMode (closed); TenantPolicy::mode(): TenantMode; tenant-mode compares in 14 core files use the enum, PanelFingerprint/PanelOverview keep the string via ->value. Filament TargetSelector reads the tenant through PanelAccess::scope() (fixedTenantId). No aliases. Changed fixtures: packages/core/api-manifest.json, packages/filament/api-manifest.json, tests/Fixtures/Baseline070/serializable-fqcn.json, tests/Arch/Allowlists/i4.json (38->27). Migration lines added. V1-V5 exit 0 on PHP 8.4.26 (V4 4908/4908). Grok 4.7: round 1 RED (F1 major, F2 minor fixed), round 2 RED (F3 tree separation fixed, V2 rerun).",
+    "deviations": [
+      "V1 run with pathspec ':!plans' (as written it matches archived code snapshots of PLAN 2026.10.01)",
+      "Extra paths: serializable-fqcn.json + README, InventoriesSnapshotTest, bench/src/Catalog.php, bin/consumer-fixture.sh, i4.json",
+      "Acceptance on PHP 8.4 via PATH shim (system php 8.3 SQLite read-session defect, see P2.1)"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-11T18:44:12Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-11T18:44:12Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-11T18:44:12Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-11T18:44:12Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-11T18:44:12Z",
+        "evidence": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V5.json"
+      }
+    ],
+    "evidence": [
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V1.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V2.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V3.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V4.json",
+      "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.2/V5.json"
+    ]
   },
-  "updated_at": "2026-10-11T16:25:05Z"
+  "updated_at": "2026-10-11T18:44:12Z"
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm\Filament;
 
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\FilamentTenantResolver;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Http\EntryPermission;

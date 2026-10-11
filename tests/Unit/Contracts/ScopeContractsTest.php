@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
@@ -10,15 +11,14 @@ use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
-use AzGuard\Contracts\Scopes\TenantMembership;
-use AzGuard\Contracts\Scopes\TenantResolver;
 use AzGuard\Contracts\Subjects\SubjectResolver;
+use AzGuard\Contracts\Tenancy\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Exceptions\InvalidIdentityException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Tests\Arch\ApiUsage;
 use AzGuard\Tests\Fixtures\Roles\AnalystRole;
 use AzGuard\Tests\Fixtures\Roles\SellerRole;
@@ -58,8 +58,7 @@ it('keeps the documented scope and subject contracts', function (string $contrac
     $reflection = new ReflectionClass($contract);
 
     expect($reflection->isInterface())->toBeTrue()
-        // P2.2 moves TenantMembership and TenantResolver to Contracts\Tenancy and marks them there.
-        ->and(ApiUsage::publication($contract))->toBe(in_array($contract, [TenantMembership::class, TenantResolver::class], true) ? null : 'spi-implement')
+        ->and(ApiUsage::publication($contract))->toBe('spi-implement')
         ->and(contractSignatures($contract))->toBe($signatures);
 })->with([
     'definition' => [AssignmentScopeDefinition::class, [
@@ -147,6 +146,5 @@ it('resolves no scope for a foreign type or the global scope', function (Assignm
 it('names the four assignment scope phases', function (): void {
     expect(array_map(static fn (AssignmentScopePhase $p): string => $p->value, AssignmentScopePhase::cases()))
         ->toBe(['access', 'assignment', 'revocation', 'inspection'])
-        // P2.2 moves the enum to Context and marks it there.
-        ->and(ApiUsage::publication(AssignmentScopePhase::class))->toBeNull();
+        ->and(ApiUsage::publication(AssignmentScopePhase::class))->toBe('api');
 });

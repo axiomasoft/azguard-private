@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
@@ -13,8 +15,6 @@ use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
 use Illuminate\Contracts\Container\Container;

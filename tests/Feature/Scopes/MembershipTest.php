@@ -10,7 +10,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Scopes\ContextMembership;

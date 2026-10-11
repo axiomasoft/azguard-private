@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Context;
+
+use AzGuard\Attributes\Api;
 
 /**
  * Why an assignment scope is evaluated: checking access, assigning, revoking or inspecting assignments.
+ *
+ * @closed
  */
+#[Api(since: '0.7')]
 enum AssignmentScopePhase: string
 {
     case Access = 'access';

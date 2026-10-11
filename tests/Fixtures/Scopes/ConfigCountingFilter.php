@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Scopes;
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use Illuminate\Database\Eloquent\Builder;
 
 final class ConfigCountingFilter implements AssignmentScopeFilter

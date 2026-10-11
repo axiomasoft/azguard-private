@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Directories;
 
-use AzGuard\Contracts\Scopes\TenantDirectory;
+use AzGuard\Contracts\Tenancy\TenantDirectory;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\ModelIdentity;
-use AzGuard\Scopes\ModelTenantDefinition;
+use AzGuard\Support\ModelKey;
+use AzGuard\Tenancy\ModelTenantDefinition;
 
 /**
  * Default tenant directory over the tenant model of a panel. It lists tenants for the interface and decides
@@ -30,7 +30,7 @@ final readonly class ModelTenantDirectory implements TenantDirectory
         $options = [];
 
         foreach ($query->orderBy($query->getModel()->getQualifiedKeyName())->limit($limit)->get() as $record) {
-            $options[] = new TenantOption(TenantRef::of($this->definition->type(), (string) ModelIdentity::key($record)), ModelLookup::label($record));
+            $options[] = new TenantOption(TenantRef::of($this->definition->type(), ModelKey::of($record)), ModelLookup::label($record));
         }
 
         return $options;

@@ -39,6 +39,15 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Context\\AssignmentScopePhase",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Context\\AssignmentScopePhase",
+            "action": "move",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Contracts\\Sources\\Volatility",
             "kinds": [
                 "enum"
@@ -1044,6 +1053,15 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Tenancy\\TenantMode",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Tenancy\\TenantMode",
+            "action": "new",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Testing\\FakeSubject",
             "kinds": [
                 "json_serializable"
@@ -1133,16 +1151,6 @@
             "action": "retire",
             "owner": "retired",
             "note": "published enum retired by P2 together with defaults.gate.mode; a host storing it must follow the upgrade map."
-        },
-        {
-            "fqcn": "AzGuard\\Scopes\\AssignmentScopePhase",
-            "kinds": [
-                "enum"
-            ],
-            "target": "AzGuard\\Context\\AssignmentScopePhase",
-            "action": "move",
-            "owner": "core",
-            "note": "published enum moved to AzGuard\\Context\\AssignmentScopePhase (type map, P2): a serialized or stored FQCN changes. Owner decision needed or an alias."
         },
         {
             "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",

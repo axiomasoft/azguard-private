@@ -89,7 +89,7 @@ final class PanelFingerprint
             ),
             'hooks' => $hooks,
             'tenants' => [
-                'mode' => $panel->tenants()->mode(),
+                'mode' => $panel->tenants()->mode()->value,
                 'definition' => $panel->tenants()->definition() === null ? null : [
                     'type' => $panel->tenants()->definition()->type(),
                     'model' => $panel->tenants()->definition()->model(),

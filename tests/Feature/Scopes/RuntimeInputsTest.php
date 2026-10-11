@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
+use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -9,11 +13,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\WithinContext;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityCityFilter;

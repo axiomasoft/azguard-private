@@ -7,6 +7,9 @@ namespace AzGuard;
 use AzGuard\Changes\ActingActor;
 use AzGuard\Concerns\ScopedPanelAccess;
 use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Context\Internal\ContextIdentity;
+use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Contracts\Panels\PanelRegistry;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -24,10 +27,8 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\ModelIdentity;
-use AzGuard\Scopes\WithinContext;
 use AzGuard\Sources\SourceManager;
+use AzGuard\Support\ModelKey;
 use AzGuard\Testing\AzGuardFake;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -164,7 +165,7 @@ final class AzGuardManager
     {
         $panel = $this->scopePanel() ?? throw new PanelNotResolvedException('No current panel and no default panel: nothing tells which panel the scope belongs to.');
         $context = $context instanceof Model
-            ? ModelIdentity::context($panel, $context) ?? throw new AssignmentScopeNotAcceptedException(
+            ? ContextIdentity::context($panel, $context) ?? throw new AssignmentScopeNotAcceptedException(
                 $context::class.' is not an assignment scope type of panel '.$panel->id().'.',
             )
             : $context;
@@ -216,7 +217,7 @@ final class AzGuardManager
             throw new InvalidArgumentException($actor::class.' is not an Eloquent model: pass a model, a subject reference or a string reason.');
         }
 
-        return ActorRef::of($actor->getMorphClass(), ModelIdentity::key($actor));
+        return ActorRef::of($actor->getMorphClass(), ModelKey::of($actor));
     }
 
     /**

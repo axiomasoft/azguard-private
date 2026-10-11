@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Concerns\SubjectAccess;
+use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Exceptions\AmbiguousPanelException;
 use AzGuard\Exceptions\ConflictingPanelException;
 use AzGuard\Exceptions\TenantRequiredException;
@@ -11,8 +13,6 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\WithinContext;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Concerns\CrmCustomGuardUser;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Context\Internal\WithinContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -9,8 +11,6 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\WithinContext;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;

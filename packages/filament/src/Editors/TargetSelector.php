@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace AzGuard\Filament\Editors;
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Contracts\PanelAccess;
 use AzGuard\Directories\LookupContext;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidIdentityException;
+use AzGuard\Exceptions\TenantRequiredException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Filament\Authorization\FilamentContext;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\AssignmentScopePhase;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Support\ModelKey;
 use Closure;
 use DateTimeImmutable;
@@ -131,7 +131,7 @@ final readonly class TargetSelector
         $access = AzGuard::panel($definition->id());
 
         if (! $this->choosesTenant($panel)) {
-            if ($tenant !== null && $tenant !== '' && $tenant !== $this->fixedTenant($definition)?->id()) {
+            if ($tenant !== null && $tenant !== '' && $tenant !== $this->fixedTenantId($definition)) {
                 self::refuse('The tenant of this panel is not chosen here.');
             }
 
@@ -164,10 +164,18 @@ final readonly class TargetSelector
         return $panel !== null && array_key_exists($panel, $this->panels()) ? AzGuard::panels()[$panel] : null;
     }
 
-    /** The tenant of the request in the guard panel, the global one elsewhere. */
-    private function fixedTenant(Panel $panel): ?TenantRef
+    /** The tenant id of the request in the guard panel; null for the global tenant, elsewhere and where the request has none. */
+    private function fixedTenantId(Panel $panel): ?string
     {
-        return $panel->id() === $this->context->guardPanel() ? app(CurrentContext::class)->get($panel)?->tenant : null;
+        if ($panel->id() !== $this->context->guardPanel()) {
+            return null;
+        }
+
+        try {
+            return AzGuard::panel($panel->id())->scope()->tenant->id();
+        } catch (TenantRequiredException) {
+            return null;
+        }
     }
 
     private function tenantRef(string $panel, ?string $tenant): ?TenantRef

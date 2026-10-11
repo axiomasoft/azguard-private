@@ -141,7 +141,7 @@ final class Catalog
         $files['Post'] = "final class Post extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
         $files['Team'] = "final class Team extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    public \$timestamps = false;\n\n    protected \$guarded = [];\n}\n";
         $files['TeamMembership'] = <<<'PHP'
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use Illuminate\Support\Facades\DB;
@@ -214,7 +214,7 @@ PHP;
         $files['WorkspacePanelProvider'] = <<<'PHP'
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Sources\Database\DatabaseSource;
 
 /** The panel with required tenants (teams) and membership read from team_user. */

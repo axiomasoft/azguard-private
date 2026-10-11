@@ -6,6 +6,7 @@ namespace AzGuard\Authorization;
 
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
@@ -18,9 +19,7 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use AzGuard\Scopes\BaseAssignmentScope;
-use AzGuard\Scopes\ModelIdentity;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
@@ -100,7 +99,7 @@ final class BatchInputs
         foreach ($groups as $class => $refs) {
             foreach (array_chunk($refs, 100, true) as $chunk) {
                 try {
-                    $models = (new $class)->newQuery()->whereKey(array_map(static fn (SubjectRef $ref): string => $ref->id(), $chunk))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
+                    $models = (new $class)->newQuery()->whereKey(array_map(static fn (SubjectRef $ref): string => $ref->id(), $chunk))->get()->keyBy(static fn (Model $model): string => ModelKey::of($model));
                     foreach ($chunk as $key => $ref) {
                         $this->subjects[$key] = $models->get($ref->id());
                     }
@@ -163,7 +162,7 @@ final class BatchInputs
             }
             foreach (array_chunk($frames, 100, true) as $chunk) {
                 try {
-                    $records = ModelKey::where($definition->query(), array_values(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk)))->get()->keyBy(static fn (Model $model): string => (string) ModelIdentity::key($model));
+                    $records = ModelKey::where($definition->query(), array_values(array_map(static fn (EvaluationFrame $frame): ?string => $frame->scope()->context->id(), $chunk)))->get()->keyBy(static fn (Model $model): string => ModelKey::of($model));
                     foreach ($chunk as $key => $frame) {
                         try {
                             $record = $records->get($frame->scope()->context->id());

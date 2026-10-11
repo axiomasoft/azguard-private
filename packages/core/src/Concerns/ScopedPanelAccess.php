@@ -8,6 +8,7 @@ use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Visibility;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Changes\PanelManagers;
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Catalog\PermissionCatalog;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Contracts\Changes\PermissionManager;
@@ -33,8 +34,8 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\SchemaBuilder;
-use AzGuard\Scopes\CurrentContext;
-use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Tenancy\Internal\TenantIdentity;
+use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -70,7 +71,7 @@ final readonly class ScopedPanelAccess implements PanelAccess
 
     public function inTenant(Model|TenantRef $tenant): self
     {
-        return new self($this->panel, $tenant instanceof TenantRef ? $tenant : ModelIdentity::tenant($this->panel, $tenant), $this->origin);
+        return new self($this->panel, $tenant instanceof TenantRef ? $tenant : TenantIdentity::tenant($this->panel, $tenant), $this->origin);
     }
 
     public function fromOrigin(string $origin): self
@@ -207,7 +208,7 @@ final readonly class ScopedPanelAccess implements PanelAccess
             return $tenant;
         }
 
-        if ($this->panel->tenants()->mode() === 'none') {
+        if ($this->panel->tenants()->mode() === TenantMode::None) {
             return TenantRef::global();
         }
 

@@ -27,6 +27,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
+use AzGuard\Tenancy\TenantMode;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -141,7 +142,7 @@ trait InteractsWithAzGuard
             return TenantRef::of($type, $id);
         }
 
-        if ($panel->tenants()->mode() !== 'none') {
+        if ($panel->tenants()->mode() !== TenantMode::None) {
             throw new TenantRequiredException('Panel '.$panel->id().' has tenants: pass --tenant=type:id. No command works across tenants.');
         }
 

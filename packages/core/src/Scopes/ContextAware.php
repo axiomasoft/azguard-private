@@ -7,6 +7,7 @@ namespace AzGuard\Scopes;
 use AzGuard\Attributes\Api;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -46,6 +47,6 @@ trait ContextAware
     {
         $record = $this->azguardContext();
 
-        return $record === null ? null : AssignmentScopeRef::of($this->azguardContextType(), ModelIdentity::key($record));
+        return $record === null ? null : AssignmentScopeRef::of($this->azguardContextType(), ModelKey::of($record));
     }
 }

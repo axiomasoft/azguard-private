@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\ModelTenantDirectory;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\AssignmentScopePhase;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use Illuminate\Database\Eloquent\Relations\Relation;

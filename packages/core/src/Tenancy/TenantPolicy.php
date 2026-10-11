@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Tenancy;
 
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Attributes\Api;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Roles\BaseRole;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * The tenant boundary of a panel. Required tenants also require active membership by default.
  */
+#[Api(since: '1.0')]
 final class TenantPolicy
 {
     /** @var list<class-string<BaseRole>> */
@@ -19,21 +21,21 @@ final class TenantPolicy
 
     /** @param TenantMembership|class-string<TenantMembership>|null $membership */
     private function __construct(
-        private readonly string $mode,
+        private readonly TenantMode $mode,
         private readonly ?ModelTenantDefinition $definition,
         private TenantMembership|string|null $membership,
     ) {}
 
     public static function none(): self
     {
-        return new self(mode: 'none', definition: null, membership: null);
+        return new self(mode: TenantMode::None, definition: null, membership: null);
     }
 
     /** @param class-string<Model>|ModelTenantDefinition $tenant */
     public static function required(string|ModelTenantDefinition $tenant): self
     {
         return new self(
-            mode: 'required',
+            mode: TenantMode::Required,
             definition: is_string($tenant) ? ModelTenantDefinition::make($tenant) : $tenant,
             membership: TenantMembership::class,
         );
@@ -85,7 +87,7 @@ final class TenantPolicy
         return $roles;
     }
 
-    public function mode(): string
+    public function mode(): TenantMode
     {
         return $this->mode;
     }

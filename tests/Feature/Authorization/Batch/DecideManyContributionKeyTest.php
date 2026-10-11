@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
@@ -18,8 +19,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\AssignmentScopePolicy;
-use AzGuard\Scopes\AssignmentScopeRuntime;
-use AzGuard\Scopes\TenantPolicy;
+use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization as CrmOrganization;

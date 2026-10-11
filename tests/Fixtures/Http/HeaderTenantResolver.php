@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Http;
 
-use AzGuard\Contracts\Scopes\TenantResolver;
+use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Kernel\Identity\TenantRef;
 use Illuminate\Http\Request;
 

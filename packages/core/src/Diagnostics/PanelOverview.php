@@ -82,7 +82,7 @@ final readonly class PanelOverview
             'label' => $panel->label(),
             'default' => $panel->isDefault(),
             'prefix' => $panel->prefix(),
-            'tenants' => $panel->tenants()->mode(),
+            'tenants' => $panel->tenants()->mode()->value,
             'subjects' => $panel->subjectModels(),
             'writer' => $writer === null ? null : $writer->id(),
             'storage' => $writer instanceof DatabaseSource ? $writer->boundStorage()->id() : null,

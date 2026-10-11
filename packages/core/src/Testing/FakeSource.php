@@ -17,7 +17,7 @@ use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
-use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Support\ModelKey;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -110,6 +110,6 @@ final class FakeSource implements ProvidesGrants, ProvidesRoleGrants
 
     private static function key(Model|SubjectRef $subject): string
     {
-        return $subject instanceof SubjectRef ? $subject->key() : SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject))->key();
+        return $subject instanceof SubjectRef ? $subject->key() : SubjectRef::of($subject->getMorphClass(), ModelKey::of($subject))->key();
     }
 }

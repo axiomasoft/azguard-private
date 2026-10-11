@@ -11,6 +11,15 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `"stability"` or `"via"` in a tool reading `api-manifest.json` → Replace: `"publication"` (`api`, `spi-implement`,
   `spi-call`) and `"since"`; entries also carry protected override points, constant values, `enum: closed|open`,
   PHPDoc `contracts`, `namedArguments`, and the manifest carries `roots` (core also `facade`).
+- Find: `AzGuard\Scopes\AssignmentScopePhase` → Replace: `AzGuard\Context\AssignmentScopePhase`.
+- Find: `AzGuard\Scopes\AssignmentScopeRuntime` → Replace: `AzGuard\Context\AssignmentScopeRuntime`.
+- Find: `AzGuard\Scopes\TenantPolicy` → Replace: `AzGuard\Tenancy\TenantPolicy`.
+- Find: `AzGuard\Scopes\ModelTenantDefinition` → Replace: `AzGuard\Tenancy\ModelTenantDefinition`.
+- Find: `AzGuard\Contracts\Scopes\TenantDirectory` → Replace: `AzGuard\Contracts\Tenancy\TenantDirectory`.
+- Find: `AzGuard\Contracts\Scopes\TenantMembership` → Replace: `AzGuard\Contracts\Tenancy\TenantMembership`.
+- Find: `AzGuard\Contracts\Scopes\TenantResolver` → Replace: `AzGuard\Contracts\Tenancy\TenantResolver`.
+- Find: `->tenants()->mode() === 'none'` (or `'required'`, any `TenantPolicy::mode()` string) → Replace:
+  `=== AzGuard\Tenancy\TenantMode::None` (or `::Required`); `mode()` returns the closed enum `TenantMode`, its `->value` is the former string.
 
 ## From 0.3 to 0.7.0
 

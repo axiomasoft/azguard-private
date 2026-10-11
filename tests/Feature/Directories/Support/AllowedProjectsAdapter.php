@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Feature\Directories\Support;
 
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
-use AzGuard\Scopes\AssignmentScopeRuntime;
 use Illuminate\Database\Eloquent\Builder;
 use RuntimeException;
 

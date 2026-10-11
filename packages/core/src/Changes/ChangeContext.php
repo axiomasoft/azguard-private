@@ -6,13 +6,13 @@ namespace AzGuard\Changes;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePhase;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 

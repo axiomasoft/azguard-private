@@ -7,7 +7,7 @@ namespace AzGuard\Scopes;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
-use AzGuard\Contracts\Scopes\TenantMembership;
+use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\RestrictionResult;

@@ -1334,7 +1334,7 @@
             "readonly": false,
             "parent": null,
             "interfaces": [
-                "AzGuard\\Contracts\\Scopes\\TenantResolver"
+                "AzGuard\\Contracts\\Tenancy\\TenantResolver"
             ],
             "namedArguments": true,
             "contracts": [],

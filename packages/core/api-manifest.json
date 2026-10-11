@@ -444,7 +444,7 @@
                         },
                         {
                             "name": "current",
-                            "type": "AzGuard\\Scopes\\CurrentContext",
+                            "type": "AzGuard\\Context\\Internal\\CurrentContext",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -1100,7 +1100,7 @@
                 {
                     "name": "phase",
                     "visibility": "public",
-                    "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                    "type": "AzGuard\\Context\\AssignmentScopePhase",
                     "readonly": true,
                     "static": false,
                     "contracts": []
@@ -1602,7 +1602,7 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Scopes\\AssignmentScopePhase",
+                    "return": "AzGuard\\Context\\AssignmentScopePhase",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -3928,6 +3928,309 @@
             ]
         },
         {
+            "name": "AzGuard\\Context\\AssignmentScopePhase",
+            "publication": "api",
+            "since": "0.7",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "enum": "closed",
+            "cases": [
+                {
+                    "name": "Access",
+                    "value": "access"
+                },
+                {
+                    "name": "Assignment",
+                    "value": "assignment"
+                },
+                {
+                    "name": "Revocation",
+                    "value": "revocation"
+                },
+                {
+                    "name": "Inspection",
+                    "value": "inspection"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "value",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "from",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "tryFrom",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Context\\AssignmentScopeRuntime",
+            "publication": "spi-call",
+            "since": "0.7",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "actor",
+                    "visibility": "public",
+                    "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "actorModel",
+                    "visibility": "public",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "grant",
+                    "visibility": "public",
+                    "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "now",
+                    "visibility": "public",
+                    "type": "DateTimeImmutable",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "panel",
+                    "visibility": "public",
+                    "type": "AzGuard\\Panels\\Panel",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "phase",
+                    "visibility": "public",
+                    "type": "AzGuard\\Context\\AssignmentScopePhase",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "proposed",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": [
+                        "@var array<string, mixed>"
+                    ]
+                },
+                {
+                    "name": "role",
+                    "visibility": "public",
+                    "type": "?AzGuard\\Roles\\BaseRole",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "scope",
+                    "visibility": "public",
+                    "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "subject",
+                    "visibility": "public",
+                    "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "user",
+                    "visibility": "public",
+                    "type": "?Illuminate\\Database\\Eloquent\\Model",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "scope",
+                            "type": "AzGuard\\Kernel\\Identity\\AccessScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "user",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "role",
+                            "type": "?AzGuard\\Roles\\BaseRole",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "grant",
+                            "type": "AzGuard\\Kernel\\Decision\\Grant|AzGuard\\Kernel\\Decision\\RoleContribution|null",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actor",
+                            "type": "?AzGuard\\Kernel\\Identity\\ActorRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "actorModel",
+                            "type": "?Illuminate\\Database\\Eloquent\\Model",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "now",
+                            "type": "DateTimeImmutable",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "phase",
+                            "type": "AzGuard\\Context\\AssignmentScopePhase",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "proposed",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
             "publication": "spi-call",
             "since": "0.7",
@@ -5909,7 +6212,7 @@
                         },
                         {
                             "name": "runtime",
-                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -5935,7 +6238,7 @@
                         },
                         {
                             "name": "runtime",
-                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -5964,7 +6267,7 @@
                         },
                         {
                             "name": "runtime",
-                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -6155,7 +6458,7 @@
                         },
                         {
                             "name": "runtime",
-                            "type": "AzGuard\\Scopes\\AssignmentScopeRuntime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -7531,6 +7834,163 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Tenancy\\TenantDirectory",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "describe",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Directories\\TenantOption",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "search",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "term",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "lookup",
+                            "type": "AzGuard\\Directories\\LookupContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "limit",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<TenantOption>"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Tenancy\\TenantMembership",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "isMember",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "subject",
+                            "type": "AzGuard\\Kernel\\Identity\\SubjectRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Tenancy\\TenantResolver",
+            "publication": "spi-implement",
+            "since": "0.7",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "resolve",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "Illuminate\\Http\\Request",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?AzGuard\\Kernel\\Identity\\TenantRef",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Diagnostics\\Doctor",
             "publication": "api",
             "since": "0.7",
@@ -8383,7 +8843,7 @@
                 {
                     "name": "phase",
                     "visibility": "public",
-                    "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                    "type": "AzGuard\\Context\\AssignmentScopePhase",
                     "readonly": true,
                     "static": false,
                     "contracts": []
@@ -8495,7 +8955,7 @@
                         },
                         {
                             "name": "phase",
-                            "type": "AzGuard\\Scopes\\AssignmentScopePhase",
+                            "type": "AzGuard\\Context\\AssignmentScopePhase",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -8577,7 +9037,7 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Contracts\\Scopes\\TenantDirectory",
+                    "return": "AzGuard\\Contracts\\Tenancy\\TenantDirectory",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -17791,7 +18251,7 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "AzGuard\\Scopes\\TenantPolicy",
+                    "return": "AzGuard\\Tenancy\\TenantPolicy",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -18488,7 +18948,7 @@
                     "parameters": [
                         {
                             "name": "policy",
-                            "type": "AzGuard\\Scopes\\TenantPolicy",
+                            "type": "AzGuard\\Tenancy\\TenantPolicy",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -26332,6 +26792,361 @@
                         "@param Builder<TModel> $query",
                         "@param string|list<string|null>|null $ids",
                         "@return Builder<TModel>"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Tenancy\\ModelTenantDefinition",
+            "publication": "api",
+            "since": "0.7",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<Model> $model"
+                    ]
+                },
+                {
+                    "name": "make",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "type",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<Model> $model"
+                    ]
+                },
+                {
+                    "name": "model",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return class-string<Model>"
+                    ]
+                },
+                {
+                    "name": "resolve",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\TenantRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?Illuminate\\Database\\Eloquent\\Model",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "type",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Tenancy\\TenantMode",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "enum": "closed",
+            "cases": [
+                {
+                    "name": "None",
+                    "value": "none"
+                },
+                {
+                    "name": "Required",
+                    "value": "required"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "value",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "from",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "tryFrom",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Tenancy\\TenantPolicy",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allowGlobalRoles",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "roles",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<class-string<BaseRole>> $roles"
+                    ]
+                },
+                {
+                    "name": "definition",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Tenancy\\ModelTenantDefinition",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "globalRoles",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return list<class-string<BaseRole>>"
+                    ]
+                },
+                {
+                    "name": "membership",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Tenancy\\TenantMembership|string|null",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return TenantMembership|class-string<TenantMembership>|null"
+                    ]
+                },
+                {
+                    "name": "mode",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Tenancy\\TenantMode",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "none",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "requireMembership",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "membership",
+                            "type": "AzGuard\\Contracts\\Tenancy\\TenantMembership|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'AzGuard\\\\Contracts\\\\Tenancy\\\\TenantMembership'"
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param TenantMembership|class-string<TenantMembership> $membership"
+                    ]
+                },
+                {
+                    "name": "required",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "tenant",
+                            "type": "AzGuard\\Tenancy\\ModelTenantDefinition|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param class-string<Model>|ModelTenantDefinition $tenant"
                     ]
                 }
             ]

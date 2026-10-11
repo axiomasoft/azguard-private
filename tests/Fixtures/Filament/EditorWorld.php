@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament;
 
+use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\CurrentContext;
 use AzGuard\Tests\Fixtures\Filament\Guards\ArchivedOrderPermission;
 use AzGuard\Tests\Fixtures\Filament\Guards\ArchivedOrderPolicy;
 use AzGuard\Tests\Fixtures\Filament\Guards\EditorPermission;

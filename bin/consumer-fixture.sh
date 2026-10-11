@@ -241,7 +241,7 @@ filament_step() {
             "abilities default" => in_array("view_any", $plugin->getAbilities(), true),
             "published configuration" => config("azguard-filament.definitions") === "enums",
             "source id" => AzGuard\Filament\Sources\FilamentSource::make("admin")->id() === "filament",
-            "tenant resolver" => (new AzGuard\Filament\FilamentTenantResolver) instanceof AzGuard\Contracts\Scopes\TenantResolver,
+            "tenant resolver" => (new AzGuard\Filament\FilamentTenantResolver) instanceof AzGuard\Contracts\Tenancy\TenantResolver,
         ];
         foreach ($checks as $name => $ok) {
             if (! $ok) {

@@ -6,6 +6,7 @@ namespace AzGuard\Testing;
 
 use AzGuard\Attributes\Api;
 use AzGuard\Changes\ChangePipeline;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Events\AccessDecided;
 use AzGuard\Events\AccessEvent;
 use AzGuard\Events\EventObservers;
@@ -17,7 +18,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\ModelIdentity;
+use AzGuard\Support\ModelKey;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
@@ -201,7 +202,7 @@ final class AzGuardFake
 
         if ($on instanceof Model) {
             $owner = $this->panel($change->panel);
-            $on = $owner === null ? null : ModelIdentity::context($owner, $on);
+            $on = $owner === null ? null : ContextIdentity::context($owner, $on);
         }
 
         return $on !== null && $on->equals($context);
@@ -216,7 +217,7 @@ final class AzGuardFake
     {
         return match (true) {
             $subject instanceof SubjectRef => $subject,
-            $subject instanceof Model => SubjectRef::of($subject->getMorphClass(), ModelIdentity::key($subject)),
+            $subject instanceof Model => SubjectRef::of($subject->getMorphClass(), ModelKey::of($subject)),
             default => throw new InvalidArgumentException(get_debug_type($subject).' is not a subject: pass an Eloquent model or a subject reference.'),
         };
     }
