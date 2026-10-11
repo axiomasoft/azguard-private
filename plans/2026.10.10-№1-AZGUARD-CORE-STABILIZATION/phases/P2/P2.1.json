@@ -1,0 +1,275 @@
+{
+  "$schema": "urn:swissknifeman:task:plan:item:v1",
+  "id": "P2.1",
+  "title": "Publication markers, member-aware manifest and I4/I20 checks",
+  "status": "in_progress",
+  "summary": "AzGuard-owned `#[Api]`/`#[Spi]`/`SpiKind` attributes mark every supported type of the type map, enums carry `@closed`/`@open`, the manifest generator publishes by attribute only and records members, overrides, constants, enum classes, generics and module roots; I4 (member-aware supported-symbol usage, report mode) and I20 (positional SPI calls) run in tests/Arch; the migration instruction section exists and the P2 harness prerequisites (D16 snapshot switch, D17 ownership fallback, two pre-existing PHPStan errors) are in place.",
+  "why": "Release-gate condition 3 needs an attribute-classified surface and a generator that sees members and protected override points; every later P2 item marks its types and is measured by I4/I20. Location-based publication (97 types) and the zero-method facade make the 0.7.0 manifest unable to say what is supported (D4, D9). Hard risk: a marker pass that publishes a type the type map makes internal, or misses one, silently changes the frozen surface — the oracle comparison test prevents it.",
+  "scope": {
+    "include": [
+      "New `Attributes\\Api`, `Attributes\\Spi`, `Attributes\\SpiKind` exactly as knowledge/contracts#markers (type-map zone-new rows)",
+      "Attribute every existing type whose type-map row has marker Api/Spi(Implement)/Spi(Call) and action `keep` (and the existing Attributes such as `Attributes\\CheckPermission`, `AsSource` per their rows); since '0.7'. Rows renamed/moved/created by later P2 items are marked by those items",
+      "`@closed`/`@open` on every attributed enum from the type-map enum column (D15)",
+      "`@internal` on constructors built by core and on public methods already documented internal; remove `@api`/`@spi` docblock tags (the attribute replaces them)",
+      "bin/api-manifest.php: publication = attribute only (delete API_LOCATION_PREFIXES/API_LOCATION_CLASSES and tag parsing); per type record attribute kind (api | spi-implement | spi-call) and since; public members plus protected members of non-final classes (override points) with full signatures and parameter names; constants with values; enum cases with `enum: closed|open`; PHPDoc `@param`/`@return`/`@var` generic and class-string strings of supported members; `@no-named-arguments` stance; `facade` methods derived from the entry class when `AzGuard\\AzGuard` exists (P2.3 fills it); `roots` = the package's PSR-4 prefixes. Excluded: `@internal` members and types without attribute; a type under `\\Internal\\` with an attribute is an error",
+      "tests/Arch/ApiManifestTest.php: freshness (kept); internal namespaces carry no attribute and attributed types live outside `\\Internal\\`; every attributed type equals its oracle marker (marker column) and every oracle Api/Spi row with an existing FQCN is attributed; every attributed enum has exactly one tag equal to the oracle enum column; I4 member-aware usage — files owned (oracle) by scopes, audit, devtools, filament plus packages/core/stubs reference only attributed core types and non-@internal members, report mode against tests/Arch/Allowlists/i4.json",
+      "tests/Arch/SpiPositionalCallsTest.php (I20): no core-owned file calls a method declared by a `Spi(Implement)` type with named arguments; non-vacuity test with a synthetic violating file",
+      "tests/Arch/Ownership.php: a production file absent from oracle paths resolves by the FQCN it declares (D17); non-vacuity test; tests/Arch/invariants.json: I4 and I20 status build→checks listed",
+      "tests/Fixtures/Baseline070/Formats/FormatSnapshot.php and Persistence/Writer.php: the 0.7.0-tree guard is replaced by an explicit writer switch (`AZGUARD_BASELINE_WRITE=1`) usable on the current tree (D16); README updated to say the fixtures are regression guards",
+      "Fix the two pre-existing PHPStan errors: packages/core/src/Diagnostics/Checks/RoutesChecks.php:106 (argument.type) and packages/filament/src/Authorization/AuthorizesActions.php:91 (return.type) without behavior change",
+      "docs/upgrade.md: new first section `## From 0.7 to 1.0 (instructions for AI agents)` with the format of p2-execution#conventions rule 8 and the first lines (attributes replace @api/@spi tags; manifest format)"
+    ],
+    "exclude": [
+      "Renaming, moving or creating supported types other than the three attributes (later items)",
+      "Facade `@method` generation (P2.3)",
+      "Making I4 blocking without allowlist (P3)",
+      "Editing target-map.json"
+    ]
+  },
+  "depends_on": [],
+  "decisions": [
+    "D9",
+    "D13",
+    "D15",
+    "D16",
+    "D17"
+  ],
+  "skills": [
+    "php:static-analysis"
+  ],
+  "reads": [
+    {
+      "ref": "knowledge/p2-execution#conventions",
+      "why": "Rules every P2 item follows (reference wins, no shims, D17 placement, attributes, snapshots, migration lines)",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#allowlists",
+      "why": "Report-mode allowlist protocol and which entries this item removes",
+      "required": true
+    },
+    {
+      "ref": "knowledge/p2-execution#commands",
+      "why": "Exact validation commands and driver environment",
+      "required": true
+    },
+    {
+      "ref": "knowledge/target-structure#rules",
+      "why": "Owners/roots, Internal placement rule, stable FQCNs, composition roots — where new files go",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#markers",
+      "why": "Exact attribute declarations",
+      "required": true
+    },
+    {
+      "ref": "knowledge/contracts#rules",
+      "why": "since values, generics are contract, positional SPI calls",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#api-compatibility",
+      "why": "Generator requirements, closed/open enums, named-argument policy, what becomes stable",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#rules",
+      "why": "Columns marker/enum/action the marking and the oracle test consume",
+      "required": true
+    },
+    {
+      "ref": "knowledge/type-map#zone-new",
+      "why": "Rows Attributes\\Api/Spi/SpiKind",
+      "required": true
+    },
+    {
+      "ref": "knowledge/architecture#invariants",
+      "why": "I4 and I20 wording and status",
+      "required": true
+    },
+    {
+      "ref": "D15",
+      "why": "Enum tag mechanism",
+      "required": true
+    },
+    {
+      "ref": "D17",
+      "why": "Ownership fallback for interim paths",
+      "required": true
+    },
+    {
+      "path": "bin/api-manifest.php",
+      "why": "Generator to rewrite",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/ApiManifestTest.php",
+      "why": "Existing manifest tests to extend",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/Ownership.php",
+      "why": "Oracle resolution to extend",
+      "required": true
+    },
+    {
+      "path": "tests/Arch/OwnershipScanTest.php",
+      "why": "Report-mode and non-vacuity patterns to reuse",
+      "required": true
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Formats/FormatSnapshot.php",
+      "why": "Writer guard to relax",
+      "required": true
+    }
+  ],
+  "task_files": [
+    {
+      "path": "packages/core/src/Attributes/Api.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Attributes/Spi.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/Attributes/SpiKind.php",
+      "change": "create"
+    },
+    {
+      "path": "packages/core/src/**/*.php",
+      "change": "modify",
+      "note": "attributes, enum tags, @internal members"
+    },
+    {
+      "path": "packages/filament/src/**/*.php",
+      "change": "modify",
+      "note": "attributes per oracle; AuthorizesActions fix"
+    },
+    {
+      "path": "bin/api-manifest.php",
+      "change": "modify"
+    },
+    {
+      "path": "packages/core/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "packages/filament/api-manifest.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/ApiManifestTest.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/SpiPositionalCallsTest.php",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Allowlists/i4.json",
+      "change": "create"
+    },
+    {
+      "path": "tests/Arch/Ownership.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Arch/invariants.json",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Formats/FormatSnapshot.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/Persistence/Writer.php",
+      "change": "modify"
+    },
+    {
+      "path": "tests/Fixtures/Baseline070/README.md",
+      "change": "modify"
+    },
+    {
+      "path": "docs/upgrade.md",
+      "change": "modify"
+    }
+  ],
+  "rules": [
+    "Marking is generated from the oracle by a throw-away script (not committed) and reviewed; the oracle-equality test is the proof.",
+    "A type whose oracle marker is `internal` gets no attribute even if it was published at 0.7.0 (it leaves the manifest now; its file moves in P3).",
+    "I4 allowlist entries carry {file, reference, kind (type|member), invariant: I4, owner_phase}; owner P2 entries are the work list of P2.2–P2.13 and must reach zero by P2.14.",
+    "The I20 rule must not depend on variable names; it resolves the called method name against the set of methods declared by Spi(Implement) types and reports named-argument calls in core-owned files; a reviewed false positive is fixed by calling positionally, never allowlisted."
+  ],
+  "guidance": "Generator sketch: iterate PSR-4 roots of each package composer.json; `ReflectionClass::getAttributes(Api::class|Spi::class)`; members = `getMethods(IS_PUBLIC|IS_PROTECTED)` declared in the class, protected only when the class is not final, skip docblock `@internal`; PHPDoc capture = raw `@param`, `@return`, `@template` lines of the member docblock (normalised whitespace) so generic contracts are diffed. Keep apiType() `self` normalisation. For I4 member usage, resolve `$x->m()`/`X::m()` only where the class is known (static calls, `new X`, typed parameters/properties via a light token pass) — report unresolved receivers nothing; type-level usage is exact. Expect the 0.7.0 manifest to shrink by the location-published internal types and grow by protected members.",
+  "validation": [
+    {
+      "id": "V1",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch/ApiManifestTest.php tests/Arch/SpiPositionalCallsTest.php tests/Arch/OwnershipScanTest.php --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V2",
+      "cmd": "grep -q '^## From 0.7 to 1.0 (instructions for AI agents)' docs/upgrade.md",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V3",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Arch --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V4",
+      "cmd": "php -d memory_limit=1G vendor/bin/pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression/Baseline070 --fail-on-skipped",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V5",
+      "cmd": "composer test",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    },
+    {
+      "id": "V6",
+      "cmd": "composer analyse && composer lint:check && composer refactor:check && composer api:check",
+      "expect": "exit 0",
+      "kind": "acceptance"
+    }
+  ],
+  "deliverables": [
+    "Attributes Api/Spi/SpiKind and attributed surface equal to the oracle markers",
+    "Attribute-driven member-aware api-manifest.json (core, filament)",
+    "I4 report-mode check with i4.json and I20 check",
+    "D16 snapshot writer switch, D17 ownership fallback, analyse green",
+    "Migration instruction section in docs/upgrade.md"
+  ],
+  "route": {
+    "class": "implementation",
+    "effort": "high"
+  },
+  "review": {
+    "mode": "none"
+  },
+  "authority": {
+    "kind": "routine"
+  },
+  "rag": {
+    "need": "none",
+    "status": "not_needed"
+  },
+  "result": {
+    "started_at": "2026-10-11T16:25:05Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "88815852-c27c-4a38-923e-e5efc238bdf7"
+    }
+  },
+  "updated_at": "2026-10-11T16:25:05Z"
+}

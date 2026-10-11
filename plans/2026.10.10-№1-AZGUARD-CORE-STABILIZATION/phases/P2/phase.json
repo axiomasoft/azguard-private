@@ -2,9 +2,9 @@
   "$schema": "urn:swissknifeman:task:plan:phase:v1",
   "id": "P2",
   "title": "Contract transition in place",
-  "design": "skeleton",
+  "design": "detailed",
   "goal": "Introduce the final supported consumer/implementer surface and make the existing scope, audit and generator code use it from its current location, as the single documented pre-1.0 contract transition.",
-  "context": "Architecture phase B (revision 2, D7–D10, D12). Approximate size: L. Detailed PHP signatures and tasks are authored in a separate phase-design session from the fixed semantics in knowledge/architecture. Files of the future modules stay where they are; only contracts, core namespaces and call paths change.",
+  "context": "Architecture phase B (revision 2, D7–D10, D12). Approximate size: L. Detailed PHP signatures and tasks are authored in a separate phase-design session from the fixed semantics in knowledge/architecture. Files of the future modules stay where they are; only contracts, core namespaces and call paths change. Detailed on 2026-10-11 into P2.1–P2.15 under owner answers M14/M15 (D15–D17): 0.7.0 is no compatibility constraint; the reference is implemented exactly.",
   "contract": {
     "consumes": [
       "P1 evidence, parity harness and boundary scans",
@@ -17,7 +17,8 @@
       "knowledge/type-map",
       "knowledge/upgrade-map",
       "knowledge/identities",
-      "knowledge/target-structure"
+      "knowledge/target-structure",
+      "knowledge/p2-execution"
     ],
     "produces": [
       "#[Api]/#[Spi] attributes on the whole supported surface and an attribute-driven, member-aware manifest generator",
@@ -27,7 +28,7 @@
       "ChangeParticipant with append-only owned-table writer, storage descriptor and identity-column helper, with the existing audit journal re-targeted to it",
       "Typed module options; StoresGrants, GateMode, boot(), BasePlugin and DependsOnPlugins retired; writer capabilities in PanelSchema; Filament on neutral contracts",
       "Context and Tenancy namespaces; opaque state tokens with the payload rule; azg_ field reservation",
-      "One 0.7.0-to-candidate upgrade map covering P2 and the P3 relocations"
+      "A short migration instruction for AI agents covering every P2 change of a supported symbol, member, DSL, config key, command behavior or identity value (docs/upgrade.md, D16)"
     ],
     "boundaries": [
       "Core owns mandatory stages, the scope algebra and the only authority writer",
@@ -61,14 +62,15 @@
     "Readonly runtime inputs may still borrow mutable host models",
     "An owned-table writer returning a connection or builder defeats its boundary",
     "A facade without generated methods evades the manifest",
-    "Retiring boot() silently stops calling existing implementations; the upgrade map must say so",
-    "Opaque StateToken serialization must not reinterpret 0.7.0 audit payloads"
+    "Opaque StateToken serialization must keep the payload state keys of knowledge/contracts#tokens",
+    "P1 report-mode allowlists fail on stale entries: remove an entry in the same commit as its fix",
+    "Module-owned types created in P2 live at interim src/ paths (D17); do not add module autoload roots"
   ],
   "validation": [
     {
       "id": "V1",
       "procedure": "Classify every supported type/member/override/facade method by attribute and verify signature closure; compile built-in and independent consumer contributions through the same slots; reject duplicate ids/keys, conflicting declarations, closure signature mismatches, unmet slot requirements, unchecked context writes and invariant-bypassing continuation/results; run the P1 parity, consistency, transactional and format suites with scope and audit behavior reached only through the new contracts.",
-      "expect": "I4, I6, I7, I8, I10, I11, I14 and I20 green; P1 snapshots unchanged except entries listed in the upgrade map; allowlists reduced to location-only entries owned by P3.",
+      "expect": "I4, I6, I7, I8, I10, I11, I14 and I20 green; parity matrix verdicts unchanged except the 82 directory verdicts of I9 findings F1/F2, which now equal write admission; every P1 fixture change is deliberate and listed in its item result; allowlists hold only owner-P3 entries.",
       "kind": "acceptance"
     }
   ],
@@ -76,10 +78,78 @@
     "Attributed API/SPI inventory incl. members, overrides, named-argument stance and enum classes",
     "Final contract signatures for every slot and capability",
     "Member-aware manifest generator",
-    "Upgrade map and non-PHP contract inventory"
+    "AI-agent migration instruction and non-PHP contract changes (docs/upgrade.md)"
   ],
-  "items": [],
-  "batches": [],
+  "items": [
+    "P2.1",
+    "P2.2",
+    "P2.3",
+    "P2.4",
+    "P2.5",
+    "P2.6",
+    "P2.7",
+    "P2.8",
+    "P2.9",
+    "P2.10",
+    "P2.11",
+    "P2.12",
+    "P2.13",
+    "P2.14",
+    "P2.15"
+  ],
+  "batches": [
+    {
+      "id": "B1",
+      "items": [
+        "P2.1",
+        "P2.2",
+        "P2.3"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B2",
+      "items": [
+        "P2.4",
+        "P2.5",
+        "P2.6"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B3",
+      "items": [
+        "P2.7",
+        "P2.8",
+        "P2.9",
+        "P2.10"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B4",
+      "items": [
+        "P2.11",
+        "P2.12",
+        "P2.13"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B5",
+      "items": [
+        "P2.14"
+      ],
+      "mode": "recommended"
+    },
+    {
+      "id": "B6",
+      "items": [
+        "P2.15"
+      ],
+      "mode": "recommended"
+    }
+  ],
   "sections": [
     {
       "id": "design-inputs",
