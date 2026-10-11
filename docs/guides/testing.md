@@ -10,7 +10,8 @@ test databases on tmpfs, with a 2 GiB limit each. Crash durability is deliberate
 data disappears when a database container stops. Test schemas are still dropped and migrated
 before each test. Redis and the real PostgreSQL replica profile retain persistent volumes.
 
-The CI database matrix starts only its selected engine, on tmpfs with the image's durability defaults.
+The CI database matrix starts only its selected engine through the same Compose file, with the
+same tmpfs and durability flags. It caches Composer downloads and still installs dependencies on every job.
 Commands, measurement results and prerequisites for future parallel runs are in the repository's
 `DEVELOPMENT.md`. The supported settings are listed in [Test infrastructure references](../reference.md).
 

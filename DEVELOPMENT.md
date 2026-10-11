@@ -131,9 +131,13 @@ docker compose up -d --force-recreate --wait postgres mysql mariadb
 
 The old `azguard_pgsql_data`, `azguard_mysql_data` and `azguard_mariadb_data` volumes remain on disk;
 Compose no longer attaches them. Their deletion is a separate owner action.
-In CI each database-matrix job starts only its selected service and uses the same bounded tmpfs.
-CI retains the image's durability defaults: the local `actionlint` 1.7.12 rejects `services.command`,
-so the workflow uses portable service `options` without an image or entrypoint workaround.
+In CI each database-matrix job starts only its selected service through
+`docker compose up -d --wait --wait-timeout 120`. The same Compose file supplies bounded tmpfs,
+durability flags, credentials and healthchecks locally and in CI. This avoids service-command
+compatibility issues and keeps one database configuration. Service logs are captured and the
+selected database is stopped even when tests fail.
+The matrix caches only Composer's downloaded archives, keyed by the Composer manifests and
+lockfiles; `composer update` still resolves and installs dependencies on every job.
 The real-replica profile retains its persistent storage and WAL settings.
 
 Tests still drop and migrate the schema before each server-backed test. Replacing that with a single
@@ -184,6 +188,14 @@ composer test:mysql -- \
 An initial diagnostic invocation omitted `--order-by=random`: PHPUnit warned about the seed and
 exited 1 despite passing assertions. PAO's JSON omitted that runner warning. The table uses only
 corrected, successful invocations; no failure/skip gate was relaxed.
+
+The CI follow-up reuses this Compose configuration, including durability flags, and caches Composer
+downloads. Hosted-runner timings and cache hits still need a subsequent CI run; local timings do
+not predict the full hosted job. The security hook rejected disposable `docker run --rm` validation
+as a file-removal command, so the follow-up checks use the existing test stand with non-recreating
+Compose starts and the same short test selection.
+All 51 selected tests pass on each driver with unchanged assertion counts: PostgreSQL 9.98 s,
+MySQL 11.38 s, MariaDB 8.12 s (wall time). Container IDs are unchanged.
 
 With Redis up (`make up`), run the qualification bundle:
 

@@ -18,7 +18,15 @@ the repository's `DEVELOPMENT.md` contains the commands and measurements.
   a memory-backed data directory and disabling `fsync`, `synchronous_commit` and
   `full_page_writes` are documented options for disposable databases.
 - [GitHub Actions workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idservicesservice_idimage):
-  an empty service image disables that service, allowing one database per matrix job.
+  an empty service image disables that service, as used by the initial tmpfs change.
   Current documentation describes `services.command`, but the installed actionlint 1.7.12
-  rejects that key. This workflow therefore uses only `options: --tmpfs` and retains
-  image durability defaults.
+  rejects that key. The follow-up starts the selected service with Compose to reuse all
+  local settings instead of duplicating native service definitions.
+- [Docker Compose startup](https://docs.docker.com/reference/cli/docker/compose/up/):
+  a service argument selects the database; `--wait` checks readiness, bounded by `--wait-timeout`.
+  [GitHub Ubuntu runner inventory](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
+  includes Docker Compose.
+- [Actions archive cache v4](https://github.com/actions/cache/blob/v4/README.md):
+  cache a selected path with manifest-derived keys and fallback prefixes. The database matrix
+  applies the existing repository cache pattern to Composer's `cache-files-dir`, preserving
+  dependency resolution and rebuilding `vendor` on every job.
