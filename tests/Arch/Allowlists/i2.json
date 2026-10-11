@@ -1,0 +1,268 @@
+[
+    {
+        "file": "packages/core/src/Authorization/BatchEvaluation.php",
+        "reference": "AzGuard\\Authorization\\ScopeEligibility",
+        "kind": "reference",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/BatchInputs.php",
+        "reference": "AzGuard\\Authorization\\ScopeEligibility",
+        "kind": "reference",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/BatchInputs.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/BatchInputs.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/BatchInputs.php",
+        "reference": "AzGuard\\Scopes\\BaseAssignmentScope",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/BatchInputs.php",
+        "reference": "AzGuard\\Scopes\\Query\\EligibilityBuilder",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
+        "reference": "AzGuard\\Authorization\\ScopeEligibility",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
+        "reference": "AzGuard\\Authorization\\ScopeEligibility",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Changes\\ChangeJournal",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\AuditPruneCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\InstallCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakeModelsCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakePanelCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakePermissionCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakePipeCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakePluginCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakePolicyCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakeRestrictionCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakeRoleCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\Make\\MakeSourceCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/AzGuardServiceProvider.php",
+        "reference": "AzGuard\\Laravel\\Console\\Commands\\StubsCommand",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Changes/ChangePipeline.php",
+        "reference": "AzGuard\\Changes\\ChangeJournal",
+        "kind": "reference",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Changes/ChangePipeline.php",
+        "reference": "audit_log",
+        "kind": "table",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Changes/ChangeValidator.php",
+        "reference": "AzGuard\\Authorization\\ScopeEligibility",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Changes/ChangeValidator.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Directories/DirectoryResolver.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Directories/DirectoryResolver.php",
+        "reference": "AzGuard\\Directories\\QueryScopeDirectory",
+        "kind": "reference",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Panels/Panel.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P2"
+    },
+    {
+        "file": "packages/core/src/Panels/PanelBuilder.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P2"
+    },
+    {
+        "file": "packages/core/src/Panels/PanelCompiler.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Panels/PanelCompiler.php",
+        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Panels/PanelCompiler.php",
+        "reference": "AzGuard\\Scopes\\ModelAssignmentScopeDefinition",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Schema/SchemaBuilder.php",
+        "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Schema/SchemaBuilder.php",
+        "reference": "AzGuard\\Scopes\\RoleBindings",
+        "kind": "import",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Scopes/Query/PredicateBuilder.php",
+        "reference": "AzGuard\\Scopes\\Query\\EligibilityBuilder",
+        "kind": "reference",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Sources/Database/DatabaseSource.php",
+        "reference": "audit_log",
+        "kind": "table",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Sources/Database/StorageHealth.php",
+        "reference": "audit_log",
+        "kind": "table",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    },
+    {
+        "file": "packages/core/src/Storage/Schema/StorageSchema.php",
+        "reference": "audit_log",
+        "kind": "table",
+        "invariant": "I2",
+        "owner_phase": "P3"
+    }
+]

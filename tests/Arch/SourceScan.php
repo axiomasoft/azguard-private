@@ -15,16 +15,37 @@ use SplFileInfo;
  */
 final class SourceScan
 {
+    private const KINDS = ['import', 'class-constant', 'class-string', 'fqcn-string', 'plugin-id', 'table', 'reference'];
+
+    /** Names a class-name position takes that are language keywords, not types of the codebase. */
+    private const BUILTIN_TYPES = ['self', 'static', 'parent', 'int', 'float', 'string', 'bool', 'array', 'callable', 'iterable', 'object', 'mixed',
+        'void', 'null', 'never', 'true', 'false'];
+
     private const NOT_A_CALL_AFTER = [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW, T_CONST];
 
     /**
-     * @param  string|null  $directory  directory relative to the repository root; every packages/<name>/src when null
+     * @param  string|null  $root  repository root; this repository when null
+     * @return list<string> the production source roots: every packages/<name>/src and packages/core/modules/<module>/src
+     */
+    public static function productionRoots(?string $root = null): array
+    {
+        $root ??= dirname(__DIR__, 2);
+
+        return array_values(array_merge(
+            glob($root.'/packages/*/src', GLOB_ONLYDIR) ?: [],
+            glob($root.'/packages/core/modules/*/src', GLOB_ONLYDIR) ?: [],
+        ));
+    }
+
+    /**
+     * @param  string|null  $directory  directory relative to the repository root; every production root when null
+     * @param  string|null  $root  repository root; this repository when null
      * @return list<string> sorted absolute paths of the PHP files
      */
-    public static function files(?string $directory = null): array
+    public static function files(?string $directory = null, ?string $root = null): array
     {
-        $root = dirname(__DIR__, 2);
-        $directories = $directory === null ? (glob($root.'/packages/*/src', GLOB_ONLYDIR) ?: []) : [$root.'/'.$directory];
+        $root ??= dirname(__DIR__, 2);
+        $directories = $directory === null ? self::productionRoots($root) : [$root.'/'.$directory];
         $files = [];
 
         foreach ($directories as $dir) {
@@ -38,6 +59,34 @@ final class SourceScan
         sort($files);
 
         return $files;
+    }
+
+    /**
+     * @param  list<string>  $files
+     * @return list<string> the files whose code has no `declare(strict_types=1)` before their first statement
+     */
+    public static function withoutStrictTypes(array $files): array
+    {
+        return array_values(array_filter($files, static function (string $file): bool {
+            $tokens = self::tokens((string) file_get_contents($file));
+
+            foreach ($tokens as $index => $token) {
+                if (is_array($token) && $token[0] === T_DECLARE) {
+                    $declaration = '';
+                    for ($cursor = $index + 1; isset($tokens[$cursor]) && $tokens[$cursor] !== ';'; $cursor++) {
+                        $declaration .= is_array($tokens[$cursor]) ? $tokens[$cursor][1] : $tokens[$cursor];
+                    }
+
+                    return preg_match('/\A\(strict_types=1\)\z/', $declaration) !== 1;
+                }
+
+                if (is_array($token) && ! in_array($token[0], [T_OPEN_TAG, T_INLINE_HTML], true)) {
+                    return true;
+                }
+            }
+
+            return true;
+        }));
     }
 
     /**
@@ -93,35 +142,22 @@ final class SourceScan
     public static function imports(string $code): array
     {
         $tokens = self::tokens($code);
+
+        return self::importsOf($tokens, self::topLevelUses($tokens));
+    }
+
+    /**
+     * @param  list<array{int, string, int}|string>  $tokens  significant tokens
+     * @param  list<array{int, int}>  $uses  import statements to read, as returned by {@see self::topLevelUses()}
+     * @return array<string, string> class imports keyed by their lower-case aliases
+     */
+    private static function importsOf(array $tokens, array $uses): array
+    {
         $imports = [];
-        $depth = 0;
-        $namespaceDepth = 0;
 
-        foreach ($tokens as $index => $token) {
-            if (is_array($token) && $token[0] === T_NAMESPACE) {
-                for ($cursor = $index + 1; isset($tokens[$cursor]); $cursor++) {
-                    if (in_array($tokens[$cursor], ['{', ';'], true)) {
-                        $namespaceDepth = $tokens[$cursor] === '{' ? $depth + 1 : $depth;
-
-                        break;
-                    }
-                }
-            }
-
-            if ($token === '{') {
-                $depth++;
-            }
-
-            if ($token === '}') {
-                $depth--;
-            }
-
-            if (! is_array($token) || $token[0] !== T_USE || $depth !== $namespaceDepth
-                || ($tokens[$index + 1] ?? null) === '(') {
-                continue;
-            }
+        foreach ($uses as [$from, $to]) {
             $statement = '';
-            for ($cursor = $index + 1; isset($tokens[$cursor]) && $tokens[$cursor] !== ';'; $cursor++) {
+            for ($cursor = $from + 1; $cursor < $to; $cursor++) {
                 $part = $tokens[$cursor];
                 $statement .= is_array($part) ? $part[1].' ' : $part;
             }
@@ -152,6 +188,50 @@ final class SourceScan
         return $imports;
     }
 
+    /**
+     * @param  list<array{int, string, int}|string>  $tokens  significant tokens
+     * @return list<array{int, int}> token index of `use` and of its closing `;` for every import statement of the
+     *                               namespace level; a trait `use` inside a class body and a closure `use (` are not imports
+     */
+    private static function topLevelUses(array $tokens): array
+    {
+        $uses = [];
+        $depth = 0;
+        $namespaceDepth = 0;
+
+        foreach ($tokens as $index => $token) {
+            if (is_array($token) && $token[0] === T_NAMESPACE) {
+                for ($cursor = $index + 1; isset($tokens[$cursor]); $cursor++) {
+                    if (in_array($tokens[$cursor], ['{', ';'], true)) {
+                        $namespaceDepth = $tokens[$cursor] === '{' ? $depth + 1 : $depth;
+
+                        break;
+                    }
+                }
+            }
+
+            if ($token === '{') {
+                $depth++;
+            }
+
+            if ($token === '}') {
+                $depth--;
+            }
+
+            if (! is_array($token) || $token[0] !== T_USE || $depth !== $namespaceDepth
+                || ($tokens[$index + 1] ?? null) === '(') {
+                continue;
+            }
+            $cursor = $index + 1;
+            while (isset($tokens[$cursor]) && $tokens[$cursor] !== ';') {
+                $cursor++;
+            }
+            $uses[] = [$index, $cursor];
+        }
+
+        return $uses;
+    }
+
     public static function namespace(string $code): string
     {
         $tokens = self::tokens($code);
@@ -164,6 +244,49 @@ final class SourceScan
         }
 
         return '';
+    }
+
+    /**
+     * The namespace blocks of a file: the part before the first `namespace` declaration and one block per declaration,
+     * each with its namespace and its own imports. A name resolves in the block it stands in; an alias imported in
+     * one block is not seen in the next.
+     *
+     * @param  list<array{int, string, int}|string>  $tokens  significant tokens
+     * @return array{blocks: list<array{namespace: string, imports: array<string, string>}>, blockOf: array<int, int>} block of each token index
+     */
+    private static function namespaceBlocks(array $tokens): array
+    {
+        $starts = [0];
+        $namespaces = [''];
+
+        foreach ($tokens as $index => $token) {
+            if (is_array($token) && $token[0] === T_NAMESPACE) {
+                $next = $tokens[$index + 1] ?? null;
+                $starts[] = $index;
+                $namespaces[] = is_array($next) && in_array($next[0], [T_STRING, T_NAME_QUALIFIED], true) ? $next[1] : '';
+            }
+        }
+        $blockOf = [];
+        $block = 0;
+
+        foreach (array_keys($tokens) as $index) {
+            while (isset($starts[$block + 1]) && $index >= $starts[$block + 1]) {
+                $block++;
+            }
+            $blockOf[$index] = $block;
+        }
+        $uses = array_fill(0, count($starts), []);
+
+        foreach (self::topLevelUses($tokens) as $use) {
+            $uses[$blockOf[$use[0]]][] = $use;
+        }
+        $blocks = [];
+
+        foreach ($namespaces as $block => $namespace) {
+            $blocks[] = ['namespace' => $namespace, 'imports' => self::importsOf($tokens, $uses[$block])];
+        }
+
+        return ['blocks' => $blocks, 'blockOf' => $blockOf];
     }
 
     /** @return list<string> resolved imports and class references, including fully qualified names */
@@ -179,6 +302,223 @@ final class SourceScan
         }
 
         return array_values(array_unique($references));
+    }
+
+    /**
+     * Every way a file names a type, a plugin or a table of another owner. Kinds, strongest first: `import` (also a
+     * grouped one), `class-constant` (`Foo::class`), `class-string` (a `class-string<…>` docblock type), `fqcn-string`
+     * (a string literal that is a qualified class name), `plugin-id`, `table`, `reference` (any other class name).
+     * A value is reported once per file, with its strongest kind.
+     *
+     * @param  list<string>  $pluginIds  plugin id literals to report, such as `azguard/audit`
+     * @param  list<string>  $tables  table names to report, as the whole literal or after a prefix expression
+     * @return list<array{kind: string, value: string}> sorted by value
+     */
+    public static function ownershipReferences(string $code, array $pluginIds = [], array $tables = []): array
+    {
+        $tokens = self::tokens($code);
+        ['blocks' => $blocks, 'blockOf' => $blockOf] = self::namespaceBlocks($tokens);
+        $found = [];
+        $note = static function (string $kind, string $value) use (&$found): void {
+            $value = ltrim($value, '\\');
+            $key = strtolower($value);
+
+            if ($value !== '' && (! isset($found[$key]) || array_search($kind, self::KINDS, true) < array_search($found[$key]['kind'], self::KINDS, true))) {
+                $found[$key] = ['kind' => $kind, 'value' => $value];
+            }
+        };
+
+        foreach ($blocks as $block) {
+            foreach ($block['imports'] as $import) {
+                $note('import', $import);
+            }
+        }
+        $rawBlock = 0;
+
+        foreach (token_get_all($code) as $token) {
+            if (is_array($token) && $token[0] === T_NAMESPACE) {
+                $rawBlock++;
+            }
+
+            if (is_array($token) && $token[0] === T_DOC_COMMENT && preg_match_all('/class-string<([^>]*)>/', $token[1], $matches) > 0) {
+                foreach ($matches[1] as $types) {
+                    foreach (preg_split('/\s*[|&]\s*/', trim($types)) ?: [] as $type) {
+                        if (preg_match('/\A\\\\?[A-Za-z_]\w*(?:\\\\[A-Za-z_]\w*)*\z/', $type) === 1) {
+                            $note('class-string', self::resolve($type, $blocks[$rawBlock]['namespace'], $blocks[$rawBlock]['imports']));
+                        }
+                    }
+                }
+            }
+
+            if (is_array($token) && $token[0] === T_CONSTANT_ENCAPSED_STRING) {
+                $value = str_replace('\\\\', '\\', substr($token[1], 1, -1));
+
+                if (preg_match('/\A\\\\?[A-Za-z_]\w*(?:\\\\[A-Za-z_]\w*)+\z/', $value) === 1) {
+                    $note('fqcn-string', $value);
+                } elseif (in_array($value, $pluginIds, true)) {
+                    $note('plugin-id', $value);
+                }
+            }
+
+            if (is_array($token) && in_array($token[0], [T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
+                $literal = $token[0] === T_CONSTANT_ENCAPSED_STRING ? substr($token[1], 1, -1) : $token[1];
+
+                foreach ($tables as $table) {
+                    if ($literal === $table) {
+                        $note('table', $table);
+                    }
+                }
+            }
+        }
+
+        $uses = array_map(static fn (array $range): array => range($range[0], $range[1]), self::topLevelUses($tokens));
+        $inUse = array_flip(array_merge([], ...$uses));
+        $namespaceDeclaration = null;
+        ['blocks' => $blocks, 'blockOf' => $blockOf] = self::namespaceBlocks($tokens);
+        $attributeDepth = 0;
+        $attributeParentheses = 0;
+        $inClause = false;
+
+        foreach ($tokens as $index => $token) {
+            if (is_array($token) && in_array($token[0], [T_EXTENDS, T_IMPLEMENTS, T_USE], true)) {
+                $inClause = true;
+            } elseif ($token === '{' || $token === ';') {
+                $inClause = false;
+            }
+
+            if (is_array($token) && $token[0] === T_NAMESPACE) {
+                $namespaceDeclaration = $index + 1;
+            }
+
+            if (is_array($token) && $token[0] === T_ATTRIBUTE) {
+                [$attributeDepth, $attributeParentheses] = [1, 0];
+            } elseif ($attributeDepth > 0) {
+                $attributeDepth += is_string($token) ? ['[' => 1, ']' => -1][$token] ?? 0 : 0;
+                $attributeParentheses += is_string($token) ? ['(' => 1, ')' => -1][$token] ?? 0 : 0;
+            }
+
+            if (! is_array($token) || ! in_array($token[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED, T_NAME_RELATIVE], true)
+                || isset($inUse[$index]) || $index === $namespaceDeclaration) {
+                continue;
+            }
+            $previous = $tokens[$index - 1] ?? null;
+            $next = $tokens[$index + 1] ?? null;
+            $previousType = is_array($previous) ? $previous[0] : $previous;
+
+            if ($token[0] === T_STRING && in_array(strtolower($token[1]), self::BUILTIN_TYPES, true)) {
+                continue;
+            }
+
+            if (in_array($previousType, [T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_CONST], true)
+                || ($next === '(' && $previousType !== T_NEW && ! ($attributeDepth > 0 && $attributeParentheses === 0))
+                || ($next === ':' && in_array($previousType, ['(', ','], true))
+                || ($token[0] === T_STRING && ! $inClause && ! ($attributeDepth > 0 && $attributeParentheses === 0)
+                    && ! (($tokens[$index - 2] ?? null) !== null && is_array($tokens[$index - 2]) && $tokens[$index - 2][0] === T_CATCH)
+                    && self::isConstantRead($previousType, is_array($next) ? $next[0] : $next, self::operandBefore($tokens, $index - 2)))) {
+                continue;
+            }
+            $isClassConstant = is_array($next) && $next[0] === T_DOUBLE_COLON
+                && is_array($tokens[$index + 2] ?? null) && $tokens[$index + 2][0] === T_CLASS;
+            $note($isClassConstant ? 'class-constant' : 'reference', self::resolve($token[1], $blocks[$blockOf[$index]]['namespace'], $blocks[$blockOf[$index]]['imports']));
+        }
+        ksort($found);
+
+        return array_values($found);
+    }
+
+    /**
+     * A bare name in an expression is a constant, not a class: `return Name;`, `= Name`, `. Name`, `Name | 2`. After `(`,
+     * `,` or `[` it is one only when no variable, `...`, `|`, `&`, `::` or `(` follows: `(Name $x)`, `(Name|Other $x)`,
+     * `[Name::class]` name types and classes. The names of an `extends`, `implements` or trait `use` clause, of an
+     * attribute list and of a `catch` are classes wherever they stand; the caller skips this test for them.
+     */
+    private static function isConstantRead(int|string|null $previous, int|string|null $next, int|string|null $beforeType = null): bool
+    {
+        // `2 | Name`, `$flags & Name`: the right operand of a bit operator whose left operand is a value, not a type.
+        if (in_array($previous, ['|', '&', T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG], true)) {
+            return in_array($beforeType, [T_LNUMBER, T_DNUMBER, T_VARIABLE, T_CONSTANT_ENCAPSED_STRING, ')', ']'], true)
+                && ! in_array($next, [T_DOUBLE_COLON, T_NS_SEPARATOR, '('], true);
+        }
+
+        if (in_array($previous, [T_RETURN, '=', T_DOUBLE_ARROW, '.', '!', T_BOOLEAN_AND, T_BOOLEAN_OR, T_IS_IDENTICAL, T_IS_EQUAL,
+            T_IS_NOT_IDENTICAL, T_IS_NOT_EQUAL, '+', '-', '*', '/', '<', '>', T_COALESCE, T_ECHO, T_CASE], true)) {
+            return ! in_array($next, [T_DOUBLE_COLON, T_NS_SEPARATOR, '('], true);
+        }
+
+        return in_array($previous, ['(', ',', '['], true)
+            && ! in_array($next, [T_VARIABLE, T_DOUBLE_COLON, T_ELLIPSIS, T_NS_SEPARATOR, '|', '&', '(', T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG], true);
+    }
+
+    /**
+     * The kind of token that ends the left operand of a `|` or `&` at `$index`: its token type, or `null` when it closes
+     * a parenthesised type group of a DNF type, `(Left&Right)`: only names and `&`, at least one `&`, where a type may stand.
+     *
+     * @param  list<array{int, string, int}|string>  $tokens  significant tokens
+     */
+    private static function operandBefore(array $tokens, int $index): int|string|null
+    {
+        $token = $tokens[$index] ?? null;
+
+        if ($token !== ')') {
+            return is_array($token) ? $token[0] : $token;
+        }
+
+        $ampersand = false;
+
+        for ($cursor = $index - 1; isset($tokens[$cursor]) && $tokens[$cursor] !== '('; $cursor--) {
+            $type = is_array($tokens[$cursor]) ? $tokens[$cursor][0] : $tokens[$cursor];
+            $isAmpersand = in_array($type, ['&', T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG], true);
+            $ampersand = $ampersand || $isAmpersand;
+
+            if (! $isAmpersand && ! in_array($type, [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED, T_NAME_RELATIVE], true)) {
+                return ')';
+            }
+        }
+        $before = $tokens[$cursor - 1] ?? null;
+        $beforeType = is_array($before) ? $before[0] : $before;
+        $inTypePosition = match (true) {
+            in_array($beforeType, [':', '|', '?', T_PUBLIC, T_PROTECTED, T_PRIVATE, T_STATIC, T_READONLY, T_FINAL, T_VAR], true) => true,
+            $beforeType === '(' => self::opensParameterList($tokens, $cursor - 1),
+            $beforeType === ',' => self::opensParameterList($tokens, self::enclosingOpen($tokens, $cursor - 1)),
+            default => false,
+        };
+
+        return $ampersand && $inTypePosition ? null : ')';
+    }
+
+    /** Index of the `(` that encloses the token at `$index`, or `null` at the top level. */
+    private static function enclosingOpen(array $tokens, int $index): ?int
+    {
+        $depth = 0;
+
+        for ($cursor = $index; $cursor >= 0; $cursor--) {
+            $depth += is_string($tokens[$cursor]) ? ['(' => -1, ')' => 1][$tokens[$cursor]] ?? 0 : 0;
+
+            if ($depth < 0) {
+                return $cursor;
+            }
+        }
+
+        return null;
+    }
+
+    /** Whether the `(` at `$index` opens the parameter list of a function, method, closure or arrow function, not a call or a group. */
+    private static function opensParameterList(array $tokens, ?int $index): bool
+    {
+        if ($index === null) {
+            return false;
+        }
+        $before = $tokens[$index - 1] ?? null;
+        $beforeType = is_array($before) ? $before[0] : $before;
+
+        if (in_array($beforeType, [T_FUNCTION, T_FN], true)) {
+            return true;
+        }
+        $earlier = $tokens[$index - 2] ?? null;
+        $earlierType = is_array($earlier) ? $earlier[0] : $earlier;
+        $earlierType = $earlierType === T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG ? (is_array($tokens[$index - 3] ?? null) ? $tokens[$index - 3][0] : null) : $earlierType;
+
+        return $beforeType === T_STRING && $earlierType === T_FUNCTION;
     }
 
     /**

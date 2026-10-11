@@ -15,7 +15,7 @@ use AzGuard\Tests\Arch\SourceScan;
 const AZGUARD_OUTER_ZONES = [
     'AzGuard\Contracts', 'AzGuard\Panels', 'AzGuard\Catalog', 'AzGuard\Scopes', 'AzGuard\Sources',
     'AzGuard\Policies', 'AzGuard\Authorization', 'AzGuard\Changes', 'AzGuard\Schema', 'AzGuard\Storage',
-    'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
+    'AzGuard\Audit', 'AzGuard\DevTools', 'AzGuard\Plugins', 'AzGuard\Laravel', 'AzGuard\Testing', 'AzGuard\Roles', 'AzGuard\Configuration',
     'AzGuard\Diagnostics', 'AzGuard\Internal', 'AzGuard\Facades', 'AzGuard\Concerns', 'AzGuard\Events',
     'AzGuard\Attributes', 'AzGuard\Permissions', 'AzGuard\Directories', 'AzGuard\Support',
 ];
@@ -44,9 +44,15 @@ const AZGUARD_DATABASE_ACCESS = [
     'Illuminate\Database\Schema',
 ];
 
+/*
+ * The zones the kernel never names besides the outer zones above: the Filament package and the zones the transition
+ * adds to core (`Tenancy`, `Context`). A rule for a zone without code yet is vacuous until its first class.
+ */
+const AZGUARD_KERNEL_FORBIDDEN = ['Illuminate', 'Carbon', 'Laravel', 'AzGuard\Filament', 'AzGuard\Tenancy', 'AzGuard\Context', ...AZGUARD_OUTER_ZONES];
+
 arch('kernel depends on nothing but PHP')
     ->expect('AzGuard\Kernel')
-    ->not->toUse(['Illuminate', 'Carbon', 'Laravel', ...AZGUARD_OUTER_ZONES]);
+    ->not->toUse(AZGUARD_KERNEL_FORBIDDEN);
 
 const AZGUARD_FRAMEWORK_HELPERS = ['app', 'config', 'now', 'today', 'env', 'resolve', 'request', 'auth', 'cache', 'event', 'logger', 'info'];
 
@@ -67,6 +73,95 @@ it('finds framework helper calls but not methods with the same name', function (
 
 it('keeps the kernel free of framework helper calls', function (): void {
     expect(SourceScan::callsIn(SourceScan::files('packages/core/src/Kernel'), AZGUARD_FRAMEWORK_HELPERS))->toBe([]);
+});
+
+/*
+ * I1 (blocking now): the kernel names no framework, zone or module code. Pest arch sees imports and class names of the
+ * autoloaded namespaces only; this scan also reads grouped imports, `::class` constants, `class-string<…>` types and
+ * qualified class-name strings, and covers the module roots (`packages/core/modules/<module>/src`) by their namespaces.
+ */
+/**
+ * @param  list<string>  $files
+ * @return list<string> offenders as "<file>: <kind> <reference>"
+ */
+function azguardKernelLeaks(array $files): array
+{
+    $offenders = [];
+
+    foreach ($files as $file) {
+        foreach (SourceScan::ownershipReferences((string) file_get_contents($file)) as $reference) {
+            if (SourceScan::inZone($reference['value'], AZGUARD_KERNEL_FORBIDDEN)) {
+                $offenders[] = basename($file).': '.$reference['kind'].' '.$reference['value'];
+            }
+        }
+    }
+
+    return $offenders;
+}
+
+it('finds a kernel file that names framework, zone or module code in any form', function (): void {
+    $directory = sys_get_temp_dir().'/azguard-kernel-leak-'.bin2hex(random_bytes(4));
+    mkdir($directory);
+    $leaking = $directory.'/Leaking.php';
+    $clean = $directory.'/Clean.php';
+    file_put_contents($leaking, <<<'PHP'
+        <?php
+        namespace AzGuard\Kernel\Identity;
+        use Illuminate\Support\Str;
+        use AzGuard\Audit\{AuditPlugin};
+        use AzGuard\Filament\AzGuardPlugin;
+        use AzGuard\Tenancy\TenantMode;
+        /** @var class-string<\AzGuard\DevTools\DevToolsServiceProvider> $provider */
+        final class Leaking {
+            public const SCOPES = 'AzGuard\\Scopes\\ScopesPlugin';
+            public function id(): string { return \Carbon\Carbon::class; }
+        }
+        PHP);
+    file_put_contents($clean, "<?php\nnamespace AzGuard\\Kernel\\Identity;\nuse DateTimeImmutable;\nfinal class Clean { public function at(): DateTimeImmutable { return new DateTimeImmutable; } }\n");
+
+    try {
+        expect(azguardKernelLeaks([$leaking, $clean]))->toBe([
+            'Leaking.php: import AzGuard\Audit\AuditPlugin',
+            'Leaking.php: class-string AzGuard\DevTools\DevToolsServiceProvider',
+            'Leaking.php: import AzGuard\Filament\AzGuardPlugin',
+            'Leaking.php: fqcn-string AzGuard\Scopes\ScopesPlugin',
+            'Leaking.php: import AzGuard\Tenancy\TenantMode',
+            'Leaking.php: class-constant Carbon\Carbon',
+            'Leaking.php: import Illuminate\Support\Str',
+        ]);
+    } finally {
+        unlink($leaking);
+        unlink($clean);
+        rmdir($directory);
+    }
+});
+
+it('keeps the kernel free of framework, zone and module references', function (): void {
+    expect(azguardKernelLeaks(SourceScan::files('packages/core/src/Kernel')))->toBe([]);
+});
+
+it('reads every production root, the module roots included', function (): void {
+    $root = sys_get_temp_dir().'/azguard-roots-'.bin2hex(random_bytes(4));
+    $paths = ['packages/core/src/Kernel/A.php', 'packages/filament/src/B.php', 'packages/core/modules/audit/src/AuditPlugin.php', 'packages/core/modules/audit/database/C.php'];
+
+    foreach ($paths as $path) {
+        mkdir(dirname($root.'/'.$path), 0777, true);
+        file_put_contents($root.'/'.$path, "<?php\n");
+    }
+
+    try {
+        expect(array_map(static fn (string $file): string => str_replace($root.'/', '', $file), SourceScan::files(root: $root)))->toBe([
+            'packages/core/modules/audit/src/AuditPlugin.php', 'packages/core/src/Kernel/A.php', 'packages/filament/src/B.php',
+        ]);
+    } finally {
+        foreach ($paths as $path) {
+            unlink($root.'/'.$path);
+        }
+        foreach (['packages/core/src/Kernel', 'packages/core/src', 'packages/filament/src', 'packages/core/modules/audit/src', 'packages/core/modules/audit/database', 'packages/core/modules/audit', 'packages/core/modules', 'packages/core', 'packages/filament', 'packages'] as $directory) {
+            rmdir($root.'/'.$directory);
+        }
+        rmdir($root);
+    }
 });
 
 arch('exceptions depend only on the kernel')

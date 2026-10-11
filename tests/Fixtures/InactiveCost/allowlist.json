@@ -1,0 +1,14 @@
+[
+    {
+        "cost": "module-service",
+        "subject": "AzGuard\\Changes\\ChangeJournal",
+        "invariant": "I13",
+        "owner_phase": "P3"
+    },
+    {
+        "cost": "module-table-required",
+        "subject": "audit_log",
+        "invariant": "I13",
+        "owner_phase": "P3"
+    }
+]

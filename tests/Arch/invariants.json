@@ -1,0 +1,215 @@
+[
+    {
+        "id": "I1",
+        "status": "exists",
+        "checks": [
+            "tests/Arch/ZonesArchTest.php",
+            "tests/Arch/BaselineArchTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": null
+    },
+    {
+        "id": "I2",
+        "status": "build",
+        "checks": [
+            "tests/Arch/OwnershipScanTest.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P1"
+    },
+    {
+        "id": "I3",
+        "status": "build",
+        "checks": [
+            "tests/Arch/OwnershipScanTest.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P1"
+    },
+    {
+        "id": "I4",
+        "status": "build",
+        "checks": [],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I5",
+        "status": "build",
+        "checks": [
+            "tests/Arch/AutoloadOwnershipTest.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P3"
+    },
+    {
+        "id": "I6",
+        "status": "exists",
+        "checks": [
+            "tests/Engines/DirectWritesEngineTest.php",
+            "tests/Arch/FilamentWritesArchTest.php"
+        ],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I7",
+        "status": "build",
+        "checks": [
+            "tests/Feature/Parity/NoScopeDeclarationTest.php"
+        ],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I8",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Authorization/Properties/EnginePropertiesTest.php",
+            "tests/Contracts/NegativeFixturesTest.php"
+        ],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I9",
+        "status": "build",
+        "checks": [
+            "tests/Feature/Parity/ParityMatrixTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": "P4"
+    },
+    {
+        "id": "I10",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Changes/PipesTest.php",
+            "tests/Feature/Changes/FinalValidationTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": null
+    },
+    {
+        "id": "I11",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Plugins/Audit/AuditPluginTest.php",
+            "tests/Feature/Authorization/Properties/TransactionPropertiesTest.php",
+            "tests/Feature/Changes/NestedMutationTest.php",
+            "tests/Engines/ChangeRaceTest.php"
+        ],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I12",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Changes/TransactionTest.php",
+            "tests/Feature/Changes/NestedMutationTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": null
+    },
+    {
+        "id": "I13",
+        "status": "build",
+        "checks": [
+            "tests/Feature/InactiveCost/CoreOnlyPanelTest.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P3"
+    },
+    {
+        "id": "I14",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Plugins/PluginIsolationTest.php",
+            "tests/Feature/Laravel/QueueContextTest.php",
+            "tests/Acceptance/Crm/QueueTest.php"
+        ],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I15",
+        "status": "exists",
+        "checks": [
+            "tests/Engines/StorageDdlTest.php",
+            "tests/Feature/Storage/StorageSchemaTest.php",
+            "tests/Fixtures/Storage/DdlSnapshot.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P3"
+    },
+    {
+        "id": "I16",
+        "status": "build",
+        "checks": [
+            "tests/Regression/Baseline070/PopulatedDatabaseTest.php"
+        ],
+        "blocking": "after P3",
+        "owner_phase": "P3"
+    },
+    {
+        "id": "I17",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Console/CommandsSnapshotTest.php",
+            "tests/Feature/Configuration/ConfigKeysTest.php",
+            "tests/Regression/Baseline070/DoctorSnapshotTest.php",
+            "tests/Regression/Baseline070/EventsSnapshotTest.php",
+            "tests/Regression/Baseline070/ExceptionsSnapshotTest.php",
+            "tests/Regression/Baseline070/ExplainSnapshotTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": "P1"
+    },
+    {
+        "id": "I18",
+        "status": "build",
+        "checks": [],
+        "blocking": "after P4",
+        "owner_phase": "P4"
+    },
+    {
+        "id": "I19",
+        "status": "exists",
+        "checks": [
+            "bin/consumer-fixture.sh",
+            ".github/workflows/tests.yml",
+            ".github/workflows/release.yml"
+        ],
+        "blocking": "after P4",
+        "owner_phase": "P4"
+    },
+    {
+        "id": "I20",
+        "status": "build",
+        "checks": [],
+        "blocking": "after P2",
+        "owner_phase": "P2"
+    },
+    {
+        "id": "I21",
+        "status": "exists",
+        "checks": [
+            "tests/Feature/Authorization/Batch/DecisionSetSnapshotTest.php",
+            "tests/Feature/Authorization/Batch/ReadSessionLifecycleTest.php",
+            "tests/Engines/BatchFenceRaceTest.php",
+            "tests/Engines/FenceRaceTest.php",
+            "tests/Engines/ReplicaLagTest.php"
+        ],
+        "blocking": "now",
+        "owner_phase": null
+    },
+    {
+        "id": "I22",
+        "status": "exists",
+        "checks": [],
+        "blocking": "after P4",
+        "owner_phase": "P4"
+    }
+]
