@@ -321,3 +321,38 @@ it('I4: reports an unsupported core type and a member the manifest does not list
         'I4 packages/core/src/Scopes/Probe.php member AzGuard\Kernel\Identity\TenantRef::of P3',
     ]);
 });
+
+it('I4: types nullable unions, closures, arrow functions and $this, and leaves expressions untyped', function (): void {
+    $code = <<<'PHP'
+        <?php
+        namespace AzGuard\Scopes;
+        use AzGuard\Panels\Panel;
+        use AzGuard\Kernel\Identity\TenantRef;
+        use AzGuard\Kernel\Identity\SubjectRef;
+        final class Probe extends Base {
+            public function __construct(private TenantRef|null $tenant) {}
+            public function run(?Panel $panel, null|TenantRef $other, SubjectRef $subject, $flag): void {
+                $other->key();
+                $this->tenant->type();
+                $inside = function () use ($subject) { $subject->key(); };
+                $subject->type();
+                $arrow = fn (Panel $subject) => $subject->id();
+                $subject->id();
+                $guess = FLAG ? $flag : null;
+                $flag->ignored();
+                $this->inherited();
+            }
+        }
+        PHP;
+
+    expect(array_map(static fn (array $reference): string => implode(' ', $reference), ApiUsage::memberReferences($code)))->toBe([
+        'AzGuard\Kernel\Identity\TenantRef key method',
+        'AzGuard\Scopes\Probe tenant property',
+        'AzGuard\Kernel\Identity\TenantRef type method',
+        'AzGuard\Kernel\Identity\SubjectRef key method',
+        'AzGuard\Kernel\Identity\SubjectRef type method',
+        'AzGuard\Panels\Panel id method',
+        'AzGuard\Kernel\Identity\SubjectRef id method',
+        'AzGuard\Scopes\Probe inherited method',
+    ]);
+});

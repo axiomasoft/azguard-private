@@ -90,14 +90,17 @@ final class ApiUsage
             }
 
             foreach (self::memberReferences($code) as [$class, $member, $kind]) {
-                $typeRow = $ownership->typeRow($class);
+                $receiverIsCore = ($ownership->typeRow($class)['owner'] ?? null) === 'core';
 
-                if (($typeRow['owner'] ?? null) !== 'core' || ! self::exists($class) || ! isset($supported[strtolower($class)])) {
+                // An unsupported core receiver is already a type violation; a non-core receiver (`$this` of a module or
+                // Filament class) counts only for the members it inherits from a supported core type.
+                if (! self::exists($class) || ($receiverIsCore && ! isset($supported[strtolower($class)]))) {
                     continue;
                 }
                 $declaring = self::declaring($class, $member, $kind);
 
                 if ($declaring === null || ! str_starts_with($declaring, 'AzGuard\\') || ($ownership->typeRow($declaring)['owner'] ?? null) !== 'core'
+                    || (! $receiverIsCore && ! isset($supported[strtolower($declaring)]))
                     || self::lists($supported[strtolower($declaring)] ?? null, $member, $kind)) {
                     continue;
                 }
@@ -136,7 +139,9 @@ final class ApiUsage
     }
 
     /**
-     * The members a file names on a receiver whose class the code states.
+     * The members a file names on a receiver whose class the code states. Variables are scoped per function: a named
+     * function starts empty, a closure starts from the variables around it, and both restore them when their body ends;
+     * an arrow function's parameters shadow outer variables only until the arrow function ends.
      *
      * @return list<array{string, string, string}> [class, member, kind (method|constant|property)], unique
      */
@@ -151,6 +156,12 @@ final class ApiUsage
         $variables = [];
         $properties = [];
         $found = [];
+        /** @var list<array{depth: int|null, saved: array<string, string>}> $functions */
+        $functions = [];
+        /** @var list<array{depth: int, saved: array<string, string>}> $arrows */
+        $arrows = [];
+        $braces = 0;
+        $parens = 0;
 
         foreach ($tokens as $index => $token) {
             $previous = $tokens[$index - 1] ?? null;
@@ -170,19 +181,61 @@ final class ApiUsage
             }
 
             if (self::is($token, T_FUNCTION)) {
-                $variables = [];
+                $named = self::is($next, T_STRING) || (in_array($next, ['&'], true) || self::is($next, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG));
+                $functions[] = ['depth' => null, 'saved' => $variables];
+                $variables = $named ? [] : $variables;
             }
 
-            // A typed variable or property: `Type $name`, `?Type $name`, with modifiers for a property.
-            if (self::is($token, T_VARIABLE) && self::isName($previous) && ! self::is($previous, T_STATIC) && ! in_array($tokens[$index - 2] ?? null, ['|', '&', ')'], true)
-                && ! self::is($tokens[$index - 2] ?? null, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG) && ! self::is($tokens[$index - 2] ?? null, T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG)) {
-                $type = self::special($previous[1], $class, $parent) ?? $resolve($previous[1]);
-                $variables[$token[1]] = $type;
-                $before = $tokens[$index - 2] ?? null;
-                $before = $before === '?' ? ($tokens[$index - 3] ?? null) : $before;
+            if (self::is($token, T_FN)) {
+                $arrows[] = ['depth' => $parens, 'saved' => $variables];
+            }
 
-                if (is_array($before) && in_array($before[0], self::MODIFIERS, true)) {
-                    $properties[substr($token[1], 1)] = $type;
+            if ($token === '{' || self::is($token, T_CURLY_OPEN) || self::is($token, T_DOLLAR_OPEN_CURLY_BRACES)) {
+                $braces++;
+
+                if ($token === '{' && $functions !== [] && $functions[array_key_last($functions)]['depth'] === null) {
+                    $functions[array_key_last($functions)]['depth'] = $braces;
+                }
+            }
+
+            if ($token === '}') {
+                if ($functions !== [] && $functions[array_key_last($functions)]['depth'] === $braces) {
+                    $variables = array_pop($functions)['saved'];
+                }
+                $braces--;
+            }
+
+            // A function without a body (abstract or interface method) ends at its `;`.
+            if ($token === ';' && $functions !== [] && $functions[array_key_last($functions)]['depth'] === null) {
+                $variables = array_pop($functions)['saved'];
+            }
+
+            if (in_array($token, ['(', '['], true)) {
+                $parens++;
+            }
+
+            if (in_array($token, [')', ']'], true)) {
+                $parens--;
+            }
+
+            // An arrow function ends at a `,` or `;` at its own level, or where its enclosing bracket closes.
+            while ($arrows !== [] && ((in_array($token, [',', ';'], true) && $parens === $arrows[array_key_last($arrows)]['depth'])
+                || $parens < $arrows[array_key_last($arrows)]['depth'])) {
+                $variables = array_pop($arrows)['saved'];
+            }
+
+            // A typed variable or property: `Type $name`, `?Type $name`, `Type|null $name`, `(Type|null) $name`, with
+            // modifiers for a property.
+            if (self::is($token, T_VARIABLE) && ! self::is($previous, T_STATIC)) {
+                [$typeName, $before] = self::typeBefore($tokens, $index);
+
+                if ($typeName !== null) {
+                    $type = self::special($typeName, $class, $parent) ?? $resolve($typeName);
+                    $variables[$token[1]] = $type;
+
+                    if (is_array($before) && in_array($before[0], self::MODIFIERS, true)) {
+                        $properties[substr($token[1], 1)] = $type;
+                    }
                 }
             }
 
@@ -331,10 +384,73 @@ final class ApiUsage
         }
 
         if (self::is($left, T_VARIABLE)) {
-            return $left[1] === '$this' ? null : ($variables[$left[1]] ?? null);
+            return $left[1] === '$this' ? $class : ($variables[$left[1]] ?? null);
         }
 
         return null;
+    }
+
+    /**
+     * The one class a declaration types the variable at `$index` with, and the token before the type. A union or
+     * intersection of several classes, a scalar or no type gives no class; `null` in a union is ignored.
+     *
+     * @return array{string|null, mixed}
+     */
+    private static function typeBefore(array $tokens, int $index): array
+    {
+        $names = [];
+        $cursor = $index - 1;
+
+        while (isset($tokens[$cursor])) {
+            $token = $tokens[$cursor];
+
+            if (in_array($token, ['|', '?', '(', ')'], true) && ! ($token === '(' && ! self::isTypeGroup($tokens, $cursor))) {
+                $cursor--;
+
+                continue;
+            }
+
+            if (self::is($token, T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG) || self::is($token, T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG) || self::is($token, T_ELLIPSIS)) {
+                if ($cursor === $index - 1) {
+                    $cursor--;
+
+                    continue;
+                }
+
+                return [null, null];
+            }
+
+            if (is_array($token) && in_array($token[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED, T_NAME_RELATIVE, T_ARRAY, T_CALLABLE, T_STATIC], true)) {
+                $names[] = $token[1];
+                $cursor--;
+
+                continue;
+            }
+
+            break;
+        }
+        $classes = array_values(array_filter($names, static fn (string $name): bool => strtolower($name) !== 'null'));
+
+        if (count($classes) !== 1 || ! self::isName([T_STRING, $classes[0]]) && ! in_array(strtolower($classes[0]), ['self', 'static', 'parent'], true)) {
+            return [null, null];
+        }
+
+        $before = $tokens[$cursor] ?? null;
+
+        // Only a declaration types a variable: a parameter, a promoted or declared property, a catch.
+        if (! in_array($before, ['(', ','], true) && ! (is_array($before) && in_array($before[0], self::MODIFIERS, true))) {
+            return [null, null];
+        }
+
+        return [$classes[0], $before];
+    }
+
+    /** Whether the `(` at `$index` opens a DNF type group (it follows `|`, a parameter-list `(` or `,`, or a modifier), not a call. */
+    private static function isTypeGroup(array $tokens, int $index): bool
+    {
+        $before = $tokens[$index - 1] ?? null;
+
+        return $before === '|' || (is_array($before) && in_array($before[0], self::MODIFIERS, true));
     }
 
     private static function special(string $name, ?string $class, ?string $parent): ?string
