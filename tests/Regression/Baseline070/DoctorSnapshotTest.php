@@ -106,4 +106,4 @@ it('keeps the doctor JSON document of a healthy and a broken CRM stand on SQLite
     ]);
 
     expect($actual)->toBe($stored);
-})->group('sqlite'); // the storage checks of the stand differ by driver (storage.sqlite, consistency.reads)
+})->group('sqlite', 'server-skip'); // the storage checks of the stand differ by driver (storage.sqlite, consistency.reads)

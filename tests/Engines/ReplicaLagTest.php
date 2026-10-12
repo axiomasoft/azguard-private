@@ -74,4 +74,4 @@ it('V46 R52 proves real paused-replay Default window and fresh Primary deny unti
         }
         CacheEngineWorld::clean();
     }
-})->group('replica');
+})->group('replica', 'server-skip');

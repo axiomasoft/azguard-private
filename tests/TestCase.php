@@ -6,8 +6,10 @@ namespace AzGuard\Tests;
 
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
+use AzGuard\Tests\Support\TestDatabase;
 use Closure;
 use Illuminate\Database\Connection;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Orchestra\Testbench\TestCase as Orchestra;
 use RuntimeException;
@@ -26,7 +28,12 @@ class TestCase extends Orchestra
         $connection = $this->app['db']->connection();
 
         if ($connection->getDriverName() !== 'sqlite') {
-            $connection->getSchemaBuilder()->dropAllTables();
+            try {
+                $connection->getSchemaBuilder()->dropAllTables();
+            } catch (QueryException $e) {
+                throw TestDatabase::unreachable($connection->getDatabaseName(), $e);
+            }
+
             RefreshDatabaseState::$migrated = false;
         }
 
@@ -108,7 +115,7 @@ class TestCase extends Orchestra
                 'driver' => 'pgsql',
                 'host' => env('PGSQL_HOST', '127.0.0.1'),
                 'port' => env('PGSQL_PORT', '5432'),
-                'database' => env('PGSQL_DATABASE', 'azguard_test'),
+                'database' => TestDatabase::name((string) env('PGSQL_DATABASE', 'azguard_test')),
                 'username' => env('PGSQL_USERNAME', 'azguard'),
                 'password' => env('PGSQL_PASSWORD', 'azguard'),
                 'charset' => 'utf8',
@@ -118,7 +125,7 @@ class TestCase extends Orchestra
                 'driver' => 'mysql',
                 'host' => env('MYSQL_HOST', '127.0.0.1'),
                 'port' => env('MYSQL_PORT', '3306'),
-                'database' => env('MYSQL_DATABASE', 'azguard_test'),
+                'database' => TestDatabase::name((string) env('MYSQL_DATABASE', 'azguard_test')),
                 'username' => env('MYSQL_USERNAME', 'azguard'),
                 'password' => env('MYSQL_PASSWORD', 'azguard'),
                 'charset' => 'utf8mb4',
@@ -129,7 +136,7 @@ class TestCase extends Orchestra
                 'driver' => 'mariadb',
                 'host' => env('MARIADB_HOST', '127.0.0.1'),
                 'port' => env('MARIADB_PORT', '3307'),
-                'database' => env('MARIADB_DATABASE', 'azguard_test'),
+                'database' => TestDatabase::name((string) env('MARIADB_DATABASE', 'azguard_test')),
                 'username' => env('MARIADB_USERNAME', 'azguard'),
                 'password' => env('MARIADB_PASSWORD', 'azguard'),
                 'charset' => 'utf8mb4',
