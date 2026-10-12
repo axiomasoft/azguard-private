@@ -77,7 +77,8 @@
             "src": [],
             "tests": ["Arch"],
             "uses": [],
-            "always": true
+            "always": true,
+            "tail": true
         }
     },
     "database": [

@@ -45,7 +45,7 @@ function changedFiles(string $root, ?string $base): array
     $files = [];
 
     foreach ($commands as $command) {
-        $output = shell_exec("cd ".escapeshellarg($root)." && {$command} 2>/dev/null");
+        $output = shell_exec('cd '.escapeshellarg($root)." && {$command} 2>/dev/null");
         $files = [...$files, ...array_filter(explode("\n", (string) $output))];
     }
 
@@ -122,7 +122,7 @@ $selected = array_keys(array_filter($zones, fn (array $zone, string $name): bool
 $selected = array_values(array_diff($selected, ['engines']));
 
 if ($selected === []) {
-    fwrite(STDOUT, "No zone selected for: ".implode(', ', $files)."\n");
+    fwrite(STDOUT, 'No zone selected for: '.implode(', ', $files)."\n");
     exit($unmapped === [] ? 0 : 2);
 }
 
@@ -134,13 +134,19 @@ if ($unmapped !== []) {
     fwrite(STDERR, "Not in any zone (run `composer test` to be safe):\n  ".implode("\n  ", $unmapped)."\n");
 }
 
-$base = 'php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica '.$groupFlags('zone');
+$base = 'php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended '.$groupFlags('zone');
 $extra = $passthrough === [] ? '' : ' '.implode(' ', array_map('escapeshellarg', $passthrough));
 $commands = [['sqlite', $base.$extra, 'sqlite']];
 
 if ($options['db']) {
     $driver = getenv('DB_CONNECTION') ?: 'sqlite';
-    $commands[] = [$driver, 'php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=server-skip '.$groupFlags('database').$extra, $driver];
+
+    if (! in_array($driver, ['pgsql', 'mysql', 'mariadb'], true)) {
+        fwrite(STDERR, "--db needs DB_CONNECTION=pgsql|mysql|mariadb.\n");
+        exit(64);
+    }
+    $zoneFlags = implode(' ', array_map(fn (string $name): string => "--zone={$name}", $selected));
+    $commands[] = [$driver, "php bin/test-db.php {$driver} {$zoneFlags}".$extra, getenv('DB_CONNECTION')];
 }
 
 $status = 0;
@@ -152,7 +158,7 @@ foreach ($commands as [$label, $command, $connection]) {
         continue;
     }
 
-    passthru("cd ".escapeshellarg($root).' && DB_CONNECTION='.escapeshellarg($connection)." {$command}", $code);
+    passthru('cd '.escapeshellarg($root).' && DB_CONNECTION='.escapeshellarg($connection)." {$command}", $code);
     $status = $status === 0 ? $code : $status;
 }
 

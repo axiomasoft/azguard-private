@@ -54,39 +54,14 @@
         }
     },
     "scripts": {
-        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica",
-        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --passthru-php='-d memory_limit=1G'",
+        "test": "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended",
+        "test:parallel": "vendor/bin/pest --fail-on-skipped --exclude-group=stand --parallel --processes=4 --passthru-php='-d memory_limit=1G'",
         "test:changed": [
             "Composer\\Config::disableProcessTimeout",
             "@php bin/test-changed.php"
         ],
         "test:unit": "vendor/bin/pest tests/Unit",
         "test:feature": "vendor/bin/pest tests/Feature --exclude-group=redis",
-        "test:pgsql": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=pgsql",
-            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
-        ],
-        "test:mysql": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=mysql",
-            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
-        ],
-        "test:pgsql:parallel": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=pgsql",
-            "php -d memory_limit=1G vendor/bin/pest --parallel --processes=8 --fail-on-skipped --exclude-group=server-skip --passthru-php='-d memory_limit=1G'"
-        ],
-        "test:mysql:parallel": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=mysql",
-            "php -d memory_limit=1G vendor/bin/pest --parallel --processes=8 --fail-on-skipped --exclude-group=server-skip --passthru-php='-d memory_limit=1G'"
-        ],
-        "test:mariadb:parallel": [
-            "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=mariadb",
-            "php -d memory_limit=1G vendor/bin/pest --parallel --processes=8 --fail-on-skipped --exclude-group=server-skip --passthru-php='-d memory_limit=1G'"
-        ],
         "test:redis": "php -d memory_limit=1G vendor/bin/pest --ci --fail-on-skipped --group=redis",
         "test:replica": "bash tests/Engines/Support/replica-fixture.sh",
         "lint": "vendor/bin/pint",
@@ -121,22 +96,13 @@
             "@lint",
             "@refactor"
         ],
-        "test:engines:pgsql": [
-            "@putenv DB_CONNECTION=pgsql",
-            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
-        ],
-        "test:engines:mysql": [
-            "@putenv DB_CONNECTION=mysql",
-            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
-        ],
-        "test:mariadb": [
+        "test:extended": [
             "Composer\\Config::disableProcessTimeout",
-            "@putenv DB_CONNECTION=mariadb",
-            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --exclude-group=sqlite --exclude-group=redis --exclude-group=replica"
+            "php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=extended"
         ],
-        "test:engines:mariadb": [
-            "@putenv DB_CONNECTION=mariadb",
-            "php -d memory_limit=1G vendor/bin/pest --group=engines --fail-on-skipped"
+        "test:db": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php bin/test-db.php"
         ]
     },
     "scripts-descriptions": {
@@ -145,6 +111,11 @@
         "mutate": "Run per-package native Pest mutation testing against fresh coverage (all packages, or pass core|filament).",
         "check:coverage": "Line coverage gate (--min=85) with an unlimited memory limit.",
         "bench": "Reproducible micro-benchmarks; prints a Markdown table (AZGUARD_BENCH_SAMPLES, default 300).",
-        "bench:load": "Load bench (bench/README.md)"
+        "bench:load": "Load bench (bench/README.md)",
+        "test": "SQLite lane: every test except engines, redis, replica and the extended (scale) ones.",
+        "test:parallel": "The SQLite lane on 4 ParaTest workers.",
+        "test:changed": "Only the zones a change touches and the zones that use them (tests/zones.json); --quick, --db, --base=<ref>, --dry-run.",
+        "test:db": "The database lane on one server: composer test:db -- <pgsql|mysql|mariadb> [--parallel[=N]] [--full] [--engines] [--zone=<zone>].",
+        "test:extended": "The scale (R58) tests of group extended: nightly CI and before a release."
     }
 }

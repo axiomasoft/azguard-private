@@ -50,8 +50,8 @@ uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())
         Relation::morphMap([], false);
     })->in('Acceptance/Crm');
 
-// `stand` marks every test that needs an external service (database engines, replica, Redis): the parallel SQLite run
-// excludes this one umbrella group. `server-skip` marks every test the parallel run of a server driver leaves out: those
+// `stand` marks every test the parallel SQLite run leaves out: those that need an external service (database engines,
+// replica, Redis) and the `extended` ones (scale, nightly). The run excludes this one umbrella group. `server-skip` marks every test the parallel run of a server driver leaves out: those
 // of `stand` and the SQLite-only ones. ParaTest honours only the first --exclude-group, so each run excludes one group.
 uses()->group('stand', 'server-skip')->beforeEach(function (): void {
     if (! in_array(env('DB_CONNECTION', 'sqlite'), ['pgsql', 'mysql', 'mariadb'], true)) {
