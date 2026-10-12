@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Scopes\ContextAware;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 function contextAwareTask(): Model
 {
-    return new class extends Model
+    return new class extends Model implements MapsAssignmentScope
     {
         use ContextAware;
 

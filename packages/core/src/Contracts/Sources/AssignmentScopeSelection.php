@@ -20,12 +20,33 @@ final readonly class AssignmentScopeSelection
     /** @param list<AssignmentScopeRef> $refs
      * @param  list<Grant|RoleContribution>  $contributions
      */
-    private function __construct(private bool $everywhere, private array $refs, private array $contributions) {}
+    private function __construct(private bool $everywhere, private array $refs, private array $contributions, private bool $everyContext = false) {}
 
     /** @param list<Grant|RoleContribution> $contributions */
     public static function everywhere(array $contributions): self
     {
         return new self(true, [], self::witnesses($contributions));
+    }
+
+    /**
+     * Tenant-wide witnesses the source gives in whatever scope it is asked about, so they hold inside every
+     * assignment scope of the type, an isolated one included (for example permissions granted to every subject).
+     *
+     * @param  list<Grant|RoleContribution>  $contributions
+     *
+     * @throws InvalidSourceContributionException when a witness names an assignment scope
+     */
+    public static function inEveryContext(array $contributions): self
+    {
+        $witnesses = self::witnesses($contributions);
+
+        foreach ($witnesses as $item) {
+            if (! $item->scope->context->isGlobal()) {
+                throw new InvalidSourceContributionException('A witness of every context must be tenant-wide.');
+            }
+        }
+
+        return new self(true, [], $witnesses, true);
     }
 
     /** @param list<AssignmentScopeRef> $refs
@@ -63,6 +84,12 @@ final readonly class AssignmentScopeSelection
     public function isEverywhere(): bool
     {
         return $this->everywhere;
+    }
+
+    /** Whether the witnesses hold in every context, see `inEveryContext()`. */
+    public function appliesInEveryContext(): bool
+    {
+        return $this->everyContext;
     }
 
     /** @return list<AssignmentScopeRef> */

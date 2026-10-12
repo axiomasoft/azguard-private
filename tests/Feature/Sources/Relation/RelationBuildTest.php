@@ -107,3 +107,15 @@ it('uses an explicit descriptor alias and global tenant for a non-tenant model s
     expect($source->id())->toBe('relation:work_project')->and($roles)->toHaveCount(1)
         ->and($roles[0]->scope->equals($scope))->toBeTrue();
 });
+
+it('binds a relation source only to a queryable scope type the panel declares', function (): void {
+    EditorRole::$definitions = [];
+
+    expect(fn () => RelationWorld::compile([RelationSource::make(new ProjectDefinition, 'members', 'pivot.role')]))
+        ->toThrow(DefinitionException::class, 'is not a declared queryable assignment scope')
+        ->and(fn () => RelationWorld::compile([RelationSource::make(Project::class, 'members', 'pivot.role')]))
+        ->toThrow(DefinitionException::class, 'has no declared queryable assignment scope');
+    EditorRole::$definitions = [new ProjectDefinition];
+
+    expect(RelationWorld::compile([RelationSource::make(new ProjectDefinition, 'members', 'pivot.role')])[0]->id())->toBe('admin');
+});

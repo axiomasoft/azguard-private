@@ -11,8 +11,8 @@ use AzGuard\Support\ModelKey;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Explicit resource-to-context mapping. Tenant resources also implement ProvidesAccessScope.
- *
+ * Explicit resource-to-context mapping: the methods of `MapsAssignmentScope`, which the model declares. Tenant
+ * resources also implement ProvidesAccessScope.
  *
  * @mixin Model
  */

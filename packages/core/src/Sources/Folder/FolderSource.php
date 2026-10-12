@@ -296,7 +296,7 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
             $items[] = $grant;
         }
 
-        return $items === [] ? AssignmentScopeSelection::nowhere() : AssignmentScopeSelection::everywhere($items);
+        return $items === [] ? AssignmentScopeSelection::nowhere() : AssignmentScopeSelection::inEveryContext($items);
     }
 
     /**

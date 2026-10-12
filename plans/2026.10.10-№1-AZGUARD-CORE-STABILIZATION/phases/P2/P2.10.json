@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.10",
   "title": "Exact scope visibility through the evaluator and typed resource mapping",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "`visibleTo` composes scope eligibility through `QueryableAssignmentScopeEvaluator::eligibleContexts()` implemented by the module (`Scopes\\Internal\\Query\\ScopeVisibility`), resource→context mapping is typed by `Contracts\\Scopes\\MapsAssignmentScope` and computed by core `Authorization\\Internal\\Query\\ResourceContextMapping`, `VisibilityScope` is gone, the `granted_to_all` branch no longer tests `instanceof FolderSource`, and `RelationSource` binds only declared queryable aliases.",
   "why": "architecture#risks names the exact-query split as the most intricate move: `VisibilityScope` mixes structural mapping, owner checks, bounded materialization and per-record branches. Splitting it lets core own the mapping and guards while the module supplies only an exact narrowing (R1, R13). Hard risks: any case that cannot be expressed exactly must raise `VisibilityNotSupportedException` (reason `scope_query`), never broaden; the 3456-case parity matrix must stay identical; SQL NULL handling stays explicit.",
   "scope": {
@@ -220,6 +220,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:12:47Z"
+  "result": {
+    "started_at": "2026-10-12T05:36:57Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "20a9d912-2b41-4831-92f8-392e568b4d7f"
+    }
+  },
+  "updated_at": "2026-10-12T05:36:57Z"
 }

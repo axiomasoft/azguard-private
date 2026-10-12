@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources;
 
-use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\FiltersQueries;
@@ -124,7 +125,7 @@ final readonly class PanelSources
                 }
 
                 if ($source instanceof RelationSource) {
-                    $source->bind($panel, self::scopeDefinitions($recipe, $discovery, $container));
+                    $source->bind($panel, self::scopeDefinitions($recipe));
                 }
 
                 $id = $source->id();
@@ -357,30 +358,26 @@ final readonly class PanelSources
         return $owners;
     }
 
-    /** @return iterable<AssignmentScopeDefinition> */
-    private static function scopeDefinitions(PanelRecipe $recipe, DiscoverySnapshot $discovery, Container $container): iterable
+    /**
+     * The queryable scope definitions the declarations of the panel name: the only types a relation source can bind.
+     * Folder-discovered scope classes and role bindings do not declare a type.
+     *
+     * @return list<QueryableAssignmentScopeDefinition>
+     */
+    private static function scopeDefinitions(PanelRecipe $recipe): array
     {
-        foreach ($discovery->scopes as $class) {
-            $definition = $container->make($class);
+        $definitions = [];
 
-            if ($definition instanceof AssignmentScopeDefinition) {
-                yield $definition;
-            }
-        }
+        foreach ($recipe->layered(PanelRecipe::SCOPES) as $record) {
+            $declaration = $record['value'];
 
-        foreach (array_unique([...$discovery->roles, ...$recipe->roles()]) as $class) {
-            $role = $container->make($class);
-
-            if (! $role instanceof BaseRole) {
-                continue;
-            }
-            foreach ($role->scopes() as $declared) {
-                $definition = is_string($declared) ? $container->make($declared) : $declared;
-
-                if ($definition instanceof AssignmentScopeDefinition) {
-                    yield $definition;
+            foreach ($declaration instanceof AssignmentScopeDeclaration ? $declaration->definitions : [] as $definition) {
+                if ($definition instanceof QueryableAssignmentScopeDefinition) {
+                    $definitions[] = $definition;
                 }
             }
         }
+
+        return $definitions;
     }
 }

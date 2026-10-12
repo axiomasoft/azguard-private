@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Visibility;
 
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -12,7 +13,7 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class VisibilityProject extends Model implements ProvidesAccessScope, ProvidesAssignmentScope
+class VisibilityProject extends Model implements MapsAssignmentScope, ProvidesAccessScope, ProvidesAssignmentScope
 {
     use ContextAware;
 

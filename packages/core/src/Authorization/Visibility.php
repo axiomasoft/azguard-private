@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Authorization\Internal\Query\ResourceContextMapping;
 use AzGuard\Authorization\Query\PredicateCompiler;
-use AzGuard\Authorization\Query\VisibilityScope;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
@@ -37,7 +38,6 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
 use AzGuard\Tenancy\TenantMode;
@@ -145,7 +145,7 @@ final readonly class Visibility
             $this->restrictions($authority, $request, $frame, $compiler);
         } else {
             $branches = [];
-            foreach ($contributions as [$source, $item]) {
+            foreach ($contributions as [$source, $item, $everyContext]) {
                 if (! $item->activeAt($now)) {
                     continue;
                 }
@@ -160,7 +160,7 @@ final readonly class Visibility
                     continue;
                 }
                 $ref = $item->scope->context;
-                $fixed = $source instanceof FolderSource && $item instanceof Grant && $item->origin === 'granted_to_all';
+                $fixed = $everyContext;
 
                 if ($ref->isGlobal() && $mapping !== null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::Isolated && ! $fixed) {
                     continue;
@@ -262,7 +262,7 @@ final readonly class Visibility
     }
 
     /** @param Builder<*> $query */
-    private function mapping(Builder $query, EvaluationFrame $frame, PredicateCompiler $compiler): ?VisibilityScope
+    private function mapping(Builder $query, EvaluationFrame $frame, PredicateCompiler $compiler): ?ResourceContextMapping
     {
         $panel = $frame->panel();
         $model = $query->getModel();
@@ -275,12 +275,12 @@ final readonly class Visibility
             return null;
         }
 
-        if (! method_exists($model, 'azguardContextType') || ! method_exists($model, 'azguardContextRelation')
+        if (! $model instanceof MapsAssignmentScope
             || ($panel->tenants()->mode() === TenantMode::Required ? ! $model instanceof ProvidesAccessScope : ! $model instanceof ProvidesAssignmentScope)
             || $panel->resourceScopes() !== []) {
             throw new VisibilityNotSupportedException('resource_context_mapping');
         }
-        $type = Narrow::string($model->azguardContextType(), 'azguardContextType()');
+        $type = $model->azguardContextType();
         $definition = $panel->scopeDefinition($type);
 
         if (! $definition instanceof QueryableAssignmentScopeDefinition
@@ -288,7 +288,7 @@ final readonly class Visibility
             throw new VisibilityNotSupportedException('resource_context_type');
         }
 
-        return new VisibilityScope($query, $definition, Narrow::nullableString($model->azguardContextRelation(), 'azguardContextRelation()'), $this->container, $compiler);
+        return new ResourceContextMapping($query, $definition, $model->azguardContextRelation(), $this->container, $compiler);
     }
 
     private function predicate(mixed $component, AccessRequest $request, EvaluationFrame $frame, string $type, Grant|RoleContribution|null $contribution = null): P
@@ -355,7 +355,7 @@ final readonly class Visibility
         }
 
         // Narrow only structural ownership, never assignments or arbitrary authority candidates.
-        if (method_exists($candidate->getModel(), 'azguardContextType')) {
+        if ($candidate->getModel() instanceof MapsAssignmentScope) {
             $mapping = $this->mapping($candidate, $frame, new PredicateCompiler);
 
             if ($mapping !== null) {

@@ -8,6 +8,7 @@ use AzGuard\Attributes\Api;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -62,10 +63,10 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         return new self($model, $via, $role, $scope);
     }
 
-    /** @internal Normalizes the model-class shortcut from existing panel scope definitions.
-     * @param  iterable<AssignmentScopeDefinition>  $definitions
+    /** @internal Binds the source to a queryable scope type the panel declares; the model-class shortcut picks it.
+     * @param  list<AssignmentScopeDefinition>  $definitions  the declared queryable definitions of the panel
      */
-    public function bind(string $panel, iterable $definitions = []): void
+    public function bind(string $panel, array $definitions = []): void
     {
         if ($this->panelId !== null && $this->panelId !== $panel) {
             throw new DefinitionException('A RelationSource instance belongs to one panel; create a separate source for each panel.');
@@ -87,7 +88,16 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
         }
 
         if ($definition === null) {
-            throw new DefinitionException('RelationSource model '.get_debug_type($this->model).' has no registered panel assignment-scope definition; discover its descriptor, declare it in a role scopes(), or pass a QueryableAssignmentScopeDefinition explicitly.');
+            throw new DefinitionException('RelationSource model '.get_debug_type($this->model).' has no declared queryable assignment scope of panel '.$panel.': declare its definition in the scope declaration of the panel (ScopesPlugin or assignmentScopes()).');
+        }
+        $declared = false;
+
+        foreach ($definitions as $candidate) {
+            $declared = $declared || ($candidate->type() === $definition->type() && $candidate::class === $definition::class);
+        }
+
+        if (! $declared) {
+            throw new DefinitionException('RelationSource scope type '.$definition->type().' is not a declared queryable assignment scope of panel '.$panel.'.');
         }
 
         $this->binding = RelationBinding::make($definition, $this->via, $this->role === 'pivot.role');
@@ -209,7 +219,8 @@ final class RelationSource implements DescribesSchema, FiltersQueries, ProvidesR
     private function bound(Panel $panel): RelationBinding
     {
         if (! $this->binding instanceof RelationBinding) {
-            $this->bind($panel->id());
+            $this->bind($panel->id(), array_values(array_filter($panel->scopeDeclaration()->definitions ?? [],
+                static fn (AssignmentScopeDefinition $definition): bool => $definition instanceof QueryableAssignmentScopeDefinition)));
         }
 
         if ($this->panelId !== $panel->id()) {

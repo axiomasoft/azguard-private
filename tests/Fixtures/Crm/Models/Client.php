@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm\Models;
 
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -11,7 +12,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-final class Client extends Model implements ProvidesAccessScope
+final class Client extends Model implements MapsAssignmentScope, ProvidesAccessScope
 {
     protected $table = 'clients';
 

@@ -469,7 +469,7 @@ final class ReadAttempt
         return $this->consumedFrame($frame);
     }
 
-    /** @return list<array{Source, Grant|RoleContribution}> */
+    /** @return list<array{Source, Grant|RoleContribution, bool}> each witness with its source and whether it holds in every context */
     public function selections(AccessRequest $request, EvaluationFrame $frame, string $type): array
     {
         $result = [];
@@ -531,7 +531,7 @@ final class ReadAttempt
                     || (! $item->scope->tenant->equals($frame->scope()->tenant) && ! $item->scope->tenant->isGlobal())) {
                     throw new InvalidSourceContributionException('Selection witness differs from its source, panel or scope.');
                 }
-                $result[] = [$source, $item];
+                $result[] = [$source, $item, $selection->appliesInEveryContext()];
             }
         }
 

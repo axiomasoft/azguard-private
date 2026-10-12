@@ -7738,6 +7738,45 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Scopes\\MapsAssignmentScope",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguardContextRelation",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardContextType",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Scopes\\ProvidesAccessScope",
             "publication": "spi-implement",
             "since": "0.7",
@@ -8034,6 +8073,17 @@
             "properties": [],
             "methods": [
                 {
+                    "name": "appliesInEveryContext",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "contributions",
                     "visibility": "public",
                     "static": false,
@@ -8093,6 +8143,27 @@
                     "namedArguments": true,
                     "contracts": [
                         "@param list<AssignmentScopeRef> $refs",
+                        "@param list<Grant|RoleContribution> $contributions"
+                    ]
+                },
+                {
+                    "name": "inEveryContext",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "contributions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
                         "@param list<Grant|RoleContribution> $contributions"
                     ]
                 },

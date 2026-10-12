@@ -23,6 +23,7 @@ use AzGuard\Tenancy\TenantMode;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use ReflectionClass;
+use ReflectionMethod;
 use ReflectionNamedType;
 
 /**
@@ -76,6 +77,18 @@ final class ScopeConfiguration
                 throw new DefinitionException('Panel '.$panel.' registers an access adapter for unknown assignment scope '.$type.'.');
             }
         }
+    }
+
+    /** A model-backed definition without an owner callback: every record belongs to the global tenant. */
+    public static function ownerless(AssignmentScopeDefinition $definition): bool
+    {
+        return $definition instanceof ModelAssignmentScopeDefinition && ! $definition->hasOwner();
+    }
+
+    /** Whether `resolve()` is the base one, equal to `query()` plus `tenantOf()`; a custom one may refuse a record. */
+    public static function resolvesByQuery(AssignmentScopeDefinition $definition): bool
+    {
+        return (new ReflectionMethod($definition, 'resolve'))->getDeclaringClass()->getName() === BaseAssignmentScope::class;
     }
 
     /** @return class-string<AssignmentScopeDirectory>|null the directory a configurable definition names */

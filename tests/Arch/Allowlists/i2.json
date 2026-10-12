@@ -126,13 +126,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Scopes/Query/PredicateBuilder.php",
-        "reference": "AzGuard\\Scopes\\Query\\EligibilityBuilder",
-        "kind": "reference",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Sources/Database/DatabaseSource.php",
         "reference": "audit_log",
         "kind": "table",

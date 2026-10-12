@@ -142,20 +142,7 @@ final class EligibilityBuilder
      */
     public static function shape(Builder $builder): array
     {
-        $shape = Narrow::map(get_object_vars($builder->getQuery()), 'query state');
-        unset($shape['wheres'], $shape['bindings']);
-        $bindings = $builder->getQuery()->getRawBindings();
-        unset($bindings['where']);
-        $shape['bindings'] = $bindings;
-        $shape['model'] = $builder->getModel();
-        $shape['eagerLoads'] = $builder->getEagerLoads();
-        $shape['removedScopes'] = $builder->removedScopes();
-
-        if ($builder instanceof PredicateBuilder) {
-            $shape['eloquent'] = $builder->configuration();
-        }
-
-        return $shape;
+        return PredicateBuilder::shape($builder);
     }
 
     /** @param Builder<Model> $builder
@@ -163,8 +150,6 @@ final class EligibilityBuilder
      */
     public static function validateShape(Builder $builder, array $before): void
     {
-        if (self::shape($builder) !== $before) {
-            throw new RuntimeException('Assignment-scope filters cannot alter query structure, model or execution settings.');
-        }
+        PredicateBuilder::validateShape($builder, $before);
     }
 }

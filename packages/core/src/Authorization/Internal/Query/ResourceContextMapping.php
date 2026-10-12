@@ -2,24 +2,22 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Authorization\Query;
+namespace AzGuard\Authorization\Internal\Query;
 
 use AzGuard\Authorization\EvaluationFrame;
+use AzGuard\Authorization\Query\PredicateCompiler;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
-use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeEvaluator;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessPredicate as P;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Support\Narrow;
-use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\Internal\ScopeConfiguration;
-use AzGuard\Scopes\ModelAssignmentScopeDefinition;
-use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
 use AzGuard\Support\ModelKey;
@@ -31,8 +29,13 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use ReflectionMethod;
 use ReflectionNamedType;
 
-/** The resource's explicitly declared single context, its structural owner and live eligibility. */
-final readonly class VisibilityScope
+/**
+ * The resource's explicitly declared single context, its structural owner and the join to the resource branch. The
+ * eligibility of the contexts comes from the panel's evaluator through `eligibleContexts()`, on an isolated, guarded
+ * candidate query that only accepts narrowing; a runtime it cannot express exactly is either decomposed into the
+ * concrete contexts of a global request (bounded) or unsupported, never approximated.
+ */
+final readonly class ResourceContextMapping
 {
     /** @param Builder<*> $host */
     public function __construct(
@@ -93,8 +96,6 @@ final readonly class VisibilityScope
 
             return $query;
         }
-        $runtime = $frame->scopeRuntime($request->subject(), common: $common);
-        $definitions = [$this->definition];
         $requiresRecord = false;
 
         if (! $common && $frame->role() !== null) {
@@ -105,7 +106,6 @@ final readonly class VisibilityScope
                     if ($binding::class !== $this->definition::class || ! $binding instanceof QueryableAssignmentScopeDefinition || $binding->model() !== $this->definition->model()) {
                         throw new VisibilityNotSupportedException('role_scope_identity');
                     }
-                    $definitions[] = $binding;
                     $requiresRecord = true;
                 }
             }
@@ -115,12 +115,25 @@ final readonly class VisibilityScope
         if (! $frame->scope()->context->isGlobal()) {
             ModelKey::where($query, $frame->scope()->context->id());
         }
-        $declared = ScopeConfiguration::adapters($frame->panel())[$this->definition->type()] ?? null;
+        $evaluator = ContextIdentity::evaluator($frame->panel(), $this->container);
 
-        if ($frame->scope()->context->isGlobal() && ($declared !== null || array_filter($definitions,
-            static fn ($definition): bool => $definition instanceof ConfigurableAssignmentScopeDefinition && $definition->settings()->filters !== []) !== [])) {
-            // A native filter can inspect runtime.scope: preserve the concrete scalar runtime per context.
-            // Rebuild from the structural owner query, before any filter has seen a global placeholder.
+        if (! $evaluator instanceof QueryableAssignmentScopeEvaluator) {
+            throw new VisibilityNotSupportedException('scope_query', $evaluator === null ? null : $evaluator::class);
+        }
+        $group = $query->getModel()->newModelQuery();
+        $guard = new QueryGuard;
+        $contexts = new PredicateBuilder($group, $guard);
+        $shape = PredicateBuilder::shape($contexts);
+
+        if (! $evaluator->eligibleContexts($frame->scopeRuntime($request->subject(), common: $common), $this->definition, $contexts)) {
+            $guard->validate();
+            PredicateBuilder::validateShape($contexts, $shape);
+
+            if (! $frame->scope()->context->isGlobal() || $contexts->getQuery()->wheres !== []) {
+                throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
+            }
+
+            // The evaluator needs the concrete context of the runtime: one exact branch per owned context, bounded.
             $structural = $this->definition->query();
             $compiler->constrain($structural, $this->owner($structural, $request, $frame, $requiresRecord));
             $records = (clone $structural)->limit(1001)->get();
@@ -139,29 +152,9 @@ final readonly class VisibilityScope
 
             return $structural;
         }
-        foreach ($definitions as $definition) {
-            $filters = $definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->filters : [];
-            EligibilityBuilder::apply($this->definition, $query, $filters, $runtime, $this->container);
-        }
-
-        if ($declared !== null) {
-            $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
-
-            if (! $adapter instanceof AssignmentScopeAccessAdapter) {
-                throw new VisibilityNotSupportedException('scope_adapter');
-            }
-            $group = $query->getModel()->newModelQuery();
-            $guard = new QueryGuard;
-            $predicate = new PredicateBuilder($group, $guard);
-            $shape = EligibilityBuilder::shape($predicate);
-
-            if ($adapter->constrain($predicate, $runtime) !== $predicate) {
-                throw new VisibilityNotSupportedException('replacement_scope_query');
-            }
-            $guard->validate();
-            EligibilityBuilder::validateShape($predicate, $shape);
-            $query->getQuery()->addNestedWhereQuery($predicate->getQuery());
-        }
+        $guard->validate();
+        PredicateBuilder::validateShape($contexts, $shape);
+        $query->getQuery()->addNestedWhereQuery($contexts->getQuery());
 
         return $query;
     }
@@ -180,7 +173,7 @@ final readonly class VisibilityScope
             return $predicate;
         }
 
-        if ($this->definition instanceof ModelAssignmentScopeDefinition && ! $this->definition->hasOwner()
+        if (ScopeConfiguration::ownerless($this->definition)
             && $frame->scope()->tenant->isGlobal()) {
             return P::pass();
         }
@@ -201,7 +194,7 @@ final readonly class VisibilityScope
             throw new VisibilityNotSupportedException('owner_budget', $this->definition::class);
         }
         $ids = [];
-        $customResolver = (new ReflectionMethod($this->definition, 'resolve'))->getDeclaringClass()->getName() !== BaseAssignmentScope::class;
+        $customResolver = ! ScopeConfiguration::resolvesByQuery($this->definition);
         foreach ($records as $record) {
             if ($customResolver) {
                 $ref = AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record));

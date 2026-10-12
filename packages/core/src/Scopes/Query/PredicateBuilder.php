@@ -10,6 +10,7 @@ use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use RuntimeException;
 
 /** @extends Builder<Model> */
 final class PredicateBuilder extends Builder
@@ -65,9 +66,9 @@ final class PredicateBuilder extends Builder
             $nested = clone $this;
             $nested->getQuery()->wheres = [];
             $nested->getQuery()->setBindings([], 'where');
-            $before = EligibilityBuilder::shape($nested);
+            $before = self::shape($nested);
             $column($nested);
-            EligibilityBuilder::validateShape($nested, $before);
+            self::validateShape($nested, $before);
             $this->query->addNestedWhereQuery($nested->getQuery(), $boolean);
 
             return $this;
@@ -90,5 +91,36 @@ final class PredicateBuilder extends Builder
         };
 
         return parent::has($relation, $operator, $count, $boolean, $guarded);
+    }
+
+    /** @param Builder<Model> $builder
+     * @return array<string,mixed>
+     */
+    public static function shape(Builder $builder): array
+    {
+        $shape = Narrow::map(get_object_vars($builder->getQuery()), 'query state');
+        unset($shape['wheres'], $shape['bindings']);
+        $bindings = $builder->getQuery()->getRawBindings();
+        unset($bindings['where']);
+        $shape['bindings'] = $bindings;
+        $shape['model'] = $builder->getModel();
+        $shape['eagerLoads'] = $builder->getEagerLoads();
+        $shape['removedScopes'] = $builder->removedScopes();
+
+        if ($builder instanceof PredicateBuilder) {
+            $shape['eloquent'] = $builder->configuration();
+        }
+
+        return $shape;
+    }
+
+    /** @param Builder<Model> $builder
+     * @param  array<string,mixed>  $before
+     */
+    public static function validateShape(Builder $builder, array $before): void
+    {
+        if (self::shape($builder) !== $before) {
+            throw new RuntimeException('Assignment-scope filters cannot alter query structure, model or execution settings.');
+        }
     }
 }

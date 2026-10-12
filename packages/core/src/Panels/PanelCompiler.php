@@ -459,6 +459,10 @@ final class PanelCompiler
         foreach ($definitions as $alias => $definition) {
             $own = ScopeConfiguration::directory($definition);
 
+            if ($own !== null && ! is_subclass_of($own, AssignmentScopeDirectory::class)) {
+                throw new DefinitionException('Panel '.$panel.' assignment scope '.$alias.' names a directory '.$own.' that does not implement '.AssignmentScopeDirectory::class.'.');
+            }
+
             if ($own !== null) {
                 $directories[$alias] = $own;
             }

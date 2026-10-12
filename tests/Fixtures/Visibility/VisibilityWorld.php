@@ -13,6 +13,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Scopes\MapsAssignmentScope;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
@@ -60,7 +61,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
-class VisibilityClient extends Model implements ProvidesAccessScope, ProvidesAssignmentScope
+class VisibilityClient extends Model implements MapsAssignmentScope, ProvidesAccessScope, ProvidesAssignmentScope
 {
     use ContextAware;
 
