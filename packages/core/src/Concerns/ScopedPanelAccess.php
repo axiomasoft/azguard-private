@@ -150,7 +150,7 @@ final readonly class ScopedPanelAccess implements PanelAccess
 
     public function state(): StateToken
     {
-        $writer = $this->panel->writer();
+        $writer = $this->panel->writerSource();
 
         if (! $writer instanceof FencesReads) {
             throw new PanelNotWritableException('Panel '.$this->panel->id().' has no writer that keeps a state.');

@@ -24,7 +24,6 @@ use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Diagnostics\Checks\DecisionFieldsInMeta;
 use AzGuard\Diagnostics\Checks\GrantsDead;
@@ -75,7 +74,7 @@ use Throwable;
  * Raw database assignments. Role expansion and qualification belong to the engine.
  */
 #[Api(since: '0.7')]
-final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants, StoresGrants
+final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesRoleGrants
 {
     private bool $onlyRoles = false;
 
@@ -422,7 +421,7 @@ final class DatabaseSource implements ChecksHealth, DescribesSchema, FencesReads
         return new SourceDescription(
             $this->id(),
             self::class,
-            [ProvidesGrants::class, ProvidesRoleGrants::class, ProvidesPermissions::class, StoresGrants::class, FencesReads::class, FiltersQueries::class, DescribesSchema::class],
+            [ProvidesGrants::class, ProvidesRoleGrants::class, ProvidesPermissions::class, FencesReads::class, FiltersQueries::class, DescribesSchema::class],
             $this->dynamic,
             label: 'Database',
             fields: [

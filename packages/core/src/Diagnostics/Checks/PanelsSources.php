@@ -7,9 +7,9 @@ namespace AzGuard\Diagnostics\Checks;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Sources\Database\DatabaseSource;
 
 /**
  * `panels.sources`: the sources of each panel exist, their ids do not repeat and at most one stores grants. The
@@ -48,7 +48,7 @@ final readonly class PanelsSources implements DoctorCheck
             }
             $ids[$source->id] = ($ids[$source->id] ?? 0) + 1;
 
-            if (in_array(StoresGrants::class, $source->capabilities, true)) {
+            if (is_a($source->class, DatabaseSource::class, true)) {
                 $writers[] = $source->id;
             }
         }

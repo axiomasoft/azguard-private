@@ -18940,7 +18940,7 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "?AzGuard\\Contracts\\Sources\\StoresGrants",
+                    "return": "?AzGuard\\Schema\\WriterSchema",
                     "namedArguments": true,
                     "contracts": []
                 }
@@ -22108,6 +22108,17 @@
                     "contracts": [
                         "@return array<string, mixed>"
                     ]
+                },
+                {
+                    "name": "writer",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Schema\\WriterSchema",
+                    "namedArguments": true,
+                    "contracts": []
                 }
             ]
         },
@@ -22827,6 +22838,81 @@
             ]
         },
         {
+            "name": "AzGuard\\Schema\\WriterSchema",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "dynamicPermissions",
+                    "visibility": "public",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "rolesOnly",
+                    "visibility": "public",
+                    "type": "bool",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "storage",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "storage",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "dynamicPermissions",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "rolesOnly",
+                            "type": "bool",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Scopes\\AssignmentScopeSettings",
             "publication": "api",
             "since": "0.7",
@@ -23302,8 +23388,7 @@
                 "AzGuard\\Contracts\\Sources\\ProvidesGrants",
                 "AzGuard\\Contracts\\Sources\\ProvidesPermissions",
                 "AzGuard\\Contracts\\Sources\\ProvidesRoleGrants",
-                "AzGuard\\Contracts\\Sources\\Source",
-                "AzGuard\\Contracts\\Sources\\StoresGrants"
+                "AzGuard\\Contracts\\Sources\\Source"
             ],
             "namedArguments": true,
             "contracts": [],
@@ -29036,17 +29121,6 @@
                 },
                 {
                     "name": "sourceTakesNowFromTheContext",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "writerStoresOnlyInsideThePipelineTransaction",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

@@ -91,7 +91,7 @@ final readonly class AboutSection
 
     private function describe(Panel $panel): string
     {
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
         $storage = $writer instanceof DatabaseSource ? $writer->boundStorage() : null;
         $parts = [
             $panel->isDefault() ? 'default' : 'not default',

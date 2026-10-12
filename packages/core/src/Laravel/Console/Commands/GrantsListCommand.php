@@ -35,7 +35,7 @@ final class GrantsListCommand extends Command
             $panel = $this->selectPanel($subject);
             $access = $this->access($panel);
             $tenant = $this->tenantOf($panel);
-            $writer = $panel->writer();
+            $writer = $panel->writerSource();
             $now = CarbonImmutable::now('UTC')->toDateTimeImmutable();
             $grants = [];
 

@@ -75,7 +75,7 @@ final readonly class PanelOverview
     /** @return array{id: string, label: string, default: bool, prefix: ?string, tenants: string, subjects: list<string>, writer: ?string, storage: ?string, plugins: list<string>} */
     private function describe(Panel $panel): array
     {
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         return [
             'id' => $panel->id(),

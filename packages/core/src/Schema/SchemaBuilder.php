@@ -79,6 +79,7 @@ final readonly class SchemaBuilder
             label: $panel->label(),
             writable: $panel->isWritable(),
             tenant: $tenant,
+            writer: $panel->writer(),
             permissions: $this->permissions($panel, $catalog, $descriptions, $owners),
             roles: $this->roleSchemas($panel, $catalog),
             fields: $this->fields($panel, $descriptions),

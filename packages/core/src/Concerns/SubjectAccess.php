@@ -15,7 +15,6 @@ use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Exceptions\ConflictingPanelException;
-use AzGuard\Exceptions\PanelNotWritableException;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Exceptions\TenantRequiredException;
@@ -35,7 +34,6 @@ use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Storage\Models\PermissionGrant;
 use AzGuard\Storage\Models\RoleGrant;
@@ -335,15 +333,12 @@ final readonly class SubjectAccess
      */
     private function stored(string $kind, Model|AssignmentScopeRef|AnyAssignmentScope|null $on): array
     {
-        $writer = $this->panel->writer();
+        $writer = $this->panel->writerSource();
 
         if ($writer === null) {
             return [];
         }
 
-        if (! $writer instanceof DatabaseSource) {
-            throw new PanelNotWritableException('Panel '.$this->panel->id().' stores grants through '.$writer::class.', which cannot list them.');
-        }
         $context = $this->writeContext($on);
 
         return $writer->grantModels($this->panel, $this->requiredTenant(), $this->origin, $kind, $this->ref, $context instanceof AssignmentScopeRef ? $context : null);

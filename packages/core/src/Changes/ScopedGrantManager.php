@@ -90,7 +90,7 @@ final readonly class ScopedGrantManager implements GrantManager
 
     private function writer(): DatabaseSource
     {
-        $writer = $this->panel->writer();
+        $writer = $this->panel->writerSource();
 
         return $writer instanceof DatabaseSource ? $writer
             : throw new PanelNotWritableException('Panel '.$this->panel->id().' has no database writer to read grants from.');

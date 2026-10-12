@@ -1,0 +1,2 @@
+$ test ! -e packages/core/src/Contracts/Sources/StoresGrants.php && test -z "$(git grep -n 'StoresGrants\|isDynamic()' -- 'packages/filament/*.php' 'packages/core/src/Contracts/*.php' ':!packages/core/src/Contracts/Sources/ProvidesPermissions.php' ':!packages/filament/src/Sources/FilamentSource.php')"
+exit 0

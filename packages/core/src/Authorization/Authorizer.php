@@ -67,7 +67,7 @@ final class Authorizer
      */
     public function withinAuthorityTransaction(Panel $panel, Closure $callback): mixed
     {
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw InvalidConfigurationException::failing('authority_transaction', 'Joint authority work requires a DatabaseSource writer.');
@@ -420,7 +420,7 @@ final class Authorizer
                 report($error);
             }
         };
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource || ! $writer->afterAuthorityCommit($deliver)) {
             $deliver();

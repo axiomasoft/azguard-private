@@ -29,7 +29,7 @@ final readonly class AuditTableExists implements DoctorCheck
         if ($panel === null) {
             return;
         }
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             yield DoctorFinding::error($this->key(), 'Panel '.$panel->id().' has the audit plugin but no database source that stores its grants, so no journal is written.');

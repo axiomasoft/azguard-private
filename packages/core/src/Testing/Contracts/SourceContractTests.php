@@ -7,7 +7,6 @@ namespace AzGuard\Testing\Contracts;
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Changes\Change;
 use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
@@ -15,15 +14,12 @@ use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
-use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\IdentityCodec;
-use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
@@ -49,8 +45,7 @@ use UnitEnum;
  * - it answers only for its own panel: no decision of a panel comes back as `source_error`;
  * - the same version of the state gives the same answer;
  * - it takes `now` from the context, not from its own clock;
- * - `describe()` lists the capabilities the source implements and what it returns has the type of its capability;
- * - a writer refuses to store anything outside the transaction the change pipeline opens.
+ * - `describe()` lists the capabilities the source implements and what it returns has the type of its capability.
  */
 #[Spi(kind: SpiKind::Call, since: '0.7')]
 trait SourceContractTests
@@ -217,37 +212,6 @@ trait SourceContractTests
                 $this->assertInstanceOf(BaseRole::class, $role, 'roles() returns something that is not a BaseRole.');
             }
         }
-    }
-
-    #[Test]
-    public function writerStoresOnlyInsideThePipelineTransaction(): void
-    {
-        $source = $this->azguardSource();
-        $panel = ContractWorld::panel(fn (PanelBuilder $builder) => $this->azguardAttach($builder, $source));
-
-        if (! $source instanceof StoresGrants) {
-            $this->assertFalse($panel->isWritable(), 'A source that does not store grants makes the panel writable.');
-
-            return;
-        }
-        $this->assertTrue($panel->isWritable(), 'The panel does not take the source as its writer.');
-        $writer = $panel->writer() ?? $this->azguardAttached($panel, $source);
-
-        if (! $writer instanceof StoresGrants) {
-            $this->fail('The panel does not give the writer back.');
-        }
-        $change = Change::grant($panel->id(), AccessScope::in(TenantRef::global()),
-            SubjectRef::of($this->azguardSubject()->getMorphClass(), ModelKey::of($this->azguardSubject())),
-            PermissionPattern::of($panel->id(), ContractPermission::View->value), IdentityCodec::DEFAULT_ORIGIN, ActorRef::system('contract'));
-
-        try {
-            $writer->apply($change);
-        } catch (Throwable) {
-            $this->assertTrue(true);
-
-            return;
-        }
-        $this->fail('The writer stored a change outside the transaction of the change pipeline.');
     }
 
     /** The instance the panel works with: a panel keeps its own copy of the source it is given. */

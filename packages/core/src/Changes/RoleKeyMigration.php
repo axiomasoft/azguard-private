@@ -73,7 +73,7 @@ final readonly class RoleKeyMigration
         if ($tenant !== null) {
             return [$tenant];
         }
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer.');

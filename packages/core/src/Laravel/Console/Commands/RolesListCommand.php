@@ -32,7 +32,7 @@ final class RolesListCommand extends Command
         return $this->attempt(function (): int {
             $panel = $this->selectPanel();
             $tenant = $this->tenantOf($panel);
-            $writer = $panel->writer();
+            $writer = $panel->writerSource();
             $holders = $writer instanceof DatabaseSource
                 ? $writer->holderCounts($panel, $tenant, CarbonImmutable::now('UTC')->toDateTimeImmutable())
                 : null;

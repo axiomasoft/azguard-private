@@ -15,7 +15,6 @@ use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\DuplicateRoleException;
@@ -52,7 +51,6 @@ final readonly class PanelSources
         ProvidesGrants::class,
         ProvidesRoleGrants::class,
         ProvidesPolicies::class,
-        StoresGrants::class,
         DescribesSchema::class,
         FencesReads::class,
         FiltersQueries::class,
@@ -91,8 +89,6 @@ final readonly class PanelSources
         ]];
         /** @var array<string, Source> $byId */
         $byId = [$folder->id() => $folder];
-        /** @var list<string> $writers */
-        $writers = [];
 
         foreach ($recipe->layered(PanelRecipe::PERMISSIONS) as $record) {
             foreach (is_array($record['value']) ? $record['value'] : [] as $definition) {
@@ -135,6 +131,12 @@ final readonly class PanelSources
                 IdentityCodec::assertSourceLabel($id);
 
                 if (isset($byId[$id])) {
+                    if ($source instanceof DatabaseSource && $byId[$id] instanceof DatabaseSource) {
+                        throw new WriterConflictException(
+                            'Panel "'.$panel.'" has more than one writer (the database source twice): a panel stores grants through one source.',
+                        );
+                    }
+
                     throw new DuplicatePermissionException(
                         'Panel "'.$panel.'" has two sources with the id "'.$id.'" ('.$byId[$id]::class.' and '.$source::class
                         .'): every source of a panel needs its own id.',
@@ -150,23 +152,10 @@ final readonly class PanelSources
                     'name' => $name,
                 ];
 
-                if ($source instanceof StoresGrants) {
-                    $writers[] = $id;
-                }
-
                 if (is_string($name)) {
                     self::bindRuntime($container, $panel, $name);
                 }
             }
-        }
-
-        if (count($writers) > 1) {
-            throw new WriterConflictException(
-                'Panel "'.$panel.'" has more than one writer ('.implode(', ', array_map(
-                    static fn (string $id): string => '"'.$id.'"',
-                    $writers,
-                )).'): a panel stores grants through one source.',
-            );
         }
 
         return new self($panel, $sources);
@@ -254,17 +243,17 @@ final readonly class PanelSources
 
     public function writable(): bool
     {
-        return $this->with(StoresGrants::class) !== [];
+        return $this->with(DatabaseSource::class) !== [];
     }
 
     /**
      * The writer object of the recipe, or a factory of the named writer for the current scope.
      *
-     * @return Closure(): ?StoresGrants
+     * @return Closure(): ?DatabaseSource
      */
     public function writer(Container $container): Closure
     {
-        $writers = $this->with(StoresGrants::class);
+        $writers = $this->with(DatabaseSource::class);
 
         if ($writers === []) {
             return static fn (): null => null;
@@ -280,11 +269,11 @@ final readonly class PanelSources
 
         $abstract = self::abstract($this->panel, $attached['name']);
 
-        return static function () use ($container, $abstract): StoresGrants {
+        return static function () use ($container, $abstract): DatabaseSource {
             $source = $container->make($abstract);
 
-            return $source instanceof StoresGrants ? $source : throw new DefinitionException(
-                'The writer binding resolved '.get_debug_type($source).', which does not store grants.',
+            return $source instanceof DatabaseSource ? $source : throw new DefinitionException(
+                'The writer binding resolved '.get_debug_type($source).', which is not the database source.',
             );
         };
     }

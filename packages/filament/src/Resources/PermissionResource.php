@@ -9,7 +9,6 @@ use AzGuard\Filament\Concerns\AuthorizesResource;
 use AzGuard\Filament\Resources\PermissionResource\Pages\ListPermissions;
 use AzGuard\Panels\Panel;
 use AzGuard\Schema\PermissionSchema;
-use AzGuard\Sources\Database\DatabaseSource;
 use Filament\Resources\Resource;
 use UnitEnum;
 
@@ -43,12 +42,10 @@ final class PermissionResource extends Resource
         return ['index' => ListPermissions::route('/')];
     }
 
-    /** Whether the panel keeps dynamic permissions: its writer is a database source with `dynamicPermissions()`. */
+    /** Whether the panel keeps dynamic permissions: its writer is declared with `dynamicPermissions()`. */
     public static function keepsDynamicPermissions(Panel $panel): bool
     {
-        $writer = $panel->writer();
-
-        return $writer instanceof DatabaseSource && $writer->isDynamic();
+        return $panel->writer()?->dynamicPermissions === true;
     }
 
     /**

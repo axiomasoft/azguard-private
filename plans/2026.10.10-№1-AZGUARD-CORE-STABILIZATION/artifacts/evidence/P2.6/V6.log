@@ -1,0 +1,8 @@
+$ composer analyse && composer lint:check && composer refactor:check && composer api:check
+exit 0
+{"tool":"phpstan","result":"passed","errors":0}
+{"tool":"pint","result":"passed"}{"tool":"rector","result":"passed","totals":{"changed_files":0,"errors":0}}
+> vendor/bin/phpstan analyse --memory-limit=1G
+> vendor/bin/pint --test
+> vendor/bin/rector process --dry-run
+> php bin/api-manifest.php --check

@@ -48,7 +48,7 @@ final class GrantsPruneCommand extends Command
             $total = 0;
             foreach ($panels as $panel) {
                 /** @var DatabaseSource $writer */
-                $writer = $panel->writer();
+                $writer = $panel->writerSource();
                 $count = $this->option('dry-run') === true
                     ? $writer->countExpired($panel, $tenant, $before)
                     : $pipeline->pruneExpired($panel, $tenant, $before, actor: ActorRef::system((string) $this->getName()));
@@ -69,11 +69,11 @@ final class GrantsPruneCommand extends Command
                 throw new InvalidCommandInput('--tenant narrows one panel: pass --panel as well.');
             }
 
-            return [array_values(array_filter($registry->all(), static fn (Panel $panel): bool => $panel->writer() instanceof DatabaseSource)), null];
+            return [array_values(array_filter($registry->all(), static fn (Panel $panel): bool => $panel->writerSource() instanceof DatabaseSource)), null];
         }
         $panel = $this->selectPanel();
 
-        if (! $panel->writer() instanceof DatabaseSource) {
+        if (! $panel->writerSource() instanceof DatabaseSource) {
             throw new InvalidCommandInput('Panel '.$panel->id().' has no database writer: it stores no grants to prune.');
         }
 

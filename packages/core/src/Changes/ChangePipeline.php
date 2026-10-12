@@ -238,7 +238,7 @@ final readonly class ChangePipeline
     public function planRoleKeyMigration(Panel $panel, TenantRef $tenant, string $from, RoleKey $to): array
     {
         self::own($panel, $to);
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer.');
@@ -284,7 +284,7 @@ final readonly class ChangePipeline
      */
     public function reset(Panel $panel, ?ActorRef $actor = null): StateToken
     {
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer that keeps a state.');
@@ -310,7 +310,7 @@ final readonly class ChangePipeline
         if ($batch < 1) {
             throw InvalidConfigurationException::failing('changing', 'A prune batch holds at least one row.');
         }
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer, so it keeps no journal.');
@@ -342,7 +342,7 @@ final readonly class ChangePipeline
         if ($batch < 1) {
             throw InvalidConfigurationException::failing('changing', 'A prune batch holds at least one grant.');
         }
-        $writer = $panel->writer();
+        $writer = $panel->writerSource();
 
         if (! $writer instanceof DatabaseSource) {
             throw new PanelNotWritableException('Panel '.$panel->id().' has no database writer.');
@@ -429,11 +429,7 @@ final readonly class ChangePipeline
      */
     private function operate(Panel $panel, TenantRef $tenant, Closure $plan, ?ActorRef $actor = null, ?Closure $locked = null): ChangeResult
     {
-        $writer = $panel->writer() ?? throw new PanelNotWritableException('Panel '.$panel->id().' has no writer.');
-
-        if (! $writer instanceof DatabaseSource) {
-            throw new PanelNotWritableException('Panel '.$panel->id().' writes through '.$writer::class.', which the change pipeline does not support.');
-        }
+        $writer = $panel->writerSource() ?? throw new PanelNotWritableException('Panel '.$panel->id().' has no writer.');
         $registry = $this->container->make(PanelRegistry::class);
         $build = [$registry, $registry->buildId(), $registry->fingerprint($panel->id())];
         $actorModel = null;

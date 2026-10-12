@@ -33,6 +33,7 @@ final readonly class PanelSchema implements JsonSerializable
         public string $label,
         public bool $writable,
         public TenantRef $tenant,
+        private ?WriterSchema $writer,
         private array $permissions,
         private array $roles,
         private array $fields,
@@ -40,6 +41,14 @@ final readonly class PanelSchema implements JsonSerializable
         private array $scopes,
         private array $subjects,
     ) {}
+
+    /**
+     * What the writer of the panel can do; null for a read-only panel.
+     */
+    public function writer(): ?WriterSchema
+    {
+        return $this->writer;
+    }
 
     /** @return list<PermissionSchema> */
     public function permissions(): array
@@ -111,6 +120,11 @@ final readonly class PanelSchema implements JsonSerializable
             'panel' => $this->panel,
             'label' => $this->label,
             'writable' => $this->writable,
+            'writer' => $this->writer === null ? null : [
+                'storage' => $this->writer->storage,
+                'dynamic_permissions' => $this->writer->dynamicPermissions,
+                'roles_only' => $this->writer->rolesOnly,
+            ],
             'tenant' => ['key' => $this->tenant->key(), 'type' => $this->tenant->type(), 'id' => $this->tenant->id()],
             'permissions' => array_map(static fn (PermissionSchema $permission): array => $permission->toArray(), $this->permissions),
             'groups' => array_map(
