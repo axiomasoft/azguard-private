@@ -59,3 +59,11 @@ it('fails the pipe contract when its own SQL write starts with a comment', funct
     expect(fn () => (new HookProbe(static fn (): null => null, static fn () => $pipe))->run('pipeWritesNothingBesidesTheWriter'))
         ->toThrow(AssertionFailedError::class);
 });
+
+it('counts the rows of the tables of its own database only', function (): void {
+    app('db')->connection()->table('contract_probe')->insert([['note' => 'a'], ['note' => 'b']]);
+
+    // MySQL and MariaDB list the tables of every database of the server unless told which one; counting a table of
+    // another database through this connection fails and used to drop the whole connection from the result.
+    expect(ContractWorld::rowCounts())->toHaveKey('testbench.contract_probe', 2);
+});

@@ -6,6 +6,11 @@ version) are documented here. Format: [Keep a Changelog](https://keepachangelog.
 
 ## [Unreleased]
 
+### Fixed
+
+- **core:** `ContractWorld::rowCounts()` lists only the tables of the connection's own database on MySQL and MariaDB; it used to
+  list the tables of every database of the server and so dropped the connection from the result.
+
 ## [0.7.0] - 2026-10-10
 
 The first public release, 0.7.0. The API may change before 1.0. Earlier 0.x versions were never published; moving data from 0.3 is described in

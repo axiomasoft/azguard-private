@@ -128,7 +128,10 @@ final class ContractWorld
             try {
                 $connection = app('db')->connection((string) $name);
 
-                foreach ($connection->getSchemaBuilder()->getTables() as $table) {
+                // MySQL and MariaDB list the tables of every database on the server unless told which one.
+                $schema = in_array($connection->getDriverName(), ['mysql', 'mariadb'], true) ? $connection->getDatabaseName() : null;
+
+                foreach ($connection->getSchemaBuilder()->getTables($schema) as $table) {
                     $counts[$name.'.'.$table['name']] = $connection->table((string) $table['name'])->count();
                 }
             } catch (Throwable) {
