@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands\Make;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use Illuminate\Support\Str;
 
@@ -39,7 +39,7 @@ final class MakePluginCommand extends MakeCommand
 
         return [new GeneratedFile($place->file($class), $stubs->render('plugin', [
             'namespace' => $place->namespace,
-            'imports' => StubStore::imports([BasePlugin::class, PanelBuilder::class, PluginContext::class]),
+            'imports' => StubStore::imports([Plugin::class, PanelBuilder::class, PluginContext::class]),
             'class' => $class,
             'id' => 'app/'.Str::kebab(substr($class, 0, -6)),
         ]))];

@@ -1093,16 +1093,6 @@
             "note": "internal observer registry in the Events namespace, not an event; moved under Events\\Internal (P3). Listed by the Events-namespace rule only."
         },
         {
-            "fqcn": "AzGuard\\Exceptions\\PluginDependencyMissingException",
-            "kinds": [
-                "exception"
-            ],
-            "target": null,
-            "action": "retire",
-            "owner": "retired",
-            "note": "retired by P2 (D8, DependsOnPlugins retired); a host catching it by FQCN must follow the upgrade map."
-        },
-        {
             "fqcn": "AzGuard\\Filament\\Authorization\\FilamentSurface",
             "kinds": [
                 "enum"

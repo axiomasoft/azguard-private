@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Contracts\Authorization\AfterHook;
+use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
@@ -50,9 +53,9 @@ final readonly class Panel
         private ?Closure $writer = null,
         /** @var array<string, list<Field>> */
         private array $grantFields = [],
-        /** @var list<Closure|class-string> */
+        /** @var list<BeforeHook|class-string<BeforeHook>|Closure> */
         private array $beforeHooks = [],
-        /** @var list<Closure|class-string> */
+        /** @var list<AfterHook|class-string<AfterHook>|Closure> */
         private array $afterHooks = [],
         /** @var list<Restriction|class-string<Restriction>> */
         private array $accessRestrictions = [],
@@ -68,7 +71,7 @@ final readonly class Panel
         private array $scopeResolvers = [],
         /** @var array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
         private array $resourceScopes = [],
-        /** @var list<Closure|object|class-string> */
+        /** @var list<ChangePipe|class-string<ChangePipe>|Closure> */
         private array $changingPipes = [],
         /** @var list<SubjectDescriptor> */
         private array $subjectDescriptors = [],
@@ -144,7 +147,7 @@ final readonly class Panel
     /**
      * Pipes every change of grants passes through, in the order provider, plugins, `configure`.
      *
-     * @return list<Closure|object|class-string>
+     * @return list<ChangePipe|class-string<ChangePipe>|Closure>
      */
     public function changing(): array
     {
@@ -237,13 +240,13 @@ final readonly class Panel
         return $this->resourceScopes;
     }
 
-    /** @return list<Closure|class-string> */
+    /** @return list<BeforeHook|class-string<BeforeHook>|Closure> */
     public function before(): array
     {
         return $this->beforeHooks;
     }
 
-    /** @return list<Closure|class-string> */
+    /** @return list<AfterHook|class-string<AfterHook>|Closure> */
     public function after(): array
     {
         return $this->afterHooks;

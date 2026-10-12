@@ -83,8 +83,7 @@ try {
 
 | Exception | Code | When |
 |---|---|---|
-| `PluginConflictException` | `plugin_conflict` | Two plugins of one panel set the same setting to different values and the panel provider does not decide. |
-| `PluginDependencyMissingException` | `plugin_dependency_missing` | A plugin of a panel requires another plugin that is not attached to the panel. |
+| `PluginConflictException` | `plugin_conflict` | Two plugins of one panel set the same setting to different values and the panel provider does not decide, or a plugin outside the package takes an id with the reserved `azguard/` prefix. |
 
 ## Storage
 

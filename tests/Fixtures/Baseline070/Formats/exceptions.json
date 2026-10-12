@@ -231,13 +231,6 @@
             "final": true,
             "code": "plugin_conflict"
         },
-        "PluginDependencyMissingException": {
-            "class": "AzGuard\\Exceptions\\PluginDependencyMissingException",
-            "parent": "AzGuard\\Exceptions\\PluginException",
-            "abstract": false,
-            "final": true,
-            "code": "plugin_dependency_missing"
-        },
         "PluginException": {
             "class": "AzGuard\\Exceptions\\PluginException",
             "parent": "AzGuard\\Exceptions\\AzGuardException",

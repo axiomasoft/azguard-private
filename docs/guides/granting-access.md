@@ -123,7 +123,7 @@ Changes publish Laravel events after commit: `RoleGranted`, `RoleRevoked`, `Role
 A panel can intercept every change, for example to require a reason or to forbid self-promotion:
 
 ```php
-->changing([RequireReason::class])   // handle(Change $change, Closure $next)
+->changing([RequireReason::class])   // implements ChangePipe: handle(Change $change, Closure $next)
 ```
 
 Throwing `ChangeCancelledException` from a pipe rolls the whole change back. See

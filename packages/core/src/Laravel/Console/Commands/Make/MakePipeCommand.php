@@ -6,6 +6,7 @@ namespace AzGuard\Laravel\Console\Commands\Make;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Laravel\Console\Scaffold\GeneratedFile;
 use AzGuard\Laravel\Console\Scaffold\Layout;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
@@ -38,7 +39,7 @@ final class MakePipeCommand extends MakeCommand
 
         return [new GeneratedFile($place->file($class), $stubs->render('change-pipe', [
             'namespace' => $place->namespace,
-            'imports' => StubStore::imports([Change::class, ChangeResult::class, Closure::class]),
+            'imports' => StubStore::imports([Change::class, ChangePipe::class, ChangeResult::class, Closure::class]),
             'class' => $class,
         ]))];
     }

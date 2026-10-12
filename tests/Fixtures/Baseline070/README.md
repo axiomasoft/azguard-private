@@ -73,6 +73,6 @@ The snapshots keep the code value; each difference is logged in the plan (PLAN1 
 | explain `not_applicable` | a decision kind to snapshot | no 0.7.0 path produces it: `Decision::notApplicable()` has no caller |
 
 Serializable types whose type-map row moves or retires them are listed under `reported` in `serializable-fqcn.json`
-with a note; the published ones among them (`Panels\GateMode` and `Exceptions\PluginDependencyMissingException` retired)
-get a line in the migration instruction (D16). `Scopes\AssignmentScopePhase` moved to `Context\AssignmentScopePhase` in
+with a note; the published ones among them (`Panels\GateMode` retired) get a line in the migration instruction (D16);
+`Exceptions\PluginDependencyMissingException` retired in P2.4 and left the list with the class. `Scopes\AssignmentScopePhase` moved to `Context\AssignmentScopePhase` in
 P2.2 and is listed under `types` with its new FQCN.

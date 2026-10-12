@@ -4879,6 +4879,99 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Authorization\\AfterHook",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "after",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "decision",
+                            "type": "AzGuard\\Kernel\\Decision\\Decision",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Authorization\\BeforeHook",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "before",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "request",
+                            "type": "AzGuard\\Kernel\\Decision\\AccessRequest",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Kernel\\Decision\\BeforeResult",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Authorization\\EvaluationContext",
             "publication": "spi-call",
             "since": "0.7",
@@ -5957,6 +6050,49 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Changes\\ChangePipe",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "handle",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "change",
+                            "type": "AzGuard\\Changes\\Change",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "next",
+                            "type": "Closure",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Changes\\ChangeResult",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Changes\\GrantManager",
             "publication": "api",
             "since": "0.7",
@@ -6713,32 +6849,6 @@
             "constants": [],
             "properties": [],
             "methods": [
-                {
-                    "name": "boot",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "panel",
-                            "type": "AzGuard\\Panels\\Panel",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        },
-                        {
-                            "name": "context",
-                            "type": "AzGuard\\Plugins\\PluginContext",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": []
-                },
                 {
                     "name": "id",
                     "visibility": "public",
@@ -18538,7 +18648,7 @@
                     "return": "array",
                     "namedArguments": true,
                     "contracts": [
-                        "@return list<Closure|class-string>"
+                        "@return list<AfterHook|class-string<AfterHook>|Closure>"
                     ]
                 },
                 {
@@ -18551,7 +18661,7 @@
                     "return": "array",
                     "namedArguments": true,
                     "contracts": [
-                        "@return list<Closure|class-string>"
+                        "@return list<BeforeHook|class-string<BeforeHook>|Closure>"
                     ]
                 },
                 {
@@ -18564,7 +18674,7 @@
                     "return": "array",
                     "namedArguments": true,
                     "contracts": [
-                        "@return list<Closure|object|class-string>"
+                        "@return list<ChangePipe|class-string<ChangePipe>|Closure>"
                     ]
                 },
                 {
@@ -18940,7 +19050,7 @@
                     "parameters": [
                         {
                             "name": "hooks",
-                            "type": "Closure|array|string",
+                            "type": "AzGuard\\Contracts\\Authorization\\AfterHook|Closure|array|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -18949,7 +19059,7 @@
                     "return": "static",
                     "namedArguments": true,
                     "contracts": [
-                        "@param array<mixed>|Closure|string $hooks"
+                        "@param list<AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void>|AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void $hooks"
                     ]
                 },
                 {
@@ -18961,7 +19071,7 @@
                     "parameters": [
                         {
                             "name": "hooks",
-                            "type": "Closure|array|string",
+                            "type": "AzGuard\\Contracts\\Authorization\\BeforeHook|Closure|array|string",
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
@@ -18970,7 +19080,7 @@
                     "return": "static",
                     "namedArguments": true,
                     "contracts": [
-                        "@param array<mixed>|Closure|string $hooks"
+                        "@param list<BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult>|BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult $hooks"
                     ]
                 },
                 {
@@ -19027,7 +19137,7 @@
                     "return": "static",
                     "namedArguments": true,
                     "contracts": [
-                        "@param array<mixed> $pipes"
+                        "@param list<ChangePipe|class-string<ChangePipe>|PipeClosure> $pipes"
                     ]
                 },
                 {
@@ -20322,7 +20432,7 @@
             "final": true,
             "abstract": false,
             "readonly": false,
-            "parent": "AzGuard\\Plugins\\BasePlugin",
+            "parent": null,
             "interfaces": [
                 "AzGuard\\Contracts\\Plugins\\Plugin"
             ],
@@ -20445,19 +20555,6 @@
                     "return": "string",
                     "namedArguments": true,
                     "contracts": []
-                },
-                {
-                    "name": "dependencies",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<string> ids of the plugins this plugin requires on the panel"
-                    ]
                 },
                 {
                     "name": "panelId",
@@ -28572,15 +28669,41 @@
             "properties": [],
             "methods": [
                 {
+                    "name": "afterHookObservesAndWritesNothing",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardAfterHook",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Authorization\\AfterHook|Closure|string|null",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void|null"
+                    ]
+                },
+                {
                     "name": "azguardBeforeHook",
                     "visibility": "protected",
                     "static": false,
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "Closure|string|null",
+                    "return": "AzGuard\\Contracts\\Authorization\\BeforeHook|Closure|string|null",
                     "namedArguments": true,
-                    "contracts": []
+                    "contracts": [
+                        "@return BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult|null"
+                    ]
                 },
                 {
                     "name": "azguardChangePipe",
@@ -28589,9 +28712,11 @@
                     "abstract": false,
                     "final": false,
                     "parameters": [],
-                    "return": "object|string|null",
+                    "return": "AzGuard\\Contracts\\Changes\\ChangePipe|Closure|string|null",
                     "namedArguments": true,
-                    "contracts": []
+                    "contracts": [
+                        "@return ChangePipe|class-string<ChangePipe>|Closure(Change, Closure(Change): ChangeResult): ChangeResult|null"
+                    ]
                 },
                 {
                     "name": "azguardPermissions",
@@ -28630,6 +28755,17 @@
                 },
                 {
                     "name": "cancelledChangeLeavesNoTrace",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "hooksAndPipeFitTheirContracts",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,
@@ -28692,17 +28828,6 @@
                     "contracts": []
                 },
                 {
-                    "name": "bootDoesNotChangeThePanel",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "void",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
                     "name": "pluginBuildsOnACleanPanel",
                     "visibility": "public",
                     "static": false,
@@ -28737,6 +28862,28 @@
                 },
                 {
                     "name": "pluginKeptOffAPanelLeavesNoTraceThere",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "pluginOutsideThePackageDoesNotTakeAReservedId",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "registerRunsOncePerPanelAndWritesNothing",
                     "visibility": "public",
                     "static": false,
                     "abstract": false,

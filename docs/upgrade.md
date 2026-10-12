@@ -23,6 +23,18 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `AzGuard\AzGuardManager` → Replace: `AzGuard\AzGuard` (the container alias `azguard` and the `AzGuard` facade are unchanged).
 - Find: `AzGuard::check(` or `AzGuard::authorize(` with a subject that is not a model or a `SubjectRef` → Replace: pass the
   Eloquent model or `SubjectRef::of($type, $id)`; the subject is typed `Model|Authenticatable|SubjectRef` and anything else is a `TypeError`.
+- Find: `extends BasePlugin` or `AzGuard\Plugins\BasePlugin` → Replace: `implements AzGuard\Contracts\Plugins\Plugin`; `BasePlugin` is gone.
+- Find: `function boot(Panel $panel, PluginContext $context)` in a plugin → Replace: nothing; `Plugin::boot()` is gone, a plugin only
+  declares in `register()`, and a leftover `boot()` method compiles and is never called.
+- Find: `DependsOnPlugins`, `function requires(): array` or `$context->dependencies()` or `PluginDependencyMissingException` → Replace:
+  nothing; plugins no longer name other plugins, and `new PluginContext(...)` takes `panelId, pluginId, buildId` only.
+- Find: a before hook, after hook or change pipe class → Replace: `implements AzGuard\Contracts\Authorization\BeforeHook` (`before(AccessRequest, EvaluationContext): BeforeResult`),
+  `AfterHook` (`after(AccessRequest, EvaluationContext, Decision): void`) or `AzGuard\Contracts\Changes\ChangePipe` (`handle(Change, Closure): ChangeResult`); an invokable
+  hook class or a pipe with only a `handle()` method is rejected when the panel compiles.
+- Find: `->before(fn (` / `->after(fn (` / `->changing([fn (` closures with fewer parameters, untyped parameters or no return type → Replace: the full typed
+  signature of the contract method (`before`: `AccessRequest $request, EvaluationContext $context): BeforeResult`; `after`: `..., Decision $decision): void`;
+  `changing`: `Change $change, Closure $next): ChangeResult`); parameters are no longer injected by name.
+- Find: `id()` returning a value that starts with `azguard/` in a class outside the namespace `AzGuard\` → Replace: your own vendor prefix; the prefix is reserved.
 
 ## From 0.3 to 0.7.0
 
