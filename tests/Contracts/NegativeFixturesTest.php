@@ -29,7 +29,6 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\SwallowingPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\UnderstatedSource;
-use AzGuard\Tests\Fixtures\Contracts\Broken\UnguardedWriter;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingAfterHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingPipe;
@@ -87,7 +86,6 @@ it('fails the source suite on a source that breaks a guarantee and passes it on 
     'other answer on the same version' => ['sameVersionGivesTheSameAnswer', static fn () => new FlipFlopSource, AssertionFailedError::class],
     'reads its own clock' => ['sourceTakesNowFromTheContext', static fn () => new OwnClockSource, AssertionFailedError::class],
     'describes fewer capabilities than it has' => ['describeMatchesWhatTheSourceGives', static fn () => new UnderstatedSource, AssertionFailedError::class],
-    'stores outside the transaction' => ['writerStoresOnlyInsideThePipelineTransaction', static fn () => new UnguardedWriter, AssertionFailedError::class],
 ]);
 
 it('fails the restriction suite on a restriction that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {

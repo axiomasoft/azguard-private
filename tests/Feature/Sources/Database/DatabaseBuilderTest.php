@@ -8,7 +8,6 @@ use AzGuard\Contracts\Sources\FiltersQueries;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesPermissions;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -36,7 +35,7 @@ it('builds immutable independent sources and describes database capabilities', f
     expect($base->id())->toBe('database')->and($base->isRolesOnly())->toBeFalse()->and($roles->isRolesOnly())->toBeTrue()
         ->and($base->isDynamic())->toBeFalse()->and($dynamic->isDynamic())->toBeTrue()
         ->and($base->volatility())->toBe(Volatility::Stable)->and($description->dynamic)->toBeFalse();
-    foreach ([ProvidesPermissions::class, ProvidesGrants::class, ProvidesRoleGrants::class, StoresGrants::class,
+    foreach ([ProvidesPermissions::class, ProvidesGrants::class, ProvidesRoleGrants::class,
         FiltersQueries::class, FencesReads::class, DescribesSchema::class] as $capability) {
         expect($base)->toBeInstanceOf($capability)->and($description->capabilities)->toContain($capability);
     }

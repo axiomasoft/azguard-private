@@ -20,7 +20,6 @@ use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
 use AzGuard\Tests\Fixtures\Authorization\WeekdaysCondition;
-use AzGuard\Tests\Fixtures\Authorization\WriterSource;
 use AzGuard\Tests\Fixtures\Roles\RootRole;
 use Illuminate\Support\Carbon;
 
@@ -76,9 +75,9 @@ it('an ordinary grant does not remove a qualified superadmin exemption', functio
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::SuperAdmin)->and($restriction->checks)->toBe(0);
 });
 
-it('uses actual writer provenance rather than a forged folder source label for NotGrantable roles', function (): void {
+it('uses the actual source provenance rather than a forged folder source label for NotGrantable roles', function (): void {
     $role = RoleContribution::of(RoleKey::of('admin', 'root'), AccessScope::in(TenantRef::global()), 'folder');
-    [$engine,$panel,$request] = AuthorizationWorld::compile(new WriterSource(roles: [$role]), rootRole: RootRole::class);
+    [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource(roles: [$role]), rootRole: RootRole::class);
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted);
 });
 it('qualifies each role contribution before expanding its compiled patterns', function (): void {

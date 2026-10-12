@@ -139,7 +139,7 @@ it('keeps the Grants authority for every dynamic permission: no input names a mo
     $panel = W::dynamicPanel();
     W::createAction($panel, 'campaigns.view');
     CrmWorld::storage()->mutate('crm', function () use ($panel): void {
-        $definition = $panel->writer()->lockedReads($panel)->catalog(W::tenant())->get('campaigns.view');
+        $definition = $panel->writerSource()->lockedReads($panel)->catalog(W::tenant())->get('campaigns.view');
 
         expect($definition->authority)->toBe(PermissionAuthority::Grants);
     });

@@ -44,7 +44,7 @@ try {
 | `SubjectNotAcceptedException` | `subject_not_accepted` | The model is not a subject of the panel. |
 | `UnknownPanelException` | `unknown_panel` | No panel is registered under the id. |
 | `UnknownSourceException` | `unknown_source` | A panel names a source that is not registered. |
-| `WriterConflictException` | `writer_conflict` | A panel has more than one source that stores grants. |
+| `WriterConflictException` | `writer_conflict` | A panel has more than one writer, that is, the database source twice. |
 
 ## Configuration
 

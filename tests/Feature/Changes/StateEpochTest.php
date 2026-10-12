@@ -31,7 +31,7 @@ it('returns the committed epoch for panel touches resets and dynamic permission 
 
     foreach ($operations as $operate) {
         $token = $operate();
-        $committed = $panel->writer()->state($panel, TenantRef::global());
+        $committed = $panel->writerSource()->state($panel, TenantRef::global());
         expect($token->epoch)->toBe(++$epoch)->and($token->equals($committed))->toBeTrue();
         $events = EventWorld::events();
         expect($events[array_key_last($events)]->state->equals($committed))->toBeTrue();
@@ -45,7 +45,7 @@ it('preserves a nonzero epoch in changed and unchanged grant results', function 
 
     foreach ([ChangeStatus::Applied, ChangeStatus::Unchanged] as $status) {
         $result = W::grant($panel, 'analyst', 2, 1);
-        $committed = $panel->writer()->state($panel, TenantRef::global());
+        $committed = $panel->writerSource()->state($panel, TenantRef::global());
         expect($result->status)->toBe($status)->and($result->state->epoch)->toBe($epoch)
             ->and($result->state->equals($committed))->toBeTrue();
     }

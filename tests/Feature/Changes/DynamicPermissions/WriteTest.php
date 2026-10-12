@@ -64,7 +64,7 @@ it('puts the new permission into the tenant catalog as a Grants permission and i
     $panel = W::dynamicPanel();
     W::createAction($panel, 'campaigns.view', label: 'Просмотр');
     CrmWorld::storage()->mutate('crm', function () use ($panel): void {
-        $reads = $panel->writer()->lockedReads($panel);
+        $reads = $panel->writerSource()->lockedReads($panel);
         $definition = $reads->catalog(W::tenant(1))->get('campaigns.view');
 
         expect($definition->authority)->toBe(PermissionAuthority::Grants)

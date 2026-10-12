@@ -4,7 +4,7 @@
         "AZGUARD_DB_CONNECTION"
     ],
     "retired": {
-        "defaults.gate.mode": {
+        "defaults.gate": {
             "present_now": false,
             "retired_by": "P2.5"
         }

@@ -2,6 +2,11 @@
     "panel": "crm",
     "label": "crm",
     "writable": true,
+    "writer": {
+        "storage": "default",
+        "dynamic_permissions": false,
+        "roles_only": false
+    },
     "tenant": {
         "key": "crm.organization:1",
         "type": "crm.organization",

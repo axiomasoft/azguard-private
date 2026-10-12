@@ -19,14 +19,8 @@ final class RegistersSources extends ServiceProvider
     /** @var array<string, Closure> */
     public static array $extensions = [];
 
-    public static bool $scopedClock = false;
-
     public function register(): void
     {
-        if (self::$scopedClock) {
-            $this->app->scoped(ScopedClock::class);
-        }
-
         $sources = AzGuard::sources();
 
         foreach (self::$classes as $class) {
@@ -42,7 +36,6 @@ final class RegistersSources extends ServiceProvider
     {
         self::$classes = [];
         self::$extensions = [];
-        self::$scopedClock = false;
         LdapSource::$made = [];
     }
 }

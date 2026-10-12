@@ -16,12 +16,13 @@ use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
+use AzGuard\Schema\WriterSchema;
 use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Tenancy\TenantPolicy;
 use Closure;
@@ -39,7 +40,7 @@ final readonly class Panel
      *
      * @param  list<class-string<Model>>  $subjectModels
      * @param  list<string>  $pluginIds
-     * @param  Closure(): (?StoresGrants)  $writer
+     * @param  Closure(): (?DatabaseSource)  $writer
      */
     public function __construct(
         private string $id,
@@ -406,18 +407,28 @@ final readonly class Panel
     }
 
     /**
-     * The writer of the current request or job, or null when the panel stores nothing.
-     * An object writer is the object of the recipe; a named writer is built again for each scope.
+     * The core database source that writes the panel's grants in the current request or job, or null when the panel
+     * stores nothing. An object writer is the object of the recipe; a named writer is built again for each scope.
+     *
+     * @internal write paths of the package; supported code reads `writer()`
      */
-    public function writer(): ?StoresGrants
+    public function writerSource(): ?DatabaseSource
     {
         if ($this->writer === null) {
             return null;
         }
 
-        $writer = ($this->writer)();
+        return ($this->writer)();
+    }
 
-        return $writer instanceof StoresGrants ? $writer : null;
+    /**
+     * What the writer of the panel can do, or null for a read-only panel.
+     */
+    public function writer(): ?WriterSchema
+    {
+        $source = $this->writerSource();
+
+        return $source === null ? null : new WriterSchema($source->boundStorage()->id(), $source->isDynamic(), $source->isRolesOnly());
     }
 
     /**

@@ -8,6 +8,7 @@ use AzGuard\Exceptions\WriterConflictException;
 use AzGuard\Facades\AzGuard;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\SourceManager;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -17,10 +18,8 @@ use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Sources\LdapSource;
-use AzGuard\Tests\Fixtures\Sources\LedgerSource;
 use AzGuard\Tests\Fixtures\Sources\RegistersSources;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
-use AzGuard\Tests\Fixtures\Sources\WriterSource;
 use Illuminate\Contracts\Foundation\Application;
 
 uses(BootsPanels::class);
@@ -74,14 +73,9 @@ it('V77: reports an unknown source name, two writers and a repeated id', functio
     ]))->toThrow(UnknownSourceException::class, 'names the source "nope"')
         ->and(fn () => PanelWorld::compile([
             AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
-                new WriterSource('database'), new WriterSource('audit'),
+                DatabaseSource::make(), DatabaseSource::make()->storage('secondary'),
             ]),
-        ]))->toThrow(WriterConflictException::class, '"database"')
-        ->and(fn () => PanelWorld::compile([
-            AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
-                new WriterSource('database'), new WriterSource('audit'),
-            ]),
-        ]))->toThrow(WriterConflictException::class, '"audit"')
+        ]))->toThrow(WriterConflictException::class, 'more than one writer')
         ->and(fn () => PanelWorld::compile([
             AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([
                 StaticSource::names('ldap', 'posts.view'), 'ldap',
@@ -90,10 +84,9 @@ it('V77: reports an unknown source name, two writers and a repeated id', functio
 });
 
 it('V102: builds a named writer again for each panel and after the scope is forgotten', function (): void {
-    RegistersSources::$classes = [LedgerSource::class];
-    RegistersSources::$scopedClock = true;
-    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['ledger']));
-    CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['ledger']));
+    RegistersSources::$extensions = ['database' => static fn () => DatabaseSource::make()];
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['database']));
+    CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions(['database']));
 
     $this->bootPanels(
         ['providers' => [AdminPanel::class, CabinetPanel::class]],
@@ -101,36 +94,34 @@ it('V102: builds a named writer again for each panel and after the scope is forg
     );
 
     $registry = app(PanelRegistry::class);
-    $admin = $registry->get('admin')->writer();
-    $cabinet = $registry->get('cabinet')->writer();
+    $admin = $registry->get('admin')->writerSource();
+    $cabinet = $registry->get('cabinet')->writerSource();
 
     expect($admin)->not->toBeNull()
         ->and($cabinet)->not->toBeNull()
         ->and($admin)->not->toBe($cabinet)
-        ->and($registry->get('admin')->writer())->toBe($admin)
-        ->and($registry->get('cabinet')->writer())->toBe($cabinet);
+        ->and($registry->get('admin')->writerSource())->toBe($admin)
+        ->and($registry->get('cabinet')->writerSource())->toBe($cabinet);
 
-    $token = $admin->clock->token;
     app()->forgetScopedInstances();
 
-    $fresh = app(PanelRegistry::class)->get('admin')->writer();
+    $fresh = app(PanelRegistry::class)->get('admin')->writerSource();
 
-    expect($fresh)->not->toBe($admin)
-        ->and($fresh?->clock->token)->not->toBe($token);
+    expect($fresh)->not->toBe($admin);
 });
 
 it('reuses an object writer across scopes', function (): void {
-    $writer = new WriterSource('database');
+    $writer = DatabaseSource::make();
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->permissions([$writer]));
 
     $this->bootPanels(['providers' => [AdminPanel::class]]);
 
-    expect(app(PanelRegistry::class)->get('admin')->writer())->toBe($writer)
+    expect(app(PanelRegistry::class)->get('admin')->writerSource())->toBe($writer)
         ->and(app(PanelRegistry::class)->get('admin')->isWritable())->toBeTrue();
 
     app()->forgetScopedInstances();
 
-    expect(app(PanelRegistry::class)->get('admin')->writer())->toBe($writer);
+    expect(app(PanelRegistry::class)->get('admin')->writerSource())->toBe($writer);
 });
 
 it('V107: keeps enums out of the source list and preserves the order of the rest', function (): void {

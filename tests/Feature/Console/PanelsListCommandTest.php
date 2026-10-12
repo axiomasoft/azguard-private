@@ -38,7 +38,7 @@ it('shows effective settings with their origin, the sources with their contribut
         ->and($crm['settings']['consistency.state_refresh'])->toBe(['value' => 'check', 'origin' => 'provider'])
         ->and(array_column($crm['sources']['sources'], 'id'))->toContain('database')
         ->and(array_values(array_filter($crm['sources']['sources'], static fn (array $source): bool => $source['id'] === 'database'))[0]['capabilities'])
-        ->toContain('StoresGrants')
+        ->toContain('ProvidesGrants')->not->toContain('StoresGrants')
         ->and($crm['sources']['plugins'])->toBe(['azguard/audit'])
         ->and(array_column($crm['schema']['roles'], 'key'))->toContain('seller', 'auditor')
         ->and(array_column($crm['schema']['permissions'], 'local'))->toContain('clients.view');
@@ -48,5 +48,5 @@ it('prints the same panels as tables', function (): void {
     W::panel();
 
     expect(Artisan::call('azguard:panels:list', ['--settings' => true, '--sources' => true]))->toBe(0);
-    expect(Artisan::output())->toContain('crm', 'backoffice', 'Settings of crm', 'cache.ttl', 'Sources of crm', 'StoresGrants');
+    expect(Artisan::output())->toContain('crm', 'backoffice', 'Settings of crm', 'cache.ttl', 'Sources of crm', 'ProvidesGrants');
 });

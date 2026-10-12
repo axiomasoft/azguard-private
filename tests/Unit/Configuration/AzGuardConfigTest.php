@@ -53,7 +53,7 @@ it('rejects a key it does not know', function (array $azguard, string $message):
 })->with([
     'in defaults' => [['defaults' => ['strict_writes' => false]], 'Unknown key in azguard.defaults: strict_writes'],
     'a switch for a guarantee' => [['defaults' => ['fail_closed' => false, 'restrictions' => false]], 'Unknown keys in azguard.defaults: fail_closed, restrictions'],
-    'the retired defaults.gate.mode' => [['defaults' => ['gate' => ['mode' => 'authoritative']]], 'Unknown key in azguard.defaults: gate'],
+    'the retired gate section of the defaults' => [['defaults' => ['gate' => ['mode' => 'authoritative']]], 'Unknown key in azguard.defaults: gate'],
     'in defaults.cache' => [['defaults' => ['cache' => ['driver' => 'redis']]], 'Unknown key in azguard.defaults.cache: driver'],
     'in defaults.consistency' => [['defaults' => ['consistency' => ['writes' => 'primary']]], 'Unknown key in azguard.defaults.consistency: writes'],
     'in panels' => [['panels' => ['provider' => []]], 'Unknown key in azguard.panels: provider'],

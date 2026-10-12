@@ -53,7 +53,6 @@ use AzGuard\Tests\Fixtures\Scopes\ReaderRole;
 use AzGuard\Tests\Fixtures\Sources\Relation\ProjectDefinition;
 use AzGuard\Tests\Fixtures\Sources\Relation\RelationWorld;
 use AzGuard\Tests\Fixtures\Sources\StaticSource;
-use AzGuard\Tests\Fixtures\Sources\WriterSource;
 use Illuminate\Database\Eloquent\Attributes\Connection;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -175,8 +174,8 @@ function allBootChecks(): array
             fn () => adminWith(['ldap']),
         ],
         'two writer sources on a panel' => [
-            'writer_conflict', WriterConflictException::class, '"audit"',
-            fn () => adminWith([new WriterSource('database'), new WriterSource('audit')]),
+            'writer_conflict', WriterConflictException::class, 'more than one writer',
+            fn () => adminWith([DatabaseSource::make(), DatabaseSource::make()->storage('secondary')]),
         ],
         'two sources that define a permission differently' => [
             'duplicate_permission', DuplicatePermissionException::class, '"orders.view"',

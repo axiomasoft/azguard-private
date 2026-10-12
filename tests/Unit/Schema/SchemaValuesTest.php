@@ -18,6 +18,7 @@ use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Schema\SubjectTypeSchema;
 use AzGuard\Schema\TenantTypeSchema;
+use AzGuard\Schema\WriterSchema;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Schema\SchemaAssertions;
@@ -89,7 +90,7 @@ it('V72 marks a policy-only permission as not grantable', function (): void {
 
 it('V72 groups permissions by resource group and exports the whole panel as scalars', function (): void {
     $field = FieldSchema::of(Field::string('note'));
-    $schema = new PanelSchema('crm', 'CRM', true, TenantRef::of('crm.organization', 1),
+    $schema = new PanelSchema('crm', 'CRM', true, TenantRef::of('crm.organization', 1), new WriterSchema('default', true, false),
         [schemaPermission('clients.view', 'Клиенты'), schemaPermission('audit.read', null), schemaPermission('clients.update', 'Клиенты')],
         [schemaRole()], [FieldTarget::RoleGrant->value => [$field]],
         [new TenantTypeSchema('crm.organization', 'Organization', 'App\Models\Organization', 'App\Directories\Tenants')],

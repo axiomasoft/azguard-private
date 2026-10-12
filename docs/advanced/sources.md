@@ -47,6 +47,10 @@ provides:
 | `ProvidesPolicies` | Policy bindings |
 | `ChecksHealth` | `azguard:doctor` checks |
 
+A custom source only reads. Grants are stored by one writer, the core `DatabaseSource`; there is no interface to implement
+for a second writer. `Panel::writer()` and `PanelSchema::writer()` describe it as a `WriterSchema` (storage id, dynamic
+permissions, roles only), so an interface needs no source class.
+
 `volatility()` tells AzGuard how long it may reuse what the source read:
 
 | `Volatility` | Reuse |

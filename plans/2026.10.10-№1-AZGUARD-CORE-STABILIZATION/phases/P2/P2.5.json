@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.5",
   "title": "Typed module options, panel surface closure and retirement of GateMode",
-  "status": "in_progress",
+  "status": "done_with_deviations",
   "summary": "Panels carry typed readonly module options (`PanelBuilder::options()`, `Panel::options(Class)`) that are fingerprinted canonically through `Panels\\Internal\\CanonicalMetadata`; `AuditPlugin` contributes `Audit\\AuditOptions` and `retentionIn(PanelRecipe)` is gone; the raw compiled lists of `Panel` are `@internal`; `PanelBuilder::panelId()` exists; `GateMode`, `gate()`, `defaults.gate.mode` and `GateModeCheck` are retired; grant fields reject the reserved `azg_` prefix.",
   "why": "Owners read their own settings from the panel instead of introspecting another class's recipe (D8, architecture#spi-catalog typed module options); raw slot lists are not a supported surface (contracts#panel); a single-case enum is not a configuration (api-compatibility). Hard risk: options must be panel-local and part of the fingerprint, or a second panel/stale catalog could read another panel's retention (I14).",
   "scope": {
@@ -238,12 +238,63 @@
   },
   "result": {
     "started_at": "2026-10-12T03:15:19Z",
+    "finished_at": "2026-10-12T05:26:41Z",
     "executor": {
       "provider": "claude-code",
       "model": "claude-sonnet-5-5",
       "effort": "high",
       "session": "62e3de22-0400-404e-95c0-b0a60e2d0b41"
-    }
+    },
+    "notes": "Typed module options (PanelBuilder::options/panelId, Panel::options, fingerprint only when options exist), Panels\\Internal\\CanonicalMetadata split from ScopeConfiguration, Audit\\AuditOptions (AuditPlugin contributes it, retentionIn removed), raw Panel lists @internal, GateMode/gate()/defaults.gate.mode/GateModeCheck retired, azg_ grant field prefix reserved. Fixtures changed: Baseline070 doctor-checks.json, config-defaults.json, grant-field-names.json, serializable-fqcn.json, Configuration/config-keys.json, Filament Snapshots/panels.json, packages/core/api-manifest.json. V1-V6 exit 0 on PHP 8.4.26 on the tree after P2.6 (V5 4975/4975). Grok 4.7 review deferred.",
+    "deviations": [
+      "Extra paths beyond task_files, V2 adjusted pathspecs and the i5 owner_phase: see the plan log events of this item"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-12T05:26:41Z",
+        "evidence": "@plan/artifacts/evidence/P2.5/V6.json"
+      }
+    ],
+    "evidence": [
+      "@plan/artifacts/evidence/P2.5/V1.json",
+      "@plan/artifacts/evidence/P2.5/V2.json",
+      "@plan/artifacts/evidence/P2.5/V3.json",
+      "@plan/artifacts/evidence/P2.5/V4.json",
+      "@plan/artifacts/evidence/P2.5/V5.json",
+      "@plan/artifacts/evidence/P2.5/V6.json"
+    ]
   },
-  "updated_at": "2026-10-12T03:15:19Z"
+  "updated_at": "2026-10-12T05:26:41Z"
 }

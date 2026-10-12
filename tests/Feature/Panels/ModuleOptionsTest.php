@@ -120,7 +120,7 @@ it('conflicts two plugins that give different options of one class and accepts e
         ->and(fn () => $compile(6))->toThrow(PluginConflictException::class, 'options '.LimitOptions::class);
 });
 
-it('has the audit plugin contribute AuditOptions and no retentionIn()', function (): void {
+it('has the audit plugin contribute AuditOptions and no static reader of its retention', function (): void {
     [, , $registry] = PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditPlugin::make(retentionDays: 30)]),
         CabinetPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditPlugin::make()]),
@@ -128,7 +128,7 @@ it('has the audit plugin contribute AuditOptions and no retentionIn()', function
 
     expect($registry->get('admin')->options(AuditOptions::class)?->retentionDays)->toBe(30)
         ->and($registry->get('cabinet')->options(AuditOptions::class)?->retentionDays)->toBe(90)
-        ->and(method_exists(AuditPlugin::class, 'retentionIn'))->toBeFalse();
+        ->and(array_filter(get_class_methods(AuditPlugin::class), static fn (string $method): bool => (new ReflectionMethod(AuditPlugin::class, $method))->isStatic()))->toBe(['make']);
 });
 
 it('records options in the recipe under the options setting with their layer', function (): void {

@@ -10,24 +10,23 @@ use AzGuard\Contracts\Sources\DescribesSchema;
 use AzGuard\Contracts\Sources\ProvidesGrants;
 use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\SourceDescription;
-use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Contracts\Sources\Volatility;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\WriterConflictException;
+use AzGuard\Panels\Panel;
+use AzGuard\Schema\WriterSchema;
+use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Arch\ApiUsage;
 
-it('declares StoresGrants as apply and transaction of one writer', function (): void {
-    $methods = array_map(
-        static fn (ReflectionMethod $method): string => $method->getName(),
-        (new ReflectionClass(StoresGrants::class))->getMethods(),
-    );
-    $apply = new ReflectionMethod(StoresGrants::class, 'apply');
+it('keeps apply and transaction on the database source only: the writer is not an SPI (D10)', function (): void {
+    $apply = new ReflectionMethod(DatabaseSource::class, 'apply');
 
-    expect($methods)->toEqualCanonicalizing(['id', 'apply', 'transaction'])
+    expect(interface_exists('AzGuard\\Contracts\\Sources\\StoresGrants'))->toBeFalse()
         ->and((string) $apply->getParameters()[0]->getType())->toBe(Change::class)
         ->and((string) $apply->getReturnType())->toBe(ChangeResult::class)
-        // The type map retires StoresGrants (P2.6): it carries no publication attribute.
-        ->and(ApiUsage::publication(StoresGrants::class))->toBeNull();
+        ->and(method_exists(DatabaseSource::class, 'transaction'))->toBeTrue()
+        ->and(ApiUsage::publication(DatabaseSource::class))->not->toBeNull()
+        ->and((string) (new ReflectionMethod(Panel::class, 'writer'))->getReturnType())->toBe('?'.WriterSchema::class);
 });
 
 it('declares the documented evaluation context and nothing else', function (): void {

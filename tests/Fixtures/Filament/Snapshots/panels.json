@@ -66,7 +66,6 @@
                         "ProvidesGrants",
                         "ProvidesRoleGrants",
                         "ProvidesPermissions",
-                        "StoresGrants",
                         "FencesReads",
                         "FiltersQueries",
                         "DescribesSchema"
@@ -81,6 +80,11 @@
             "panel": "admin",
             "label": "admin",
             "writable": true,
+            "writer": {
+                "storage": "default",
+                "dynamic_permissions": false,
+                "roles_only": false
+            },
             "tenant": {
                 "key": "global",
                 "type": null,
@@ -769,7 +773,6 @@
                         "ProvidesGrants",
                         "ProvidesRoleGrants",
                         "ProvidesPermissions",
-                        "StoresGrants",
                         "FencesReads",
                         "FiltersQueries",
                         "DescribesSchema"
@@ -784,6 +787,11 @@
             "panel": "backoffice",
             "label": "backoffice",
             "writable": true,
+            "writer": {
+                "storage": "default",
+                "dynamic_permissions": false,
+                "roles_only": false
+            },
             "tenant": {
                 "key": "global",
                 "type": null,
@@ -933,7 +941,6 @@
                         "ProvidesGrants",
                         "ProvidesRoleGrants",
                         "ProvidesPermissions",
-                        "StoresGrants",
                         "FencesReads",
                         "FiltersQueries",
                         "DescribesSchema"
@@ -948,6 +955,11 @@
             "panel": "seller",
             "label": "seller",
             "writable": true,
+            "writer": {
+                "storage": "default",
+                "dynamic_permissions": true,
+                "roles_only": false
+            },
             "tenant": {
                 "key": "global",
                 "type": null,
@@ -1111,7 +1123,6 @@
                         "ProvidesGrants",
                         "ProvidesRoleGrants",
                         "ProvidesPermissions",
-                        "StoresGrants",
                         "FencesReads",
                         "FiltersQueries",
                         "DescribesSchema"
@@ -1126,6 +1137,11 @@
             "panel": "teams",
             "label": "teams",
             "writable": true,
+            "writer": {
+                "storage": "default",
+                "dynamic_permissions": true,
+                "roles_only": false
+            },
             "tenant": {
                 "key": "global",
                 "type": null,
@@ -1605,6 +1621,7 @@
             "panel": "readonly",
             "label": "readonly",
             "writable": false,
+            "writer": null,
             "tenant": {
                 "key": "global",
                 "type": null,

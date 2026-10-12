@@ -333,15 +333,15 @@ it('ignores a split or retired owner, a type the oracle does not know and a modu
         ownershipRow('scopes', 'AzGuard\Scopes\Plugin', 'packages/core/src/Scopes/Plugin.php'),
         ownershipRow('scopes', 'AzGuard\Scopes\Internal\Helper', 'packages/core/src/Scopes/Internal/Helper.php'),
         ownershipRow('core', 'AzGuard\Panels\Panel', 'packages/core/src/Panels/Panel.php'),
-        ownershipRow('retired', 'AzGuard\Panels\GateMode', 'packages/core/src/Panels/GateMode.php'),
+        ownershipRow('retired', 'AzGuard\Panels\OldMode', 'packages/core/src/Panels/OldMode.php'),
     ];
 
     expect(ownershipScanOf([
         'packages/core/src/Authorization/Query/VisibilityScope.php' => "<?php\nnamespace AzGuard\\Authorization\\Query;\nuse AzGuard\\Scopes\\Plugin;\nfinal class VisibilityScope {}\n",
         'packages/core/src/Scopes/Plugin.php' => "<?php\nnamespace AzGuard\\Scopes;\nuse AzGuard\\Scopes\\Internal\\Helper;\nuse Illuminate\\Support\\Str;\nfinal class Plugin {}\n",
         'packages/core/src/Scopes/Internal/Helper.php' => "<?php\nnamespace AzGuard\\Scopes\\Internal;\nfinal class Helper {}\n",
-        'packages/core/src/Panels/Panel.php' => "<?php\nnamespace AzGuard\\Panels;\nuse AzGuard\\Panels\\GateMode;\nuse Vendor\\Unknown;\nfinal class Panel {}\n",
-        'packages/core/src/Panels/GateMode.php' => "<?php\nnamespace AzGuard\\Panels;\nfinal class GateMode {}\n",
+        'packages/core/src/Panels/Panel.php' => "<?php\nnamespace AzGuard\\Panels;\nuse AzGuard\\Panels\\OldMode;\nuse Vendor\\Unknown;\nfinal class Panel {}\n",
+        'packages/core/src/Panels/OldMode.php' => "<?php\nnamespace AzGuard\\Panels;\nfinal class OldMode {}\n",
     ], $rows))->toBe([]);
 });
 

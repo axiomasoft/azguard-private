@@ -216,7 +216,7 @@ it('registers Gate::before only while gate.enabled is true', function (): void {
 
 /*
  * I17, blocking now: the default of every key of the published core and Filament files and the environment names they
- * read, as 0.7.0 ships them. `defaults.gate.mode` was present at 0.7.0 and is retired by P2.5: it is an unknown key now.
+ * read, as 0.7.0 ships them. The `defaults.gate` section was present at 0.7.0 and is retired by P2.5: it is an unknown key now.
  */
 it('keeps the defaults of the published files and the environment names they read', function (): void {
     $root = dirname(__DIR__, 3).'/packages';
@@ -238,7 +238,7 @@ it('keeps the defaults of the published files and the environment names they rea
             putenv($saved[$index] === false ? $name : $name.'='.$saved[$index]);
         }
     }
-    $snapshot = ['environment' => $names, 'retired' => ['defaults.gate.mode' => ['present_now' => data_get($core, 'defaults.gate.mode') !== null, 'retired_by' => 'P2.5']],
+    $snapshot = ['environment' => $names, 'retired' => ['defaults.gate' => ['present_now' => data_get($core, 'defaults.gate') !== null, 'retired_by' => 'P2.5']],
         'azguard' => $core, 'azguard-filament' => $filament];
     [$actual, $stored] = FormatSnapshot::compare('config-defaults', $snapshot);
 

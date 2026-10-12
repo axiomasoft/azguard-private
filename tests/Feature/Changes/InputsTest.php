@@ -14,7 +14,7 @@ use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
-use AzGuard\Tests\Fixtures\Sources\WriterSource;
+use AzGuard\Tests\Fixtures\Sources\StaticSource;
 
 beforeEach(fn () => CrmWorld::seed());
 afterEach(fn () => CrmWorld::resetRuntime());
@@ -49,6 +49,6 @@ it('refuses a panel without a writer the change pipeline supports', function (ar
 
     expect(fn () => W::grant($panel, 'analyst', 2, 1))->toThrow(PanelNotWritableException::class);
 })->with([
-    'foreign writer' => [[new WriterSource('ledger')]],
+    'a source that only reads' => [[StaticSource::names('app', 'posts.view')]],
     'no writer' => [[]],
 ]);
