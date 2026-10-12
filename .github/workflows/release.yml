@@ -59,6 +59,12 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: ':memory:'
 
+      - name: Extended tests (scale)
+        run: composer test:extended
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+
       - name: Core archive in a clean Laravel 13 app
         run: bash bin/consumer-fixture.sh --laravel=13 --version="${GITHUB_REF_NAME#v}"
 

@@ -39,9 +39,13 @@ Composer derives the version from the git tag the split action pushes.
 
 1. Ensure the declared PHP/Laravel/Testbench matrix and the dedicated SQLite,
    PostgreSQL, MySQL, and Redis CI lanes are green for the candidate commit.
-   Run `composer check`, `composer test:pgsql`, `composer test:mysql`, and
-   `composer test:redis` against isolated local services before approval. A
-   missing service or skipped check is an incomplete qualification, not green.
+   The last `tests-nightly.yml` run (scale tests and all parity seeds on every server)
+   must be green for the candidate commit too: trigger it with `workflow_dispatch` when
+   the schedule has not run on it. Run `composer check`,
+   `composer test:db -- pgsql --parallel --full`, the same for `mysql` and `mariadb`,
+   `composer test:db -- <driver> --engines` and `composer test:redis` against isolated
+   local services before approval. A missing service or skipped check is an incomplete
+   qualification, not green.
 2. Decide the SemVer version from the actual API/default/schema delta. Move the
    reviewed release notes from `[Unreleased]` into a `## [x.y.z] - YYYY-MM-DD` section
    in the root `CHANGELOG.md` in the **candidate commit** (not after the tag).
