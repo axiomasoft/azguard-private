@@ -7927,12 +7927,20 @@
                             "byRef": false,
                             "variadic": false,
                             "hasDefault": false
+                        },
+                        {
+                            "name": "universe",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
                         }
                     ],
                     "return": "bool",
                     "namedArguments": true,
                     "contracts": [
-                        "@param Builder<Model> $contexts guarded: only where-narrowing is accepted"
+                        "@param Builder<Model> $contexts guarded: only where-narrowing is accepted",
+                        "@param Builder<Model> $universe the definition's context query already narrowed to the contexts the owner can reach:"
                     ]
                 }
             ]

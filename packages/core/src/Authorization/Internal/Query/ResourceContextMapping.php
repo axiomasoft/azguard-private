@@ -125,7 +125,7 @@ final readonly class ResourceContextMapping
         $contexts = new PredicateBuilder($group, $guard);
         $shape = PredicateBuilder::shape($contexts);
 
-        if (! $evaluator->eligibleContexts($frame->scopeRuntime($request->subject(), common: $common), $this->definition, $contexts)) {
+        if (! $evaluator->eligibleContexts($frame->scopeRuntime($request->subject(), common: $common), $this->definition, $contexts, clone $query)) {
             throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
         }
         $guard->validate();

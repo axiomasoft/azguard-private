@@ -34,11 +34,15 @@ final readonly class ScopeVisibility
 
     public function __construct(private Container $container) {}
 
-    /** @param Builder<Model> $contexts */
-    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
+    /**
+     * @param  Builder<Model>  $contexts
+     * @param  Builder<Model>  $universe  the contexts the owner can reach: the budget counts and the fan-out enumerates these
+     */
+    public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts,
+        Builder $universe): bool
     {
         $configurations = [$definition, ...($runtime->role === null ? [] : RoleBindings::of($runtime->role, $definition, $this->container))];
-        $adapter = $this->adapter($runtime, $definition);
+        $adapter = $this->declaredAdapter($runtime, $definition);
         $filtered = array_filter($configurations, static fn (AssignmentScopeDefinition $configuration): bool => self::filters($configuration) !== []) !== [];
 
         if (! $runtime->scope->context->isGlobal() || ($adapter === null && ! $filtered)) {
@@ -48,7 +52,7 @@ final readonly class ScopeVisibility
         }
 
         // Filters and adapters may read runtime.scope: give every context of the type its own concrete runtime.
-        $records = $definition->query()->limit(self::CONTEXT_BUDGET + 1)->get();
+        $records = $universe->limit(self::CONTEXT_BUDGET + 1)->get();
 
         if ($records->count() > self::CONTEXT_BUDGET) {
             throw new VisibilityNotSupportedException('scope_runtime_budget');
@@ -73,10 +77,11 @@ final readonly class ScopeVisibility
 
     /**
      * @param  list<AssignmentScopeDefinition>  $configurations
+     * @param  AssignmentScopeAccessAdapter|class-string<AssignmentScopeAccessAdapter>|null  $adapter
      * @param  Builder<Model>  $contexts
      */
     private function narrow(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, array $configurations,
-        ?AssignmentScopeAccessAdapter $adapter, Builder $contexts): void
+        AssignmentScopeAccessAdapter|string|null $adapter, Builder $contexts): void
     {
         foreach ($configurations as $configuration) {
             EligibilityBuilder::apply($definition, $contexts, self::filters($configuration), $runtime, $this->container);
@@ -86,16 +91,18 @@ final readonly class ScopeVisibility
             return;
         }
         // The adapter gets its own group: an OR inside it can never escape the filters beside it.
-        EligibilityBuilder::constrain($contexts, $adapter, $runtime);
+        EligibilityBuilder::constrain($contexts, $this->resolved($adapter), $runtime);
     }
 
-    private function adapter(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition): ?AssignmentScopeAccessAdapter
+    /** @return AssignmentScopeAccessAdapter|class-string<AssignmentScopeAccessAdapter>|null */
+    private function declaredAdapter(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition): AssignmentScopeAccessAdapter|string|null
     {
-        $declared = ScopeConfiguration::adapters($runtime->panel)[$definition->type()] ?? null;
+        return ScopeConfiguration::adapters($runtime->panel)[$definition->type()] ?? null;
+    }
 
-        if ($declared === null) {
-            return null;
-        }
+    /** A class-string adapter is made anew on every use, as the scalar path makes it for every concrete context. */
+    private function resolved(AssignmentScopeAccessAdapter|string $declared): AssignmentScopeAccessAdapter
+    {
         $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
 
         if (! $adapter instanceof AssignmentScopeAccessAdapter) {

@@ -150,7 +150,7 @@ it('raises scope_query for every false answer of a queryable evaluator, also for
             return array_fill(0, count($checks), true);
         }
 
-        public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
+        public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts, Builder $universe): bool
         {
             return ! $runtime->scope->context->isGlobal();
         }
@@ -159,3 +159,58 @@ it('raises scope_query for every false answer of a queryable evaluator, also for
 
     expect(scopeQueryReason($evaluator::class))->toBe('scope_query');
 });
+
+it('budgets the contexts of the owner only, not every row of the type', function (): void {
+    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)
+        ->filter(static fn (Builder $query) => $query->where('city', 'Paris')))]);
+    W::$tenanted = true;
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant()]), $configure, tenant: true);
+    $foreign = [];
+
+    for ($id = 5; $id <= 1005; $id++) {
+        $foreign[] = ['id' => $id, 'project_id' => null, 'org' => 'B', 'city' => 'Rome', 'state' => null, 'active' => true];
+    }
+
+    foreach (array_chunk($foreign, 200) as $chunk) {
+        VisibilityProject::query()->insert($chunk);
+    }
+
+    // 1005 rows of the type, but tenant A owns three of them: the list stays exact, as on 0.7.0.
+    expect($visibility->visibleTo($panel, VisibilityClient::query(), W::subject(), 'orders.view', W::scope())->pluck('id')->all())->toBe([101]);
+});
+
+it('makes a class-string access adapter anew for every context of a global list', function (): void {
+    ScopeQueryStatefulAdapter::$calls = 0;
+    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(new VisibilityProjectScope)->accessAdapter('project', ScopeQueryStatefulAdapter::class)]);
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant()]), $configure);
+
+    // The first adapter narrows to Paris and every later one does not: a shared instance would narrow all contexts.
+    expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1, 2, 3, 4]);
+});
+
+final class ScopeQueryStatefulAdapter implements AssignmentScopeAccessAdapter
+{
+    public static int $calls = 0;
+
+    private bool $first;
+
+    public function __construct()
+    {
+        $this->first = self::$calls++ === 0;
+    }
+
+    public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
+    {
+        return true;
+    }
+
+    public function allowsMany(array $refs, AssignmentScopeRuntime $runtime): array
+    {
+        return array_fill_keys(array_map(static fn (AssignmentScopeRef $ref): string => $ref->key(), $refs), true);
+    }
+
+    public function constrain(Builder $contextQuery, AssignmentScopeRuntime $runtime): Builder
+    {
+        return $this->first ? $contextQuery->where('city', 'Paris') : $contextQuery->whereRaw('1 = 1');
+    }
+}

@@ -21,7 +21,9 @@ interface QueryableAssignmentScopeEvaluator extends AssignmentScopeEvaluator
      * runtime cannot be expressed exactly (core raises VisibilityNotSupportedException 'scope_query').
      *
      * @param  Builder<Model>  $contexts  guarded: only where-narrowing is accepted
+     * @param  Builder<Model>  $universe  the definition's context query already narrowed to the contexts the owner can reach:
+     *                                    read it (count, enumerate) to bound a per-context expansion; narrowing it changes nothing
      */
     public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition,
-        Builder $contexts): bool;
+        Builder $contexts, Builder $universe): bool;
 }
