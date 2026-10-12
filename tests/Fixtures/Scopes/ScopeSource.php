@@ -21,7 +21,7 @@ final class ScopeSource extends GeneratedSource
         $this->directScopes = $scopes;
 
         foreach ($this->direct as $grant) {
-            if (array_any($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope))) {
+            if (array_filter($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope)) !== []) {
                 yield $grant;
             }
         }
@@ -33,7 +33,7 @@ final class ScopeSource extends GeneratedSource
         $this->roleScopes = $scopes;
 
         foreach ($this->roles as $grant) {
-            if (array_any($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope))) {
+            if (array_filter($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope)) !== []) {
                 yield $grant;
             }
         }

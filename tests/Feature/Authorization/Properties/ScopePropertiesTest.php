@@ -98,7 +98,7 @@ it('P6 typed subjects tenants and contexts with overlapping ids remain distinct 
         Carbon::setTestNow($s->now);
         $grant = $s->grant($s->scope(true), source: 'identity-'.$seed);
         $source = new CacheSource(name: 'identity-'.$seed, read: function (SubjectRef $subject, array $scopes, EvaluationContext $context) use ($s, $grant): iterable {
-            if ($subject->equals($s->subject) && array_any($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope))) {
+            if ($subject->equals($s->subject) && array_filter($scopes, fn (AccessScope $scope): bool => $scope->equals($grant->scope)) !== []) {
                 yield $grant;
             }
         });

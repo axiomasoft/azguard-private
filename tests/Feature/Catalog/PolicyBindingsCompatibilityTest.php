@@ -70,7 +70,7 @@ it('restores typed php and native model bindings and evaluates the native policy
     $this->artisan('azguard:catalog:cache')->assertSuccessful();
     $file = require self::$catalogCachePath;
     $scalar = static function (mixed $value) use (&$scalar): bool {
-        return is_array($value) ? array_all($value, $scalar) : is_scalar($value) || $value === null;
+        return is_array($value) ? array_filter($value, fn (mixed $item): bool => ! $scalar($item)) === [] : is_scalar($value) || $value === null;
     };
     expect($scalar($file))->toBeTrue()->and($file['version'])->toBe(CatalogCache::VERSION)
         ->and(CatalogCache::VERSION)->toBe(2);

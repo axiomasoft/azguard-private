@@ -148,7 +148,7 @@ it('does not request global roles from a required tenant without an allow list',
     $scope = ScopeWorld::scope();
     expect($engine->decide($panel, $request->inScope($scope))->reason)->toBe(DecisionReason::NotGranted)
         ->and($engine->isSuperAdmin($panel, $request->subject(), $scope))->toBeFalse()
-        ->and(array_any($source->roleScopes, fn (AccessScope $scope): bool => $scope->tenant->isGlobal()))->toBeFalse();
+        ->and(array_filter($source->roleScopes, fn (AccessScope $scope): bool => $scope->tenant->isGlobal()) !== [])->toBeFalse();
 });
 
 it('an allow listed role never turns ordinary global direct grants into tenant authority', function (): void {
