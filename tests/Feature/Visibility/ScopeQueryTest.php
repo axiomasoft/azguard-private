@@ -4,22 +4,31 @@ declare(strict_types=1);
 
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\AssignmentScopeRuntime;
+use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
+use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeEvaluator;
+use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Sources\AssignmentScopeSelection;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Identity\AccessScope;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Scopes\ContextAware;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Scopes\RecordingEvaluator;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityClient;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;
 use AzGuard\Tests\Fixtures\Visibility\VisibilitySource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityWorld as W;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -97,4 +106,56 @@ it('marks witnesses of every context only when they are tenant-wide', function (
         ->and(AssignmentScopeSelection::inEveryContext([$global])->isEverywhere())->toBeTrue()
         ->and(AssignmentScopeSelection::everywhere([$global])->appliesInEveryContext())->toBeFalse()
         ->and(fn () => AssignmentScopeSelection::inEveryContext([$scoped]))->toThrow(InvalidSourceContributionException::class, 'tenant-wide');
+});
+
+it('keeps an OR inside the access adapter conjoined with the definition filters (no broadening)', function (): void {
+    $adapter = new class implements AssignmentScopeAccessAdapter
+    {
+        public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
+        {
+            return true;
+        }
+
+        public function allowsMany(array $refs, AssignmentScopeRuntime $runtime): array
+        {
+            return array_fill_keys(array_map(static fn (AssignmentScopeRef $ref): string => $ref->key(), $refs), true);
+        }
+
+        public function constrain(Builder $contextQuery, AssignmentScopeRuntime $runtime): Builder
+        {
+            return $contextQuery->where('id', '>', 0)->orWhere('city', 'Rome');
+        }
+    };
+    $configure = static fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)
+        ->filter(static fn (Builder $query) => $query->where('city', 'Paris')))->accessAdapter('project', $adapter)]);
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(2), W::grant()]), $configure);
+
+    // Project 2 is in Rome: (city = Paris) AND (id > 0 OR city = Rome) excludes it in its own scope and in the list of Paris projects.
+    expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view', W::scope(2))->pluck('id')->all())->toBe([])
+        ->and($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->orderBy('id')->pluck('id')->all())->toBe([1, 4]);
+});
+
+it('raises scope_query for every false answer of a queryable evaluator, also for a global request', function (): void {
+    $evaluator = new class implements QueryableAssignmentScopeEvaluator
+    {
+        public function validate(AssignmentScopeDefinition $definition, ?AssignmentScopeDefinition $registered): void {}
+
+        public function allows(AssignmentScopeRuntime $runtime, ResolvedAssignmentScope $resolved): bool
+        {
+            return true;
+        }
+
+        public function allowsMany(array $checks): array
+        {
+            return array_fill(0, count($checks), true);
+        }
+
+        public function eligibleContexts(AssignmentScopeRuntime $runtime, QueryableAssignmentScopeDefinition $definition, Builder $contexts): bool
+        {
+            return ! $runtime->scope->context->isGlobal();
+        }
+    };
+    app()->instance($evaluator::class, $evaluator);
+
+    expect(scopeQueryReason($evaluator::class))->toBe('scope_query');
 });

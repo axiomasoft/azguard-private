@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace AzGuard\Scopes\Query;
 
 use AzGuard\Context\AssignmentScopeRuntime;
+use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
+use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Policies\RuntimeInvoker;
 use AzGuard\Support\ModelKey;
@@ -135,6 +137,26 @@ final class EligibilityBuilder
             $query->getQuery()->addNestedWhereQuery($predicate->getQuery());
         }
 
+    }
+
+    /**
+     * Narrows the candidate contexts by the access adapter in a group of its own, guarded like a filter; an adapter
+     * that replaces the query is unsupported.
+     *
+     * @param  Builder<Model>  $contexts
+     */
+    public static function constrain(Builder $contexts, AssignmentScopeAccessAdapter $adapter, AssignmentScopeRuntime $runtime): void
+    {
+        $guard = new QueryGuard;
+        $group = new PredicateBuilder($contexts->getModel()->newModelQuery(), $guard);
+        $shape = self::shape($group);
+
+        if ($adapter->constrain($group, $runtime) !== $group) {
+            throw new VisibilityNotSupportedException('replacement_scope_query');
+        }
+        $guard->validate();
+        self::validateShape($group, $shape);
+        $contexts->getQuery()->addNestedWhereQuery($group->getQuery());
     }
 
     /** @param Builder<Model> $builder

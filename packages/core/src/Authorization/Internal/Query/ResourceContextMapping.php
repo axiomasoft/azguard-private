@@ -32,8 +32,8 @@ use ReflectionNamedType;
 /**
  * The resource's explicitly declared single context, its structural owner and the join to the resource branch. The
  * eligibility of the contexts comes from the panel's evaluator through `eligibleContexts()`, on an isolated, guarded
- * candidate query that only accepts narrowing; a runtime it cannot express exactly is either decomposed into the
- * concrete contexts of a global request (bounded) or unsupported, never approximated.
+ * candidate query that only accepts narrowing; a runtime it cannot express exactly is unsupported, never
+ * approximated.
  */
 final readonly class ResourceContextMapping
 {
@@ -126,31 +126,7 @@ final readonly class ResourceContextMapping
         $shape = PredicateBuilder::shape($contexts);
 
         if (! $evaluator->eligibleContexts($frame->scopeRuntime($request->subject(), common: $common), $this->definition, $contexts)) {
-            $guard->validate();
-            PredicateBuilder::validateShape($contexts, $shape);
-
-            if (! $frame->scope()->context->isGlobal() || $contexts->getQuery()->wheres !== []) {
-                throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
-            }
-
-            // The evaluator needs the concrete context of the runtime: one exact branch per owned context, bounded.
-            $structural = $this->definition->query();
-            $compiler->constrain($structural, $this->owner($structural, $request, $frame, $requiresRecord));
-            $records = (clone $structural)->limit(1001)->get();
-
-            if ($records->count() > 1000) {
-                throw new VisibilityNotSupportedException('scope_runtime_budget');
-            }
-            $structural->where(function (Builder $or) use ($records, $request, $frame, $common): void {
-                $or->whereRaw('1 = 0');
-                foreach ($records as $record) {
-                    $local = $this->frame($frame, AssignmentScopeRef::of($this->definition->type(), ModelKey::of($record)));
-                    $branch = $this->query($request, $local, $common);
-                    $or->orWhereIn($record->getQualifiedKeyName(), $branch->select($record->getQualifiedKeyName())->toBase());
-                }
-            });
-
-            return $structural;
+            throw new VisibilityNotSupportedException('scope_query', $evaluator::class);
         }
         $guard->validate();
         PredicateBuilder::validateShape($contexts, $shape);
