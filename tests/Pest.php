@@ -28,8 +28,17 @@ foreach ($zoneMap['zones'] as $zoneName => $zone) {
     }
 }
 
+// `database:<zone>` is the part of a zone that depends on the engine: `--group=database:storage` selects exactly it.
 foreach ($zoneMap['database'] as $databaseTests) {
     pest()->group('database')->in($databaseTests);
+
+    foreach ($zoneMap['zones'] as $zoneName => $zone) {
+        foreach ($zone['tests'] as $zoneTests) {
+            if ($databaseTests === $zoneTests || str_starts_with($databaseTests, $zoneTests.'/') || str_starts_with($zoneTests, $databaseTests.'/')) {
+                pest()->group("database:{$zoneName}")->in($databaseTests);
+            }
+        }
+    }
 }
 
 uses(BootsFilament::class)->group('filament')->afterEach(fn () => FilamentFixture::reset())->in('Feature/Filament');
