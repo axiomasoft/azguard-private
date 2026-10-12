@@ -13,7 +13,6 @@ use AzGuard\Tests\Engines\Support\Processes;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
-use Closure;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
