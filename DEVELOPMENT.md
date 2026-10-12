@@ -37,8 +37,11 @@ Mount or symlink the package directory into the app, then `composer update`.
 
 | Command | Tool | Description |
 |---|---|---|
-| `composer test` | Pest | Run the test suite |
-| `composer test:parallel` | Pest / ParaTest | Run the SQLite suite in parallel with random order intact |
+| `composer test` | Pest | The SQLite lane: every test except `engines`, `redis`, `replica` and `extended` |
+| `composer test:parallel` | Pest / ParaTest | The SQLite lane on 4 workers, random order intact |
+| `composer test:changed` | Pest | Only the zones a change touches and the zones that use them, see [tests/README.md](tests/README.md) |
+| `composer test:db -- <driver>` | Pest / ParaTest | The database lane on `pgsql`, `mysql` or `mariadb` (`--parallel[=N]`, `--full`, `--engines`, `--zone=`) |
+| `composer test:extended` | Pest | The scale tests (R58) that nightly CI and a release run |
 | `composer test:types` | Pest | Type-coverage gate (min 98%) |
 | `composer analyse` | PHPStan / Larastan | Static analysis (level 9, no baseline) |
 | `composer lint` / `lint:check` | Pint | Fix / check code style |
@@ -54,9 +57,8 @@ Feature tests use an in-memory SQLite database, so the `pdo_sqlite` /
 `sqlite3` PHP extensions must be enabled.
 
 `composer test:parallel` keeps Pest's random execution order and passes the
-same 1G memory limit to every ParaTest worker. It is intentionally limited to
-the SQLite lane; run PostgreSQL and MySQL lanes sequentially with their
-dedicated commands below.
+same 1G memory limit to every ParaTest worker. Tests are routed by zone and by
+lane; [tests/README.md](tests/README.md) has the zone map and the lane rules.
 
 ## Optional mutation testing
 
@@ -111,13 +113,15 @@ are published on `127.0.0.1` only; credentials come from `.env`, never
 hardcoded in the compose file. The database names default to `azguard_test`
 (`.env.example`), keeping the invariant that test database names end in `_test`.
 
-With the stand up, run the suite against a real engine via `composer
-test:pgsql` / `composer test:mysql` / `composer test:mariadb` — these switch `DB_CONNECTION` and
-otherwise share `tests/TestCase.php`'s env-driven connection config with the
-sqlite default (`composer test`). CI runs sqlite (`tests.yml` main job), the PG/MySQL/MariaDB matrix (`test-db-matrix`
-job), and a dedicated Redis lane (`test-redis`) on every push/PR. **All three
-lanes are required for merge** — sqlite alone self-skips database-specific code,
-and array-store tests do not prove cross-process Redis lock behaviour.
+With the stand up, run the database lane against a real engine with
+`composer test:db -- pgsql|mysql|mariadb`. The lane is the tests whose result depends on the engine (group
+`database`: storage, database sources, the change pipeline, SQL visibility, directories, parity, contracts); the
+rest of the suite runs once on SQLite (`composer test`). The lane switches `DB_CONNECTION` and otherwise shares
+`tests/TestCase.php`'s env-driven connection config with the sqlite default. CI runs sqlite (`tests.yml` main job),
+the PG/MySQL/MariaDB lane on Laravel 12 and 13 (`test-db-matrix` job) and a dedicated Redis lane (`test-redis`) on
+every push/PR; the scale tests and all parity seeds run nightly (`tests-nightly.yml`). **All lanes are required for
+merge** — sqlite alone self-skips database-specific code, and array-store tests do not prove cross-process Redis
+lock behaviour.
 
 On hosts with existing PostgreSQL/MySQL servers, export `PGSQL_PORT=55432 MYSQL_PORT=53306`
 before **both** Compose and test commands (MariaDB defaults to 3307). Before recreating any database
@@ -140,62 +144,38 @@ The matrix caches only Composer's downloaded archives, keyed by the Composer man
 lockfiles; `composer update` still resolves and installs dependencies on every job.
 The real-replica profile retains its persistent storage and WAL settings.
 
+### Parallel database runs
+
 Tests still drop and migrate the schema before each server-backed test. Replacing that with a single
 migration and truncation is rejected: tests create their own tables, and MySQL DDL implicitly commits.
-Driver suites remain sequential. Concurrent drivers would need separate Testbench skeletons;
-`TESTBENCH_APP_BASE_PATH` is supported by the installed Testbench, but this change does not add a
-parallel launcher because full-suite equivalence and the required 30% gain have not been measured.
+Avoid the DDL in a test that does not need a schema (`tests/Feature/Storage/DirectWritesTest.php` binds its models
+without one): on a server it is the largest cost of a test.
 
-Before enabling per-driver `pest --parallel`, the P2 follow-up must fix
-`ContractWorld::rowCounts()` to count only the selected database: neighbouring databases on the same
-MySQL server can hide writes from negative fixtures. Every worker also needs its own Testbench
-skeleton and test database; Laravel's `azguard_test_test_N` names currently fail the `_test` suffix
-guard. Keep these prerequisites together. This infrastructure change leaves the stabilization plan untouched.
+`composer test:db -- <driver> --parallel[=N]` runs N ParaTest workers (4 by default, 8 in CI). Each worker uses its
+own database `azguard_<N>_test` (`tests/Support/TestDatabase.php`), so workers never drop each other's tables; the
+compose stand creates 16 of them on first start (`TEST_DATABASE_WORKERS`, `docker/initdb`). On an existing server
+create one database per worker yourself (a missing one fails with the exact statement to run). More than about 8
+workers gain little: the longest file bounds the run and every worker slows the others. The engine tests (races on
+one database, replication) never run in parallel: `composer test:db -- <driver> --engines`.
 
-### Infrastructure measurement (2026-10-11)
+The database lane runs parity seeds 1 and 2 (`PARITY_SEEDS`); `--full` runs all eight, as nightly CI does. The
+guarded ledger of unsupported cases is compared only by a run with every seed, which the SQLite lane is.
 
-The owner requested short checks instead of full-suite runs. The same 51 tests ran sequentially on
-each server before and after the change, with `--order-by=random --random-order-seed=20261011`.
-They cover DDL snapshots, constraints, JSON grants, committed-state isolation, database source reads,
-change races, storage schemas and negative contract fixtures. Test identities and assertion counts
-match before/after; every measured run exits 0 with no errors, failures or skips.
+### Infrastructure measurement (2026-10-12)
 
-| Engine | Tests | Assertions | Before (wall seconds) | After (wall seconds) | Speedup |
-|---|---:|---:|---:|---:|---:|
-| PostgreSQL | 51 | 485 | 15.37 | 8.94 | 1.72× |
-| MySQL | 51 | 485 | 50.90 | 11.01 | 4.62× |
-| MariaDB | 51 | 543 | 29.93 | 8.36 | 3.58× |
+Point runs on the stand (PostgreSQL 16), before and after; the full-suite numbers are from the earlier junit
+reports (`var/perf/pgsql-seq.xml`: 5011 tests, 1938 s sequential) and are not re-measured.
 
-SQLite's matching non-engine selection passes 33 tests / 419 assertions in 0.86 wall seconds.
-The historical full-suite durations (SQLite 113 s, PostgreSQL 538 s, MySQL 5449 s / 6813 s under
-disk load) are not comparable to this subset; full-suite speed and equivalence remain unmeasured.
-No full 4895/4959-test suite or complete 68-test engine bundle was run for this change.
-Discovery with `--list-tests-xml` confirms the unchanged inventories without executing them:
-SQLite 4895, each server driver 4959, and the engine group 68.
+| What | Before | After |
+|---|---:|---:|
+| `DirectWritesTest` on PostgreSQL | 590 tests, 290 s | 199 tests, 8.6 s |
+| `DirectWritesTest` on SQLite | 590 tests, 28 s | 199 tests, ≈4 s |
+| `Scale*Test` on SQLite, without R58 | — | 2 tests, 8 s |
+| Parity on PostgreSQL, seeds 1 and 2 | seeds 1-8, ≈78 s | 40 s |
+| `test:changed` on the `bench` zone | all 5083 tests | 164 tests, 64 s |
 
-To reproduce the server selection, replace `test:mysql` with `test:pgsql` or `test:mariadb`:
-
-```bash
-export PGSQL_PORT=55432 MYSQL_PORT=53306
-composer test:mysql -- \
-  tests/Engines/StorageDdlTest.php tests/Engines/StorageConstraintsTest.php \
-  tests/Engines/GrantFieldsEngineTest.php tests/Engines/StorageIsolationTest.php \
-  tests/Engines/DatabaseSourceEngineTest.php tests/Engines/ChangeRaceTest.php \
-  tests/Feature/Storage/StorageSchemaTest.php tests/Contracts/NegativeFixturesTest.php \
-  --order-by=random --random-order-seed=20261011
-```
-
-An initial diagnostic invocation omitted `--order-by=random`: PHPUnit warned about the seed and
-exited 1 despite passing assertions. PAO's JSON omitted that runner warning. The table uses only
-corrected, successful invocations; no failure/skip gate was relaxed.
-
-The CI follow-up reuses this Compose configuration, including durability flags, and caches Composer
-downloads. Hosted-runner timings and cache hits still need a subsequent CI run; local timings do
-not predict the full hosted job. The security hook rejected disposable `docker run --rm` validation
-as a file-removal command, so the follow-up checks use the existing test stand with non-recreating
-Compose starts and the same short test selection.
-All 51 selected tests pass on each driver with unchanged assertion counts: PostgreSQL 9.98 s,
-MySQL 11.38 s, MariaDB 8.12 s (wall time). Container IDs are unchanged.
+The 590 → 199 tests are the same method × kind × environment cases: the refusal before SQL is a matrix without a
+schema, and one test runs every method and kind in `local`, `testing` and `production` against real rows.
 
 With Redis up (`make up`), run the qualification bundle:
 
