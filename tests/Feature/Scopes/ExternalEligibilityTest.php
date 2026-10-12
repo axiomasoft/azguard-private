@@ -9,7 +9,7 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityExternalAdapter;
 use AzGuard\Tests\Fixtures\Scopes\ScopeWorld;
@@ -22,7 +22,7 @@ it('runs external scalar eligibility after structural resolution without a query
     $adapter = new EligibilityExternalAdapter(static fn (): bool => $allowed);
     $definition = new StoreScope;
     $source = new GeneratedSource(direct: [ScopeWorld::grant(ScopeWorld::scope(context: 1))]);
-    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter)));
+    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', $adapter)]));
     $decision = $engine->decide($panel, $request->inScope(ScopeWorld::scope(context: 1)), ActorRef::system('worker'));
     expect($decision->allowed())->toBe($allowed)->and($definition->resolves)->toBe(1)->and($adapter->observed)->toHaveCount($allowed ? 2 : 1);
     $common = $adapter->observed[0];
@@ -40,7 +40,7 @@ it('does not call external eligibility for unknown foreign owner or foreign iden
     $adapter = new EligibilityExternalAdapter;
     $definition = new StoreScope;
     $source = new GeneratedSource;
-    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter)));
+    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', $adapter)]));
     $scope = match ($case) {
         'owner' => ScopeWorld::scope(context: 2),
         'missing' => AccessScope::in(ScopeWorld::scope()->tenant, AssignmentScopeRef::of('store', 99)),
@@ -54,7 +54,7 @@ it('fails closed on external exceptions without broad query fallback', function 
         throw new RuntimeException('remote refused');
     });
     $definition = new StoreScope;
-    [$engine, $panel, $request] = ScopeWorld::compile(new GeneratedSource, definition: $definition, configure: fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter)));
+    [$engine, $panel, $request] = ScopeWorld::compile(new GeneratedSource, definition: $definition, configure: fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', $adapter)]));
     expect($engine->decide($panel, $request->inScope(ScopeWorld::scope(context: 1)))->reason)->toBe(DecisionReason::AssignmentScopeFilterError);
 });
 
@@ -67,7 +67,7 @@ it('resolves the external adapter class at each operation with live inputs', fun
     });
     $definition = new StoreScope;
     $source = new GeneratedSource(direct: [ScopeWorld::grant(ScopeWorld::scope(context: 1))]);
-    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', EligibilityExternalAdapter::class)));
+    [$engine, $panel, $request] = ScopeWorld::compile($source, definition: $definition, configure: fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', EligibilityExternalAdapter::class)]));
     expect($created)->toBe(0);
     for ($i = 0; $i < 2; $i++) {
         expect($engine->decide($panel, $request->inScope(ScopeWorld::scope(context: 1)))->allowed())->toBeTrue();

@@ -12,7 +12,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\ExternalProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Queries\Clients\ClientVisibility;
@@ -24,7 +24,7 @@ it('R19 R50 scalar external definition resolves model null without a project que
     ExternalProjectScope::$resolutions = 0;
     $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('external.project', 1));
     World::assign('clients.view_any', 1, 1, kind: 'permission', scope: $scope);
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(new ExternalProjectScope)));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(new ExternalProjectScope)]));
     $request = AccessRequest::for(SubjectRef::of('crm.user', 1), PermissionKey::of('crm', 'clients.view_any'))->inScope($scope);
     DB::flushQueryLog();
     DB::enableQueryLog();
@@ -47,7 +47,7 @@ it('R19 R50 scalar external definition resolves model null without a project que
 it('R19 R50 refuses the external model null exact list before count or pagination after a scalar positive control', function (): void {
     $scope = AccessScope::in(TenantRef::of('crm.organization', 1), AssignmentScopeRef::of('external.project', 1));
     World::assign('clients.view_any', 1, 1, kind: 'permission', scope: $scope);
-    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(new ExternalProjectScope)));
+    $panel = ClientVisibility::panel(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(new ExternalProjectScope)]));
     $request = AccessRequest::for(SubjectRef::of('crm.user', 1), PermissionKey::of('crm', 'clients.view_any'))->inScope($scope);
     World::assertDecision(app(Authorizer::class)->decide($panel, $request), true, DecisionReason::Granted);
     $query = Client::query();

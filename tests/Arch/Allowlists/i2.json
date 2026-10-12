@@ -189,41 +189,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Panels/Panel.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P2"
-    },
-    {
-        "file": "packages/core/src/Panels/PanelBuilder.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P2"
-    },
-    {
-        "file": "packages/core/src/Panels/PanelCompiler.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Panels/PanelCompiler.php",
-        "reference": "AzGuard\\Scopes\\AssignmentScopePolicy",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Panels/PanelCompiler.php",
-        "reference": "AzGuard\\Scopes\\ModelAssignmentScopeDefinition",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Schema/SchemaBuilder.php",
         "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
         "kind": "import",

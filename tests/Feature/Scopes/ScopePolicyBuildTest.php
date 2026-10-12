@@ -6,8 +6,8 @@ use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
@@ -29,7 +29,7 @@ it('requires a tenant membership adapter at panel compilation', function (): voi
 
 it('accepts configured common filters at compilation', function (): void {
     $definition = ConfiguredProjectScope::make()->filter(new ActiveProjects);
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
         ->not->toThrow(DefinitionException::class);
 });
 
@@ -51,7 +51,7 @@ it('accepts configured role filters at compilation', function (): void {
             return [ConfiguredProjectScope::make()->filter(new ActiveProjects)];
         }
     };
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(ConfiguredProjectScope::class))->roles([$role::class])]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit(ConfiguredProjectScope::class)])->roles([$role::class])]))
         ->not->toThrow(DefinitionException::class);
 });
 
@@ -79,7 +79,7 @@ it('rejects a role binding that changes registered scope identity', function ():
             }];
         }
     };
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(StoreScope::class))->roles([$role::class])]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit(StoreScope::class)])->roles([$role::class])]))
         ->toThrow(InvalidConfigurationException::class, 'conflicting');
 });
 
@@ -87,7 +87,7 @@ it('accepts model shortcuts only with a structural owner in tenant panels', func
     Relation::morphMap(['project' => Project::class], false);
     expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)
         ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-        ->scopes(AssignmentScopePolicy::inherit(Project::class))]))->toThrow(InvalidConfigurationException::class, 'authoritative tenant owner');
-    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit(Project::class))]);
+        ->plugins([ScopesPlugin::inherit(Project::class)])]))->toThrow(InvalidConfigurationException::class, 'authoritative tenant owner');
+    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit(Project::class)])]);
     expect(array_values($registry->get('admin')->scopeDefinitions())[0])->toBeInstanceOf(ModelAssignmentScopeDefinition::class);
 });

@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Scopes\EligibilityCityFilter;
@@ -49,7 +49,7 @@ it('provides nullable role and grant for common direct and policy-only filters w
         $query->where('is_active', true);
     });
     $source = new GeneratedSource(direct: $authority === 'direct' ? [EligibilityWorld::direct()] : []);
-    [$engine, $panel, $request] = EligibilityWorld::compile($source, fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)));
+    [$engine, $panel, $request] = EligibilityWorld::compile($source, fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)]));
 
     if ($authority === 'policy') {
         $request = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.policy'));
@@ -62,7 +62,7 @@ it('provides nullable role and grant for common direct and policy-only filters w
 
 it('rejects a required missing runtime user instead of inventing an empty model', function (): void {
     $definition = EligibilityProjectScope::make()->filter(fn (Builder $query, User $user) => $query->where('city', $user->getAttribute('city')));
-    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition)));
+    [$engine, $panel, $request] = EligibilityWorld::compile(new GeneratedSource(direct: [EligibilityWorld::direct()]), fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)]));
     $request = AccessRequest::for(SubjectRef::of('user', 99), $request->permission())->inScope(EligibilityWorld::scope());
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::AssignmentScopeFilterError)
         ->and(app()->bound(User::class))->toBeFalse();

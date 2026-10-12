@@ -64,7 +64,7 @@
         "migration 2026_10_20_000000_create_azguard_audit_log (P3)": false,
         "generated migration <date>_create_azguard_<storage>_audit_log.php (P3)": false,
         "command azguard:audit:migration (P3)": false,
-        "plugin id azguard/scopes (P2)": false,
+        "plugin id azguard/scopes (P2)": true,
         "provider AzGuard\\Audit\\AuditServiceProvider (P3)": false,
         "provider AzGuard\\DevTools\\DevToolsServiceProvider (P3)": false
     }

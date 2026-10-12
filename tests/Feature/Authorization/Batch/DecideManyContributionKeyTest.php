@@ -18,7 +18,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
@@ -74,7 +74,7 @@ it('A03 keeps one external verdict per contribution in either grant order', func
         new GeneratedSource(direct: $viewFirst ? $grants : array_reverse($grants)),
         fn (PanelBuilder $panel) => $panel->roles([ReaderRole::class])
             ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-            ->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', viewOnlyAdapter())),
+            ->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', viewOnlyAdapter())]),
     );
     $view = $request->inScope($one);
     $edit = AccessRequest::for($request->subject(), PermissionKey::of('admin', 'orders.edit'))->inScope($one);
@@ -129,7 +129,7 @@ it('A03 keeps the native verdict of a tenant-wide and a context-specific contrib
     [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
         ->roles([ContributionScopeFilteredRole::class])
         ->tenants(TenantPolicy::required(CrmOrganization::class)->requireMembership(new Membership(['1'])))
-        ->scopes(AssignmentScopePolicy::inherit(ConfiguredProjectScope::make())));
+        ->plugins([ScopesPlugin::inherit(ConfiguredProjectScope::make())]));
     $request = $request->inScope(AccessScope::in($tenant, $project));
 
     $scalar = $engine->decide($panel, $request);

@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
@@ -122,11 +122,11 @@ it('R16 direct grants expose role null and cannot manufacture a required PHP rol
     World::assertDecision(World::decide($panel, 3), true, DecisionReason::Granted);
     expect(ActiveProjects::$observed[0]->role)->toBeNull()->and(ActiveProjects::$observed[0]->grant)->toBeNull()
         ->and(SellerProjects::$observed)->toBe([]);
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(
         function (Builder $query, BaseRole $role): void {
             $query->where('is_active', true);
         },
-    ))));
+    ))]));
     World::assertDecision(World::decide($panel, 3), false, DecisionReason::AssignmentScopeFilterError);
 });
 

@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
@@ -53,7 +53,7 @@ it('gives Assignment filters the validated proposal, the target user, the code r
     $filter = static function (Builder $query, array $proposed, ?ActorRef $actor, ?User $user) use (&$seen): void {
         $seen[] = [$proposed, $actor, $user?->getKey()];
     };
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter($filter))));
+    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter($filter))]));
     $definition = $panel->scopeDefinition('crm.project');
     $eligibility = new ScopeEligibility(app());
     $runtime = assignmentRuntime($panel, 1, null, ['until' => null, 'fields' => ['region' => 'R1']], new SellerRole);
@@ -65,7 +65,7 @@ it('gives Assignment filters the validated proposal, the target user, the code r
 });
 
 it('refuses explicitly a filter that requires an actor or actor model that is absent', function (Closure $filter): void {
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter($filter))));
+    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter($filter))]));
     $resolved = $panel->scopeDefinition('crm.project')?->resolve(AssignmentScopeRef::of('crm.project', 1));
 
     expect(fn () => (new ScopeEligibility(app()))->assignment(assignmentRuntime($panel, 1, null), $resolved))->toThrow(RuntimeException::class);

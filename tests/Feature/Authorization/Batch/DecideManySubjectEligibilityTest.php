@@ -13,7 +13,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
@@ -49,7 +49,7 @@ it('qualifies native and external scopes against each supplied subject instance'
                 }
             }
         });
-        $policy = AssignmentScopePolicy::inherit($definition);
+        $policy = ScopesPlugin::inherit($definition);
     } else {
         $definition = new StoreScope(static fn (AssignmentScopeRef $ref): ResolvedAssignmentScope => new ResolvedAssignmentScope($ref, $tenant));
         $adapter = new class implements AssignmentScopeAccessAdapter
@@ -74,13 +74,13 @@ it('qualifies native and external scopes against each supplied subject instance'
                 throw new RuntimeException('External access does not constrain a native query.');
             }
         };
-        $policy = AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter);
+        $policy = ScopesPlugin::inherit($definition)->accessAdapter('store', $adapter);
     }
     [$engine, $panel, $request] = AuthorizationWorld::compile(
         new GeneratedSource(direct: [Grant::of(PermissionPattern::of('admin', 'orders.view'), 'generated', $scope)]),
         static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->tenants(TenantPolicy::required($native ? CrmOrganization::class : Organization::class)->requireMembership(new Membership(['1'])))
-            ->scopes($policy),
+            ->plugins([$policy]),
     );
     $allowed = User::query()->findOrFail(1);
     $allowed->setAttribute('department', 'allow');

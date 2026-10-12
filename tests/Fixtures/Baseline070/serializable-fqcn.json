@@ -39,6 +39,15 @@
             "owner": "core"
         },
         {
+            "fqcn": "AzGuard\\Context\\AssignmentScopeMode",
+            "kinds": [
+                "enum"
+            ],
+            "target": "AzGuard\\Context\\AssignmentScopeMode",
+            "action": "new",
+            "owner": "core"
+        },
+        {
             "fqcn": "AzGuard\\Context\\AssignmentScopePhase",
             "kinds": [
                 "enum"

@@ -16,6 +16,7 @@ use AzGuard\Exceptions\DirectoryScanLimitException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
@@ -186,7 +187,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
 
     private function adapter(string $type, LookupContext $lookup): ?AssignmentScopeAccessAdapter
     {
-        $declared = $lookup->panel->scopes()->adapters()[$type] ?? null;
+        $declared = ScopeConfiguration::adapters($lookup->panel)[$type] ?? null;
         $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
 
         if ($adapter !== null && ! $adapter instanceof AssignmentScopeAccessAdapter) {

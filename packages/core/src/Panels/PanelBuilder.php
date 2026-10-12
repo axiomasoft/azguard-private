@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\EvaluationContext;
@@ -25,7 +26,6 @@ use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
 use Closure;
@@ -470,9 +470,17 @@ final class PanelBuilder
         return $this->record(PanelRecipe::TENANTS, $policy);
     }
 
-    public function scopes(AssignmentScopePolicy $policy): static
+    /**
+     * Contributes to the assignment scope declaration of the panel. The mode is taken from the highest layer (the
+     * provider, then plugins, then `configure`); definitions and directories of every layer are merged, a scope type
+     * declared twice must keep its structure, and two layers cannot name different directories for one type or
+     * different evaluators. `ScopesPlugin` contributes through this method.
+     *
+     * @throws RegistryFrozenException
+     */
+    public function assignmentScopes(AssignmentScopeDeclaration $declaration): static
     {
-        return $this->record(PanelRecipe::SCOPES, $policy);
+        return $this->record(PanelRecipe::SCOPES, $declaration);
     }
 
     /**

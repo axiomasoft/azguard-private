@@ -8,11 +8,12 @@ use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantRecord;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Changes\GrantManager;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Feature\Changes\Managers\ManagerWorld as M;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
@@ -119,15 +120,15 @@ it('treats every permission grant of a roles-only writer as orphaned', function 
 });
 
 it('follows Access on a panel that requires a scope: tenant-wide grants stay known unless the role requires a scope', function (): void {
-    $panel = W::panel(configure: static fn (PanelBuilder $builder) => $builder->scopes(
-        AssignmentScopePolicy::required(ProjectScope::make()
-            ->filter(new ActiveProjects))));
+    $panel = W::panel(configure: static fn (PanelBuilder $builder) => $builder->assignmentScopes(
+        new AssignmentScopeDeclaration(AssignmentScopeMode::Required, [ProjectScope::make()
+            ->filter(new ActiveProjects)])));
     CrmWorld::clear(1);
     $role = M::stored('role', 'auditor', 3);
     $permission = M::stored('permission', 'clients.view', 3);
     $grants = M::managers($panel)->grants();
 
-    expect($panel->scopes()->mode())->toBe('required')
+    expect($panel->scopeDeclaration()?->mode)->toBe(AssignmentScopeMode::Required)
         ->and(orphanIds($grants, GrantFilter::ACTIVE))->toContain($role, $permission)
         ->and(orphanIds($grants, GrantFilter::ORPHANED))->not->toContain($role, $permission)
         ->and(orphanIds($grants, GrantFilter::ORPHANED))->toContain($this->orphans['no scope for a scoped role']);

@@ -17,6 +17,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\RoleBindings;
+use AzGuard\Scopes\ScopeConfiguration;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
 
@@ -141,7 +142,7 @@ final readonly class ScopeEligibility
 
     private function adapterAllows(AssignmentScopeRuntime $runtime): bool
     {
-        $declared = $runtime->panel->scopes()->adapters()[$runtime->scope->context->type() ?? ''] ?? null;
+        $declared = ScopeConfiguration::adapters($runtime->panel)[$runtime->scope->context->type() ?? ''] ?? null;
 
         if ($declared === null) {
             return true;
@@ -186,7 +187,7 @@ final readonly class ScopeEligibility
 
     private function external(EvaluationFrame $frame, AssignmentScopeRuntime $runtime, ?BatchInputs $batch, ?Trace $trace = null): bool
     {
-        $declared = $frame->panel()->scopes()->adapters()[$frame->scope()->context->type() ?? ''] ?? null;
+        $declared = ScopeConfiguration::adapters($frame->panel())[$frame->scope()->context->type() ?? ''] ?? null;
 
         if ($declared === null) {
             return true;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Context\Internal;
 
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Exceptions\InvalidAssignmentScopeException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\IdentityCodec;
@@ -39,7 +40,7 @@ final readonly class WithinContext
             }
 
             if ($scope->context->isGlobal()) {
-                if ($panel->scopes()->mode() === 'required') {
+                if (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::Required) {
                     throw new InvalidAssignmentScopeException('This panel requires an assignment scope.');
                 }
             } else {

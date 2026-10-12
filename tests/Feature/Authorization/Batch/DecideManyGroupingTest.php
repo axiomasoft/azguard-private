@@ -17,7 +17,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\BatchExternalAdapter;
@@ -77,7 +77,7 @@ it('resolves external refs once and uses allowsMany with each original grant wit
     };
     [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
         ->roles([ReaderRole::class])->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-        ->scopes(AssignmentScopePolicy::inherit($definition)->accessAdapter('store', $adapter)));
+        ->plugins([ScopesPlugin::inherit($definition)->accessAdapter('store', $adapter)]));
     $requests = [$request->inScope($one), $request->inScope($two), $request->inScope($one), $request->inScope($two)];
     $scalar = array_map(fn (AccessRequest $r) => $engine->decide($panel, $r), $requests);
     $definition->resolves = 0;

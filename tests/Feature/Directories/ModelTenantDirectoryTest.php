@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\ModelTenantDirectory;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
@@ -48,7 +49,7 @@ it('describes a known tenant and nothing for a missing, foreign-type or global o
 });
 
 it('offers no tenants for a panel without a tenant model', function (): void {
-    World::compile(backoffice: fn (PanelBuilder $p) => $p->tenants(TenantPolicy::none())->scopes(AssignmentScopePolicy::none()));
+    World::compile(backoffice: fn (PanelBuilder $p) => $p->tenants(TenantPolicy::none())->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, [])));
     $panel = app(PanelRegistry::class)->get('backoffice');
     $directory = DirectoryResolver::for($panel, app())->tenants();
     $lookup = Lookups::make($panel, target: null);

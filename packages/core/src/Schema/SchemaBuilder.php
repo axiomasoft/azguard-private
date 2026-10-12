@@ -27,6 +27,7 @@ use AzGuard\Permissions\GrantedToAll;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
 use AzGuard\Scopes\RoleBindings;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use Closure;
@@ -280,7 +281,7 @@ final readonly class SchemaBuilder
             label: $settings->label ?? self::scopeLabel($registered),
             directory: $settings?->directory,
             exactSupport: ($binding instanceof QueryableAssignmentScopeDefinition && $binding->model() !== null)
-                || isset($panel->scopes()->adapters()[$type]),
+                || isset(ScopeConfiguration::adapters($panel)[$type]),
         );
     }
 

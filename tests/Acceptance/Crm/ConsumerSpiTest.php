@@ -17,7 +17,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
@@ -56,7 +56,7 @@ it('R67 renamed Decides method still supplies local public consumer policy autho
     [,, $registry] = PanelWorld::compile([PublicPanel::class => fn (PanelBuilder $p) => $p->for(User::class)
         ->permissions([Action::class])->policies([PolicyBinding::for(Action::ViewOwnProfile, RenamedClientPolicy::class)])
         ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))
-        ->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()))]);
+        ->plugins([ScopesPlugin::inherit(ProjectScope::make())])]);
     app()->instance(PanelRegistry::class, $registry);
     app()->forgetInstance(Authorizer::class);
     $panel = $registry->get('crm-public');

@@ -16,7 +16,7 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
@@ -43,7 +43,7 @@ use AzGuard\Tests\Fixtures\Sources\StaticSource;
 function rolesOfAdmin(array $roles, array $extra = []): PanelCatalog
 {
     return PanelWorld::compile([
-        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->scopes(AssignmentScopePolicy::inherit(ProjectScope::class))->permissions([
+        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ScopesPlugin::inherit(ProjectScope::class)])->permissions([
             new StaticSource('crm', [...ClientPermission::definitions(), StaticSource::grants('reports.view')], $roles, [
                 PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class),
             ]),

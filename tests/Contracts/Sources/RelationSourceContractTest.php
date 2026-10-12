@@ -6,7 +6,7 @@ namespace AzGuard\Tests\Contracts\Sources;
 
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Testing\Contracts\SourceContractTests;
 use AzGuard\Tests\Fixtures\Sources\Relation\EditorRole;
@@ -41,7 +41,7 @@ final class RelationSourceContractTest extends TestCase
 
     protected function azguardAttach(PanelBuilder $panel, Source $source): void
     {
-        $panel->for(Member::class)->scopes(AssignmentScopePolicy::inherit(new ProjectDefinition))->roles([EditorRole::class, OwnerRole::class])
+        $panel->for(Member::class)->plugins([ScopesPlugin::inherit(new ProjectDefinition)])->roles([EditorRole::class, OwnerRole::class])
             ->permissions([RelationPermission::class, $source]);
     }
 

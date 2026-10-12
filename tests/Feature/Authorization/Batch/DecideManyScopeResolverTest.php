@@ -7,8 +7,8 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\BaseAssignmentScope;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Scopes\Project;
@@ -54,7 +54,7 @@ it('preserves a custom queryable scope resolver refusal in batch decisions', fun
     };
     [$engine, $panel, $request] = AuthorizationWorld::compile(
         new GeneratedSource(direct: [AuthorizationWorld::grant()]),
-        fn (PanelBuilder $panel) => $panel->scopes(AssignmentScopePolicy::inherit($definition)),
+        fn (PanelBuilder $panel) => $panel->plugins([ScopesPlugin::inherit($definition)]),
     );
     $request = $request->on(AssignmentScopeRef::of('project', 1));
     $expected = $throws ? DecisionReason::AssignmentScopeFilterError : DecisionReason::AssignmentScopeNotAccepted;

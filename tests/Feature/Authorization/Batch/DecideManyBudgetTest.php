@@ -9,7 +9,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
 use AzGuard\Tenancy\TenantPolicy;
@@ -37,7 +37,7 @@ it('fences all 250 contexts and reuses raw sets with the configured refresh mode
     BatchPolicy::$calls = 0;
     [$engine] = CacheWorld::database(DatabaseSource::make(), $refresh, function (PanelBuilder $panel) use ($definition): void {
         $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-            ->scopes(AssignmentScopePolicy::inherit($definition))->policies([PolicyBinding::for('documents.view', BatchPolicy::class)]);
+            ->plugins([ScopesPlugin::inherit($definition)])->policies([PolicyBinding::for('documents.view', BatchPolicy::class)]);
     });
     $budget = CacheWorld::emptyBudget();
     CacheWorld::listen($budget);

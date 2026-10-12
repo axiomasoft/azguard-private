@@ -14,7 +14,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
@@ -35,9 +35,9 @@ final class BatchEngineWorld
             ->for(User::class)->resourcePrefix(false)
             ->permissions([DatabasePermission::class, DatabaseSource::make()])
             ->policies([PolicyBinding::for(DatabasePermission::Policy, DatabasePolicy::class)])
-            ->scopes(AssignmentScopePolicy::inherit(new StoreScope(
+            ->plugins([ScopesPlugin::inherit(new StoreScope(
                 resolveUsing: static fn (AssignmentScopeRef $ref): ResolvedAssignmentScope => new ResolvedAssignmentScope($ref, TenantRef::global()),
-            )))->after($after ?? []);
+            ))])->after($after ?? []);
         $panels = [AdminPanel::class => $description];
 
         if ($cabinet) {

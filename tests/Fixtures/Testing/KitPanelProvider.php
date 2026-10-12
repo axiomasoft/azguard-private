@@ -7,7 +7,7 @@ namespace AzGuard\Tests\Fixtures\Testing;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Roles\SuperAdminRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Testing\FakeSubject;
 use Closure;
@@ -28,7 +28,7 @@ final class KitPanelProvider extends PanelProvider
     {
         $panel->for(FakeSubject::class, guard: 'web')->default()
             ->permissions([OrdersPermission::class, DatabaseSource::make()])
-            ->scopes(AssignmentScopePolicy::inherit(new KitStoreScope))
+            ->plugins([ScopesPlugin::inherit(new KitStoreScope)])
             ->resourceScopes([KitOrder::class => KitOrderScope::class]);
 
         if (self::$superAdmin) {

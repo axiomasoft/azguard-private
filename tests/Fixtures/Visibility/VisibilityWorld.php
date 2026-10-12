@@ -6,6 +6,8 @@ namespace AzGuard\Tests\Fixtures\Visibility;
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Visibility;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
@@ -35,7 +37,6 @@ use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ContextAware;
 use AzGuard\Tenancy\TenantPolicy;
@@ -314,8 +315,11 @@ final class VisibilityWorld
         $source ??= new VisibilitySource;
         [, , $registry] = PanelWorld::compile([AdminPanel::class => static function (PanelBuilder $panel) use ($source, $configure, $mode, $tenant, $extra): void {
             $panel->for(User::class)->permissions([$source, ...$extra])->roles([VisibilityRole::class, GrantableRootRole::class])
-                ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)])
-                ->scopes(AssignmentScopePolicy::{$mode}(new VisibilityProjectScope));
+                ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)]);
+
+            if ($mode !== 'none') {
+                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [new VisibilityProjectScope]));
+            }
 
             if ($tenant) {
                 $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership));

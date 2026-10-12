@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
@@ -21,7 +22,6 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 use AzGuard\Schema\WriterSchema;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Tenancy\TenantPolicy;
@@ -63,7 +63,7 @@ final readonly class Panel
         /** @var list<GrantCondition|class-string<GrantCondition>> */
         private array $conditions = [],
         private ?TenantPolicy $tenantPolicy = null,
-        private ?AssignmentScopePolicy $scopePolicy = null,
+        private ?AssignmentScopeDeclaration $scopeDeclaration = null,
         /** @var array<string, AssignmentScopeDefinition> */
         private array $scopeDefinitions = [],
         /** @var list<TenantResolver|class-string<TenantResolver>> */
@@ -212,11 +212,12 @@ final readonly class Panel
     }
 
     /**
-     * @internal raw compiled list, not a supported surface
+     * The merged assignment scope declaration of the panel, or null when nothing declared one: the panel is then
+     * `AssignmentScopeMode::None` and accepts global requests only.
      */
-    public function scopes(): AssignmentScopePolicy
+    public function scopeDeclaration(): ?AssignmentScopeDeclaration
     {
-        return $this->scopePolicy ?? AssignmentScopePolicy::none();
+        return $this->scopeDeclaration;
     }
 
     /**

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Parity;
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\Audit\AuditPlugin;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Storage\StorageMutation;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
@@ -32,7 +33,7 @@ use ReflectionClass;
  *
  * - `crm`: `inherit` (the stand), Audit plugin on or off (the 0.7.0 "module on/off");
  * - `backoffice`: `isolated` on odd seeds, `required` on even seeds; never journaled;
- * - `flat`: `AssignmentScopePolicy::none()`, the panel without a scope declaration.
+ * - `flat`: mode `AssignmentScopeMode::None`, the panel without a scope declaration.
  *
  * Every panel allows the `auditor` role globally (global roles) and keeps the stand's membership, restrictions and
  * region condition. A seed writes generated rows with the dimensions of `ParityPropertyTest`, `DecideManyParityTest`
@@ -104,7 +105,7 @@ final class ParityWorld
         };
         CrmWorld::$backofficeConfigure = static function (PanelBuilder $panel) use ($seed): void {
             $scope = ProjectScope::make()->filter(new ActiveProjects);
-            self::common($panel)->scopes($seed % 2 === 1 ? AssignmentScopePolicy::isolated($scope) : AssignmentScopePolicy::required($scope));
+            self::common($panel)->assignmentScopes(new AssignmentScopeDeclaration($seed % 2 === 1 ? AssignmentScopeMode::Isolated : AssignmentScopeMode::Required, [$scope]));
         };
         $registry = new PanelRegistry(app());
         $registry->register(CrmGuardPanelProvider::class);

@@ -5,13 +5,14 @@ declare(strict_types=1);
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Changes\ChangeStatus;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 
 /*
  * I13 harness (PLAN1 P1.4), report mode until P3: an inactive module costs nothing. A core-only panel (no Audit
- * plugin, `AssignmentScopePolicy::none()`) boots, checks and grants; during that run the container may resolve no
+ * plugin, scope mode `None`) boots, checks and grants; during that run the container may resolve no
  * service whose type the ownership oracle gives to scopes, audit or devtools (counted through the container
  * `resolving` callback), no query may touch a module table (counted through `DB::listen`), the doctor may not need a
  * module table, and DevTools commands are absent when the application does not run in the console.
@@ -48,7 +49,7 @@ afterEach(function (): void {
 function coreOnlyPanel(): Panel
 {
     return CrmWorld::compile(static function (PanelBuilder $panel): void {
-        $panel->roles([RootRole::class, SupportRole::class])->scopes(AssignmentScopePolicy::none());
+        $panel->roles([RootRole::class, SupportRole::class])->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, []));
     }, exact: true);
 }
 

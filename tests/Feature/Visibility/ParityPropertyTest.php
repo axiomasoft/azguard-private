@@ -8,7 +8,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Policies\Decides;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityBefore;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityCondition;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityPolicy;
@@ -108,7 +108,7 @@ it('P14 gives each denial layer a positive control and an independent literal de
     [$visibility, $panel] = W::compile($source, function (PanelBuilder $p) use ($layer): void {
         match ($layer) {
             'before' => $p->before([VisibilityBefore::class]),
-            'common' => $p->scopes(AssignmentScopePolicy::inherit((new VisibilityProjectScope)->filter(fn ($q) => $q->where('active', true)))),
+            'common' => $p->plugins([ScopesPlugin::inherit((new VisibilityProjectScope)->filter(fn ($q) => $q->where('active', true)))]),
             'restriction' => $p->restrictions([VisibilityRestriction::class]),
             'veto' => $p->policies([PolicyBinding::for('orders.view', ParityVetoPolicy::class)]),
             'condition' => $p->grantConditions([VisibilityCondition::class]),

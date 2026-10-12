@@ -76,8 +76,12 @@ it('has an owner for every production file and no row for a file that is nowhere
             continue;
         }
         $moved = isset($row['target_path']) && is_file($root.explode(' + ', $row['target_path'])[0]);
+        // D17: a type P2 renames to a module FQCN lives where the core PSR-4 root puts that FQCN until P3 moves it.
+        $target = explode(' + ', (string) ($row['target'] ?? ''))[0];
+        $interim = str_starts_with($target, 'AzGuard\\')
+            && is_file($root.'packages/core/src/'.str_replace('\\', '/', substr($target, strlen('AzGuard\\'))).'.php');
 
-        if (! is_file($root.$row['current_path']) && ! $moved) {
+        if (! is_file($root.$row['current_path']) && ! $moved && ! $interim) {
             $gone[] = $row['current_path'];
         }
     }
@@ -138,7 +142,7 @@ it('does not read a method, a property, a function, a named argument or a declar
         <?php
         namespace AzGuard\Panels;
         final class Quiet {
-            public function ScopeEligibility(): void { $this->RoleBindings(); $this?->EligibilityBuilder(); self::Policy(); strlen('x'); run(AssignmentScopePolicy: 1); }
+            public function ScopeEligibility(): void { $this->RoleBindings(); $this?->EligibilityBuilder(); self::Policy(); strlen('x'); run(ScopesPlugin: 1); }
             public const Panel = 1;
         }
         PHP;

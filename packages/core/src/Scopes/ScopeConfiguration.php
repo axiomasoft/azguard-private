@@ -4,21 +4,89 @@ declare(strict_types=1);
 
 namespace AzGuard\Scopes;
 
+use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
+use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
+use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Internal\CanonicalMetadata;
+use AzGuard\Panels\Panel;
+use AzGuard\Scopes\Internal\ScopesOptions;
+use AzGuard\Tenancy\TenantMode;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use ReflectionClass;
 use ReflectionNamedType;
 
-/** Build-time validation and scalar metadata; user components are never instantiated here. */
+/**
+ * Build-time validation and scalar metadata; user components are never instantiated here. Also the reader of the
+ * scope options for the call sites outside the scope code.
+ */
 final class ScopeConfiguration
 {
+    /**
+     * A tenant panel cannot use a model-backed definition without an owner callback: its scopes would all belong to
+     * the global tenant.
+     *
+     * @throws InvalidConfigurationException
+     */
+    public static function tenantOwner(string $panel, AssignmentScopeDefinition $definition, TenantMode $tenants): void
+    {
+        if ($tenants === TenantMode::Required && $definition instanceof ModelAssignmentScopeDefinition && ! $definition->hasOwner()) {
+            throw InvalidConfigurationException::failing('tenant_scope', 'Tenant panel '.$panel.' requires an authoritative tenant owner for assignment scope '
+                .$definition->type().': give the model definition an explicit owner callback.');
+        }
+    }
+
+    /**
+     * The membership adapter can be created and every access adapter is resolvable, holds plain configuration and
+     * belongs to a declared scope type.
+     *
+     * @param  array<class-string, object>  $options  the module options of the panel
+     * @param  list<string>  $types  the declared scope type aliases
+     *
+     * @throws DefinitionException
+     * @throws InvalidConfigurationException
+     */
+    public static function checkOptions(string $panel, array $options, array $types, ?Container $container): void
+    {
+        $scopes = $options[ScopesOptions::class] ?? null;
+
+        if (! $scopes instanceof ScopesOptions) {
+            return;
+        }
+        $membership = $scopes->membership;
+
+        if (is_string($membership) && ! ($container?->bound($membership) ?? false) && ! (new ReflectionClass($membership))->isInstantiable()) {
+            throw InvalidConfigurationException::failing('membership', 'Assignment scope membership adapter '.$membership.' has no container binding: bind it or name a class that can be created.');
+        }
+
+        foreach ($scopes->adapters as $type => $adapter) {
+            self::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
+            CanonicalMetadata::componentMetadata($adapter);
+
+            if (! in_array($type, $types, true)) {
+                throw new DefinitionException('Panel '.$panel.' registers an access adapter for unknown assignment scope '.$type.'.');
+            }
+        }
+    }
+
+    /** @return AssignmentScopeMembership|class-string<AssignmentScopeMembership>|null */
+    public static function membership(Panel $panel): AssignmentScopeMembership|string|null
+    {
+        return $panel->options(ScopesOptions::class)?->membership;
+    }
+
+    /** @return array<string, AssignmentScopeAccessAdapter|class-string<AssignmentScopeAccessAdapter>> */
+    public static function adapters(Panel $panel): array
+    {
+        return $panel->options(ScopesOptions::class)->adapters ?? [];
+    }
+
     public static function filters(AssignmentScopeDefinition $definition, ?Container $container): void
     {
         if (! $definition instanceof ConfigurableAssignmentScopeDefinition) {

@@ -25,7 +25,7 @@ final readonly class MembershipRestriction implements Restriction
 
     public function appliesTo(AccessRequest $request, EvaluationContext $context): bool
     {
-        return $context->panel()->tenants()->membership() !== null || $context->panel()->scopes()->membership() !== null;
+        return $context->panel()->tenants()->membership() !== null || ScopeConfiguration::membership($context->panel()) !== null;
     }
 
     public function check(AccessRequest $request, EvaluationContext $context): RestrictionResult
@@ -44,7 +44,7 @@ final readonly class MembershipRestriction implements Restriction
             }
         }
 
-        $scope = $context->panel()->scopes()->membership();
+        $scope = ScopeConfiguration::membership($context->panel());
 
         if ($scope !== null && ! $context->scope()->context->isGlobal()) {
             $adapter = is_string($scope) ? $this->container->make($scope) : $scope;

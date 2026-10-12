@@ -8,6 +8,7 @@ use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
@@ -41,6 +42,7 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Support\ModelKey;
 use AzGuard\Tenancy\TenantMode;
@@ -417,13 +419,13 @@ final class ChangeValidator
                 throw new TenantMismatchException('Subject '.$subject->key().' is not a member of tenant '.$tenant->key().'.');
             }
         }
-        $mode = $this->panel->scopes()->mode();
+        $mode = $this->panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None;
 
-        if ($mode === 'required' && $change->scope->context->isGlobal()) {
+        if ($mode === AssignmentScopeMode::Required && $change->scope->context->isGlobal()) {
             throw new AssignmentScopeRequiredException('Panel '.$this->panel->id().' grants only inside an assignment scope.');
         }
 
-        if ($mode === 'none' && ! $change->scope->context->isGlobal()) {
+        if ($mode === AssignmentScopeMode::None && ! $change->scope->context->isGlobal()) {
             throw new AssignmentScopeNotAcceptedException('Panel '.$this->panel->id().' has no assignment scopes.');
         }
     }
@@ -602,7 +604,7 @@ final class ChangeValidator
 
     private function scopeMember(SubjectRef $subject, ResolvedAssignmentScope $resolved): bool
     {
-        $declared = $this->panel->scopes()->membership();
+        $declared = ScopeConfiguration::membership($this->panel);
 
         if ($declared === null) {
             return true;

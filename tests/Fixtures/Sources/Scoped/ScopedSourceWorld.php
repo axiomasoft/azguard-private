@@ -25,7 +25,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\StateRefresh;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Storage\Schema\StorageSchema;
@@ -101,7 +101,7 @@ final class ScopedSourceWorld
         $source ??= DatabaseSource::make();
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(User::class)->resourcePrefix(false)->permissions([$everyone ? EveryonePermission::class : OrderPermission::class, $source])
-            ->roles($roles)->scopes(AssignmentScopePolicy::inherit(StoreScope::class))
+            ->roles($roles)->plugins([ScopesPlugin::inherit(StoreScope::class)])
             ->tenants($tenant ? TenantPolicy::required(Organization::class)->requireMembership(new Membership) : TenantPolicy::none())
             ->consistency(refresh: StateRefresh::Check)->after($after ?? [])->grantConditions($conditions)]);
 
@@ -352,7 +352,7 @@ final class ScopedSourceWorld
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(Member::class)->resourcePrefix(false)->permissions([RelationPermission::class,
                 RelationSource::make($project, 'members', 'pivot.role'), RelationSource::make($store, 'owner', 'store-owner')])
-            ->roles([EditorRole::class, StoreOwnerRole::class])->scopes(AssignmentScopePolicy::inherit($project, $store))
+            ->roles([EditorRole::class, StoreOwnerRole::class])->plugins([ScopesPlugin::inherit($project, $store)])
             ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership))]);
         $panel = self::install($registry);
         foreach ([['project', 7, 'A', 'projects.edit', true], ['project', 8, 'A', 'projects.edit', false],
@@ -385,7 +385,7 @@ final class ScopedSourceWorld
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(Member::class)->resourcePrefix(false)->permissions([EveryoneRelationPermission::class,
                 DatabaseSource::make(), RelationSource::make($definition, 'members', 'pivot.role')])
-            ->roles([ProjectEditorRole::class])->scopes(AssignmentScopePolicy::inherit($definition))
+            ->roles([ProjectEditorRole::class])->plugins([ScopesPlugin::inherit($definition)])
             ->tenants(TenantPolicy::required(ModelTenantDefinition::make(Organization::class, 'organization'))->requireMembership(new Membership))
             ->consistency(refresh: StateRefresh::Check)]);
         $panel = self::install($registry);

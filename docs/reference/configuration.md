@@ -76,7 +76,7 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `doctorChecks([...])` | Extra `azguard:doctor` checks |
 | `cache(store, ttl, generation)`, `consistency(Reads, StateRefresh)` | Same as `defaults.*` |
 | `options(object)`, `panelId()` | Typed readonly module options (one object per class, read with `Panel::options(Class)`); the id of the panel being described |
-| `tenants(TenantPolicy)`, `scopes(AssignmentScopePolicy)` | Tenants and assignment scopes: see [Tenants and scopes](/guides/tenants-and-scopes) |
+| `tenants(TenantPolicy)`, `assignmentScopes(AssignmentScopeDeclaration)` | Tenants and assignment scopes (usually through `ScopesPlugin`): see [Tenants and scopes](/guides/tenants-and-scopes) |
 | `tenantResolvers()`, `scopeResolvers()`, `resourceScopes()` | Resolvers for the current tenant, the assignment scope and the scope of a resource |
 | `plugins([...])`, `withoutPlugins([...])` | Panel plugins |
 

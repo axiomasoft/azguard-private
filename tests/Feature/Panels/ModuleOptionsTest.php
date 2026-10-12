@@ -153,7 +153,7 @@ it('marks the raw compiled lists of a panel internal', function (string $method)
     $doc = (string) (new ReflectionMethod(Panel::class, $method))->getDocComment();
 
     expect($doc)->toContain('@internal');
-})->with(['changing', 'before', 'after', 'restrictions', 'grantConditions', 'doctorChecks', 'attachedSources', 'scopes', 'scopeDefinition', 'scopeDefinitions', 'scopeResolvers', 'tenantResolvers', 'resourceScopes']);
+})->with(['changing', 'before', 'after', 'restrictions', 'grantConditions', 'doctorChecks', 'attachedSources', 'scopeDefinition', 'scopeDefinitions', 'scopeResolvers', 'tenantResolvers', 'resourceScopes']);
 
 it('rejects a grant field in the reserved azg_ namespace', function (string $name): void {
     expect(fn () => Field::string($name))->toThrow(DefinitionException::class, 'reserved grant field name');

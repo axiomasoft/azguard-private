@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization;
 
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -81,7 +82,7 @@ final readonly class EvaluationFrame implements EvaluationContext
     /** @return list<AccessScope> */
     public function sourceScopes(): array
     {
-        $scopes = $this->selectedScope->context->isGlobal() || $this->selectedPanel->scopes()->mode() === 'isolated'
+        $scopes = $this->selectedScope->context->isGlobal() || $this->selectedPanel->scopeDeclaration()?->mode === AssignmentScopeMode::Isolated
             ? [$this->selectedScope]
             : [AccessScope::in($this->selectedScope->tenant), $this->selectedScope];
 

@@ -11,7 +11,7 @@ use AzGuard\Filament\Resources\RoleGrantResource\Pages\ListRoleGrants;
 use AzGuard\Laravel\Queue\PanelContext;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Crm\ContextAwareProjectDirectory;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Filament\BootsCrmFilament;
@@ -331,13 +331,13 @@ it('R28 lists a grant in an inactive project and an expired one and revokes them
 });
 
 it('R36 gives a custom directory the selected subject and role when describing and saving a grant context', function (): void {
-    World::compile(configure: World::$configure, backoffice: static fn (PanelBuilder $panel) => $panel->scopes(
-        AssignmentScopePolicy::inherit(
+    World::compile(configure: World::$configure, backoffice: static fn (PanelBuilder $panel) => $panel->plugins([
+        ScopesPlugin::inherit(
             ProjectScope::make()
                 ->filter(new ActiveProjects)
                 ->directory(ContextAwareProjectDirectory::class),
         ),
-    ), exact: true);
+    ]), exact: true);
     Facade::clearResolvedInstances();
     filamentGrantEditor();
     $this->serveCrm(4);

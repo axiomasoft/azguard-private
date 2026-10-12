@@ -39,13 +39,18 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `->gate(` or `GateMode` → Replace: nothing; `PanelBuilder::gate()` and `AzGuard\Panels\GateMode` are gone, a panel always answers the abilities it owns authoritatively.
 - Find: `defaults.gate.mode`, `'gate' => ['mode' =>` under `defaults`, or `PanelSettings::GATE_MODE` / `settings()->gateMode()` → Replace: remove it; the key is now an unknown-key error, and the doctor check `gate.mode` is gone (`gate.enabled` is unchanged).
 - Find: `new PanelSettings(` with a `GateMode` argument → Replace: drop the argument (constructor is `@internal`).
-- Find: a call of `Panel::changing()`, `before()`, `after()`, `restrictions()`, `grantConditions()`, `doctorChecks()`, `attachedSources()`, `scopes()`, `scopeDefinition()`, `scopeDefinitions()`, `scopeResolvers()`, `tenantResolvers()` or `resourceScopes()` in application or extension code → Replace: nothing supported; these raw compiled lists are `@internal` now.
+- Find: a call of `Panel::changing()`, `before()`, `after()`, `restrictions()`, `grantConditions()`, `doctorChecks()`, `attachedSources()`, `scopeDefinition()`, `scopeDefinitions()`, `scopeResolvers()`, `tenantResolvers()` or `resourceScopes()` in application or extension code → Replace: nothing supported; these raw compiled lists are `@internal` now.
 - Find: `Field::…('azg_…')` (a grant field whose name starts with `azg_`) → Replace: another name; the prefix `azg_` is reserved like `tenant_`, `subject_`, `context_` and `actor_`.
 - Find: `StoresGrants` (an implementation, `instanceof`, or a source `describe()` that lists it) → Replace: nothing; the interface is gone, `DatabaseSource` is the only writer, and a source that only reads has no writer capability.
 - Find: `$panel->writer()` that expects a source (`->apply(`, `->transaction(`, `instanceof DatabaseSource`, `->isDynamic()`) → Replace: `$panel->writer()` returns `?AzGuard\Schema\WriterSchema` (`storage`, `dynamicPermissions`, `rolesOnly`; null for a read-only panel); read capabilities from it or from `PanelSchema::writer()`.
 - Find: the capability string `StoresGrants` in `azguard:panels:list` output or in `SourceDescription::$capabilities` → Replace: use the `writer` column and `WriterSchema`.
 - Find: `SourceContractTests` `writerStoresOnlyInsideThePipelineTransaction` → Replace: nothing; the writer case left the shipped contract suite.
 - Find: a `WriterConflictException` caught for two different writer ids → Replace: it is thrown when the database source is attached twice.
+- Find: `AssignmentScopePolicy` → Replace: `AzGuard\Scopes\ScopesPlugin`, attached as a plugin: `->scopes(AssignmentScopePolicy::inherit(X))` becomes `->plugins([ScopesPlugin::inherit(X)])` (also `isolated`, `required`; `requireMembership()` and `accessAdapter()` are unchanged).
+- Find: `AssignmentScopePolicy::none()` → Replace: nothing (a panel without `ScopesPlugin` is mode `None`); to switch off scopes an earlier layer declared, `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, []))`.
+- Find: `->scopes(` in a plugin `register()`, `configurePanels()` or a provider that already attaches `ScopesPlugin` → Replace: `->assignmentScopes(new AzGuard\Context\AssignmentScopeDeclaration(AssignmentScopeMode::…, [definition objects]))`; a panel takes one `ScopesPlugin` (id `azguard/scopes`).
+- Find: `ScopesPlugin::inherit(Definition::class)` (or `isolated`/`required`) with a definition class that has constructor arguments or a container binding → Replace: pass the configured definition object; classes are created without arguments.
+- Find: `Panel::scopes()`, `->scopes()->mode()` or a scope mode string `'none'`/`'inherit'`/`'isolated'`/`'required'` → Replace: `$panel->scopeDeclaration()?->mode` (`AzGuard\Context\AssignmentScopeMode`; a null declaration is `None`); membership and access adapters are no longer readable from the panel.
 
 ## From 0.3 to 0.7.0
 

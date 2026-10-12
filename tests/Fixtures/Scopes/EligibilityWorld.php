@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Scopes;
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -15,7 +17,6 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
@@ -62,7 +63,7 @@ final class EligibilityWorld
 
         return AuthorizationWorld::compile($source, function (PanelBuilder $panel) use ($configure): void {
             $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-                ->scopes(AssignmentScopePolicy::inherit(EligibilityProjectScope::make()->filter(ActiveProjects::class)))
+                ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [EligibilityProjectScope::make()->filter(ActiveProjects::class)]))
                 ->roles([EligibilitySellerRole::class, EligibilityAnalystRole::class]);
             $configure?->__invoke($panel);
         }, rootRole: EligibilityAdminRole::class);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Panels\Internal\CanonicalMetadata;
@@ -101,15 +102,17 @@ final class PanelFingerprint
                 'global_roles' => $panel->tenants()->globalRoles(),
             ],
             'scopes' => [
-                'mode' => $panel->scopes()->mode(),
+                'mode' => ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None)->value,
                 'definitions' => array_map(static fn (AssignmentScopeDefinition $definition): array => [
                     'type' => $definition->type(),
                     'class' => $definition::class,
                     'model' => $definition->model(),
                     'filters' => ScopeConfiguration::filterMetadata($definition),
                 ], $panel->scopeDefinitions()),
-                'membership' => self::name($panel->scopes()->membership()),
-                'adapters' => array_map(CanonicalMetadata::componentMetadata(...), $panel->scopes()->adapters()),
+                'directories' => $panel->scopeDeclaration()->directories ?? [],
+                'evaluator' => $panel->scopeDeclaration()?->evaluator,
+                'membership' => self::name(ScopeConfiguration::membership($panel)),
+                'adapters' => array_map(CanonicalMetadata::componentMetadata(...), ScopeConfiguration::adapters($panel)),
             ],
             'resource_scopes' => array_map(
                 static fn (mixed $scope): array => is_array($scope)

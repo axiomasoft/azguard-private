@@ -8,6 +8,7 @@ use AzGuard\Authorization\BatchInputs;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
 use AzGuard\Authorization\ScopeEligibility;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
@@ -40,7 +41,7 @@ final readonly class BoundaryStage
         $resource = null;
         $selected = AccessScope::in(
             tenant: $request->tenant() ?? $ambient->tenant ?? TenantRef::global(),
-            context: $request->context() ?? ($panel->scopes()->mode() === 'none' ? null : $ambient?->context),
+            context: $request->context() ?? (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None ? null : $ambient?->context),
         );
         $frame = $frame->withScope($selected);
         $hint = $request->tenant() !== null || $request->context() !== null || $ambient !== null ? $selected : null;
@@ -55,13 +56,13 @@ final readonly class BoundaryStage
             }
             $tenant = $request->tenant() ?? $resource->tenant ?? $ambient?->tenant;
             $context = $request->context() ?? $resource->context
-                ?? ($panel->scopes()->mode() === 'none' ? null : $ambient?->context);
+                ?? (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None ? null : $ambient?->context);
 
             if ($tenant === null && $panel->tenants()->mode() !== TenantMode::None) {
                 $tenant = $this->resolveTenant($frame);
             }
 
-            if ($context === null && $panel->scopes()->mode() !== 'none') {
+            if ($context === null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) !== AssignmentScopeMode::None) {
                 $context = $this->resolveContext($frame);
             }
             $frame = $frame->withScope(AccessScope::in(tenant: $tenant ?? TenantRef::global(), context: $context));
@@ -153,14 +154,14 @@ final readonly class BoundaryStage
             return $this->deny($frame, DecisionReason::TenantMismatch);
         }
 
-        $mode = $frame->panel()->scopes()->mode();
+        $mode = $frame->panel()->scopeDeclaration()->mode ?? AssignmentScopeMode::None;
 
-        if ($mode === 'required' && $frame->scope()->context->isGlobal()) {
+        if ($mode === AssignmentScopeMode::Required && $frame->scope()->context->isGlobal()) {
             return $this->deny($frame, DecisionReason::AssignmentScopeRequired);
         }
 
         if (! $frame->scope()->context->isGlobal()
-            && ($mode === 'none' || $frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '') === null)) {
+            && ($mode === AssignmentScopeMode::None || $frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '') === null)) {
             return $this->deny($frame, DecisionReason::AssignmentScopeNotAccepted);
         }
 

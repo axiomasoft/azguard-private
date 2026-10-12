@@ -7,7 +7,7 @@ use AzGuard\Catalog\CatalogCache;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
@@ -27,7 +27,7 @@ beforeEach(function (): void {
     self::$catalogCachePath = sys_get_temp_dir().'/azguard-catalog-'.bin2hex(random_bytes(6)).'/azguard.php';
     self::$catalogBuildId = 'build-1';
 
-    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->scopes(AssignmentScopePolicy::inherit(ProjectScope::class))->permissions([
+    AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ScopesPlugin::inherit(ProjectScope::class)])->permissions([
         StaticSource::names('orders', 'orders.view', 'orders.update'),
         new StaticSource('crm', ClientPermission::definitions(), [new SellerRole], [PolicyBinding::for(ClientPermission::ViewOwnProfile, AttributedClientPolicy::class)]),
     ]));

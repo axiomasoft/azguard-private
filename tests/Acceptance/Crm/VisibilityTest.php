@@ -12,7 +12,7 @@ use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Policies\Clients\ClientPolicy;
@@ -63,7 +63,7 @@ it('R15 R50 R57 recomputes live city common eligibility and deployment filters w
     expect(Lists::query($panel)->count())->toBe(0)->and(World::decide($panel, 3)->allowed())->toBeFalse()
         ->and(World::storage()->state('crm'))->toEqual($token);
     Project::query()->whereKey(2)->update(['is_active' => true]);
-    $panel = Lists::panel(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(fn (Builder $q) => $q->whereKey(1)))));
+    $panel = Lists::panel(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(fn (Builder $q) => $q->whereKey(1)))]));
     expect(Lists::query($panel)->count())->toBe(0)->and(World::storage()->state('crm'))->toEqual($token);
 });
 

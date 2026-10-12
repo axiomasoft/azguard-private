@@ -33,7 +33,7 @@ use ReflectionMethod;
 
 /**
  * The I7 world: the populated 0.7.0 `default` database of P1.1 (`Restorer`), its CRM host rows (`Dataset`), and
- * panel `crm` rebuilt with `AssignmentScopePolicy::none()` (`NoScopeCrmPanelProvider`); panel `ops` as dumped.
+ * panel `crm` rebuilt with an explicit `AssignmentScopeMode::None` declaration (`NoScopeCrmPanelProvider`); panel `ops` as dumped.
  *
  * Rows the cases rely on (tenant A = crm.organization:1): user 2 has `auditor` tenant-wide (meta region R1),
  * `analyst` in P1 until 2026-12-01 and `clients.view` in P1 until 2027-01-01; user 1 has `seller` in P5; user 3 has

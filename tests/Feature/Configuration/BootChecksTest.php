@@ -23,7 +23,7 @@ use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Storage\Models\PermissionGrant;
@@ -202,7 +202,7 @@ function allBootChecks(): array
         'a panel that requires scope membership without an adapter' => [
             'invalid_configuration.membership', InvalidConfigurationException::class, 'membership adapter',
             fn () => PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
-                ->scopes(AssignmentScopePolicy::inherit(Project::class)->requireMembership()),
+                ->plugins([ScopesPlugin::inherit(Project::class)->requireMembership()]),
             ]),
         ],
         'a static role of a relation that the panel does not have' => [
@@ -236,7 +236,7 @@ function allBootChecks(): array
                 Relation::morphMap(['project' => Project::class], false);
                 PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
                     ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership))
-                    ->scopes(AssignmentScopePolicy::inherit(Project::class)),
+                    ->plugins([ScopesPlugin::inherit(Project::class)]),
                 ]);
             },
         ],

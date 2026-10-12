@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Baseline070\Persistence\Dataset;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Parity\NoScopeWorld;
@@ -13,11 +14,10 @@ use Illuminate\Support\Carbon;
  * global requests, non-global writes are rejected, and revocation and expiry still work without consulting scope
  * behavior — over the populated 0.7.0 `default` database of P1.1, on every driver.
  *
- * `AssignmentScopePolicy::none()` is the 0.7.0 equivalent of both "no scope declaration" and "scope plugin removed":
- * 0.7.0 has no scope plugin or declaration slot; the policy a panel passes to `scopes()` is its declaration, `none()`
- * is the empty one (mode `none`, no accepted types), and a panel built without `scopes()` gets the same. Rebuilding
- * panel `crm` of the dataset with `none()` over its stored project rows is therefore the database a removed scope
- * module leaves behind.
+ * A declaration of mode `AssignmentScopeMode::None` and no declaration at all (no `ScopesPlugin`) behave the same:
+ * mode `None`, no accepted types. Rebuilding panel `crm` of the dataset with a `None` declaration over its stored
+ * project rows is therefore the database a removed scope module leaves behind (0.7.0: the `none()` policy
+ * through the removed `scopes()` slot).
  *
  * A case 0.7.0 fails is listed in tests/Fixtures/Parity/i7-allowlist.json with its observed behavior and owner P2:
  * a listed case must still fail exactly as recorded (a fixed one is a stale entry), any other case must hold.

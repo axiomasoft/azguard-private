@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Tests\Fixtures\Authorization;
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Grant;
@@ -21,7 +23,6 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
@@ -137,8 +138,10 @@ final class ScenarioGenerator
                 ->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]);
 
             if ($mode !== null) {
-                $policy = $mode === 'none' ? AssignmentScopePolicy::none() : AssignmentScopePolicy::{$mode}($definition);
-                $panel->scopes($policy)->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership([$this->subject->id(), '1'])));
+                if ($mode !== 'none') {
+                    $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [$definition]));
+                }
+                $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership([$this->subject->id(), '1'])));
             }
 
             if ($configure !== null) {

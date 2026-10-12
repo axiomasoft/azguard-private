@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AzGuard\Diagnostics\Checks;
 
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Tenancy\TenantMode;
 use Illuminate\Contracts\Container\Container;
 use ReflectionClass;
@@ -41,7 +43,7 @@ final readonly class MembershipConfigured implements DoctorCheck
         $scope = 'panel:'.$panel->id();
         $findings = [];
 
-        foreach (['tenant' => $panel->tenants()->membership(), 'assignment scope' => $panel->scopes()->membership()] as $kind => $membership) {
+        foreach (['tenant' => $panel->tenants()->membership(), 'assignment scope' => ScopeConfiguration::membership($panel)] as $kind => $membership) {
             if (is_string($membership) && ! $container->bound($membership) && (! class_exists($membership) || ! (new ReflectionClass($membership))->isInstantiable())) {
                 $findings[] = DoctorFinding::error('membership.configured', 'Panel '.$panel->id().' requires a '.$kind.' membership, but '.$membership
                     .' has no container binding and cannot be created.', $scope, ['membership' => $membership]);
@@ -57,7 +59,7 @@ final readonly class MembershipConfigured implements DoctorCheck
             }
         }
 
-        if ($panel->scopes()->mode() === 'inherit' && $panel->scopeDefinitions() !== [] && $panel->scopes()->membership() === null) {
+        if (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::Inherit && $panel->scopeDefinitions() !== [] && ScopeConfiguration::membership($panel) === null) {
             $findings[] = DoctorFinding::warning('membership.configured', 'Panel '.$panel->id().' inherits roles into assignment scopes without a scope membership: '
                 .'a role granted on a parent applies to every scope below it.', $scope, ['mode' => 'inherit']);
         }

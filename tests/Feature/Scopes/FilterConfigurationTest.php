@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
@@ -12,9 +14,11 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\Internal\ScopesOptions;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
+use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Scopes\ActiveProjects;
@@ -25,7 +29,7 @@ use AzGuard\Tests\Fixtures\Scopes\Project;
 use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use Illuminate\Database\Eloquent\Builder;
 
-it('registers typed access adapters on an immutable policy', function (): void {
+it('registers typed access adapters on an immutable plugin', function (): void {
     $adapter = new class implements AssignmentScopeAccessAdapter
     {
         public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
@@ -43,26 +47,29 @@ it('registers typed access adapters on an immutable policy', function (): void {
             return $contextQuery;
         }
     };
-    $policy = AssignmentScopePolicy::inherit(StoreScope::class);
+    $policy = ScopesPlugin::inherit(StoreScope::class);
     $configured = $policy->accessAdapter('store', $adapter);
-    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes($configured)]);
+    [, , $registry] = PanelWorld::compile([
+        AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([$configured]),
+        CabinetPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([$policy]),
+    ]);
 
-    expect($policy->adapters())->toBe([])
-        ->and($registry->get('admin')->scopes()->adapters())->toBe(['store' => $adapter]);
+    expect($registry->get('cabinet')->options(ScopesOptions::class)?->adapters)->toBe([])
+        ->and($registry->get('admin')->options(ScopesOptions::class)?->adapters)->toBe(['store' => $adapter]);
 });
 
 it('rejects invalid access adapter type aliases and removed classes', function (): void {
-    expect(fn () => AssignmentScopePolicy::none()->accessAdapter('invalid:type', AssignmentScopeAccessAdapter::class))
+    expect(fn () => ScopesPlugin::inherit()->accessAdapter('invalid:type', AssignmentScopeAccessAdapter::class))
         ->toThrow(DefinitionException::class, 'type alias');
-    expect(fn () => AssignmentScopePolicy::none()->accessAdapter('store', 'RemovedAdapter'))
+    expect(fn () => ScopesPlugin::inherit()->accessAdapter('store', 'RemovedAdapter'))
         ->toThrow(DefinitionException::class, 'implement');
 });
 
 it('requires a binding for access adapter interfaces and known scope types', function (): void {
-    $compile = fn (AssignmentScopePolicy $policy) => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes($policy)]);
-    expect(fn () => $compile(AssignmentScopePolicy::inherit(StoreScope::class)->accessAdapter('store', AssignmentScopeAccessAdapter::class)))
+    $compile = fn (ScopesPlugin $policy) => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([$policy])]);
+    expect(fn () => $compile(ScopesPlugin::inherit(StoreScope::class)->accessAdapter('store', AssignmentScopeAccessAdapter::class)))
         ->toThrow(DefinitionException::class, 'container binding');
-    expect(fn () => $compile(AssignmentScopePolicy::inherit(StoreScope::class)->accessAdapter('other', new class implements AssignmentScopeAccessAdapter
+    expect(fn () => $compile(ScopesPlugin::inherit(StoreScope::class)->accessAdapter('other', new class implements AssignmentScopeAccessAdapter
     {
         public function allows(AssignmentScopeRef $ref, AssignmentScopeRuntime $runtime): bool
         {
@@ -88,14 +95,14 @@ it('accepts class object and closure filters without resolving typed classes at 
         ->filter(static function (Builder $query, AssignmentScopeRuntime $runtime): void {
             $query->where('is_active', true);
         });
-    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]);
+    [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]);
     expect(ConfigCountingFilter::$instances)->toBe(0)
         ->and($registry->get('admin')->scopeDefinition('crm.project')->settings()->filters)->toHaveCount(3);
 });
 
 it('rejects an unbound filter interface at build and accepts its bound deployment', function (): void {
     $definition = ConfiguredProjectScope::make()->filter(AssignmentScopeFilter::class);
-    $compile = fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]);
+    $compile = fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]);
     expect($compile)->toThrow(DefinitionException::class, 'container binding');
     app()->bind(AssignmentScopeFilter::class, ConfigCountingFilter::class);
     ConfigCountingFilter::$instances = 0;
@@ -105,7 +112,7 @@ it('rejects an unbound filter interface at build and accepts its bound deploymen
 
 it('rejects native filters for generic definitions and reports removed filter classes', function (): void {
     $generic = (new ConfigGenericScope)->filter(new ActiveProjects);
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($generic))]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($generic)])]))
         ->toThrow(DefinitionException::class, 'queryable model');
     expect(fn () => ConfiguredProjectScope::make()->filter('RemovedFilter'))->toThrow(DefinitionException::class, 'filter()');
 });
@@ -118,18 +125,18 @@ it('rejects filter constructor dependencies that cannot be resolved without a bi
         public function apply(Builder $query, AssignmentScopeRuntime $runtime): void {}
     };
     $definition = ConfiguredProjectScope::make()->filter($filter::class);
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
         ->toThrow(DefinitionException::class, 'constructor parameter');
 });
 
 it('merges common filters across configure plugin and provider with identity intact', function (): void {
     $recipe = new PanelRecipe('admin');
     foreach ([PanelRecipe::configure(), PanelRecipe::plugin('filters', 0), PanelRecipe::provider()] as $i => $origin) {
-        $recipe->during($origin, fn () => $recipe->record(PanelRecipe::SCOPES, AssignmentScopePolicy::inherit(
+        $recipe->during($origin, fn () => $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [
             ConfiguredProjectScope::make()->label('layer'.$i)->filter(static function (Builder $query) use ($i): void {
                 $query->where('layer', $i);
             }),
-        )));
+        ])));
     }
     $panel = (new PanelCompiler)->compile($recipe, container: app());
     $definition = $panel->scopeDefinition('crm.project');
@@ -138,18 +145,18 @@ it('merges common filters across configure plugin and provider with identity int
 
 it('rejects a changed owner despite identical model class and scope type', function (): void {
     $recipe = new PanelRecipe('admin');
-    $recipe->record(PanelRecipe::SCOPES, AssignmentScopePolicy::inherit(ModelAssignmentScopeDefinition::make(Project::class, type: 'project')));
-    $recipe->record(PanelRecipe::SCOPES, AssignmentScopePolicy::inherit(ModelAssignmentScopeDefinition::make(Project::class, owner: static fn () => TenantRef::global(), type: 'project')));
+    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, type: 'project')]));
+    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, owner: static fn () => TenantRef::global(), type: 'project')]));
     expect(fn () => (new PanelCompiler)->compile($recipe, container: app()))->toThrow(DefinitionException::class, 'conflicting');
 });
 
 it('fingerprints scalar closure configuration and rejects live runtime captures', function (): void {
     $fingerprint = function (int $city): string {
         $recipe = new PanelRecipe('admin');
-        $recipe->record(PanelRecipe::SCOPES, AssignmentScopePolicy::inherit(ConfiguredProjectScope::make()
+        $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()
             ->filter(static function (Builder $query) use ($city): void {
                 $query->where('city_id', $city);
-            })));
+            })]));
         $panel = (new PanelCompiler)->compile($recipe, container: app());
 
         return PanelFingerprint::of($panel, $recipe);
@@ -159,6 +166,6 @@ it('fingerprints scalar closure configuration and rejects live runtime captures'
     $definition = ConfiguredProjectScope::make()->filter(static function (Builder $query) use ($project): void {
         $query->whereKey($project->getKey());
     });
-    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::inherit($definition))]))
+    expect(fn () => PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::inherit($definition)])]))
         ->toThrow(DefinitionException::class, 'live model');
 });

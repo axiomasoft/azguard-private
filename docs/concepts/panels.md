@@ -76,7 +76,7 @@ afterwards. Changing it later throws `RegistryFrozenException`.
 | `permissions([...])` | Extra enum classes, source objects and named sources |
 | `roles([...])`, `policies([...])`, `discover($path, $namespace)` | Definitions from outside the panel directory |
 | `middleware([...])`, `entry($permission)`, `onDenied($response)`, `requireRouteChecks()` | Entering the panel over HTTP ([Checking access](/guides/checking-access#routes)) |
-| `tenants()`, `scopes()`, `tenantResolvers()`, `scopeResolvers()`, `resourceScopes()` | [Tenants and scopes](/guides/tenants-and-scopes) |
+| `tenants()`, `assignmentScopes()`, `tenantResolvers()`, `scopeResolvers()`, `resourceScopes()` | [Tenants and scopes](/guides/tenants-and-scopes) |
 | `before()`, `restrictions()`, `after()`, `changing()`, `grantConditions()`, `plugins()`, `withoutPlugins()`, `fields()` | [Hooks and plugins](/advanced/hooks-and-plugins) |
 | `cache()`, `consistency()` | [Performance and consistency](/advanced/performance) |
 | `doctorChecks([...])` | Extra `azguard:doctor` checks |

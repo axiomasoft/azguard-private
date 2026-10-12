@@ -367,6 +367,7 @@
         "filament",
         "filament_enforce",
         "host_keys",
+        "membership",
         "panel_state",
         "permission",
         "storage",

@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\BatchNativeFilter;
@@ -40,7 +40,7 @@ it('keeps native contribution fields and a failing sibling subject witness indep
     $source = new GeneratedSource(roles: [$no]);
     [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $panel) => $panel
         ->roles([BatchNativeRole::class])->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership(['1', '2'])))
-        ->scopes(AssignmentScopePolicy::inherit(ConfiguredProjectScope::make()->filter(new BatchNativeFilter))));
+        ->plugins([ScopesPlugin::inherit(ConfiguredProjectScope::make()->filter(new BatchNativeFilter))]));
     $request = $request->inScope($scope);
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::NotGranted);
     $source->roles[] = $yes;

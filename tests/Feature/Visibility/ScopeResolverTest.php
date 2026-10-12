@@ -16,8 +16,8 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\BaseAssignmentScope;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
@@ -101,7 +101,7 @@ it('preserves a custom structural scope resolver when compiling visibility', fun
     [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel
         ->for(User::class)->permissions([new VisibilitySource(direct: [W::grant()])])
         ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)])
-        ->scopes(AssignmentScopePolicy::inherit($definition))]);
+        ->plugins([ScopesPlugin::inherit($definition)])]);
     app()->instance(PanelRegistry::class, $registry);
     $panel = $registry->get('admin');
     $visibility = app(Visibility::class);
@@ -132,7 +132,7 @@ it('keeps scalar batch and visibility equivalent when a custom resolver omits a 
     [, , $registry] = PanelWorld::compile([AdminPanel::class => fn (PanelBuilder $panel) => $panel
         ->for(User::class)->permissions([$source])->roles([MissingRecordVisibilityRole::class])
         ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)])
-        ->scopes(AssignmentScopePolicy::inherit(new MissingRecordVisibilityScope))]);
+        ->plugins([ScopesPlugin::inherit(new MissingRecordVisibilityScope)])]);
     app()->instance(PanelRegistry::class, $registry);
     $panel = $registry->get('admin');
     $engine = app(Authorizer::class);

@@ -11,7 +11,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Permissions\GrantedToAll;
 use AzGuard\Permissions\RequiresGrant;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProjectScope;
@@ -71,14 +71,14 @@ it('uses fixed GrantedToAll folder witnesses in isolated and required contexts',
 })->with(['isolated', 'required']);
 
 it('constrains a queryable external scope adapter without letting it replace ownership', function (): void {
-    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1), W::grant(2)]), fn (PanelBuilder $panel) => $panel->scopes(
-        AssignmentScopePolicy::inherit(new VisibilityProjectScope)->accessAdapter('project', new VisibilityExternalAdapter),
-    ));
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1), W::grant(2)]), fn (PanelBuilder $panel) => $panel->plugins([
+        ScopesPlugin::inherit(new VisibilityProjectScope)->accessAdapter('project', new VisibilityExternalAdapter),
+    ]));
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->pluck('id')->all())->toBe([1]);
 });
 
 it('blocks native scope filter structure changes and caught terminal query execution', function (bool $terminal): void {
-    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->scopes(AssignmentScopePolicy::inherit(
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->plugins([ScopesPlugin::inherit(
         (new VisibilityProjectScope)->filter(static function (Builder $query) use ($terminal): void {
             if ($terminal) {
                 try {
@@ -89,6 +89,6 @@ it('blocks native scope filter structure changes and caught terminal query execu
                 $query->orderBy('id');
             }
         }),
-    )));
+    )]));
     expect(fn () => $visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view'))->toThrow(VisibilityNotSupportedException::class);
 })->with([false, true]);

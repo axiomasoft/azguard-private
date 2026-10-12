@@ -12,8 +12,8 @@ use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Feature\Directories\Support\AllowedProjectsAdapter;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Feature\Directories\Support\UnboundRole;
@@ -60,7 +60,7 @@ function callbackScope(): ModelAssignmentScopeDefinition
 
 function callbackPanel(?Closure $configure = null): Panel
 {
-    return World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make(), $configure === null ? callbackScope() : $configure(callbackScope()))));
+    return World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make(), $configure === null ? callbackScope() : $configure(callbackScope()))]));
 }
 
 it('offers the contexts of the target and not of the acting admin', function (): void {
@@ -86,12 +86,12 @@ it('applies the limit after eligibility', function (): void {
 
 it('gives the filters the target, the role, the proposed fields, the actor and the phase of the lookup', function (): void {
     $observed = new ArrayObject;
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(
         function (Builder $query, AssignmentScopeRuntime $runtime) use ($observed): void {
             $observed[] = $runtime;
             $query->where('is_active', true);
         },
-    ))));
+    ))]));
 
     projects($panel, target: 2, role: SellerRole::class, proposed: ['until' => null, 'fields' => ['region' => 'R1']], actor: 3);
 
@@ -116,11 +116,11 @@ it('gives the filters the target, the role, the proposed fields, the actor and t
 
 it('returns nothing before any filter for an Assignment search without a selected target', function (): void {
     $observed = new ArrayObject;
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(
         function (Builder $query, AssignmentScopeRuntime $runtime) use ($observed): void {
             $observed[] = $runtime;
         },
-    ))));
+    ))]));
 
     expect(projects($panel, target: null, role: SellerRole::class))->toBe([])
         ->and(count($observed))->toBe(0);
@@ -143,9 +143,9 @@ it('skips eligibility but never the tenant for Inspection and Revocation', funct
 })->with([[AssignmentScopePhase::Inspection], [AssignmentScopePhase::Revocation]]);
 
 it('keeps the tenant and structural boundary when a filter ORs conditions', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make()->filter(
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(
         fn (Builder $query) => $query->orWhere('id', 3)->orWhere('id', 4)->orWhere('id', 1),
-    ))));
+    ))]));
 
     // Project 4 passes the OR but belongs to tenant 2, inactive 3 passes it but fails the common active filter.
     expect(ids(projects($panel, target: 1)))->toBe(['1']);
@@ -198,8 +198,8 @@ it('refuses a partial list when the scan budget ends before the limit or the end
 });
 
 it('lets the access adapter of the type narrow the candidates before the limit', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(ProjectScope::make())
-        ->accessAdapter('crm.project', AllowedProjectsAdapter::class)));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make())
+        ->accessAdapter('crm.project', AllowedProjectsAdapter::class)]));
     AllowedProjectsAdapter::$allowed = ['2', '5'];
 
     expect(ids(projects($panel, target: 1, role: AnalystRole::class)))->toBe(['2', '5'])
@@ -232,7 +232,7 @@ it('describes an inactive context to Inspection and to the owner callback tenant
 });
 
 it('searches nothing for an external definition without a query', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit(new ExternalProjectScope)));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(new ExternalProjectScope)]));
     $directory = DirectoryResolver::for($panel, app())->scopes('external.project');
     $lookup = Lookups::make($panel, tenant: 1, target: 1);
 

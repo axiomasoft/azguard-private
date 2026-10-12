@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.7",
   "title": "Assignment-scope declaration slot, mode enum and ScopesPlugin",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Core interprets assignment scopes from one per-panel `Context\\AssignmentScopeDeclaration` (closed `AssignmentScopeMode`, definitions by alias, per-alias directories, optional evaluator) contributed through `PanelBuilder::assignmentScopes()`; the scope DSL `AssignmentScopePolicy` becomes the module plugin `Scopes\\ScopesPlugin` that contributes the declaration and `Scopes\\Internal\\ScopesOptions`; every mode read in core uses the enum and the envelope is computed by core from it.",
   "why": "D7/architecture#scope-boundary: the mode is interpreted over core columns in every path (frame, boundary, visibility, admission, validator), so the vocabulary and envelope belong to core while the DSL is module behavior; core must not import `AssignmentScopePolicy` (I2 entries owner P2). Hard risks: the existing precedence/conflict rules of `PanelCompiler::scopePolicy()/scopes()` must be preserved exactly; no declaration must mean `None` and fail closed (I7); the parity matrix must stay identical.",
   "scope": {
@@ -239,6 +239,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T20:17:30Z"
+  "result": {
+    "started_at": "2026-10-12T05:36:57Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "20a9d912-2b41-4831-92f8-392e568b4d7f"
+    }
+  },
+  "updated_at": "2026-10-12T05:36:57Z"
 }

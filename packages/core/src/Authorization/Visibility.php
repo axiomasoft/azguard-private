@@ -8,6 +8,7 @@ use AzGuard\Attributes\Api;
 use AzGuard\Authorization\Query\PredicateCompiler;
 use AzGuard\Authorization\Query\VisibilityScope;
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\Internal\CurrentContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\Restriction;
@@ -36,6 +37,7 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Roles\BaseRole;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
@@ -162,7 +164,7 @@ final readonly class Visibility
                 $ref = $item->scope->context;
                 $fixed = $source instanceof FolderSource && $item instanceof Grant && $item->origin === 'granted_to_all';
 
-                if ($ref->isGlobal() && $mapping !== null && $panel->scopes()->mode() === 'isolated' && ! $fixed) {
+                if ($ref->isGlobal() && $mapping !== null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::Isolated && ! $fixed) {
                     continue;
                 }
 
@@ -252,7 +254,7 @@ final readonly class Visibility
 
         if (($panel->tenants()->mode() === TenantMode::Required && ($scope->tenant->isGlobal() || $scope->tenant->type() !== $panel->tenants()->definition()?->type()))
             || ($panel->tenants()->mode() === TenantMode::None && ! $scope->tenant->isGlobal())
-            || (! $scope->context->isGlobal() && ($panel->scopes()->mode() === 'none' || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
+            || (! $scope->context->isGlobal() && (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None || $panel->scopeDefinition($scope->context->type() ?? '') === null))) {
             throw new VisibilityNotSupportedException('selected_scope');
         }
         $model = ModelSubjectResolver::given($panel, $subject, $ref) ?? $this->subjects->resolve($panel, $ref);
@@ -268,7 +270,7 @@ final readonly class Visibility
         $panel = $frame->panel();
         $model = $query->getModel();
 
-        if ($panel->scopes()->mode() === 'none') {
+        if (($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None) {
             if ($panel->tenants()->mode() !== TenantMode::None || $model instanceof ProvidesAccessScope || $model instanceof ProvidesAssignmentScope || $panel->resourceScopes() !== []) {
                 throw new VisibilityNotSupportedException('resource_owner_adapter');
             }
@@ -337,8 +339,9 @@ final readonly class Visibility
      */
     private function membership(Builder $query, AccessRequest $request, EvaluationFrame $frame, ?VisibilityScope $mapping, PredicateCompiler $compiler): void
     {
-        if ($frame->panel()->scopes()->membership() !== null && $mapping !== null) {
-            $declared = $frame->panel()->scopes()->membership();
+        $declared = ScopeConfiguration::membership($frame->panel());
+
+        if ($declared !== null && $mapping !== null) {
             $member = is_string($declared) ? $this->container->make($declared) : $declared;
             $compiler->constrain($query, $this->predicate($member, $request, $frame, $query->getModel()::class));
         }

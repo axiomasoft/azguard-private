@@ -24,7 +24,7 @@ sources.
 | `FakeSource` | Tests: grants in memory (`AzGuard\Testing\FakeSource`) |
 
 ```php
-->scopes(AssignmentScopePolicy::inherit(Team::class))
+->plugins([ScopesPlugin::inherit(Team::class)])
 ->permissions([
     DatabaseSource::make()->dynamicPermissions(),
     RelationSource::make(Team::class, 'members', 'pivot.role'),

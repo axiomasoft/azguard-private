@@ -22,6 +22,7 @@ use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
+use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -115,7 +116,7 @@ final readonly class VisibilityScope
         if (! $frame->scope()->context->isGlobal()) {
             ModelKey::where($query, $frame->scope()->context->id());
         }
-        $declared = $frame->panel()->scopes()->adapters()[$this->definition->type()] ?? null;
+        $declared = ScopeConfiguration::adapters($frame->panel())[$this->definition->type()] ?? null;
 
         if ($frame->scope()->context->isGlobal() && ($declared !== null || array_filter($definitions,
             static fn ($definition): bool => $definition instanceof ConfigurableAssignmentScopeDefinition && $definition->settings()->filters !== []) !== [])) {

@@ -9,7 +9,7 @@ use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
@@ -44,7 +44,7 @@ it('makes context membership optional and enforces it only when requested', func
     $membership = new Membership(members: $member ? ['1'] : [], throws: $throws);
     [$engine, $panel, $request] = ScopeWorld::compile(new ScopeSource(direct: [ScopeWorld::grant(ScopeWorld::scope())]), configure: function (PanelBuilder $panel) use ($required, $membership): void {
         if ($required) {
-            $panel->scopes(AssignmentScopePolicy::inherit(StoreScope::class)->requireMembership(new ContextMembership($membership)));
+            $panel->plugins([ScopesPlugin::inherit(StoreScope::class)->requireMembership(new ContextMembership($membership))]);
         }
     });
     $decision = $engine->decide($panel, $request->inScope(ScopeWorld::scope(context: 1)));

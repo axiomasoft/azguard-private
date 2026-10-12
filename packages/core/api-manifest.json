@@ -4621,6 +4621,207 @@
             ]
         },
         {
+            "name": "AzGuard\\Context\\AssignmentScopeDeclaration",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "definitions",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "directories",
+                    "visibility": "public",
+                    "type": "array",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "evaluator",
+                    "visibility": "public",
+                    "type": "?string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "mode",
+                    "visibility": "public",
+                    "type": "AzGuard\\Context\\AssignmentScopeMode",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "mode",
+                            "type": "AzGuard\\Context\\AssignmentScopeMode",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "definitions",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "directories",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "array (\n)"
+                        },
+                        {
+                            "name": "evaluator",
+                            "type": "?string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<AssignmentScopeDefinition> $definitions unique aliases",
+                        "@param array<string, class-string<AssignmentScopeDirectory>> $directories keyed by alias",
+                        "@param class-string|null $evaluator the eligibility evaluator; null means structural eligibility only"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Context\\AssignmentScopeMode",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "enum",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "BackedEnum",
+                "UnitEnum"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "enum": "closed",
+            "cases": [
+                {
+                    "name": "None",
+                    "value": "none"
+                },
+                {
+                    "name": "Inherit",
+                    "value": "inherit"
+                },
+                {
+                    "name": "Isolated",
+                    "value": "isolated"
+                },
+                {
+                    "name": "Required",
+                    "value": "required"
+                }
+            ],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "name",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                },
+                {
+                    "name": "value",
+                    "visibility": "public",
+                    "type": "string",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "cases",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "from",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "tryFrom",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "value",
+                            "type": "string|int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?static",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Context\\AssignmentScopePhase",
             "publication": "api",
             "since": "0.7",
@@ -18854,6 +19055,17 @@
                     "contracts": []
                 },
                 {
+                    "name": "scopeDeclaration",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "?AzGuard\\Context\\AssignmentScopeDeclaration",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
                     "name": "settings",
                     "visibility": "public",
                     "static": false,
@@ -18981,6 +19193,25 @@
                     "contracts": [
                         "@param list<AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void>|AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void $hooks"
                     ]
+                },
+                {
+                    "name": "assignmentScopes",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "declaration",
+                            "type": "AzGuard\\Context\\AssignmentScopeDeclaration",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
                 },
                 {
                     "name": "before",
@@ -19586,25 +19817,6 @@
                     "contracts": [
                         "@param list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>> $resolvers"
                     ]
-                },
-                {
-                    "name": "scopes",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "policy",
-                            "type": "AzGuard\\Scopes\\AssignmentScopePolicy",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
                 },
                 {
                     "name": "tenantResolvers",
@@ -23368,6 +23580,175 @@
                     "return": "string",
                     "namedArguments": true,
                     "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Scopes\\ScopesPlugin",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Plugins\\Plugin"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "accessAdapter",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "type",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "adapter",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeAccessAdapter|class-string<AssignmentScopeAccessAdapter> $adapter"
+                    ]
+                },
+                {
+                    "name": "id",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "inherit",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeDefinition|class-string<AssignmentScopeDefinition>|class-string<Model> ...$definitions"
+                    ]
+                },
+                {
+                    "name": "isolated",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeDefinition|class-string<AssignmentScopeDefinition>|class-string<Model> ...$definitions"
+                    ]
+                },
+                {
+                    "name": "register",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\PanelBuilder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "context",
+                            "type": "AzGuard\\Plugins\\PluginContext",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "requireMembership",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "membership",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership|string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "'AzGuard\\\\Contracts\\\\Scopes\\\\AssignmentScopeMembership'"
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeMembership|class-string<AssignmentScopeMembership> $membership"
+                    ]
+                },
+                {
+                    "name": "required",
+                    "visibility": "public",
+                    "static": true,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "definitions",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition|string",
+                            "byRef": false,
+                            "variadic": true,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "self",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param AssignmentScopeDefinition|class-string<AssignmentScopeDefinition>|class-string<Model> ...$definitions"
+                    ]
                 }
             ]
         },

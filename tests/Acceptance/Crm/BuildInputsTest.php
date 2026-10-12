@@ -8,7 +8,7 @@ use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Crm\CrmAccessPlugin;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Permissions\Clients\ClientPermission as Action;
@@ -55,7 +55,7 @@ it('R57 build rejects a captured live host model instead of retaining request in
     $definition = ProjectScope::make()->filter(static function (Builder $query) use ($project): void {
         $query->whereKey($project->getKey());
     });
-    expect(fn () => World::compile(fn (PanelBuilder $p) => $p->scopes(AssignmentScopePolicy::inherit($definition))))
+    expect(fn () => World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit($definition)])))
         ->toThrow(DefinitionException::class, 'live model');
     World::assertDecision(World::decide(World::compile()), true, DecisionReason::Granted);
 });

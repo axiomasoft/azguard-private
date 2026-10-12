@@ -16,7 +16,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\RuntimePolicy;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -32,8 +32,8 @@ it('P06 keeps a none panel independent of another panels isolated ambient contex
     ScopeWorld::compile(new GeneratedSource);
     $grant = Grant::of(PermissionPattern::of('admin', 'orders.view'), 'generated', AccessScope::in(TenantRef::global()));
     [, , $registry] = PanelWorld::compile([
-        CabinetPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::isolated(User::class)),
-        AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->scopes(AssignmentScopePolicy::none())->permissions([new GeneratedSource(direct: [$grant])])->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]),
+        CabinetPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->plugins([ScopesPlugin::isolated(User::class)]),
+        AdminPanel::class => fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([new GeneratedSource(direct: [$grant])])->policies([PolicyBinding::for('orders.policy', RuntimePolicy::class)]),
     ]);
     app()->instance(PanelRegistry::class, $registry);
     app()->forgetInstance(Authorizer::class);

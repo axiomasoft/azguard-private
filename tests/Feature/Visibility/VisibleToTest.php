@@ -8,7 +8,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityClient;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityCondition;
 use AzGuard\Tests\Fixtures\Visibility\VisibilityProject;
@@ -68,9 +68,9 @@ it('uses one fixed now and preserves conditions on individual witnesses', functi
 
 it('applies native common and role filters as separate AND groups per concrete runtime', function (): void {
     $source = new VisibilitySource(roles: [W::role(1, ['city' => 'Rome']), W::role(1, ['city' => 'Paris']), W::role(2, ['city' => 'Rome'])]);
-    [$visibility, $panel] = W::compile($source, fn (PanelBuilder $panel) => $panel->scopes(AssignmentScopePolicy::inherit(
+    [$visibility, $panel] = W::compile($source, fn (PanelBuilder $panel) => $panel->plugins([ScopesPlugin::inherit(
         (new VisibilityProjectScope)->filter(static fn (Builder $query, $runtime) => $query->whereKey($runtime->scope->context->id())->where('active', true)),
-    )));
+    )]));
     expect($visibility->visibleTo($panel, VisibilityProject::query(), W::subject(), 'orders.view')->pluck('id')->all())->toBe([1]);
 });
 

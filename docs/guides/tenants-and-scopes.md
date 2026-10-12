@@ -9,20 +9,26 @@ AzGuard has two independent dimensions for "where":
 
 ## Assignment scopes
 
-Declare which scope types the panel accepts and how tenant-wide grants apply in them:
+Attach the scopes plugin to declare which scope types the panel accepts and how tenant-wide grants apply in them:
 
 ```php
-use AzGuard\Scopes\AssignmentScopePolicy;
+use AzGuard\Scopes\ScopesPlugin;
 
-->scopes(AssignmentScopePolicy::inherit(Team::class))   // a model class or an AssignmentScopeDefinition
+->plugins([ScopesPlugin::inherit(Team::class)])   // a model class, an AssignmentScopeDefinition object or class
 ```
 
-| Policy | Check without a scope | Check in scope C |
+| Plugin (`AssignmentScopeMode`) | Check without a scope | Check in scope C |
 |---|---|---|
-| `inherit(...)` | Tenant-wide grants | Tenant-wide grants plus grants in C |
-| `isolated(...)` | Tenant-wide grants | Grants in C only |
-| `required(...)` | Denied (`context_required`) | Tenant-wide grants plus grants in C |
-| `none()` (default) | Tenant-wide grants | Denied (`context_not_accepted`) |
+| `ScopesPlugin::inherit(...)` (`Inherit`) | Tenant-wide grants | Tenant-wide grants plus grants in C |
+| `ScopesPlugin::isolated(...)` (`Isolated`) | Tenant-wide grants | Grants in C only |
+| `ScopesPlugin::required(...)` (`Required`) | Denied (`context_required`) | Tenant-wide grants plus grants in C |
+| no plugin (`None`, default) | Tenant-wide grants | Denied (`context_not_accepted`) |
+
+A definition class is created without arguments; pass a definition that needs services or settings as an object.
+A panel has one `ScopesPlugin`. Another plugin, `configurePanels()` or the provider itself can add to the same
+declaration through `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [$definition]))`:
+the mode comes from the highest layer (provider, then plugins, then `configurePanels()`), definitions of all layers
+are merged by alias. `Panel::scopeDeclaration()` returns the merged declaration, or null for a panel without one.
 
 A role must list the scopes it can be granted in:
 

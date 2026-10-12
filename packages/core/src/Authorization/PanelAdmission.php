@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Authorization;
 
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\SubjectRef;
@@ -65,7 +66,7 @@ final readonly class PanelAdmission
             return true;
         }
 
-        if (! $scope->context->isGlobal() || $panel->scopes()->mode() === 'none') {
+        if (! $scope->context->isGlobal() || ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) === AssignmentScopeMode::None) {
             return false;
         }
         foreach (array_keys($panel->scopeDefinitions()) as $type) {
