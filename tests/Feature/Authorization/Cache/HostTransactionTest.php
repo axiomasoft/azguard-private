@@ -99,7 +99,7 @@ it('cannot reuse a capability after root rollback and replacement at the same tr
 
 it('retains an early before veto without inspecting DB authority in another execution context', function (): void {
     $source = DatabaseSource::make();
-    [$panel] = DatabaseWorld::compile($source, before: fn () => BeforeResult::Deny);
+    [$panel] = DatabaseWorld::compile($source, before: fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny);
     $engine = app(Authorizer::class);
     DatabaseWorld::storage()->mutate('admin', function () use ($engine, $panel): void {
         $fiber = new Fiber(fn () => $engine->decide($panel, DatabaseWorld::request()));

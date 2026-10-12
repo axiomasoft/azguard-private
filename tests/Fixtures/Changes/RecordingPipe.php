@@ -6,10 +6,11 @@ namespace AzGuard\Tests\Fixtures\Changes;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
 
 /** Records the order of pipes and what each saw; resolved by the container from its class name. */
-final class RecordingPipe
+final class RecordingPipe implements ChangePipe
 {
     /** @var list<string> */
     public static array $log = [];

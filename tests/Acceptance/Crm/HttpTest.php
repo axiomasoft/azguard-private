@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\PermissionNotGrantableException;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Panels\CurrentPanel;
 use AzGuard\Panels\PanelBuilder;
@@ -109,7 +111,7 @@ it('R39 refuses an expired role, a role in an inactive project and a role of ano
 });
 
 it('R39 decides the entry permission AND and lets its veto stop the tenant admin', function (): void {
-    HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->entry(ClientPermission::ViewAny)->before(static fn (): BeforeResult => BeforeResult::Deny));
+    HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->entry(ClientPermission::ViewAny)->before(static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny));
     HttpWorld::actingAs(3);
     $this->get('/crm', ['X-Tenant' => '1', 'X-Project' => '1'])->assertForbidden();
 

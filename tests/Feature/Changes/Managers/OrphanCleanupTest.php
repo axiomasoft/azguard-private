@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\GrantFilter;
 use AzGuard\Changes\GrantRecord;
@@ -73,7 +74,7 @@ it('V113 R29 lists removed roles, scopes and PolicyOnly exact permissions as orp
 
 it('V113 R29 revokes orphaned grants by their stored scope without live eligibility', function (): void {
     $seen = [];
-    $panel = W::panel([function (Change $change, Closure $next) use (&$seen) {
+    $panel = W::panel([function (Change $change, Closure $next) use (&$seen): ChangeResult {
         $seen[] = [$change->type, $change->context()->phase->value, $change->context()->role];
 
         return $next($change);

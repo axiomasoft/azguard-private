@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Filament\Fields;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
 
 /** An AzGuard plugin that adds the reason of a grant to both kinds of grants of a panel. */
-final class ReasonPlugin extends BasePlugin
+final class ReasonPlugin implements Plugin
 {
     public static function make(): self
     {

@@ -91,14 +91,14 @@ it('runs a writing hook once and decides both subject groups at the one snapshot
     $touches = 0;
     $observed = [];
     [$engine] = CacheWorld::database(DatabaseSource::make(), StateRefresh::Check, function (PanelBuilder $panel) use (&$touches, &$observed): void {
-        $panel->before(function (EvaluationContext $context) use (&$touches): BeforeResult {
+        $panel->before(function (AccessRequest $request, EvaluationContext $context) use (&$touches): BeforeResult {
             if ($context->subjectModel()?->getKey() === 2) {
                 $touches++;
                 DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
             }
 
             return BeforeResult::Continue;
-        })->after(function (Decision $decision) use (&$observed): void {
+        })->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed): void {
             $observed[] = $decision;
         });
     });

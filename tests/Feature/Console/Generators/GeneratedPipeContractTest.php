@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Feature\Console\Generators;
 
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Testing\Contracts\HookContractTests;
 use AzGuard\Tests\Fixtures\Console\GeneratesComponents;
 use AzGuard\Tests\TestCase;
@@ -22,8 +23,11 @@ final class GeneratedPipeContractTest extends TestCase
         $this->generate('azguard:make:pipe', ['name' => 'RequireReason', '--panel' => 'Admin']);
     }
 
-    protected function azguardChangePipe(): object|string|null
+    protected function azguardChangePipe(): string
     {
-        return $this->generatedClass('Admin\Changes\RequireReason');
+        /** @var class-string<ChangePipe> $class */
+        $class = $this->generatedClass('Admin\Changes\RequireReason');
+
+        return $class;
     }
 }

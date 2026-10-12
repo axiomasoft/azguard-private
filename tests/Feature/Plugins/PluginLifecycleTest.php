@@ -5,15 +5,13 @@ declare(strict_types=1);
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\PluginConflictException;
-use AzGuard\Exceptions\PluginDependencyMissingException;
-use AzGuard\Exceptions\PluginException;
-use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
+use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Tests\Fixtures\Authorization\RecordingRestriction;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ForeignPlugins;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\BootsPanels;
@@ -26,7 +24,6 @@ use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\Vendor;
 use AzGuard\Tests\Fixtures\Plugins\Account;
 use AzGuard\Tests\Fixtures\Plugins\AuditFreeze;
-use AzGuard\Tests\Fixtures\Plugins\AuditJournal;
 use AzGuard\Tests\Fixtures\Plugins\AuditTrailPlugin;
 use AzGuard\Tests\Fixtures\Plugins\CrmAccessPlugin;
 use AzGuard\Tests\Fixtures\Plugins\CrmModels;
@@ -42,27 +39,21 @@ beforeEach(function (): void {
     ProbePlugin::$log = [];
 });
 
-it('registers the plugins of every panel in attachment order and boots them once the registry is frozen', function (): void {
+it('registers the plugins of every panel in attachment order and never calls a boot() a plugin declares', function (): void {
     $registry = new PanelRegistry(app());
-    $seen = [];
-    $boot = static function (Panel $panel) use ($registry, &$seen): void {
-        $seen[] = [$registry->isFrozen(), $registry->get($panel->id()) === $panel];
-    };
 
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([
-        ProbePlugin::make('acme/a', boot: $boot),
+        ProbePlugin::make('acme/a'),
         ProbePlugin::make('acme/b'),
     ]));
-    CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ProbePlugin::make('acme/b', boot: $boot)]));
+    CabinetPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ProbePlugin::make('acme/b')]));
 
     $registry->register(AdminPanel::class);
     $registry->register(CabinetPanel::class);
     $registry->freeze();
 
-    expect(ProbePlugin::$log)->toBe([
-        'register:admin:acme/a', 'register:admin:acme/b', 'register:cabinet:acme/b',
-        'boot:admin:acme/a', 'boot:admin:acme/b', 'boot:cabinet:acme/b',
-    ])->and($seen)->toBe([[true, true], [true, true]])
+    expect(ProbePlugin::$log)->toBe(['register:admin:acme/a', 'register:admin:acme/b', 'register:cabinet:acme/b'])
+        ->and($registry->isFrozen())->toBeTrue()
         ->and($registry->get('admin')->pluginIds())->toBe(['acme/a', 'acme/b'])
         ->and($registry->get('cabinet')->pluginIds())->toBe(['acme/b']);
 });
@@ -140,7 +131,7 @@ it('keeps plugins for all panels off a panel that names them in withoutPlugins()
 
     expect($registry->get('admin')->pluginIds())->toBe(['acme/other'])
         ->and($registry->get('cabinet')->pluginIds())->toBe(['acme/global', 'acme/other'])
-        ->and(ProbePlugin::$log)->not->toContain('register:admin:acme/global', 'boot:admin:acme/global');
+        ->and(ProbePlugin::$log)->not->toContain('register:admin:acme/global');
 });
 
 it('does not let a plugin detach another plugin', function (): void {
@@ -153,31 +144,7 @@ it('does not let a plugin detach another plugin', function (): void {
     expect($compile)->toThrow(DefinitionException::class, 'a plugin cannot detach another plugin');
 });
 
-it('fails the build when a plugin requires a plugin the panel does not have', function (Closure $describe): void {
-    $registry = new PanelRegistry(app());
-    $registry->configureAll(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditTrailPlugin::make()]));
-    AdminPanel::describe($describe);
-    $registry->register(AdminPanel::class);
-
-    try {
-        $registry->freeze();
-        $this->fail('The panel compiled without the required plugin.');
-    } catch (PluginDependencyMissingException $e) {
-        expect($e->code())->toBe('plugin_dependency_missing')
-            ->and($e)->toBeInstanceOf(PluginException::class)
-            ->and($e->getMessage())->toContain('"acme/reports"', '"admin"', '"acme/audit-trail"')
-            ->and($registry->isFrozen())->toBeFalse();
-    }
-})->with([
-    'the dependency is kept off the panel' => [
-        static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ReportsPlugin::class])->withoutPlugins(['acme/audit-trail']),
-    ],
-    'the dependency is kept off and the plugin is given as an object' => [
-        static fn (PanelBuilder $panel): PanelBuilder => $panel->withoutPlugins(['acme/audit-trail'])->plugins([new ReportsPlugin]),
-    ],
-]);
-
-it('accepts a dependency attached in any position and tells the plugin what it declared', function (): void {
+it('attaches plugins in any position and tells each plugin its panel, its id and the build', function (): void {
     $contexts = [];
     $register = static function (PanelBuilder $panel, PluginContext $context) use (&$contexts): void {
         $contexts[] = $context;
@@ -186,33 +153,17 @@ it('accepts a dependency attached in any position and tells the plugin what it d
     [, , $registry] = PanelWorld::compile([
         AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([
             ReportsPlugin::class,
-            ProbePlugin::make('acme/probe', requires: ['acme/reports', 'acme/audit-trail'], register: $register),
+            ProbePlugin::make('acme/probe', register: $register),
             AuditTrailPlugin::make(),
         ]),
     ]);
 
     expect($registry->get('admin')->pluginIds())->toBe(['acme/reports', 'acme/probe', 'acme/audit-trail'])
-        ->and($contexts[0]->dependencies())->toBe(['acme/reports', 'acme/audit-trail'])
         ->and($contexts[0]->pluginId())->toBe('acme/probe')
-        ->and($registry->recipe('admin')->items(PanelRecipe::DOCTOR_CHECKS))->not->toBe([]);
+        ->and($contexts[0]->panelId())->toBe('admin')
+        ->and($registry->recipe('admin')->items(PanelRecipe::DOCTOR_CHECKS))->not->toBe([])
+        ->and((new ReflectionClass(PluginContext::class))->hasMethod('dependencies'))->toBeFalse();
 });
-
-it('gives a plugin without declared dependencies an empty list', function (): void {
-    $journal = new AuditJournal;
-    app()->instance(AuditJournal::class, $journal);
-
-    PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditTrailPlugin::make()])]);
-
-    expect($journal->lines[0]['context']->dependencies())->toBe([]);
-});
-
-it('rejects dependencies that are not plugin ids', function (mixed $dependency): void {
-    $compile = static fn () => PanelWorld::compile([
-        AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ProbePlugin::make('acme/a', requires: [$dependency])]),
-    ]);
-
-    expect($compile)->toThrow(DefinitionException::class, 'requires() must list plugin ids');
-})->with([42, '', null]);
 
 it('rejects two plugins with one id on a panel', function (Closure $describe): void {
     $registry = new PanelRegistry(app());
@@ -279,12 +230,14 @@ it('rejects a class the container does not resolve to a plugin', function (): vo
     expect($compile)->toThrow(DefinitionException::class, ReportsPlugin::class.' to stdClass, which is not a plugin');
 });
 
-it('refuses a change of the panel from boot() and leaves the compiled panel as it was', function (): void {
+it('compiles a plugin that still declares boot() and never calls it', function (): void {
+    LateChangePlugin::$boots = 0;
     $registry = new PanelRegistry(app());
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->label('Back office')->plugins([new LateChangePlugin]));
     $registry->register(AdminPanel::class);
+    $registry->freeze();
 
-    expect(fn () => $registry->freeze())->toThrow(RegistryFrozenException::class, 'Panel "admin" is already compiled')
+    expect(LateChangePlugin::$boots)->toBe(0)
         ->and($registry->isFrozen())->toBeTrue()
         ->and($registry->get('admin')->label())->toBe('Back office')
         ->and($registry->recipe('admin')->layered(PanelRecipe::LABEL))->toHaveCount(1);
@@ -312,14 +265,11 @@ it('tells plugins the configured build id while they register', function (): voi
         register: static function (PanelBuilder $panel, PluginContext $context) use (&$seen): void {
             $seen[] = $context->buildId();
         },
-        boot: static function (Panel $panel, PluginContext $context) use (&$seen): void {
-            $seen[] = $context->buildId();
-        },
     );
 
     PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([$plugin])]);
 
-    expect($seen)->toBe(['release-42', 'release-42']);
+    expect($seen)->toBe(['release-42']);
 });
 
 it('derives a stable build id from the registered panel providers when none is configured', function (): void {
@@ -343,11 +293,29 @@ it('derives a stable build id from the registered panel providers when none is c
         ->and(app(AzGuardConfig::class)->buildId([AdminPanel::class]))->toBe($one);
 });
 
-it('runs the plugin lifecycle when the application boots', function (): void {
+it('registers the plugins when the application boots and calls no boot()', function (): void {
     AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ProbePlugin::make('acme/a'), ReportsPlugin::class, AuditTrailPlugin::make()]));
 
     $this->bootPanels(['providers' => [AdminPanel::class]]);
 
     expect(app(PanelRegistry::class)->get('admin')->pluginIds())->toBe(['acme/a', 'acme/reports', 'acme/audit-trail'])
-        ->and(ProbePlugin::$log)->toBe(['register:admin:acme/a', 'boot:admin:acme/a']);
+        ->and(ProbePlugin::$log)->toBe(['register:admin:acme/a']);
+});
+
+it('rejects the reserved azguard/ id prefix on a plugin class outside the package', function (): void {
+    $plugin = ForeignPlugins::reservedId('azguard/own');
+
+    $compile = static fn () => PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([$plugin])]);
+
+    expect($compile)->toThrow(PluginConflictException::class, 'the prefix "azguard/" is reserved');
+});
+
+it('accepts the azguard/ id prefix on a plugin class of the package and other prefixes outside it', function (): void {
+    $foreign = ForeignPlugins::reservedId('acme/own');
+
+    [, , $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([
+        AuditPlugin::make(), $foreign, ProbePlugin::make('azguard/probe'),
+    ])]);
+
+    expect($registry->get('admin')->pluginIds())->toBe(['azguard/audit', 'acme/own', 'azguard/probe']);
 });

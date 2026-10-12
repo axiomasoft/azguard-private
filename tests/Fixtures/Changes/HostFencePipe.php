@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Changes;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use Closure;
 use Illuminate\Database\Schema\Blueprint;
@@ -15,7 +16,7 @@ use Illuminate\Database\Schema\Blueprint;
  * marker and the referenced project row on the SAME connection, then compare them with what the form or job prepared.
  * Deployments and owner transfers take the same panel-state → host-row order. Retry-safe: it reads again every attempt.
  */
-final class HostFencePipe
+final class HostFencePipe implements ChangePipe
 {
     public static ?string $preparedBuild = null;
 

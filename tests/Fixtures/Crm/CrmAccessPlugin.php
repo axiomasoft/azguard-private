@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm;
 
-use AzGuard\Panels\Panel;
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Scopes\AssignmentScopePolicy;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use Illuminate\Database\Eloquent\Builder;
 
-final class CrmAccessPlugin extends BasePlugin
+final class CrmAccessPlugin implements Plugin
 {
-    public static array $boots = [];
-
     private function __construct(private readonly int $city) {}
 
     public static function make(int $city): self
@@ -36,10 +33,5 @@ final class CrmAccessPlugin extends BasePlugin
                 $query->where('city_id', $city);
             },
         )));
-    }
-
-    public function boot(Panel $panel, PluginContext $context): void
-    {
-        self::$boots[] = $panel->id();
     }
 }

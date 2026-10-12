@@ -10,7 +10,7 @@ namespace {{ namespace }};
  * Settings of the plugin are typed parameters of its own named factory: add them to make() and keep them in
  * properties, never in an options array.
  */
-final class {{ class }} extends BasePlugin
+final class {{ class }} implements Plugin
 {
     private function __construct() {}
 

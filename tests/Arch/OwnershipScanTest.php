@@ -71,7 +71,8 @@ it('has an owner for every production file and no row for a file that is nowhere
     $gone = [];
 
     foreach ($ownership->rows() as $row) {
-        if (($row['action'] ?? null) === 'new') {
+        // A `new` row names a file that does not exist yet; a `retire` row names one that P2 has deleted (D16).
+        if (in_array($row['action'] ?? null, ['new', 'retire'], true)) {
             continue;
         }
         $moved = isset($row['target_path']) && is_file($root.explode(' + ', $row['target_path'])[0]);

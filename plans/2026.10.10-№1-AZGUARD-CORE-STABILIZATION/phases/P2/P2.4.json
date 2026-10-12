@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.4",
   "title": "Declaration-only Plugin SPI and named contracts for hook and pipe slots",
-  "status": "todo",
+  "status": "done_with_deviations",
   "summary": "Plugins are pure declarations (`id()` + `register()`); `boot()`, `BasePlugin`, `DependsOnPlugins`, `PluginContext::dependencies()` and `PluginDependencyMissingException` are gone; before/after hooks and change pipes have the named contracts `BeforeHook`, `AfterHook`, `ChangePipe`; closures are accepted only with a signature checked at compile time; duck typing and invocation by parameter name are removed from these slots; the `azguard/*` id prefix is reserved for plugin classes under `AzGuard\\`.",
   "why": "D8: one named contract per slot, no second lifecycle route, no plugin-identity dependency (owner principle 4), no dynamic invocation (principle 6). Hard risks: a hook closure whose types do not match must fail at compilation, not at the first request; the `OnceTerminal` guard (continue exactly once, writer result cannot be forged) must stay intact (I10); a plugin still declaring `boot()` compiles and is never called.",
   "scope": {
@@ -228,6 +228,65 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T20:17:28Z"
+  "result": {
+    "started_at": "2026-10-12T03:15:19Z",
+    "finished_at": "2026-10-12T04:38:47Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "62e3de22-0400-404e-95c0-b0a60e2d0b41"
+    },
+    "notes": "Declaration-only Plugin SPI (Plugin: id+register; PluginContext 3 members); BeforeHook/AfterHook/ChangePipe contracts; closures in before/after/changing checked at compilation (count, parameter types, return type); positional calls in BeforeStage/AfterStage/OnceTerminal; azguard/ prefix reserved for classes under AzGuard\\ (anonymous excluded). Fixtures changed: Formats/exceptions.json, Formats/reserved-plugin-prefix.json (true->false), serializable-fqcn.json, packages/core/api-manifest.json. V1-V6 exit 0 on PHP 8.4.26 (V5 4948/4948). Grok 4.7 review deferred by owner decision to a separate session.",
+    "deviations": [
+      "Extra paths beyond task_files (PanelsPlugins check, Panel/PanelRegistry, make commands, ObservedPlugin kept, docs, OwnershipScanTest skips retire rows, Baseline070 fixtures); V2 fixtures import Panel as CompiledPanel for boot()"
+    ],
+    "checks": [
+      {
+        "id": "V1",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V1.json"
+      },
+      {
+        "id": "V2",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V2.json"
+      },
+      {
+        "id": "V3",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V3.json"
+      },
+      {
+        "id": "V4",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V4.json"
+      },
+      {
+        "id": "V5",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V5.json"
+      },
+      {
+        "id": "V6",
+        "exit": 0,
+        "at": "2026-10-12T04:38:47Z",
+        "evidence": "@plan/artifacts/evidence/P2.4/V6.json"
+      }
+    ],
+    "evidence": [
+      "@plan/artifacts/evidence/P2.4/V1.json",
+      "@plan/artifacts/evidence/P2.4/V2.json",
+      "@plan/artifacts/evidence/P2.4/V3.json",
+      "@plan/artifacts/evidence/P2.4/V4.json",
+      "@plan/artifacts/evidence/P2.4/V5.json",
+      "@plan/artifacts/evidence/P2.4/V6.json"
+    ]
+  },
+  "updated_at": "2026-10-12T04:38:47Z"
 }

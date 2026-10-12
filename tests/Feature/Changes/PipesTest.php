@@ -63,7 +63,7 @@ it('rejects a changing item that is not a pipe when the panel compiles', functio
 ]);
 
 it('cancels the whole operation from a pipe with the reason', function (): void {
-    $panel = W::panel([static fn (Change $change, Closure $next) => $change->cancel('Укажите причину выдачи')]);
+    $panel = W::panel([static fn (Change $change, Closure $next): ChangeResult => $change->cancel('Укажите причину выдачи')]);
     $version = W::version();
 
     try {
@@ -78,9 +78,9 @@ it('cancels the whole operation from a pipe with the reason', function (): void 
 
 it('stores expiry and fields set by pipes after validating them again', function (): void {
     $panel = W::panel([
-        static fn (Change $c, Closure $next) => $next($c->type === ChangeType::GrantRole && $c->until === null
+        static fn (Change $c, Closure $next): ChangeResult => $next($c->type === ChangeType::GrantRole && $c->until === null
             ? $c->withUntil(new DateTimeImmutable('2027-01-04T12:00:00Z')) : $c),
-        static fn (Change $c, Closure $next) => $next($c->withFields([...$c->fields, 'region' => 'R1'])),
+        static fn (Change $c, Closure $next): ChangeResult => $next($c->withFields([...$c->fields, 'region' => 'R1'])),
     ]);
     $record = W::grant($panel, 'analyst', 2, 1)->record;
 
@@ -94,8 +94,8 @@ it('rejects invalid expiry or fields that a pipe proposes', function (Closure $p
     expect(fn () => W::grant($panel, 'analyst', 2, 1))->toThrow(InvalidChangeFieldsException::class)
         ->and(W::keys())->not->toContain('crm.organization:1|analyst|2|crm.project:1|manual');
 })->with([
-    'past expiry' => [static fn (Change $c, Closure $next) => $next($c->withUntil(new DateTimeImmutable('2020-01-01T00:00:00Z')))],
-    'unknown field' => [static fn (Change $c, Closure $next) => $next($c->withFields(['department' => 1]))],
+    'past expiry' => [static fn (Change $c, Closure $next): ChangeResult => $next($c->withUntil(new DateTimeImmutable('2020-01-01T00:00:00Z')))],
+    'unknown field' => [static fn (Change $c, Closure $next): ChangeResult => $next($c->withFields(['department' => 1]))],
 ]);
 
 it('gives a pipe a fresh checked context for every derived change', function (): void {
@@ -136,7 +136,7 @@ it('lets revocations pass pipes without a proposal and refuses withUntil on them
 });
 
 it('rolls back when a pipe breaks the exactly-once continuation or forges the result', function (Closure $pipe): void {
-    $panel = W::panel([$pipe, static fn (Change $c, Closure $next) => $next($c)]);
+    $panel = W::panel([$pipe, static fn (Change $c, Closure $next): ChangeResult => $next($c)]);
     $version = W::version();
 
     expect(fn () => W::grant($panel, 'analyst', 2, 1))->toThrow(InvalidConfigurationException::class)
@@ -173,11 +173,6 @@ it('rolls back when a pipe breaks the exactly-once continuation or forges the re
             return ChangeResult::combine([$result], $result->state, true, $result->correlationId);
         }
     }],
-    'returns nothing' => [static function (Change $c, Closure $next): ?ChangeResult {
-        $next($c);
-
-        return null;
-    }],
 ]);
 
 it('rolls back the first effective write when a later pipe reaches the writer again', function (): void {
@@ -195,7 +190,7 @@ it('rolls back the first effective write when a later pipe reaches the writer ag
 });
 
 it('rolls back every sibling of a composite operation when one change fails', function (): void {
-    $panel = W::panel([static fn (Change $c, Closure $next) => $c->role?->key() === 'root' ? $next($c) : $next($c)]);
+    $panel = W::panel([static fn (Change $c, Closure $next): ChangeResult => $c->role?->key() === 'root' ? $next($c) : $next($c)]);
     W::grant($panel, 'auditor', 2, null);
     $before = [W::rows(), W::version()];
 

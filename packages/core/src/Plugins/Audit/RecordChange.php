@@ -8,6 +8,7 @@ use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeEventPublisher;
 use AzGuard\Changes\ChangeJournal;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Kernel\Support\Narrow;
 use Closure;
 
@@ -18,7 +19,7 @@ use Closure;
  *
  * @internal registered by `AuditPlugin`; the container builds it
  */
-final readonly class RecordChange
+final readonly class RecordChange implements ChangePipe
 {
     public function __construct(private ChangeJournal $journal, private ChangeEventPublisher $events) {}
 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Exceptions\ChangeCancelledException;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Panels\PanelRegistry;
@@ -111,7 +112,7 @@ it('V101 serializes grant ∥ grant of one identity: one Applied, one Unchanged,
 
 it('V101 C13 lets one update ∥ update with the same fingerprint win and refuses the stale form', function (): void {
     // The fingerprint covers the build: read the form on the build shape the workers compile (one closure pipe).
-    $record = W::grant(W::panel([static fn (Change $c, Closure $next) => $next($c)]), 'analyst', 2, 1)->record;
+    $record = W::grant(W::panel([static fn (Change $c, Closure $next): ChangeResult => $next($c)]), 'analyst', 2, 1)->record;
     [$first, $second] = changeRacePair($this->processes,
         ['op' => 'update', 'id' => $record->id, 'fingerprint' => $record->fingerprint, 'fields' => ['region' => 'R1']],
         ['op' => 'update', 'id' => $record->id, 'fingerprint' => $record->fingerprint, 'fields' => ['region' => 'R2']]);

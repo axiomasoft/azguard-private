@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -58,7 +59,7 @@ function refusedWithoutWrites(Closure $change, string $exception): Throwable
 }
 
 it('F1 rejects a pipe that substitutes the identity or passes something else', function (Closure $substitute): void {
-    $panel = W::panel([static fn (Change $change, Closure $next) => $next($substitute($change))]);
+    $panel = W::panel([static fn (Change $change, Closure $next): ChangeResult => $next($substitute($change))]);
     $error = refusedWithoutWrites(fn () => W::grant($panel, 'analyst', 2, 1), InvalidConfigurationException::class);
 
     expect($error->code())->toBe('invalid_configuration.changing');

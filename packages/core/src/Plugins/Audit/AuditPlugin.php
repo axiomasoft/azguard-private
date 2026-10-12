@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace AzGuard\Plugins\Audit;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use InvalidArgumentException;
 
@@ -20,7 +20,7 @@ use InvalidArgumentException;
  * Doctor checks that the journal table exists (`audit.table`).
  */
 #[Api(since: '0.7')]
-final class AuditPlugin extends BasePlugin
+final class AuditPlugin implements Plugin
 {
     private function __construct(private int $retentionDays)
     {

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -30,7 +31,7 @@ it('P9 preserves decide batch explain and Gate parity over 200 mixed seeded scen
         $hookDenies = $seed % 7 === 0;
         $source = new GeneratedSource(direct: $s->flag() ? [$s->grant(expires: $s->expiry(($seed % 3) - 1))] : []);
         $restriction = new RecordingRestriction(deny: $s->flag());
-        [$engine, $panel, $request, $resolver] = $s->world([$source], fn (PanelBuilder $p) => $p->restrictions([$restriction])->before(fn () => $hookDenies ? BeforeResult::Deny : BeforeResult::Continue));
+        [$engine, $panel, $request, $resolver] = $s->world([$source], fn (PanelBuilder $p) => $p->restrictions([$restriction])->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => $hookDenies ? BeforeResult::Deny : BeforeResult::Continue));
         app()->instance(PanelResolver::class, $resolver);
 
         if ($policy) {

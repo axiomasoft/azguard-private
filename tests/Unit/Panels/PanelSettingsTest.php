@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PluginException;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Panels\GateMode;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
@@ -223,7 +226,7 @@ it('keeps the items of every layer in a list and collapses a class named twice',
 });
 
 it('keeps closures and objects apart when it collapses duplicates', function (): void {
-    $closure = static fn (): null => null;
+    $closure = static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue;
     [, $recipe] = settingsPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->before([$closure, $closure, ContinueHook::class, ContinueHook::class]));
 
     expect(PanelCompiler::items($recipe, PanelRecipe::BEFORE))->toBe([$closure, $closure, ContinueHook::class]);

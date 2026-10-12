@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Exceptions\DuplicatePermissionException;
 use AzGuard\Exceptions\InvalidChangeFieldsException;
@@ -103,7 +104,7 @@ it('refuses any field because a dynamic permission declares no field schema', fu
 });
 
 it('refuses fields a changing pipe adds with withFields()', function (): void {
-    $panel = W::dynamicPanel([static fn (Change $change, Closure $next) => $next($change->withFields(['region' => 'R1']))]);
+    $panel = W::dynamicPanel([static fn (Change $change, Closure $next): ChangeResult => $next($change->withFields(['region' => 'R1']))]);
 
     dynamicRefused(fn () => W::createAction($panel, 'campaigns.view'), InvalidChangeFieldsException::class);
 });

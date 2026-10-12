@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Changes;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
-final class ChangingPlugin extends BasePlugin
+final class ChangingPlugin implements Plugin
 {
     public function id(): string
     {

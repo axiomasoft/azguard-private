@@ -4,51 +4,41 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Plugins;
 
-use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\Panels\Panel;
+use AzGuard\Panels\Panel as CompiledPanel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 use Closure;
 
 /**
- * A plugin driven by the test: it writes every lifecycle call to a shared log and runs the given callbacks.
+ * A plugin driven by the test: it writes every call of the package to a shared log and runs the given callback.
+ *
+ * It also declares a `boot()` the package does not know: a call of it would show in the log as `boot:...`.
  */
-final class ProbePlugin implements DependsOnPlugins, Plugin
+final class ProbePlugin implements Plugin
 {
     /** @var list<string> `register:<panel>:<plugin>` and `boot:<panel>:<plugin>` in the order they ran */
     public static array $log = [];
 
     /**
-     * @param  array<mixed>  $requires
      * @param  (Closure(PanelBuilder, PluginContext): mixed)|null  $register
-     * @param  (Closure(Panel, PluginContext): mixed)|null  $boot
      */
     private function __construct(
         private readonly string $id,
-        private readonly array $requires,
         private readonly ?Closure $register,
-        private readonly ?Closure $boot,
     ) {}
 
     /**
-     * @param  array<mixed>  $requires
      * @param  (Closure(PanelBuilder, PluginContext): mixed)|null  $register
-     * @param  (Closure(Panel, PluginContext): mixed)|null  $boot
      */
-    public static function make(string $id, array $requires = [], ?Closure $register = null, ?Closure $boot = null): self
+    public static function make(string $id, ?Closure $register = null): self
     {
-        return new self($id, $requires, $register, $boot);
+        return new self($id, $register);
     }
 
     public function id(): string
     {
         return $this->id;
-    }
-
-    public function requires(): array
-    {
-        return $this->requires;
     }
 
     public function register(PanelBuilder $panel, PluginContext $context): void
@@ -58,10 +48,8 @@ final class ProbePlugin implements DependsOnPlugins, Plugin
         ($this->register ?? static fn (): null => null)($panel, $context);
     }
 
-    public function boot(Panel $panel, PluginContext $context): void
+    public function boot(CompiledPanel $panel, PluginContext $context): void
     {
         self::$log[] = 'boot:'.$panel->id().':'.$context->pluginId();
-
-        ($this->boot ?? static fn (): null => null)($panel, $context);
     }
 }

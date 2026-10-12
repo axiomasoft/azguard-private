@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\RoleContribution;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -36,7 +38,7 @@ it('keeps common filters before grants policy hook and scoped superadmin', funct
     if ($authority === 'root') {
         $source->roles = [EligibilityWorld::role('root', 3)];
     }
-    [$engine, $panel, $request] = EligibilityWorld::compile($source, $authority === 'hook' ? fn (PanelBuilder $p) => $p->before(fn (): bool => true) : null);
+    [$engine, $panel, $request] = EligibilityWorld::compile($source, $authority === 'hook' ? fn (PanelBuilder $p) => $p->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue) : null);
     $request = $request->inScope(EligibilityWorld::scope(3));
 
     if ($authority === 'policy') {

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -34,7 +36,7 @@ it('R61 PolicyOnly never reads an assignment connection that aborts every SQL op
 
 it('R62 policy true and before Continue never replace an assignment and admin cannot bypass policy veto', function (): void {
     World::clear();
-    $panel = World::compile(fn (PanelBuilder $p) => $p->before(fn () => BeforeResult::Continue));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue));
     World::assertDecision(World::decide($panel), false, DecisionReason::NotGranted);
     World::assign('clients.view', 1, 1, kind: 'permission');
     World::assertDecision(World::decide($panel), true, DecisionReason::Granted);

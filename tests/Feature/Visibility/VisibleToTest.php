@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\VisibilityNotSupportedException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
@@ -74,7 +75,7 @@ it('applies native common and role filters as separate AND groups per concrete r
 });
 
 it('throws before resource execution without partially mutating the caller when an adapter is missing', function (): void {
-    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->before([static fn () => BeforeResult::Continue]));
+    [$visibility, $panel] = W::compile(new VisibilitySource(direct: [W::grant(1)]), fn (PanelBuilder $panel) => $panel->before([static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue]));
     $query = VisibilityClient::query()->where('city', 'Paris');
     $sql = $query->toSql();
     $bindings = $query->getBindings();

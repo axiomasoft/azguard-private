@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Modules\Blog\Guards;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
 /**
  * Blog module folder. discover(__DIR__) adds it; the plugin does not prefix keys.
  */
-final class BlogFolderPlugin extends BasePlugin
+final class BlogFolderPlugin implements Plugin
 {
     public static function make(): self
     {

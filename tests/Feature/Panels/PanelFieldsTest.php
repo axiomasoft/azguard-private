@@ -5,7 +5,6 @@ declare(strict_types=1);
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\RegistryFrozenException;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelRecipe;
@@ -27,8 +26,6 @@ it('collects plugin and provider fields additively with contribution provenance'
         {
             $panel->fields(FieldTarget::RoleGrant, [Field::string('note')->inMeta()]);
         }
-
-        public function boot(Panel $panel, PluginContext $context): void {}
     };
     $builder->fields(FieldTarget::RoleGrant, [Field::int('floor')])->plugins([$plugin]);
     $compiler = new PanelCompiler;

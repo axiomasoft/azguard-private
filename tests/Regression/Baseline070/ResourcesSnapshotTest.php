@@ -6,11 +6,11 @@ use AzGuard\AzGuard;
 use AzGuard\AzGuardServiceProvider;
 use AzGuard\Configuration\AzGuardConfig;
 use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Filament\AzGuardFilamentServiceProvider;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Laravel\Console\Scaffold\StubStore;
 use AzGuard\Laravel\Queue\PanelContext;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\Audit\AuditPlugin;
 use AzGuard\Plugins\PluginContext;
@@ -118,7 +118,7 @@ describe('the reserved azguard/* plugin prefix', function (): void {
     beforeEach(fn () => CrmWorld::seed());
     afterEach(fn () => CrmWorld::resetRuntime());
 
-    it('is not enforced at 0.7.0: a host plugin may take an azguard/ id', function (): void {
+    it('is enforced since P2.4: a host plugin cannot take an azguard/ id', function (): void {
         $plugin = new class implements Plugin
         {
             public function id(): string
@@ -127,11 +127,15 @@ describe('the reserved azguard/* plugin prefix', function (): void {
             }
 
             public function register(PanelBuilder $panel, PluginContext $context): void {}
-
-            public function boot(Panel $panel, PluginContext $context): void {}
         };
-        $panel = CrmWorld::compile(static fn (PanelBuilder $builder) => $builder->plugins([$plugin]));
-        [$actual, $stored] = FormatSnapshot::compare('reserved-plugin-prefix', ['azguard/host-plugin accepted' => in_array('azguard/host-plugin', $panel->pluginIds(), true)]);
+        $accepted = true;
+
+        try {
+            CrmWorld::compile(static fn (PanelBuilder $builder) => $builder->plugins([$plugin]));
+        } catch (PluginConflictException) {
+            $accepted = false;
+        }
+        [$actual, $stored] = FormatSnapshot::compare('reserved-plugin-prefix', ['azguard/host-plugin accepted' => $accepted]);
 
         expect($actual)->toBe($stored);
     });

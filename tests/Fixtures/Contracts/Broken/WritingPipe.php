@@ -6,10 +6,11 @@ namespace AzGuard\Tests\Fixtures\Contracts\Broken;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
 
 /** A pipe that writes its own row before it hands the change to the writer. */
-final class WritingPipe
+final class WritingPipe implements ChangePipe
 {
     public function handle(Change $change, Closure $next): ChangeResult
     {

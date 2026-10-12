@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
@@ -111,7 +114,7 @@ it('gives the same fingerprint to the same description', function (): void {
         ->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, new ArraySource('ldap-live'), 'database'])
         ->roles([SellerRole::class])
-        ->before(static fn (): null => null)
+        ->before(static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue)
         ->tenantResolvers([new FixedTenantResolver]);
 
     expect(PanelFingerprint::of(...compilePanel($describe)))->toBe(PanelFingerprint::of(...compilePanel($describe)))
@@ -152,7 +155,7 @@ it('keeps closures and objects out of the fingerprint metadata', function (): vo
     $metadata = PanelFingerprint::metadata(...compilePanel(static fn (PanelBuilder $panel): PanelBuilder => $panel
         ->for(User::class, guard: 'web')
         ->permissions([OrderPermission::class, $source, 'database'])
-        ->before([static fn (): null => null, ContinueHook::class])
+        ->before([static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue, ContinueHook::class])
         ->tenantResolvers([new FixedTenantResolver])
         ->label('Ignored by the fingerprint')));
 

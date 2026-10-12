@@ -22,14 +22,17 @@ Hooks that throw do not break the request. They **deny** with `hook_error`, `res
 
 ## Before hooks
 
-A closure or an invokable class. Arguments are injected by name: `AccessRequest $request` and
-`EvaluationContext $context`. It must return a `BeforeResult`.
+An object or a class that implements `BeforeHook`, or a closure with the signature of `BeforeHook::before()`: exactly
+the parameters `AccessRequest $request, EvaluationContext $context`, each declared with its type, and the return type
+`BeforeResult`. The arguments are passed positionally. A closure with another signature fails when the panel is
+compiled, with a `DefinitionException` that names the slot and the mismatch, not at the first request.
 
 ```php
 use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 
-->before(fn (EvaluationContext $context): BeforeResult => $context->subjectModel()?->banned_at !== null
+->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => $context->subjectModel()?->banned_at !== null
     ? BeforeResult::Deny
     : BeforeResult::Continue)
 ```
@@ -72,8 +75,11 @@ It is then compiled to SQL, and `appliesTo()` is not called. See
 
 ## After hooks
 
+An object or a class that implements `AfterHook`, or a closure with the signature of `AfterHook::after()`:
+`AccessRequest $request, EvaluationContext $context, Decision $decision` and the return type `void`.
+
 ```php
-->after(function (AccessRequest $request, Decision $decision): void {
+->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision): void {
     if (! $decision->allowed()) {
         Metrics::increment('azguard.denied', ['reason' => $decision->reason->value]);
     }
@@ -86,15 +92,17 @@ changes, use the [events](/reference/events) or the built-in `AuditPlugin`.
 ## Change pipes
 
 Every grant, revoke, update and dynamic-permission change passes through the panel's pipes inside the change
-transaction. A pipe works like Laravel middleware. `$change->cancel('reason')` throws
-`ChangeCancelledException`, and nothing is written.
+transaction. A pipe implements `ChangePipe` (or is its class name, or a closure `Closure(Change, Closure): ChangeResult`
+with typed parameters and return type) and works like Laravel middleware: it must call `$next` once and return its
+result. `$change->cancel('reason')` throws `ChangeCancelledException`, and nothing is written.
 
 ```php
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
+use AzGuard\Contracts\Changes\ChangePipe;
 
-final class TimeBoxedSuperAdmin
+final class TimeBoxedSuperAdmin implements ChangePipe
 {
     public function handle(Change $change, Closure $next): ChangeResult
     {
@@ -114,11 +122,12 @@ with the reason `console`.
 
 ## Plugins
 
-A plugin bundles sources, roles, restrictions and pipes. Its settings are typed parameters of its own factory.
-Each panel gets its own copy.
+A plugin bundles sources, roles, restrictions and pipes. It implements `Plugin`: an `id()` and a `register()` that only
+declares through the panel builder (no I/O, no current user, tenant, request or clock, no global listener). There is no
+`boot()` and no base class. Its settings are typed parameters of its own factory. Each panel gets its own copy.
 
 ```php
-final class CompliancePlugin extends BasePlugin
+final class CompliancePlugin implements Plugin
 {
     private function __construct(private readonly bool $timeBoxSuperAdmin) {}
 
@@ -149,7 +158,10 @@ final class CompliancePlugin extends BasePlugin
   [settings order](/reference/configuration#where-a-panel-setting-comes-from).
 - **Opting out.** `withoutPlugins(['app/compliance'])` removes a plugin, for example one added by
   `configurePanels()`.
-- **Dependencies.** Implement `DependsOnPlugins` to require other plugins.
+- **Ids.** An id is `name` or `vendor/name`; the prefix `azguard/` is reserved for the plugins of this package, and a
+  plugin class outside the namespace `AzGuard\` that takes it fails with `PluginConflictException`.
+- **Requirements.** A plugin does not require another plugin. What a contribution needs is implied by its slot and
+  checked by core.
 - **Testing.** Package authors should use `PluginContractTests`, `RestrictionContractTests` and
   `HookContractTests` from `AzGuard\Testing\Contracts`.
 

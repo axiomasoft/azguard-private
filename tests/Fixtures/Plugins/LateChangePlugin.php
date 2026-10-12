@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Plugins;
 
-use AzGuard\Panels\Panel;
+use AzGuard\Contracts\Plugins\Plugin;
+use AzGuard\Panels\Panel as CompiledPanel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
 /**
- * A plugin that keeps the builder and tries to change the panel when it boots.
+ * A plugin that declares a `boot()` the package no longer calls: it would change the panel through the kept builder.
  */
-final class LateChangePlugin extends BasePlugin
+final class LateChangePlugin implements Plugin
 {
+    /** @var int how many times the package called `boot()`: never */
+    public static int $boots = 0;
+
     private ?PanelBuilder $builder = null;
 
     public function id(): string
@@ -26,8 +29,9 @@ final class LateChangePlugin extends BasePlugin
         $this->builder = $panel;
     }
 
-    public function boot(Panel $panel, PluginContext $context): void
+    public function boot(CompiledPanel $panel, PluginContext $context): void
     {
+        self::$boots++;
         $this->builder?->label('Changed after the boot');
     }
 }

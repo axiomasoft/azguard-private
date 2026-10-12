@@ -6,6 +6,7 @@ namespace AzGuard\Tests\Fixtures\Visibility;
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Authorization\Visibility;
+use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Authorization\GrantCondition;
@@ -190,9 +191,9 @@ class VisibilityPolicy implements FiltersAccessQueries
     }
 }
 
-class VisibilityBefore implements FiltersAccessQueries
+class VisibilityBefore implements BeforeHook, FiltersAccessQueries
 {
-    public function __invoke(AccessRequest $request, EvaluationContext $context): BeforeResult
+    public function before(AccessRequest $request, EvaluationContext $context): BeforeResult
     {
         return $context->resource()?->getAttribute('active') ? BeforeResult::Continue : BeforeResult::Deny;
     }

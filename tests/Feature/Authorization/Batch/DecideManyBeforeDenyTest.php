@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -33,7 +34,7 @@ it('keeps a static before denial outside neighbouring DB authority and scalar st
         $source = $source->storage(app(StorageRegistry::class)->own('before_deny_broken', 'broken_'));
     }
     [$engine, $panel] = CacheWorld::database($source, configure: fn (PanelBuilder $panel) => $panel->before(
-        fn (EvaluationContext $context): BeforeResult => $context->resource()?->deny === true ? BeforeResult::Deny : BeforeResult::Continue,
+        fn (AccessRequest $request, EvaluationContext $context): BeforeResult => $context->resource()?->deny === true ? BeforeResult::Deny : BeforeResult::Continue,
     ));
     $request = DatabaseWorld::request();
     $denied = $request->on(null, (object) ['deny' => true]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Changes\GrantDetails;
@@ -65,7 +66,7 @@ it('V10 gives a grant of a former key no authority and refuses an ordinary grant
 
 it('V10 plans the migration under the lock without a write, a version, a pipe, a journal row or an event', function (): void {
     $calls = 0;
-    $panel = W::panel([function (Change $change, Closure $next) use (&$calls) {
+    $panel = W::panel([function (Change $change, Closure $next) use (&$calls): ChangeResult {
         $calls++;
 
         return $next($change);
@@ -154,7 +155,7 @@ it('R66 restores the authority of the current role but keeps the refusal of expi
 
 it('lets a pipe see and cancel each historical move but never change it', function (string $attempt): void {
     $seen = [];
-    $panel = W::panel([function (Change $change, Closure $next) use (&$seen, $attempt) {
+    $panel = W::panel([function (Change $change, Closure $next) use (&$seen, $attempt): ChangeResult {
         $context = $change->context();
         $seen[] = [$change->type, $change->previousRole?->key(), $change->role?->key(), $context->phase->value, $context->proposed];
 

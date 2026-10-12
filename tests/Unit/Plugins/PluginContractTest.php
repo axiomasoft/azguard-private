@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Tests\Fixtures\Panels\FixedResourceScopeResolver;
 use AzGuard\Tests\Fixtures\Panels\FixedTenantResolver;
@@ -20,43 +17,7 @@ use AzGuard\Tests\Fixtures\Plugins\AuditTrailPlugin;
 use AzGuard\Tests\Fixtures\Plugins\CrmAccessPlugin;
 use AzGuard\Tests\Fixtures\Plugins\CrmModels;
 
-it('is an abstract lifecycle base without a factory, options or a key prefix', function (): void {
-    $base = new ReflectionClass(BasePlugin::class);
-    $own = array_map(
-        static fn (ReflectionMethod $method): string => $method->getName(),
-        array_filter($base->getMethods(), static fn (ReflectionMethod $method): bool => ! $method->isAbstract()),
-    );
-
-    expect($base->isAbstract())->toBeTrue()
-        ->and($base->implementsInterface(Plugin::class))->toBeTrue()
-        ->and($own)->toBe(['boot'])
-        ->and($base->getConstructor())->toBeNull()
-        ->and($base->getProperties())->toBe([]);
-
-    foreach (['make', 'options', 'withOptions', 'prefixed', 'prefix'] as $method) {
-        expect($base->hasMethod($method))->toBeFalse($method);
-    }
-});
-
-it('leaves id() and register() to the plugin and gives boot() an empty default', function (): void {
-    $base = new ReflectionClass(BasePlugin::class);
-    $plugin = new class extends BasePlugin
-    {
-        public function id(): string
-        {
-            return 'acme/empty';
-        }
-
-        public function register(PanelBuilder $panel, PluginContext $context): void {}
-    };
-
-    expect($base->getMethod('id')->isAbstract())->toBeTrue()
-        ->and($base->getMethod('register')->isAbstract())->toBeTrue()
-        ->and($base->getMethod('boot')->getDeclaringClass()->getName())->toBe(BasePlugin::class)
-        ->and($plugin->id())->toBe('acme/empty');
-});
-
-it('declares the plugin lifecycle and dependencies as the only plugin contracts', function (): void {
+it('declares the plugin as an id and a declaration-only register(), without a lifecycle or dependencies', function (): void {
     $plugin = new ReflectionClass(Plugin::class);
     $signature = static fn (string $method): array => array_map(
         static fn (ReflectionParameter $parameter): string => (string) $parameter->getType(),
@@ -64,14 +25,20 @@ it('declares the plugin lifecycle and dependencies as the only plugin contracts'
     );
 
     expect(array_map(static fn (ReflectionMethod $method): string => $method->getName(), $plugin->getMethods()))
-        ->toBe(['id', 'register', 'boot'])
+        ->toBe(['id', 'register'])
         ->and($signature('register'))->toBe([PanelBuilder::class, PluginContext::class])
-        ->and($signature('boot'))->toBe([Panel::class, PluginContext::class])
-        ->and(array_map(
-            static fn (ReflectionMethod $method): string => $method->getName(),
-            (new ReflectionClass(DependsOnPlugins::class))->getMethods(),
-        ))->toBe(['requires'])
-        ->and(interface_exists('AzGuard\Contracts\Plugins\PrefixesKeys'))->toBeFalse();
+        ->and((string) $plugin->getMethod('register')->getReturnType())->toBe('void')
+        ->and((string) $plugin->getMethod('id')->getReturnType())->toBe('string')
+        ->and(interface_exists('AzGuard\\Contracts\\Plugins\\PrefixesKeys'))->toBeFalse();
+});
+
+it('tells a plugin its panel, its id and the build only', function (): void {
+    $context = new ReflectionClass(PluginContext::class);
+
+    expect(array_map(static fn (ReflectionMethod $method): string => $method->getName(), $context->getMethods()))
+        ->toBe(['__construct', 'panelId', 'pluginId', 'buildId'])
+        ->and(array_map(static fn (ReflectionParameter $parameter): string => $parameter->getName(), $context->getConstructor()?->getParameters() ?? []))
+        ->toBe(['panelId', 'pluginId', 'buildId']);
 });
 
 it('gives every fixture plugin its own factory with named typed parameters', function (string $plugin, array $parameters): void {

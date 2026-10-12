@@ -6,10 +6,11 @@ namespace AzGuard\Tests\Fixtures\Contracts\Broken;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
 
 /** A pipe that writes its row on a connection no transaction of the pipeline covers. */
-final class LeakyPipe
+final class LeakyPipe implements ChangePipe
 {
     public function handle(Change $change, Closure $next): ChangeResult
     {

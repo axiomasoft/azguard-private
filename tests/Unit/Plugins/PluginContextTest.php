@@ -16,7 +16,7 @@ it('is a final readonly value with build metadata only', function (): void {
 
     expect($context->isFinal())->toBeTrue()
         ->and($context->isReadOnly())->toBeTrue()
-        ->and($methods)->toBe(['panelId' => 'string', 'pluginId' => 'string', 'buildId' => 'string', 'dependencies' => 'array'])
+        ->and($methods)->toBe(['panelId' => 'string', 'pluginId' => 'string', 'buildId' => 'string'])
         ->and(array_filter($context->getProperties(), static fn (ReflectionProperty $property): bool => $property->isPublic()))->toBe([]);
 
     foreach (['namespace', 'options', 'option', 'container', 'panel', 'get'] as $method) {
@@ -24,20 +24,19 @@ it('is a final readonly value with build metadata only', function (): void {
     }
 });
 
-it('holds scalars and a list of ids, never an object', function (): void {
+it('holds scalars, never an object', function (): void {
     $types = array_map(
         static fn (ReflectionParameter $parameter): string => (string) $parameter->getType(),
         (new ReflectionMethod(PluginContext::class, '__construct'))->getParameters(),
     );
 
-    expect($types)->toBe(['string', 'string', 'string', 'array']);
+    expect($types)->toBe(['string', 'string', 'string']);
 });
 
 it('returns what the build gave it', function (): void {
-    $context = new PluginContext('admin', 'acme/reports', 'build-7', ['acme/audit-trail']);
+    $context = new PluginContext('admin', 'acme/reports', 'build-7');
 
     expect($context->panelId())->toBe('admin')
         ->and($context->pluginId())->toBe('acme/reports')
-        ->and($context->buildId())->toBe('build-7')
-        ->and($context->dependencies())->toBe(['acme/audit-trail']);
+        ->and($context->buildId())->toBe('build-7');
 });

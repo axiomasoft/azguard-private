@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Guards\Plugins\Support;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
-final class SupportAccessPlugin extends BasePlugin
+final class SupportAccessPlugin implements Plugin
 {
     public static function make(): self
     {

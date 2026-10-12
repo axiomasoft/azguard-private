@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Guards\Plugins\Desk;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
-final class DeskAccessPlugin extends BasePlugin
+final class DeskAccessPlugin implements Plugin
 {
     public static function make(): self
     {

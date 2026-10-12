@@ -39,7 +39,6 @@ use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\Organization;
 use AzGuard\Tests\Fixtures\Diagnostics\DoctorWorld;
 use AzGuard\Tests\Fixtures\Diagnostics\KeylessRole;
-use AzGuard\Tests\Fixtures\Diagnostics\NeedsPlugin;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
@@ -255,18 +254,15 @@ it('panels.valid fails a subject model without a morph alias before a check fail
         ->and($findings[0]->message)->toContain('without a morph alias')->toContain('Relation::enforceMorphMap');
 });
 
-it('panels.plugins passes attached dependencies and fails a missing dependency and conflicting plugin settings', function (): void {
+it('panels.plugins passes without conflicts and fails conflicting plugin settings', function (): void {
     checkedPanel();
     expect(doctorKeys('panels.plugins'))->toBe([]);
 
     $recipe = new PanelRecipe('test');
-    $recipe->during(PanelRecipe::provider(), static fn () => $recipe->record(PanelRecipe::PLUGINS, [new NeedsPlugin]));
     $recipe->during(PanelRecipe::plugin('acme/one', 0), static fn () => $recipe->record(PanelSettings::CACHE_TTL, 10));
     $recipe->during(PanelRecipe::plugin('acme/two', 1), static fn () => $recipe->record(PanelSettings::CACHE_TTL, 20));
 
-    expect(DoctorWorld::summary(PanelsPlugins::check($recipe, ['acme/needs', 'acme/one', 'acme/two'], app())))
-        ->toBe(['panel:test panels.plugins error', 'panel:test panels.plugins error'])
-        ->and(PanelsPlugins::check($recipe, ['acme/needs', 'acme/base'], app()))->toHaveCount(1);
+    expect(DoctorWorld::summary(PanelsPlugins::check($recipe)))->toBe(['panel:test panels.plugins error']);
 });
 
 it('panels.sources passes distinct sources with one writer and fails repeated ids, two writers and a foreign class', function (): void {

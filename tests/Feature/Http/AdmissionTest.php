@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -174,7 +175,7 @@ it('never lets a policy allow of the entry permission replace the role', functio
 
 it('lets a veto of the entry permission stop a super admin', function (): void {
     HttpWorld::panel(static fn (PanelBuilder $panel) => $panel->entry(ClientPermission::ViewAny)
-        ->before(static fn (): BeforeResult => BeforeResult::Deny));
+        ->before(static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny));
     HttpWorld::actingAs(3);
     $this->getJson('/crm', ['X-Tenant' => '1', 'X-Project' => '1'])->assertForbidden();
 

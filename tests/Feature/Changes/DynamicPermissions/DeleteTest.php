@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
 use AzGuard\Exceptions\ChangeCancelledException;
@@ -15,7 +16,7 @@ beforeEach(function (): void {
     CrmWorld::seed();
     $this->seen = [];
     $seen = &$this->seen;
-    $this->panel = W::dynamicPanel([static function (Change $change, Closure $next) use (&$seen) {
+    $this->panel = W::dynamicPanel([static function (Change $change, Closure $next) use (&$seen): ChangeResult {
         $seen[] = [$change->type->value, $change->origin, $change->scope->tenant->key(), $change->scope->context->key(),
             $change->subject?->key(), $change->permission?->local() ?? $change->name, $change->grantId];
 
@@ -91,7 +92,7 @@ it('shows the pipes one revocation per stored row with its own scope, subject an
 });
 
 it('rolls back the grants, the permission and the version when a pipe cancels one revocation', function (int $cancelled): void {
-    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use ($cancelled) {
+    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use ($cancelled): ChangeResult {
         static $count = 0;
 
         if ($change->type === ChangeType::RevokePermission && ++$count === $cancelled) {

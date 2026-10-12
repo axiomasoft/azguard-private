@@ -88,12 +88,12 @@ it('runs hooks policy and restrictions for every resource instance and captures 
     $times = [];
     $restriction = new RecordingRestriction;
     [$engine, , $request] = $s->world([new GeneratedSource], function (PanelBuilder $panel) use (&$before, &$after, $restriction): void {
-        $panel->before(function () use (&$before): BeforeResult {
+        $panel->before(function (AccessRequest $request, EvaluationContext $context) use (&$before): BeforeResult {
             $before++;
             Carbon::setTestNow(Carbon::now('UTC')->addDay());
 
             return BeforeResult::Continue;
-        })->after(function () use (&$after): void {
+        })->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$after): void {
             $after++;
         })->restrictions([$restriction]);
     });

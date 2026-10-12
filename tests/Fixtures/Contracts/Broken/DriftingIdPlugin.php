@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Contracts\Broken;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
 /** A plugin whose id is a new one at every call. */
-final class DriftingIdPlugin extends BasePlugin
+final class DriftingIdPlugin implements Plugin
 {
     public static int $calls = 0;
 

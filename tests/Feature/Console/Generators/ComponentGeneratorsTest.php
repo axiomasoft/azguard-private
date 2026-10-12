@@ -97,7 +97,7 @@ it('makes a change pipe with handle() that hands the change on', function (): vo
     Artisan::call('azguard:make:pipe', ['name' => 'RequireReason', '--panel' => 'Admin']);
     $pipe = $this->generated->read('app/Guards/Admin/Changes/RequireReason.php');
 
-    expect($pipe)->toContain('final class RequireReason', 'public function handle(Change $change, Closure $next): ChangeResult', 'return $next($change);');
+    expect($pipe)->toContain('final class RequireReason implements ChangePipe', 'public function handle(Change $change, Closure $next): ChangeResult', 'return $next($change);');
 });
 
 it('makes the grant models of a panel and the migration of their columns', function (): void {

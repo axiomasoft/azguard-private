@@ -6,11 +6,11 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
-use AzGuard\Policies\RuntimeInvoker;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
@@ -18,7 +18,7 @@ use Throwable;
 
 final readonly class BeforeStage
 {
-    public function __construct(private Container $container, private RuntimeInvoker $invoker) {}
+    public function __construct(private Container $container) {}
 
     public function decide(AccessRequest $request, EvaluationFrame $frame, Trace $trace): ?Decision
     {
@@ -29,12 +29,15 @@ final readonly class BeforeStage
             $component = is_string($hook) ? $hook : $hook::class;
 
             try {
-                $callback = $hook instanceof Closure ? $hook : $this->container->make($hook);
+                $resolved = is_string($hook) ? $this->container->make($hook) : $hook;
 
-                if (! is_callable($callback)) {
-                    throw new RuntimeException('Before hook is not callable.');
+                if ($resolved instanceof Closure) {
+                    $result = $resolved($request, $frame);
+                } elseif ($resolved instanceof BeforeHook) {
+                    $result = $resolved->before($request, $frame);
+                } else {
+                    throw new RuntimeException('Before hook must implement '.BeforeHook::class.'.');
                 }
-                $result = $this->invoker->invoke($callback, ['request' => $request, 'context' => $frame]);
 
                 if (! $result instanceof BeforeResult) {
                     throw new RuntimeException('Before hook must return BeforeResult.');

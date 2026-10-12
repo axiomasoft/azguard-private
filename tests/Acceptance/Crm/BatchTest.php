@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\CodeStateToken;
 use AzGuard\Kernel\Decision\DecisionReason;
@@ -28,7 +29,7 @@ it('R68 preserves mixed policy DB and relation order state identities and one ca
     World::assign('seller', 1, 1, panel: 'backoffice');
     $times = [];
     $configure = function (PanelBuilder $panel) use (&$times): void {
-        $panel->before(function (EvaluationContext $context) use (&$times): BeforeResult {
+        $panel->before(function (AccessRequest $request, EvaluationContext $context) use (&$times): BeforeResult {
             $times[] = $context->now()->format('c');
             Carbon::setTestNow(Carbon::now('UTC')->addDay());
 

@@ -6,13 +6,14 @@ namespace AzGuard\Tests\Fixtures\Changes;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
 
 /**
  * Delegation as an application pipe: the actor may hand out only the roles and contexts delegated to it,
  * never a super admin role or a wildcard. The core holds no delegation policy.
  */
-final class DelegationPipe
+final class DelegationPipe implements ChangePipe
 {
     /** @var array<string, array{roles: list<string>, contexts: list<string>}> actor key => what the actor may grant */
     public static array $delegations = [];

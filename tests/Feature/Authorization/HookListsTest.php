@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
@@ -23,7 +24,7 @@ it('rejects duplicate restriction keys even when another stage denies', function
         $panel->restrictions([new RecordingRestriction, new RecordingRestriction]);
 
         if ($denial === 'before') {
-            $panel->before(fn (): BeforeResult => BeforeResult::Deny);
+            $panel->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny);
         }
     });
 

@@ -6,10 +6,9 @@ namespace AzGuard\Testing\Contracts;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
-use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Plugins\PluginContext;
 use Closure;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -21,7 +20,8 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * - the id is stable and the panel lists the plugin;
  * - it builds on a clean panel and on two panels, and a panel without it is the panel it was before;
- * - `boot()` does not change the panel;
+ * - `register()` runs once per panel with the context of that panel and writes nothing to the database;
+ * - a plugin outside the package does not take an id of the reserved `azguard/` prefix;
  * - a panel that keeps the plugin off is the panel without it, with no trace left.
  */
 #[Spi(kind: SpiKind::Call, since: '0.7')]
@@ -31,7 +31,7 @@ trait PluginContractTests
     abstract protected function azguardPlugin(): Plugin;
 
     /**
-     * The plugins the plugin under test requires, attached to the panel next to it.
+     * Plugins the plugin under test is attached next to, such as the ones that declare what it refers to.
      *
      * @return list<Plugin>
      */
@@ -48,14 +48,6 @@ trait PluginContractTests
         $this->assertNotSame('', $plugin->id(), 'A plugin has an id.');
         $this->assertSame($plugin->id(), $plugin->id(), 'The id changes between calls.');
         $this->assertSame($plugin->id(), $this->azguardPlugin()->id(), 'Two instances of the plugin have different ids.');
-
-        if ($plugin instanceof DependsOnPlugins) {
-            $companions = array_map(static fn (Plugin $companion): string => $companion->id(), $this->azguardCompanions());
-
-            foreach ($plugin->requires() as $required) {
-                $this->assertContains($required, $companions, 'The plugin requires "'.$required.'", which azguardCompanions() does not provide.');
-            }
-        }
     }
 
     #[Test]
@@ -93,15 +85,38 @@ trait PluginContractTests
     }
 
     #[Test]
-    public function bootDoesNotChangeThePanel(): void
+    public function registerRunsOncePerPanelAndWritesNothing(): void
     {
-        $plugin = new ObservedPlugin($this->azguardPlugin(), function (Panel $panel, Closure $boot): void {
-            $before = ContractWorld::snapshot($panel);
-            $boot();
-            $this->assertSame($before, ContractWorld::snapshot($panel), 'boot() changed the panel.');
+        $registered = [];
+        $plugin = new ObservedPlugin($this->azguardPlugin(), static function (PluginContext $context, Closure $register) use (&$registered): void {
+            $registered[] = [$context->panelId(), $context->pluginId()];
+            $register();
         });
-        $registry = ContractWorld::build(fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([...$this->azguardCompanions(), $plugin]));
-        $this->assertTrue($registry->isFrozen(), 'boot() unfroze the registry.');
+
+        $writes = ContractWorld::writesDuring(static function () use ($plugin): void {
+            ContractWorld::build(null, static fn (PanelBuilder $builder): null => null, static fn (PanelBuilder $builder): PanelBuilder => $builder->plugins([$plugin]));
+        });
+
+        $this->assertSame([], $writes, 'register() wrote to the database: '.implode('; ', $writes));
+        $this->assertSame(
+            [[ContractWorld::PANEL, $plugin->id()], [ContractWorld::OTHER, $plugin->id()]],
+            $registered,
+            'register() must run exactly once on every panel the plugin is attached to, with the context of that panel.',
+        );
+    }
+
+    #[Test]
+    public function pluginOutsideThePackageDoesNotTakeAReservedId(): void
+    {
+        $plugin = $this->azguardPlugin();
+
+        if (str_starts_with($plugin::class, 'AzGuard\\')) {
+            $this->assertNotSame('', $plugin->id(), 'A plugin of the package has an id.');
+
+            return;
+        }
+
+        $this->assertFalse(str_starts_with($plugin->id(), 'azguard/'), 'The prefix "azguard/" is reserved for the plugins of the package; use your own vendor name in the id.');
     }
 
     #[Test]

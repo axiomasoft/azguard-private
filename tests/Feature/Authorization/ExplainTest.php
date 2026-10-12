@@ -6,6 +6,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Authorization\Restriction;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\RestrictionResult;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -66,12 +67,12 @@ it('observes hooks once and marks later stages skipped after before denial', fun
     $before = $after = 0;
     $source = new GeneratedSource;
     [$engine, $panel, $request] = AuthorizationWorld::compile($source, function (PanelBuilder $p) use (&$before, &$after): void {
-        $p->before(function () use (&$before): BeforeResult {
+        $p->before(function (AccessRequest $request, EvaluationContext $context) use (&$before): BeforeResult {
             $before++;
 
             return BeforeResult::Deny;
         })
-            ->after(function () use (&$after): void {
+            ->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$after): void {
                 $after++;
             });
     });
@@ -98,7 +99,9 @@ it('shows exempt restrictions and retains a source error after an allowing sourc
 
 it('redacts nested secret fields and their occurrences in exception messages without serializing the subject model', function (): void {
     $source = new GeneratedSource(direct: [AuthorizationWorld::grant(fields: ['api_TOKEN' => 'sensitive-value', 'nested' => ['password' => 'nested-pass'], 'department' => 'sales'])]);
-    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $p) => $p->after(fn () => throw new RuntimeException('sensitive-value nested-pass')));
+    [$engine, $panel, $request] = AuthorizationWorld::compile($source, fn (PanelBuilder $p) => $p->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision): void {
+        throw new RuntimeException('sensitive-value nested-pass');
+    }));
     $json = json_encode($engine->explain($panel, $request)->toArray(), JSON_THROW_ON_ERROR);
     expect($json)->not->toContain('sensitive-value', 'nested-pass', 'department":"sales","is_root')
         ->toContain('[redacted]', 'department', 'sales');

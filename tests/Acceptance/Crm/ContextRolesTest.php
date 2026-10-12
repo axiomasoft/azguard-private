@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\ActorRef;
@@ -27,7 +29,7 @@ it('R09 common active filter vetoes direct role policy before Continue and scope
     World::assign(match ($authority) {
         'direct' => 'clients.view', 'admin' => 'tenant-admin', default => 'analyst',
     }, 1, 3, kind: $authority === 'direct' ? 'permission' : 'role');
-    $panel = World::compile(fn (PanelBuilder $p) => $p->before(fn () => BeforeResult::Continue));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue));
     $action = $authority === 'policy' ? Action::ViewOwnProfile : Action::View;
     World::assertDecision(World::decide($panel, 4, $action), false, DecisionReason::AssignmentScopeIneligible);
     Project::query()->whereKey(3)->update(['is_active' => true]);

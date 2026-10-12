@@ -6,6 +6,7 @@ use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\CodeStateToken;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -34,7 +35,7 @@ uses()->group('batch');
 it('retries stale request state before reading the dynamic catalog and consumes fresh metadata', function (): void {
     $observed = [];
     [$engine, $panel] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions(), configure: function (PanelBuilder $panel) use (&$observed): void {
-        $panel->after(function (EvaluationContext $context) use (&$observed): void {
+        $panel->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed): void {
             if ($context->readAttempt !== null) {
                 $observed[] = $context;
             }

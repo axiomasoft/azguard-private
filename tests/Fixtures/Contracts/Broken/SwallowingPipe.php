@@ -6,11 +6,12 @@ namespace AzGuard\Tests\Fixtures\Contracts\Broken;
 
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Changes\ChangePipe;
 use Closure;
 use RuntimeException;
 
 /** A pipe that swallows the change: it never reaches the writer. */
-final class SwallowingPipe
+final class SwallowingPipe implements ChangePipe
 {
     public function handle(Change $change, Closure $next): ChangeResult
     {

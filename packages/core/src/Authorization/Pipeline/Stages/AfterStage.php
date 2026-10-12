@@ -6,9 +6,9 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Contracts\Authorization\AfterHook;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
-use AzGuard\Policies\RuntimeInvoker;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
@@ -16,7 +16,7 @@ use Throwable;
 
 final readonly class AfterStage
 {
-    public function __construct(private Container $container, private RuntimeInvoker $invoker) {}
+    public function __construct(private Container $container) {}
 
     public function observe(AccessRequest $request, EvaluationFrame $frame, Decision $decision, Trace $trace): void
     {
@@ -27,12 +27,15 @@ final readonly class AfterStage
             $component = is_string($hook) ? $hook : $hook::class;
 
             try {
-                $callback = $hook instanceof Closure ? $hook : $this->container->make($hook);
+                $resolved = is_string($hook) ? $this->container->make($hook) : $hook;
 
-                if (! is_callable($callback)) {
-                    throw new RuntimeException('After hook is not callable.');
+                if ($resolved instanceof Closure) {
+                    $resolved($request, $frame, $decision);
+                } elseif ($resolved instanceof AfterHook) {
+                    $resolved->after($request, $frame, $decision);
+                } else {
+                    throw new RuntimeException('After hook must implement '.AfterHook::class.'.');
                 }
-                $this->invoker->invoke($callback, ['request' => $request, 'context' => $frame, 'decision' => $decision]);
                 $trace->record('after', 'observed', $component);
             } catch (Throwable $error) {
                 $trace->error('after', 'after_error', $component, $error);

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Plugins;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
 /**
  * A plugin that sets one scalar setting of the panel.
  */
-final class CacheTtlPlugin extends BasePlugin
+final class CacheTtlPlugin implements Plugin
 {
     private function __construct(private readonly string $id, private readonly int $ttl) {}
 

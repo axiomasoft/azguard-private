@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Modules\Shop;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 
 /**
  * Plugin of the Shop module. `$local` lets a test declare the same permission name as another module.
  */
-final class ShopAccessPlugin extends BasePlugin
+final class ShopAccessPlugin implements Plugin
 {
     private function __construct(private readonly string $local) {}
 

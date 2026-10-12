@@ -10,6 +10,7 @@ use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\Grant;
 use AzGuard\Kernel\Decision\RoleContribution;
@@ -308,7 +309,7 @@ final class ScopedSourceWorld
         DatabaseWorld::define('reports.export', $scope->tenant, 'Before');
         DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', $scope, ['permission' => 'reports.export'])]);
         $observed = null;
-        $panel = self::database(DatabaseSource::make()->dynamicPermissions(), after: static function (EvaluationContext $context) use (&$observed): void {
+        $panel = self::database(DatabaseSource::make()->dynamicPermissions(), after: static function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed): void {
             $observed = $context;
         });
         ConcurrentWriter::open();

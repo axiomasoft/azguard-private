@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Testing\FakeSource;
-use AzGuard\Tests\Fixtures\Contracts\Broken\BooleanBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ColonScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ColonSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\CrossedSubjectResolver;
@@ -16,6 +16,7 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\EveryPanelSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\FlipFlopBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\FlipFlopRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\FlipFlopSource;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ForeignPlugins;
 use AzGuard\Tests\Fixtures\Contracts\Broken\GhostSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\GlobalScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\InvalidIdSource;
@@ -23,20 +24,22 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\LeakyPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OnePanelPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OwnClockSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\PermissiveSubjectResolver;
-use AzGuard\Tests\Fixtures\Contracts\Broken\RegisteringBootPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\StrictScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\SwallowingPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\UnderstatedSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\UnguardedWriter;
+use AzGuard\Tests\Fixtures\Contracts\Broken\WritingAfterHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingBeforeHook;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingPipe;
+use AzGuard\Tests\Fixtures\Contracts\Broken\WritingRegisterPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\DenyEditHook;
 use AzGuard\Tests\Fixtures\Contracts\GoodScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\GoodSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\LabelPlugin;
+use AzGuard\Tests\Fixtures\Contracts\ObservingAfterHook;
 use AzGuard\Tests\Fixtures\Contracts\PassThroughPipe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\PluginProbe;
@@ -98,19 +101,20 @@ it('fails the restriction suite on a restriction that breaks a guarantee and pas
     'writes while it decides' => ['restrictionWritesNothingWhileItDecides', static fn () => new WritingRestriction, AssertionFailedError::class],
 ]);
 
-it('fails the hook suite on a hook or a pipe that breaks a guarantee and passes it on one that keeps it', function (string $method, ?Closure $hook, ?Closure $pipe, string $failure): void {
-    $good = [static fn () => DenyEditHook::class, static fn () => new PassThroughPipe];
+it('fails the hook suite on a hook or a pipe that breaks a guarantee and passes it on one that keeps it', function (string $method, ?Closure $hook, ?Closure $pipe, ?Closure $after, string $failure): void {
+    $good = [static fn () => DenyEditHook::class, static fn () => new PassThroughPipe, static fn () => ObservingAfterHook::class];
     (new HookProbe(...$good))->run($method);
 
-    expect(fn () => (new HookProbe($hook ?? $good[0], $pipe ?? $good[1]))->run($method))->toThrow($failure);
+    expect(fn () => (new HookProbe($hook ?? $good[0], $pipe ?? $good[1], $after ?? $good[2]))->run($method))->toThrow($failure);
 })->with([
-    'before hook writes' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => WritingBeforeHook::class, null, AssertionFailedError::class],
-    'before hook answers with a boolean' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => BooleanBeforeHook::class, null, AssertionFailedError::class],
-    'before hook throws' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => ThrowingBeforeHook::class, null, AssertionFailedError::class],
-    'before hook answers differently' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => FlipFlopBeforeHook::class, null, AssertionFailedError::class],
-    'pipe writes around the writer' => ['pipeWritesNothingBesidesTheWriter', null, static fn () => new WritingPipe, AssertionFailedError::class],
-    'cancelled change leaves a row' => ['cancelledChangeLeavesNoTrace', null, static fn () => new LeakyPipe, AssertionFailedError::class],
-    'pipe drops the change' => ['cancelledChangeLeavesNoTrace', null, static fn () => new SwallowingPipe, AssertionFailedError::class],
+    'before hook writes' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => WritingBeforeHook::class, null, null, AssertionFailedError::class],
+    'before hook throws' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => ThrowingBeforeHook::class, null, null, AssertionFailedError::class],
+    'before hook answers differently' => ['beforeHookAnswersWithABeforeResultAndWritesNothing', static fn () => FlipFlopBeforeHook::class, null, null, AssertionFailedError::class],
+    'after hook writes' => ['afterHookObservesAndWritesNothing', null, null, static fn () => WritingAfterHook::class, AssertionFailedError::class],
+    'pipe writes around the writer' => ['pipeWritesNothingBesidesTheWriter', null, static fn () => new WritingPipe, null, AssertionFailedError::class],
+    'cancelled change leaves a row' => ['cancelledChangeLeavesNoTrace', null, static fn () => new LeakyPipe, null, AssertionFailedError::class],
+    'pipe drops the change' => ['cancelledChangeLeavesNoTrace', null, static fn () => new SwallowingPipe, null, AssertionFailedError::class],
+    'closure without the contract signature' => ['hooksAndPipeFitTheirContracts', static fn () => static fn (): BeforeResult => BeforeResult::Continue, null, null, AssertionFailedError::class],
 ]);
 
 it('fails the plugin suite on a plugin that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {
@@ -120,7 +124,8 @@ it('fails the plugin suite on a plugin that breaks a guarantee and passes it on 
 })->with([
     'unstable id' => ['pluginHasAStableId', static fn () => new DriftingIdPlugin, AssertionFailedError::class],
     'works on one panel only' => ['pluginBuildsOnTwoPanelsAndTouchesOnlyTheOneItIsAttachedTo', static fn () => new OnePanelPlugin, Exception::class],
-    'registers a panel from boot' => ['bootDoesNotChangeThePanel', static fn () => new RegisteringBootPlugin, Exception::class],
+    'writes to the database while it registers' => ['registerRunsOncePerPanelAndWritesNothing', static fn () => new WritingRegisterPlugin, AssertionFailedError::class],
+    'takes the reserved prefix outside the package' => ['pluginOutsideThePackageDoesNotTakeAReservedId', static fn () => ForeignPlugins::reservedId('azguard/own'), AssertionFailedError::class],
 ]);
 
 it('fails the subject resolver suite on a resolver that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {

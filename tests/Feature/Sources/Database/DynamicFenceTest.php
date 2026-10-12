@@ -7,6 +7,7 @@ use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\PermissionKey;
@@ -44,12 +45,12 @@ it('prepares once and decides at one state when another connection commits durin
     $beforeTimes = [];
     $afterCalls = 0;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(),
-        before: function (EvaluationContext $context) use (&$beforeTimes): BeforeResult {
+        before: function (AccessRequest $request, EvaluationContext $context) use (&$beforeTimes): BeforeResult {
             $beforeTimes[] = $context->now();
 
             return BeforeResult::Continue;
         },
-        after: function (EvaluationContext $context) use (&$observed, &$afterCalls): void {
+        after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed, &$afterCalls): void {
             $observed = $context;
             $afterCalls++;
         });
@@ -134,8 +135,8 @@ it('runs before denial before assignment reads and observes only the accepted de
     $external = new InterferingSource;
     $afterCalls = 0;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(), additionalSources: [$external],
-        before: static fn (): BeforeResult => BeforeResult::Deny,
-        after: function () use (&$afterCalls): void {
+        before: static fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny,
+        after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$afterCalls): void {
             $afterCalls++;
         });
     $assignmentReads = 0;
@@ -153,12 +154,12 @@ it('runs before denial before assignment reads and observes only the accepted de
 it('runs a writing before hook once and decides with its denial', function (): void {
     $beforeCalls = $afterCalls = 0;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(),
-        before: function () use (&$beforeCalls): BeforeResult {
+        before: function (AccessRequest $request, EvaluationContext $context) use (&$beforeCalls): BeforeResult {
             $beforeCalls++;
             DatabaseWorld::storage()->mutate('admin', fn (StorageMutation $mutation) => $mutation->touch('admin'));
 
             return BeforeResult::Deny;
-        }, after: function () use (&$afterCalls): void {
+        }, after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$afterCalls): void {
             $afterCalls++;
         });
     $assignmentReads = 0;
@@ -178,7 +179,7 @@ it('reads every source once; a write by a later source does not discard the data
     $external = new InterferingSource;
     $observed = null;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(), additionalSources: [$external],
-        after: function (EvaluationContext $context) use (&$observed): void {
+        after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed): void {
             $observed = $context;
         });
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
@@ -209,7 +210,7 @@ it('pins dynamic metadata and grants to Default while Primary reads its own comp
     $request = AccessRequest::for(SubjectRef::of('user', 1), PermissionKey::of('admin', 'reports.export'));
     $observed = null;
     [$panel] = DatabaseWorld::compile(DatabaseSource::make()->dynamicPermissions(), reads: Reads::Default,
-        after: function (EvaluationContext $context) use (&$observed): void {
+        after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$observed): void {
             $observed = $context;
         });
     $decision = app(Authorizer::class)->decide($panel, $request);

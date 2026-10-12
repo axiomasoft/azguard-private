@@ -12,7 +12,6 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\InvalidPolicyStructureException;
 use AzGuard\Exceptions\MissingPermissionCheckException;
 use AzGuard\Exceptions\PluginConflictException;
-use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Exceptions\StorageMismatchException;
 use AzGuard\Exceptions\UnknownPanelException;
@@ -35,6 +34,7 @@ use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Configuration\AttributedConnectionRoleGrant;
 use AzGuard\Tests\Fixtures\Configuration\AttributedTableRoleGrant;
 use AzGuard\Tests\Fixtures\Configuration\WrongTableRoleGrant;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ForeignPlugins;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Http\HttpWorld;
 use AzGuard\Tests\Fixtures\Panels\AdminPanel;
@@ -44,8 +44,6 @@ use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Permissions\AttributedClientPolicy;
 use AzGuard\Tests\Fixtures\Permissions\ClientPermission;
 use AzGuard\Tests\Fixtures\Permissions\ClientPolicy;
-use AzGuard\Tests\Fixtures\Plugins\AuditTrailPlugin;
-use AzGuard\Tests\Fixtures\Plugins\ReportsPlugin;
 use AzGuard\Tests\Fixtures\Roles\ManagerRole;
 use AzGuard\Tests\Fixtures\Roles\OtherManagerRole;
 use AzGuard\Tests\Fixtures\Scopes\Membership;
@@ -286,14 +284,11 @@ function allBootChecks(): array
                 (new PanelCompiler)->settings($recipe);
             },
         ],
-        'a plugin whose dependency the panel does not have' => [
-            'plugin_dependency_missing', PluginDependencyMissingException::class, '"acme/audit-trail"',
+        'a plugin outside the package that takes the reserved azguard/ id' => [
+            'plugin_conflict', PluginConflictException::class, 'the prefix "azguard/" is reserved',
             function (): void {
-                $registry = new PanelRegistry(app());
-                $registry->configureAll(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([AuditTrailPlugin::make()]));
-                AdminPanel::describe(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ReportsPlugin::class])->withoutPlugins(['acme/audit-trail']));
-                $registry->register(AdminPanel::class);
-                $registry->freeze();
+                $plugin = ForeignPlugins::reservedId('azguard/own');
+                PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([$plugin])]);
             },
         ],
         'configurePanel() for a panel nobody registered' => [
@@ -346,7 +341,7 @@ it('covers every code of the table of startup checks in 07 §5', function (): vo
         'default_panel_conflict', 'duplicate_permission', 'duplicate_policy_binding', 'duplicate_role',
         'invalid_configuration.cache_ttl', 'invalid_configuration.enum', 'invalid_configuration.host_keys',
         'invalid_configuration.membership', 'invalid_configuration.storage', 'invalid_configuration.tenant_scope',
-        'invalid_policy_structure', 'missing_permission_check', 'plugin_conflict', 'plugin_dependency_missing',
+        'invalid_policy_structure', 'missing_permission_check', 'plugin_conflict',
         'prefix_conflict', 'storage_mismatch', 'unknown_panel', 'unknown_role', 'unknown_source', 'writer_conflict',
     ]);
 });

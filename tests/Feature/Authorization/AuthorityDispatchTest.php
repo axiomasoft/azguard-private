@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -62,7 +63,7 @@ it('rejects explicit tenant and context in none none before hooks and sources', 
     $source = new GeneratedSource(direct: [AuthorizationWorld::grant()]);
     $hooks = 0;
     [$engine,$panel,$request] = AuthorizationWorld::compile($source, function (PanelBuilder $panel) use (&$hooks): void {
-        $panel->before(function () use (&$hooks): BeforeResult {
+        $panel->before(function (AccessRequest $request, EvaluationContext $context) use (&$hooks): BeforeResult {
             $hooks++;
 
             return BeforeResult::Continue;

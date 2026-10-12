@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Plugins;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use InvalidArgumentException;
 
 /**
  * A plugin whose dependencies are named typed parameters of its own factory.
  */
-final class CrmAccessPlugin extends BasePlugin
+final class CrmAccessPlugin implements Plugin
 {
     /**
      * @param  class-string<ResourceScopeResolver>  $clientScope

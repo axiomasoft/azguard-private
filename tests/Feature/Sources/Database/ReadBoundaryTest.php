@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
 use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Storage\Schema\StorageSchema;
@@ -36,11 +39,11 @@ afterEach(function (): void {
 
 it('runs host hooks and model events once when another connection commits during the source read', function (): void {
     $before = $after = 0;
-    [$panel] = DatabaseWorld::compile(DatabaseSource::make(), before: function () use (&$before): BeforeResult {
+    [$panel] = DatabaseWorld::compile(DatabaseSource::make(), before: function (AccessRequest $request, EvaluationContext $context) use (&$before): BeforeResult {
         $before++;
 
         return BeforeResult::Continue;
-    }, after: function () use (&$after): void {
+    }, after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$after): void {
         $after++;
     });
     $retrieved = 0;

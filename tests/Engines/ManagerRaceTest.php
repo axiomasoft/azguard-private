@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\PanelManagers;
 use AzGuard\Exceptions\StaleSelectionException;
 use AzGuard\Exceptions\UnknownRoleException;
@@ -85,7 +86,7 @@ afterEach(function (): void {
 
 it('C13 lets one manager update ∥ update with the same form fingerprint win and refuses the stale form', function (): void {
     // The fingerprint covers the build: read the form on the build shape the workers compile (one closure pipe).
-    $panel = W::panel([static fn (Change $c, Closure $next) => $next($c)]);
+    $panel = W::panel([static fn (Change $c, Closure $next): ChangeResult => $next($c)]);
     $id = W::grant($panel, 'auditor', 2, null)->record?->id ?? '';
     $form = PanelManagers::for($panel, W::tenant())->grants()->find($id);
     [$first, $second] = managerRacePair($this->processes,

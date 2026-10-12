@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Plugins;
 
-use AzGuard\Panels\Panel;
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use InvalidArgumentException;
@@ -14,7 +13,7 @@ use InvalidArgumentException;
 /**
  * A plugin with one exact parameter; `make()` goes through the container, so the journal is whatever is bound.
  */
-final class AuditTrailPlugin extends BasePlugin
+final class AuditTrailPlugin implements Plugin
 {
     /** @var list<string> panels this copy registered on */
     private array $registeredOn = [];
@@ -61,12 +60,9 @@ final class AuditTrailPlugin extends BasePlugin
         $panel->permissions([new ArraySource('audit-trail')])
             ->restrictions([AuditFreeze::class])
             ->changing([RecordChange::class]);
-    }
 
-    public function boot(Panel $panel, PluginContext $context): void
-    {
         $this->journal->lines[] = [
-            'panel' => $panel->id(),
+            'panel' => $context->panelId(),
             'context' => $context,
             'retention' => $this->retentionDays,
             'registered_on' => $this->registeredOn,

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -20,7 +21,7 @@ it('releases batch read handles without cycle collection on success and preparat
     DatabaseWorld::insert('permission', [DatabaseWorld::row('permission', overrides: ['permission' => 'reports.export'])]);
     $contexts = [];
     [$engine] = CacheWorld::database(DatabaseSource::make()->dynamicPermissions(), configure: static function (PanelBuilder $panel) use (&$contexts): void {
-        $panel->after(static function (EvaluationContext $context) use (&$contexts): void {
+        $panel->after(static function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$contexts): void {
             $contexts[] = $context;
         });
     });

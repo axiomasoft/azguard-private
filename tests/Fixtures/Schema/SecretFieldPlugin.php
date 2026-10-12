@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Schema;
 
+use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Plugins\BasePlugin;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
@@ -14,7 +14,7 @@ use Closure;
 use Illuminate\Validation\Rule;
 
 /** A plugin with a typed secret parameter that contributes grant fields; the secret must never reach a schema. */
-final class SecretFieldPlugin extends BasePlugin
+final class SecretFieldPlugin implements Plugin
 {
     public const SECRET = 'sk-live-schema-secret-0f9c';
 

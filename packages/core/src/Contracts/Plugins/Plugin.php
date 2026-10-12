@@ -6,7 +6,6 @@ namespace AzGuard\Contracts\Plugins;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
-use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
 
@@ -21,17 +20,14 @@ use AzGuard\Plugins\PluginContext;
 interface Plugin
 {
     /**
-     * Stable id of the plugin such as `acme/audit-trail`; a panel never has two plugins with one id.
+     * Stable id of the plugin such as `acme/audit-trail`; a panel never has two plugins with one id. The prefix
+     * `azguard/` is reserved for the classes of this package.
      */
     public function id(): string;
 
     /**
-     * Adds to the panel; runs once per panel in the order the plugins were attached.
+     * Declares contributions only, through the panel builder: no database or network I/O, no current user, tenant,
+     * request or clock, no global listener. Runs once per panel in the order the plugins were attached.
      */
     public function register(PanelBuilder $panel, PluginContext $context): void;
-
-    /**
-     * Runs once per panel when every panel is compiled; the panel can no longer be changed here.
-     */
-    public function boot(Panel $panel, PluginContext $context): void;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Changes;
 
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -27,14 +28,14 @@ final class OnceTerminal
     private function __construct(private readonly Closure $terminal) {}
 
     /**
-     * @param  list<Closure|object|class-string>  $pipes
+     * @param  list<ChangePipe|class-string<ChangePipe>|Closure>  $pipes
      * @param  Closure(mixed): ChangeResult  $terminal
      */
     public static function run(Container $container, Change $planned, array $pipes, Closure $terminal): ChangeResult
     {
         $guard = new self($terminal);
         $returned = (new Pipeline($container))->send($planned)
-            ->through(array_map(fn (object|string $pipe): Closure => $guard->guarded($container, $pipe), $pipes))
+            ->through(array_map(fn (ChangePipe|Closure|string $pipe): Closure => $guard->guarded($container, $pipe), $pipes))
             ->then($guard->terminal(...));
 
         if ($guard->result === null || $returned !== $guard->result) {
@@ -54,24 +55,32 @@ final class OnceTerminal
         return $this->result = ($this->terminal)($final);
     }
 
-    /** @param Closure|object|class-string $pipe */
-    private function guarded(Container $container, object|string $pipe): Closure
+    /** @param ChangePipe|class-string<ChangePipe>|Closure $pipe */
+    private function guarded(Container $container, ChangePipe|Closure|string $pipe): Closure
     {
         return static function (mixed $change, Closure $next) use ($container, $pipe): ChangeResult {
+            if (! $change instanceof Change) {
+                throw self::broken('A changing pipe was given something that is not a change.');
+            }
             $calls = 0;
             $downstream = null;
-            $guardedNext = static function (mixed $passed) use ($next, &$calls, &$downstream): mixed {
+            $guardedNext = static function (mixed $passed) use ($next, &$calls, &$downstream): ChangeResult {
                 if (++$calls !== 1) {
                     throw self::broken('A changing pipe called $next twice.');
                 }
+                $result = $next($passed);
 
-                return $downstream = $next($passed);
+                if (! $result instanceof ChangeResult) {
+                    throw self::broken('The writer did not return a change result.');
+                }
+
+                return $downstream = $result;
             };
 
             $resolved = is_string($pipe) ? $container->make($pipe) : $pipe;
 
-            if (! $resolved instanceof Closure && (! is_object($resolved) || ! method_exists($resolved, 'handle'))) {
-                throw self::broken('A changing pipe must be a closure or an object with handle().');
+            if (! $resolved instanceof Closure && ! $resolved instanceof ChangePipe) {
+                throw self::broken('A changing pipe must be a closure or implement '.ChangePipe::class.'.');
             }
             $returned = $resolved instanceof Closure ? $resolved($change, $guardedNext) : $resolved->handle($change, $guardedNext);
 

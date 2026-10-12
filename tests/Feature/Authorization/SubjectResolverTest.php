@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\ModelSubjectResolver;
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Exceptions\SubjectNotAcceptedException;
 use AzGuard\Exceptions\UnknownPermissionException;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -50,7 +51,7 @@ it('throws direct API identity errors instead of inventing definitions or subjec
 it('fails closed on a subject query failure and observes the denial', function (): void {
     $seen = null;
     [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource, function (PanelBuilder $panel) use (&$seen): void {
-        $panel->after(function (Decision $decision) use (&$seen): void {
+        $panel->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$seen): void {
             $seen = $decision;
         });
     });

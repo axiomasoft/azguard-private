@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Kernel\Identity\AccessScope;
@@ -63,7 +65,7 @@ it('keeps every chunk in the snapshot when another process revokes between chunk
     });
     $seen = [];
     $reads = [];
-    $engine = BatchEngineWorld::compile(after: function (Decision $decision) use (&$seen, &$reads): void {
+    $engine = BatchEngineWorld::compile(after: function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$seen, &$reads): void {
         $seen[] = [$decision->state->panel, $decision->reason, count($reads[$decision->state->panel])];
     }, cabinet: true);
     $requests = BatchEngineWorld::requests();

@@ -6,8 +6,18 @@ namespace AzGuard\Testing\Contracts;
 
 use AzGuard\Attributes\Spi;
 use AzGuard\Attributes\SpiKind;
+use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
+use AzGuard\Contracts\Authorization\AfterHook;
+use AzGuard\Contracts\Authorization\BeforeHook;
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Exceptions\ChangeCancelledException;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Decision\DecisionReason;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Sources\Database\DatabaseSource;
@@ -24,21 +34,42 @@ use UnitEnum;
  * Use the trait in a test case that boots a Laravel application with the AzGuard tables migrated, and implement the
  * factories of the parts you wrote; a part you have none of is `null` and its tests pass without checking anything.
  *
+ * - every hook and pipe fits the contract of its slot: a closure has its parameter and return types, so the panel
+ *   compiles;
  * - a `before` hook answers with a `BeforeResult`, is repeatable and writes nothing;
+ * - an `after` hook observes: it writes nothing and the decision stays what it was;
  * - a pipe writes nothing itself: what reaches the database goes through the writer it hands the change to;
  * - a change that is cancelled after the pipe left nothing behind in any table.
  */
 #[Spi(kind: SpiKind::Call, since: '0.7')]
 trait HookContractTests
 {
-    /** A `before` hook as the panel takes it (a closure or the name of an invokable class), or null. */
-    protected function azguardBeforeHook(): Closure|string|null
+    /**
+     * A `before` hook as the panel takes it (a `BeforeHook`, its class name or a closure of its signature), or null.
+     *
+     * @return BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult|null
+     */
+    protected function azguardBeforeHook(): BeforeHook|Closure|string|null
     {
         return null;
     }
 
-    /** A new changing pipe (a closure, an object with `handle()` or a class name), or null. */
-    protected function azguardChangePipe(): object|string|null
+    /**
+     * An `after` hook as the panel takes it (an `AfterHook`, its class name or a closure of its signature), or null.
+     *
+     * @return AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void|null
+     */
+    protected function azguardAfterHook(): AfterHook|Closure|string|null
+    {
+        return null;
+    }
+
+    /**
+     * A new changing pipe (a `ChangePipe`, its class name or a closure of its signature), or null.
+     *
+     * @return ChangePipe|class-string<ChangePipe>|Closure(Change, Closure(Change): ChangeResult): ChangeResult|null
+     */
+    protected function azguardChangePipe(): ChangePipe|Closure|string|null
     {
         return null;
     }
@@ -57,6 +88,60 @@ trait HookContractTests
     protected function azguardPermissions(): array
     {
         return [ContractPermission::View, ContractPermission::Edit];
+    }
+
+    #[Test]
+    public function hooksAndPipeFitTheirContracts(): void
+    {
+        $before = $this->azguardBeforeHook();
+        $after = $this->azguardAfterHook();
+        $pipe = $this->azguardChangePipe();
+
+        if ($before === null && $after === null && $pipe === null) {
+            $this->assertNull($before, 'There is no hook or pipe to check.');
+
+            return;
+        }
+
+        try {
+            $panel = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->before($before === null ? [] : [$before])->after($after === null ? [] : [$after])->changing($pipe === null ? [] : [$pipe]));
+        } catch (DefinitionException $error) {
+            $this->fail('The panel does not accept the hook or pipe: '.$error->getMessage());
+        }
+
+        $this->assertSame([$before === null ? 0 : 1, $after === null ? 0 : 1, $pipe === null ? 0 : 1], [count($panel->before()), count($panel->after()), count($panel->changing())]);
+    }
+
+    #[Test]
+    public function afterHookObservesAndWritesNothing(): void
+    {
+        $hook = $this->azguardAfterHook();
+
+        if ($hook === null) {
+            $this->assertNull($hook, 'There is no after hook to check.');
+
+            return;
+        }
+        $source = new FakeSource;
+        $plain = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source]));
+        $observed = ContractWorld::panel(static fn (PanelBuilder $builder): PanelBuilder => $builder->permissions([$source])->after([$hook]));
+        $subject = $this->azguardSubject();
+        $expected = [];
+        $actual = [];
+
+        $writes = ContractWorld::writesDuring(function () use ($plain, $observed, $subject, &$expected, &$actual): void {
+            foreach ($this->azguardPermissions() as $position => $permission) {
+                $expected[$position] = ContractWorld::decide($plain, $subject, $permission);
+                $actual[$position] = ContractWorld::decide($observed, $subject, $permission);
+            }
+        });
+
+        $this->assertSame([], $writes, 'The after hook wrote while it observed: '.implode('; ', $writes));
+
+        foreach ($expected as $position => $decision) {
+            $this->assertSame($decision->effect, $actual[$position]->effect, 'The after hook changed the effect of a decision.');
+            $this->assertSame($decision->reason, $actual[$position]->reason, 'The after hook changed the reason of a decision.');
+        }
     }
 
     #[Test]

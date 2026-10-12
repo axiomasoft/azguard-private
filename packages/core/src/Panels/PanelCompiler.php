@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Catalog\PanelCatalog;
+use AzGuard\Contracts\Authorization\AfterHook;
+use AzGuard\Contracts\Authorization\BeforeHook;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Authorization\Restriction;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Diagnostics\DoctorCheck;
-use AzGuard\Contracts\Plugins\DependsOnPlugins;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -19,7 +21,6 @@ use AzGuard\Exceptions\DefaultPanelConflictException;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
-use AzGuard\Exceptions\PluginDependencyMissingException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Plugins\PluginContext;
@@ -36,7 +37,13 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
+use ReflectionFunction;
+use ReflectionIntersectionType;
 use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionParameter;
+use ReflectionType;
+use ReflectionUnionType;
 use Throwable;
 use UnitEnum;
 
@@ -52,7 +59,6 @@ use UnitEnum;
  * @phpstan-import-type Record from PanelRecipe
  *
  * @phpstan-type Resolved array{value: mixed, origin: string}
- * @phpstan-type Attached array{plugin: Plugin, context: PluginContext}
  */
 final class PanelCompiler
 {
@@ -78,13 +84,11 @@ final class PanelCompiler
      * panel keeps them off, then the ones a plugin attached while it registered, until no new plugin appears. A
      * plugin registers on its own copy, so what it keeps while registering on one panel is not seen on another.
      *
-     * @return list<Attached> plugins of the panel in the order they were attached
-     *
      * @throws DefinitionException when a plugin cannot be created or its id is malformed
-     * @throws PluginConflictException when two plugins of the panel share an id
-     * @throws PluginDependencyMissingException
+     * @throws PluginConflictException when two plugins of the panel share an id, or a plugin outside the package
+     *                                 takes an id of the reserved `azguard/` prefix
      */
-    public function register(PanelRecipe $recipe, PanelBuilder $builder, Container $container, string $buildId): array
+    public function register(PanelRecipe $recipe, PanelBuilder $builder, Container $container, string $buildId): void
     {
         $panel = $recipe->panelId();
         $detached = $recipe->withoutPlugins();
@@ -106,13 +110,14 @@ final class PanelCompiler
 
                 if (isset($attached[$id])) {
                     throw new PluginConflictException(
-                        'Panel "'.$panel.'" has two plugins with the id "'.$id.'" ('.$attached[$id]['plugin']::class.' and '
+                        'Panel "'.$panel.'" has two plugins with the id "'.$id.'" ('.$attached[$id]::class.' and '
                         .$plugin::class.'): attach the plugin once.',
                     );
                 }
 
-                $context = new PluginContext($panel, $id, $buildId, $this->dependencies($panel, $id, $plugin));
-                $attached[$id] = ['plugin' => $plugin, 'context' => $context];
+                $this->assertIdOwned($panel, $id, $plugin);
+                $context = new PluginContext($panel, $id, $buildId);
+                $attached[$id] = $plugin;
 
                 $recipe->during($recipe->attach($id), static fn () => $plugin->register($builder, $context));
             }
@@ -123,31 +128,6 @@ final class PanelCompiler
         }
 
         $recipe->seal();
-
-        foreach ($attached as $id => ['context' => $context]) {
-            foreach ($context->dependencies() as $dependency) {
-                if (! isset($attached[$dependency])) {
-                    throw new PluginDependencyMissingException(
-                        'Plugin "'.$id.'" of panel "'.$panel.'" requires the plugin "'.$dependency
-                        .'", which is not attached to the panel: add it to plugins([...]).',
-                    );
-                }
-            }
-        }
-
-        return array_values($attached);
-    }
-
-    /**
-     * Runs `boot()` of the plugins of a compiled panel in the order they were attached.
-     *
-     * @param  list<Attached>  $plugins
-     */
-    public function boot(Panel $panel, array $plugins): void
-    {
-        foreach ($plugins as ['plugin' => $plugin, 'context' => $context]) {
-            $plugin->boot($panel, $context);
-        }
     }
 
     /**
@@ -184,8 +164,8 @@ final class PanelCompiler
             writable: $sources !== null && $sources->writable(),
             writer: $sources !== null && $container !== null ? $sources->writer($container) : null,
             grantFields: $this->fields($recipe),
-            beforeHooks: $this->callbacks($recipe, PanelRecipe::BEFORE),
-            afterHooks: $this->callbacks($recipe, PanelRecipe::AFTER),
+            beforeHooks: $this->slot($recipe, PanelRecipe::BEFORE, BeforeHook::class, 'before'),
+            afterHooks: $this->slot($recipe, PanelRecipe::AFTER, AfterHook::class, 'after'),
             accessRestrictions: $this->components($recipe, PanelRecipe::RESTRICTIONS, Restriction::class),
             conditions: $this->components($recipe, PanelRecipe::GRANT_CONDITIONS, GrantCondition::class),
             tenantPolicy: $tenants,
@@ -194,7 +174,7 @@ final class PanelCompiler
             tenantResolvers: [...$this->components($recipe, PanelRecipe::TENANT_RESOLVERS, TenantResolver::class), ...$this->configured('tenants', TenantResolver::class)],
             scopeResolvers: [...$this->components($recipe, PanelRecipe::SCOPE_RESOLVERS, AssignmentScopeResolver::class), ...$this->configured('scopes', AssignmentScopeResolver::class)],
             resourceScopes: $this->resourceScopes($recipe),
-            changingPipes: $this->pipes($recipe),
+            changingPipes: $this->slot($recipe, PanelRecipe::CHANGING, ChangePipe::class, 'handle'),
             subjectDescriptors: $subjects,
             entryPermission: $this->entry($recipe),
             deniedResponse: $this->deniedResponse($recipe),
@@ -276,45 +256,6 @@ final class PanelCompiler
         }
 
         return array_values($byModel);
-    }
-
-    /**
-     * Pipes of `changing`: a closure, an object with a public `handle(Change, Closure)` or the class of such an object.
-     *
-     * @return list<Closure|object|class-string>
-     *
-     * @throws DefinitionException
-     */
-    private function pipes(PanelRecipe $recipe): array
-    {
-        $pipes = [];
-        foreach ($recipe->layered(PanelRecipe::CHANGING) as $record) {
-            foreach (is_array($record['value']) ? $record['value'] : [] as $pipe) {
-                if (! $pipe instanceof Closure && ! self::isPipe($pipe)) {
-                    throw new DefinitionException('Panel '.$recipe->panelId().' expects a Closure, an object with public handle(Change, Closure) or its class in changing from '
-                        .json_encode($record['origin']).', got '.self::describe($pipe).'.');
-                }
-                /** @var Closure|object|class-string $pipe */
-                $pipes[] = $pipe;
-            }
-        }
-
-        return $pipes;
-    }
-
-    private static function isPipe(mixed $pipe): bool
-    {
-        if (! is_object($pipe) && (! is_string($pipe) || ! class_exists($pipe))) {
-            return false;
-        }
-
-        if (! method_exists($pipe, 'handle')) {
-            return false;
-        }
-        $handle = new ReflectionMethod($pipe, 'handle');
-
-        return $handle->isPublic() && ! $handle->isStatic() && $handle->getNumberOfParameters() >= 2
-            && $handle->getNumberOfRequiredParameters() <= 2;
     }
 
     private function scopePolicy(PanelRecipe $recipe): AssignmentScopePolicy
@@ -471,21 +412,39 @@ final class PanelCompiler
         return $compiled;
     }
 
-    /** @return list<Closure|class-string> */
-    private function callbacks(PanelRecipe $recipe, string $setting): array
+    /**
+     * The entries of a hook or pipe slot: an object or a class of the slot's contract, or a closure whose parameters
+     * and return type fit the contract method. Anything else fails here, not at the first request.
+     *
+     * @template T of object
+     *
+     * @param  class-string<T>  $contract
+     * @param  non-empty-string  $method  the one method of the contract a closure stands for
+     * @return list<T|class-string<T>|Closure>
+     *
+     * @throws DefinitionException
+     */
+    private function slot(PanelRecipe $recipe, string $setting, string $contract, string $method): array
     {
-        $callbacks = [];
+        $entries = [];
         foreach ($recipe->layered($setting) as $record) {
             foreach (is_array($record['value']) ? $record['value'] : [] as $item) {
-                if (! $item instanceof Closure && (! is_string($item) || ! class_exists($item) || ! method_exists($item, '__invoke')
-                    || ! (new ReflectionMethod($item, '__invoke'))->isPublic())) {
-                    throw new DefinitionException('Panel '.$recipe->panelId().' expects Closure or invokable class in '.$setting.' from '.json_encode($record['origin']).'.');
+                $where = 'Panel '.$recipe->panelId().' slot `'.$setting.'` from '.json_encode($record['origin']).': ';
+
+                if ($item instanceof Closure) {
+                    $mismatch = self::closureMismatch($item, $contract, $method);
+
+                    if ($mismatch !== null) {
+                        throw new DefinitionException($where.'a closure must match '.$contract.'::'.$method.'(), but '.$mismatch.'.');
+                    }
+                } elseif (! $item instanceof $contract && (! is_string($item) || ! is_subclass_of($item, $contract))) {
+                    throw new DefinitionException($where.'expects '.$contract.', its class name or a closure with the signature of '.$contract.'::'.$method.'(), got '.self::describe($item).'.');
                 }
-                $callbacks[] = $item;
+                $entries[] = $item;
             }
         }
 
-        return $callbacks;
+        return $entries;
     }
 
     /**
@@ -793,36 +752,22 @@ final class PanelCompiler
     }
 
     /**
-     * @return list<string>
+     * The prefix `azguard/` belongs to the plugins of this package: a class outside the namespace `AzGuard\` cannot
+     * take an id under it. An anonymous class is named after its interface, so it never counts as a class of the package.
      *
-     * @throws DefinitionException
+     * @throws PluginConflictException
      */
-    private function dependencies(string $panel, string $id, Plugin $plugin): array
+    private function assertIdOwned(string $panel, string $id, Plugin $plugin): void
     {
-        $dependencies = [];
-
-        foreach ($plugin instanceof DependsOnPlugins ? self::declared($plugin->requires()) : [] as $dependency) {
-            if (! is_string($dependency) || $dependency === '') {
-                throw new DefinitionException(
-                    'Plugin "'.$id.'" of panel "'.$panel.'": requires() must list plugin ids, got '.get_debug_type($dependency).'.',
-                );
-            }
-
-            $dependencies[] = $dependency;
+        if (! str_starts_with($id, 'azguard/')) {
+            return;
         }
 
-        return $dependencies;
-    }
-
-    /**
-     * What a plugin returns is checked as it arrives: the documented type is a promise of the plugin, not a fact.
-     *
-     * @param  array<mixed>  $values
-     * @return array<mixed>
-     */
-    private static function declared(array $values): array
-    {
-        return $values;
+        if ((new ReflectionClass($plugin))->isAnonymous() || ! str_starts_with($plugin::class, 'AzGuard\\')) {
+            throw new PluginConflictException(
+                'Panel "'.$panel.'": '.$plugin::class.' has the plugin id "'.$id.'", but the prefix "azguard/" is reserved for plugins of the package; use your own vendor name.',
+            );
+        }
     }
 
     /**
@@ -916,6 +861,125 @@ final class PanelCompiler
             $check,
             'Panel "'.$panel.'": setting "'.$setting.'" is '.self::describe($value).', expected '.$expected.'.',
         );
+    }
+
+    /**
+     * Checks a closure given to a hook or pipe slot against the one method of the slot's contract: the same number of
+     * parameters, each declared with a type that accepts what the contract passes, and a declared return type that the
+     * contract accepts. A closure that passes is called positionally, never by parameter name.
+     *
+     * @param  class-string  $contract
+     * @return string|null what does not match, or null when the closure fits the method
+     */
+    private static function closureMismatch(Closure $closure, string $contract, string $method): ?string
+    {
+        $expected = new ReflectionMethod($contract, $method);
+        $actual = new ReflectionFunction($closure);
+        $parameters = $expected->getParameters();
+
+        if ($actual->getNumberOfParameters() !== count($parameters)) {
+            return 'it takes '.$actual->getNumberOfParameters().' parameters, the contract has '.count($parameters);
+        }
+
+        foreach ($actual->getParameters() as $position => $parameter) {
+            $problem = self::slotParameter($parameter, $parameters[$position]);
+
+            if ($problem !== null) {
+                return 'parameter '.($position + 1).' '.$problem;
+            }
+        }
+
+        return self::slotReturn($actual->getReturnType(), $expected->getReturnType());
+    }
+
+    private static function slotParameter(ReflectionParameter $declared, ReflectionParameter $expected): ?string
+    {
+        $wanted = (string) $expected->getType();
+        $type = $declared->getType();
+
+        if ($type === null) {
+            return 'has no declared type, the contract passes '.$wanted;
+        }
+
+        if ($declared->isVariadic() || ! self::slotAccepts($type, (string) $expected->getType())) {
+            return 'is declared '.$type.', the contract passes '.$wanted;
+        }
+
+        return null;
+    }
+
+    private static function slotReturn(?ReflectionType $declared, ?ReflectionType $expected): ?string
+    {
+        $wanted = (string) $expected;
+
+        if ($declared === null) {
+            return 'the return type is not declared, the contract returns '.$wanted;
+        }
+
+        foreach (self::slotMembers($declared) as $member) {
+            if (! self::slotSubtype($member, $wanted)) {
+                return 'the return type is '.$declared.', the contract returns '.$wanted;
+            }
+        }
+
+        return null;
+    }
+
+    /** Whether a parameter of the declared type takes a value of the type the contract passes. */
+    private static function slotAccepts(ReflectionType $declared, string $passed): bool
+    {
+        if ($declared instanceof ReflectionIntersectionType) {
+            foreach ($declared->getTypes() as $member) {
+                if (! self::slotAccepts($member, $passed)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        foreach (self::slotMembers($declared) as $member) {
+            if (self::slotSubtype($passed, $member)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @return list<string> */
+    private static function slotMembers(ReflectionType $type): array
+    {
+        if ($type instanceof ReflectionUnionType) {
+            return array_values(array_map(static fn (ReflectionType $member): string => (string) $member, $type->getTypes()));
+        }
+
+        if ($type instanceof ReflectionNamedType && $type->allowsNull() && $type->getName() !== 'mixed' && $type->getName() !== 'null') {
+            return [$type->getName(), 'null'];
+        }
+
+        return [(string) $type];
+    }
+
+    /** Whether every value of type `$sub` is a value of type `$super`. */
+    private static function slotSubtype(string $sub, string $super): bool
+    {
+        $sub = ltrim($sub, '?\\');
+        $super = ltrim($super, '?\\');
+
+        if ($sub === $super || $super === 'mixed' || $sub === 'never') {
+            return true;
+        }
+
+        if ($super === 'callable') {
+            return $sub === Closure::class;
+        }
+
+        if ($super === 'object') {
+            return class_exists($sub) || interface_exists($sub) || enum_exists($sub);
+        }
+
+        return (class_exists($sub) || interface_exists($sub) || enum_exists($sub)) && is_a($sub, $super, true);
     }
 
     private static function describe(mixed $value): string

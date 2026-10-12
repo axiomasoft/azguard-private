@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
@@ -24,7 +26,7 @@ it('P03 honors denied hooks and sources across decide batch explain Gate inspect
     $source = new GeneratedSource(direct: [AuthorizationWorld::grant()]);
     $deny = false;
     [$engine, $panel, $request] = GateWorld::compile($source, function (PanelBuilder $p) use ($hook, &$deny): void {
-        $p->before(function () use ($hook, &$deny): BeforeResult {
+        $p->before(function (AccessRequest $request, EvaluationContext $context) use ($hook, &$deny): BeforeResult {
             return $hook && $deny ? BeforeResult::Deny : BeforeResult::Continue;
         });
     });

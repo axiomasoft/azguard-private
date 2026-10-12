@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace AzGuard\Panels;
 
 use AzGuard\Attributes\Api;
+use AzGuard\Contracts\Authorization\AfterHook;
+use AzGuard\Contracts\Authorization\BeforeHook;
+use AzGuard\Contracts\Authorization\EvaluationContext;
+use AzGuard\Contracts\Changes\ChangePipe;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
@@ -12,6 +16,9 @@ use AzGuard\Contracts\Sources\Source;
 use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\RegistryFrozenException;
+use AzGuard\Kernel\Decision\AccessRequest;
+use AzGuard\Kernel\Decision\BeforeResult;
+use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
@@ -30,6 +37,8 @@ use UnitEnum;
  *
  * Every call is written to the panel recipe together with its origin; the builder exposes nothing to read back.
  * Once the panel is compiled the builder is sealed and any further call throws `RegistryFrozenException`.
+ *
+ * @phpstan-import-type PipeClosure from ChangePipe
  */
 #[Api(since: '0.7')]
 final class PanelBuilder
@@ -310,12 +319,12 @@ final class PanelBuilder
     /**
      * Adds hooks that run before the sources and may short-circuit the decision.
      *
-     * @param  array<mixed>|Closure|string  $hooks
+     * @param  list<BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult>|BeforeHook|class-string<BeforeHook>|Closure(AccessRequest, EvaluationContext): BeforeResult  $hooks
      *
      * @throws DefinitionException
      * @throws RegistryFrozenException
      */
-    public function before(array|Closure|string $hooks): static
+    public function before(array|BeforeHook|Closure|string $hooks): static
     {
         return $this->hooks(PanelRecipe::BEFORE, 'before', is_array($hooks) ? $hooks : [$hooks]);
     }
@@ -336,12 +345,12 @@ final class PanelBuilder
     /**
      * Adds hooks that observe a finished decision.
      *
-     * @param  array<mixed>|Closure|string  $hooks
+     * @param  list<AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void>|AfterHook|class-string<AfterHook>|Closure(AccessRequest, EvaluationContext, Decision): void  $hooks
      *
      * @throws DefinitionException
      * @throws RegistryFrozenException
      */
-    public function after(array|Closure|string $hooks): static
+    public function after(array|AfterHook|Closure|string $hooks): static
     {
         return $this->hooks(PanelRecipe::AFTER, 'after', is_array($hooks) ? $hooks : [$hooks]);
     }
@@ -349,7 +358,7 @@ final class PanelBuilder
     /**
      * Adds pipes every change of grants passes through.
      *
-     * @param  array<mixed>  $pipes
+     * @param  list<ChangePipe|class-string<ChangePipe>|PipeClosure>  $pipes
      *
      * @throws DefinitionException
      * @throws RegistryFrozenException

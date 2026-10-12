@@ -89,7 +89,7 @@ it('R35 throws before querying resources for scalar-only components and bounds t
     $panel = Lists::panel(function (PanelBuilder $p) use ($component): void {
         match ($component) {
             'policy' => ClientPolicy::$unsupported = true,
-            'before' => $p->before([fn () => BeforeResult::Continue]),
+            'before' => $p->before([fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Continue]),
             'condition' => $p->grantConditions([new class implements GrantCondition
             {
                 public function allows(Grant|RoleContribution $grant, AccessRequest $request, EvaluationContext $context): bool

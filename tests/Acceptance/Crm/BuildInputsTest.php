@@ -22,7 +22,6 @@ use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use Illuminate\Database\Eloquent\Builder;
 
 it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', function (): void {
-    CrmAccessPlugin::$boots = [];
     World::assign('analyst', 1, 2, panel: 'backoffice');
     $crm = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(city: 1)]),
         backoffice: fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(city: 2)]));
@@ -31,18 +30,15 @@ it('R45 R46 local typed plugin inputs are independent in CRM and backoffice', fu
     World::assertDecision(World::decide($crm, 3), false, DecisionReason::AssignmentScopeIneligible);
     World::assertDecision(World::decide($backoffice, 3), true, DecisionReason::Granted);
     World::assertDecision(World::decide($backoffice), false, DecisionReason::AssignmentScopeIneligible);
-    expect(CrmAccessPlugin::$boots)->toBe(['crm', 'backoffice']);
 });
 
-it('R48 local duplicate plugin is rejected and worker rebuild boots once per new registry', function (): void {
+it('R48 local duplicate plugin is rejected and a worker rebuild decides the same on every new registry', function (): void {
     expect(fn () => World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1), CrmAccessPlugin::make(1)])))
         ->toThrow(PluginConflictException::class);
-    CrmAccessPlugin::$boots = [];
     for ($i = 0; $i < 2; $i++) {
         $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([CrmAccessPlugin::make(1)]));
         World::assertDecision(World::decide($panel), true, DecisionReason::Granted);
     }
-    expect(CrmAccessPlugin::$boots)->toBe(['crm', 'crm']);
 });
 
 it('R57 local filter build fingerprint changes while equal configuration remains deterministic', function (): void {

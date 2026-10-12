@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use AzGuard\Catalog\CodeRoleCatalog;
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\GrantDetails;
 use AzGuard\Contracts\Roles\RoleCatalog;
 use AzGuard\Exceptions\StaleSelectionException;
@@ -68,7 +69,7 @@ it('V71 binds the grant fingerprint to the code build and to the stored row', fu
     $first = M::managers($this->panel)->grants()->find($id)?->fingerprint;
 
     // Another build of the same panel: a pipe was added, so a form read before the deployment is stale.
-    $rebuilt = W::panel([static fn (Change $change, Closure $next) => $next($change)]);
+    $rebuilt = W::panel([static fn (Change $change, Closure $next): ChangeResult => $next($change)]);
     $grants = M::managers($rebuilt)->grants();
     $second = $grants->find($id)?->fingerprint;
 

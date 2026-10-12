@@ -23,15 +23,15 @@ it('before deny stops the sources and observes the denial afterwards', function 
     $source = new GeneratedSource(direct: [AuthorizationWorld::grant()]);
     $seen = null;
     [$engine,$panel,$request] = AuthorizationWorld::compile($source, function (PanelBuilder $panel) use (&$seen): void {
-        $panel->before(fn (): BeforeResult => BeforeResult::Deny)->after(function (AccessRequest $r, Decision $d) use (&$seen): void {
-            $seen = $d;
+        $panel->before(fn (AccessRequest $request, EvaluationContext $context): BeforeResult => BeforeResult::Deny)->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$seen): void {
+            $seen = $decision;
         });
     });
     $decision = $engine->decide($panel, $request);
     expect($decision->reason)->toBe(DecisionReason::Hook)->and($seen)->toBe($decision)->and($source->grantReads)->toBe(0);
 });
 it('before invalid return or exception is HookError', function (string $kind): void {
-    [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]), fn (PanelBuilder $panel) => $panel->before($kind === 'return' ? fn (): bool => true : fn () => throw new RuntimeException('before')));
+    [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]), fn (PanelBuilder $panel) => $panel->before($kind === 'return' ? fn (AccessRequest $request, EvaluationContext $context): BeforeResult => true : fn (AccessRequest $request, EvaluationContext $context): BeforeResult => throw new RuntimeException('before')));
     expect($engine->decide($panel, $request)->reason)->toBe(DecisionReason::HookError);
 })->with(['return', 'exception']);
 it('policy exception or invalid return is PolicyError', function (string $kind): void {
@@ -70,7 +70,7 @@ it('contains DefinitionException thrown by restriction code and still observes t
     $seen = null;
     [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]), function (PanelBuilder $panel) use ($step, $restriction, &$seen): void {
         $panel->restrictions([$step === 'factory' ? PassRestriction::class : $restriction]);
-        $panel->after(function (Decision $decision) use (&$seen): void {
+        $panel->after(function (AccessRequest $request, EvaluationContext $context, Decision $decision) use (&$seen): void {
             $seen = $decision;
         });
     });
@@ -80,7 +80,9 @@ it('contains DefinitionException thrown by restriction code and still observes t
 it('after errors do not change allow and later observers still run', function (): void {
     $seen = null;
     [$engine,$panel,$request] = AuthorizationWorld::compile(new GeneratedSource(direct: [AuthorizationWorld::grant()]), function (PanelBuilder $panel) use (&$seen): void {
-        $panel->after([fn () => throw new RuntimeException('after'), function (AccessRequest $r, EvaluationContext $c, Decision $d) use (&$seen): void {
+        $panel->after([function (AccessRequest $request, EvaluationContext $context, Decision $decision): void {
+            throw new RuntimeException('after');
+        }, function (AccessRequest $r, EvaluationContext $c, Decision $d) use (&$seen): void {
             $seen = $d;
         }]);
     });

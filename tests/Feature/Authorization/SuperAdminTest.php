@@ -99,7 +99,7 @@ it('qualifies isSuperAdmin without before policies or restrictions and still enf
     $restriction = new RecordingRestriction(deny: $veto === 'restriction');
     RuntimePolicy::$result = $veto !== 'policy';
     [$engine, $panel, $request] = AuthorizationWorld::compile(new GeneratedSource(roles: [RoleContribution::of(RoleKey::of('admin', 'root'), AccessScope::in(TenantRef::global()), 'generated')]), function (PanelBuilder $panel) use (&$hooks, $restriction, $veto): void {
-        $panel->before(function () use (&$hooks, $veto): BeforeResult {
+        $panel->before(function (AccessRequest $request, EvaluationContext $context) use (&$hooks, $veto): BeforeResult {
             $hooks++;
 
             return $veto === 'before' ? BeforeResult::Deny : BeforeResult::Continue;

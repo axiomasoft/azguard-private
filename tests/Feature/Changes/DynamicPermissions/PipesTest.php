@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\PermissionDetails;
 use AzGuard\Context\AssignmentScopePhase;
@@ -27,7 +28,7 @@ afterEach(function (): void {
 function dynamicObserved(): array
 {
     $seen = new ArrayObject;
-    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use ($seen) {
+    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use ($seen): ChangeResult {
         $seen[] = $change;
 
         return $next($change);
@@ -58,7 +59,7 @@ it('hands the pipes a typed change of the tenant with name and details, without 
 
 it('derives a checked context for create, update and delete: no subject, user or role, and the right phase', function (): void {
     $contexts = [];
-    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use (&$contexts) {
+    $panel = W::dynamicPanel([static function (Change $change, Closure $next) use (&$contexts): ChangeResult {
         $contexts[$change->type->value] = $change->context();
 
         return $next($change);
@@ -84,7 +85,7 @@ it('derives a checked context for create, update and delete: no subject, user or
 });
 
 it('carries label, group and description through the pipes to the stored row, and keeps them with withFields([])', function (): void {
-    $panel = W::dynamicPanel([static fn (Change $change, Closure $next) => $next($change->withFields([]))]);
+    $panel = W::dynamicPanel([static fn (Change $change, Closure $next): ChangeResult => $next($change->withFields([]))]);
     W::createAction($panel, 'campaigns.view', label: 'Просмотр', group: 'Кампании', description: 'Описание');
     $row = W::actions()[0];
 
@@ -92,7 +93,7 @@ it('carries label, group and description through the pipes to the stored row, an
 });
 
 it('F1 rejects a pipe that changes the name, the tenant, the details or the type of a dynamic permission', function (Closure $substitute): void {
-    $panel = W::dynamicPanel([static fn (Change $change, Closure $next) => $next($substitute($change))]);
+    $panel = W::dynamicPanel([static fn (Change $change, Closure $next): ChangeResult => $next($substitute($change))]);
     $before = [W::actions(), W::version()];
 
     try {
@@ -113,12 +114,12 @@ it('F1 rejects a pipe that changes the name, the tenant, the details or the type
 
 it('refuses withUntil() on a change of a dynamic permission and withFields() on its delete', function (): void {
     $until = new DateTimeImmutable('2027-01-01T00:00:00Z');
-    $create = W::dynamicPanel([static fn (Change $change, Closure $next) => $next($change->withUntil($until))]);
+    $create = W::dynamicPanel([static fn (Change $change, Closure $next): ChangeResult => $next($change->withUntil($until))]);
 
     expect(fn () => W::createAction($create, 'campaigns.view'))->toThrow(InvalidConfigurationException::class, 'withUntil');
 
     W::createAction(W::dynamicPanel(), 'campaigns.view');
-    $delete = W::dynamicPanel([static fn (Change $change, Closure $next) => $next($change->withFields([]))]);
+    $delete = W::dynamicPanel([static fn (Change $change, Closure $next): ChangeResult => $next($change->withFields([]))]);
 
     expect(fn () => W::deleteAction($delete, 'campaigns.view'))->toThrow(InvalidConfigurationException::class, 'withFields')
         ->and(W::actionNames())->toBe(['crm.organization:1|campaigns.view']);

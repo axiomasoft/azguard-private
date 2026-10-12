@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use AzGuard\Changes\Change;
+use AzGuard\Changes\ChangeResult;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Changes\ChangeType;
 use AzGuard\Changes\EffectKind;
@@ -133,7 +134,7 @@ it('R37 revokes many ids in one mutation and refuses the whole operation for one
 
 it('runs every revocation of a bulk through the pipes, and a cancel keeps every grant', function (): void {
     $seen = [];
-    $panel = W::panel([function (Change $change, Closure $next) use (&$seen) {
+    $panel = W::panel([function (Change $change, Closure $next) use (&$seen): ChangeResult {
         $seen[] = [$change->type, $change->grantId, $change->context()->phase->value];
 
         return $change->grantId === $this->permission ? $change->cancel('kept by policy') : $next($change);
@@ -239,7 +240,7 @@ it('binds a cursor to the partition, the filter and the code build', function ()
         ->and(fn () => $this->grants->page(new GrantFilter(limit: 1, cursor: rtrim(strtr(base64_encode((string) json_encode(['role:1', str_repeat('0', 64)])), '+/', '-_'), '='))))
         ->toThrow(InvalidArgumentException::class);
 
-    $rebuilt = W::panel([static fn (Change $change, Closure $next) => $next($change)]);
+    $rebuilt = W::panel([static fn (Change $change, Closure $next): ChangeResult => $next($change)]);
 
     expect(fn () => M::managers($rebuilt)->grants()->page(new GrantFilter(limit: 1, cursor: $cursor)))->toThrow(InvalidArgumentException::class);
 });

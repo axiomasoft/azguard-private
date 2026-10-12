@@ -119,7 +119,7 @@ it('P8 errors at every evaluated step fail closed despite valid direct and admin
             [$engine, $panel, $request] = $s->world([$source], function (PanelBuilder $p) use ($step, &$fail, $condition, $restriction): void {
                 $p->policies([PolicyBinding::for('orders.view', RuntimePolicy::class)])
                     ->grantConditions([$condition])->restrictions([$restriction]);
-                $p->before(function () use ($step, &$fail): BeforeResult {
+                $p->before(function (AccessRequest $request, EvaluationContext $context) use ($step, &$fail): BeforeResult {
                     if ($step === 'before' && $fail) {
                         throw new RuntimeException('generated before failure');
                     }
