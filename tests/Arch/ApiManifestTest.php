@@ -394,6 +394,8 @@ it('generates the facade methods from the entry class and records them in the ma
 it('mirrors every public method of the entry class on the consumer fake with the same signature', function (): void {
     $entry = apiSignatures(AzGuard\AzGuard::class);
     $fake = apiSignatures(AzGuardFake::class);
+    // The fake declares `fake(): self`; PHP 8.5 reflects `self` as the class name, earlier versions as `self`.
+    $fake['fake'] = str_replace(AzGuardFake::class, 'self', $fake['fake']);
 
     expect(array_intersect_key($fake, $entry))->toBe(array_merge($entry, ['fake' => '(): self']))
         ->and($entry['fake'])->toBe('(): AzGuard\Testing\AzGuardFake');
