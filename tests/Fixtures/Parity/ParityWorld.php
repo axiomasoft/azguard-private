@@ -12,6 +12,7 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\Audit\AuditPlugin;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Storage\StorageMutation;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Changes\Roles\AuditorRole;
@@ -105,7 +106,7 @@ final class ParityWorld
         };
         CrmWorld::$backofficeConfigure = static function (PanelBuilder $panel) use ($seed): void {
             $scope = ProjectScope::make()->filter(new ActiveProjects);
-            self::common($panel)->assignmentScopes(new AssignmentScopeDeclaration($seed % 2 === 1 ? AssignmentScopeMode::Isolated : AssignmentScopeMode::Required, [$scope]));
+            self::common($panel)->assignmentScopes(new AssignmentScopeDeclaration($seed % 2 === 1 ? AssignmentScopeMode::Isolated : AssignmentScopeMode::Required, [$scope], evaluator: ScopeEvaluator::class));
         };
         $registry = new PanelRegistry(app());
         $registry->register(CrmGuardPanelProvider::class);

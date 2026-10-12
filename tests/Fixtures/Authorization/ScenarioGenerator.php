@@ -23,6 +23,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelResolver;
 use AzGuard\Policies\PolicyBinding;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
@@ -139,7 +140,7 @@ final class ScenarioGenerator
 
             if ($mode !== null) {
                 if ($mode !== 'none') {
-                    $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [$definition]));
+                    $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [$definition], evaluator: ScopeEvaluator::class));
                 }
                 $panel->tenants(TenantPolicy::required(Organization::class)->requireMembership(new Membership([$this->subject->id(), '1'])));
             }

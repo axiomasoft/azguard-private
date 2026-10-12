@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace AzGuard\Scopes;
+namespace AzGuard\Scopes\Internal;
 
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
@@ -15,7 +16,9 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Panels\Panel;
-use AzGuard\Scopes\Internal\ScopesOptions;
+use AzGuard\Scopes\AssignmentScopeSettings;
+use AzGuard\Scopes\BaseAssignmentScope;
+use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Tenancy\TenantMode;
 use Closure;
 use Illuminate\Contracts\Container\Container;
@@ -73,6 +76,12 @@ final class ScopeConfiguration
                 throw new DefinitionException('Panel '.$panel.' registers an access adapter for unknown assignment scope '.$type.'.');
             }
         }
+    }
+
+    /** @return class-string<AssignmentScopeDirectory>|null the directory a configurable definition names */
+    public static function directory(AssignmentScopeDefinition $definition): ?string
+    {
+        return $definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->directory : null;
     }
 
     /** @return AssignmentScopeMembership|class-string<AssignmentScopeMembership>|null */

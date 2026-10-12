@@ -41,7 +41,7 @@ final readonly class BatchEvaluation
      */
     public function evaluate(array $requests, ?ActorRef $actor, DateTimeImmutable $now, Closure $enter, Closure $leave): DecisionSet
     {
-        $batch = new BatchInputs($this->container);
+        $batch = new BatchInputs;
 
         try {
             return $this->evaluateBatch($batch, $requests, $actor, $now, $enter, $leave);
@@ -333,11 +333,9 @@ final readonly class BatchEvaluation
                     continue;
                 }
                 $branch = $frame->forContribution($item, $instance);
-                $runtime = (new ScopeEligibility($this->container))->runtime($entry['request']->subject(), $branch);
-                $definition = $frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '');
 
-                if ($definition !== null) {
-                    $key = $frame->batchInputs?->eligibilityKey($definition, $runtime) ?? '';
+                if ($frame->panel()->scopeDefinition($frame->scope()->context->type() ?? '') !== null) {
+                    $key = $frame->batchInputs?->eligibilityKey($branch->scopeRuntime($entry['request']->subject())) ?? '';
 
                     if (! isset($seen[$key])) {
                         $seen[$key] = true;

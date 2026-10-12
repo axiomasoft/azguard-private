@@ -5,10 +5,12 @@ declare(strict_types=1);
 use AzGuard\Changes\ActingActor;
 use AzGuard\Changes\Change;
 use AzGuard\Changes\ChangeResult;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Panels\PanelBuilder;
-use AzGuard\Scopes\ScopesPlugin;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\FixedGuard;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
@@ -85,8 +87,8 @@ it('falls back to the console system actor and keeps an explicit argument first'
 });
 
 it('refuses explicitly when an Assignment filter requires an actor that is null', function (): void {
-    $panel = W::panel(configure: fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()
-        ->filter(static fn (Builder $query, ActorRef $actor) => $query->where('id', '>', 0)))]));
+    $panel = W::panel(configure: fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()
+        ->filter(static fn (Builder $query, ActorRef $actor) => $query->where('id', '>', 0))], evaluator: ScopeEvaluator::class)));
     $before = W::rows();
 
     app(ActingActor::class)->run(null, fn () => expect(fn () => W::grant($panel, 'analyst', 2, 1))

@@ -14,6 +14,7 @@ use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelFingerprint;
 use AzGuard\Panels\PanelRecipe;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Scopes\Internal\ScopesOptions;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ScopesPlugin;
@@ -136,7 +137,7 @@ it('merges common filters across configure plugin and provider with identity int
             ConfiguredProjectScope::make()->label('layer'.$i)->filter(static function (Builder $query) use ($i): void {
                 $query->where('layer', $i);
             }),
-        ])));
+        ], evaluator: ScopeEvaluator::class)));
     }
     $panel = (new PanelCompiler)->compile($recipe, container: app());
     $definition = $panel->scopeDefinition('crm.project');
@@ -145,8 +146,8 @@ it('merges common filters across configure plugin and provider with identity int
 
 it('rejects a changed owner despite identical model class and scope type', function (): void {
     $recipe = new PanelRecipe('admin');
-    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, type: 'project')]));
-    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, owner: static fn () => TenantRef::global(), type: 'project')]));
+    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, type: 'project')], evaluator: ScopeEvaluator::class));
+    $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ModelAssignmentScopeDefinition::make(Project::class, owner: static fn () => TenantRef::global(), type: 'project')], evaluator: ScopeEvaluator::class));
     expect(fn () => (new PanelCompiler)->compile($recipe, container: app()))->toThrow(DefinitionException::class, 'conflicting');
 });
 
@@ -156,7 +157,7 @@ it('fingerprints scalar closure configuration and rejects live runtime captures'
         $recipe->record(PanelRecipe::SCOPES, new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()
             ->filter(static function (Builder $query) use ($city): void {
                 $query->where('city_id', $city);
-            })]));
+            })], evaluator: ScopeEvaluator::class));
         $panel = (new PanelCompiler)->compile($recipe, container: app());
 
         return PanelFingerprint::of($panel, $recipe);

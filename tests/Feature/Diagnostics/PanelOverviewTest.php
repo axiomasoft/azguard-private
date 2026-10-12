@@ -25,10 +25,10 @@ it('describes every panel and adds only the parts that are asked for', function 
     $full = $overview->all(settings: true, sources: true, schema: true);
 
     expect(array_column($plain, 'id'))->toBe(['crm', 'backoffice'])
-        ->and($plain[0])->toMatchArray(['tenants' => 'required', 'writer' => 'database', 'storage' => 'default', 'plugins' => ['azguard/audit']])
+        ->and($plain[0])->toMatchArray(['tenants' => 'required', 'writer' => 'database', 'storage' => 'default', 'plugins' => ['azguard/scopes', 'azguard/audit']])
         ->and($plain[0])->not->toHaveKeys(['settings', 'sources', 'schema'])
         ->and($full[0])->toHaveKeys(['settings', 'sources', 'schema'])
-        ->and($full[0]['sources']['plugins'])->toBe(['azguard/audit'])
+        ->and($full[0]['sources']['plugins'])->toBe(['azguard/scopes', 'azguard/audit'])
         ->and($overview->panel(app(PanelRegistry::class)->get('crm'), sources: true))->toHaveKey('sources')->not->toHaveKey('settings');
 });
 

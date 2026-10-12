@@ -10,7 +10,7 @@ use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Policies\PolicyBinding;
-use AzGuard\Scopes\ScopeConfiguration;
+use AzGuard\Scopes\Internal\ScopeConfiguration;
 use Closure;
 use UnitEnum;
 

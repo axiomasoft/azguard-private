@@ -24,9 +24,12 @@ use AzGuard\Tests\Fixtures\Contracts\Broken\LeakyPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OnePanelPlugin;
 use AzGuard\Tests\Fixtures\Contracts\Broken\OwnClockSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\PermissiveSubjectResolver;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ReversingEvaluator;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ShortEvaluator;
 use AzGuard\Tests\Fixtures\Contracts\Broken\StrictScopeResolver;
 use AzGuard\Tests\Fixtures\Contracts\Broken\SwallowingPipe;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingBeforeHook;
+use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingEvaluator;
 use AzGuard\Tests\Fixtures\Contracts\Broken\ThrowingRestriction;
 use AzGuard\Tests\Fixtures\Contracts\Broken\UnderstatedSource;
 use AzGuard\Tests\Fixtures\Contracts\Broken\WritingAfterHook;
@@ -40,6 +43,7 @@ use AzGuard\Tests\Fixtures\Contracts\GoodSubjectResolver;
 use AzGuard\Tests\Fixtures\Contracts\LabelPlugin;
 use AzGuard\Tests\Fixtures\Contracts\ObservingAfterHook;
 use AzGuard\Tests\Fixtures\Contracts\PassThroughPipe;
+use AzGuard\Tests\Fixtures\Contracts\Probes\EvaluatorProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\HookProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\PluginProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\RestrictionProbe;
@@ -47,6 +51,7 @@ use AzGuard\Tests\Fixtures\Contracts\Probes\ScopeResolverProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\SourceProbe;
 use AzGuard\Tests\Fixtures\Contracts\Probes\SubjectResolverProbe;
 use AzGuard\Tests\Fixtures\Contracts\ReadOnlyEditRestriction;
+use AzGuard\Tests\Fixtures\Scopes\RecordingEvaluator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Schema;
@@ -147,4 +152,16 @@ it('fails the scope resolver suite on a resolver that breaks a guarantee and pas
     'colon in the type' => ['scopeSurvivesTheCodecAndHasNoColonInItsType', static fn () => new ColonScopeResolver, Exception::class],
     'global scope for an unscoped request' => ['requestWithoutAScopeGivesNull', static fn () => new GlobalScopeResolver, AssertionFailedError::class],
     'fails on an unscoped request' => ['requestWithoutAScopeGivesNull', static fn () => new StrictScopeResolver, Exception::class],
+]);
+
+it('fails the evaluator suite on an evaluator that breaks a guarantee and passes it on one that keeps it', function (string $method, Closure $broken, string $failure): void {
+    RecordingEvaluator::reset();
+    RecordingEvaluator::$denied = ['2'];
+    (new EvaluatorProbe(static fn () => new RecordingEvaluator))->run($method);
+
+    expect(fn () => (new EvaluatorProbe($broken))->run($method))->toThrow($failure);
+})->with([
+    'answers out of order' => ['evaluatorAnswersManyChecksLikeOneInTheirOrder', static fn () => new ReversingEvaluator, AssertionFailedError::class],
+    'drops an answer' => ['evaluatorAnswersManyChecksLikeOneInTheirOrder', static fn () => new ShortEvaluator, AssertionFailedError::class],
+    'throws on an ordinary request' => ['evaluatorDoesNotFailOnOrdinaryRequests', static fn () => new ThrowingEvaluator, AssertionFailedError::class],
 ]);

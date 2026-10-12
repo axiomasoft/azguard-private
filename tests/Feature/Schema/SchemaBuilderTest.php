@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Directories\ModelSubjectDirectory;
 use AzGuard\Directories\ModelTenantDirectory;
 use AzGuard\Directories\QueryScopeDirectory;
@@ -18,7 +20,7 @@ use AzGuard\Schema\PanelSchema;
 use AzGuard\Schema\PermissionSchema;
 use AzGuard\Schema\RoleSchema;
 use AzGuard\Schema\SchemaBuilder;
-use AzGuard\Scopes\ScopesPlugin;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmPermissionGrant;
@@ -218,7 +220,7 @@ it('takes the auth guard and the directory of subjects from the compiled descrip
     Relation::morphMap(['crm.city' => City::class], false);
     $custom = crmSchema(World::compile(static function (PanelBuilder $panel): void {
         $panel->for(model: City::class, guard: 'admin', directory: SchemaSubjectDirectory::class)
-            ->plugins([ScopesPlugin::inherit(ProjectScope::make()->label('Проект')->directory(ProjectDirectory::class))]);
+            ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->label('Проект')->directory(ProjectDirectory::class)], evaluator: ScopeEvaluator::class));
     }));
 
     expect($default->toArray()['subjects'])->toBe([[

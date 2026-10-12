@@ -17,6 +17,7 @@ use AzGuard\Panels\PanelCompiler;
 use AzGuard\Panels\PanelRecipe;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Scopes\Internal\ScopesOptions;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\ScopesPlugin;
@@ -24,12 +25,14 @@ use AzGuard\Tests\Fixtures\Panels\AdminPanel;
 use AzGuard\Tests\Fixtures\Panels\FixturePanel;
 use AzGuard\Tests\Fixtures\Panels\PanelWorld;
 use AzGuard\Tests\Fixtures\Panels\User;
+use AzGuard\Tests\Fixtures\Scopes\ActiveProjects;
 use AzGuard\Tests\Fixtures\Scopes\ConfiguredProjectScope;
 use AzGuard\Tests\Fixtures\Scopes\ContextMembership;
 use AzGuard\Tests\Fixtures\Scopes\Membership;
 use AzGuard\Tests\Fixtures\Scopes\Project;
 use AzGuard\Tests\Fixtures\Scopes\ProjectDirectory;
 use AzGuard\Tests\Fixtures\Scopes\ProjectScope;
+use AzGuard\Tests\Fixtures\Scopes\RecordingEvaluator;
 use AzGuard\Tests\Fixtures\Scopes\StoreScope;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -99,7 +102,7 @@ it('contributes the declaration and the scope options from ScopesPlugin', functi
         ->and(array_map(static fn (object $definition): string => $definition::class, $declaration->definitions ?? []))
         ->toBe([ModelAssignmentScopeDefinition::class, ConfiguredProjectScope::class, StoreScope::class])
         ->and($declaration?->directories)->toBe(['crm.project' => ProjectDirectory::class])
-        ->and($declaration?->evaluator)->toBeNull()
+        ->and($declaration?->evaluator)->toBe(ScopeEvaluator::class)
         ->and($panel->options(ScopesOptions::class)?->membership)->toBe($membership)
         ->and($panel->options(ScopesOptions::class)?->adapters)->toBe([]);
 });
@@ -145,16 +148,19 @@ it('rejects plugins that set different modes unless the provider sets one', func
 });
 
 it('names one evaluator at most', function (): void {
-    $first = new class {};
-    $second = new class {};
+    $first = new class
+    {
+        public function __construct() {}
+    };
     $declare = static fn (?string $evaluator): AssignmentScopeDeclaration => new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [new ProjectScope], evaluator: $evaluator);
     $panel = static fn (?string $a, ?string $b): Panel => declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes($declare($a)),
         static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes($declare($b)));
 
-    expect($panel($first::class, null)->scopeDeclaration()?->evaluator)->toBe($first::class)
-        ->and($panel($first::class, $first::class)->scopeDeclaration()?->evaluator)->toBe($first::class)
-        ->and(fn () => $panel($first::class, $second::class))->toThrow(DefinitionException::class, 'conflicting assignment scope evaluators')
-        ->and(fn () => $panel('Missing\\Evaluator', null))->toThrow(DefinitionException::class, 'missing assignment scope evaluator');
+    expect($panel(RecordingEvaluator::class, null)->scopeDeclaration()?->evaluator)->toBe(RecordingEvaluator::class)
+        ->and($panel(RecordingEvaluator::class, RecordingEvaluator::class)->scopeDeclaration()?->evaluator)->toBe(RecordingEvaluator::class)
+        ->and(fn () => $panel(RecordingEvaluator::class, ScopeEvaluator::class))->toThrow(DefinitionException::class, 'conflicting assignment scope evaluators')
+        ->and(fn () => $panel('Missing\\Evaluator', null))->toThrow(DefinitionException::class, 'does not implement')
+        ->and(fn () => $panel($first::class, null))->toThrow(DefinitionException::class, 'does not implement');
 });
 
 it('merges directories by scope type and rejects conflicting, unknown and invalid ones', function (): void {
@@ -205,4 +211,48 @@ it('creates definition classes without arguments and rejects other strings', fun
     expect(fn () => $compile(ScopesPlugin::inherit($needy::class)))->toThrow(DefinitionException::class, 'without arguments: pass a definition object')
         ->and(fn () => $compile(ScopesPlugin::inherit(PanelRecipe::class)))->toThrow(DefinitionException::class, 'definition objects or classes, or Eloquent model classes')
         ->and(fn () => $compile(ScopesPlugin::required()))->toThrow(DefinitionException::class, 'registers no definitions');
+});
+
+it('keeps the directory of the merged definition and the declared map one class per scope type', function (): void {
+    $other = (new class implements AssignmentScopeDirectory
+    {
+        public function search(string $type, string $term, LookupContext $lookup, int $limit): array
+        {
+            return [];
+        }
+
+        public function describe(AssignmentScopeRef $context, LookupContext $lookup): ?AssignmentScopeOption
+        {
+            return null;
+        }
+    })::class;
+    $plugin = static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins([ScopesPlugin::inherit(ConfiguredProjectScope::make()->directory(ProjectDirectory::class))]);
+    $later = declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
+        ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->directory($other)], evaluator: ScopeEvaluator::class)));
+
+    expect($later->scopeDeclaration()?->directories)->toBe(['crm.project' => $other])
+        ->and($later->scopeDefinition('crm.project')?->settings()->directory)->toBe($other)
+        ->and(fn () => declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
+            ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [], ['crm.project' => $other]))))
+        ->toThrow(DefinitionException::class, 'conflicting directories');
+});
+
+it('lets the provider settle the mode when ScopesPlugin and another plugin disagree', function (): void {
+    $plugins = [ScopesPlugin::inherit(new ProjectScope), declaringPlugin('acme/stores', new AssignmentScopeDeclaration(AssignmentScopeMode::Isolated, [new StoreScope]))];
+
+    expect(fn () => declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins($plugins)))
+        ->toThrow(PluginConflictException::class, 'set the mode in the panel provider')
+        ->and(declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->plugins($plugins)
+            ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [])))->scopeDeclaration()?->mode)
+        ->toBe(AssignmentScopeMode::Inherit);
+});
+
+it('rejects filters that no evaluator would apply', function (): void {
+    $filtered = new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->filter(new ActiveProjects)]);
+
+    expect(fn () => declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes($filtered)))
+        ->toThrow(DefinitionException::class, 'without an evaluator that applies them')
+        ->and(declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes(
+            new AssignmentScopeDeclaration(AssignmentScopeMode::None, $filtered->definitions)))->scopeDeclaration()?->mode)
+        ->toBe(AssignmentScopeMode::None);
 });

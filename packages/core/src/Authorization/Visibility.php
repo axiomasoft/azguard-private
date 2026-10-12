@@ -37,7 +37,6 @@ use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\NativeGateBinding;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
@@ -143,7 +142,6 @@ final readonly class Visibility
 
         if ($definition->authority === PermissionAuthority::Policy) {
             $compiler->constrain($authority, $policy->outcome('allow'));
-            $this->membership($authority, $request, $frame, $mapping, $compiler);
             $this->restrictions($authority, $request, $frame, $compiler);
         } else {
             $branches = [];
@@ -199,7 +197,6 @@ final readonly class Visibility
                     continue;
                 }
                 $qualified = $branchFrame->withAuthority([], $admin);
-                $this->membership($branch, $request, $qualified, $mapping, $compiler);
                 $this->restrictions($branch, $request, $qualified, $compiler);
                 $branches[] = $branch;
             }
@@ -331,19 +328,6 @@ final readonly class Visibility
                 continue;
             }
             $compiler->constrain($query, $this->predicate($restriction, $request, $frame, $query->getModel()::class));
-        }
-    }
-
-    /** @template TModel of Model
-     * @param  Builder<TModel>  $query
-     */
-    private function membership(Builder $query, AccessRequest $request, EvaluationFrame $frame, ?VisibilityScope $mapping, PredicateCompiler $compiler): void
-    {
-        $declared = ScopeConfiguration::membership($frame->panel());
-
-        if ($declared !== null && $mapping !== null) {
-            $member = is_string($declared) ? $this->container->make($declared) : $declared;
-            $compiler->constrain($query, $this->predicate($member, $request, $frame, $query->getModel()::class));
         }
     }
 

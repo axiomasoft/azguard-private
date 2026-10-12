@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace AzGuard\Changes;
 
 use AzGuard\Authorization\ModelSubjectResolver;
-use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
-use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Tenancy\TenantMembership;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
@@ -42,7 +40,6 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Sources\Database\LockedReads;
 use AzGuard\Support\ModelKey;
 use AzGuard\Tenancy\TenantMode;
@@ -466,14 +463,16 @@ final class ChangeValidator
             if (! $resolved->tenant->equals($change->scope->tenant)) {
                 throw new TenantMismatchException('Assignment scope '.$ref->key().' belongs to another tenant.');
             }
+            $model = $definition->model();
 
-            if (! $this->scopeMember($subject, $resolved)) {
-                throw new AssignmentScopeNotAcceptedException('Subject '.$subject->key().' is not a member of assignment scope '.$ref->key().'.');
+            if ($resolved->record !== null && (($model !== null && ! $resolved->record instanceof $model) || ! ModelKey::matches($resolved->record, $ref->id() ?? ''))) {
+                throw new AssignmentScopeNotAcceptedException('Assignment scope '.$ref->key().' resolved to a record of another model or key.');
             }
+            $evaluator = ContextIdentity::evaluator($this->panel, $this->container);
             $runtime = new AssignmentScopeRuntime(panel: $this->panel, scope: $change->scope, subject: $subject, user: $context->user,
                 role: $context->role, grant: null, actor: $context->actor, actorModel: $context->actorModel, now: $this->now,
                 phase: AssignmentScopePhase::Assignment, proposed: $context->proposed);
-            $allowed = (new ScopeEligibility($this->container))->assignment($runtime, $resolved);
+            $allowed = $evaluator === null || $evaluator->allows($runtime, $resolved);
         } catch (AzGuardException|PDOException $error) {
             throw $error;
         } catch (Throwable $error) {
@@ -600,21 +599,5 @@ final class ChangeValidator
         }
 
         return $adapter->isMember($subject, $tenant);
-    }
-
-    private function scopeMember(SubjectRef $subject, ResolvedAssignmentScope $resolved): bool
-    {
-        $declared = ScopeConfiguration::membership($this->panel);
-
-        if ($declared === null) {
-            return true;
-        }
-        $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
-
-        if (! $adapter instanceof AssignmentScopeMembership) {
-            throw new DefinitionException('Scope membership resolver did not return '.AssignmentScopeMembership::class.'.');
-        }
-
-        return $adapter->isMember($subject, $resolved->ref);
     }
 }

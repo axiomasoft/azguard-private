@@ -38,8 +38,8 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Kernel\Permissions\PermissionSet;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelResolver;
-use AzGuard\Scopes\MembershipRestriction;
 use AzGuard\Sources\Database\DatabaseSource;
+use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
 use DateTimeImmutable;
 use Fiber;
@@ -57,7 +57,7 @@ final class Authorizer
     /** @var array<string,true> */
     private array $active = [];
 
-    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch, private readonly MembershipRestriction $membership, private readonly AzGuardConfig $config) {}
+    public function __construct(private readonly PrepareStage $prepare, private readonly AccessPipeline $pipeline, private readonly AuthorityStage $authority, private readonly PanelResolver $resolver, private readonly BatchEvaluation $batch, private readonly TenantMembershipRestriction $membership, private readonly AzGuardConfig $config) {}
 
     /** @internal Joint host work on the panel's authority connection.
      * @template T
@@ -227,7 +227,7 @@ final class Authorizer
     /**
      * @internal The scope a request of the subject takes in the panel: the given one, otherwise the ambient scope of
      * the panel and its tenant and assignment scope resolvers, as for a decision. Null when the scope boundary refuses
-     * it, the subject is not a member of its tenant or assignment scope, or an input fails.
+     * it, the subject is not a member of its tenant, or an input fails. Scope membership is a restriction of the decisions inside the scope.
      */
     public function admissionScope(Panel $panel, SubjectRef $subject, ?AccessScope $scope = null): ?AccessScope
     {

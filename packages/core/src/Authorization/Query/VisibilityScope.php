@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AzGuard\Authorization\Query;
 
 use AzGuard\Authorization\EvaluationFrame;
-use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Contracts\Authorization\FiltersAccessQueries;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
@@ -18,11 +17,11 @@ use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Support\Narrow;
 use AzGuard\Scopes\BaseAssignmentScope;
+use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Scopes\ModelAssignmentScopeDefinition;
 use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Scopes\Query\PredicateBuilder;
 use AzGuard\Scopes\Query\QueryGuard;
-use AzGuard\Scopes\ScopeConfiguration;
 use AzGuard\Support\ModelKey;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Builder;
@@ -94,7 +93,7 @@ final readonly class VisibilityScope
 
             return $query;
         }
-        $runtime = (new ScopeEligibility($this->container))->runtime($request->subject(), $frame, common: $common);
+        $runtime = $frame->scopeRuntime($request->subject(), common: $common);
         $definitions = [$this->definition];
         $requiresRecord = false;
 

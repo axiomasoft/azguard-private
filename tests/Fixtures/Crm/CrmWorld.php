@@ -44,6 +44,9 @@ final class CrmWorld
 {
     public static bool $exactMapping = false;
 
+    /** The stand attaches ScopesPlugin; false builds the core-only stand without a scope declaration. */
+    public static bool $scopes = true;
+
     public static ?Closure $configure = null;
 
     public static ?Closure $backofficeConfigure = null;
@@ -107,6 +110,7 @@ final class CrmWorld
     public static function resetRuntime(): void
     {
         self::$exactMapping = false;
+        self::$scopes = true;
         self::$configure = null;
         self::$backofficeConfigure = null;
         self::$sources = [];

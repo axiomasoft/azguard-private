@@ -46,14 +46,6 @@
                 ]
             },
             {
-                "key": "membership.configured",
-                "severity": "warning",
-                "scope": "panel:backoffice",
-                "details": [
-                    "mode"
-                ]
-            },
-            {
                 "key": "fields.meta",
                 "severity": "warning",
                 "scope": "panel:crm",
@@ -92,9 +84,19 @@
             {
                 "key": "membership.configured",
                 "severity": "warning",
-                "scope": "panel:crm",
+                "scope": "plugin:azguard/scopes",
                 "details": [
-                    "mode"
+                    "mode",
+                    "panel"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "plugin:azguard/scopes",
+                "details": [
+                    "mode",
+                    "panel"
                 ]
             }
         ]
@@ -146,14 +148,6 @@
                 ]
             },
             {
-                "key": "membership.configured",
-                "severity": "warning",
-                "scope": "panel:backoffice",
-                "details": [
-                    "mode"
-                ]
-            },
-            {
                 "key": "fields.meta",
                 "severity": "warning",
                 "scope": "panel:crm",
@@ -198,19 +192,29 @@
                 ]
             },
             {
-                "key": "membership.configured",
-                "severity": "warning",
-                "scope": "panel:crm",
-                "details": [
-                    "mode"
-                ]
-            },
-            {
                 "key": "roles.orphaned.failed",
                 "severity": "error",
                 "scope": "panel:crm",
                 "details": [
                     "exception"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "plugin:azguard/scopes",
+                "details": [
+                    "mode",
+                    "panel"
+                ]
+            },
+            {
+                "key": "membership.configured",
+                "severity": "warning",
+                "scope": "plugin:azguard/scopes",
+                "details": [
+                    "mode",
+                    "panel"
                 ]
             },
             {

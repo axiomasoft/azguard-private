@@ -39,6 +39,7 @@ use AzGuard\Roles\Attributes\Role;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Scopes\BaseAssignmentScope;
 use AzGuard\Scopes\ContextAware;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
 use AzGuard\Tests\Fixtures\Authorization\GrantableRootRole;
@@ -318,7 +319,7 @@ final class VisibilityWorld
                 ->policies([PolicyBinding::for('orders.policy', VisibilityPolicy::class)]);
 
             if ($mode !== 'none') {
-                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [new VisibilityProjectScope]));
+                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [new VisibilityProjectScope], evaluator: ScopeEvaluator::class));
             }
 
             if ($tenant) {

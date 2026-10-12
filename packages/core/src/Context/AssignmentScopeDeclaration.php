@@ -7,6 +7,7 @@ namespace AzGuard\Context;
 use AzGuard\Attributes\Api;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 
 /**
  * The assignment scopes a panel accepts: the mode, the scope types by alias, a directory per alias and the class that
@@ -19,7 +20,7 @@ final readonly class AssignmentScopeDeclaration
     /**
      * @param  list<AssignmentScopeDefinition>  $definitions  unique aliases
      * @param  array<string, class-string<AssignmentScopeDirectory>>  $directories  keyed by alias
-     * @param  class-string|null  $evaluator  the eligibility evaluator; null means structural eligibility only
+     * @param  class-string<AssignmentScopeEvaluator>|null  $evaluator  the eligibility evaluator; null means structural eligibility only
      */
     public function __construct(
         public AssignmentScopeMode $mode,

@@ -7,12 +7,15 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 use AzGuard\Authorization\BatchInputs;
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
-use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\AssignmentScopeRuntime;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Context\Internal\CurrentContext;
+use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ProvidesAccessScope;
 use AzGuard\Contracts\Scopes\ProvidesAssignmentScope;
+use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Tenancy\TenantResolver;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -125,7 +128,7 @@ final readonly class BoundaryStage
                 }
                 $frame = $frame->withAssignmentScope($resolved);
 
-                if (! (new ScopeEligibility($this->container))->common($request, $frame, $inputs, $trace)) {
+                if (! self::eligible(ContextIdentity::evaluator($panel, $this->container), $frame->scopeRuntime($request->subject(), common: true), $resolved, $frame, $inputs, $trace)) {
                     return [$frame, $this->deny($frame, DecisionReason::AssignmentScopeIneligible)];
                 }
             } catch (Throwable $error) {
@@ -166,6 +169,22 @@ final readonly class BoundaryStage
         }
 
         return null;
+    }
+
+    /**
+     * The answer of the panel's evaluator for a structurally verified scope, from the prepared answers of a decision set
+     * when there is one; no evaluator means structural eligibility only. A step `filter` names the evaluator.
+     */
+    public static function eligible(?AssignmentScopeEvaluator $evaluator, AssignmentScopeRuntime $runtime, ResolvedAssignmentScope $resolved,
+        EvaluationFrame $frame, ?BatchInputs $inputs, ?Trace $trace): bool
+    {
+        if ($evaluator === null) {
+            return true;
+        }
+        $allowed = $inputs === null ? $evaluator->allows($runtime, $resolved) : $inputs->allows($evaluator, $runtime, $resolved, $frame);
+        $trace?->record('filter', $allowed ? 'pass' : 'false', $evaluator::class, outcome: $allowed ? 'pass' : 'deny');
+
+        return $allowed;
     }
 
     /**

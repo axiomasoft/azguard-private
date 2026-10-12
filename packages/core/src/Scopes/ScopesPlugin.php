@@ -11,11 +11,13 @@ use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
-use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Plugins\PluginContext;
+use AzGuard\Scopes\Internal\Checks\ScopeMembershipConfigured;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
+use AzGuard\Scopes\Internal\ScopeMembershipRestriction;
 use AzGuard\Scopes\Internal\ScopesOptions;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
@@ -96,8 +98,9 @@ final class ScopesPlugin implements Plugin
     }
 
     /**
-     * Contributes the scope declaration (mode, definitions, the directory a definition declares) and the scope
-     * options (membership, access adapters).
+     * Contributes the scope declaration (mode, definitions and `ScopeEvaluator`; the compiler takes the directory a
+     * definition names into the declaration), the scope options (membership, access adapters), the scope membership
+     * restriction when a membership is required and the doctor check `scopes.membership`.
      *
      * @throws DefinitionException when a definition is neither a definition object, a definition class that can be
      *                             created without arguments nor an Eloquent model class
@@ -105,18 +108,14 @@ final class ScopesPlugin implements Plugin
     public function register(PanelBuilder $panel, PluginContext $context): void
     {
         $definitions = array_map(static fn (AssignmentScopeDefinition|string $declared): AssignmentScopeDefinition => self::definition($context, $declared), $this->definitions);
-        $directories = [];
 
-        foreach ($definitions as $definition) {
-            $directory = $definition instanceof ConfigurableAssignmentScopeDefinition ? $definition->settings()->directory : null;
+        $panel->assignmentScopes(new AssignmentScopeDeclaration($this->mode, $definitions, evaluator: ScopeEvaluator::class))
+            ->options(new ScopesOptions($this->membership, $this->adapters))
+            ->doctorChecks([ScopeMembershipConfigured::class]);
 
-            if ($directory !== null) {
-                $directories[$definition->type()] = $directory;
-            }
+        if ($this->membership !== null) {
+            $panel->restrictions([ScopeMembershipRestriction::class]);
         }
-
-        $panel->assignmentScopes(new AssignmentScopeDeclaration($this->mode, $definitions, $directories))
-            ->options(new ScopesOptions($this->membership, $this->adapters));
     }
 
     /** @param AssignmentScopeDefinition|class-string<AssignmentScopeDefinition>|class-string<Model> $declared */

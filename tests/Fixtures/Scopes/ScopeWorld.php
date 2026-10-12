@@ -17,6 +17,7 @@ use AzGuard\Kernel\Identity\RoleKey;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\GeneratedSource;
@@ -48,7 +49,7 @@ final class ScopeWorld
 
         return AuthorizationWorld::compile($source, function (PanelBuilder $panel) use ($mode, $configure, $definition, $tenant): void {
             if ($mode !== 'none') {
-                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [$definition ?? new StoreScope]));
+                $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::from($mode), [$definition ?? new StoreScope], evaluator: ScopeEvaluator::class));
             }
             $panel->tenants($tenant ? TenantPolicy::required(Organization::class)->requireMembership(new Membership) : TenantPolicy::none());
 

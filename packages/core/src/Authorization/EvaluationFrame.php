@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace AzGuard\Authorization;
 
 use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\AssignmentScopePhase;
+use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\CodeStateToken;
@@ -14,6 +16,7 @@ use AzGuard\Kernel\Decision\StateToken;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
+use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
@@ -93,6 +96,19 @@ final readonly class EvaluationFrame implements EvaluationContext
         }
 
         return $scopes;
+    }
+
+    /**
+     * The input of the scope evaluator in the Access phase: the common runtime (no role, no contribution) or the one of
+     * the contribution this frame qualifies.
+     */
+    public function scopeRuntime(SubjectRef $subject, bool $common = false): AssignmentScopeRuntime
+    {
+        return new AssignmentScopeRuntime(
+            panel: $this->selectedPanel, scope: $this->selectedScope, subject: $subject, user: $this->subject,
+            role: $common ? null : $this->selectedRole, grant: $common ? null : $this->contribution, actor: $this->selectedActor,
+            actorModel: $this->actorSubject, now: $this->decisionNow, phase: AssignmentScopePhase::Access,
+        );
     }
 
     public function acceptsContributionScope(AccessScope $scope): bool

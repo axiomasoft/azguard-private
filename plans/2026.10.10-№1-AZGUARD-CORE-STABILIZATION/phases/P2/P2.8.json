@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.8",
   "title": "Assignment-scope evaluator SPI, structural verification and membership split",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Core performs structural verification and calls the new `AssignmentScopeEvaluator` (`validate`, `allows`, `allowsMany`) at every scope eligibility point; the existing eligibility and filter-validation code becomes `Scopes\\Internal\\ScopeEvaluator` (body `Scopes\\Internal\\ScopeEligibility`, validation `Scopes\\Internal\\ScopeConfiguration`) contributed by `ScopesPlugin`; tenant membership stays a core restriction and scope membership becomes a module restriction; `MembershipConfigured` is split likewise; an evaluator contract suite ships.",
   "why": "architecture#scope-boundary evaluator SPI and call-site table: the scalar, batch and write paths must share one eligibility semantics through a named contract instead of core importing `ScopeEligibility`, filters and membership (I2 entries owner P3 become fixable now). Hard risks: `allows()` may only narrow and is called only after structural verification; `allowsMany()` must keep batch preparation single-pass and fail the set on a length mismatch; failure kinds/reasons (`assignment_scope_filter_error`, `context_not_accepted` with cause) and revocation never consulting the evaluator (I7) must not change.",
   "scope": {
@@ -239,6 +239,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:12:46Z"
+  "result": {
+    "started_at": "2026-10-12T05:36:57Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "20a9d912-2b41-4831-92f8-392e568b4d7f"
+    }
+  },
+  "updated_at": "2026-10-12T05:36:57Z"
 }

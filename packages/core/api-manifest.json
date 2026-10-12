@@ -4711,7 +4711,7 @@
                     "contracts": [
                         "@param list<AssignmentScopeDefinition> $definitions unique aliases",
                         "@param array<string, class-string<AssignmentScopeDirectory>> $directories keyed by alias",
-                        "@param class-string|null $evaluator the eligibility evaluator; null means structural eligibility only"
+                        "@param class-string<AssignmentScopeEvaluator>|null $evaluator the eligibility evaluator; null means structural eligibility only"
                     ]
                 }
             ]
@@ -7432,6 +7432,97 @@
             ]
         },
         {
+            "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeEvaluator",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "allows",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "resolved",
+                            "type": "AzGuard\\Contracts\\Scopes\\ResolvedAssignmentScope",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "allowsMany",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "checks",
+                            "type": "array",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param list<array{AssignmentScopeRuntime, ResolvedAssignmentScope}> $checks",
+                        "@return list<bool> one answer per check, same order"
+                    ]
+                },
+                {
+                    "name": "validate",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "definition",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "registered",
+                            "type": "?AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter",
             "publication": "spi-implement",
             "since": "0.7",
@@ -7750,6 +7841,60 @@
                     "return": "AzGuard\\Kernel\\Identity\\TenantRef",
                     "namedArguments": true,
                     "contracts": []
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeEvaluator",
+            "publication": "spi-implement",
+            "since": "1.0",
+            "kind": "interface",
+            "final": false,
+            "abstract": false,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [
+                "AzGuard\\Contracts\\Scopes\\AssignmentScopeEvaluator"
+            ],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "eligibleContexts",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "runtime",
+                            "type": "AzGuard\\Context\\AssignmentScopeRuntime",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "definition",
+                            "type": "AzGuard\\Contracts\\Scopes\\QueryableAssignmentScopeDefinition",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "contexts",
+                            "type": "Illuminate\\Database\\Eloquent\\Builder",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "bool",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@param Builder<Model> $contexts guarded: only where-narrowing is accepted"
+                    ]
                 }
             ]
         },
@@ -28943,6 +29088,185 @@
                     "contracts": [
                         "@template TResult"
                     ]
+                }
+            ]
+        },
+        {
+            "name": "AzGuard\\Testing\\Contracts\\AssignmentScopeEvaluatorContractTests",
+            "publication": "spi-call",
+            "since": "1.0",
+            "kind": "trait",
+            "final": false,
+            "abstract": true,
+            "readonly": false,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [],
+            "methods": [
+                {
+                    "name": "azguardEvaluator",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Scopes\\AssignmentScopeEvaluator",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardResolved",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Contracts\\Scopes\\ResolvedAssignmentScope",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardRuntime",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "panel",
+                            "type": "AzGuard\\Panels\\Panel",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "ref",
+                            "type": "AzGuard\\Kernel\\Identity\\AssignmentScopeRef",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "AzGuard\\Context\\AssignmentScopeRuntime",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardScopeDefinition",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardScopePanel",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "evaluator",
+                            "type": "AzGuard\\Contracts\\Scopes\\AssignmentScopeEvaluator",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        },
+                        {
+                            "name": "source",
+                            "type": "?AzGuard\\Testing\\FakeSource",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": true,
+                            "default": "NULL"
+                        }
+                    ],
+                    "return": "AzGuard\\Panels\\Panel",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "azguardScopes",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": true,
+                    "final": false,
+                    "parameters": [],
+                    "return": "array",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@return non-empty-list<AssignmentScopeRef>"
+                    ]
+                },
+                {
+                    "name": "azguardSubject",
+                    "visibility": "protected",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "Illuminate\\Database\\Eloquent\\Model",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "engineAsksTheEvaluatorOnlyAboutVerifiedScopes",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "evaluatorAnswersManyChecksLikeOneInTheirOrder",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "evaluatorDoesNotFailOnOrdinaryRequests",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "evaluatorOnlyNarrows",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "void",
+                    "namedArguments": true,
+                    "contracts": []
                 }
             ]
         },

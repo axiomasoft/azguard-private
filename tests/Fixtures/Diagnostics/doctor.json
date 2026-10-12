@@ -40,15 +40,6 @@
         }
     },
     {
-        "key": "membership.configured",
-        "severity": "warning",
-        "scope": "panel:backoffice",
-        "message": "Panel backoffice inherits roles into assignment scopes without a scope membership: a role granted on a parent applies to every scope below it.",
-        "details": {
-            "mode": "inherit"
-        }
-    },
-    {
         "key": "fields.meta",
         "severity": "warning",
         "scope": "panel:crm",
@@ -91,10 +82,21 @@
     {
         "key": "membership.configured",
         "severity": "warning",
-        "scope": "panel:crm",
+        "scope": "plugin:azguard/scopes",
+        "message": "Panel backoffice inherits roles into assignment scopes without a scope membership: a role granted on a parent applies to every scope below it.",
+        "details": {
+            "mode": "inherit",
+            "panel": "backoffice"
+        }
+    },
+    {
+        "key": "membership.configured",
+        "severity": "warning",
+        "scope": "plugin:azguard/scopes",
         "message": "Panel crm inherits roles into assignment scopes without a scope membership: a role granted on a parent applies to every scope below it.",
         "details": {
-            "mode": "inherit"
+            "mode": "inherit",
+            "panel": "crm"
         }
     }
 ]

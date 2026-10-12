@@ -16,6 +16,7 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\AssignmentScopeResolver;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
 use AzGuard\Contracts\Tenancy\TenantResolver;
@@ -28,7 +29,7 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
-use AzGuard\Scopes\ScopeConfiguration;
+use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
@@ -292,7 +293,8 @@ final class PanelCompiler
      *
      * The mode comes from the highest layer, the last record inside it; plugins that disagree on the mode are a
      * conflict unless the provider sets one. Definitions of every layer are merged by alias and must keep their
-     * structure; directories merge by alias and one evaluator at most is named.
+     * structure; directories merge by alias (the directory a merged definition names included) and one evaluator at
+     * most is named.
      *
      * @return array{?AssignmentScopeDeclaration, array<string, AssignmentScopeDefinition>}
      *
@@ -331,7 +333,8 @@ final class PanelCompiler
         if (! $hasProvider && count($pluginModes) > 1) {
             throw new PluginConflictException('Plugins of panel '.$panel.' set conflicting assignment scope modes; set the mode in the panel provider.');
         }
-        $definitions = $this->scopes($panel, $declarations, $tenants, $container);
+        $evaluator = $this->scopeEvaluator($panel, $declarations);
+        $definitions = $this->scopes($panel, $declarations, $tenants, $mode, $this->evaluator($panel, $evaluator, $container));
 
         if ($mode === AssignmentScopeMode::Required && $definitions === []) {
             throw new DefinitionException('Panel '.$panel.' requires an assignment scope but registers no definitions.');
@@ -341,7 +344,7 @@ final class PanelCompiler
             mode: $mode,
             definitions: array_values($definitions),
             directories: $this->scopeDirectories($panel, $declarations, $definitions),
-            evaluator: $this->scopeEvaluator($panel, $declarations),
+            evaluator: $evaluator,
         ), $definitions];
     }
 
@@ -362,7 +365,7 @@ final class PanelCompiler
      * @throws DefinitionException
      * @throws InvalidConfigurationException
      */
-    private function scopes(string $panel, array $declarations, TenantPolicy $tenants, ?Container $container): array
+    private function scopes(string $panel, array $declarations, TenantPolicy $tenants, AssignmentScopeMode $mode, ?AssignmentScopeEvaluator $evaluator): array
     {
         $compiled = [];
 
@@ -384,7 +387,11 @@ final class PanelCompiler
                 }
 
                 ScopeConfiguration::tenantOwner($panel, $definition, $tenants->mode());
-                ScopeConfiguration::filters($definition, $container);
+
+                if ($evaluator === null && $mode !== AssignmentScopeMode::None && ScopeConfiguration::filterMetadata($definition) !== []) {
+                    throw new DefinitionException('Panel '.$panel.' declares filters on assignment scope '.$definition->type().' without an evaluator that applies them.');
+                }
+                $evaluator?->validate($definition, null);
                 $existing = $compiled[$definition->type()] ?? null;
 
                 if ($existing !== null && ! ScopeConfiguration::sameStructure($existing, $definition)) {
@@ -395,6 +402,28 @@ final class PanelCompiler
         }
 
         return $compiled;
+    }
+
+    /**
+     * The evaluator of the declaration for its build-time validation; without a container nothing is resolved and the
+     * definitions are checked structurally only.
+     *
+     * @param  class-string<AssignmentScopeEvaluator>|null  $class
+     *
+     * @throws DefinitionException
+     */
+    private function evaluator(string $panel, ?string $class, ?Container $container): ?AssignmentScopeEvaluator
+    {
+        if ($class === null || $container === null) {
+            return null;
+        }
+        $evaluator = $container->make($class);
+
+        if (! $evaluator instanceof AssignmentScopeEvaluator) {
+            throw new DefinitionException('Panel '.$panel.' assignment scope evaluator '.$class.' did not resolve to '.AssignmentScopeEvaluator::class.'.');
+        }
+
+        return $evaluator;
     }
 
     /**
@@ -426,12 +455,25 @@ final class PanelCompiler
             }
         }
 
+        foreach ($definitions as $alias => $definition) {
+            $own = ScopeConfiguration::directory($definition);
+
+            if ($own === null) {
+                continue;
+            }
+
+            if (isset($directories[$alias]) && $directories[$alias] !== $own) {
+                throw new DefinitionException('Panel '.$panel.' declares conflicting directories for assignment scope '.$alias.': '.$directories[$alias].' and '.$own.'.');
+            }
+            $directories[$alias] = $own;
+        }
+
         return $directories;
     }
 
     /**
      * @param  list<AssignmentScopeDeclaration>  $declarations
-     * @return class-string|null
+     * @return class-string<AssignmentScopeEvaluator>|null
      *
      * @throws DefinitionException
      */
@@ -444,8 +486,9 @@ final class PanelCompiler
                 continue;
             }
 
-            if (! class_exists($declaration->evaluator)) {
-                throw new DefinitionException('Panel '.$panel.' names a missing assignment scope evaluator '.$declaration->evaluator.'.');
+            if (! is_subclass_of($declaration->evaluator, AssignmentScopeEvaluator::class)) {
+                throw new DefinitionException('Panel '.$panel.' names an assignment scope evaluator '.$declaration->evaluator.' that does not implement '
+                    .AssignmentScopeEvaluator::class.'.');
             }
 
             if ($evaluator !== null && $evaluator !== $declaration->evaluator) {

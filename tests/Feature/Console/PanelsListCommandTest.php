@@ -24,7 +24,7 @@ it('lists every panel with its writer, storage, tenants and plugins as JSON', fu
     $panels = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
 
     expect(array_column($panels, 'id'))->toBe(['crm', 'backoffice'])
-        ->and($panels[0])->toMatchArray(['tenants' => 'required', 'writer' => 'database', 'storage' => 'default', 'plugins' => ['azguard/audit']])
+        ->and($panels[0])->toMatchArray(['tenants' => 'required', 'writer' => 'database', 'storage' => 'default', 'plugins' => ['azguard/scopes', 'azguard/audit']])
         ->and($panels[0])->not->toHaveKeys(['settings', 'sources', 'schema']);
 });
 
@@ -39,7 +39,7 @@ it('shows effective settings with their origin, the sources with their contribut
         ->and(array_column($crm['sources']['sources'], 'id'))->toContain('database')
         ->and(array_values(array_filter($crm['sources']['sources'], static fn (array $source): bool => $source['id'] === 'database'))[0]['capabilities'])
         ->toContain('ProvidesGrants')->not->toContain('StoresGrants')
-        ->and($crm['sources']['plugins'])->toBe(['azguard/audit'])
+        ->and($crm['sources']['plugins'])->toBe(['azguard/scopes', 'azguard/audit'])
         ->and(array_column($crm['schema']['roles'], 'key'))->toContain('seller', 'auditor')
         ->and(array_column($crm['schema']['permissions'], 'local'))->toContain('clients.view');
 });

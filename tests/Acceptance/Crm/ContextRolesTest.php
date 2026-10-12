@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Authorization\EvaluationContext;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
@@ -11,7 +13,7 @@ use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\ScopesPlugin;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
@@ -122,11 +124,11 @@ it('R16 direct grants expose role null and cannot manufacture a required PHP rol
     World::assertDecision(World::decide($panel, 3), true, DecisionReason::Granted);
     expect(ActiveProjects::$observed[0]->role)->toBeNull()->and(ActiveProjects::$observed[0]->grant)->toBeNull()
         ->and(SellerProjects::$observed)->toBe([]);
-    $panel = World::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter(
+    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(
         function (Builder $query, BaseRole $role): void {
             $query->where('is_active', true);
         },
-    ))]));
+    )], evaluator: ScopeEvaluator::class)));
     World::assertDecision(World::decide($panel, 3), false, DecisionReason::AssignmentScopeFilterError);
 });
 

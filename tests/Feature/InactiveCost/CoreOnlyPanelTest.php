@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use AzGuard\Authorization\Authorizer;
-use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Changes\ChangeStatus;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Context\AssignmentScopeMode;
@@ -13,11 +12,13 @@ use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\Internal\ScopeEligibility;
 use AzGuard\Tests\Arch\Ownership;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld;
 use AzGuard\Tests\Fixtures\Changes\Roles\RootRole;
 use AzGuard\Tests\Fixtures\Changes\Roles\SupportRole;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use Illuminate\Console\Application as ConsoleApplication;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
@@ -45,12 +46,19 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-/** The CRM panel with the scope plugin absent (the empty declaration) and no Audit plugin; plain tenant requests. */
+/**
+ * The CRM panel without ScopesPlugin (mode `None`, the project type declared only so the stand's roles compile, no
+ * evaluator) and without the Audit plugin; plain tenant requests.
+ */
 function coreOnlyPanel(): Panel
 {
-    return CrmWorld::compile(static function (PanelBuilder $panel): void {
-        $panel->roles([RootRole::class, SupportRole::class])->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, []));
-    }, exact: true);
+    CrmWorld::$scopes = false;
+
+    $coreOnly = static function (PanelBuilder $panel): void {
+        $panel->roles([RootRole::class, SupportRole::class])->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, [ProjectScope::make()]));
+    };
+
+    return CrmWorld::compile($coreOnly, backoffice: $coreOnly, exact: true);
 }
 
 function coreOnlyAllows(Panel $panel, int $user): bool

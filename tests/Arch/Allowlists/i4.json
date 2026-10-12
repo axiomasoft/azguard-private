@@ -1,26 +1,5 @@
 [
     {
-        "file": "packages/core/src/Authorization/ScopeEligibility.php",
-        "reference": "AzGuard\\Authorization\\BatchInputs",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/ScopeEligibility.php",
-        "reference": "AzGuard\\Authorization\\EvaluationFrame",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/ScopeEligibility.php",
-        "reference": "AzGuard\\Authorization\\Pipeline\\Trace",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Directories/QueryScopeDirectory.php",
         "reference": "AzGuard\\Directories\\ModelLookup",
         "kind": "type",

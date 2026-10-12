@@ -308,10 +308,10 @@ it('keeps one predicate engine and one role-binding resolver for directories and
     }
 
     expect(azguardPrivateEligibilityCopies(SourceScan::files('packages/core/src/Directories')))->toBe([])
-        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/src/Authorization/ScopeEligibility.php']))->toBe([])
+        ->and(azguardPrivateEligibilityCopies([dirname(__DIR__, 2).'/packages/core/src/Scopes/Internal/ScopeEligibility.php']))->toBe([])
         ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Directories/QueryScopeDirectory.php'))
         ->toContain('EligibilityBuilder::structural(', 'EligibilityBuilder::apply(', 'RoleBindings::of(')
-        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Authorization/ScopeEligibility.php'))
+        ->and((string) file_get_contents(dirname(__DIR__, 2).'/packages/core/src/Scopes/Internal/ScopeEligibility.php'))
         ->toContain('RoleBindings::of(', 'EligibilityBuilder::matches(');
 });
 

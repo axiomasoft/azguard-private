@@ -4,18 +4,44 @@ declare(strict_types=1);
 
 namespace AzGuard\Context\Internal;
 
+use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Support\ModelKey;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The assignment scope context a model is inside one panel. One reading of the panel definition for the subject
- * wrapper and the facade, so none of them keeps a second rule.
+ * The assignment scope context a model is inside one panel, and the evaluator the panel declares. One reading of the
+ * panel declaration for the subject wrapper, the facade, the stages and the compilers, so none of them keeps a second
+ * rule.
  */
 final class ContextIdentity
 {
+    /**
+     * The evaluator the scope declaration of the panel names, resolved from the container for one operation; null
+     * when the panel declares none (eligibility is then structural only).
+     *
+     * @throws DefinitionException when the class does not resolve to an evaluator
+     */
+    public static function evaluator(Panel $panel, Container $container): ?AssignmentScopeEvaluator
+    {
+        $class = $panel->scopeDeclaration()?->evaluator;
+
+        if ($class === null) {
+            return null;
+        }
+        $evaluator = $container->make($class);
+
+        if (! $evaluator instanceof AssignmentScopeEvaluator) {
+            throw new DefinitionException('Assignment scope evaluator '.$class.' of panel '.$panel->id().' did not resolve to '.AssignmentScopeEvaluator::class.'.');
+        }
+
+        return $evaluator;
+    }
+
     /**
      * The context a model is when its class is the model of an assignment scope type of the panel.
      *

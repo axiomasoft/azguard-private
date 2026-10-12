@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace AzGuard\Tests\Fixtures\Crm\Guards\Crm;
 
-use AzGuard\Context\AssignmentScopeDeclaration;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelProvider;
 use AzGuard\Panels\StateRefresh;
+use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tenancy\TenantPolicy;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\ActiveProjects;
@@ -30,7 +29,7 @@ final class CrmGuardPanelProvider extends PanelProvider
     {
         $panel->for(model: User::class, guard: 'web')->permissions(CrmWorld::$sources)
             ->tenants(TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership))
-            ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter(new ActiveProjects)]))
+            ->plugins(CrmWorld::$scopes ? [ScopesPlugin::inherit(ProjectScope::make()->filter(new ActiveProjects))] : [])
             ->restrictions([new AccountLockedRestriction])->grantConditions([new RegionCondition])
             ->consistency(refresh: StateRefresh::Check);
 

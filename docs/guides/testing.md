@@ -116,7 +116,7 @@ with scope, expiry and role rules. Attach it to a panel in a test-only configura
 
 ## Contract tests for extensions
 
-If you write a source, hook, restriction, plugin or resolver, use the matching trait from
+If you write a source, hook, restriction, plugin, resolver or scope evaluator, use the matching trait from
 `AzGuard\Testing\Contracts`. Each trait checks your class against the guarantees the engine relies on, such as
 stable ids, answering only for its own panel, not reading the clock and writing only inside the change
 transaction:
@@ -127,6 +127,7 @@ transaction:
 - `PluginContractTests`
 - `SubjectResolverContractTests`
 - `AssignmentScopeResolverContractTests`
+- `AssignmentScopeEvaluatorContractTests`
 
 ```php
 final class LdapSourceTest extends TestCase

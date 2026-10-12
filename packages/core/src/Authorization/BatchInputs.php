@@ -7,9 +7,7 @@ namespace AzGuard\Authorization;
 use AzGuard\Authorization\Cache\PermissionSetCache;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
-use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
-use AzGuard\Contracts\Scopes\AssignmentScopeFilter;
+use AzGuard\Contracts\Scopes\AssignmentScopeEvaluator;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\ResolvedAssignmentScope;
 use AzGuard\Kernel\Decision\AccessRequest;
@@ -20,11 +18,8 @@ use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Scopes\BaseAssignmentScope;
-use AzGuard\Scopes\Query\EligibilityBuilder;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Support\ModelKey;
-use Closure;
-use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionMethod;
 use RuntimeException;
@@ -52,7 +47,7 @@ final class BatchInputs
     /** @var array<string, bool|Throwable> */
     private array $eligibility = [];
 
-    public function __construct(private readonly Container $container)
+    public function __construct()
     {
         $this->sessions = new ReadSessions;
     }
@@ -205,45 +200,66 @@ final class BatchInputs
         $this->witnesses[] = [$request, $frame];
     }
 
-    /** @param list<AssignmentScopeFilter|class-string<AssignmentScopeFilter>|Closure> $filters */
-    public function native(QueryableAssignmentScopeDefinition $definition, AssignmentScopeDefinition $configuration, array $filters, AssignmentScopeRuntime $runtime, EvaluationFrame $frame): bool
+    /**
+     * The evaluator's answer for one verified scope and runtime of the set. The first question of a kind (the common
+     * runtime of a decision, or a contribution's) asks the evaluator once, through `allowsMany()`, for every witness of
+     * that kind that has no answer yet; an answer list of another length fails all of them. When `allowsMany()` throws,
+     * each witness is asked alone, so one failing witness fails only its own decisions.
+     */
+    public function allows(AssignmentScopeEvaluator $evaluator, AssignmentScopeRuntime $runtime, ResolvedAssignmentScope $resolved, EvaluationFrame $frame): bool
     {
-        $key = $this->eligibilityKey($configuration, $runtime);
+        $key = $this->eligibilityKey($runtime);
 
         if (! array_key_exists($key, $this->eligibility)) {
-            $witnesses = [];
+            $common = $runtime->role === null && $runtime->grant === null;
+            $checks = [];
             foreach ($this->witnesses as [$request, $candidate]) {
-                if ($candidate->panel() !== $frame->panel() || $candidate->scope()->context->type() !== $frame->scope()->context->type()
-                    || $candidate->role()?->key() !== $frame->role()?->key() || ($candidate->grant() === null) !== ($frame->grant() === null)) {
+                if ($candidate->panel() !== $frame->panel() || $candidate->scope()->context->isGlobal()
+                    || ($candidate->role() === null && $candidate->grant() === null) !== $common) {
                     continue;
                 }
 
                 try {
-                    $resolved = $this->scope($candidate);
+                    $witness = $candidate->assignmentScope ?? $this->scope($candidate);
                 } catch (Throwable) {
                     continue;
                 }
 
-                if ($resolved === null || ! $resolved->tenant->equals($candidate->scope()->tenant)) {
+                if ($witness === null || ! $witness->ref->equals($candidate->scope()->context) || ! $witness->tenant->equals($candidate->scope()->tenant)) {
                     continue;
                 }
-                $candidateRuntime = (new ScopeEligibility($this->container))->runtime($request->subject(), $candidate, common: $runtime->role === null && $runtime->grant === null);
-                $candidateKey = $this->eligibilityKey($configuration, $candidateRuntime);
+                $candidateRuntime = $candidate->scopeRuntime($request->subject(), common: $common);
+                $candidateKey = $this->eligibilityKey($candidateRuntime);
 
                 if (! array_key_exists($candidateKey, $this->eligibility)) {
-                    $witnesses[$candidateKey] = [$resolved, $candidateRuntime];
+                    $checks[$candidateKey] = [$candidateRuntime, $witness];
                 }
             }
-            $resolved = $frame->assignmentScope ?? $this->scope($frame) ?? throw new RuntimeException('Batch scope witness is missing.');
-            $witnesses[$key] = [$resolved, $runtime];
-            foreach (array_chunk($witnesses, 100, true) as $chunk) {
-                try {
-                    $this->eligibility += EligibilityBuilder::matchesMany($definition, $chunk, $filters, $this->container);
-                } catch (Throwable $error) {
-                    foreach ($chunk as $candidateKey => $witness) {
+            $checks[$key] = [$runtime, $resolved];
+
+            try {
+                $answers = $evaluator->allowsMany(array_values($checks));
+            } catch (Throwable) {
+                $answers = null;
+            }
+
+            if ($answers === null) {
+                foreach ($checks as $candidateKey => [$candidateRuntime, $witness]) {
+                    try {
+                        $this->eligibility[$candidateKey] = $evaluator->allows($candidateRuntime, $witness);
+                    } catch (Throwable $error) {
                         $this->eligibility[$candidateKey] = $error;
                     }
                 }
+            } elseif (count($answers) !== count($checks)) {
+                $error = new RuntimeException($evaluator::class.'::allowsMany() returned '.count($answers).' answers for '.count($checks).' checks.');
+                foreach (array_keys($checks) as $candidateKey) {
+                    $this->eligibility[$candidateKey] = $error;
+                }
+            } else {
+                foreach (array_keys($checks) as $i => $candidateKey) {
+                    $this->eligibility[$candidateKey] = ($answers[$i] ?? null) === true;
+                }
             }
         }
         $result = $this->eligibility[$key];
@@ -255,33 +271,9 @@ final class BatchInputs
         return $result;
     }
 
-    public function external(AssignmentScopeAccessAdapter $adapter, EvaluationFrame $frame, AssignmentScopeRuntime $runtime): bool
+    public function eligibilityKey(AssignmentScopeRuntime $runtime): string
     {
-        $key = IdentityCodec::compose(['external', $adapter::class, $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
-            $runtime->user === null ? null : spl_object_id($runtime->user), $runtime->actorModel === null ? null : spl_object_id($runtime->actorModel),
-            $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
-
-        if (! array_key_exists($key, $this->eligibility)) {
-            try {
-                $ref = $frame->scope()->context;
-                $results = $adapter->allowsMany([$ref], $runtime);
-                $this->eligibility[$key] = ($results[$ref->key()] ?? false) === true;
-            } catch (Throwable $error) {
-                $this->eligibility[$key] = $error;
-            }
-        }
-        $result = $this->eligibility[$key];
-
-        if ($result instanceof Throwable) {
-            throw $result;
-        }
-
-        return $result;
-    }
-
-    public function eligibilityKey(AssignmentScopeDefinition $configuration, AssignmentScopeRuntime $runtime): string
-    {
-        return IdentityCodec::compose([$this->configurationKey($configuration), $runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
+        return IdentityCodec::compose([$runtime->panel->id(), $runtime->subject, $runtime->actor, $runtime->scope,
             $runtime->user === null ? null : spl_object_id($runtime->user), $runtime->actorModel === null ? null : spl_object_id($runtime->actorModel),
             $runtime->role?->key(), ...self::contributionParts($runtime->grant)]);
     }
@@ -301,26 +293,6 @@ final class BatchInputs
         return [$contribution::class, $contribution->role, $contribution->scope, $contribution->source, $contribution->origin,
             $contribution instanceof Grant ? $contribution->pattern : null, $contribution->expiresAt?->format('U.u'),
             json_encode($contribution->fields(), JSON_THROW_ON_ERROR)];
-    }
-
-    /** @var array<int, AssignmentScopeDefinition> */
-    private array $closureConfigurations = [];
-
-    private function configurationKey(AssignmentScopeDefinition $configuration): string
-    {
-        try {
-            return hash('sha256', serialize($configuration));
-        } catch (Throwable) {
-            // Runtime closures have no structural equality; keep their actual instance separate.
-            $id = array_search($configuration, $this->closureConfigurations, true);
-
-            if ($id === false) {
-                $id = count($this->closureConfigurations);
-                $this->closureConfigurations[$id] = $configuration;
-            }
-
-            return 'closure:'.$id;
-        }
     }
 
     private static function subjectKey(Panel $panel, SubjectRef $ref): string

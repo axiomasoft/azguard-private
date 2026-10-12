@@ -15,7 +15,6 @@ use AzGuard\Diagnostics\Checks\CatalogCollisions;
 use AzGuard\Diagnostics\Checks\ConfigValid;
 use AzGuard\Diagnostics\Checks\ConsistencyReads;
 use AzGuard\Diagnostics\Checks\DirectWrites;
-use AzGuard\Diagnostics\Checks\MembershipConfigured;
 use AzGuard\Diagnostics\Checks\PanelsPlugins;
 use AzGuard\Diagnostics\Checks\PanelsPolicies;
 use AzGuard\Diagnostics\Checks\PanelsRelations;
@@ -27,6 +26,7 @@ use AzGuard\Diagnostics\Checks\RoutesChecks;
 use AzGuard\Diagnostics\Checks\StorageMigrated;
 use AzGuard\Diagnostics\Checks\StorageSchema;
 use AzGuard\Diagnostics\Checks\StorageSqlite;
+use AzGuard\Diagnostics\Internal\Checks\TenantMembershipConfigured;
 use AzGuard\Exceptions\ConfigurationException;
 use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\UnknownPanelException;
@@ -55,7 +55,7 @@ final readonly class Doctor
     private const array CORE = [
         ConfigValid::class, StorageSchema::class, StorageMigrated::class, StorageSqlite::class, PanelsValid::class, PanelsPlugins::class,
         PanelsSources::class, PanelsPolicies::class, PoliciesComplete::class, RolesKeys::class, RoutesChecks::class, PanelsRelations::class,
-        CatalogCollisions::class, CatalogCached::class, MembershipConfigured::class, ConsistencyReads::class,
+        CatalogCollisions::class, CatalogCached::class, TenantMembershipConfigured::class, ConsistencyReads::class,
         CacheStore::class, DirectWrites::class, CatalogBuildId::class,
     ];
 

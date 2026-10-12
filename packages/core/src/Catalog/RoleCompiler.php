@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AzGuard\Catalog;
 
+use AzGuard\Context\AssignmentScopeMode;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesRoles;
 use AzGuard\Exceptions\DefinitionException;
@@ -18,7 +20,7 @@ use AzGuard\Kernel\Grammar\PermissionGrammar;
 use AzGuard\Kernel\Identity\PermissionPattern;
 use AzGuard\Panels\Panel;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\ScopeConfiguration;
+use AzGuard\Scopes\Internal\ScopeConfiguration;
 use AzGuard\Sources\PanelSources;
 use Illuminate\Contracts\Container\Container;
 use UnitEnum;
@@ -204,6 +206,8 @@ final readonly class RoleCompiler
     {
         $scopes = [];
 
+        $evaluator = ContextIdentity::evaluator($panel, $this->container);
+
         foreach (PanelCatalog::untrusted($role->scopes()) as $scope) {
             if (is_string($scope) && is_subclass_of($scope, AssignmentScopeDefinition::class)) {
                 $scope = $this->container->make($scope);
@@ -216,15 +220,20 @@ final readonly class RoleCompiler
                 );
             }
 
-            ScopeConfiguration::filters($scope, $this->container);
             $registered = $panel->scopeDefinition($scope->type());
 
             if ($registered === null || $registered::class !== $scope::class || $registered->model() !== $scope->model()) {
                 throw InvalidConfigurationException::failing('tenant_scope', 'Role '.$role::class.' of panel "'.$panel->id().'" declares an unregistered or conflicting assignment scope '.$scope->type().'.');
             }
 
-            if (! ScopeConfiguration::sameStructure($registered, $scope)) {
-                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" changes the registered structural assignment scope '.$scope->type().'.');
+            if ($evaluator === null && ($panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None) !== AssignmentScopeMode::None && ScopeConfiguration::filterMetadata($scope) !== []) {
+                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'" binds filters to assignment scope '.$scope->type().' without an evaluator that applies them.');
+            }
+
+            try {
+                $evaluator?->validate($scope, $registered);
+            } catch (DefinitionException $error) {
+                throw new DefinitionException('Role '.$role::class.' of panel "'.$panel->id().'": '.$error->getMessage(), previous: $error);
             }
 
             $compiled = ['type' => $scope->type(), 'class' => $scope::class];

@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-use AzGuard\Authorization\ScopeEligibility;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Directories\LookupContext;
+use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
+use AzGuard\Exceptions\TenantMismatchException;
 use AzGuard\Kernel\Identity\AccessScope;
 use AzGuard\Kernel\Identity\ActorRef;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -14,12 +17,14 @@ use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Roles\BaseRole;
-use AzGuard\Scopes\ScopesPlugin;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
+use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Filters\SellerProjects;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Roles\SellerRole;
 use AzGuard\Tests\Fixtures\Crm\Guards\Crm\Scopes\ProjectScope;
 use AzGuard\Tests\Fixtures\Crm\Models\User;
+use AzGuard\Tests\Fixtures\Scopes\RecordingEvaluator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
@@ -53,40 +58,49 @@ it('gives Assignment filters the validated proposal, the target user, the code r
     $filter = static function (Builder $query, array $proposed, ?ActorRef $actor, ?User $user) use (&$seen): void {
         $seen[] = [$proposed, $actor, $user?->getKey()];
     };
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter($filter))]));
+    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
     $definition = $panel->scopeDefinition('crm.project');
-    $eligibility = new ScopeEligibility(app());
+    $evaluator = new ScopeEvaluator(app());
     $runtime = assignmentRuntime($panel, 1, null, ['until' => null, 'fields' => ['region' => 'R1']], new SellerRole);
 
-    expect($eligibility->assignment($runtime, $definition?->resolve(AssignmentScopeRef::of('crm.project', 1))))->toBeTrue()
+    expect($evaluator->allows($runtime, $definition?->resolve(AssignmentScopeRef::of('crm.project', 1))))->toBeTrue()
         ->and($seen)->toBe([[['until' => null, 'fields' => ['region' => 'R1']], null, 1]])
         ->and(end(SellerProjects::$observed)->role)->toBeInstanceOf(SellerRole::class)
         ->and(end(SellerProjects::$observed)->actor)->toBeNull();
 });
 
 it('refuses explicitly a filter that requires an actor or actor model that is absent', function (Closure $filter): void {
-    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(ProjectScope::make()->filter($filter))]));
+    $panel = CrmWorld::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()->filter($filter)], evaluator: ScopeEvaluator::class)));
     $resolved = $panel->scopeDefinition('crm.project')?->resolve(AssignmentScopeRef::of('crm.project', 1));
 
-    expect(fn () => (new ScopeEligibility(app()))->assignment(assignmentRuntime($panel, 1, null), $resolved))->toThrow(RuntimeException::class);
+    expect(fn () => (new ScopeEvaluator(app()))->allows(assignmentRuntime($panel, 1, null), $resolved))->toThrow(RuntimeException::class);
 })->with([
     'actor' => [static fn (Builder $query, ActorRef $actor) => null],
     'actor model' => [static fn (Builder $query, User $actorModel) => null],
 ]);
 
-it('passes a global context and refuses a missing, foreign or mismatched resolution', function (): void {
+it('answers for a verified scope only through its filters: an active project passes, an inactive one does not', function (): void {
     $panel = CrmWorld::compile();
     $definition = $panel->scopeDefinition('crm.project');
-    $eligibility = new ScopeEligibility(app());
-    $global = new AssignmentScopeRuntime(panel: $panel, scope: AccessScope::in(TenantRef::of('crm.organization', 1)), subject: SubjectRef::of('crm.user', 1),
-        user: null, role: null, grant: null, actor: null, actorModel: null, now: new DateTimeImmutable('2026-10-06T12:00:00Z'), phase: AssignmentScopePhase::Assignment);
+    $evaluator = new ScopeEvaluator(app());
 
-    expect($eligibility->assignment($global, null))->toBeTrue()
-        ->and($eligibility->assignment(assignmentRuntime($panel, 1, null), null))->toBeFalse()
-        ->and($eligibility->assignment(assignmentRuntime($panel, 1, null), $definition?->resolve(AssignmentScopeRef::of('crm.project', 2))))->toBeFalse()
-        ->and($eligibility->assignment(assignmentRuntime($panel, 4, null, tenant: 1), $definition?->resolve(AssignmentScopeRef::of('crm.project', 4))))->toBeFalse()
-        ->and($eligibility->assignment(assignmentRuntime($panel, 3, null), $definition?->resolve(AssignmentScopeRef::of('crm.project', 3))))->toBeFalse()
-        ->and($eligibility->assignment(assignmentRuntime($panel, 1, null), $definition?->resolve(AssignmentScopeRef::of('crm.project', 1))))->toBeTrue();
+    expect($evaluator->allows(assignmentRuntime($panel, 3, null), $definition?->resolve(AssignmentScopeRef::of('crm.project', 3))))->toBeFalse()
+        ->and($evaluator->allows(assignmentRuntime($panel, 1, null), $definition?->resolve(AssignmentScopeRef::of('crm.project', 1))))->toBeTrue();
+});
+
+it('refuses a missing or foreign scope structurally in the write before the evaluator is asked', function (): void {
+    RecordingEvaluator::reset();
+    app()->bind(ScopeEvaluator::class, static fn (): RecordingEvaluator => new RecordingEvaluator);
+    $panel = W::panel();
+
+    expect(fn () => W::grant($panel, 'analyst', 2, 99))->toThrow(AssignmentScopeNotAcceptedException::class, 'does not exist')
+        ->and(fn () => W::grant($panel, 'analyst', 2, 4))->toThrow(TenantMismatchException::class, 'belongs to another tenant')
+        ->and(RecordingEvaluator::$asked)->toBe([])
+        ->and(W::grant($panel, 'analyst', 2, 1)->applied())->toBeTrue()
+        ->and(RecordingEvaluator::$asked)->toBe(['crm.project:1']);
+    RecordingEvaluator::$denied = ['2'];
+
+    expect(fn () => W::grant($panel, 'analyst', 2, 2))->toThrow(AssignmentScopeNotAcceptedException::class, 'not accepted for this target and role');
 });
 
 it('accepts a lookup without an actor', function (): void {

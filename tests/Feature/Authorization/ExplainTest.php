@@ -12,6 +12,7 @@ use AzGuard\Kernel\Decision\RestrictionResult;
 use AzGuard\Kernel\Identity\PermissionKey;
 use AzGuard\Kernel\Identity\SubjectRef;
 use AzGuard\Panels\PanelBuilder;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Scopes\ScopesPlugin;
 use AzGuard\Tests\Fixtures\Authorization\AuthorizationWorld;
 use AzGuard\Tests\Fixtures\Authorization\Cache\CacheSource;
@@ -119,7 +120,7 @@ it('does not publish cold explain reads into the permission cache but reuses a w
     expect($source->grantReads)->toBe(3);
 });
 
-it('names a denied common context filter instead of reporting it skipped', function (): void {
+it('names the evaluator of a denied common context check instead of reporting it skipped', function (): void {
     $s = new ScenarioGenerator(2);
     $adapter = new EligibilityExternalAdapter(static fn () => false);
     [$engine, $panel, $request] = $s->world([new GeneratedSource(direct: [$s->grant($s->scope(true))])],
@@ -127,7 +128,7 @@ it('names a denied common context filter instead of reporting it skipped', funct
     $explanation = $engine->explain($panel, $request->inScope($s->scope(true)));
     expect($explanation->decision()->reason)->toBe(DecisionReason::AssignmentScopeIneligible);
     $filter = collect($explanation->steps())->firstWhere('stage', 'filter');
-    expect($filter['component'])->toBe($adapter::class)->and($filter['outcome'])->toBe('deny')
+    expect($filter['component'])->toBe(ScopeEvaluator::class)->and($filter['outcome'])->toBe('deny')
         ->and($adapter->observed)->toHaveCount(1);
 });
 

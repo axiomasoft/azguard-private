@@ -6,10 +6,10 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
-use AzGuard\Authorization\ScopeEligibility;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Catalog\RoleCompiler;
+use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\GrantCondition;
 use AzGuard\Contracts\Sources\FencesReads;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -29,10 +29,10 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Scopes\MembershipRestriction;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Folder\FolderSource;
 use AzGuard\Sources\PanelSources;
+use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Log;
@@ -67,7 +67,7 @@ final readonly class AuthorityStage
         }
 
         try {
-            $membership = new MembershipRestriction($this->container);
+            $membership = new TenantMembershipRestriction($this->container);
 
             $denied = $membership->check($request, $frame)->denied();
             $trace->record('membership', $denied ? 'restricted' : 'pass', 'membership', outcome: $denied ? 'deny' : 'pass');
@@ -259,7 +259,7 @@ final readonly class AuthorityStage
                 $branch = $frame->forContribution($item, $role);
 
                 try {
-                    if (! (new ScopeEligibility($this->container))->contribution($request, $branch, $frame->batchInputs, $trace)) {
+                    if (! $this->contributionEligible($request, $branch, $trace)) {
                         $trace->record('contribution', 'scope_ineligible', $source::class);
 
                         continue;
@@ -386,6 +386,39 @@ final readonly class AuthorityStage
     private function superAdmin(?array $role): bool
     {
         return $role !== null && $role['super_admin'];
+    }
+
+    /**
+     * The scope eligibility of one contribution: none for a global context; a context other than the one the boundary
+     * verified is verified structurally here and must pass the common check first; then the evaluator answers for the
+     * contribution's runtime.
+     */
+    private function contributionEligible(AccessRequest $request, EvaluationFrame $branch, Trace $trace): bool
+    {
+        $context = $branch->scope()->context;
+
+        if ($context->isGlobal()) {
+            return true;
+        }
+        $evaluator = ContextIdentity::evaluator($branch->panel(), $this->container);
+
+        $resolved = $branch->assignmentScope;
+
+        if ($resolved === null) {
+            $definition = $branch->panel()->scopeDefinition($context->type() ?? '') ?? throw new RuntimeException('Selected scope definition is missing.');
+            $resolved = $definition->resolve($context);
+
+            if ($resolved === null || ! $resolved->ref->equals($context) || ! $resolved->tenant->equals($branch->scope()->tenant)) {
+                return false;
+            }
+            $branch = $branch->withAssignmentScope($resolved);
+
+            if (! BoundaryStage::eligible($evaluator, $branch->scopeRuntime($request->subject(), common: true), $resolved, $branch, $branch->batchInputs, null)) {
+                return false;
+            }
+        }
+
+        return BoundaryStage::eligible($evaluator, $branch->scopeRuntime($request->subject()), $resolved, $branch, $branch->batchInputs, $trace);
     }
 
     /** @param CompiledRole $role */

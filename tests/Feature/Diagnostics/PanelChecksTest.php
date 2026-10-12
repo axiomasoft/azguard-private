@@ -5,12 +5,13 @@ declare(strict_types=1);
 use AzGuard\Catalog\CatalogCache;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Configuration\AzGuardConfig;
+use AzGuard\Context\AssignmentScopeDeclaration;
+use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Contracts\Sources\SourceDescription;
 use AzGuard\Contracts\Sources\StoresGrants;
 use AzGuard\Diagnostics\Checks\CacheStore;
 use AzGuard\Diagnostics\Checks\CatalogCollisions;
 use AzGuard\Diagnostics\Checks\DirectWrites;
-use AzGuard\Diagnostics\Checks\MembershipConfigured;
 use AzGuard\Diagnostics\Checks\PanelsPlugins;
 use AzGuard\Diagnostics\Checks\PanelsPolicies;
 use AzGuard\Diagnostics\Checks\PanelsRelations;
@@ -19,6 +20,7 @@ use AzGuard\Diagnostics\Checks\PanelsValid;
 use AzGuard\Diagnostics\Checks\PoliciesComplete;
 use AzGuard\Diagnostics\Checks\RolesKeys;
 use AzGuard\Diagnostics\DoctorFinding;
+use AzGuard\Diagnostics\Internal\Checks\TenantMembershipConfigured;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
@@ -26,6 +28,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Panels\PanelSettings;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
+use AzGuard\Scopes\Internal\ScopeEvaluator;
 use AzGuard\Sources\Database\DatabaseSource;
 use AzGuard\Sources\Relation\RelationSource;
 use AzGuard\Storage\StorageRegistry;
@@ -144,13 +147,19 @@ it('consistency.reads passes primary reads and warns about default reads on a co
 });
 
 it('membership.configured passes a creatable membership and fails one that cannot be created; warns about inherit without membership', function (): void {
-    expect(MembershipConfigured::check(handBuiltPanel(tenants: TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership)), app()))->toBe([])
-        ->and(DoctorWorld::summary(MembershipConfigured::check(handBuiltPanel(tenants: TenantPolicy::required(Organization::class)->requireMembership()), app())))
+    expect(TenantMembershipConfigured::check(handBuiltPanel(tenants: TenantPolicy::required(Organization::class)->requireMembership(new OrganizationMembership)), app()))->toBe([])
+        ->and(DoctorWorld::summary(TenantMembershipConfigured::check(handBuiltPanel(tenants: TenantPolicy::required(Organization::class)->requireMembership()), app())))
         ->toBe(['panel:test membership.configured error']);
 
     CrmWorld::seed();
     CrmWorld::compile();
-    expect(doctorKeys('membership.configured'))->toBe(['panel:backoffice membership.configured warning', 'panel:crm membership.configured warning']);
+    $warnings = DoctorWorld::only(DoctorWorld::run(), 'membership.configured');
+    expect(DoctorWorld::summary($warnings))->toBe(['plugin:azguard/scopes membership.configured warning', 'plugin:azguard/scopes membership.configured warning'])
+        ->and(array_map(static fn ($finding): mixed => $finding->details['panel'] ?? null, $warnings))->toEqualCanonicalizing(['backoffice', 'crm']);
+    CrmWorld::$scopes = false;
+    $declare = static fn (PanelBuilder $panel) => $panel->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make()], evaluator: ScopeEvaluator::class));
+    CrmWorld::compile($declare, backoffice: $declare);
+    expect(doctorKeys('membership.configured'))->toBe([]);
 });
 
 it('direct_writes passes models that extend the write-guarded bases and fails a model that does not', function (): void {

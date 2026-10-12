@@ -1,56 +1,7 @@
 [
     {
-        "file": "packages/core/src/Authorization/BatchEvaluation.php",
-        "reference": "AzGuard\\Authorization\\ScopeEligibility",
-        "kind": "reference",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/BatchInputs.php",
-        "reference": "AzGuard\\Authorization\\ScopeEligibility",
-        "kind": "reference",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/BatchInputs.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeAccessAdapter",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/BatchInputs.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeFilter",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Authorization/BatchInputs.php",
         "reference": "AzGuard\\Scopes\\BaseAssignmentScope",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/BatchInputs.php",
-        "reference": "AzGuard\\Scopes\\Query\\EligibilityBuilder",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/Pipeline/Stages/AuthorityStage.php",
-        "reference": "AzGuard\\Authorization\\ScopeEligibility",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Authorization/Pipeline/Stages/BoundaryStage.php",
-        "reference": "AzGuard\\Authorization\\ScopeEligibility",
         "kind": "import",
         "invariant": "I2",
         "owner_phase": "P3"
@@ -157,20 +108,6 @@
         "file": "packages/core/src/Changes/ChangePipeline.php",
         "reference": "audit_log",
         "kind": "table",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Changes/ChangeValidator.php",
-        "reference": "AzGuard\\Authorization\\ScopeEligibility",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Changes/ChangeValidator.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\AssignmentScopeMembership",
-        "kind": "import",
         "invariant": "I2",
         "owner_phase": "P3"
     },
