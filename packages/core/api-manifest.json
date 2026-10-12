@@ -716,6 +716,51 @@
             ]
         },
         {
+            "name": "AzGuard\\Audit\\AuditOptions",
+            "publication": "api",
+            "since": "1.0",
+            "kind": "class",
+            "final": true,
+            "abstract": false,
+            "readonly": true,
+            "parent": null,
+            "interfaces": [],
+            "namedArguments": true,
+            "contracts": [],
+            "constants": [],
+            "properties": [
+                {
+                    "name": "retentionDays",
+                    "visibility": "public",
+                    "type": "int",
+                    "readonly": true,
+                    "static": false,
+                    "contracts": []
+                }
+            ],
+            "methods": [
+                {
+                    "name": "__construct",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "retentionDays",
+                            "type": "int",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": null,
+                    "namedArguments": true,
+                    "contracts": []
+                }
+            ]
+        },
+        {
             "name": "AzGuard\\Authorization\\Visibility",
             "publication": "api",
             "since": "0.7",
@@ -18639,45 +18684,6 @@
                     "contracts": []
                 },
                 {
-                    "name": "after",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<AfterHook|class-string<AfterHook>|Closure>"
-                    ]
-                },
-                {
-                    "name": "before",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<BeforeHook|class-string<BeforeHook>|Closure>"
-                    ]
-                },
-                {
-                    "name": "changing",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<ChangePipe|class-string<ChangePipe>|Closure>"
-                    ]
-                },
-                {
                     "name": "entry",
                     "visibility": "public",
                     "static": false,
@@ -18707,19 +18713,6 @@
                     "namedArguments": true,
                     "contracts": [
                         "@return list<Field>"
-                    ]
-                },
-                {
-                    "name": "grantConditions",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<GrantCondition|class-string<GrantCondition>>"
                     ]
                 },
                 {
@@ -18804,6 +18797,28 @@
                     "contracts": []
                 },
                 {
+                    "name": "options",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "class",
+                            "type": "string",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "?object",
+                    "namedArguments": true,
+                    "contracts": [
+                        "@template T of object",
+                        "@param class-string<T> $class"
+                    ]
+                },
+                {
                     "name": "pluginIds",
                     "visibility": "public",
                     "static": false,
@@ -18835,88 +18850,6 @@
                     "final": false,
                     "parameters": [],
                     "return": "bool",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "resourceScopes",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>>"
-                    ]
-                },
-                {
-                    "name": "restrictions",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<Restriction|class-string<Restriction>>"
-                    ]
-                },
-                {
-                    "name": "scopeDefinition",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "type",
-                            "type": "string",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": false
-                        }
-                    ],
-                    "return": "?AzGuard\\Contracts\\Scopes\\AssignmentScopeDefinition",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "scopeDefinitions",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return array<string, AssignmentScopeDefinition>"
-                    ]
-                },
-                {
-                    "name": "scopeResolvers",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>>"
-                    ]
-                },
-                {
-                    "name": "scopes",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "AzGuard\\Scopes\\AssignmentScopePolicy",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -18987,19 +18920,6 @@
                     "namedArguments": true,
                     "contracts": [
                         "@return list<SubjectDescriptor>"
-                    ]
-                },
-                {
-                    "name": "tenantResolvers",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "array",
-                    "namedArguments": true,
-                    "contracts": [
-                        "@return list<TenantResolver|class-string<TenantResolver>>"
                     ]
                 },
                 {
@@ -19340,26 +19260,6 @@
                     ]
                 },
                 {
-                    "name": "gate",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [
-                        {
-                            "name": "mode",
-                            "type": "AzGuard\\Panels\\GateMode",
-                            "byRef": false,
-                            "variadic": false,
-                            "hasDefault": true,
-                            "default": "\\AzGuard\\Panels\\GateMode::Authoritative"
-                        }
-                    ],
-                    "return": "static",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
                     "name": "grantConditions",
                     "visibility": "public",
                     "static": false,
@@ -19455,6 +19355,36 @@
                         }
                     ],
                     "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "options",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [
+                        {
+                            "name": "options",
+                            "type": "object",
+                            "byRef": false,
+                            "variadic": false,
+                            "hasDefault": false
+                        }
+                    ],
+                    "return": "static",
+                    "namedArguments": true,
+                    "contracts": []
+                },
+                {
+                    "name": "panelId",
+                    "visibility": "public",
+                    "static": false,
+                    "abstract": false,
+                    "final": false,
+                    "parameters": [],
+                    "return": "string",
                     "namedArguments": true,
                     "contracts": []
                 },
@@ -19834,7 +19764,6 @@
                     "final": false,
                     "value": {
                         "resource_prefix": true,
-                        "gate.mode": "authoritative",
                         "cache.store": null,
                         "cache.ttl": 3600,
                         "cache.generation": 1,
@@ -19842,12 +19771,6 @@
                         "consistency.state_refresh": "request",
                         "trace_decisions": false
                     }
-                },
-                {
-                    "name": "GATE_MODE",
-                    "visibility": "public",
-                    "final": false,
-                    "value": "gate.mode"
                 },
                 {
                     "name": "READS",
@@ -19906,17 +19829,6 @@
                     "final": false,
                     "parameters": [],
                     "return": "?int",
-                    "namedArguments": true,
-                    "contracts": []
-                },
-                {
-                    "name": "gateMode",
-                    "visibility": "public",
-                    "static": false,
-                    "abstract": false,
-                    "final": false,
-                    "parameters": [],
-                    "return": "AzGuard\\Panels\\GateMode",
                     "namedArguments": true,
                     "contracts": []
                 },

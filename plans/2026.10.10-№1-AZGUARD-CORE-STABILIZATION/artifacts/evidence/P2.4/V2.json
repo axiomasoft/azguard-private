@@ -1,0 +1,32 @@
+{
+    "$schema": "urn:swissknifeman:task:plan:check-evidence:v1",
+    "evidence_id": "PLAN1.P2.4.V2.2026-10-12T04:38:42Z",
+    "check_id": "V2",
+    "subject": "PLAN1.P2.4",
+    "procedure": {
+        "cmd": "test -z \"$(git grep -nE 'BasePlugin|DependsOnPlugins|PluginDependencyMissingException|function boot\\(Panel' -- '*.php' ':!plans' ':!audits' ':!tests/Arch/LegacyNamesTest.php')\"",
+        "cwd": "."
+    },
+    "candidate": {
+        "head": "e0c7183f50782dc84aa9b009390631bef3b3fbc3"
+    },
+    "exit": 0,
+    "environment": {
+        "platform": "Linux",
+        "php": "8.4.26 (PATH shim; system php is 8.3)"
+    },
+    "log": {
+        "path": "plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/evidence/P2.4/V2.log",
+        "sha256": "c47f55f7cb5c79bc43ca8784ba26de0c9750517774bb818c0f51af9c96e5f8fd"
+    },
+    "started_at": "2026-10-12T04:38:42Z",
+    "finished_at": "2026-10-12T04:38:42Z",
+    "producer": {
+        "kind": "executor",
+        "actor": {
+            "provider": "claude-code",
+            "model": "claude-sonnet-5-5",
+            "effort": "high"
+        }
+    }
+}

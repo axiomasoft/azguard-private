@@ -18,8 +18,6 @@ final readonly class PanelSettings
 {
     public const string RESOURCE_PREFIX = 'resource_prefix';
 
-    public const string GATE_MODE = 'gate.mode';
-
     public const string CACHE_STORE = 'cache.store';
 
     public const string CACHE_TTL = 'cache.ttl';
@@ -35,7 +33,6 @@ final readonly class PanelSettings
     /** Values used when neither the panel nor the configuration sets a setting. */
     public const array DEFAULTS = [
         self::RESOURCE_PREFIX => true,
-        self::GATE_MODE => 'authoritative',
         self::CACHE_STORE => null,
         self::CACHE_TTL => 3600,
         self::CACHE_GENERATION => 1,
@@ -51,7 +48,6 @@ final readonly class PanelSettings
      */
     public function __construct(
         private ?string $resourcePrefix,
-        private GateMode $gateMode,
         private ?string $cacheStore,
         private ?int $cacheTtl,
         private int $cacheGeneration,
@@ -67,11 +63,6 @@ final readonly class PanelSettings
     public function resourcePrefix(): ?string
     {
         return $this->resourcePrefix;
-    }
-
-    public function gateMode(): GateMode
-    {
-        return $this->gateMode;
     }
 
     /**
@@ -135,7 +126,6 @@ final readonly class PanelSettings
     {
         $values = [
             self::RESOURCE_PREFIX => $this->resourcePrefix,
-            self::GATE_MODE => $this->gateMode->value,
             self::CACHE_STORE => $this->cacheStore,
             self::CACHE_TTL => $this->cacheTtl,
             self::CACHE_GENERATION => $this->cacheGeneration,

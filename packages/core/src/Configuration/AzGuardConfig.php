@@ -57,8 +57,7 @@ final readonly class AzGuardConfig
 
     /** Keys of the `defaults` section and of its nested groups. */
     private const array DEFAULTS_KEYS = [
-        'defaults' => ['resource_prefix', 'gate', 'cache', 'consistency', 'trace_decisions', 'models', 'tenants', 'scopes'],
-        'defaults.gate' => ['mode'],
+        'defaults' => ['resource_prefix', 'cache', 'consistency', 'trace_decisions', 'models', 'tenants', 'scopes'],
         'defaults.cache' => ['store', 'ttl', 'generation'],
         'defaults.consistency' => ['reads', 'state_refresh'],
     ];
@@ -220,7 +219,7 @@ final readonly class AzGuardConfig
         $groups = [
             'ids' => ['host_keys'], 'catalog' => self::CATALOG_KEYS, 'discovery' => self::DISCOVERY_KEYS, 'gate' => self::GATE_KEYS,
             'schedule' => self::SCHEDULE_KEYS, 'scaffold' => self::SCAFFOLD_KEYS, 'storages.*' => self::STORAGE_KEYS, 'decision_sets' => self::DECISION_SETS_KEYS,
-            'defaults.models' => self::MODEL_KEYS, 'defaults.gate' => self::DEFAULTS_KEYS['defaults.gate'],
+            'defaults.models' => self::MODEL_KEYS,
             'defaults.cache' => self::DEFAULTS_KEYS['defaults.cache'], 'defaults.consistency' => self::DEFAULTS_KEYS['defaults.consistency'],
         ];
 
@@ -403,7 +402,7 @@ final readonly class AzGuardConfig
     }
 
     /**
-     * Values of the `defaults` section the configuration sets, by setting name (`cache.ttl`, `gate.mode`).
+     * Values of the `defaults` section the configuration sets, by setting name (`cache.ttl`, `consistency.reads`).
      *
      * Enumerated values stay strings: the panel compiler checks them against their enums.
      *
@@ -631,7 +630,7 @@ final readonly class AzGuardConfig
             }
         }
 
-        foreach (['gate', 'cache', 'consistency'] as $group) {
+        foreach (['cache', 'consistency'] as $group) {
             $section = self::section('defaults.'.$group, $defaults[$group] ?? []);
             self::assertKnownKeys('defaults.'.$group, $section, self::DEFAULTS_KEYS['defaults.'.$group]);
 

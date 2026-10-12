@@ -80,15 +80,6 @@
                 "uses_key": false
             }
         },
-        "AzGuard\\Diagnostics\\Checks\\GateModeCheck": {
-            "key": "gate.mode",
-            "finding_ids": {
-                "literal": [
-                    "gate.mode"
-                ],
-                "uses_key": false
-            }
-        },
         "AzGuard\\Diagnostics\\Checks\\GrantsDead": {
             "key": "grants.dead",
             "finding_ids": {

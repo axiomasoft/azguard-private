@@ -1,5 +1,12 @@
 [
     {
+        "file": "packages/core/src/Audit",
+        "reference": "Audit",
+        "kind": "directory",
+        "invariant": "I5",
+        "owner_phase": "P2"
+    },
+    {
         "file": "packages/core/src/Plugins/Audit",
         "reference": "Plugins/Audit",
         "kind": "directory",

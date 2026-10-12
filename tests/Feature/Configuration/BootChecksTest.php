@@ -143,10 +143,6 @@ function allBootChecks(): array
             'invalid_configuration.enum', InvalidConfigurationException::class, 'consistency.state_refresh',
             fn () => settingsWithDefaults(['consistency' => ['state_refresh' => 'always']]),
         ],
-        'a gate mode other than authoritative' => [
-            'invalid_configuration.enum', InvalidConfigurationException::class, 'gate.mode',
-            fn () => settingsWithDefaults(['gate' => ['mode' => 'permissive']]),
-        ],
         'a model that does not extend the base model of its kind' => [
             'storage_mismatch', StorageMismatchException::class, 'concrete subclass',
             fn () => DatabaseSource::make()->models(roleGrant: PermissionGrant::class),

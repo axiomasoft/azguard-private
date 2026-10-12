@@ -5,8 +5,8 @@
     ],
     "retired": {
         "defaults.gate.mode": {
-            "present_at_070": true,
-            "owner_phase": "P2"
+            "present_now": false,
+            "retired_by": "P2.5"
         }
     },
     "azguard": {
@@ -20,9 +20,6 @@
                 "permission": "AzGuard\\Storage\\Models\\Permission"
             },
             "resource_prefix": true,
-            "gate": {
-                "mode": "authoritative"
-            },
             "cache": {
                 "store": null,
                 "ttl": 3600,

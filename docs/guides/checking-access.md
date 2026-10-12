@@ -107,7 +107,7 @@ Gate::inspect('admin.posts.delete', $post)->message();
 The rules:
 
 - **Owned abilities.** A name of a registered panel, or a word that matches exactly one `#[Resource(model:)]`
-  permission, belongs to AzGuard. Its answer is final (`gate.mode = authoritative`): a denied permission is
+  permission, belongs to AzGuard. Its answer is final: a denied permission is
   not rescued by a Laravel policy.
 - **Foreign abilities.** Any other ability returns `null` from AzGuard. Laravel continues with your own
   `Gate::define()` and policies as usual.

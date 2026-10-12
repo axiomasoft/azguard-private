@@ -126,7 +126,7 @@ it('lists the serializable types and pins the target of each in the type map', f
  * P2 reserves the grant-field prefix azg_. At 0.7.0 the rule of Field rejects only tenant_, subject_, context_ and
  * actor_, so an application could already declare an azg_ field; the upgrade map gives its rename path.
  */
-it('accepts grant fields with the azg_ prefix at 0.7.0 and rejects the reserved scope prefixes', function (): void {
+it('rejects grant fields with the reserved azg_ prefix and the reserved scope prefixes', function (): void {
     $accepted = [];
 
     foreach (['azg_region', 'azg_', 'region', 'tenant_region', 'subject_region', 'context_region', 'actor_region'] as $name) {
@@ -139,7 +139,7 @@ it('accepts grant fields with the azg_ prefix at 0.7.0 and rejects the reserved 
     }
     [$actual, $stored] = FormatSnapshot::compare('grant-field-names', $accepted);
 
-    expect($accepted['azg_region'])->toBeTrue()->and($actual)->toBe($stored);
+    expect($accepted['azg_region'])->toBeFalse()->and($actual)->toBe($stored);
 });
 
 describe('Scopes/ folder discovery', function (): void {

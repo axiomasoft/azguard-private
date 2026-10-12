@@ -133,13 +133,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Plugins/Audit/AuditPlugin.php",
-        "reference": "AzGuard\\Panels\\PanelRecipe",
-        "kind": "type",
-        "invariant": "I4",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Plugins/Audit/RecordChange.php",
         "reference": "AzGuard\\Changes\\ChangeEventPublisher",
         "kind": "type",

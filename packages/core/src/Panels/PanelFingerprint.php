@@ -7,6 +7,7 @@ namespace AzGuard\Panels;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\Source;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Scopes\ScopeConfiguration;
 use Closure;
@@ -66,6 +67,8 @@ final class PanelFingerprint
             $hooks[$list] = array_map(self::name(...), PanelCompiler::items($recipe, $list));
         }
 
+        $options = array_map(static fn (object $options): mixed => CanonicalMetadata::metadata($options), $panel->optionObjects());
+
         return [
             'id' => $panel->id(),
             'prefix' => $panel->prefix(),
@@ -106,7 +109,7 @@ final class PanelFingerprint
                     'filters' => ScopeConfiguration::filterMetadata($definition),
                 ], $panel->scopeDefinitions()),
                 'membership' => self::name($panel->scopes()->membership()),
-                'adapters' => array_map(ScopeConfiguration::componentMetadata(...), $panel->scopes()->adapters()),
+                'adapters' => array_map(CanonicalMetadata::componentMetadata(...), $panel->scopes()->adapters()),
             ],
             'resource_scopes' => array_map(
                 static fn (mixed $scope): array => is_array($scope)
@@ -114,6 +117,7 @@ final class PanelFingerprint
                     : [],
                 PanelCompiler::items($recipe, PanelRecipe::RESOURCE_SCOPES),
             ),
+            ...($options === [] ? [] : ['options' => $options]),
         ];
     }
 

@@ -23,6 +23,7 @@ use AzGuard\Exceptions\InvalidConfigurationException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PrefixConflictException;
 use AzGuard\Kernel\Identity\IdentityCodec;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Plugins\PluginContext;
 use AzGuard\Schema\Field;
 use AzGuard\Schema\FieldTarget;
@@ -148,7 +149,7 @@ final class PanelCompiler
         $this->membership($scopes->membership(), $container, 'membership', 'Assignment scope');
         foreach ($scopes->adapters() as $adapter) {
             ScopeConfiguration::component($adapter, AssignmentScopeAccessAdapter::class, $container, 'Assignment scope access adapter');
-            ScopeConfiguration::componentMetadata($adapter);
+            CanonicalMetadata::componentMetadata($adapter);
         }
 
         $subjects = $this->subjects($recipe);
@@ -181,7 +182,39 @@ final class PanelCompiler
             entryMiddleware: array_values(array_filter(self::items($recipe, PanelRecipe::MIDDLEWARE), is_string(...))),
             routeChecks: ($this->resolved($recipe, PanelRecipe::REQUIRE_ROUTE_CHECKS)['value'] ?? false) === true,
             healthChecks: $this->doctorChecks($recipe),
+            options: $this->options($recipe),
         );
+    }
+
+    /**
+     * Module options by class: for one class the provider wins over plugins, plugins over `configure`; two plugins
+     * that give different objects of one class are a conflict, as with any other setting.
+     *
+     * @return array<class-string, object>
+     *
+     * @throws PluginConflictException
+     */
+    private function options(PanelRecipe $recipe): array
+    {
+        $byClass = [];
+
+        foreach ($recipe->layered(PanelRecipe::OPTIONS) as $record) {
+            if (is_object($record['value'])) {
+                $byClass[$record['value']::class][] = $record;
+            }
+        }
+        $options = [];
+
+        foreach ($byClass as $class => $records) {
+            $value = $this->pick($recipe->panelId(), 'options '.$class, $records)['value'];
+
+            if (is_object($value)) {
+                $options[$class] = $value;
+            }
+        }
+        ksort($options, SORT_STRING);
+
+        return $options;
     }
 
     /**
@@ -576,7 +609,6 @@ final class PanelCompiler
                 $prefix === false => null,
                 default => $panel,
             },
-            gateMode: self::enum(GateMode::class, $panel, PanelSettings::GATE_MODE, $values[PanelSettings::GATE_MODE]),
             cacheStore: is_string($store) ? $store : null,
             cacheTtl: $ttl,
             cacheGeneration: $generation,
@@ -815,7 +847,7 @@ final class PanelCompiler
         $first = array_key_first($byPlugin);
 
         foreach ($byPlugin as $plugin => $value) {
-            $same = ($value instanceof TenantPolicy || $value instanceof AssignmentScopePolicy)
+            $same = ($value instanceof TenantPolicy || $value instanceof AssignmentScopePolicy || (is_object($value) && ! $value instanceof Closure))
                 ? $value == $byPlugin[$first]
                 : $value === $byPlugin[$first];
 

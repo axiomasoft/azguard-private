@@ -78,7 +78,7 @@ afterwards. Changing it later throws `RegistryFrozenException`.
 | `middleware([...])`, `entry($permission)`, `onDenied($response)`, `requireRouteChecks()` | Entering the panel over HTTP ([Checking access](/guides/checking-access#routes)) |
 | `tenants()`, `scopes()`, `tenantResolvers()`, `scopeResolvers()`, `resourceScopes()` | [Tenants and scopes](/guides/tenants-and-scopes) |
 | `before()`, `restrictions()`, `after()`, `changing()`, `grantConditions()`, `plugins()`, `withoutPlugins()`, `fields()` | [Hooks and plugins](/advanced/hooks-and-plugins) |
-| `gate(GateMode)`, `cache()`, `consistency()` | [Performance and consistency](/advanced/performance) |
+| `cache()`, `consistency()` | [Performance and consistency](/advanced/performance) |
 | `doctorChecks([...])` | Extra `azguard:doctor` checks |
 
 ### Settings for all panels

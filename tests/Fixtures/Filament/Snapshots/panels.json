@@ -16,10 +16,6 @@
                 "value": "admin",
                 "origin": "default"
             },
-            "gate.mode": {
-                "value": "authoritative",
-                "origin": "default"
-            },
             "cache.store": {
                 "value": null,
                 "origin": "default"
@@ -723,10 +719,6 @@
                 "value": "backoffice",
                 "origin": "default"
             },
-            "gate.mode": {
-                "value": "authoritative",
-                "origin": "default"
-            },
             "cache.store": {
                 "value": null,
                 "origin": "default"
@@ -889,10 +881,6 @@
         "settings": {
             "resource_prefix": {
                 "value": "seller",
-                "origin": "default"
-            },
-            "gate.mode": {
-                "value": "authoritative",
                 "origin": "default"
             },
             "cache.store": {
@@ -1071,10 +1059,6 @@
         "settings": {
             "resource_prefix": {
                 "value": "teams",
-                "origin": "default"
-            },
-            "gate.mode": {
-                "value": "authoritative",
                 "origin": "default"
             },
             "cache.store": {
@@ -1569,10 +1553,6 @@
         "settings": {
             "resource_prefix": {
                 "value": "readonly",
-                "origin": "default"
-            },
-            "gate.mode": {
-                "value": "authoritative",
                 "origin": "default"
             },
             "cache.store": {

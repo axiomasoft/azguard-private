@@ -35,6 +35,12 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
   signature of the contract method (`before`: `AccessRequest $request, EvaluationContext $context): BeforeResult`; `after`: `..., Decision $decision): void`;
   `changing`: `Change $change, Closure $next): ChangeResult`); parameters are no longer injected by name.
 - Find: `id()` returning a value that starts with `azguard/` in a class outside the namespace `AzGuard\` → Replace: your own vendor prefix; the prefix is reserved.
+- Find: `AuditPlugin::retentionIn(` → Replace: `$panel->options(AzGuard\Audit\AuditOptions::class)?->retentionDays` (the plugin contributes the options object; `retentionIn()` is gone).
+- Find: `->gate(` or `GateMode` → Replace: nothing; `PanelBuilder::gate()` and `AzGuard\Panels\GateMode` are gone, a panel always answers the abilities it owns authoritatively.
+- Find: `defaults.gate.mode`, `'gate' => ['mode' =>` under `defaults`, or `PanelSettings::GATE_MODE` / `settings()->gateMode()` → Replace: remove it; the key is now an unknown-key error, and the doctor check `gate.mode` is gone (`gate.enabled` is unchanged).
+- Find: `new PanelSettings(` with a `GateMode` argument → Replace: drop the argument (constructor is `@internal`).
+- Find: a call of `Panel::changing()`, `before()`, `after()`, `restrictions()`, `grantConditions()`, `doctorChecks()`, `attachedSources()`, `scopes()`, `scopeDefinition()`, `scopeDefinitions()`, `scopeResolvers()`, `tenantResolvers()` or `resourceScopes()` in application or extension code → Replace: nothing supported; these raw compiled lists are `@internal` now.
+- Find: `Field::…('azg_…')` (a grant field whose name starts with `azg_`) → Replace: another name; the prefix `azg_` is reserved like `tenant_`, `subject_`, `context_` and `actor_`.
 
 ## From 0.3 to 0.7.0
 

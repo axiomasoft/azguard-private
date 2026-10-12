@@ -82,6 +82,8 @@ final readonly class Panel
         private bool $routeChecks = false,
         /** @var list<array{check: DoctorCheck|class-string<DoctorCheck>, origin: string}> */
         private array $healthChecks = [],
+        /** @var array<class-string, object> */
+        private array $options = [],
     ) {}
 
     /**
@@ -148,6 +150,8 @@ final readonly class Panel
      * Pipes every change of grants passes through, in the order provider, plugins, `configure`.
      *
      * @return list<ChangePipe|class-string<ChangePipe>|Closure>
+     *
+     * @internal raw compiled list, not a supported surface
      */
     public function changing(): array
     {
@@ -206,62 +210,125 @@ final readonly class Panel
         return $this->tenantPolicy ?? TenantPolicy::none();
     }
 
+    /**
+     * @internal raw compiled list, not a supported surface
+     */
     public function scopes(): AssignmentScopePolicy
     {
         return $this->scopePolicy ?? AssignmentScopePolicy::none();
     }
 
+    /**
+     * @internal raw compiled list, not a supported surface
+     */
     public function scopeDefinition(string $type): ?AssignmentScopeDefinition
     {
         return $this->scopeDefinitions[$type] ?? null;
     }
 
-    /** @return array<string, AssignmentScopeDefinition> */
+    /**
+     * @return array<string, AssignmentScopeDefinition>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function scopeDefinitions(): array
     {
         return $this->scopeDefinitions;
     }
 
-    /** @return list<TenantResolver|class-string<TenantResolver>> */
+    /**
+     * @return list<TenantResolver|class-string<TenantResolver>>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function tenantResolvers(): array
     {
         return $this->tenantResolvers;
     }
 
-    /** @return list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>> */
+    /**
+     * @return list<AssignmentScopeResolver|class-string<AssignmentScopeResolver>>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function scopeResolvers(): array
     {
         return $this->scopeResolvers;
     }
 
-    /** @return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>> */
+    /**
+     * @return array<class-string<Model>, ResourceScopeResolver|class-string<ResourceScopeResolver>>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function resourceScopes(): array
     {
         return $this->resourceScopes;
     }
 
-    /** @return list<BeforeHook|class-string<BeforeHook>|Closure> */
+    /**
+     * @return list<BeforeHook|class-string<BeforeHook>|Closure>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function before(): array
     {
         return $this->beforeHooks;
     }
 
-    /** @return list<AfterHook|class-string<AfterHook>|Closure> */
+    /**
+     * @return list<AfterHook|class-string<AfterHook>|Closure>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function after(): array
     {
         return $this->afterHooks;
     }
 
-    /** @return list<Restriction|class-string<Restriction>> */
+    /**
+     * @return list<Restriction|class-string<Restriction>>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function restrictions(): array
     {
         return $this->accessRestrictions;
     }
 
-    /** @return list<GrantCondition|class-string<GrantCondition>> */
+    /**
+     * @return list<GrantCondition|class-string<GrantCondition>>
+     *
+     * @internal raw compiled list, not a supported surface
+     */
     public function grantConditions(): array
     {
         return $this->conditions;
+    }
+
+    /**
+     * The typed readonly options a module contributed to this panel, or null when it contributed none.
+     *
+     * @template T of object
+     *
+     * @param  class-string<T>  $class
+     * @return T|null
+     */
+    public function options(string $class): ?object
+    {
+        $options = $this->options[$class] ?? null;
+
+        return $options instanceof $class ? $options : null;
+    }
+
+    /**
+     * @return array<class-string, object>
+     *
+     * @internal read by the panel fingerprint
+     */
+    public function optionObjects(): array
+    {
+        return $this->options;
     }
 
     public function id(): string

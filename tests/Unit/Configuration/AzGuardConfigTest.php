@@ -23,7 +23,6 @@ it('reads the defaults of the published configuration file', function (): void {
         ->and($config->defaults())->toBe([
             'resource_prefix' => true,
             'trace_decisions' => false,
-            'gate.mode' => 'authoritative',
             'cache.store' => null,
             'cache.ttl' => 3600,
             'cache.generation' => 1,
@@ -45,8 +44,8 @@ it('takes integers that arrive from the environment as strings', function (): vo
 });
 
 it('keeps enumerated values as strings for the panel compiler to check', function (): void {
-    expect(azguardConfig(['defaults' => ['gate' => ['mode' => 'permissive'], 'consistency' => ['reads' => 'replica']]])->defaults())
-        ->toBe(['gate.mode' => 'permissive', 'consistency.reads' => 'replica']);
+    expect(azguardConfig(['defaults' => ['consistency' => ['reads' => 'replica']]])->defaults())
+        ->toBe(['consistency.reads' => 'replica']);
 });
 
 it('rejects a key it does not know', function (array $azguard, string $message): void {
@@ -54,7 +53,7 @@ it('rejects a key it does not know', function (array $azguard, string $message):
 })->with([
     'in defaults' => [['defaults' => ['strict_writes' => false]], 'Unknown key in azguard.defaults: strict_writes'],
     'a switch for a guarantee' => [['defaults' => ['fail_closed' => false, 'restrictions' => false]], 'Unknown keys in azguard.defaults: fail_closed, restrictions'],
-    'in defaults.gate' => [['defaults' => ['gate' => ['enabled' => false]]], 'Unknown key in azguard.defaults.gate: enabled'],
+    'the retired defaults.gate.mode' => [['defaults' => ['gate' => ['mode' => 'authoritative']]], 'Unknown key in azguard.defaults: gate'],
     'in defaults.cache' => [['defaults' => ['cache' => ['driver' => 'redis']]], 'Unknown key in azguard.defaults.cache: driver'],
     'in defaults.consistency' => [['defaults' => ['consistency' => ['writes' => 'primary']]], 'Unknown key in azguard.defaults.consistency: writes'],
     'in panels' => [['panels' => ['provider' => []]], 'Unknown key in azguard.panels: provider'],
@@ -75,7 +74,6 @@ it('rejects a value of the wrong type', function (array $defaults, string $code,
     'cache.store is empty' => [['cache' => ['store' => '']], 'invalid_configuration', 'azguard.defaults.cache.store'],
     'cache.ttl is not a number' => [['cache' => ['ttl' => 'hour']], 'invalid_configuration.enum', 'azguard.defaults.cache.ttl must be an integer or null'],
     'cache.generation is null' => [['cache' => ['generation' => null]], 'invalid_configuration.enum', 'azguard.defaults.cache.generation must be an integer,'],
-    'gate.mode is not a string' => [['gate' => ['mode' => true]], 'invalid_configuration.enum', 'azguard.defaults.gate.mode must be a string'],
 ]);
 
 it('rejects sections that are not arrays', function (): void {

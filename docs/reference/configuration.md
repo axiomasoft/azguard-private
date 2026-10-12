@@ -27,7 +27,6 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `defaults.models.permission_grant` | `…\PermissionGrant` | Model of direct permission grants |
 | `defaults.models.permission` | `…\Permission` | Model of dynamic permissions |
 | `defaults.resource_prefix` | `true` | Prefix of full permission names: `true` uses the panel id (`admin.posts.view`), `false` uses no prefix, and a string is set per panel with `resourcePrefix()` |
-| `defaults.gate.mode` | `authoritative` | `GateMode`. The panel's answer for an ability it owns is final. Abilities it does not own are left to Laravel |
 | `defaults.cache.store` | `null` | Laravel cache store for permission sets. With `null`, sets are memoized for the current request or job only |
 | `defaults.cache.ttl` | `3600` | Seconds a set stays in the store |
 | `defaults.cache.generation` | `1` | Part of every cache key. Raise it to drop all cached sets |
@@ -75,7 +74,8 @@ A panel setting is resolved from these layers. The first layer that sets it wins
 | `before()`, `restrictions()`, `after()` | Decision hooks: see [Hooks and plugins](/advanced/hooks-and-plugins) |
 | `changing([...])`, `grantConditions([...])` | Change pipes and grant conditions |
 | `doctorChecks([...])` | Extra `azguard:doctor` checks |
-| `gate(GateMode)`, `cache(store, ttl, generation)`, `consistency(Reads, StateRefresh)` | Same as `defaults.*` |
+| `cache(store, ttl, generation)`, `consistency(Reads, StateRefresh)` | Same as `defaults.*` |
+| `options(object)`, `panelId()` | Typed readonly module options (one object per class, read with `Panel::options(Class)`); the id of the panel being described |
 | `tenants(TenantPolicy)`, `scopes(AssignmentScopePolicy)` | Tenants and assignment scopes: see [Tenants and scopes](/guides/tenants-and-scopes) |
 | `tenantResolvers()`, `scopeResolvers()`, `resourceScopes()` | Resolvers for the current tenant, the assignment scope and the scope of a resource |
 | `plugins([...])`, `withoutPlugins([...])` | Panel plugins |

@@ -9,7 +9,6 @@ use AzGuard\Contracts\Diagnostics\DoctorCheck;
 use AzGuard\Diagnostics\DoctorContext;
 use AzGuard\Diagnostics\DoctorFinding;
 use AzGuard\Exceptions\ConfigurationException;
-use AzGuard\Panels\GateMode;
 use AzGuard\Panels\PanelSettings;
 use AzGuard\Panels\Reads;
 use AzGuard\Panels\StateRefresh;
@@ -26,7 +25,6 @@ final readonly class ConfigValid implements DoctorCheck
 {
     /** @var array<string, class-string<BackedEnum>> */
     private const array ENUMS = [
-        PanelSettings::GATE_MODE => GateMode::class,
         PanelSettings::READS => Reads::class,
         PanelSettings::STATE_REFRESH => StateRefresh::class,
     ];

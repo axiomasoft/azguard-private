@@ -84,6 +84,8 @@ final class PanelRecipe
 
     public const string RESOURCE_SCOPES = 'resource_scopes';
 
+    public const string OPTIONS = 'options';
+
     public const string PLUGINS = 'plugins';
 
     public const string WITHOUT_PLUGINS = 'without_plugins';

@@ -10,16 +10,11 @@ use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Support\Narrow;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use Closure;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Http\Request;
 use ReflectionClass;
-use ReflectionFunction;
 use ReflectionNamedType;
-use UnitEnum;
 
 /** Build-time validation and scalar metadata; user components are never instantiated here. */
 final class ScopeConfiguration
@@ -149,67 +144,6 @@ final class ScopeConfiguration
             return [];
         }
 
-        return array_map(static fn (mixed $filter): string => hash('sha256', json_encode(self::componentMetadata($filter), JSON_THROW_ON_ERROR)), $definition->settings()->filters);
-    }
-
-    public static function componentMetadata(mixed $component): mixed
-    {
-        $metadata = self::metadata($component);
-        $class = is_object($component) && ! $component instanceof Closure ? $component::class : $component;
-
-        if (is_string($class) && (class_exists($class) || interface_exists($class))) {
-            $file = (new ReflectionClass($class))->getFileName();
-
-            return ['value' => $metadata, 'source' => $file === false ? null : hash_file('sha256', $file)];
-        }
-
-        return $metadata;
-    }
-
-    /**
-     * Stable configuration only: live models never contribute attributes or object ids.
-     *
-     * @param  list<object>  $seen
-     */
-    public static function metadata(mixed $value, array $seen = []): mixed
-    {
-        if ($value instanceof Model || $value instanceof Builder || $value instanceof QueryBuilder || $value instanceof Request || $value instanceof Container) {
-            throw new DefinitionException('Assignment scope configuration cannot capture a live model, query, request or container; obtain operation inputs from AssignmentScopeRuntime.');
-        }
-
-        if ($value instanceof UnitEnum) {
-            return ['enum' => $value::class, 'case' => $value->name];
-        }
-
-        if (is_array($value)) {
-            if (! array_is_list($value)) {
-                ksort($value, SORT_STRING);
-            }
-
-            return array_map(static fn (mixed $item): mixed => self::metadata($item, $seen), $value);
-        }
-
-        if (! is_object($value)) {
-            return is_resource($value) ? get_resource_type($value) : $value;
-        }
-
-        if (in_array($value, $seen, true)) {
-            return ['class' => $value::class];
-        }
-        $seen[] = $value;
-
-        if ($value instanceof Closure) {
-            $reflection = new ReflectionFunction($value);
-            $bound = $reflection->getClosureThis();
-
-            if ($bound instanceof Model || $bound instanceof Builder || $bound instanceof QueryBuilder || $bound instanceof Request || $bound instanceof Container) {
-                throw new DefinitionException('Assignment scope configuration cannot bind a closure to a live model, query, request or container.');
-            }
-
-            return ['closure' => [$reflection->getFileName(), $reflection->getStartLine(), $reflection->getEndLine()],
-                'captures' => self::metadata($reflection->getStaticVariables(), $seen)];
-        }
-
-        return ['class' => $value::class, 'configuration' => self::metadata((array) $value, $seen)];
+        return array_map(static fn (mixed $filter): string => hash('sha256', json_encode(CanonicalMetadata::componentMetadata($filter), JSON_THROW_ON_ERROR)), $definition->settings()->filters);
     }
 }

@@ -31,7 +31,7 @@ final class Field
     {
         if (preg_match('/\A[a-z][a-z0-9_]{0,63}\z/', $name) !== 1
             || in_array($name, ['id', 'panel', 'role', 'permission', 'name', 'origin', 'expires_at', 'meta', 'created_at', 'updated_at', 'version'], true)
-            || preg_match('/\A(tenant|subject|context|actor)_/', $name) === 1) {
+            || preg_match('/\A(tenant|subject|context|actor|azg)_/', $name) === 1) {
             throw new DefinitionException('Invalid or reserved grant field name: '.$name.'.');
         }
     }

@@ -38,7 +38,7 @@ function panelBuilder(string $id = 'admin'): array
 const PANEL_BUILDER_METHODS = [
     'id', 'label', 'description', 'default', 'resourcePrefix', 'for', 'middleware', 'entry', 'onDenied',
     'requireRouteChecks', 'permissions', 'roles', 'presentation', 'before', 'restrictions', 'after', 'changing',
-    'grantConditions', 'doctorChecks', 'tenantResolvers', 'scopeResolvers', 'resourceScopes',
+    'grantConditions', 'doctorChecks', 'tenantResolvers', 'scopeResolvers', 'resourceScopes', 'options',
 ];
 
 it('writes every setter call to the recipe with the provider origin and returns the builder', function (string $method, array $arguments, string $setting, mixed $value): void {
@@ -81,7 +81,7 @@ it('writes every setter call to the recipe with the provider origin and returns 
     'withoutPlugins' => ['withoutPlugins', [['acme/audit']], PanelRecipe::WITHOUT_PLUGINS, ['acme/audit']],
 ]);
 
-it('has every builder method of the panel description and exposes nothing to read back', function (): void {
+it('has every builder method of the panel description and exposes only its id to read back', function (): void {
     $methods = [];
 
     foreach ((new ReflectionClass(PanelBuilder::class))->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
@@ -91,7 +91,8 @@ it('has every builder method of the panel description and exposes nothing to rea
 
         $methods[] = $method->getName();
 
-        expect((string) $method->getReturnType())->toBe('static', $method->getName());
+        // panelId() is the one read accessor: the id the builder describes (knowledge/contracts#panel-builder).
+        expect((string) $method->getReturnType())->toBe($method->getName() === 'panelId' ? 'string' : 'static', $method->getName());
     }
 
     expect(array_values(array_diff(PANEL_BUILDER_METHODS, $methods)))->toBe([]);

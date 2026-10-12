@@ -19,7 +19,6 @@ use AzGuard\Diagnostics\Checks\PanelsValid;
 use AzGuard\Diagnostics\Checks\PoliciesComplete;
 use AzGuard\Diagnostics\Checks\RolesKeys;
 use AzGuard\Diagnostics\DoctorFinding;
-use AzGuard\Panels\GateMode;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelRecipe;
@@ -44,6 +43,7 @@ use AzGuard\Tests\Fixtures\Panels\ArraySource;
 use AzGuard\Tests\Fixtures\Panels\CabinetPanel;
 use AzGuard\Tests\Fixtures\Panels\InvoicePermission;
 use AzGuard\Tests\Fixtures\Panels\OrderPermission;
+use AzGuard\Tests\Fixtures\Panels\Seller;
 use AzGuard\Tests\Fixtures\Panels\TestPanel;
 use AzGuard\Tests\Fixtures\Panels\User;
 use AzGuard\Tests\Fixtures\Panels\Vendor;
@@ -85,7 +85,7 @@ function handBuiltPanel(string $id = 'test', ?PanelSettings $settings = null, ?T
         id: $id,
         label: $id,
         default: $default,
-        settings: $settings ?? new PanelSettings(null, GateMode::Authoritative, null, 3600, 1, Reads::Primary, StateRefresh::Request, false,
+        settings: $settings ?? new PanelSettings(null, null, 3600, 1, Reads::Primary, StateRefresh::Request, false,
             array_fill_keys(array_keys(PanelSettings::DEFAULTS), 'default')),
         subjectModels: [User::class],
         pluginIds: [],
@@ -116,16 +116,8 @@ it('config.valid passes the configuration as it is and fails a value it would re
     expect(DoctorWorld::only(DoctorWorld::run(), 'config.valid')[0]->details)->toBe(['code' => 'invalid_configuration']);
 });
 
-it('gate.mode passes an authoritative panel and fails a default mode the configuration changed', function (): void {
-    checkedPanel();
-    expect(doctorKeys('gate.mode'))->toBe([]);
-
-    config(['azguard.defaults.gate.mode' => 'permissive']);
-    expect(doctorKeys('gate.mode'))->toBe(['panel:test gate.mode error']);
-});
-
 it('cache.store passes a store with a ttl or no store, and fails a persistent store without a ttl', function (): void {
-    $settings = static fn (?string $store, ?int $ttl): PanelSettings => new PanelSettings(null, GateMode::Authoritative, $store, $ttl, 1,
+    $settings = static fn (?string $store, ?int $ttl): PanelSettings => new PanelSettings(null, $store, $ttl, 1,
         Reads::Primary, StateRefresh::Request, false, array_fill_keys(array_keys(PanelSettings::DEFAULTS), 'configure'));
 
     checkedPanel(static fn (PanelBuilder $panel) => $panel->cache(store: 'array', ttl: 60));
@@ -219,7 +211,7 @@ it('catalog.collisions passes distinct names and fails a run-time permission tha
 });
 
 it('catalog.collisions fails two panels with one permission prefix', function (): void {
-    $prefixed = static fn (string $id): Panel => handBuiltPanel($id, new PanelSettings('shop', GateMode::Authoritative, null, 3600, 1, Reads::Primary,
+    $prefixed = static fn (string $id): Panel => handBuiltPanel($id, new PanelSettings('shop', null, 3600, 1, Reads::Primary,
         StateRefresh::Request, false, array_fill_keys(array_keys(PanelSettings::DEFAULTS), 'provider')));
 
     expect(CatalogCollisions::prefixes(['admin' => $prefixed('admin'), 'cabinet' => handBuiltPanel('cabinet')], []))->toBe([])
@@ -372,9 +364,10 @@ it('runs every panel check of the core for every selected panel only', function 
     DoctorWorld::panels([
         AdminPanel::class => static fn (PanelBuilder $panel) => $panel->for([User::class, Vendor::class])->permissions([OrderPermission::class, DatabaseSource::make()])
             ->cache(store: 'array', ttl: 60)->consistency(reads: Reads::Default),
-        CabinetPanel::class => static fn (PanelBuilder $panel) => $panel->for(User::class)->permissions([InvoicePermission::class]),
+        // Seller has no morph alias: only the panel that takes it fails `panels.valid`.
+        CabinetPanel::class => static fn (PanelBuilder $panel) => $panel->for([User::class, Seller::class])->permissions([InvoicePermission::class]),
     ]);
-    config(['azguard.defaults.gate.mode' => 'permissive']);
 
-    expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(['cabinet']), 'gate.mode')))->toBe(['panel:cabinet gate.mode error']);
+    expect(DoctorWorld::summary(DoctorWorld::only(DoctorWorld::run(['cabinet']), 'panels.valid')))->toBe(['panel:cabinet panels.valid error'])
+        ->and(DoctorWorld::only(DoctorWorld::run(['admin']), 'panels.valid'))->toBe([]);
 });

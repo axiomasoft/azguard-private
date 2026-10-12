@@ -47,11 +47,6 @@ return [
         // false turns it off. A custom prefix is set on the panel.
         'resource_prefix' => true,
 
-        'gate' => [
-            // authoritative: the answer for an ability the panel owns is final.
-            'mode' => 'authoritative',
-        ],
-
         'cache' => [
             // A Laravel cache store; null keeps permission sets for the request only.
             'store' => null,

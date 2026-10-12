@@ -110,7 +110,6 @@ it('compiles booted panels with the defaults of the configuration and reports th
         ->and($admin->origin('cache.generation'))->toBe('default')
         ->and($cabinet->toArray())->toBe([
             'resource_prefix' => ['value' => 'cabinet', 'origin' => 'default'],
-            'gate.mode' => ['value' => 'authoritative', 'origin' => 'default'],
             'cache.store' => ['value' => null, 'origin' => 'default'],
             'cache.ttl' => ['value' => 3600, 'origin' => 'default'],
             'cache.generation' => ['value' => 1, 'origin' => 'default'],
@@ -146,7 +145,8 @@ it('rejects defaults that would turn a guarantee off or leave an enum', function
             ->and($e->getMessage())->toContain($message);
     }
 })->with([
-    'a gate mode other than authoritative' => [['gate' => ['mode' => 'permissive']], 'invalid_configuration.enum', 'gate.mode'],
+    'the retired gate mode' => [['gate' => ['mode' => 'authoritative']], 'invalid_configuration', 'Unknown key in azguard.defaults: gate'],
+    'reads outside the enum' => [['consistency' => ['reads' => 'replica']], 'invalid_configuration.enum', 'consistency.reads'],
     'a key for direct writes' => [['strict_writes' => false], 'invalid_configuration', 'Unknown key in azguard.defaults: strict_writes'],
     'a persistent store without a ttl' => [['cache' => ['store' => 'redis', 'ttl' => null]], 'invalid_configuration.cache_ttl', 'cache.ttl'],
 ]);

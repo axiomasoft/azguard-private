@@ -9,7 +9,6 @@ use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Exceptions\PluginException;
 use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
-use AzGuard\Panels\GateMode;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelBuilder;
 use AzGuard\Panels\PanelCompiler;
@@ -42,8 +41,7 @@ function settingsPanel(Closure $describe, array $defaults = []): array
 }
 
 it('declares the setting enums with stable string values', function (): void {
-    expect(array_column(GateMode::cases(), 'value', 'name'))->toBe(['Authoritative' => 'authoritative'])
-        ->and(array_column(Reads::cases(), 'value', 'name'))->toBe(['Primary' => 'primary', 'Default' => 'default'])
+    expect(array_column(Reads::cases(), 'value', 'name'))->toBe(['Primary' => 'primary', 'Default' => 'default'])
         ->and(array_column(StateRefresh::cases(), 'value', 'name'))->toBe(['Request' => 'request', 'Check' => 'check']);
 });
 
@@ -52,7 +50,6 @@ it('falls back to the built-in values when nothing sets a setting', function ():
     $settings = $panel->settings();
 
     expect($settings->resourcePrefix())->toBe('admin')
-        ->and($settings->gateMode())->toBe(GateMode::Authoritative)
         ->and($settings->cacheStore())->toBeNull()
         ->and($settings->cacheTtl())->toBe(3600)
         ->and($settings->cacheGeneration())->toBe(1)
@@ -66,7 +63,6 @@ it('records what the provider sets and tells where every value came from', funct
     [$panel] = settingsPanel(
         static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->resourcePrefix('backoffice')
-            ->gate()
             ->cache(store: 'redis', ttl: 120)
             ->consistency(Reads::Default, StateRefresh::Check),
         ['cache.generation' => 7, 'trace_decisions' => true],
@@ -74,7 +70,6 @@ it('records what the provider sets and tells where every value came from', funct
 
     expect($panel->settings()->toArray())->toBe([
         'resource_prefix' => ['value' => 'backoffice', 'origin' => 'provider'],
-        'gate.mode' => ['value' => 'authoritative', 'origin' => 'provider'],
         'cache.store' => ['value' => 'redis', 'origin' => 'provider'],
         'cache.ttl' => ['value' => 120, 'origin' => 'provider'],
         'cache.generation' => ['value' => 7, 'origin' => 'default'],
@@ -177,7 +172,6 @@ it('rejects a value outside its enum or range when the panel is compiled', funct
             ->and($e->getMessage())->toContain($message);
     }
 })->with([
-    'gate mode from the configuration' => [fn () => null, ['gate.mode' => 'permissive'], 'invalid_configuration.enum', '"gate.mode" is "permissive", expected one of authoritative'],
     'reads from the configuration' => [fn () => null, ['consistency.reads' => 'replica'], 'invalid_configuration.enum', 'expected one of primary, default'],
     'state refresh from the configuration' => [fn () => null, ['consistency.state_refresh' => 'never'], 'invalid_configuration.enum', 'expected one of request, check'],
     'ttl below one from the configuration' => [fn () => null, ['cache.ttl' => 0], 'invalid_configuration.enum', '"cache.ttl" is 0'],
@@ -208,7 +202,7 @@ it('gives the builder no method that turns a guarantee off', function (): void {
     expect(array_values($forbidden))->toBe([])
         ->and($methods)->not->toContain('withoutrestrictions', 'allowdirectwrites', 'failopen', 'strictwrites')
         ->and(array_keys(PanelSettings::DEFAULTS))->toBe([
-            'resource_prefix', 'gate.mode', 'cache.store', 'cache.ttl', 'cache.generation',
+            'resource_prefix', 'cache.store', 'cache.ttl', 'cache.generation',
             'consistency.reads', 'consistency.state_refresh', 'trace_decisions',
         ]);
 });

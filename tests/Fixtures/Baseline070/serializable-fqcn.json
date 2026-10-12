@@ -1133,16 +1133,6 @@
             "note": "internal console exception; moved to Laravel\\Console (P2). Never leaves a command."
         },
         {
-            "fqcn": "AzGuard\\Panels\\GateMode",
-            "kinds": [
-                "enum"
-            ],
-            "target": null,
-            "action": "retire",
-            "owner": "retired",
-            "note": "published enum retired by P2 together with defaults.gate.mode; a host storing it must follow the upgrade map."
-        },
-        {
             "fqcn": "AzGuard\\Testing\\Contracts\\ContractPermission",
             "kinds": [
                 "enum"

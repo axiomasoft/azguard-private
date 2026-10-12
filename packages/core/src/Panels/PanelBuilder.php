@@ -20,6 +20,7 @@ use AzGuard\Kernel\Decision\AccessRequest;
 use AzGuard\Kernel\Decision\BeforeResult;
 use AzGuard\Kernel\Decision\Decision;
 use AzGuard\Kernel\Grammar\PermissionGrammar;
+use AzGuard\Panels\Internal\CanonicalMetadata;
 use AzGuard\Policies\PolicyBinding;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Schema\Field;
@@ -29,6 +30,7 @@ use AzGuard\Tenancy\TenantPolicy;
 use BackedEnum;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use ReflectionClass;
 use ReflectionEnum;
 use UnitEnum;
 
@@ -395,13 +397,42 @@ final class PanelBuilder
     }
 
     /**
-     * How the panel answers Laravel Gate for the abilities it owns.
+     * Typed readonly module options, one object per class per panel; read them with `Panel::options(Class)`.
      *
+     * The object must be `readonly` and hold no model, query builder, request, container or bound closure. A layer
+     * (provider, a plugin, `configure`) gives one object of a class; between layers the usual precedence decides.
+     *
+     * @throws DefinitionException
      * @throws RegistryFrozenException
      */
-    public function gate(GateMode $mode = GateMode::Authoritative): static
+    public function options(object $options): static
     {
-        return $this->record(PanelSettings::GATE_MODE, $mode);
+        if (! (new ReflectionClass($options))->isReadOnly()) {
+            throw $this->invalid('options() expects a readonly object, got '.$options::class);
+        }
+        $origin = $this->recipe->origin();
+
+        foreach ($this->recipe->records() as $record) {
+            if ($record['setting'] === PanelRecipe::OPTIONS && $record['origin'] === $origin && is_object($record['value']) && $options::class === $record['value']::class) {
+                throw $this->invalid('options() takes one object of '.$options::class.' per layer');
+            }
+        }
+
+        try {
+            CanonicalMetadata::assertOptions($options);
+        } catch (DefinitionException $error) {
+            throw $this->invalid('options() '.$options::class.': '.rtrim($error->getMessage(), '.'));
+        }
+
+        return $this->record(PanelRecipe::OPTIONS, $options);
+    }
+
+    /**
+     * The id of the panel this builder describes.
+     */
+    public function panelId(): string
+    {
+        return $this->recipe->panelId();
     }
 
     /**

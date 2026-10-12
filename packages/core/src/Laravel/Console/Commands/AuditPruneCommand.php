@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AzGuard\Laravel\Console\Commands;
 
+use AzGuard\Audit\AuditOptions;
 use AzGuard\Changes\ChangePipeline;
 use AzGuard\Laravel\Console\Concerns\InteractsWithAzGuard;
 use AzGuard\Panels\Panel;
 use AzGuard\Panels\PanelRegistry;
-use AzGuard\Plugins\Audit\AuditPlugin;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 
@@ -38,7 +38,7 @@ final class AuditPruneCommand extends Command
             /** @var list<array{Panel, int}> $retained */
             $retained = [];
             foreach ($panels as $panel) {
-                $days = AuditPlugin::retentionIn($registry->recipe($panel->id()));
+                $days = $panel->options(AuditOptions::class)?->retentionDays;
 
                 if ($days !== null && in_array('azguard/audit', $panel->pluginIds(), true)) {
                     $retained[] = [$panel, $days];

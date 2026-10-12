@@ -167,5 +167,5 @@ final class CompliancePlugin implements Plugin
 
 ### Audit plugin
 
-`AuditPlugin::make(retentionDays: 365)` writes one row per effective change to `azg_audit_log`, created by the standard migrations, in the same transaction as the change.
+`AuditPlugin::make(retentionDays: 365)` writes one row per effective change to `azg_audit_log`, created by the standard migrations, in the same transaction as the change. The plugin contributes `AzGuard\Audit\AuditOptions` to the panel: read the retention with `$panel->options(AuditOptions::class)?->retentionDays`.
 `azguard:audit:prune` deletes rows older than the retention.

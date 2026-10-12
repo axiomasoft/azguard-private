@@ -1,6 +1,6 @@
 {
-    "azg_region": true,
-    "azg_": true,
+    "azg_region": false,
+    "azg_": false,
     "region": true,
     "tenant_region": false,
     "subject_region": false,

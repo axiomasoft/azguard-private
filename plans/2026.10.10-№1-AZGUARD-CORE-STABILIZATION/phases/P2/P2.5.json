@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.5",
   "title": "Typed module options, panel surface closure and retirement of GateMode",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "Panels carry typed readonly module options (`PanelBuilder::options()`, `Panel::options(Class)`) that are fingerprinted canonically through `Panels\\Internal\\CanonicalMetadata`; `AuditPlugin` contributes `Audit\\AuditOptions` and `retentionIn(PanelRecipe)` is gone; the raw compiled lists of `Panel` are `@internal`; `PanelBuilder::panelId()` exists; `GateMode`, `gate()`, `defaults.gate.mode` and `GateModeCheck` are retired; grant fields reject the reserved `azg_` prefix.",
   "why": "Owners read their own settings from the panel instead of introspecting another class's recipe (D8, architecture#spi-catalog typed module options); raw slot lists are not a supported surface (contracts#panel); a single-case enum is not a configuration (api-compatibility). Hard risk: options must be panel-local and part of the fingerprint, or a second panel/stale catalog could read another panel's retention (I14).",
   "scope": {
@@ -236,6 +236,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T20:17:29Z"
+  "result": {
+    "started_at": "2026-10-12T03:15:19Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "session": "62e3de22-0400-404e-95c0-b0a60e2d0b41"
+    }
+  },
+  "updated_at": "2026-10-12T03:15:19Z"
 }
