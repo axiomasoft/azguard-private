@@ -27,10 +27,10 @@ afterEach(function (): void {
     Relation::morphMap([], false);
 });
 
-it(sprintf('I9 scalar batch and SQL agree on %d decision cases per seed, seeds %d-%d, Audit off and on', ParityWorld::decisionCount(), ParityWorld::SEEDS[0], ParityWorld::SEEDS[array_key_last(ParityWorld::SEEDS)]), function (): void {
+it(sprintf('I9 scalar batch and SQL agree on %d decision cases per seed, seeds %d-%d (PARITY_SEEDS narrows), Audit off and on', ParityWorld::decisionCount(), ParityWorld::SEEDS[0], ParityWorld::SEEDS[array_key_last(ParityWorld::SEEDS)]), function (): void {
     $ledger = new ParityLedger;
 
-    foreach (ParityWorld::SEEDS as $seed) {
+    foreach (ParityWorld::seeds() as $seed) {
         ParityWorld::write($seed);
         $cases = iterator_to_array(ParityWorld::decisionCases($seed), false);
 
@@ -42,11 +42,12 @@ it(sprintf('I9 scalar batch and SQL agree on %d decision cases per seed, seeds %
     $counts = $ledger->counts();
     [$actual, $stored] = $ledger->compare('decisions');
 
-    expect($ledger->cases())->toBe(ParityWorld::decisionCount() * count(ParityWorld::SEEDS))
+    expect($ledger->cases())->toBe(ParityWorld::decisionCount() * count(ParityWorld::seeds()))
         ->and($ledger->disagreements())->toBe(ParityLedger::findings('decisions'))
         // Both verdicts occur among agreeing cases: the matrix is not vacuously all-deny.
         ->and($counts['allow'])->toBeGreaterThan(0)->and($counts['deny'])->toBeGreaterThan(0)
-        ->and($actual)->toBe($stored);
+        // The frozen ledger of unsupported cases covers all seeds: a partial run (PARITY_SEEDS) leaves it to the full one.
+        ->and(ParityWorld::isComplete() ? $actual : $stored)->toBe($stored);
 });
 
 it(sprintf('I9 directory eligibility equals write admission on %d assignment cases, draw seed %d, Audit off and on', ParityWorld::assignmentCount(), ParityWorld::ASSIGNMENT_SEED), function (): void {

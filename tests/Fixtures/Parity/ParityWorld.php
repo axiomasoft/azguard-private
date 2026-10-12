@@ -47,6 +47,30 @@ final class ParityWorld
     /** @var list<int> */
     public const array SEEDS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+    /**
+     * The seeds of this run: all of SEEDS, or the listed ones of `PARITY_SEEDS=1,2` (the server-database lanes of a
+     * pull request). The agreement of the paths is checked for each seed alone; only the frozen ledger of unsupported
+     * cases describes the whole range, so a partial run does not compare it (`isComplete()`).
+     *
+     * @return list<int>
+     */
+    public static function seeds(): array
+    {
+        $listed = getenv('PARITY_SEEDS');
+
+        if ($listed === false || $listed === '') {
+            return self::SEEDS;
+        }
+        $seeds = array_values(array_intersect(self::SEEDS, array_map('intval', explode(',', $listed))));
+
+        return $seeds === [] ? self::SEEDS : $seeds;
+    }
+
+    public static function isComplete(): bool
+    {
+        return self::seeds() === self::SEEDS;
+    }
+
     /** The fixed draw of the assignment matrix: its cases do not depend on the stored rows. */
     public const int ASSIGNMENT_SEED = 1;
 
