@@ -16,6 +16,22 @@ use Illuminate\Support\Facades\Schema;
 
 uses(TestCase::class)->in('Unit', 'Feature', 'Regression', 'Engines', 'Acceptance', 'Contracts');
 
+/*
+ * Zone groups from tests/zones.json: `zone:<name>` for the zone a test directory belongs to, `database` for the
+ * directories whose result depends on the database engine (the only ones the PostgreSQL, MySQL and MariaDB lanes run).
+ */
+$zoneMap = json_decode((string) file_get_contents(__DIR__.'/zones.json'), true, flags: JSON_THROW_ON_ERROR);
+
+foreach ($zoneMap['zones'] as $zoneName => $zone) {
+    foreach ($zone['tests'] as $zoneTests) {
+        pest()->group("zone:{$zoneName}")->in($zoneTests);
+    }
+}
+
+foreach ($zoneMap['database'] as $databaseTests) {
+    pest()->group('database')->in($databaseTests);
+}
+
 uses(BootsFilament::class)->group('filament')->afterEach(fn () => FilamentFixture::reset())->in('Feature/Filament');
 
 uses()->group('crm')->beforeEach(fn () => CrmWorld::seed())

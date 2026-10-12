@@ -1,0 +1,88 @@
+{
+    "_comment": "Zone map: one source for Pest groups (tests/Pest.php), `composer test:changed` (bin/test-changed.php) and tests/Arch/ZonesMapTest.php. `src` and `tests` are relative to the repository and to tests/. `uses` lists the zones whose code the zone depends on: a change there re-runs this zone too. `database` lists the test directories whose result depends on the database engine; only they run on PostgreSQL, MySQL and MariaDB (group `database`).",
+    "zones": {
+        "kernel": {
+            "src": ["packages/core/src/Kernel", "packages/core/src/Attributes", "packages/core/src/Exceptions", "packages/core/src/Support", "packages/core/src/Contracts", "packages/core/src/Context", "packages/core/src/Tenancy"],
+            "tests": ["Unit/Kernel", "Unit/Exceptions", "Unit/Contracts", "Feature/Support"],
+            "uses": []
+        },
+        "catalog": {
+            "src": ["packages/core/src/Catalog", "packages/core/src/Panels", "packages/core/src/Roles", "packages/core/src/Permissions", "packages/core/src/Configuration", "packages/core/src/Plugins", "packages/core/src/Policies", "packages/core/src/Schema", "packages/core/src/Events"],
+            "tests": ["Unit/Catalog", "Unit/Panels", "Unit/Roles", "Unit/Configuration", "Unit/Plugins", "Unit/Schema", "Feature/Catalog", "Feature/Panels", "Feature/Configuration", "Feature/Plugins", "Feature/Policies", "Feature/Schema", "Feature/Events", "Feature/Modules"],
+            "uses": ["kernel"]
+        },
+        "storage": {
+            "src": ["packages/core/src/Storage"],
+            "tests": ["Unit/Storage", "Feature/Storage"],
+            "uses": ["kernel"]
+        },
+        "sources": {
+            "src": ["packages/core/src/Sources"],
+            "tests": ["Unit/Sources", "Feature/Sources", "Contracts/Sources", "Contracts/Resolvers"],
+            "uses": ["kernel", "catalog", "storage"]
+        },
+        "changes": {
+            "src": ["packages/core/src/Changes", "packages/core/src/Audit"],
+            "tests": ["Unit/Changes", "Feature/Changes", "Contracts/Hooks"],
+            "uses": ["kernel", "catalog", "storage", "sources"]
+        },
+        "authorization": {
+            "src": ["packages/core/src/Authorization", "packages/core/src/Scopes", "packages/core/src/Concerns", "packages/core/src/Facades"],
+            "tests": ["Unit/Authorization", "Unit/Scopes", "Unit/Facades", "Feature/Authorization", "Feature/Scopes", "Feature/Gate", "Feature/Http", "Feature/InactiveCost", "Feature/Concerns", "Feature/Facade", "Contracts/Scopes", "Contracts/Restrictions"],
+            "uses": ["kernel", "catalog", "storage", "sources"]
+        },
+        "visibility": {
+            "src": ["packages/core/src/Directories"],
+            "tests": ["Unit/Directories", "Feature/Visibility", "Feature/Directories", "Feature/Parity"],
+            "uses": ["kernel", "authorization", "storage", "sources"]
+        },
+        "testing-kit": {
+            "src": ["packages/core/src/Testing"],
+            "tests": ["Unit/Testing", "Feature/Testing", "Contracts/Plugins", "Contracts/NegativeFixturesTest.php"],
+            "uses": ["kernel", "storage", "sources", "changes", "authorization"]
+        },
+        "console": {
+            "src": ["packages/core/src/Laravel", "packages/core/src/Diagnostics", "packages/core/src/AzGuard.php", "packages/core/src/AzGuardServiceProvider.php"],
+            "tests": ["Feature/Console", "Feature/Diagnostics", "Feature/Laravel", "Feature/ServiceProviderTest.php", "Unit/ServiceProviderContractTest.php"],
+            "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility", "testing-kit"]
+        },
+        "filament": {
+            "src": ["packages/filament/src"],
+            "tests": ["Feature/Filament"],
+            "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility"]
+        },
+        "bench": {
+            "src": ["bench"],
+            "tests": ["Feature/Bench"],
+            "uses": ["kernel", "authorization", "storage"]
+        },
+        "engines": {
+            "src": [],
+            "tests": ["Engines"],
+            "uses": ["storage", "sources", "changes", "visibility"]
+        },
+        "acceptance": {
+            "src": [],
+            "tests": ["Acceptance"],
+            "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility", "filament"],
+            "tail": true
+        },
+        "regression": {
+            "src": [],
+            "tests": ["Regression"],
+            "uses": ["kernel", "catalog", "storage", "sources", "changes", "authorization", "visibility"],
+            "tail": true
+        },
+        "arch": {
+            "src": [],
+            "tests": ["Arch"],
+            "uses": [],
+            "always": true
+        }
+    },
+    "database": [
+        "Feature/Storage", "Feature/Sources/Database", "Feature/Changes", "Feature/Visibility", "Feature/Directories",
+        "Feature/Parity", "Contracts", "Engines", "Regression/Baseline070/PopulatedDatabaseTest.php"
+    ],
+    "global": ["composer.json", "composer.lock", "phpunit.xml", "tests/Pest.php", "tests/TestCase.php", "tests/zones.json", "bin/test-changed.php", "tests/Support", "tests/Fixtures", "packages/core/composer.json", "packages/filament/composer.json"]
+}
