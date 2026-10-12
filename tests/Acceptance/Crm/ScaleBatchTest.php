@@ -6,10 +6,16 @@ use AzGuard\Authorization\Authorizer;
 use AzGuard\Tests\Fixtures\Authorization\BatchCrmWorld;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
 use AzGuard\Tests\Fixtures\Crm\Models\Client;
+use AzGuard\Tests\TestCase;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 
-it('accounts every CRM resource with scalar parity and bounds structural SQL by scopes', function (int $resources, int $contexts): void {
+/*
+ * The R58 size (10000 resources, 100 contexts) takes minutes on a server database and proves the same budgets as V45
+ * at ten times the size: it runs in the `extended` group (`composer test:extended`, nightly CI), V45 on every run.
+ */
+function accountsEveryCrmResource(TestCase $test, int $resources, int $contexts): void
+{
     $expectedIds = BatchCrmWorld::scale($resources, $contexts);
     $panel = World::compile();
     $clients = Client::query()->where('id', '>=', 1000)->orderBy('id')->get();
@@ -52,12 +58,17 @@ it('accounts every CRM resource with scalar parity and bounds structural SQL by 
     foreach ($requests as $i => $request) {
         $scalar = $engine->decide($panel, $request);
         $batch = $set->get($i);
-        $this->assertEquals([$scalar->effect, $scalar->reason, $scalar->scope, $scalar->component], [$batch->effect, $batch->reason, $batch->scope, $batch->component], 'resource id='.$clients[$i]->getKey());
-        $this->assertTrue($scalar->state->equals($batch->state), 'resource state id='.$clients[$i]->getKey());
+        $test->assertEquals([$scalar->effect, $scalar->reason, $scalar->scope, $scalar->component], [$batch->effect, $batch->reason, $batch->scope, $batch->component], 'resource id='.$clients[$i]->getKey());
+        $test->assertTrue($scalar->state->equals($batch->state), 'resource state id='.$clients[$i]->getKey());
 
         if ($scalar->allowed()) {
             $scalarIds[] = $clients[$i]->getKey();
         }
     }
     expect($scalarIds)->toBe($expectedIds)->toBe($batchIds);
-})->with(['V45 1000 resources' => [1000, 10], 'R58 10000 resources 100 contexts multirole' => [10000, 100]]);
+}
+
+it('V45 accounts every CRM resource of 1000 with scalar parity and bounds structural SQL by scopes', fn () => accountsEveryCrmResource($this, 1000, 10));
+
+it('R58 accounts every CRM resource of 10000 in 100 contexts multirole with scalar parity and bounded SQL', fn () => accountsEveryCrmResource($this, 10000, 100))
+    ->group('extended');
