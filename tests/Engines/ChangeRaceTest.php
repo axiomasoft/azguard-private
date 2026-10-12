@@ -13,6 +13,7 @@ use AzGuard\Tests\Engines\Support\Processes;
 use AzGuard\Tests\Fixtures\Changes\ChangeWorld as W;
 use AzGuard\Tests\Fixtures\Changes\HostFencePipe;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld;
+use Closure;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Carbon;
@@ -54,7 +55,7 @@ function changeRaceWaitForId(string $file): int
 /** The fingerprint a worker compiles: closures count by kind, so the coordinator can compute it. */
 function changeRaceFenceFingerprint(): string
 {
-    W::panel([static fn () => null, HostFencePipe::class]);
+    W::panel([static fn (Change $change, Closure $next): ChangeResult => $next($change), HostFencePipe::class]);
 
     return app(PanelRegistry::class)->fingerprint('crm');
 }

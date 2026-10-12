@@ -276,12 +276,12 @@ it('R37 refuses a project, a subject or a grant of organization B in the editor 
         ])
         ->assertHasActionErrors(['context']);
 
-    // Борис is not a member of B: the writer refuses the grant in B.
+    // Борис is not a member of B: the directory applies the tenant membership of the write, so the form refuses P4.
     Livewire::test(ListRoleGrants::class)
         ->callAction(TestAction::make('create')->table(), [
             'panel' => 'backoffice', 'tenant' => '2', 'subject' => 'crm.user:2', 'key' => 'analyst', 'context_type' => 'crm.project', 'context' => '4',
         ])
-        ->assertNotified('The grant was not saved');
+        ->assertHasActionErrors(['context']);
 
     // A grant id of B in a bulk of A refuses the whole revocation.
     World::assign('analyst', 1, 1, panel: 'backoffice');

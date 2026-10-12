@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Directories\PanelDirectories;
 use AzGuard\Facades\AzGuard;
+use AzGuard\Kernel\Identity\AssignmentScopeRef;
 use AzGuard\Kernel\Identity\TenantRef;
 use AzGuard\Tests\Feature\Directories\Support\Lookups;
 use AzGuard\Tests\Fixtures\Crm\CrmWorld as World;
@@ -36,7 +38,10 @@ it('hands out the directories that the resolver of the panel picks', function ()
         ->and($directories->subjects('crm.user'))->toEqual($resolver->subjects('crm.user'))
         ->and($directories->subjects('unknown.type'))->toEqual($resolver->subjects('unknown.type'))
         ->and($directories->tenants())->toEqual($resolver->tenants())
-        ->and($directories->scopes('crm.project'))->toEqual($resolver->scopes('crm.project'));
+        ->and($directories->scopes('crm.project')->search('crm.project', '', $inspection = Lookups::make($panel, tenant: 1, target: null, phase: AssignmentScopePhase::Inspection), 10))
+        ->toEqual($resolver->scopes('crm.project')->search('crm.project', '', $inspection, 10))
+        ->and($directories->scopes('crm.project')->describe(AssignmentScopeRef::of('crm.project', 1), $inspection))
+        ->toEqual($resolver->scopes('crm.project')->describe(AssignmentScopeRef::of('crm.project', 1), $inspection));
 });
 
 it('searches and describes the same tenants as the resolver', function (): void {

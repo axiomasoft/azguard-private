@@ -2,7 +2,7 @@
   "$schema": "urn:swissknifeman:task:plan:item:v1",
   "id": "P2.9",
   "title": "Declared scope directories with write-equal eligibility (I9 findings F1, F2)",
-  "status": "todo",
+  "status": "in_progress",
   "summary": "UI directories come from the declaration (one directory per alias, the module's model directory as default, empty when none) and offer only what the final write would accept: the same mode, alias, structural, tenant-membership and `allows(Assignment)` checks as `ChangeValidator`, so the P1 findings F1 (directory ignores an effective None mode) and F2 (directory ignores target tenant membership) are gone and the parity matrix reports zero directory/write disagreements.",
   "why": "I9 requires directory eligibility to equal write admission (architecture#operation-chains F); P1.3 recorded 82 disagreements with owner P2. Core must stop instantiating the module's `QueryScopeDirectory` (I2). Hard risk: directory and write must share one admission function, otherwise they drift again.",
   "scope": {
@@ -177,6 +177,14 @@
     "need": "none",
     "status": "not_needed"
   },
-  "result": null,
-  "updated_at": "2026-10-11T16:12:10Z"
+  "result": {
+    "started_at": "2026-10-12T05:36:57Z",
+    "executor": {
+      "provider": "claude-code",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "session": "20a9d912-2b41-4831-92f8-392e568b4d7f"
+    }
+  },
+  "updated_at": "2026-10-12T05:36:57Z"
 }

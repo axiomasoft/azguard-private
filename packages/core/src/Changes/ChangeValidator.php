@@ -7,13 +7,10 @@ namespace AzGuard\Changes;
 use AzGuard\Authorization\ModelSubjectResolver;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
-use AzGuard\Context\AssignmentScopeMode;
 use AzGuard\Context\AssignmentScopePhase;
 use AzGuard\Context\AssignmentScopeRuntime;
-use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Scopes\ResourceScopeResolver;
-use AzGuard\Contracts\Tenancy\TenantMembership;
-use AzGuard\Exceptions\AssignmentScopeNotAcceptedException;
+use AzGuard\Directories\DirectoryResolver;
 use AzGuard\Exceptions\AssignmentScopeRequiredException;
 use AzGuard\Exceptions\AzGuardException;
 use AzGuard\Exceptions\DefinitionException;
@@ -47,8 +44,6 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
-use PDOException;
-use Throwable;
 
 /**
  * @internal Checks of one pipeline attempt under the panel lock, after all pipes, over the final change.
@@ -398,33 +393,7 @@ final class ChangeValidator
      */
     private function tenancy(Change $change, SubjectRef $subject, ?array $role): void
     {
-        $policy = $this->panel->tenants();
-        $tenant = $change->scope->tenant;
-
-        if ($policy->mode() === TenantMode::None && ! $tenant->isGlobal()) {
-            throw new TenantMismatchException('Panel '.$this->panel->id().' has no tenants.');
-        }
-
-        if ($policy->mode() === TenantMode::Required) {
-            if ($tenant->isGlobal()) {
-                if ($role === null || ! in_array($role['class'], $policy->globalRoles(), true)) {
-                    throw new TenantRequiredException('Panel '.$this->panel->id().' grants this only inside a tenant.');
-                }
-            } elseif ($tenant->type() !== $policy->definition()?->type()) {
-                throw new TenantMismatchException('Tenant type '.$tenant->type().' is not the tenant of panel '.$this->panel->id().'.');
-            } elseif (! $this->tenantMember($subject, $tenant)) {
-                throw new TenantMismatchException('Subject '.$subject->key().' is not a member of tenant '.$tenant->key().'.');
-            }
-        }
-        $mode = $this->panel->scopeDeclaration()->mode ?? AssignmentScopeMode::None;
-
-        if ($mode === AssignmentScopeMode::Required && $change->scope->context->isGlobal()) {
-            throw new AssignmentScopeRequiredException('Panel '.$this->panel->id().' grants only inside an assignment scope.');
-        }
-
-        if ($mode === AssignmentScopeMode::None && ! $change->scope->context->isGlobal()) {
-            throw new AssignmentScopeNotAcceptedException('Panel '.$this->panel->id().' has no assignment scopes.');
-        }
+        DirectoryResolver::admitTenancy($this->panel, $this->container, $change->scope->tenant, $change->scope->context->isGlobal(), $subject, $role['class'] ?? null);
     }
 
     /**
@@ -444,44 +413,11 @@ final class ChangeValidator
 
             return;
         }
-        $type = $ref->type() ?? '';
-        $definition = $this->panel->scopeDefinition($type)
-            ?? throw new AssignmentScopeNotAcceptedException('Panel '.$this->panel->id().' has no assignment scope type "'.$type.'".');
-
-        if ($role !== null && ! in_array($type, array_column($role['scopes'], 'type'), true)) {
-            throw new AssignmentScopeNotAcceptedException('Role "'.$change->role?->key().'" is not granted in assignment scope type "'.$type.'".');
-        }
         $subject = $change->subject ?? throw new SubjectNotAcceptedException('A grant change needs a target subject.');
-
-        try {
-            $resolved = $definition->resolve($ref);
-
-            if ($resolved === null || ! $resolved->ref->equals($ref)) {
-                throw new AssignmentScopeNotAcceptedException('Assignment scope '.$ref->key().' does not exist.');
-            }
-
-            if (! $resolved->tenant->equals($change->scope->tenant)) {
-                throw new TenantMismatchException('Assignment scope '.$ref->key().' belongs to another tenant.');
-            }
-            $model = $definition->model();
-
-            if ($resolved->record !== null && (($model !== null && ! $resolved->record instanceof $model) || ! ModelKey::matches($resolved->record, $ref->id() ?? ''))) {
-                throw new AssignmentScopeNotAcceptedException('Assignment scope '.$ref->key().' resolved to a record of another model or key.');
-            }
-            $evaluator = ContextIdentity::evaluator($this->panel, $this->container);
-            $runtime = new AssignmentScopeRuntime(panel: $this->panel, scope: $change->scope, subject: $subject, user: $context->user,
-                role: $context->role, grant: null, actor: $context->actor, actorModel: $context->actorModel, now: $this->now,
-                phase: AssignmentScopePhase::Assignment, proposed: $context->proposed);
-            $allowed = $evaluator === null || $evaluator->allows($runtime, $resolved);
-        } catch (AzGuardException|PDOException $error) {
-            throw $error;
-        } catch (Throwable $error) {
-            throw new AssignmentScopeNotAcceptedException('Assignment scope '.$ref->key().' was refused by its filters: '.$error->getMessage(), 0, $error);
-        }
-
-        if (! $allowed) {
-            throw new AssignmentScopeNotAcceptedException('Assignment scope '.$ref->key().' is not accepted for this target and role.');
-        }
+        DirectoryResolver::admitContext(new AssignmentScopeRuntime(panel: $this->panel, scope: $change->scope, subject: $subject, user: $context->user,
+            role: $context->role, grant: null, actor: $context->actor, actorModel: $context->actorModel, now: $this->now,
+            phase: AssignmentScopePhase::Assignment, proposed: $context->proposed),
+            $role === null ? null : array_column($role['scopes'], 'type'), $change->role?->key(), $this->container);
     }
 
     /** Absolute UTC expiry in the future, kept to the second as storage keeps it. */
@@ -583,21 +519,5 @@ final class ChangeValidator
         }
 
         return $this->targets[$subject->key()];
-    }
-
-    private function tenantMember(SubjectRef $subject, TenantRef $tenant): bool
-    {
-        $declared = $this->panel->tenants()->membership();
-
-        if ($declared === null) {
-            return true;
-        }
-        $adapter = is_string($declared) ? $this->container->make($declared) : $declared;
-
-        if (! $adapter instanceof TenantMembership) {
-            throw new DefinitionException('Tenant membership resolver did not return '.TenantMembership::class.'.');
-        }
-
-        return $adapter->isMember($subject, $tenant);
     }
 }

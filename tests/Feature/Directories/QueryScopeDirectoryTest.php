@@ -63,7 +63,8 @@ function callbackScope(): ModelAssignmentScopeDefinition
 
 function callbackPanel(?Closure $configure = null): Panel
 {
-    return World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ProjectScope::make(), $configure === null ? callbackScope() : $configure(callbackScope())], evaluator: ScopeEvaluator::class)));
+    return World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit,
+        [ProjectScope::make(), $configure === null ? callbackScope() : $configure(callbackScope())], ['crm.cproject' => QueryScopeDirectory::class], ScopeEvaluator::class)));
 }
 
 it('offers the contexts of the target and not of the acting admin', function (): void {
@@ -235,7 +236,8 @@ it('describes an inactive context to Inspection and to the owner callback tenant
 });
 
 it('searches nothing for an external definition without a query', function (): void {
-    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [new ExternalProjectScope], evaluator: ScopeEvaluator::class)));
+    $panel = World::compile(fn (PanelBuilder $p) => $p->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [new ExternalProjectScope],
+        ['external.project' => QueryScopeDirectory::class], ScopeEvaluator::class)));
     $directory = DirectoryResolver::for($panel, app())->scopes('external.project');
     $lookup = Lookups::make($panel, tenant: 1, target: 1);
 

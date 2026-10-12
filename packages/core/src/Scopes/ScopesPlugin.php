@@ -11,6 +11,8 @@ use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
+use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
+use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Kernel\Identity\IdentityCodec;
 use AzGuard\Panels\PanelBuilder;
@@ -98,9 +100,10 @@ final class ScopesPlugin implements Plugin
     }
 
     /**
-     * Contributes the scope declaration (mode, definitions and `ScopeEvaluator`; the compiler takes the directory a
-     * definition names into the declaration), the scope options (membership, access adapters), the scope membership
-     * restriction when a membership is required and the doctor check `scopes.membership`.
+     * Contributes the scope declaration (mode, definitions, `QueryScopeDirectory` for each queryable definition — a
+     * directory the definition names takes precedence — and `ScopeEvaluator`), the scope options (membership, access
+     * adapters), the scope membership restriction when a membership is required and the doctor check
+     * `scopes.membership`.
      *
      * @throws DefinitionException when a definition is neither a definition object, a definition class that can be
      *                             created without arguments nor an Eloquent model class
@@ -109,7 +112,15 @@ final class ScopesPlugin implements Plugin
     {
         $definitions = array_map(static fn (AssignmentScopeDefinition|string $declared): AssignmentScopeDefinition => self::definition($context, $declared), $this->definitions);
 
-        $panel->assignmentScopes(new AssignmentScopeDeclaration($this->mode, $definitions, evaluator: ScopeEvaluator::class))
+        $directories = [];
+
+        foreach ($definitions as $definition) {
+            if ($definition instanceof QueryableAssignmentScopeDefinition) {
+                $directories[$definition->type()] = QueryScopeDirectory::class;
+            }
+        }
+
+        $panel->assignmentScopes(new AssignmentScopeDeclaration($this->mode, $definitions, $directories, ScopeEvaluator::class))
             ->options(new ScopesOptions($this->membership, $this->adapters))
             ->doctorChecks([ScopeMembershipConfigured::class]);
 

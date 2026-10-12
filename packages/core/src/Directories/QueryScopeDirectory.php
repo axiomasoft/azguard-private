@@ -9,6 +9,7 @@ use AzGuard\Context\AssignmentScopeRuntime;
 use AzGuard\Contracts\Scopes\AssignmentScopeAccessAdapter;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
+use AzGuard\Contracts\Scopes\AssignmentScopeMembership;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Exceptions\DefinitionException;
@@ -26,7 +27,9 @@ use Illuminate\Database\Eloquent\Model;
  *
  * In the Assignment phase it offers only the contexts the final write would accept for the target of the lookup:
  * the common filters and the filters of the role binding run in SQL with the target user, the role, the proposed
- * values and the actor of the lookup, and the access adapter of the type checks each candidate. Without a selected
+ * values and the actor of the lookup, the access adapter of the type checks each candidate, and so does the scope
+ * membership the panel requires. The checks that do not depend on a context (tenant, membership of the target in
+ * it, scope mode, role) are made once by `PanelDirectories` before the search. Without a selected
  * target there is nothing to evaluate and the list is empty. The other phases skip eligibility, never the type,
  * the structure or the selected tenant.
  *
@@ -108,7 +111,7 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
                 }
             }
 
-            foreach ($this->adapted($adapter, $type, $owned, $lookup) as $record) {
+            foreach ($this->members($assignment, $type, $this->adapted($adapter, $type, $owned, $lookup), $lookup) as $record) {
                 $options[] = new AssignmentScopeOption(AssignmentScopeRef::of($type, ModelKey::of($record)), ModelLookup::label($record));
 
                 if (count($options) >= $limit) {
@@ -195,6 +198,29 @@ final readonly class QueryScopeDirectory implements AssignmentScopeDirectory
         }
 
         return $adapter;
+    }
+
+    /**
+     * Candidates the target is a member of, when the panel requires scope membership: the write checks it too.
+     *
+     * @param  list<Model>  $records
+     * @return list<Model>
+     */
+    private function members(bool $assignment, string $type, array $records, LookupContext $lookup): array
+    {
+        $declared = $assignment ? ScopeConfiguration::membership($lookup->panel) : null;
+
+        if ($declared === null || $lookup->subject === null) {
+            return $records;
+        }
+        $membership = is_string($declared) ? $this->container->make($declared) : $declared;
+
+        if (! $membership instanceof AssignmentScopeMembership) {
+            throw new DefinitionException('Scope membership resolver did not return '.AssignmentScopeMembership::class.'.');
+        }
+        $subject = $lookup->subject;
+
+        return array_values(array_filter($records, static fn (Model $record): bool => $membership->isMember($subject, AssignmentScopeRef::of($type, ModelKey::of($record)))));
     }
 
     /**

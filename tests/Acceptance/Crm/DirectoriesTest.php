@@ -113,11 +113,15 @@ it('R50 an external consumer directory declared in code replaces the default thr
         ->and($panel->scopeDefinition('crm.project')?->settings()->directory)->toBe(ProjectDirectory::class);
 });
 
-it('R50 without a configured directory the default is the query directory over the definition', function (): void {
+it('R50 without a configured directory the default is the query directory of ScopesPlugin; a type without one has none', function (): void {
     $panel = World::compile();
+    $lookup = Lookups::make($panel, tenant: 1, target: null, phase: AssignmentScopePhase::Inspection);
+    $none = DirectoryResolver::for($panel, app())->scopes('unknown.type');
 
     expect(DirectoryResolver::for($panel, app())->scopes('crm.project'))->toBeInstanceOf(QueryScopeDirectory::class)
-        ->and(DirectoryResolver::for($panel, app())->scopes('unknown.type'))->toBeInstanceOf(QueryScopeDirectory::class);
+        ->and($panel->scopeDeclaration()?->directories)->toBe(['crm.project' => QueryScopeDirectory::class])
+        ->and($none->search('unknown.type', '', $lookup, 10))->toBe([])
+        ->and($none->describe(AssignmentScopeRef::of('unknown.type', 1), $lookup))->toBeNull();
 });
 
 it('R50 a filter written against the structural query does not change which tenant is offered', function (): void {

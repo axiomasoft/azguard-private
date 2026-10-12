@@ -112,20 +112,6 @@
         "owner_phase": "P3"
     },
     {
-        "file": "packages/core/src/Directories/DirectoryResolver.php",
-        "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
-        "kind": "import",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
-        "file": "packages/core/src/Directories/DirectoryResolver.php",
-        "reference": "AzGuard\\Directories\\QueryScopeDirectory",
-        "kind": "reference",
-        "invariant": "I2",
-        "owner_phase": "P3"
-    },
-    {
         "file": "packages/core/src/Schema/SchemaBuilder.php",
         "reference": "AzGuard\\Contracts\\Scopes\\ConfigurableAssignmentScopeDefinition",
         "kind": "import",

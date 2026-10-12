@@ -7,6 +7,7 @@ namespace AzGuard\Schema;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Contracts\Scopes\AssignmentScopeDefinition;
+use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Contracts\Scopes\ConfigurableAssignmentScopeDefinition;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\ProvidesGrants;
@@ -344,7 +345,7 @@ final readonly class SchemaBuilder
         $scopes = [];
 
         foreach ($panel->scopeDefinitions() as $type => $definition) {
-            $scopes[$type] = new AssignmentScopeTypeSchema($type, self::scopeLabel($definition), $definition->model(), $resolver->scopes($type)::class);
+            $scopes[$type] = new AssignmentScopeTypeSchema($type, self::scopeLabel($definition), $definition->model(), $resolver->scopeDirectory($type) ?? AssignmentScopeDirectory::class);
         }
         ksort($scopes, SORT_STRING);
 

@@ -293,8 +293,8 @@ final class PanelCompiler
      *
      * The mode comes from the highest layer, the last record inside it; plugins that disagree on the mode are a
      * conflict unless the provider sets one. Definitions of every layer are merged by alias and must keep their
-     * structure; directories merge by alias (the directory a merged definition names included) and one evaluator at
-     * most is named.
+     * structure; directories merge by alias (a directory the merged definition names wins over the declared one) and
+     * one evaluator at most is named.
      *
      * @return array{?AssignmentScopeDeclaration, array<string, AssignmentScopeDefinition>}
      *
@@ -455,17 +455,13 @@ final class PanelCompiler
             }
         }
 
+        // The directory a merged definition names is the one of its type: the declared classes are the defaults.
         foreach ($definitions as $alias => $definition) {
             $own = ScopeConfiguration::directory($definition);
 
-            if ($own === null) {
-                continue;
+            if ($own !== null) {
+                $directories[$alias] = $own;
             }
-
-            if (isset($directories[$alias]) && $directories[$alias] !== $own) {
-                throw new DefinitionException('Panel '.$panel.' declares conflicting directories for assignment scope '.$alias.': '.$directories[$alias].' and '.$own.'.');
-            }
-            $directories[$alias] = $own;
         }
 
         return $directories;

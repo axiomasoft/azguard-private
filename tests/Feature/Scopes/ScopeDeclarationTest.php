@@ -8,6 +8,7 @@ use AzGuard\Contracts\Plugins\Plugin;
 use AzGuard\Contracts\Scopes\AssignmentScopeDirectory;
 use AzGuard\Directories\AssignmentScopeOption;
 use AzGuard\Directories\LookupContext;
+use AzGuard\Directories\QueryScopeDirectory;
 use AzGuard\Exceptions\DefinitionException;
 use AzGuard\Exceptions\PluginConflictException;
 use AzGuard\Kernel\Identity\AssignmentScopeRef;
@@ -101,7 +102,7 @@ it('contributes the declaration and the scope options from ScopesPlugin', functi
         ->and($declaration?->mode)->toBe(AssignmentScopeMode::Isolated)
         ->and(array_map(static fn (object $definition): string => $definition::class, $declaration->definitions ?? []))
         ->toBe([ModelAssignmentScopeDefinition::class, ConfiguredProjectScope::class, StoreScope::class])
-        ->and($declaration?->directories)->toBe(['crm.project' => ProjectDirectory::class])
+        ->and($declaration?->directories)->toBe(['project' => QueryScopeDirectory::class, 'crm.project' => ProjectDirectory::class])
         ->and($declaration?->evaluator)->toBe(ScopeEvaluator::class)
         ->and($panel->options(ScopesOptions::class)?->membership)->toBe($membership)
         ->and($panel->options(ScopesOptions::class)?->adapters)->toBe([]);
@@ -213,7 +214,7 @@ it('creates definition classes without arguments and rejects other strings', fun
         ->and(fn () => $compile(ScopesPlugin::required()))->toThrow(DefinitionException::class, 'registers no definitions');
 });
 
-it('keeps the directory of the merged definition and the declared map one class per scope type', function (): void {
+it('takes the directory the merged definition names over a declared one and rejects two declared classes for a type', function (): void {
     $other = (new class implements AssignmentScopeDirectory
     {
         public function search(string $type, string $term, LookupContext $lookup, int $limit): array
@@ -230,8 +231,12 @@ it('keeps the directory of the merged definition and the declared map one class 
     $later = declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
         ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->directory($other)], evaluator: ScopeEvaluator::class)));
 
+    $named = declaredPanel(static fn (PanelBuilder $panel): PanelBuilder => $panel->assignmentScopes(new AssignmentScopeDeclaration(
+        AssignmentScopeMode::Inherit, [ConfiguredProjectScope::make()->directory(ProjectDirectory::class)], ['crm.project' => $other], ScopeEvaluator::class)));
+
     expect($later->scopeDeclaration()?->directories)->toBe(['crm.project' => $other])
         ->and($later->scopeDefinition('crm.project')?->settings()->directory)->toBe($other)
+        ->and($named->scopeDeclaration()?->directories)->toBe(['crm.project' => ProjectDirectory::class])
         ->and(fn () => declaredPanel($plugin, static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::Inherit, [], ['crm.project' => $other]))))
         ->toThrow(DefinitionException::class, 'conflicting directories');
