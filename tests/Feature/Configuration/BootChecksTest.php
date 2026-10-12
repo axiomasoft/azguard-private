@@ -201,9 +201,12 @@ function allBootChecks(): array
         ],
         'a panel that requires scope membership without an adapter' => [
             'invalid_configuration.membership', InvalidConfigurationException::class, 'membership adapter',
-            fn () => PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
-                ->plugins([ScopesPlugin::inherit(Project::class)->requireMembership()]),
-            ]),
+            function (): void {
+                Relation::morphMap(['project' => Project::class], false);
+                PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel->for(User::class)
+                    ->plugins([ScopesPlugin::inherit(Project::class)->requireMembership()]),
+                ]);
+            },
         ],
         'a static role of a relation that the panel does not have' => [
             'unknown_role', UnknownRoleException::class, 'unknown static role "ghost"',

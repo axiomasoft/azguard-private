@@ -121,7 +121,7 @@ it('does not publish cold explain reads into the permission cache but reuses a w
 
 it('names a denied common context filter instead of reporting it skipped', function (): void {
     $s = new ScenarioGenerator(2);
-    $adapter = new EligibilityExternalAdapter(fn () => false);
+    $adapter = new EligibilityExternalAdapter(static fn () => false);
     [$engine, $panel, $request] = $s->world([new GeneratedSource(direct: [$s->grant($s->scope(true))])],
         fn (PanelBuilder $p) => $p->plugins([ScopesPlugin::inherit(app(StoreScope::class))->accessAdapter('store', $adapter)]), mode: 'inherit');
     $explanation = $engine->explain($panel, $request->inScope($s->scope(true)));
@@ -218,7 +218,7 @@ it('reports membership pass only when membership was evaluated', function (strin
 
 it('reports common and contribution filter exceptions as filter errors without a skipped backfill', function (bool $contributionOnly): void {
     $s = new ScenarioGenerator(2);
-    $adapter = new EligibilityExternalAdapter(function ($ref, $runtime) use ($contributionOnly): bool {
+    $adapter = new EligibilityExternalAdapter(static function ($ref, $runtime) use ($contributionOnly): bool {
         if (! $contributionOnly || $runtime->grant !== null) {
             throw new RuntimeException('filter failed');
         }

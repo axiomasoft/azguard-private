@@ -50,6 +50,7 @@ your code. Each line is `Find: <grep pattern> → Replace: <new form>`.
 - Find: `AssignmentScopePolicy::none()` → Replace: nothing (a panel without `ScopesPlugin` is mode `None`); to switch off scopes an earlier layer declared, `->assignmentScopes(new AssignmentScopeDeclaration(AssignmentScopeMode::None, []))`.
 - Find: `->scopes(` in a plugin `register()`, `configurePanels()` or a provider that already attaches `ScopesPlugin` → Replace: `->assignmentScopes(new AzGuard\Context\AssignmentScopeDeclaration(AssignmentScopeMode::…, [definition objects]))`; a panel takes one `ScopesPlugin` (id `azguard/scopes`).
 - Find: `ScopesPlugin::inherit(Definition::class)` (or `isolated`/`required`) with a definition class that has constructor arguments or a container binding → Replace: pass the configured definition object; classes are created without arguments.
+- Find: `->accessAdapter(` or `->requireMembership(` given an object that holds a non-static closure (`fn` or `function` inside a class) → Replace: a static closure or a class name; adapters and memberships are panel options now and cannot capture an object.
 - Find: `Panel::scopes()`, `->scopes()->mode()` or a scope mode string `'none'`/`'inherit'`/`'isolated'`/`'required'` → Replace: `$panel->scopeDeclaration()?->mode` (`AzGuard\Context\AssignmentScopeMode`; a null declaration is `None`); membership and access adapters are no longer readable from the panel.
 
 ## From 0.3 to 0.7.0

@@ -101,7 +101,7 @@ final class ScopedSourceWorld
         $source ??= DatabaseSource::make();
         [,, $registry] = PanelWorld::compile([AdminPanel::class => static fn (PanelBuilder $panel): PanelBuilder => $panel
             ->for(User::class)->resourcePrefix(false)->permissions([$everyone ? EveryonePermission::class : OrderPermission::class, $source])
-            ->roles($roles)->plugins([ScopesPlugin::inherit(StoreScope::class)])
+            ->roles($roles)->plugins([ScopesPlugin::inherit(app(StoreScope::class))])
             ->tenants($tenant ? TenantPolicy::required(Organization::class)->requireMembership(new Membership) : TenantPolicy::none())
             ->consistency(refresh: StateRefresh::Check)->after($after ?? [])->grantConditions($conditions)]);
 
