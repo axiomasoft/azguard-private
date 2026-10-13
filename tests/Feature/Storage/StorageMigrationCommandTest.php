@@ -29,8 +29,8 @@ it('generates a configured migration once and refuses default and unknown names'
         expect($content)->toContain("create('own')", "drop('own')", 'Add host columns');
         $this->artisan('azguard:storage:migration', ['name' => 'own'])->assertExitCode(1);
         expect(file_get_contents($files[0]))->toBe($content);
-        $this->artisan('azguard:storage:migration', ['name' => 'default'])->assertExitCode(1);
-        $this->artisan('azguard:storage:migration', ['name' => '../unknown'])->assertExitCode(1);
+        $this->artisan('azguard:storage:migration', ['name' => 'default'])->assertExitCode(2);
+        $this->artisan('azguard:storage:migration', ['name' => '../unknown'])->assertExitCode(2);
         $migration = require $files[0];
         $migration->up();
         expect(app(StorageRegistry::class)->get('own')->connection()->getSchemaBuilder()->hasTable('own_storage_state'))->toBeTrue();
