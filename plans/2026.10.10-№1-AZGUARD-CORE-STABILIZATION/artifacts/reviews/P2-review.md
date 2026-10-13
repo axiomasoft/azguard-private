@@ -64,8 +64,11 @@ and do not block the phase.
 
 ## Checks run in the follow-up session
 
-Clean worktree at HEAD `abc937e6` (detached, `composer install` from the main `composer.lock`), PHP 8.4 via PATH shim,
-drivers on ports 25432/23306/23307. Owner working-tree edits were not part of the run. All green.
+Clean worktree (detached, `composer install` from the main `composer.lock`), PHP 8.4 via PATH shim, drivers on ports
+25432/23306/23307. Owner working-tree edits were not part of the run. All green. Rows a–c, d-V1, d-V4, d-V5 and e-* ran
+at HEAD `abc937e6` (the F1/F2 fix commit); d-V2 ran at `ef52c32e`. `ef52c32e` and `a52e3db5` add only plan artifacts:
+`git log abc937e6..a52e3db5 -- packages tests bin docs composer.json composer.lock` is empty, so the code under test is
+identical at all three commits.
 
 | Check | Command | Result | Log |
 |---|---|---|---|
@@ -73,15 +76,32 @@ drivers on ports 25432/23306/23307. Owner working-tree edits were not part of th
 | b | `composer test:types` | 99.9 % (min 98) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-b-types.txt` |
 | c | `composer analyse && lint:check && refactor:check && api:check` | phpstan 0 errors, pint, rector 0, api manifest clean | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-c-static.txt` |
 | d-V1 | `pest tests/Arch/MigrationGuideTest.php tests/Arch/InvariantRegisterTest.php --fail-on-skipped` | 10/10 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v1.txt` |
-| d-V2 | allowlists owner-P3 only (`php -r` from P2.14 V2) | exit 0 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v2.txt` |
+| d-V2 (`ef52c32e`) | allowlists owner-P3 only (`php -r` from P2.14 V2) | exit 0; the command prints nothing, so this log is empty by design (like P2.14 V2.log) — re-run with a transcript below | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v2.txt` |
 | d-V4 | `pest tests/Arch --fail-on-skipped` | 166/166 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v4.txt` |
 | d-V5 | `pest tests/Feature/Parity tests/Feature/InactiveCost tests/Regression/Baseline070 --fail-on-skipped` | 42/42 | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-d-v5.txt` |
 | e-pgsql | `composer test:db -- pgsql --full --engines` | 68/68, 2656 assertions (PostgreSQL 16.15) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-pgsql.txt` |
 | e-mysql | `composer test:db -- mysql --full --engines` | 68/68, 2656 assertions (MySQL 8.4.11) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-mysql.txt` |
 | e-mariadb | `composer test:db -- mariadb --full --engines` | 68/68, 2714 assertions (MariaDB 10.11.19) | `plans/2026.10.10-№1-AZGUARD-CORE-STABILIZATION/artifacts/reviews/P2/P2.15/followup/log-e-mariadb.txt` |
 
-`composer test` includes `ScopeQueryTest`, `ChangeParticipantsTest` and `ParityPropertyTest`; the engine suites cover
-`tests/Engines/*`. No failures attributable to F1/F2; no code changes were needed in this session.
+Re-checks in a second follow-up pass, clean worktree at `a52e3db5` (PHP 8.4 shim; `pest --list-tests` and runs, logs in
+`artifacts/reviews/P2/P2.15/followup/`):
+
+| Check | Command | Result | Log |
+|---|---|---|---|
+| f-list-test | `pest --list-tests --exclude-group=engines --exclude-group=redis --exclude-group=replica --exclude-group=extended` (the `composer test` filter) | 4734 tests — the count of the run in row a; includes `ScopeQueryTest` (10), `ChangeParticipantsTest` (29), `ParityPropertyTest` (8); no `tests/Engines` class | `log-f-list-test.txt` |
+| f-list-engines | `pest --list-tests --group=engines` (the `test:db -- <driver> --engines` filter) | 68 tests in 19 classes of `tests/Engines` — the count of rows e-*; `ReplicaLagTest` (group `replica`) is not among them | `log-f-list-engines.txt` |
+| f-d-v2 | P2.14 V2 command, transcript | exit 0 | `log-f-d-v2.txt` |
+| f-redis | `pest --ci --fail-on-skipped --group=redis` (`composer test:redis`) | 2/2, 26 assertions (`RedisStoreTest`, Redis on 26379) | `log-f-redis.txt` |
+
+Correction of the earlier wording: `composer test` includes `ScopeQueryTest`, `ChangeParticipantsTest` and
+`ParityPropertyTest` (confirmed by the listing above). The engine runs cover `tests/Engines/*` **except**
+`ReplicaLagTest`, which belongs to `composer test:replica`, and `Support/` holds no tests.
+
+Not run: `composer test:replica` — it needs the `authority-replica` stand (PostgreSQL replica on 25433, started with
+docker; docker is not reachable from this session, the run fails with connection refused). It exercises the replica
+lag fence only; F1/F2 and the follow-up touch scopes, panels and the change pipeline, none of which reads replicas.
+`composer test:extended` (group `extended`, scale tests of nightly CI) is not part of the P2.15 acceptance and was not
+run. `composer test:redis` is cheap and the stand was up, so it was run (row f-redis); it also does not touch F1/F2.
 
 ## Research for F1
 
