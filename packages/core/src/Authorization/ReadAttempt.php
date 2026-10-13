@@ -74,6 +74,59 @@ final class ReadAttempt
     /** @param list<Attached> $sources */
     public function __construct(private readonly PanelCatalog $static, private readonly array $sources, private readonly EvaluationFrame $initial, private readonly ?PermissionSetCache $cache = null, private readonly bool $publish = true, private readonly ?ReadSessions $shared = null) {}
 
+    /**
+     * One read of a source outside an attempt: the database source reads its own snapshot, any other source is
+     * materialized at one fenced state (up to three tries).
+     *
+     * @return array{list<Grant|RoleContribution>, EvaluationFrame}
+     */
+    public static function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
+    {
+        if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
+            return [[], $frame];
+        }
+
+        if ($source instanceof DatabaseSource) {
+            $snapshot = $source->readContributions($request->subject(), $frame->sourceScopes(), $frame);
+            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
+                $trace->contribution($item, $source::class);
+            }
+
+            return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
+        }
+        // Materialize every capability before accepting a fenced source revision.
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $before = $source instanceof FencesReads ? $source->state($frame->panel(), $frame->scope()->tenant) : null;
+            $items = [];
+
+            if ($source instanceof ProvidesGrants) {
+                foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
+                    if (! $item instanceof Grant) {
+                        throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
+                    }
+                    $trace->contribution($item, $source::class);
+                    $items[] = $item;
+                }
+            }
+
+            if ($source instanceof ProvidesRoleGrants) {
+                foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
+                    if (! $item instanceof RoleContribution) {
+                        throw new InvalidSourceContributionException('Unexpected role contribution type.');
+                    }
+                    $trace->contribution($item, $source::class);
+                    $items[] = $item;
+                }
+            }
+
+            if ($before === null || $before->equals($source->state($frame->panel(), $frame->scope()->tenant))) {
+                return [$items, $before === null ? $frame : $frame->withState($before)];
+            }
+        }
+
+        throw new ConsistencyException('Source authority changed during all three read attempts.');
+    }
+
     /** Releases operation-owned PDO pins; consumed state remains available to observer frames. */
     public function close(): void
     {
@@ -401,10 +454,6 @@ final class ReadAttempt
                 continue;
             }
 
-            if ($source instanceof FolderSource) {
-                $source->bindRoleClasses(array_column($this->static->roles(), 'class'));
-            }
-
             if ($source instanceof DatabaseSource) {
                 $items = $this->databaseItems($source, $request, $frame);
             } else {
@@ -483,10 +532,6 @@ final class ReadAttempt
                 throw new VisibilityNotSupportedException('source_error', $source::class);
             }
             $this->begin($source);
-
-            if ($source instanceof FolderSource) {
-                $source->bindRoleClasses(array_column($this->static->roles(), 'class'));
-            }
 
             if ($source instanceof DatabaseSource) {
                 [$state, $selection] = $source->materializeSelection($this->sessions[$source->id()], $request->subject(), $request->permission(), $type, $frame, $this->unread($source));

@@ -94,7 +94,7 @@ final readonly class Visibility
     private function build(Panel $panel, Builder $query, Model|SubjectRef $subject, UnitEnum|string $permission, ?AccessScope $scope, DateTimeImmutable $now): Builder
     {
         [$request, $frame, $catalog] = $this->inputs($panel, $subject, $permission, $scope, $now);
-        $sourceRead = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container)->all(), $frame, publish: false);
+        $sourceRead = new ReadAttempt($catalog, PanelSources::of($this->registry->recipe($panel->id()), $this->container, catalog: $catalog)->all(), $frame, publish: false);
 
         if (! $catalog->has($request->permission()) && $catalog->isDynamic()) {
             $catalog = $sourceRead->catalog();

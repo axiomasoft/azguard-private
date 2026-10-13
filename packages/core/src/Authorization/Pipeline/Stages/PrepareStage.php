@@ -165,7 +165,7 @@ final readonly class PrepareStage
 
     private function attempt(PanelCatalog $catalog, EvaluationFrame $frame, ?BatchInputs $batch, SubjectRef $subject, bool $publish = true): ReadAttempt
     {
-        $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container)->all();
+        $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container, catalog: $catalog)->all();
         $cache = $this->container->make(PermissionSetCache::class);
 
         return $batch === null ? new ReadAttempt($catalog, $sources, $frame, $cache, publish: $publish) : $batch->attempt($catalog, $sources, $frame, $cache, $subject);

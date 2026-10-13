@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AzGuard\Sources;
 
+use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Context\AssignmentScopeDeclaration;
 use AzGuard\Contracts\Scopes\QueryableAssignmentScopeDefinition;
 use AzGuard\Contracts\Sources\DescribesSchema;
@@ -66,13 +67,16 @@ final readonly class PanelSources
     ) {}
 
     /**
+     * The sources of the recipe. With the compiled catalog the folder evaluates the automatic roles among all roles of
+     * the panel, also the ones other sources declare; prepare the sources of a decision or a list this way.
+     *
      * @throws UnknownSourceException when a source is named and no source is registered under the name
      * @throws InvalidIdentityException when the id of a source is malformed
      * @throws DuplicatePermissionException when two sources of the panel share an id
      * @throws DefinitionException when a creator fails
      * @throws WriterConflictException when more than one source stores grants
      */
-    public static function of(PanelRecipe $recipe, Container $container, ?DiscoverySnapshot $discovery = null): self
+    public static function of(PanelRecipe $recipe, Container $container, ?DiscoverySnapshot $discovery = null, ?PanelCatalog $catalog = null): self
     {
         $panel = $recipe->panelId();
         $manager = $container->make(SourceManager::class);
@@ -80,6 +84,10 @@ final readonly class PanelSources
         $configured = FolderSource::configured($recipe);
         $folder = clone ($configured['source'] ?? FolderSource::make());
         $folder->bind($discovery, $recipe, $container);
+
+        if ($catalog !== null) {
+            $folder->bindRoleClasses(array_column($catalog->roles(), 'class'));
+        }
         /** @var list<Attached> $sources */
         $sources = [[
             'source' => $folder,

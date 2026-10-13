@@ -39,6 +39,7 @@ use AzGuard\Policies\PolicyBinding;
 use AzGuard\Policies\PolicyFor;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
+use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Sources\PanelSources;
 use BackedEnum;
 use Illuminate\Contracts\Container\Container;
@@ -54,7 +55,7 @@ use UnitEnum;
  * built-in source; a second one is rejected. Names contributed by a plugin are stored as declared.
  */
 #[Api(since: '0.7')]
-final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
+final class FolderSource implements ChecksHealth, DescribesSchema, EvaluatesAutomaticRoles, FiltersQueries, ProvidesGrants, ProvidesPermissions, ProvidesPolicies, ProvidesRoleGrants, ProvidesRoles
 {
     /** @var array{permissions: ?string, policies: ?string, roles: ?string, abilities: ?string} */
     private array $folders = [
@@ -173,7 +174,8 @@ final class FolderSource implements ChecksHealth, DescribesSchema, FiltersQuerie
     }
 
     /**
-     * The engine supplies the compiled panel roles, including roles declared by other sources.
+     * The compiled panel roles, including roles declared by other sources, bound when the sources are prepared for a
+     * compiled catalog (`PanelSources::of()`).
      *
      * @param  list<class-string<BaseRole>>  $classes
      */

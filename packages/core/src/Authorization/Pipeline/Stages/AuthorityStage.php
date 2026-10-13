@@ -6,14 +6,12 @@ namespace AzGuard\Authorization\Pipeline\Stages;
 
 use AzGuard\Authorization\EvaluationFrame;
 use AzGuard\Authorization\Pipeline\Trace;
+use AzGuard\Authorization\ReadAttempt;
 use AzGuard\Catalog\PanelCatalog;
 use AzGuard\Catalog\PermissionDefinition;
 use AzGuard\Catalog\RoleCompiler;
 use AzGuard\Context\Internal\ContextIdentity;
 use AzGuard\Contracts\Authorization\GrantCondition;
-use AzGuard\Contracts\Sources\FencesReads;
-use AzGuard\Contracts\Sources\ProvidesGrants;
-use AzGuard\Contracts\Sources\ProvidesRoleGrants;
 use AzGuard\Contracts\Sources\Source;
 use AzGuard\Exceptions\ConsistencyException;
 use AzGuard\Exceptions\InvalidSourceContributionException;
@@ -29,8 +27,7 @@ use AzGuard\Panels\PanelRegistry;
 use AzGuard\Policies\PolicyDecider;
 use AzGuard\Roles\BaseRole;
 use AzGuard\Roles\GrantedAutomatically;
-use AzGuard\Sources\Database\DatabaseSource;
-use AzGuard\Sources\Folder\FolderSource;
+use AzGuard\Sources\Internal\EvaluatesAutomaticRoles;
 use AzGuard\Sources\PanelSources;
 use AzGuard\Tenancy\Internal\TenantMembershipRestriction;
 use Closure;
@@ -179,14 +176,10 @@ final readonly class AuthorityStage
             }
 
             if ($contributions === null) {
-                $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container);
+                $sources = PanelSources::of($this->registry->recipe($frame->panel()->id()), $this->container, catalog: $catalog);
                 $contributions = [];
                 foreach ($sources->all() as ['source' => $source]) {
-                    if ($source instanceof FolderSource) {
-                        $source->bindRoleClasses(array_column($catalog->roles(), 'class'));
-                    }
-
-                    [$items, $frame] = $this->readSource($source, $request, $frame, $trace);
+                    [$items, $frame] = ReadAttempt::readSource($source, $request, $frame, $trace);
                     foreach ($items as $item) {
                         $contributions[] = [$source, $item];
                     }
@@ -225,7 +218,7 @@ final readonly class AuthorityStage
                 continue;
             }
 
-            $automatic = $item instanceof RoleContribution && $source instanceof FolderSource && $roleDefinition !== null
+            $automatic = $item instanceof RoleContribution && $source instanceof EvaluatesAutomaticRoles && $roleDefinition !== null
                 && is_subclass_of($roleDefinition['class'], GrantedAutomatically::class);
 
             if ($item->role !== null && ($roleDefinition === null || (! $roleDefinition['grantable'] && ! $automatic))) {
@@ -302,54 +295,6 @@ final readonly class AuthorityStage
         }
 
         return [$frame, null, count($contributions)];
-    }
-
-    /** @return array{list<Grant|RoleContribution>, EvaluationFrame} */
-    private function readSource(Source $source, AccessRequest $request, EvaluationFrame $frame, Trace $trace): array
-    {
-        if (! $source instanceof ProvidesGrants && ! $source instanceof ProvidesRoleGrants) {
-            return [[], $frame];
-        }
-
-        if ($source instanceof DatabaseSource) {
-            $snapshot = $source->readContributions($request->subject(), $frame->sourceScopes(), $frame);
-            foreach ([...$snapshot['grants'], ...$snapshot['roles']] as $item) {
-                $trace->contribution($item, $source::class);
-            }
-
-            return [[...$snapshot['grants'], ...$snapshot['roles']], $frame->withState($snapshot['state'])];
-        }
-        // Materialize every capability before accepting a fenced source revision.
-        for ($attempt = 0; $attempt < 3; $attempt++) {
-            $before = $source instanceof FencesReads ? $source->state($frame->panel(), $frame->scope()->tenant) : null;
-            $items = [];
-
-            if ($source instanceof ProvidesGrants) {
-                foreach (PanelCatalog::untrusted($source->grants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
-                    if (! $item instanceof Grant) {
-                        throw new InvalidSourceContributionException('Unexpected direct grant contribution type.');
-                    }
-                    $trace->contribution($item, $source::class);
-                    $items[] = $item;
-                }
-            }
-
-            if ($source instanceof ProvidesRoleGrants) {
-                foreach (PanelCatalog::untrusted($source->roleGrants($request->subject(), $frame->sourceScopes(), $frame)) as $item) {
-                    if (! $item instanceof RoleContribution) {
-                        throw new InvalidSourceContributionException('Unexpected role contribution type.');
-                    }
-                    $trace->contribution($item, $source::class);
-                    $items[] = $item;
-                }
-            }
-
-            if ($before === null || $before->equals($source->state($frame->panel(), $frame->scope()->tenant))) {
-                return [$items, $before === null ? $frame : $frame->withState($before)];
-            }
-        }
-
-        throw new ConsistencyException('Source authority changed during all three read attempts.');
     }
 
     /**

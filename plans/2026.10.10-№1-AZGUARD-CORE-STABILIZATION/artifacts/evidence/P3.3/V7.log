@@ -1,0 +1,351 @@
+### step eng_pgsql
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'pgsql' '--engines'
+[pgsql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+
+   PASS  Tests\Engines\HostSnapshotRaceTest
+  ✓ it V99 rejects a real old repeatable-read host snapshot after indep… 0.85s  
+  ✓ it V99 lock-first joint protocol commits protected host work while…  0.67s  
+
+   PASS  Tests\Engines\ChangeRaceTest
+  ✓ it V101 C8 keeps tenant B out of a concurrent sync of tenant A       1.29s  
+  ✓ it V101 serializes grant ∥ grant of one identity: one Applied, one…  1.36s  
+  ✓ it R29 refuses a change prepared on the old build after a coordinat… 1.88s  
+  ✓ it V101 rolls back a change nested in a host transaction on the eng… 0.70s  
+  ✓ it R29 makes a deployment wait for an in-flight fenced change, whic… 1.35s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 1.33s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 1.44s  
+  ✓ it V101 retries the root after a real deadlock with fresh pipes and… 1.19s  
+  ✓ it R29 refuses a change when the host owner revision moved after pr… 1.25s  
+  ✓ it V101 C13 lets one update ∥ update with the same fingerprint win…  1.37s  
+
+   PASS  Tests\Engines\FenceRaceTest
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 0.66s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 0.64s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 0.64s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 0.66s  
+  ✓ it V99 fails closed when another process deletes the catalogue betw… 0.64s  
+Engine: pgsql PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+
+   PASS  Tests\Engines\ScopedSourceIntegrationTest
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.41s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.56s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.53s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.58s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.43s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.61s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.62s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.58s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.69s  
+  ✓ it reports the SQL engine and server version used by the acceptance… 0.38s  
+
+   PASS  Tests\Engines\StorageIsolationTest
+  ✓ it isolates storage locks and reads only committed state             3.41s  
+
+   PASS  Tests\Engines\GrantFieldsEngineTest
+  ✓ it roundtrips custom grant columns and JSON meta on the server       0.35s  
+
+   PASS  Tests\Engines\RevocationRaceTest
+  ✓ it V18 R52 observes independent root commit with Primary check and…  0.69s  
+  ✓ it V18 R52 observes independent root commit with Primary check and…  0.65s  
+
+   PASS  Tests\Engines\ManagerRaceTest
+  ✓ it C13 lets one manager update ∥ update with the same form fingerpr… 1.35s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 1.31s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 1.34s  
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  1.30s  
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  1.36s  
+
+   PASS  Tests\Engines\DirectWritesEngineTest
+  ✓ it blocks server Eloquent write paths before changing rows or panel… 0.41s  
+
+   PASS  Tests\Engines\MutateDeadlockTest
+  ✓ it retries a real deadlock as its victim and bumps each panel once   1.03s  
+
+   PASS  Tests\Engines\DynamicActionRaceTest
+  ✓ it C9 refuses a grant of a name that a concurrent delete removed fi… 1.32s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 1.39s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 1.34s  
+  ✓ it lets a create of the name win after a concurrent delete and star… 1.35s  
+  ✓ it C9 leaves no grant of the deleted name when a grant that passed…  1.34s  
+  ✓ it keeps tenant B grant and permission of the same name out of a co… 1.41s  
+  ✓ it refuses a create that waited for a concurrent create of the same… 1.30s  
+
+   PASS  Tests\Engines\StateResetRaceTest
+  ✓ it I6 V100 lets reset ∥ cached read keep the old answer only until…  1.07s  
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 1.31s  
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 1.23s  
+
+   PASS  Tests\Engines\VisibilityExplainTest
+  ✓ it P14 verifies 100 seeded CRM scalar list count snapshots on the…  59.40s  
+  ✓ it V33 R58 explains real authority and resource SQL on 100000 clie… 40.43s  
+
+   PASS  Tests\Engines\StorageConstraintsTest
+  ✓ it enforces byte identities and tenant context pair constraints on…  0.45s  
+
+   PASS  Tests\Engines\DatabaseSourceEngineTest
+  ✓ it fails closed for a trailing-space stored permission instead of n… 0.41s  
+  ✓ it preserves binary host identities exact scoped pairs future expir… 0.37s  
+  ✓ it never queries direct permission grants in engine rolesOnly mode   0.41s  
+  ✓ it pins every Default authority query to the configured distinct re… 0.40s  
+
+   PASS  Tests\Engines\StorageDdlTest
+  ✓ it writes the journal in the transaction of the change, prunes expi… 0.75s  
+  ✓ it matches actual engine columns indexes constraints and collations… 1.45s  
+
+   PASS  Tests\Engines\BatchFenceRaceTest
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 0.97s  
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 0.92s  
+  ✓ it reads a deduplicated context union in bounded chunks inside one…  0.65s  
+
+   PASS  Tests\Engines\MutateConcurrencyTest
+  ✓ it serializes fifty independent processes without losing a bump      1.08s  
+
+   PASS  Tests\Engines\DirectorySearchTest
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.57s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.56s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.66s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.71s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.60s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.67s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 0.57s  
+
+  Tests:    68 passed (2656 assertions)
+  Duration: 163.53s
+  Random Order Seed: 1791898291
+
+
+### step eng_mysql
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mysql' '--engines'
+[mysql] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+
+   PASS  Tests\Engines\MutateConcurrencyTest
+  ✓ it serializes fifty independent processes without losing a bump      2.42s  
+
+   PASS  Tests\Engines\VisibilityExplainTest
+  ✓ it V33 R58 explains real authority and resource SQL on 100000 clie… 16.80s  
+  ✓ it P14 verifies 100 seeded CRM scalar list count snapshots on the…  45.79s  
+
+   PASS  Tests\Engines\ManagerRaceTest
+  ✓ it C13 lets one manager update ∥ update with the same form fingerpr… 3.67s  
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  3.61s  
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  3.35s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 3.33s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 3.48s  
+
+   PASS  Tests\Engines\ChangeRaceTest
+  ✓ it V101 C8 keeps tenant B out of a concurrent sync of tenant A       3.28s  
+  ✓ it R29 refuses a change prepared on the old build after a coordinat… 4.12s  
+  ✓ it V101 C13 lets one update ∥ update with the same fingerprint win…  3.49s  
+  ✓ it R29 makes a deployment wait for an in-flight fenced change, whic… 3.44s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 3.45s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 3.38s  
+  ✓ it V101 retries the root after a real deadlock with fresh pipes and… 3.21s  
+  ✓ it R29 refuses a change when the host owner revision moved after pr… 3.42s  
+  ✓ it V101 rolls back a change nested in a host transaction on the eng… 2.80s  
+  ✓ it V101 serializes grant ∥ grant of one identity: one Applied, one…  3.40s  
+
+   PASS  Tests\Engines\DirectorySearchTest
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.86s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.82s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.82s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.74s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.81s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.84s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 2.85s  
+
+   PASS  Tests\Engines\DatabaseSourceEngineTest
+  ✓ it preserves binary host identities exact scoped pairs future expir… 1.62s  
+  ✓ it fails closed for a trailing-space stored permission instead of n… 1.56s  
+  ✓ it pins every Default authority query to the configured distinct re… 1.50s  
+  ✓ it never queries direct permission grants in engine rolesOnly mode   1.51s  
+
+   PASS  Tests\Engines\StorageDdlTest
+  ✓ it matches actual engine columns indexes constraints and collations… 5.85s  
+  ✓ it writes the journal in the transaction of the change, prunes expi… 2.75s  
+
+   PASS  Tests\Engines\StorageConstraintsTest
+  ✓ it enforces byte identities and tenant context pair constraints on…  1.58s  
+
+   PASS  Tests\Engines\GrantFieldsEngineTest
+  ✓ it roundtrips custom grant columns and JSON meta on the server       1.61s  
+
+   PASS  Tests\Engines\StorageIsolationTest
+  ✓ it isolates storage locks and reads only committed state             6.69s  
+
+   PASS  Tests\Engines\FenceRaceTest
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 2.00s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.89s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.82s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.74s  
+  ✓ it V99 fails closed when another process deletes the catalogue betw… 1.79s  
+
+   PASS  Tests\Engines\RevocationRaceTest
+  ✓ it V18 R52 observes independent root commit with Primary check and…  1.78s  
+  ✓ it V18 R52 observes independent root commit with Primary check and…  1.81s  
+
+   PASS  Tests\Engines\MutateDeadlockTest
+  ✓ it retries a real deadlock as its victim and bumps each panel once   1.96s  
+
+   PASS  Tests\Engines\HostSnapshotRaceTest
+  ✓ it V99 lock-first joint protocol commits protected host work while…  1.82s  
+  ✓ it V99 rejects a real old repeatable-read host snapshot after indep… 1.77s  
+
+   PASS  Tests\Engines\DynamicActionRaceTest
+  ✓ it lets a create of the name win after a concurrent delete and star… 3.46s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 3.29s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 3.38s  
+  ✓ it C9 leaves no grant of the deleted name when a grant that passed…  3.45s  
+  ✓ it refuses a create that waited for a concurrent create of the same… 3.42s  
+  ✓ it C9 refuses a grant of a name that a concurrent delete removed fi… 3.39s  
+  ✓ it keeps tenant B grant and permission of the same name out of a co… 3.48s  
+
+   PASS  Tests\Engines\StateResetRaceTest
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 3.39s  
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 3.38s  
+  ✓ it I6 V100 lets reset ∥ cached read keep the old answer only until…  3.22s  
+
+   PASS  Tests\Engines\BatchFenceRaceTest
+  ✓ it reads a deduplicated context union in bounded chunks inside one…  1.75s  
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 2.47s  
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 3.00s  
+Engine: mysql 8.4.11
+
+   PASS  Tests\Engines\ScopedSourceIntegrationTest
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 2.92s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 2.58s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 3.22s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 2.93s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 3.40s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 3.68s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 4.51s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 3.43s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 3.36s  
+  ✓ it reports the SQL engine and server version used by the acceptance… 3.46s  
+
+   PASS  Tests\Engines\DirectWritesEngineTest
+  ✓ it blocks server Eloquent write paths before changing rows or panel… 3.35s  
+
+  Tests:    68 passed (2656 assertions)
+  Duration: 259.08s
+  Random Order Seed: 1791898456
+
+
+### step eng_mariadb
+> Composer\Config::disableProcessTimeout
+> @php bin/test-db.php 'mariadb' '--engines'
+[mariadb] php -d memory_limit=1G vendor/bin/pest --fail-on-skipped --group=engines
+
+   PASS  Tests\Engines\MutateConcurrencyTest
+  ✓ it serializes fifty independent processes without losing a bump      1.65s  
+
+   PASS  Tests\Engines\RevocationRaceTest
+  ✓ it V18 R52 observes independent root commit with Primary check and…  1.15s  
+  ✓ it V18 R52 observes independent root commit with Primary check and…  1.10s  
+
+   PASS  Tests\Engines\ManagerRaceTest
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  2.09s  
+  ✓ it orders revokeMany ∥ migration of one row by the panel lock; the…  2.12s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 2.03s  
+  ✓ it R66 serializes migration ∥ grant(former key): the grant is refus… 2.14s  
+  ✓ it C13 lets one manager update ∥ update with the same form fingerpr… 2.24s  
+
+   PASS  Tests\Engines\DirectorySearchTest
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.49s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.47s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.52s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.48s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.45s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.53s  
+  ✓ it finds bound literal wildcard and escape characters without broad… 1.50s  
+
+   PASS  Tests\Engines\VisibilityExplainTest
+  ✓ it P14 verifies 100 seeded CRM scalar list count snapshots on the…  40.80s  
+  ✓ it V33 R58 explains real authority and resource SQL on 100000 clien… 9.09s  
+
+   PASS  Tests\Engines\StorageConstraintsTest
+  ✓ it enforces byte identities and tenant context pair constraints on…  0.90s  
+
+   PASS  Tests\Engines\DatabaseSourceEngineTest
+  ✓ it fails closed for a trailing-space stored permission instead of n… 0.91s  
+  ✓ it preserves binary host identities exact scoped pairs future expir… 0.90s  
+  ✓ it pins every Default authority query to the configured distinct re… 0.87s  
+  ✓ it never queries direct permission grants in engine rolesOnly mode   0.88s  
+
+   PASS  Tests\Engines\StorageDdlTest
+  ✓ it matches actual engine columns indexes constraints and collations… 3.50s  
+  ✓ it writes the journal in the transaction of the change, prunes expi… 1.40s  
+
+   PASS  Tests\Engines\StateResetRaceTest
+  ✓ it I6 V100 lets reset ∥ cached read keep the old answer only until…  1.87s  
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 2.13s  
+  ✓ it I6 serializes reset ∥ grant by the panel_state lock in both orde… 2.16s  
+
+   PASS  Tests\Engines\HostSnapshotRaceTest
+  ✓ it V99 lock-first joint protocol commits protected host work while…  1.42s  
+  ✓ it V99 rejects a real old repeatable-read host snapshot after indep… 1.18s  
+
+   PASS  Tests\Engines\MutateDeadlockTest
+  ✓ it retries a real deadlock as its victim and bumps each panel once   1.30s  
+
+   PASS  Tests\Engines\BatchFenceRaceTest
+  ✓ it reads a deduplicated context union in bounded chunks inside one…  1.13s  
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 1.37s  
+  ✓ it keeps every chunk in the snapshot when another process revokes b… 1.44s  
+Engine: mariadb 10.11.19-MariaDB-ubu2204
+
+   PASS  Tests\Engines\ScopedSourceIntegrationTest
+  ✓ it reports the SQL engine and server version used by the acceptance… 0.94s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.11s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.07s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.99s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.01s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.12s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.98s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.12s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 0.97s  
+  ✓ it runs the scoped scalar acceptance matrix on a real SQL engine wi… 1.18s  
+
+   PASS  Tests\Engines\DirectWritesEngineTest
+  ✓ it blocks server Eloquent write paths before changing rows or panel… 0.90s  
+
+   PASS  Tests\Engines\FenceRaceTest
+  ✓ it V99 fails closed when another process deletes the catalogue betw… 1.16s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.36s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.15s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.17s  
+  ✓ it V99 reads one snapshot across a process barrier and never retrie… 1.16s  
+
+   PASS  Tests\Engines\StorageIsolationTest
+  ✓ it isolates storage locks and reads only committed state             4.50s  
+
+   PASS  Tests\Engines\DynamicActionRaceTest
+  ✓ it C9 leaves no grant of the deleted name when a grant that passed…  2.25s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 2.16s  
+  ✓ it orders update ∥ delete by the panel lock: a delete first makes t… 2.15s  
+  ✓ it refuses a create that waited for a concurrent create of the same… 2.31s  
+  ✓ it lets a create of the name win after a concurrent delete and star… 2.44s  
+  ✓ it C9 refuses a grant of a name that a concurrent delete removed fi… 2.14s  
+  ✓ it keeps tenant B grant and permission of the same name out of a co… 2.22s  
+
+   PASS  Tests\Engines\GrantFieldsEngineTest
+  ✓ it roundtrips custom grant columns and JSON meta on the server       1.02s  
+
+   PASS  Tests\Engines\ChangeRaceTest
+  ✓ it V101 C8 keeps tenant B out of a concurrent sync of tenant A       2.18s  
+  ✓ it R29 refuses a change prepared on the old build after a coordinat… 2.77s  
+  ✓ it R29 refuses a change when the host owner revision moved after pr… 2.62s  
+  ✓ it V101 serializes grant ∥ grant of one identity: one Applied, one…  3.54s  
+  ✓ it V101 retries the root after a real deadlock with fresh pipes and… 2.12s  
+  ✓ it V101 rolls back a change nested in a host transaction on the eng… 1.62s  
+  ✓ it V101 C13 lets one update ∥ update with the same fingerprint win…  2.40s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 2.37s  
+  ✓ it V101 C12 orders revokeIds ∥ update of one id by the panel lock w… 2.21s  
+  ✓ it R29 makes a deployment wait for an in-flight fenced change, whic… 2.23s  
+
+  Tests:    68 passed (2714 assertions)
+  Duration: 162.82s
+  Random Order Seed: 1791898716
+
+
