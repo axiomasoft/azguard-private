@@ -1,0 +1,13 @@
+### composer analyse  (exit 0)
+> vendor/bin/phpstan analyse --memory-limit=1G
+{"tool":"phpstan","result":"passed","errors":0}
+
+### vendor/bin/pint --test packages tests bin  (exit 0)
+{"tool":"pint","result":"passed"}
+### composer refactor:check  (exit 0)
+> vendor/bin/rector process --dry-run
+{"tool":"rector","result":"passed","totals":{"changed_files":0,"errors":0}}
+
+### composer api:check  (exit 0)
+> php bin/api-manifest.php --check
+
